@@ -6,7 +6,7 @@ This scripts computes four moment invariants of the given data
 and returns order 3, 4, 5 and FL invariant moments as a numpy array.
 It should be noted, current script is based on the assumption that 
 the background intensity value is zero, otherwise a shape mask 
-multiplication is required before running this script  
+multiplication is required before running this script.  
 
 Created by Ray Razlighi on 2010-10-11.
 Copyright (c) 2010 __Columbia University__. All rights reserved.
