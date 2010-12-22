@@ -1,0 +1,41 @@
+Hi Arno
+
+How are things?  Hopefully well.
+
+Re: distortion correction, it's both a very easy and very hard
+problem.   Easy in that I am surprised that you get awful results b/c
+it rarely fails for us.  Hard in that the distortions are usually
+subtle and it's difficult to evaluate performance.
+
+One useful option for distortion correction is this:
+
+ --Restrict-Deformation
+             restrict the gradient that drives the deformation by
+scalar factors along
+             specified dimensions -- a float 'vector' of length
+ImageDimension to multiply
+             against the similarity metric's gradient values --- e.g.
+in 3D : 0.1x1x0 ---
+             will set the z gradient to zero and scale the x gradient
+by 0.1 and y by 1 (no
+             change). Thus, you get a 2.5-Dimensional registration as
+there is still 3D
+             continuity in the mapping.
+             <VALUES>: 1x1
+
+which you would set to prefer deformation along the axis of
+distortion.  something like
+
+ --Restrict-Deformation  0.1x1x0.1
+
+We use this approach in pipedream
+
+${ANTSPATH}ANTS 3 -m CC[${OUTPUTNAME}fa.nii.gz,${BRAIN},1,2]  -o
+${OUTPUTNAME}distcorr  -r Gauss[3,1] -t SyN[0.25]  -i 25x30x10
+
+But it's possibly better to replace $BRAIN with the white matter
+probability map.
+
+Hope this helps,
+
+B
