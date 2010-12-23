@@ -1,0 +1,27 @@
+# ANTs COREGISTRATION PIPELINE
+# NOTE: this is only a collection of command samples, it isn't a script.
+
+# 1) Erode FA image to get rid of bright edge.
+fslmaths 50235_FA.nii.gz -kernel 3D -ero FA_eroded
+
+# 2) Crop T1-file to reduce FOV to where there is brain. (Save a lot of computational time)
+fslroi T1data_masked.nii.gz T1_cropped 64 126 45 173 20 134
+
+# 3) Computing the non linear registration. It uses a mix of setting suggested by ANTs developers and Arno's paper. (NOTE: do not use the Histogram-Matching option, it doesn't work):
+/data/BI/Toolbox/software/ants_mac_svn460/bin/ANTS 3 -m PR[/data/export/home/denis/T1_2_DTI_coregistration/50235/T1_cropped.nii.gz,/data/export/home/denis/T1_2_DTI_coregistration/50235/FA_eroded.nii.gz,1,2]  -o /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/FA_2_T1_ -r Gauss[3,1] -t SyN[0.25]  -i 30x99x11 --number-of-affine-iterations 1000x1000x1000x1000x1000
+
+# 4) Moving the T1 image to the DTI space
+/data/BI/Toolbox/software/ants_mac_svn460/bin/WarpImageMultiTransform 3 /data/export/home/denis/T1_2_DTI_coregistration/50235/T1_cropped.nii.gz /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/T1_warped_2_FA.nii.gz -R /data/export/home/denis/T1_2_DTI_coregistration/50235/FA_eroded.nii.gz -i /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/FA_2_T1_Affine.txt /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/FA_2_T1_InverseWarp.nii.gz
+
+# 5) Moving the ROI
+# 5a) Cropping the ROI
+fslroi mri___aparc+aseg_T1.nii.gz roi_T1_cropped.nii.gz 64 126 45 173 20 134
+# 5b) Moving the ROI
+/data/BI/Toolbox/software/ants_mac_svn460/bin/WarpImageMultiTransform 3 /data/export/home/denis/T1_2_DTI_coregistration/50235/roi_T1_cropped.nii.gz /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/roi_warped_2_FA_NN.nii.gz -R /data/export/home/denis/T1_2_DTI_coregistration/50235/FA_eroded.nii.gz -i /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/FA_2_T1_Affine.txt /data/export/home/denis/T1_2_DTI_coregistration/50235/ants_T1_att8/FA_2_T1_InverseWarp.nii.gz --use-NN
+
+
+
+
+
+
+
