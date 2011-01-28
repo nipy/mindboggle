@@ -1,0 +1,60 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+
+
+    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"><title>Medial Axis for Euclidean Distance in nD</title></head><body bgcolor="#ffffff" link="#0000ff" text="#000000" vlink="#ff0000">
+
+<center>
+<h1>Medial Axis for Euclidean Distance in nD</h1>
+by <a href="http://www.iut-arles.up.univ-mrs.fr/eremy/">Eric Remy</a> and
+   <a href="http://www.lim.univ-mrs.fr/%7Ethiel/">Edouard Thiel</a>
+</center>
+
+<br><br><br>
+<font size="+2">T</font>his page is an appendix to our paper: <p>
+</p><ul>
+E. Remy and E. Thiel.
+&nbsp;&nbsp;&nbsp;
+[ <a href="http://www.lim.univ-mrs.fr/%7Ethiel/print/remy-thiel-ivc05.pdf">pdf</a> 556k ]<br>
+Exact Medial Axis with Euclidean Distance.
+<em>Image and Vision Computing</em>, 23(2):167-175, 2005.
+</ul>
+
+<p><font size="+2">H</font>ere you can download the program sources (in C langage)
+to compute the Look-Up Tables and the Neighbourhoods in several dimensions:
+<a href="http://www.lim.univ-mrs.fr/%7Ethiel/IVC2004/LutEucli2D.c"><code>LutEucli2D.c</code></a> ,
+<a href="http://www.lim.univ-mrs.fr/%7Ethiel/IVC2004/LutEucli3D.c"><code>LutEucli3D.c</code></a> ,
+<code>LutEucli4D.c</code> (coming soon).
+
+</p><p><font size="+2">T</font>o compile, type <code>cc LutEucli2D.c -O2 -o LutEucli2D</code>
+and to run, type <code>./LutEucli2D</code> (the same for 3D and 4D).
+The program will print its usage with command line arguments.
+
+</p><p><font size="+2">T</font>he beginning of the Lut masks are presented in
+the paper in 2D and 3D, Figures 10 and 13. Here are wider Lut masks saved
+in text files (first column the appearance rank <i>i</i>, 
+next columns the coordinates <i>x,y</i> or <i>x,y,z</i>,
+last column the appearance radius <i>R</i>):
+<a href="http://www.lim.univ-mrs.fr/%7Ethiel/IVC2004/dEE2D-Mlut.txt.283">Lut Mask in 2D</a> (283 first vectors),
+<a href="http://www.lim.univ-mrs.fr/%7Ethiel/IVC2004/dEE3D-Mlut.txt.1289">Lut Mask in 3D</a> (1289 first vectors).
+
+</p><p><font size="+2">E</font>rratum: 
+</p><ol>
+<li> Page 168, section 2.3, 1<sup>st</sup> paragraph, 2<sup>nd</sup> line: 
+    replace &nbsp;&nbsp; <font color="green">
+    <i>v<sup>g</sup> = G(v)</i> 
+    </font> &nbsp;&nbsp; with &nbsp;&nbsp; <font color="green">
+    <i>v<sup>g</sup> = G( sigma(v) : sigma in S<sub>G</sub>(n) )</i>
+    </font>.
+</li><li> Page 172, 1<sup>st</sup> paragraph, 2<sup>nd</sup> line: 
+    replace &nbsp;&nbsp; <font color="green">
+    <i>4<sup>a</sup>(8<sup>b</sup>+7)</i>
+    </font> &nbsp;&nbsp; with &nbsp;&nbsp; <font color="green">
+    <i>4<sup>a</sup>(8b+7)</i>
+    </font>.
+</li></ol>
+
+<p><font size="-1">Last update 7 nov 2005</font>
+
+
+</p></body></html>
