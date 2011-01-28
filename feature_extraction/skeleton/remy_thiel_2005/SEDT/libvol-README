@@ -1,0 +1,82 @@
+Libvol
+------
+Contact : Alexis Guillaume :  <aguillau@liris.univ-lyon2.fr>
+Libvol is free software. See file COPYING for details.
+
+0. Contents
+-----------
+
+	1. Presentation
+	2. Compilation and installation
+	3. Supported file formats
+	4. Where to find documentation
+
+1. Presentation
+---------------
+
+	LibVol is a library designed to deal with 3D voxel pictures (a voxel is a 3D pixel).
+
+	It provides features such reading a voxel file, writing a voxel file and dealing with it in a C++ program. It implements its own documented-and-easy file formats.
+
+2. Compilation and installation
+-------------------------------
+
+	Just type :
+		% ./configure && make && sudo make install
+	Librairies and binaries will be installed in /usr/local/.
+	Of course, you can set up a few things like prefix. To see what, juste type :
+		% ./configure --help
+
+	Creating the doxygen documentation (for developers only)
+		Use option --doc=yes of configure script.
+
+	Uninstall :
+		% make uninstall
+
+3. Supported file formats
+-------------------------
+
+Two formats are available directly with the libvol library :
+	
+- .raw files : all data is written in binary :
+	| int SizeX         | int SizeY         | int SizeZ      |\n
+	| 3D raw data [...] |
+	The 3D raw data is just the dump of the matrix of voxel. 
+	In fact, raw data format depends of the machine where it is generated. So it's not very portable. 
+	
+- .vol files : they consist of the concation of a header and a raw file.
+	
+	o A header is made of fields
+	
+	o A field looks like :
+	Type: Value\n (notice the blank after the colon)
+	It's really similar to news or mail header in fact.
+	
+	Here is an example of a .vol file :
+	X: 100
+	Y: 100
+	Z: 10
+	Voxel-Size: 1
+	Author: Dave Null
+	foo: bar
+	.						<-- (a dot followed by a new line indicateis the end of the header) 
+	[ raw data ]
+	
+	Currently, there's a limitation of 64 lines in header, and each line is
+	limited to 127 characters, including '\n'.
+	
+	A few fields are required in vol files : 
+		- X, Y, Z (the dimensions of the picture)
+		- Voxel-Size (size in bytes of a voxel)
+	Some other fields can be useful :
+		- Alpha-Color : the color of an "empty" voxel
+		- Int-Endian : the endianess of an integer (e.g : DCBA, BACD, HGFEDCBA (64 bits int), ...)
+		- Voxel-Endian : the endianess of a voxel
+
+4. Documentation
+----------------
+
+	You can read the man page : 
+		% man vol
+
+	But you should read the tutorial (see tutorial directory).
