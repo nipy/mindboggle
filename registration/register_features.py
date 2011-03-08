@@ -4,67 +4,75 @@ Feature-based registration
 (c) Arno Klein (2011)  .  arno@mindboggle.info  .  http://www.mindboggle.info
 """
                                                                                
-import shlex
+import os
 from subprocess import Popen
 
-#                                                                        Inputs
-ANTSPATH = "/Users/arno/Software/ANTS-build/"
+#
+# Inputs
+#
+ANTSPATH = os.environ.get("ANTSPATH")
 source = "sourceFILE"
 target = "targetFILE"
-output_stem = "outFILE"
-landmark_string = "_feature"
-source_landmarks = source + landmark_string
-target_landmarks = target + landmark_string
-number_of_features = 1
+output = "outFILE"
 
-#                                                       Registration parameters
+#
+# Intensity registration parameters
+#
 dim = 3
-transform_gradient_step_size = 0.5
+gradient_step_size = 0.5
 iterations = "30x100x10"
-affine_iterations = "10000x10000x10000x10000x10000"
-regularize_similarity_gradient_sigma = 3
-regularize_deformation_field_sigma = 0
-measure_radius = 2
-measure_weight = 0.75
+similarity_gradient_sigma = 3
+deformation_field_sigma = 0
+intensity_radius = 2
+intensity_weight = 0.75
+options = " --use-Histogram-Matching"
+initialize = " --number-of-affine-iterations 10000x10000x10000x10000x10000"
 
-#                                              Landmark registration parameters
-boundary_only = 0
-kNeighborhood = 5
-partial_matching_iters = 100000
-landmark_weight = 0.75
-landmark_percent = 100
-landmark_sigma = 5
+#
+# Landmark registration parameters
+#
+labels = ["pits", "fundi"]
+weights = [0.75, 0.5]
+percents = [100, 100]
+sigmas = [0.5, 0.4]
+boundaries = [0, 0]
+neighbors = [5, 5]
+matching_iters = [100000, 100000]  # partial matching iterations
 
-#                                                                     Arguments
+#
+# Arguments
+#
+warp = ANTSPATH + "ANTS " + str(dim)
+apply_warp = ANTSPATH + "WarpImageMultiTransform " + str(dim)
 
-command1 = ANTSPATH + "ANTS " + str(dim)
-command2 = ANTSPATH + "WarpImageMultiTransform " + str(dim)
+transform = "-t SyN[" + str(gradient_step_size) +"] -i " + \
+            str(iterations) + options
 
-intensity_based = "-m CC[" + ", ".join([target, source, str(measure_weight), str(measure_radius)]) + "]"
+regularize = "-r Gauss[" + str(similarity_gradient_sigma) + ", " + \
+             str(deformation_field_sigma) + "]"
 
-landmark_based = "-m PSE[" + ", ".join([target, source, target_landmarks, source_landmarks, str(landmark_weight), str(landmark_percent), str(landmark_sigma), str(boundary_only), str(kNeighborhood), str(partial_matching_iters)]) + "]"
+output = "-o " + output
 
-transform = "-t SyN[" + str(transform_gradient_step_size) +"] -i " + str(iterations) + " --use-Histogram-Matching"
+intensity = [target, source, intensity_weight, intensity_radius]
+intensity = "-m CC[" + ", ".join([str(s) for s in intensity]) + "]"
 
-initialize = "--number-of-affine-iterations " + str(affine_iterations)
+#
+# Arguments for multiple features as landmarks
+#
+landmarks = ""
+for i, label in enumerate(labels):
+    args = [target, source, target + label, source + label,
+               weights[i], percents[i], sigmas[i],
+               boundaries[i], neighbors[i], matching_iters[i]]
+    landmarks = " ".join([landmarks, "-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
 
-regularize = "-r Gauss[" + str(regularize_similarity_gradient_sigma) + ", " + str(regularize_deformation_field_sigma) + "]"
+#
+# Run commands
+#
+args = [warp, intensity, landmarks, output, regularize, transform, initialize]
+#print(args)
+p = Popen(args)
 
-output = "-o " + output_stem
-
-"""
-$count = 0;
-while [ $count -lt $number_of_features ]; do
-    Value of count is: $COUNT
-    let count = count+1
-done 
-"""
-
-#                                                                      Commands
-args = [command1, intensity_based, landmark_based, output, regularize, transform, initialize]
-print(args)
-#p = subprocess.Popen(args)
-
-args = [command2, source, output, '-R '+target, output+'Warp.nii.gz', output+'Affine.txt']
-print(args)
-#p = subprocess.Popen(args)
+args = [apply_warp, source, output, '-R '+target, output+'Warp.nii.gz', output+'Affine.txt']
+#print(args)
+p = Popen(args)
