@@ -19,12 +19,12 @@ output = "outFILE"
 # Intensity registration parameters
 #
 dim = 3
-gradient_step_size = 0.5
-iterations = "30x100x10"
+gradient_step_size = 0.25
+iterations = "100x100x100"
 similarity_gradient_sigma = 3
 deformation_field_sigma = 0
-intensity_radius = 2
-intensity_weight = 0.75
+intensity_radius = 4
+intensity_weight = 1
 options = " --use-Histogram-Matching"
 initialize = " --number-of-affine-iterations 10000x10000x10000x10000x10000"
 
@@ -32,11 +32,12 @@ initialize = " --number-of-affine-iterations 10000x10000x10000x10000x10000"
 # Landmark registration parameters
 #
 labels = ["pits", "fundi"]
-weights = [0.75, 0.5]
-percents = [100, 100]
-sigmas = [0.5, 0.4]
+weights = [0.75, 0.5] # adds up to 1.25, which is > intensity_weight
+percents = [0.99, 0.99]  # real number
+sigmas = [25, 25]  # need experiments with parzen models of the data
+                   # (big numbers are nearly uniform distributions)
 boundaries = [0, 0]
-neighbors = [5, 5]
+neighbors = [10, 10]
 matching_iters = [100000, 100000]  # partial matching iterations
 
 #
