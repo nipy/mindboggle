@@ -4,11 +4,17 @@ Feature-based registration
 (c) Arno Klein (2011)  .  arno@mindboggle.info  .  http://www.mindboggle.info
 """
                                                                                
+import shlex
+from subprocess import Popen
+
 #                                                                        Inputs
-source = 1
-target = 2
-output_stem = 3
+ANTSPATH = "/Users/arno/Software/ANTS-build/"
+source = "sourceFILE"
+target = "targetFILE"
+output_stem = "outFILE"
 landmark_string = "_feature"
+source_landmarks = source + landmark_string
+target_landmarks = target + landmark_string
 number_of_features = 1
 
 #                                                       Registration parameters
@@ -24,28 +30,25 @@ measure_weight = 0.75
 #                                              Landmark registration parameters
 boundary_only = 0
 kNeighborhood = 5
-$partial_matching_iters = 100000
-landmark_weight1 = 0.75
-landmark_percent1 = 100
-landmark_sigma1 = 5
-landmark_weight2 = 0.75
-landmark_percent2 = 100
-landmark_sigma2 = 5
+partial_matching_iters = 100000
+landmark_weight = 0.75
+landmark_percent = 100
+landmark_sigma = 5
 
 #                                                                     Arguments
 
-command1 = ANTSPATH + "ANTS " + dim
-command2 = ANTSPATH + "WarpImageMultiTransform " + dim
+command1 = ANTSPATH + "ANTS " + str(dim)
+command2 = ANTSPATH + "WarpImageMultiTransform " + str(dim)
 
-intensity_based = "-m CC[$target, $source, $measure_weight, $measure_radius]"
+intensity_based = "-m CC[" + ", ".join([target, source, str(measure_weight), str(measure_radius)]) + "]"
 
-landmark_based = "-m PSE[$target,$source,$target_landmarks1,$source_landmarks1,$landmark_weight1,$landmark_percent1,$landmark_sigma1,$boundary_only,$kNeighborhood,$partial_matching_iters]"
+landmark_based = "-m PSE[" + ", ".join([target, source, target_landmarks, source_landmarks, str(landmark_weight), str(landmark_percent), str(landmark_sigma), str(boundary_only), str(kNeighborhood), str(partial_matching_iters)]) + "]"
 
-transform = "-t SyN[$transform_gradient_step_size] -i $iterations --use-Histogram-Matching"
+transform = "-t SyN[" + str(transform_gradient_step_size) +"] -i " + str(iterations) + " --use-Histogram-Matching"
 
-initialize = "--number-of-affine-iterations $affine_iterations"
+initialize = "--number-of-affine-iterations " + str(affine_iterations)
 
-regularize = "-r Gauss[$regularize_similarity_gradient_sigma, $regularize_deformation_field_sigma]"
+regularize = "-r Gauss[" + str(regularize_similarity_gradient_sigma) + ", " + str(regularize_deformation_field_sigma) + "]"
 
 output = "-o " + output_stem
 
@@ -58,9 +61,10 @@ done
 """
 
 #                                                                      Commands
+args = [command1, intensity_based, landmark_based, output, regularize, transform, initialize]
+print(args)
+#p = subprocess.Popen(args)
 
-cmd = ", ".join([command1, intensity_based, landmark_based, output, regularize, transform, initialize])
-print(cmd)
-
-cmd = ", ".join([command2, source, output, "-R "+target, output+"Warp.nii.gz", output+"Affine.txt"])
-print(cmd)
+args = [command2, source, output, '-R '+target, output+'Warp.nii.gz', output+'Affine.txt']
+print(args)
+#p = subprocess.Popen(args)
