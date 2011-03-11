@@ -4,14 +4,8 @@
 #
 # example call:
 #
-# ./basic_ants_example.sh 2 RegSegMSQ OutputPrefix r16slice.nii.gz
-r64slice.nii.gz
+# ./basic_ants_example.sh 2 RegSegMSQ OutputPrefix r16slice.nii.gz r64slice.nii.gz
 #
-# it would be valuable to understand the effect of different
-# combinations of regularization (Gaussian and DMFFD where DMFFD has
-# parameters itself), gradient step size and metric strategy (MSQ or PSE
-# where both have weight parameters and PSE has many others).
-
 #
 if [ $# -lt 5 ] ; then 
 echo this script will allow you to run \( Reg \) a pairwise segmentation,  \( RegSegPSE or RegSegMSQ \) or  run segmentation, then use segmentation output in registration or \( BTP \) build a template.  
