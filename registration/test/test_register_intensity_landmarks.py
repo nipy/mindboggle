@@ -90,7 +90,6 @@ ANTSPATH = '' #os.environ.get("ANTSPATH")
 source = "data/s1"
 target = "data/s2"
 outpath = "output/"
-resultpath = "results/"
 ext = ".nii.gz"
 
 #
@@ -114,6 +113,16 @@ elif regularizer == "Gauss":
     deformation_field_sigma = 0
 
 #
+# Intensity parameters
+#
+intensity_weights = [0.25, 0.5, 1]
+intensity_measure = "CC"
+if intensity_measure == "CC":
+    intensity_settings = [2, 5, 10]  # radius
+elif intensity_measure == "MSQ":
+    intensity_settings = [0]
+
+#
 # Landmark parameters
 #
 labels = ["marks"]
@@ -132,19 +141,21 @@ if landmark_measure == "PSE":
 #                 
 source_file = source + ext
 target_file = target + ext
-eval_file = resultpath + 'landmark_intensity_similarities.txt'
+eval_file = 'docs/landmark_intensity_similarities.txt'
 f_eval = open(eval_file, 'w')
 
 count = 0
 for gradient_step_size in gradient_step_sizes:
   for regularizer_setting in regularizer_settings:
-    for weight in weights:
+    for intensity_weight in intensity_weights:
+      for intensity_setting in intensity_settings:
+        for weight in weights:
          #for neighbor in neighbors:
           #for matching_iter in matching_iters:
               if count<10:
                 count += 1
-                args0 = ['test'+str(count),gradient_step_size,regularizer_setting,weight]
-                #args0 = ['test'+str(count),gradient_step_size,regularizer_setting,weight,neighbor,matching_iter]
+                args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight]
+                #args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight,neighbor,matching_iter]
                 output = outpath + '_'.join([str(s) for s in args0])
                 output_file = output + ext
                 print("test " + str(count) + ": " + output_file)
