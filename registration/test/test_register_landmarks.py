@@ -90,6 +90,7 @@ ANTSPATH = '' #os.environ.get("ANTSPATH")
 source = "data/s1"
 target = "data/s2"
 outpath = "output/"
+resultpath = "results/"
 ext = ".nii.gz"
 
 #
@@ -113,16 +114,6 @@ elif regularizer == "Gauss":
     deformation_field_sigma = 0
 
 #
-# Intensity parameters
-#
-intensity_weights = [0.25, 0.5, 1]
-intensity_measure = "CC"
-if intensity_measure == "CC":
-    intensity_settings = [2, 5, 10]  # radius
-elif intensity_measure == "MSQ":
-    intensity_settings = [0]
-
-#
 # Landmark parameters
 #
 labels = ["marks"]
@@ -141,22 +132,20 @@ if landmark_measure == "PSE":
 #                 
 source_file = source + ext
 target_file = target + ext
-eval_file = 'docs/landmark_intensity_similarities.txt'
+eval_file = resultpath + 'landmark_intensity_similarities.txt'
 f_eval = open(eval_file, 'w')
 
 count = 0
 for gradient_step_size in gradient_step_sizes:
   for regularizer_setting in regularizer_settings:
-    for intensity_weight in intensity_weights:
-      for intensity_setting in intensity_settings:
-        for weight in weights:
+    for weight in weights:
          #for neighbor in neighbors:
           #for matching_iter in matching_iters:
               if count<10:
                 count += 1
-                args = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight]
-                #args = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight,neighbor,matching_iter]
-                output = outpath + '_'.join([str(s) for s in args])
+                args0 = ['test'+str(count),gradient_step_size,regularizer_setting,weight]
+                #args0 = ['test'+str(count),gradient_step_size,regularizer_setting,weight,neighbor,matching_iter]
+                output = outpath + '_'.join([str(s) for s in args0])
                 output_file = output + ext
                 print("test " + str(count) + ": " + output_file)
 
@@ -203,20 +192,20 @@ for gradient_step_size in gradient_step_sizes:
                 if os.path.exists(source_file) and os.path.exists(target_file):
                     args1 = " ".join([warp, out, transform, regularize, intensity, landmarks])
                     print(args1)
-                    p = call(args1, shell="True")
+                    #p = call(args1, shell="True")
                     
                     args2 = " ".join([apply_warp, source_file, output_file, '-R ' + target_file, output+'Warp'+ext, output+'Affine.txt'])
                     print(args2)
-                    p = call(args2, shell="True")
+                    #p = call(args2, shell="True")
 
                     args3 = " ".join([apply_warp, source+label+ext, output+'_'+label+ext, '-R ' + target_file, output+'Warp'+ext, output+'Affine.txt'])
                     print(args3)
-                    p = call(args3, shell="True")
+                    #p = call(args3, shell="True")
 
-                    args4 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', output+'_'+label+ext, target_file, 'temp.txt'])
+                    args4 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', output+'_'+label+ext, target_file, 'temp/intensity_similarity.txt'])
                     print(args4)
-                    p = call(args4, shell="True")
-                    f = open('temp.txt','r')
+                    #p = call(args4, shell="True")
+                    f = open('temp/intensity_similarity.txt','r')
                     temp = f.read()
                     intensity_similarity = temp.split()[-1]
 
@@ -226,20 +215,20 @@ for gradient_step_size in gradient_step_sizes:
                     # -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds 
                     # Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information, 3-SMI
                     
-                    args5 = " ".join([ANTSPATH+'ImageMath', str(dim), 'temp1.nii.gz', 'D', output+'_'+label+ext])
+                    args5 = " ".join([ANTSPATH+'ImageMath', str(dim), 'temp/dtransform_warped.nii.gz', 'D', output+'_'+label+ext])
                     print(args5)
                     p = call(args5, shell="True")
 
-                    args6 = " ".join([ANTSPATH+'ImageMath', str(dim), 'temp2.nii.gz', 'D', target+label+ext])
+                    args6 = " ".join([ANTSPATH+'ImageMath', str(dim), 'temp/dtransform_target.nii.gz', 'D', target+label+ext])
                     print(args6)
                     p = call(args6, shell="True")
 
-                    args7 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', 'temp1.nii.gz', 'temp2.nii.gz', 'temp.txt'])
+                    args7 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', 'temp/dtransform_warped.nii.gz', 'temp/dtransform_target.nii.gz', 'temp/landmark_similarity.txt'])
                     print(args7)
                     p = call(args7, shell="True")
-                    f = open('temp.txt','r')
+                    f = open('temp/landmark_similarity.txt','r')
                     temp = f.read()
                     landmark_similarity = temp.split()[-1]
 
                     # Write test output to file
-                    f_eval.write(' '.join([str(landmark_similarity), str(intensity_similarity), '"'+args1+'"', '\n']))
+                    f_eval.write(' '.join([str(landmark_similarity), str(intensity_similarity), '"'+output_file+'"', '"'+args1+'"', '\n']))
