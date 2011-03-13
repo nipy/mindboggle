@@ -133,13 +133,13 @@ elif intensity_measure == "MSQ":
 # Landmark parameters
 #
 landmark_names = ["leftPreCS"]
-weights = [0.25, 0.50, 0.75, 1.0]
+landmark_weights = [0.25, 0.50, 0.75, 1.0]
 landmark_measure = "PSE"
 if landmark_measure == "PSE":
     percent = 0.99  # real number: 0.99 = 100%
     boundary = 0  # 0: not only boundaries
     sigma = 100 # big numbers are nearly uniform distributions
-    neighbors = [5,10,20]
+    neighbors = [5,10]
     matching_iters = [0,100,100000] # partial matching iterations
 
 
@@ -153,13 +153,13 @@ for gradient_step_size in gradient_step_sizes:
   for regularizer_setting in regularizer_settings:
     for intensity_weight in intensity_weights:
       for intensity_setting in intensity_settings:
-        for weight in weights:
+        for landmark_weight in landmark_weights:
            for neighbor in neighbors:
              for matching_iter in matching_iters:
                #if count<1:
                 count += 1
-                #args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight]
-                args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,weight,neighbor,matching_iter]
+                #args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,landmark_weight]
+                args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,landmark_weight,neighbor,matching_iter]
                 output = outpath + '_'.join([str(s) for s in args0])
                 output_file = output + ext
                 if verbose: print("test " + str(count) + ": " + output_file)
@@ -193,11 +193,11 @@ for gradient_step_size in gradient_step_sizes:
                 landmarks = ""
                 for landmark_name in landmark_names:
                     if landmark_measure == "MSQ":
-                        args = [target_landmarks, source_landmarks, weight, 0]
+                        args = [target_landmarks, source_landmarks, landmark_weight, 0]
                         landmarks = " ".join([landmarks, "-m MSQ[" + ", ".join([str(s) for s in args]) + "]"])
                     elif landmark_measure == "PSE":
                         args = [target, source, target_landmarks, source_landmarks,
-                                weight, percent, sigma,
+                                landmark_weight, percent, sigma,
                                 boundary, neighbor, matching_iter]
                         landmarks = ", ".join(["-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
 
