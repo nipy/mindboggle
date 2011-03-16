@@ -1,5 +1,0 @@
-#Insight Transform File V1.0
-#Transform 0
-Transform: MatrixOffsetTransformBase_double_2_2
-Parameters: 1.0039 -0.00121513 -0.00181644 0.99637 0.0226446 -0.153775
-FixedParameters: 103.908 92.7101

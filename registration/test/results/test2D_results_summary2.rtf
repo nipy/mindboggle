@@ -1,0 +1,154 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf290
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww7020\viewh30900\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\fs24 \cf0 \
+Further results for test2D_register_landmarks.py\
+\
+PREVIOUS parameter settings1 (
+\b bold
+\b0  is better):\
+(test2D_Gauss_MSQ_PSE.csv)\
+   StepSize = [0.1, 0.3, 
+\b 0.5
+\b0 ]  \
+   Regularizer = [2, 5, 10]  \
+   IntWt = [0.0, 0.1, 
+\b 0.2
+\b0 ]   \
+   LMWt = [0.2, 
+\b 0.5
+\b0 , 
+\b 1.0
+\b0 ]\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0    PSE sigma = [2,100]\
+   PSE neighbors = [
+\b 2
+\b0 ,100]\
+   PSE iterations = [0,
+\b 100000
+\b0 ]\
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 Parameter settings2 same as settings1 except:\
+(test2D_Gauss_MSQ_PSE2.csv)\
+   StepSize = [0.5, 
+\b 0.6
+\b0 , 
+\b 0.9
+\b0 ]  \
+   Regularizer = [
+\b 2
+\b0 , 5, 10]  \
+   IntWt = [0.2, 0.3, 
+\b 0.5
+\b0 ]   \
+   LMWt = [0.5, 
+\b 0.75
+\b0 , 
+\b 1.0
+\b0 ]\
+   PSE iterations = [100000]\
+\
+\
+Dice Jaccard  StepSize  Regularizer  IntWt  CC-radius  LMWt  PSE: sigma, neighbors, iterations\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \
+\
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 Gauss - MSQ - PSE\
+-------------------------------------\
+0.54  0.41  0.6  2  0.5  -  0.75  2  100  100000\
+0.54  0.41  0.6  2  0.5  -  1.0  2  2  100000\
+0.54  0.41  0.9  2  0.5  -  0.75  100  2  100000\
+0.54  0.41  0.9  2  0.5  -  1.0  2  2  100000\
+0.54  0.41  0.6  2  0.5  -  1.0  100  2  100000\
+0.54  0.41  0.9  2  0.5  -  1.0  100  2  100000\
+0.54  0.41  0.9  2  0.3  -  1.0  100  2  100000\
+0.54  0.41  0.6  2  0.5  -  1.0  2  100  100000\
+0.54  0.41  0.9  2  0.3  -  0.5  2  2  100000\
+0.54  0.41  0.6  2  0.3  -  0.5  2  2  100000\
+0.54  0.41  0.9  2  0.3  -  0.5  100  2  100000\
+0.54  0.41  0.9  2  0.5  -  0.5  100  2  100000\
+0.54  0.41  0.9  2  0.5  -  0.5  2  100  100000\
+0.54  0.41  0.9  2  0.3  -  0.5  2  100  100000\
+0.54  0.41  0.6  2  0.3  -  1.0  2  100  100000\
+0.54  0.41  0.6  2  0.5  -  0.5  100  2  100000\
+0.54  0.41  0.6  2  0.5  -  0.5  2  2  100000\
+0.54  0.41  0.5  2  0.5  -  1.0  2  2  100000\
+0.54  0.41  0.5  2  0.3  -  0.5  100  2  100000\
+0.53  0.41  0.9  2  0.5  -  0.75  2  2  100000\
+(LMWt = 0)\
+Parameter settings same as settings2 except:\
+IntWt = [0.0]  \
+PSE iterations = [0]\
+0.51  0.38  0.5  5  0.0  -  0.75  2  2  0\
+0.51  0.38  0.5  5  0.0  -  0.5  2  2  0\
+0.51  0.37  0.5  5  0.0  -  0.5  100  2  0\
+\'85\
+\
+\
+Parameter settings3 same as settings2 except:\
+(test2D_Gauss_MSQ_PSE3.csv)\
+   StepSize = [
+\b 0.6
+\b0 , 
+\b 0.7
+\b0 , 
+\b 0.9
+\b0 ]  \
+   Regularizer = [
+\b 1
+\b0 , 2, 3]  \
+   IntWt = [0.5, 
+\b 0.6
+\b0 , 
+\b 0.7
+\b0 ]  \
+   LMWt = [0.8, 
+\b 0.9
+\b0 , 
+\b 1.0
+\b0 ]\
+   PSE sigma = [2]\
+   PSE neighbors = [2]\
+   PSE iterations = [100000]\
+43 rows with the following dice and jaccard values have the following parameters:\
+   StepSize: 
+\b 0.6
+\b0  (15), 
+\b 0.7
+\b0  (15), 
+\b 0.9
+\b0  (13)  \
+   Regularizer: 
+\b 1
+\b0  (25), 2 (17), 3 (1)\
+   IntWt: 0.5 (16), 
+\b 0.6
+\b0  (16), 
+\b 0.7
+\b0  (11)  \
+   LMWt: 0.8 (16), 
+\b 0.9
+\b0  (13), 
+\b 1.0
+\b0  (14)\
+\
+Gauss - MSQ - PSE\
+-------------------------------------\
+0.54  0.41  0.9  1  0.7  -  0.9  2  2  100000\
+0.54  0.41  0.7  1  0.7  -  0.9  2  2  100000\
+0.54  0.41  0.6  2  0.6  -  1.0  2  2  100000\
+0.54  0.41  0.6  1  0.7  -  1.0  2  2  100000\
+\'8543 rows with these dice and jaccard values...\
+(LMWt = 0)\
+Parameter settings same as above except:\
+(test2D_Gauss_MSQ_PSE4.csv)\
+IntWt = [0.0]  \
+PSE iterations = [0, 100000]\
+0.51  0.38  0.6  1  0.0  -  0.9  2  2  100000\
+\'8537 rows with these dice and jaccard values\'85}
