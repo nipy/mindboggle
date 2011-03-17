@@ -1,7 +1,216 @@
 """
 Test of landmark-based registration on 2D slices.
 
+See correspondence below.
 
+(c) Arno Klein (2011)  .  arno@mindboggle.info  .  http://www.mindboggle.info
+"""
+                                                                               
+import os
+from subprocess import call
+from numpy import float, isnan, random
+
+#
+# Inputs
+#
+verbose = 1
+ANTSPATH = '' #os.environ.get("ANTSPATH")
+source = "data/S20_to_S05_axial196.nii.gz"
+target = "data/S05_axial196.nii.gz"
+#labels = [23,27]
+labels = [21,22,23,24,27,28,41,42,43,44,45,46,47,48,49,50]
+source_labels = "data/S20_to_S05_labels_axial196.nii.gz"
+target_labels = "data/S05_labels_axial196.nii.gz"
+source_landmarks = "data/S20_to_S05_axial196_leftPreCS.nii.gz"
+target_landmarks = "data/S05_axial196_leftPreCS.nii.gz"
+regularizer = "Gauss"  # Gauss or DMFFD
+intensity_measure = "MSQ"  # MSQ or CC
+landmark_measure = "MSQ"  # MSQ or PSE
+output_dir = "output/"
+temp_dir = "output/temp/"
+outpath = output_dir+"test2D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+results = output_dir+"test2D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+".csv"
+ext = ".nii.gz"
+
+#
+# Registration parameters
+#
+dim = 2
+gradient_step_sizes = [0.1, 0.15, 0.25, 0.35, 0.5]
+iterations = "200x200x200x200"
+options = " --use-Histogram-Matching"
+initialize = " --number-of-affine-iterations 0" #10000x10000x10000x10000x10000"
+
+intensity_weights = [0.0, 0.25, 0.5]
+landmark_weights = [0.5, 0.75, 1.0]
+
+#
+# Initialize settings below
+#
+intensity_settings = [0]
+sigmas = [0]
+neighbors = [0]
+matching_iters = [0]
+#
+# Regularization parameters
+#
+if regularizer == "Gauss":
+    regularizer_settings = [3, 4, 5, 6, 9]  # similarity gradient sigma
+    deformation_field_sigma = 0
+elif regularizer == "DMFFD":
+    regularizer_settings = ['32x32']  # DMFFD iterations
+    bspline_order = 3
+#
+# Intensity parameters
+#
+if intensity_measure == "CC":
+    intensity_settings = [2, 5]  # radius
+#
+# Landmark parameters
+#
+if landmark_measure == "PSE":
+    percent = 0.99  # real number: 0.99 = 100%
+    boundary = 0  # 0: not only boundaries
+    sigmas = [5, 100] #[2,100] # big numbers are nearly uniform distributions
+    neighbors = [1, 10] # 1=ICP
+    matching_iter = 100000 # partial matching iterations
+
+#
+# Begin!
+#
+f_eval = open(results, 'w')
+print('Number of tests: ' + str(len(gradient_step_sizes)*len(regularizer_settings)*len(intensity_weights)*len(intensity_settings)*len(landmark_weights)*len(sigmas)*len(neighbors)*len(matching_iters)))
+count = 0
+for gradient_step_size in gradient_step_sizes:
+  for regularizer_setting in regularizer_settings:
+    for intensity_weight in intensity_weights:
+      for intensity_setting in intensity_settings:
+        for landmark_weight in landmark_weights:
+          for sigma in sigmas:
+            for neighbor in neighbors:
+                count += 1
+                if landmark_measure == 'PSE':
+                    args0 = ['test'+str(count),gradient_step_size,iterations,regularizer_setting,intensity_weight,intensity_setting,landmark_weight,sigma,neighbor]
+                elif landmark_measure == 'MSQ':
+                    args0 = ['test'+str(count),gradient_step_size,iterations,regularizer_setting,intensity_weight,intensity_setting,landmark_weight]
+                output = outpath + '_'.join([str(s) for s in args0])
+                output_file = output + ext
+                if verbose: print("test " + str(count) + ": " + output_file)
+
+                #
+                # Arguments for ANTS
+                #
+
+                # Output:
+                out = "-o " + output_file
+
+                # Transform:
+                warp = ANTSPATH + "ANTS " + str(dim)
+                apply_warp = ANTSPATH + "WarpImageMultiTransform " + str(dim)
+
+                transform = "-t SyN[" + str(gradient_step_size) +"] -i " + \
+                            str(iterations) + options + initialize
+
+                # Regularize:
+                if regularizer == "Gauss":
+                    regularize = "-r Gauss[" + str(regularizer_setting) + ", " + \
+                                 str(deformation_field_sigma) + "]"
+                else:
+                    regularize = "-r DMFFD["+ regularizer_setting + ", 0, " + str(bspline_order) + "]"
+
+                # Intensity similarity:
+                intensity = [target, source, intensity_weight, intensity_setting]
+                intensity = "-m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
+
+                # Landmark similarity:
+                landmarks = ""
+                if landmark_measure == "MSQ":
+                    args = [target_landmarks, source_landmarks, landmark_weight, 0]
+                    landmarks = " ".join([landmarks, "-m MSQ[" + ", ".join([str(s) for s in args]) + "]"])
+                elif landmark_measure == "PSE":
+                    args = [target, source, target_landmarks, source_landmarks,
+                            landmark_weight, percent, sigma,
+                            boundary, neighbor, matching_iter]
+                    landmarks = ", ".join(["-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
+
+                #
+                # Run commands
+                #
+                if os.path.exists(source) and os.path.exists(target) and \
+                   os.path.exists(source_landmarks) and os.path.exists(target_landmarks):
+                  if os.path.exists(output_file):  print('File already exists: '+output_file)
+                  else:
+                    args1 = " ".join([warp, out, transform, regularize, intensity, landmarks])
+                    if verbose: print(args1)
+                    p = call(args1, shell="True")
+
+                    args2 = " ".join([apply_warp, source, output_file, '-R ' + target, output+'Warp'+ext, output+'Affine.txt'])
+                    if verbose: print(args2)
+                    p = call(args2, shell="True")
+
+                    args3 = " ".join([apply_warp, source_landmarks, output+'_landmarks'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
+                    if verbose: print(args3)
+                    p = call(args3, shell="True")
+
+                    args4 = " ".join([apply_warp, source_labels, output+'_labels'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
+                    if verbose: print(args4)
+                    p = call(args4, shell="True")
+
+                    average_dice = 0
+                    average_jacc = 0
+                    rndstr = str(random.random())
+                    for label in labels:
+                        args5 = " ".join(['c3d', output+'_labels'+ext, target_labels, '-overlap', str(label), '>'+temp_dir+rndstr+'.txt'])
+                        if verbose: print(args5)
+                        p = call(args5, shell="True")
+                        f = open(temp_dir+rndstr+'.txt','r')
+                        temp = f.read()
+                        dice = float(temp.split()[-2].split(',')[0])
+                        jacc = float(temp.split()[-1].split(',')[0])
+                        if isnan(dice):
+                            dice = 0
+                        if isnan(jacc):
+                            jacc = 0
+                        average_dice += dice
+                        average_jacc += jacc
+                        #print_out = ', '.join(['test '+str(count), ' '.join(temp.split()[-6:]), '"'+output_file+'"', '"'+args1+'"\n'])
+                    average_dice = average_dice/len(labels)
+                    average_jacc = average_jacc/len(labels)
+                    print_out = ', '.join(['Test '+str(count), str(average_dice), str(average_jacc), '"'+output_file+'"', '"'+args1+'"\n'])
+                    print(print_out)
+                    f_eval.write(print_out)
+
+                    """
+                    # MeasureImageSimilarity ImageDimension whichmetric image1.ext image2.ext 
+                    #                        {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}
+                    # target-value and epsilon-tolerance set goals for the metric value 
+                    # -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds 
+                    # Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information, 3-SMI
+
+                    args4 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', output+'_landmarks'+ext, target, 'output/temp_intensity_similarity.txt'])
+                    if verbose: print(args4)
+                    p = call(args4, shell="True")
+                    f = open('output/temp_intensity_similarity.txt','r')
+                    temp = f.read()
+
+                    intensity_similarity = temp.split()[-1]
+                    args5 = " ".join([ANTSPATH+'ImageMath', str(dim), 'output/temp_dtransform_warped.nii.gz', 'D', output+'_landmarks'+ext])
+                    if verbose: print(args5)
+                    p = call(args5, shell="True")
+
+                    args6 = " ".join([ANTSPATH+'ImageMath', str(dim), 'output/temp_dtransform_target.nii.gz', 'D', target_landmarks])
+                    if verbose: print(args6)
+                    p = call(args6, shell="True")
+
+                    args7 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', 'output/temp_dtransform_warped.nii.gz', 'output/temp_dtransform_target.nii.gz', 'output/temp_landmark_similarity.txt'])
+                    if verbose: print(args7)
+                    p = call(args7, shell="True")
+                    f = open('output/temp_landmark_similarity.txt','r')
+                    temp = f.read()
+                    landmark_similarity = temp.split()[-1]
+                    """
+
+"""
 Parameter ranges suggested by Brian Avants (2/28/2011):
 "
 --- Gaussian:  [3,0], [4,0], [5,0], [6,0], [9,0]
@@ -77,218 +286,4 @@ about symmetry. Collaborators at UPenn in the mechanical engineering department
 just put out an abstract where they investigated different ANTs configurations 
 for disc mechanics and they preferred DMFFD to the Gaussian regularization.
 "
-
-(c) Arno Klein (2011)  .  arno@mindboggle.info  .  http://www.mindboggle.info
 """
-                                                                               
-import os
-from subprocess import call
-from numpy import float, isnan
-
-#
-# Inputs
-#
-verbose = 1
-ANTSPATH = '' #os.environ.get("ANTSPATH")
-source = "data/S20_to_S05_axial196.nii.gz"
-target = "data/S05_axial196.nii.gz"
-#labels = [23,27]
-labels = [21,22,23,24,27,28,41,42,43,44,45,46,47,48,49,50]
-source_labels = "data/S20_to_S05_labels_axial196.nii.gz"
-target_labels = "data/S05_labels_axial196.nii.gz"
-source_landmarks = "data/S20_to_S05_axial196_leftPreCS.nii.gz"
-target_landmarks = "data/S05_axial196_leftPreCS.nii.gz"
-regularizer = "Gauss"
-intensity_measure = "MSQ"
-landmark_measure = "PSE"
-outpath = "output/test2D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results = "results/test2D_"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"4.csv"
-ext = ".nii.gz"
-
-#
-# Registration parameters
-#
-dim = 2
-gradient_step_sizes = [0.6,0.7,0.9] #[0.5,0.6,0.9] #[0.1,0.3,0.5]
-iterations = "100x100"
-options = " --use-Histogram-Matching"
-initialize = ""  # --number-of-affine-iterations 10000x10000x10000x10000x10000"
-
-#
-# Regularization parameters
-#
-if regularizer == "DMFFD":
-    regularizer_settings = ['12x12']  # DMFFD iterations
-    bspline_order = 3
-elif regularizer == "Gauss":
-    regularizer_settings = [1,2,3] #[2, 5, 10]  # similarity gradient sigma
-    deformation_field_sigma = 0
-
-#
-# Intensity parameters
-#
-intensity_weights = [0.0] #[0.5,0.6,0.7] #[0.2, 0.3, 0.5] #[0.0, 0.1, 0.2]
-if intensity_measure == "CC":
-    intensity_settings = [2,5]  # radius
-elif intensity_measure == "MSQ":
-    intensity_settings = [0]
-
-#
-# Landmark parameters
-#
-landmark_weights = [0.8,0.9,1.0] #[0.2,0.5,1.0]
-if landmark_measure == "PSE":
-    percent = 0.99  # real number: 0.99 = 100%
-    boundary = 0  # 0: not only boundaries
-    sigmas = [2] #[2,100] # big numbers are nearly uniform distributions
-    neighbors = [2] #[2,100]
-    matching_iters = [0,100000] #[0,100000] # partial matching iterations
-elif landmark_measure == "MSQ":
-    sigmas = [0]
-    neighbors = [0]
-    matching_iters = [0]
-
-#
-# Begin!
-#
-f_eval = open(results, 'w')
-print('Number of tests: ' + str(len(gradient_step_sizes)*len(regularizer_settings)*len(intensity_weights)*len(intensity_settings)*len(landmark_weights)*len(sigmas)*len(neighbors)*len(matching_iters)))
-count = 0
-for gradient_step_size in gradient_step_sizes:
-  for regularizer_setting in regularizer_settings:
-    for intensity_weight in intensity_weights:
-      for intensity_setting in intensity_settings:
-        for landmark_weight in landmark_weights:
-          for sigma in sigmas:
-            for neighbor in neighbors:
-              for matching_iter in matching_iters:
-                #if count<1:
-                count += 1
-                if landmark_measure == 'PSE':
-                    args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,landmark_weight,sigma,neighbor,matching_iter]
-                elif landmark_measure == 'MSQ':
-                    args0 = ['test'+str(count),gradient_step_size,regularizer_setting,intensity_weight,intensity_setting,landmark_weight]
-                output = outpath + '_'.join([str(s) for s in args0])
-                output_file = output + ext
-                if verbose: print("test " + str(count) + ": " + output_file)
-
-                #
-                # Arguments for ANTS
-                #
-
-                # Output:
-                out = "-o " + output_file
-
-                # Transform:
-                warp = ANTSPATH + "ANTS " + str(dim)
-                apply_warp = ANTSPATH + "WarpImageMultiTransform " + str(dim)
-
-                transform = "-t SyN[" + str(gradient_step_size) +"] -i " + \
-                            str(iterations) + options + initialize
-
-                # Regularize:
-                if regularizer == "Gauss":
-                    regularize = "-r Gauss[" + str(regularizer_setting) + ", " + \
-                                 str(deformation_field_sigma) + "]"
-                else:
-                    regularize = "-r DMFFD["+ regularizer_setting + ", 0, " + str(bspline_order) + "]"
-
-                # Intensity similarity:
-                intensity = [target, source, intensity_weight, intensity_setting]
-                intensity = "-m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
-
-                # Landmark similarity:
-                landmarks = ""
-                if landmark_measure == "MSQ":
-                    args = [target_landmarks, source_landmarks, landmark_weight, 0]
-                    landmarks = " ".join([landmarks, "-m MSQ[" + ", ".join([str(s) for s in args]) + "]"])
-                elif landmark_measure == "PSE":
-                    args = [target, source, target_landmarks, source_landmarks,
-                            landmark_weight, percent, sigma,
-                            boundary, neighbor, matching_iter]
-                    landmarks = ", ".join(["-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
-
-                #
-                # Run commands
-                #
-                if os.path.exists(source) and os.path.exists(target) and \
-                   os.path.exists(source_landmarks) and os.path.exists(target_landmarks) and \
-                   not os.path.exists(output_file):
-
-                    args1 = " ".join([warp, out, transform, regularize, intensity, landmarks])
-                    if verbose: print(args1)
-                    p = call(args1, shell="True")
-
-                    args2 = " ".join([apply_warp, source, output_file, '-R ' + target, output+'Warp'+ext, output+'Affine.txt'])
-                    if verbose: print(args2)
-                    p = call(args2, shell="True")
-
-                    args3 = " ".join([apply_warp, source_landmarks, output+'_landmarks'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
-                    if verbose: print(args3)
-                    p = call(args3, shell="True")
-
-                    args3 = " ".join([apply_warp, source_labels, output+'_labels'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
-                    if verbose: print(args3)
-                    p = call(args3, shell="True")
-
-                    compare_labels = 1
-                    average_overlaps = 1
-                    if compare_labels:
-                        average_dice = 0
-                        average_jaccard = 0
-                        for label in labels:
-                            args4 = " ".join(['c3d', output+'_labels'+ext, target_labels, '-overlap', str(label), '>'+outpath+'temp_overlap.txt'])
-                            if verbose: print(args4)
-                            p = call(args4, shell="True")
-                            f = open(outpath+'temp_overlap.txt','r')
-                            temp = f.read()
-                            if average_overlaps:
-                                dice = float(temp.split()[-2].split(',')[0])
-                                jaccard = float(temp.split()[-1].split(',')[0])
-                                if isnan(dice):
-                                    dice = 0
-                                if isnan(jaccard):
-                                    jaccard = 0
-                                average_dice += dice
-                                average_jaccard += jaccard
-                            else:
-                                print_out = ', '.join(['test '+str(count), ' '.join(temp.split()[-6:]), '"'+output_file+'"', '"'+args1+'"\n'])
-                                print(print_out)
-                                f_eval.write(print_out)
-                        if average_overlaps:
-                            average_dice = average_dice/len(labels)
-                            average_jaccard = average_jaccard/len(labels)
-                            print_out = ', '.join(['Test '+str(count), str(average_dice), str(average_jaccard), '"'+output_file+'"', '"'+args1+'"\n'])
-                            print(print_out)
-                            f_eval.write(print_out)
-                    else:
-                        # MeasureImageSimilarity ImageDimension whichmetric image1.ext image2.ext 
-                        #                        {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}
-                        # target-value and epsilon-tolerance set goals for the metric value 
-                        # -- if the metric value is within epsilon-tolerance of the target-value, then the test succeeds 
-                        # Metric 0 - MeanSquareDifference, 1 - Cross-Correlation, 2-Mutual Information, 3-SMI
-
-                        args4 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', output+'_landmarks'+ext, target, 'output/temp_intensity_similarity.txt'])
-                        if verbose: print(args4)
-                        p = call(args4, shell="True")
-                        f = open('output/temp_intensity_similarity.txt','r')
-                        temp = f.read()
-
-                        intensity_similarity = temp.split()[-1]
-                        args5 = " ".join([ANTSPATH+'ImageMath', str(dim), 'output/temp_dtransform_warped.nii.gz', 'D', output+'_landmarks'+ext])
-                        if verbose: print(args5)
-                        p = call(args5, shell="True")
-
-                        args6 = " ".join([ANTSPATH+'ImageMath', str(dim), 'output/temp_dtransform_target.nii.gz', 'D', target_landmarks])
-                        if verbose: print(args6)
-                        p = call(args6, shell="True")
-
-                        args7 = " ".join([ANTSPATH+'MeasureImageSimilarity', str(dim), '2', 'output/temp_dtransform_warped.nii.gz', 'output/temp_dtransform_target.nii.gz', 'output/temp_landmark_similarity.txt'])
-                        if verbose: print(args7)
-                        p = call(args7, shell="True")
-                        f = open('output/temp_landmark_similarity.txt','r')
-                        temp = f.read()
-                        landmark_similarity = temp.split()[-1]
-
-                        # Write test output to file
-                        f_eval.write(' '.join([str(landmark_similarity), str(intensity_similarity), '"'+output_file+'"', '"'+args1+'"', '\n']))
