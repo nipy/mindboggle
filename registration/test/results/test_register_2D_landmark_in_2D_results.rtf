@@ -1,0 +1,208 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf290
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fswiss\fcharset0 ArialMT;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww12920\viewh31020\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\fs24 \cf0 \
+Results for test_register_landmarks.py for a 2D landmark in 2D\
+(top rounded Dice and Jaccard scores -- 
+\b bold
+\b0  is best)\
+\
+---------------------\
+PARAMETERS\
+---------------------\
+   Iterations                       = "200x200x200x200"  # See ITERATIONS section below  \
+   StepSize                       = [0.1, 0.15, 
+\b 0.25, 0.35, 0.5
+\b0 ]  \
+   IntWt                               = [0.0, 0.25, 
+\b 0.5
+\b0 ]  # 0.5 better than 0.6 or 0.4 for best Gauss - MSQ - MSQ settings below\
+   LMWt                              = [0.5, 0.75, 1.0]\
+   Regularizer (Gauss)   = [
+\b 3
+\b0 , 4, 5, 6, 9]     # 3 better than 2 for best Gauss - MSQ - MSQ settings below\
+   Regularizer (DMFFD) = ['32x32']            # better than 32x16, 16x32, 64x64 for best DMFFD - MSQ - PSE settings below\
+                                                                         # In previous tests, [>24]x[>24] generated similar results\
+   IntSetting (CC)             = [2, 
+\b 5
+\b0 ]                   # 5 same as 4, better than 3 or 6 for best Gauss - CC - MSQ settings below\
+   PSE-sigma                    = [5, 100]  \
+   PSE-neighbors             = [1, 
+\b 10
+\b0 ]                # 10 better than 5, 20, or 100 for best DMFFD - MSQ - PSE settings below\
+\
+   NOTE: PSE pointSetPercentage was set to 0.99 instead of 1.0, so not all points were sampled for PSE tests.\
+\
+\
+-----------------\
+ITERATIONS\
+-----------------\
+Regarding Iterations, the number of iterations within a phase and number of phases both affect the results.\
+Not surprisingly, 200x200x200x200 performs better than 100x100 or 200x200 or 100x100x100x100.\
+Surprisingly, for the best Gauss - MSQ - MSQ settings below, 200 does better than 300 or 500:\
+\
+ANTS 2 -o \'85 -t SyN[0.25] -i 200x200x200x200 --use-Histogram-Matching --number-of-affine-iterations 0 -r Gauss[3, 0] -m MSQ[data/S05_axial196.nii.gz, data/S20_to_S05_axial196.nii.gz, 0.5, 0]  -m MSQ[data/S05_axial196_leftPreCS.nii.gz, data/S20_to_S05_axial196_leftPreCS.nii.gz, 0.5, 0]\
+\
+0.54741725625, 0.41602955  (200x200x200x200)\
+0.54253690625, 0.4107336  (300x300x300x300)\
+0.54007060625, 0.4077542375  (500x500x500x500)\
+\
+200 iterations also do better than 500 for the second best DMFFD - MSQ - PSE settings:\
+\
+0.5453658875, 0.4149560625  (200x200x200x200)\
+0.535208225, 0.40654209375  (500x500x500x500) \
+\
+However, 500 iterations do slightly better than 200 for the best DMFFD - MSQ - PSE settings with extreme StepSize (0.5):\
+\
+ANTS 2 -o ... -t SyN[0.5] -i 200x200x200x200 --use-Histogram-Matching --number-of-affine-iterations 0 -r DMFFD[32x32, 0, 3] -m MSQ[data/S05_axial196.nii.gz, data/S20_to_S05_axial196.nii.gz, 0.5, 0] -m PSE[data/S05_axial196.nii.gz, data/S20_to_S05_axial196.nii.gz, data/S05_axial196_leftPreCS.nii.gz, data/S20_to_S05_axial196_leftPreCS.nii.gz, 0.5, 0.99, 5, 0, 10, 100000]\
+\
+0.54600649375, 0.41589317  (200x200x200x200)\
+0.54905541875, 0.419797375  (500x500x500x500) \
+\
+Perhaps this (slight) difference is because a step size of 0.5 (or greater)\
+might lead to less stable results?  Above 0.5, registration becomes less stable, \
+and less interpretable, as Brian Avants pointed out (3/16/2010): \
+"
+\f1\fs26 step size should probably never go above 0.5 if you are using syn ----\
+\pard\pardeftab720\ql\qnatural
+\cf0 otherwise you are likely to break the cfl condition that says we can\
+only move a voxel at a time, given a gradient based registration."
+\f0\fs24 \
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+\cf0 \
+\
+--------------\
+RESULTS  (>4,905 tests total)\
+--------------\
+\
+Dice Jaccard  StepSize  Iterations  Regularizer  IntWt  IntSetting  LMWt  PSE-sigma  PSE-neighbors\
+\
+Gauss - MSQ - MSQ  (225 tests)\
+-------------------------------------\
+0.55  0.42     0.25  200x200x200x200  3  0.5  -  0.5\
+0.55  0.41     0.35  200x200x200x200  3  0.5  -  1.0\
+0.55  0.41     0.50  200x200x200x200  6  0.5  -  0.75\
+0.55  0.41     0.50  200x200x200x200  4  0.5  -  1.0\
+0.55  0.42     0.50  200x200x200x200  3  0.5  -  1.0\
+0.54  0.41     0.25  200x200x200x200  4  0.5  -  0.75\
+...\
+(LMWt = 0) \
+0.50  0.37     0.10  200x200x200x200  5  0.0  -  0.50\
+0.50  0.37     0.10  200x200x200x200  3  0.0  -  0.50\
+0.50  0.36     0.10  200x200x200x200  3  0.0  -  1.00\
+0.50  0.37     0.15  200x200x200x200  6  0.0  -  0.50\
+0.50  0.37     0.10  200x200x200x200  4  0.0  -  0.50\
+0.50  0.36     0.10  200x200x200x200  3  0.0  -  0.75\
+0.50  0.36     0.10  200x200x200x200  6  0.0  -  0.50\
+0.50  0.36     0.15  200x200x200x200  3  0.0  -  0.50\
+0.49  0.35     0.15  200x200x200x200  3  0.0  -  0.75\
+\
+\
+Gauss - MSQ - PSE  (900 tests)\
+-------------------------------------\
+0.55  0.42     0.50  200x200x200x200  3  0.50  -  0.50  100  1\
+0.55  0.42     0.25  200x200x200x200  4  0.50  -  0.75  100  1\
+0.55  0.42     0.50  200x200x200x200  3  0.25  -  0.75  100  1\
+0.55  0.42     0.50  200x200x200x200  3  0.50  -  0.50    5  1\
+0.55  0.42     0.50  200x200x200x200  3  0.50  -  0.75  100  1\
+0.55  0.41     0.25  200x200x200x200  4  0.50  -  0.50  100  1\
+...\
+(LMWt = 0) \
+0.51  0.37     0.50  200x200x200x200  3  0.50  -  0.50    5  1\
+0.51  0.37     0.35  200x200x200x200  3  1.00  -  0.50  100  1\
+0.50  0.37     0.35  200x200x200x200  4  0.75  -  0.50    5  1\
+\'85\
+\
+\
+DMFFD - MSQ - PSE  (180 tests)\
+-------------------------------------\
+0.55  0.42     0.50  200x200x200x200  32x32  0.50  -  0.50  5  10\
+0.55  0.42     0.35  200x200x200x200  32x32  0.50  -  0.75  100  10\
+0.55  0.42     0.35  200x200x200x200  32x32  0.50  -  1.00  100  10\
+0.55  0.42     0.35  200x200x200x200  32x32  0.50  -  1.00  5  10\
+0.54  0.41     0.35  200x200x200x200  32x32  0.50  -  0.75  5  10\
+...\
+(LMWt = 0) \
+0.51  0.37     0.50  200x200x200x200  32x32  0.00  -  0.75  5  1\
+0.51  0.37     0.35  200x200x200x200  32x32  0.00  -  0.75  100  1\
+0.51  0.37     0.35  200x200x200x200  32x32  0.00  -  0.50  100  1\
+0.51  0.37     0.15  200x200x200x200  32x32  0.00  -  1.00  100  1\
+0.51  0.37     0.50  200x200x200x200  32x32  0.00  -  1.00  100  1\
+0.51  0.37\'85\
+many more\'85\
+\
+\
+Gauss - MSQ - PSE  (900 tests)\
+-------------------------------------\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  0.50  5  10\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  0.50  100  1\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  1.00  100  1\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  0.50  5  1\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  0.50  100  10\
+0.54  0.41     0.15  200x200x200x200  6  0.5  -  0.50  5  1\
+0.54  0.41     0.15  200x200x200x200  4  0.5  -  0.75  5  1\
+0.54  0.41     0.15  200x200x200x200  4  0.5  -  0.75  100  1\
+0.54  0.41     0.15  200x200x200x200  5  0.5  -  0.50  5  1\
+0.54  0.41     0.15  200x200x200x200  6  0.5  -  0.75  5  1\
+0.54  0.41     0.25  200x200x200x200  3  0.5  -  1.00  5  10\
+0.54  0.40     0.15  200x200x200x200  5  0.5  -  1.00  100  1\
+...\
+(LMWt = 0) \
+0.50  0.37 \'85\
+...\
+\
+\
+Gauss - CC - MSQ  (450 tests)\
+-------------------------------------\
+0.54  0.41     0.35  200x200x200x200  4  0.5  5  0.5\
+0.53  0.40     0.50  200x200x200x200  3  0.5  5  0.5\
+...\
+(LMWt = 0) \
+0.50  0.37 \'85\
+\'85\
+\
+\
+Gauss - CC - PSE  (1,800 tests)\
+-------------------------------------\
+0.54  0.40     0.50  200x200x200x200  3  0.5  2  0.50  5  1\
+0.54  0.40     0.50  200x200x200x200  3  0.5  2  0.50  100  1\
+0.53  0.41     0.50  200x200x200x200  3  0.5  5  0.50  5  1\
+0.53  0.41     0.50  200x200x200x200  3  0.5  5  0.50  100  1\
+0.53  0.40     0.35  200x200x200x200  3  0.5  2  1.00  5  10\
+\'85\
+(LMWt = 0) \
+0.51  0.37     0.35  200x200x200x200  3  0.0  5  1.00  5  1\
+0.51  0.37     0.50  200x200x200x200  3  0.0  2  1.00  5  1\
+0.50  0.37     0.50  200x200x200x200  3  0.0  2  1.00  100  1\
+...\
+\
+\
+DMFFD - CC - PSE  (360 tests)\
+-------------------------------------\
+0.54  0.40     0.50  200x200x200x200  32x32  0.50  2  0.50  100  10\
+0.53  0.40     0.50  200x200x200x200  32x32  0.50  2  0.75  100  10\
+...\
+(LMWt = 0) \
+0.51  0.37\'85\
+...\
+\
+\
+DMFFD - CC - MSQ  (90 tests)\
+-------------------------------------\
+0.53  0.40     0.50  200x200x200x200  32x32  0.50  2  0.75\
+0.53  0.40     0.50  200x200x200x200  32x32  0.50  2  1.0\uc0\u8232 0.53  0.40     0.35  200x200x200x200  32x32  0.50  2  1.0\
+0.53  0.40     0.50  200x200x200x200  32x32  0.50  2  0.5\
+0.52  0.39     0.50  200x200x200x200  32x32  0.25  2  0.75\
+\'85\
+(LMWt = 0)\
+0.51  0.37 \'85\
+\'85\
+\
+\
+\
+\
+\
+}
