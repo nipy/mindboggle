@@ -1,0 +1,100 @@
+{\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf290
+{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 CourierNewPSMT;}
+{\colortbl;\red255\green255\blue255;}
+\margl1440\margr1440\vieww12920\viewh31020\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
+
+\f0\fs24 \cf0 \
+Results for test_register_landmarks.py for a 2D or 3D landmark in 3D\
+(right precentral sulcus in axial slice 196 or preCG bordering SFG, MFG, IFG)\
+\
+-------------------------------------------------------------------\
+BEST PARAMETERS in 2D for Gauss-MSQ-MSQ\
+-------------------------------------------------------------------\
+   Iterations                       = "200x200x200x200"\
+   StepSize                       = [0.25]  \
+   IntWt                               = [0.5]\
+   LMWt                              = [0.5]\
+   Regularizer (Gauss)   = [3]\
+\
+--------------------------------\
+EXAMPLE COMMAND\
+--------------------------------\
+Gauss - MSQ - MSQ:\
+\
+ANTS 3 -o <output> -t SyN[0.25] -i 30x100x10\
+--use-Histogram-Matching --number-of-affine-iterations 0 -r Gauss[3, 0] \
+-m MSQ[S05.nii.gz, S20_to_S05.nii.gz, 0.5, 0]  \
+-m MSQ[S05_rightPreCS_in_axial196.nii.gz, S20_to_S05_rightPreCS_in_axial196.nii.gz, 0.5, 0]\
+
+\f1\fs26 WarpImageMultiTransform 3 <source> <output> -R <target> \
+<\'85>Warp.nii.gz <\'85>Affine.txt\
+
+\f0\fs24 \
+---------------------------------------------\
+RESULTS  (Gauss - MSQ - MSQ)\
+---------------------------------------------\
+Dice, Jaccard    StepSize  Iterations  Regularizer  IntWt  LMWt\
+\
+
+\b Overlap of original, unregistered volumes
+\b0   (S20_labels_overlap_S05_labels.txt)
+\b \
+
+\b0 0.0347489785357,  0.0186906670357\
+\
+
+\b Overlap of coregistered volumes
+\b0   (S20_to_S05_labels_overlap_S05_labels.txt):\
+0.521711803571,  0.379255892857\
+\
+
+\b Overlap of coregistered, then 2D landmark-registered volumes  
+\b0 (IntWt = 0,  LMWt = 0.5)
+\b \
+
+\b0 0.521286821429,  0.378782589286     0.10      30x100x10  5  0  0.5\
+0.521562875,         0.378915964286     0.10    100x100x10  5  0  0.5\
+0.519781589286,  0.377165821429     0.10    200x200x10  5  0  0.5\
+0.520046017857,  0.377444767857      0.10  200x200x200  5  0  0.5\
+
+\b \
+Overlap of coregistered, then intensity-registered volumes  
+\b0 (IntWt = 0.5,  LMWt = 0)
+\b \
+
+\b0 0.526615785714,  0.383759589286      0.25      30x100x10  3  0.5  0\
+0.526476482143,  0.383575089286      0.25    100x100x10  3  0.5  0\
+0.526463232143,  0.383581875             0.25    200x200x10  3  0.5  0\
+0.529594232143,  0.386773875             0.25  200x200x200  3  0.5  0\
+
+\b \
+Overlap of coregistered, then intensity + 2D landmark-registered volumes  
+\b0 (IntWt = 0.5,  LMWt = 0.5)
+\b \
+
+\b0 0.526659785714,  0.383797928571     0.25      30x100x10  3  0.5  0.5\
+0.526392571429,  0.383476857143     0.25    100x100x10  3  0.5  0.5\
+0.526407678571,  0.383505107143     0.25    200x200x10  3  0.5  0.5\
+0.529616375,         0.386777857143     0.25  200x200x200  3  0.5  0.5\
+
+\b \
+Overlap of coregistered, then intensity + 3D landmark-registered volumes  
+\b0 (IntWt = 0.5,  LMWt = 0.5)
+\b \
+
+\b0 0.527637982143,  0.384916660714     0.25      30x100x10  3  0.5  0.5\
+0.526789375,         0.384004125            0.25    100x100x10  3  0.5  0.5\
+0.527288107143,  0.384516392857     0.25    200x200x10  3  0.5  0.5\
+0.530128035714,  0.387436178571     0.25  200x200x200  3  0.5  0.5\
+
+\b \
+Overlap of coregistered, then intensity + 3D landmark (single labelshell)-registered volumes\
+
+\b0 \
+\
+
+\b Overlap of coregistered, then intensity + 3D landmark (multiple labelshells)-registered volumes\
+
+\b0 \
+}
