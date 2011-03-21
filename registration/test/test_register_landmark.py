@@ -57,7 +57,7 @@ elif dim == 3:
 #outpath = output_dir+"test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
 #results_dir = "results/test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/tables/"
 outpath = output_dir+"test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results_dir = "results/test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/tables/"
+results_dir = "results/test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"
 temp_dir = output_dir+"temp/"
 ext = ".nii.gz"
 
@@ -182,19 +182,19 @@ if os.path.exists(source) and os.path.exists(target) and \
                     #
                     args1 = " ".join([warp, out, transform, regularize, intensity, landmarks])
                     if verbose: print(args1); print('')
-                    p = call(args1, shell="True")
+                    #p = call(args1, shell="True")
 
                     args2 = " ".join([apply_warp, source, output_file, '-R ' + target, output+'Warp'+ext, output+'Affine.txt'])
                     if verbose: print(args2); print('')
-                    p = call(args2, shell="True")
+                    #p = call(args2, shell="True")
 
                     args3 = " ".join([apply_warp, source_landmarks, output+'_landmarks'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
                     if verbose: print(args3); print('')
-                    p = call(args3, shell="True")
+                    #p = call(args3, shell="True")
 
                     args4 = " ".join([apply_warp, source_labels, output+'_labels'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
                     if verbose: print(args4); print('')
-                    p = call(args4, shell="True")
+                    #p = call(args4, shell="True")
 
                     average_dice, average_jacc = measure_overlap(output+'_labels'+ext, target_labels, labels)
                     print_out = ', '.join(['Test '+str(count), str(average_dice), str(average_jacc), '"'+output_file+'"', '"'+args1+'"\n'])
