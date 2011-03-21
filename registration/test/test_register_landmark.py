@@ -50,10 +50,14 @@ elif dim == 3:
         source_landmarks = data_dir+"S20_to_S05_rightPreCS_in_axial196.nii.gz"
         target_landmarks = data_dir+"S05_rightPreCS_in_axial196.nii.gz"
     elif landmark_dim == 3:
-        source_landmarks = data_dir+"S20_to_S05_rightPreCS.nii.gz"
-        target_landmarks = data_dir+"S05_rightPreCS.nii.gz"
-outpath = output_dir+"test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results_dir = "results/test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/tables/"
+        #source_landmarks = data_dir+"S20_to_S05_rightPreCS.nii.gz"
+        #target_landmarks = data_dir+"S05_rightPreCS.nii.gz"
+        source_landmarks = data_dir+"S20_to_S05_labelshells/lpba_b_mask_binary.nii.gz"
+        target_landmarks = data_dir+"S05_labelshells/lpba_b_mask_binary.nii.gz"
+#outpath = output_dir+"test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+#results_dir = "results/test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/tables/"
+outpath = output_dir+"test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+results_dir = "results/test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/tables/"
 temp_dir = output_dir+"temp/"
 ext = ".nii.gz"
 

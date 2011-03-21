@@ -17,7 +17,7 @@ from measure_overlap import measure_overlap
 #
 verbose = 1
 save_results = 1
-overwrite = 0
+overwrite = 1
 ANTSPATH = '' #os.environ.get("ANTSPATH")
 regularizer       = "Gauss"  # Gauss or DMFFD
 intensity_measure = "MSQ"    # MSQ or CC
@@ -27,28 +27,21 @@ dim = 3
 #
 # Files
 #
-data_dir = "/hd2/data/Archive/registration_evaluation_2011_data_output/data/"
-output_dir = "/hd2/data/Archive/registration_evaluation_2011_data_output/output/"
-if dim == 2:
-    labels = [21,22,23,24,27,28,41,42,43,44,45,46,47,48,49,50] #labels = [23,27]
-    source = data_dir+"S20_to_S05_axial196.nii.gz"
-    target = data_dir+"S05_axial196.nii.gz"
-    source_labels = data_dir+"S20_to_S05_labels_axial196.nii.gz"
-    target_labels = data_dir+"S05_labels_axial196.nii.gz"
-    source_landmarks = data_dir+"S20_to_S05_axial196_leftPreCS.nii.gz"
-    target_landmarks = data_dir+"S05_axial196_leftPreCS.nii.gz"
-elif dim == 3:
-    labels = [21,22,23,24,25,26,27,28,29,30,31,32,33,34,41,42,43,44,45,46,
-              47,48,49,50,61,62,63,64,65,66,67,68,81,82,83,84,85,86,87,88,
-              89,90,91,92,101,102,121,122,161,162,163,164,165,166,181,182]
-    source = data_dir+"S20_to_S05.nii.gz"
-    target = data_dir+"S05.nii.gz"
-    source_labels = data_dir+"S20_to_S05_labels.nii.gz"
-    target_labels = data_dir+"S05_labels.nii.gz"
-    source_landmarks = data_dir+"S20_to_S05_leftPreCS_in_axial196.nii.gz"
-    target_landmarks = data_dir+"S05_leftPreCS_in_axial196.nii.gz"
-outpath = output_dir+"test_register_2D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results_dir = "results/test_register_2D_landmark_in_"+str(dim)+"D/tables/"
+data_dir = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/"
+output_dir = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/output/"
+labels = [21,22,23,24,25,26,27,28,29,30,31,32,33,34,41,42,43,44,45,46,
+          47,48,49,50,61,62,63,64,65,66,67,68,81,82,83,84,85,86,87,88,
+          89,90,91,92,101,102,121,122,161,162,163,164,165,166,181,182]
+source = data_dir+"S20_to_S05.nii.gz"
+target = data_dir+"S05.nii.gz"
+source_labels = data_dir+"S20_to_S05_labels.nii.gz"
+target_labels = data_dir+"S05_labels.nii.gz"
+source_landmarks_path = data_dir+"S20_to_S05_labelshells/lpba_b_mask_"
+target_landmarks_path = data_dir+"S05_labelshells/lpba_b_mask_"
+outpath = output_dir+"test_register_3D_labelshells_in_3D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+results_dir = "results/test_register_3D_labelshells_in_3D/tables/"
+#outpath = output_dir+"test_register_3D_landmarks_in_3D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+#results_dir = "results/test_register_3D_landmarks_in_3D/tables/"
 temp_dir = output_dir+"temp/"
 ext = ".nii.gz"
 
@@ -59,9 +52,9 @@ gradient_step_sizes = [0.25] #[0.1, 0.15, 0.25, 0.35, 0.5]
 if dim == 2:
     iterations = "200x200x200x200"
 elif dim == 3:
-    iterations = "10x0x0" #"200x200" #x10"
+    iterations = "30x100x10"
 options = " --use-Histogram-Matching"
-initialize = " --number-of-affine-iterations 0" #10000x10000x10000x10000x10000"
+initialize = " --number-of-affine-iterations 0 --continue-affine 0" #10000x10000x10000x10000x10000"
 
 intensity_weights = [0.5] #[0.0, 0.25, 0.5]
 landmark_weights = [0.5] #[0.5, 0.75, 1.0]
@@ -103,8 +96,7 @@ if landmark_measure == "PSE":
 #
 # Begin!
 #
-if os.path.exists(source) and os.path.exists(target) and \
-   os.path.exists(source_landmarks) and os.path.exists(target_landmarks):
+if os.path.exists(source) and os.path.exists(target):
     if save_results and dim == 2:
         results_file = results_dir+regularizer+"_"+intensity_measure+"_"+landmark_measure+".csv"
         f_eval = open(results_file, 'w')
@@ -159,14 +151,18 @@ if os.path.exists(source) and os.path.exists(target) and \
 
                     # Landmark similarity:
                     landmarks = ""
-                    if landmark_measure == "MSQ":
-                        args = [target_landmarks, source_landmarks, landmark_weight, 0]
-                        landmarks = " ".join([landmarks, "-m MSQ[" + ", ".join([str(s) for s in args]) + "]"])
-                    elif landmark_measure == "PSE":
-                        args = [target, source, target_landmarks, source_landmarks,
-                                landmark_weight, percent, sigma,
-                                boundary, neighbor, matching_iter]
-                        landmarks = ", ".join(["-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
+                    for ilabel, label in enumerate(labels):
+                        #landmark_weight = [landmark_weights[ilabel] for s in labels]
+                        source_landmarks = source_landmarks_path + str(label) + ext
+                        target_landmarks = target_landmarks_path + str(label) + ext
+                        if landmark_measure == "MSQ":
+                            args = [target_landmarks, source_landmarks, landmark_weight, 0]
+                            landmarks += " ".join([" -m MSQ[" + ", ".join([str(s) for s in args]) + "]"])
+                        elif landmark_measure == "PSE":
+                            args = [target, source, target_landmarks, source_landmarks,
+                                    landmark_weight, percent, sigma,
+                                    boundary, neighbor, matching_iter]
+                            landmarks += ", ".join(["-m PSE[" + ", ".join([str(s) for s in args]) + "]"])
 
                     #
                     # Run commands
