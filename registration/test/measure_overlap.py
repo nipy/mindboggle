@@ -7,7 +7,7 @@ arg3:  list of label indices
 
 (c) Arno Klein . arno@mindboggle.info . 2011 . MIT license
 """
-def measure_overlap(source, target, labels):
+def measure_overlap(source="", target="", labels=[]):
 
     from os.path import exists
     if exists(source) and exists(target):
@@ -21,11 +21,11 @@ def measure_overlap(source, target, labels):
                       89,90,91,92,101,102,121,122,161,162,163,164,165,166,181,182]
             #labels = [21,22,23,24,27,28,41,42,43,44,45,46,47,48,49,50]
         if len(source) == 0:
-            source = "data/S20_to_S05_labels_axial196.nii.gz"
-            #source = "output/test2D/Gauss_MSQ_MSQ/test1_0.6_1_0.5_0_0.5_labels.nii.gz"
+            source = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_affineto_S05_labels.nii.gz"
+            #source = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_labels_axial196.nii.gz"
         if len(target) == 0:
-            target = "data/S05_labels_axial196.nii.gz"
-            #"data/S20_to_S05_labels_axial196.nii.gz"
+            target = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S05_labels.nii.gz"
+            #target = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S05_labels_axial196.nii.gz"
 
         average_dice = 0
         average_jacc = 0
