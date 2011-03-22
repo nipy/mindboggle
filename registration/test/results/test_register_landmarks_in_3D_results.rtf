@@ -1,7 +1,7 @@
 {\rtf1\ansi\ansicpg1252\cocoartf1038\cocoasubrtf290
 {\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fmodern\fcharset0 CourierNewPSMT;}
 {\colortbl;\red255\green255\blue255;}
-\margl1440\margr1440\vieww12920\viewh31020\viewkind0
+\margl1440\margr1440\vieww12880\viewh21840\viewkind0
 \pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\ql\qnatural\pardirnatural
 
 \f0\fs24 \cf0 \
@@ -21,7 +21,7 @@ BEST PARAMETERS in 2D for Gauss-MSQ-MSQ\
 EXAMPLE COMMAND\
 -------------------------------\
 ANTS 3 -o <output> -t SyN[0.25] -i 30x100x10\
---use-Histogram-Matching --number-of-affine-iterations 0 -r Gauss[3, 0] \
+--use-Histogram-Matching --number-of-affine-iterations 0 -continue-affine 0 -r Gauss[3, 0] \
 -m MSQ[S05.nii.gz, S20_to_S05.nii.gz, 0.5, 0]  \
 -m MSQ[S05_rightPreCS_in_axial196.nii.gz, S20_to_S05_rightPreCS_in_axial196.nii.gz, 0.5, 0]\
 
@@ -55,7 +55,7 @@ OVERLAP RESULTS after further nonlinear (Gauss-MSQ-MSQ) registration driven by:\
 Dice, Jaccard    StepSize  Iterations  Regularizer  IntWt  LMWt\
 \
 
-\b Intensity\
+\b Intensity alone\
 
 \b0 0.526615785714,  0.383759589286      0.25      30x100x10  3  0.5  0\
 0.526476482143,  0.383575089286      0.25    100x100x10  3  0.5  0\
@@ -99,11 +99,51 @@ Intensity + 3D landmark
 \b 3D landmark alone
 \i\b0 \
 
-\i0 0.527152732143,  0.383980517857      0.10  200x200x200  5  0  0.5
+\i0 0.527152732143,  0.383980517857     0.10   200x200x200  5  0  0.5
 \b \
-\
+3D landmark alone after Intensity alone\
+
+\b0 0.520903767857,  0.377232660714     0.10   200x200x199  5  0  0.5\
+
+\b \
 Intensity + multiple 3D landmarks-registered volumes  
 \i\b0 (manual label shells)\
 
-\i0 ...\
+\i0 0.521711803571,  0.379255892857     0.25        30x100x10  3  0.5  0.5\
+0.521711803571,  0.379255892857     0.25        30x100x10  3  0.5  0.01\
+\
+------------------------------------------------------------\
+NEW INITIAL (Gauss-MSQ) REGISTRATION\
+------------------------------------------------------------\
+ANTS 3 -o /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5.nii.gz -t SyN[0.25] -i 200x200x200 --use-Histogram-Matching --number-of-affine-iterations 10000x10000x10000x10000x10000 -r Gauss[3, 0] -m MSQ[/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S05.nii.gz, /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20.nii.gz, 1, 0]\
+\
+WarpImageMultiTransform 3 /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_labels.nii.gz /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5_labels.nii.gz -R /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S05.nii.gz /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5Warp.nii.gz /hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5Affine.txt --use-NN\
+\
+In [1]: from measure_overlap import measure_overlap \
+In [2]: labels = [21,22,23,24,25,26,27,28,29,30,31,32,33,34,41,42,43,44,45,46,\
+   ...:               47,48,49,50,61,62,63,64,65,66,67,68,81,82,83,84,85,86,87,88,\
+   ...:               89,90,91,92,101,102,121,122,161,162,163,164,165,166,181,182]\
+In [3]: measure_overlap("/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5_labels.nii.gz", "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/S05_labels.nii.gz", labels)\
+\
+-----------------------------------------------------------------------------\
+OVERLAP RESULTS after a single nonlinear registration\
+-----------------------------------------------------------------------------\
+Dice, Jaccard    StepSize  Iterations  Regularizer  IntWt  LMWt\
+
+\b \
+Intensity alone\
+
+\b0 0.53356225000000002,  0.39040955357142859     0.25   200x200x200  3\
+\
+
+\b 3D landmark  after Intensity alone 
+\i\b0 (binary representation of all manual label shells)\
+
+\i0 0.536594428571,  0.393508910714     0.10   200x200x201  5  0.0  0.5\
+\
+
+\b Intensity + 3D landmark  after Intensity alone 
+\i\b0 (binary representation of all manual label shells)\
+
+\i0 0.550179821429,  0.408097303571     0.25   200x200x201  3  0.5  0.5\
 }
