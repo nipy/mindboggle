@@ -39,9 +39,9 @@ target_labels = data_dir+"S05_labels.nii.gz"
 source_landmarks_path = data_dir+"S20_to_S05_labelshells/lpba_b_mask_"
 target_landmarks_path = data_dir+"S05_labelshells/lpba_b_mask_"
 outpath = output_dir+"test_register_3D_labelshells_in_3D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results_dir = "results/test_register_3D_labelshells_in_3D/tables/"
+results_dir = "results/test_register_3D_labelshells_in_3D/"
 #outpath = output_dir+"test_register_3D_landmarks_in_3D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-#results_dir = "results/test_register_3D_landmarks_in_3D/tables/"
+#results_dir = "results/test_register_3D_landmarks_in_3D/"
 temp_dir = output_dir+"temp/"
 ext = ".nii.gz"
 
@@ -57,7 +57,7 @@ options = " --use-Histogram-Matching"
 initialize = " --number-of-affine-iterations 0 --continue-affine 0" #10000x10000x10000x10000x10000"
 
 intensity_weights = [0.5] #[0.0, 0.25, 0.5]
-landmark_weights = [0.5] #[0.5, 0.75, 1.0]
+landmark_weights = [0.01] #[0.5, 0.75, 1.0]
 
 #
 # Initialize settings below

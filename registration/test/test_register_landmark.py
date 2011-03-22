@@ -16,8 +16,8 @@ from measure_overlap import measure_overlap
 # Inputs
 #
 verbose = 1
-save_results = 1
-overwrite = 1
+save_results = 0
+overwrite = 0
 ANTSPATH = '' #os.environ.get("ANTSPATH")
 regularizer       = "Gauss"  # Gauss or DMFFD
 intensity_measure = "MSQ"    # MSQ or CC
@@ -30,6 +30,12 @@ landmark_dim = 3
 #
 data_dir = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/data/"
 output_dir = "/hd2/data/Archive/landmark_registration_evaluation_2011_data_output/output/"
+#outpath = output_dir+"test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+#results_dir = "results/test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"
+outpath = output_dir+"test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
+results_dir = "results/test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"
+temp_dir = output_dir+"temp/"
+ext = ".nii.gz"
 if dim == 2:
     labels = [21,22,23,24,27,28,41,42,43,44,45,46,47,48,49,50] #labels = [24,28]
     source = data_dir+"S20_to_S05_axial196.nii.gz"
@@ -42,9 +48,12 @@ elif dim == 3:
     labels = [21,22,23,24,25,26,27,28,29,30,31,32,33,34,41,42,43,44,45,46,
               47,48,49,50,61,62,63,64,65,66,67,68,81,82,83,84,85,86,87,88,
               89,90,91,92,101,102,121,122,161,162,163,164,165,166,181,182]
-    source = data_dir+"S20_to_S05.nii.gz"
+    #source = data_dir+"S20_to_S05.nii.gz"
+    source = data_dir+"S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5.nii.gz"
     target = data_dir+"S05.nii.gz"
-    source_labels = data_dir+"S20_to_S05_labels.nii.gz"
+    #source_labels = data_dir+"S20_to_S05_labels.nii.gz"
+    #source_labels = output_dir+"test_register_3D_labelshell_in_3D/Gauss_MSQ_MSQ/test_0.1_200x200x200_5_0.0_0_0.5_labels.nii.gz"
+    source_labels = data_dir+"S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5_labels.nii.gz"
     target_labels = data_dir+"S05_labels.nii.gz"
     if landmark_dim == 2:
         source_landmarks = data_dir+"S20_to_S05_rightPreCS_in_axial196.nii.gz"
@@ -52,14 +61,12 @@ elif dim == 3:
     elif landmark_dim == 3:
         #source_landmarks = data_dir+"S20_to_S05_rightPreCS.nii.gz"
         #target_landmarks = data_dir+"S05_rightPreCS.nii.gz"
-        source_landmarks = data_dir+"S20_to_S05_labelshells/lpba_b_mask_binary.nii.gz"
+        #source_landmarks = data_dir+"S20_to_S05_labelshells/lpba_b_mask_binary.nii.gz"
+        #target_landmarks = data_dir+"S05_labelshells/lpba_b_mask_binary.nii.gz"
+        #source_landmarks = output_dir+"test_register_3D_labelshell_in_3D/Gauss_MSQ_MSQ/test_0.1_200x200x200_5_0.0_0_0.5_landmarks.nii.gz"
+        #target_landmarks = data_dir+"S05_labelshells/lpba_b_mask_binary.nii.gz"
+        source_landmarks = data_dir+"S20_to_S05_Gauss_MSQ_0.25_200x200x200_3_0.5_labelshell.nii.gz"
         target_landmarks = data_dir+"S05_labelshells/lpba_b_mask_binary.nii.gz"
-#outpath = output_dir+"test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-#results_dir = "results/test_register_"+str(landmark_dim)+"D_landmark_in_"+str(dim)+"D/tables/"
-outpath = output_dir+"test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"+regularizer+"_"+intensity_measure+"_"+landmark_measure+"/"
-results_dir = "results/test_register_"+str(landmark_dim)+"D_labelshell_in_"+str(dim)+"D/"
-temp_dir = output_dir+"temp/"
-ext = ".nii.gz"
 
 #
 # Registration parameters
@@ -68,7 +75,7 @@ gradient_step_sizes = [0.25] #[0.1, 0.15, 0.25, 0.35, 0.5]
 if dim == 2:
     iterations = "200x200x200x200"
 elif dim == 3:
-    iterations = "30x100x10"
+    iterations = "200x200x201"
 options = " --use-Histogram-Matching"
 initialize = " --number-of-affine-iterations 0 --continue-affine 0" #10000x10000x10000x10000x10000"
 
@@ -112,6 +119,7 @@ if landmark_measure == "PSE":
 #
 # Begin!
 #
+print(source, target, source_landmarks, target_landmarks)
 if os.path.exists(source) and os.path.exists(target) and \
    os.path.exists(source_landmarks) and os.path.exists(target_landmarks):
     if save_results and dim == 2:
@@ -182,19 +190,19 @@ if os.path.exists(source) and os.path.exists(target) and \
                     #
                     args1 = " ".join([warp, out, transform, regularize, intensity, landmarks])
                     if verbose: print(args1); print('')
-                    #p = call(args1, shell="True")
+                    p = call(args1, shell="True")
 
                     args2 = " ".join([apply_warp, source, output_file, '-R ' + target, output+'Warp'+ext, output+'Affine.txt'])
                     if verbose: print(args2); print('')
-                    #p = call(args2, shell="True")
+                    p = call(args2, shell="True")
 
                     args3 = " ".join([apply_warp, source_landmarks, output+'_landmarks'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
                     if verbose: print(args3); print('')
-                    #p = call(args3, shell="True")
+                    p = call(args3, shell="True")
 
                     args4 = " ".join([apply_warp, source_labels, output+'_labels'+ext, '-R ' + target, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
                     if verbose: print(args4); print('')
-                    #p = call(args4, shell="True")
+                    p = call(args4, shell="True")
 
                     average_dice, average_jacc = measure_overlap(output+'_labels'+ext, target_labels, labels)
                     print_out = ', '.join(['Test '+str(count), str(average_dice), str(average_jacc), '"'+output_file+'"', '"'+args1+'"\n'])
