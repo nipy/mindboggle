@@ -1,0 +1,10 @@
+tkmedit started: Wed Jun  8 14:17:12 2011
+
+	tkmedit.bin -aseg bert t1.mgz 
+
+$Id: tkmedit.c,v 1.343 2011/03/01 01:41:22 nicks Exp $ $Name: stable5 $
+Set user home dir to /Users/arno/Documents/Projects/Mindboggle/mindboggle/feature_extraction/tests
+Set subject home dir to /Applications/freesurfer/subjects/bert
+Using interface file /Applications/freesurfer/tktools/tkmedit.tcl
+Tcl: Successfully parsed tkmedit.tcl
+Tcl: Successfully parsed tkm_functional.tcl
