@@ -16,9 +16,11 @@ from measure_overlap import measure_overlap
 # Inputs
 #
 register_to_template = 0
-register_landmarks_to_template = 0
+transform_landmarks_to_template = 0
+register_landmarks_to_template = 1
+
 register_pairs_via_template = 0
-register_landmarks_via_template = 1
+register_landmarks_via_template = 0
 
 fill_target_mask = 0
 measure_overlap = 0
@@ -89,22 +91,22 @@ matching_iter = 100000 # partial matching iterations
 #------------------------------------------
 # Register brains and landmarks to template
 #------------------------------------------
-if register_to_template + register_landmarks_to_template > 0:
+if register_to_template + transform_landmarks_to_template  + register_landmarks_to_template > 0:
     for file in source_files:
         source = brain_dir+file+ext
         output = xfm_dir+file+'_to_template'
         out = '-o ' + output+ext
         if os.path.exists(source) and os.path.exists(template) and os.path.exists(xfm_dir):
 
-            # Intensity:
+            # Intensity-based registration to template:
             if register_to_template:
                 intensity = [template, source, intensity_weight, intensity_setting]
                 intensity = "-m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
                 args = " ".join([warp, regularize, intensity, out])
                 if verbose: print(args); print(''); p = call(args, shell="True")
 
-            # Landmarks:
-            if register_landmarks_to_template:
+            # Transform landmarks to template space:
+            if transform_landmarks_to_template:
                 source_landmarks = landmarks_dir+file+ext
                 output_landmarks = xfm_landmark_dir+file+'_to_template_'+landmark_type+ext
                 try:
@@ -114,6 +116,35 @@ if register_to_template + register_landmarks_to_template > 0:
                 args = " ".join([apply_warp, source_landmarks, output_landmarks, \
                                  '-R', template, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
                 if verbose: print(args); print(''); p = call(args, shell="True")
+
+            # Register landmarks to transformed landmarks in template space:
+            if register_landmarks_to_template:
+                for file2 in source_files:
+                    if file2 != file:
+                        source_landmarks = landmarks_dir+file2+ext
+                        template_landmarks = xfm_landmark_dir+file+'_to_template_'+landmark_type+ext
+                        output_xfm = xfm_dir+file2+'_to_'+file+'_in_template_space_'+landmark_type+ext
+                        try:
+                            os.path.exists(source_landmarks) and os.path.exists(template_landmarks)
+                        except:
+                            raise NameError('Check ' + source_landmarks + ' and ' + template_landmarks)
+
+                        # Intensity similarity:
+                        intensity = [template, source, intensity_weight, intensity_setting]
+                        intensity = " -m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
+
+                        # Landmark similarity:
+                        lm_args1 = [template, source, output_landmarks, source_landmarks,
+                                    landmark_weight1, percent, sigma, boundary, neighbor, matching_iter]
+                        landmarks1 = ", ".join([" -m PSE[" + ", ".join([str(s) for s in lm_args1]) + "]"])
+                        lm_args2 = [output_landmarks, source_landmarks, landmark_weight2, 0]
+                        landmarks2 = " ".join([" -m MSQ[" + ", ".join([str(s) for s in lm_args2]) + "]"])
+
+                        #
+                        # Run command
+                        #
+                        args = " ".join([warp, -o, output_xfm, transform, regularize, intensity, landmarks1, landmarks2])
+                        if verbose: print(args); print(''); p = call(args, shell="True")
 
         else:
             if not os.path.exists(source):
