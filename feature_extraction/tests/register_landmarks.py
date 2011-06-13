@@ -17,8 +17,8 @@ from measure_overlap import measure_overlap
 #
 register_to_template = 0
 register_landmarks_to_template = 0
-register_pairs_via_template = 1
-register_landmarks_via_template = 0
+register_pairs_via_template = 0
+register_landmarks_via_template = 1
 
 fill_target_mask = 0
 measure_overlap = 0
@@ -48,8 +48,6 @@ landmark_type      = 'ribbons_brain_vis'
 #landmark_type      = 'fundi_gang_li'
 #landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_brain_visa_binary/'
 #landmark_type      = 'fundi_brain_visa'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_kiho_im_binary/'
-#landmark_type      = 'pits_kiho_im'
 
 #
 # Registration parameters
@@ -103,11 +101,10 @@ if register_to_template + register_landmarks_to_template > 0:
                 intensity = [template, source, intensity_weight, intensity_setting]
                 intensity = "-m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
                 args = " ".join([warp, regularize, intensity, out])
-                if verbose: print(args); print('')
-                p = call(args, shell="True")
+                if verbose: print(args); print(''); p = call(args, shell="True")
 
             # Landmarks:
-            if register_landmarks_to_template and use_landmarks:
+            if register_landmarks_to_template:
                 source_landmarks = landmarks_dir+file+ext
                 output_landmarks = xfm_landmark_dir+file+'_to_template_'+landmark_type+ext
                 try:
@@ -116,8 +113,7 @@ if register_to_template + register_landmarks_to_template > 0:
                     raise NameError('Check ' + source_landmarks + ' and ' + xfm_landmark_dir)
                 args = " ".join([apply_warp, source_landmarks, output_landmarks, \
                                  '-R', template, output+'Warp'+ext, output+'Affine.txt', '--use-NN'])
-                if verbose: print(args); print('')
-                p = call(args, shell="True")
+                if verbose: print(args); print(''); p = call(args, shell="True")
 
         else:
             if not os.path.exists(source):
@@ -127,9 +123,9 @@ if register_to_template + register_landmarks_to_template > 0:
             elif not os.path.exists(xfm_dir):
                 raise NameError('Check input file ' + xfm_dir)
 
-#----------------------
-# Pairwise registration
-#----------------------
+#----------------------------------------------------------------------------
+# Apply registration transforms to register brains to each other via template
+#----------------------------------------------------------------------------
 if register_pairs_via_template:
     for file in source_files:
         source = brain_dir+file+ext
@@ -139,28 +135,28 @@ if register_pairs_via_template:
                 if os.path.exists(brain_dir+file+ext) and \
                     os.path.exists(brain_dir+file2+ext) and \
                     os.path.exists(xfm_dir+file+'_to_templateWarp.nii.gz'):
+                    output_stem = file + '_to_' + file2
 
                     # Transform brains
                     args = ANTSPATH + 'WarpImageMultiTransform ' + str(dim) + ' ' + source + ' ' + \
-                      xfm_brain_dir+file+'_to_'+file2+ext + \
+                      xfm_brain_dir+output_stem+ext + \
                       ' -R ' + target + \
                       ' -i ' + xfm_dir+file2+'_to_templateAffine.txt ' + \
                       xfm_dir+file2+'_to_templateInverseWarp.nii.gz ' + \
                       xfm_dir+file+'_to_templateWarp.nii.gz ' + \
                       xfm_dir+file+'_to_templateAffine.txt --use-NN '
-                    if verbose: print(args); print('')
-                    p = call(args, shell="True")
+                    if verbose: print(args); print(''); p = call(args, shell="True")
 
                     # Transform atlases
-                    args = ANTSPATH + 'WarpImageMultiTransform ' + str(dim) + ' ' + atlas_dir+file+ext + ' ' + \
-                      xfm_atlas_dir+file+'_to_'+file2+ext + \
+                    args = ANTSPATH + 'WarpImageMultiTransform ' + str(dim) + ' ' + \
+                      atlas_dir+file+ext + ' ' + \
+                      xfm_atlas_dir+output_stem+ext + \
                       ' -R ' + atlas_dir+file2+ext + \
                       ' -i ' + xfm_dir+file2+'_to_templateAffine.txt ' + \
                       xfm_dir+file2+'_to_templateInverseWarp.nii.gz ' + \
                       xfm_dir+file+'_to_templateWarp.nii.gz ' + \
                       xfm_dir+file+'_to_templateAffine.txt --use-NN '
-                    if verbose: print(args); print('')
-                    p = call(args, shell="True")
+                    if verbose: print(args); print(''); p = call(args, shell="True")
 
                 else:
                     if not os.path.exists(brain_dir+file+ext):
@@ -170,25 +166,63 @@ if register_pairs_via_template:
                     elif not os.path.exists(xfm_dir+file+'Warp.nii.gz'):
                         raise NameError('Check input file ' + xfm_dir+file+'Warp.nii.gz')
 
-
-# Register brains and landmarks via template
+#----------------------------------------------------------------
+# Register brains to each other via template, driven by landmarks
+#----------------------------------------------------------------
 if register_landmarks_via_template:
-  if os.path.exists(source) and os.path.exists(template) and os.path.exists(xfm_dir):
-      pass
+    for file in source_files:
+        source = brain_dir+file+ext
+        for file2 in target_files:
+            if file2 != file:
+                target = brain_dir+file2+ext
+                if os.path.exists(source_landmarks) and \
+                    os.path.exists(target_landmarks):
 
-  else:
-      if not os.path.exists(source):
-          raise NameError('Check input file ' + source)
-      elif not os.path.exists(template):
-          raise NameError('Check input file ' + template)
-      elif not os.path.exists(xfm_dir):
-          raise NameError('Check input file ' + xfm_dir)
+                    source_landmarks = landmarks_dir+file+ext
+                    target_landmarks = landmarks_dir+file2+ext
+                    output_stem = file + '_to_' + file2 + '_' + landmark_type
+                    output = output_stem + ext
+
+                    # Intensity similarity:
+                    intensity = [target, source, intensity_weight, intensity_setting]
+                    intensity = " -m "+intensity_measure+"[" + ", ".join([str(s) for s in intensity]) + "]"
+
+                    # Landmark similarity:
+                    lm_args1 = [target, source, target_landmarks, source_landmarks,
+                                landmark_weight1, percent, sigma, boundary, neighbor, matching_iter]
+                    landmarks1 = ", ".join([" -m PSE[" + ", ".join([str(s) for s in lm_args1]) + "]"])
+                    lm_args2 = [target_landmarks, source_landmarks, landmark_weight2, 0]
+                    landmarks2 = " ".join([" -m MSQ[" + ", ".join([str(s) for s in lm_args2]) + "]"])
+
+                    #
+                    # Run commands
+                    #
+                    args = " ".join([warp, -o, xfm_dir+output, \
+                                     transform, regularize, intensity, landmarks1, landmarks2])
+                    if verbose: print(args); print(''); p = call(args, shell="True")
+
+                    args = " ".join([apply_warp, source, xfm_brain_dir+output, '-R ' + target, \
+                                     xfm_dir+output_stem+'Warp'+ext, xfm_dir+output_stem+'Affine.txt'])
+                    if verbose: print(args); print(''); p = call(args, shell="True")
+
+                    args = " ".join([apply_warp, source_labels, xfm_atlas_dir+output, '-R ' + target_labels, \
+                                     xfm_dir+output_stem+'Warp'+ext, xfm_dir+output_stem+'Affine.txt', '--use-NN'])
+                    if verbose: print(args); print(''); p = call(args, shell="True")
+
+                    args = " ".join([apply_warp, source_landmarks, xfm_landmark_dir+output, '-R ' + target, \
+                                     xfm_dir+output_stem+'Warp'+ext, xfm_dir+output_stem+'Affine.txt', '--use-NN'])
+                    if verbose: print(args); print(''); p = call(args, shell="True")
+
+                else:
+                  if not os.path.exists(source_landmarks):
+                      raise NameError('Check input file ' + source_landmarks)
+                  elif not os.path.exists(target_landmarks):
+                      raise NameError('Check input file ' + target_landmarks)
 
 
 """
 
 
-if os.path.exists(source) and os.path.exists(target) and os.path.exists(source_labels) and os.path.exists(target_labels):
   results_file = results_dir+output_stem+"_"+regularizer+"_"+intensity_measure+"_"+landmark_measure1+"_"+landmark_measure2+".txt"
   if save_results and os.path.exists(results_file) and overwrite == 0:
       raise NameError('File already exists: '+results_file+' -- set "overwrite to 1."')
@@ -302,7 +336,6 @@ if register_to_template:
     for file in source_files:
     
         # Landmark + intensity-based registration:
-        if use_landmarks:
             for file2 in target_files:
             
                 warp = ANTSPATH + "ANTS " + str(dim)
@@ -338,41 +371,4 @@ if register_to_template:
                   ' --number-of-affine-iterations 10000x10000x10000x10000x10000 '
             print cmd; #os.system(cmd)
 
-#----------------------
-# Pairwise registration
-#----------------------
-if register_pairs_via_template:
-    for file in source_files:
-        for file2 in target_files:
-            if file2 != file:
-                
-                # Transform brains
-                cmd = ANTSPATH + 'WarpImageMultiTransform ' + dim + ' ' + brain_dir+file+ext + ' ' + \
-                      xfm_brain_dir+file+'_to_'+file2+ext + \
-                      ' -R ' + brain_dir+file2+ext + \
-                      ' -i ' + xfm_dir+file2+'Affine.txt ' + \
-                      xfm_dir+file2+'InverseWarp.nii.gz ' + \
-                      xfm_dir+file+'Warp.nii.gz ' + \
-                      xfm_dir+file+'Affine.txt --use-NN '
-                print cmd; os.system(cmd)
-                #cmd = FSLPATH + 'fslswapdim ' + xfm_brain_dir+file+'_to_'+file2+ext + \
-                #      ' -x y z ' + xfm_brain_dir+file+'_to_'+file2+ext
-                #print cmd; os.system(cmd)
-                
-                # Transform atlases
-                cmd = ANTSPATH + 'WarpImageMultiTransform ' + dim + ' ' + atlas_dir+file+ext + ' ' + \
-                      xfm_atlas_dir+file+'_to_'+file2+ext + \
-                      ' -R ' + atlas_dir+file2+ext + \
-                      ' -i ' + xfm_dir+file2+'Affine.txt ' + \
-                      xfm_dir+file2+'InverseWarp.nii.gz ' + \
-                      xfm_dir+file+'Warp.nii.gz ' + \
-                      xfm_dir+file+'Affine.txt --use-NN '
-                print cmd; os.system(cmd)
-                #cmd = ANTSPATH + 'PermuteFlipImageOrientationAxes 3 ' + xfm_atlas_dir+file+'_to_'+file2+ext + \
-                #      ' ' + xfm_atlas_dir+file+'_to_'+file2+ext + ' 0 1 2 1 0 0 '
-                #print cmd; os.system(cmd)
-                #cmd = FSLPATH + 'fslswapdim ' + xfm_atlas_dir+file+'_to_'+file2+ext + \
-                #      ' -x y z ' + xfm_atlas_dir+file+'_to_'+file2+ext
-                #print cmd; os.system(cmd)
-                oarisnet
 """
