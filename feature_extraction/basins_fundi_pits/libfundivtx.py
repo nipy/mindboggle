@@ -1,5 +1,10 @@
 # All functions for extracting fundi as vertex clouds 
 
+# Increaes the recursion depth to handle fundi extraction where
+# the mesh has lots of vertices.
+import sys
+sys.setrecursionlimit(1500)
+
 import fileio, libvtk, libbasin
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin
 import os
