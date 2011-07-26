@@ -1,0 +1,22 @@
+digraph pipeline{
+  label="pipeline";
+  pipeline_extract_structures_node[label="extract_structures_node.Function.utility"];
+  pipeline_write_structures_to_database_node[label="write_structures_to_database_node.Function.utility"];
+  pipeline_construct_convex_hull_node[label="construct_convex_hull_node.Function.utility"];
+  pipeline_measure_hull_extent_node[label="measure_hull_extent_node.Function.utility"];
+  pipeline_measure_curvature_node[label="measure_curvature_node.Function.utility"];
+  pipeline_measure_position_node[label="measure_position_node.Function.utility"];
+  pipeline_measure_extent_node[label="measure_extent_node.Function.utility"];
+  pipeline_measure_hull_depth_node[label="measure_hull_depth_node.Function.utility"];
+  pipeline_measure_LaplaceBeltrami_node[label="measure_LaplaceBeltrami_node.Function.utility"];
+  pipeline_measure_texture_node[label="measure_texture_node.Function.utility"];
+  pipeline_extract_structures_node -> pipeline_measure_texture_node;
+  pipeline_extract_structures_node -> pipeline_measure_LaplaceBeltrami_node;
+  pipeline_extract_structures_node -> pipeline_measure_extent_node;
+  pipeline_extract_structures_node -> pipeline_measure_position_node;
+  pipeline_extract_structures_node -> pipeline_write_structures_to_database_node;
+  pipeline_extract_structures_node -> pipeline_construct_convex_hull_node;
+  pipeline_extract_structures_node -> pipeline_measure_curvature_node;
+  pipeline_construct_convex_hull_node -> pipeline_measure_hull_depth_node;
+  pipeline_construct_convex_hull_node -> pipeline_measure_hull_extent_node;
+}
