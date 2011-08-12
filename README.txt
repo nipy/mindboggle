@@ -1,1 +1,1 @@
-test
+README for the Mindboggle repository

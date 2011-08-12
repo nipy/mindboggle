@@ -16,7 +16,7 @@ def readSurf(filename):
     
     s = f.read(8)
     VertexCount, FaceCount = struct.unpack(">ii", s)
-#    print "# of Vertexes:", VertexCount, ", # of Faces:", FaceCount
+#    print "This hemisphere has", VertexCount, "Vertexes and", FaceCount, "Faces"
         
     Vertex, Face = [], []
     
@@ -80,9 +80,9 @@ def readCurv(filename):
 #        print "Loading per-vertex file ", filename, " reaches an unknown error. Debug! "
 #        return -2, Curvature
 
-    return Curvature
-    
     f.close()
+
+    return Curvature
 
 def writeList(File, List):
     '''Write a list in to a file, each line of which is a list element
@@ -214,6 +214,27 @@ def readLists(Filename):
                 Lists.append([])
             else:
                 Row = [int(i) for i in Line.split()]
+                Lists[-1].append(Row)
+    Fp.close()
+                
+    return Lists[:-1] # because last one is an empty list
+
+def readFltLsts(Filename):
+    '''Read in float type lists 
+    
+    '''
+    Fp = open(Filename, 'r')
+    Lists = [[]]  # initially, there is one list in lists
+    while True:
+        Line = Fp.readline()
+        if len(Line) < 1 :
+            Fp.close()
+            break
+        else:
+            if Line == "----\n":
+                Lists.append([])
+            else:
+                Row = [float(i) for i in Line.split()]
                 Lists[-1].append(Row)
     Fp.close()
                 

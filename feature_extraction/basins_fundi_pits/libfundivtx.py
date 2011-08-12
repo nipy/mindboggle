@@ -1,14 +1,10 @@
 # All functions for extracting fundi as vertex clouds 
 
-# Increaes the recursion depth to handle fundi extraction where
-# the mesh has lots of vertices.
-import sys
-sys.setrecursionlimit(1500)
-
 import fileio, libvtk, libbasin
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin
-import os
+import os, sys
 
+sys.setrecursionlimit(10000)
 
 def judgeNode1(V0, CurvatureDB, Threshold=0):
     """Check whether a vertex (node) satisfies the zero-order criterion that its curvature value is negative
@@ -219,8 +215,12 @@ def rawFundi(VertexNum, CurvDB, NbrLst, Skip3 = True, Skip2=False):
     
     Strict, Candidate = [], [] # to store IDs for strict and candidate faces 
     
-    t1Lb, t2Lb, t2Ub, t3Lb = mean(CurvDB) + 1*std(CurvDB), -1*std(CurvDB)*0.02, 1*std(CurvDB)*0.02, -1*std(CurvDB)*0.01
+#    t1Lb, t2Lb, t2Ub, t3Lb = mean(CurvDB) + 1*std(CurvDB), -1*std(CurvDB)*0.02, 1*std(CurvDB)*0.02, -1*std(CurvDB)*0.01
 #    t1Lb, t2Lb, t2Ub, t3Lb = 0.15, -1*std(CurvDB)*0.01, 1*std(CurvDB)*0.01, -1*std(CurvDB)*0.005
+    t1Lb, t2Lb, t2Ub, t3Lb = mean(CurvDB)+1*std(CurvDB), -1*std(CurvDB)*0.01, 1*std(CurvDB)*0.01, -1*std(CurvDB)*0.005
+
+#    t1Lb, t2Lb, t2Ub, t3Lb = 0, -1*std(CurvDB)*0.01, 1*std(CurvDB)*0.01, -1*std(CurvDB)*0.005
+
     
 #empirical result: 
 # if Level = 3, the mean approach 
@@ -250,143 +250,86 @@ def rawFundi(VertexNum, CurvDB, NbrLst, Skip3 = True, Skip2=False):
                 
     return Strict, Candidate
 
-def fillUp():
-    '''Fill up spaces between vertex clouds 
-    
-    Seems no use now. 04/11/2011
-    
-    '''
-    pass
-
-
-def skeletonizeVrtx(FundiList, NbrLst, CNbr = 0.3, ANbr = 0.3, MaxIter = 10):
-    '''Skeletonize vertex clouds, by iteratively removing vertexes that have a neighbor in the cloud but 'exposed' to the outer world.
-    
-    Input
-    =====
-        FundiList:    list of integers
-            Each element is a vertex id. The vertex is considered as part of the raw fundi, as clouds. 
-            
-        NbrLst:    list of integers
-            Each element is the id of vertexes neighboring with a vertex.
-            
-        MaxIter:    integer
-            The maximum number of iteration allowed in Skeletonization by removing exposed cloud vertexes.
-            
-        CNbr :  
-    
-    Notes
-    ======
-    
-    MaxIter = 3, 4 and 5 have no big difference after lineUp
-    
-    '''
-    
-#    ToBeRemoved = [False for i in xrange(0, len(FundiList))]
-    Iteration = 0
-    while Iteration <= MaxIter:
-        ToBeRemoved = []
-        Iteration += 1
-    
-        for i in xrange(0, len(FundiList)):
-            Vrtx = FundiList[i]
-            Nbrs = NbrLst[Vrtx]
-    #        HasCloudNbr, HasAirNbr = False, False  # air neighbor means a neighbor that is not in the cloud
-            CloudNbr, AirNbr = [], []# neighbors in the cloud, and neighbors not in the cloud 
-            for Nbr in Nbrs:
-                if Nbr in FundiList:
-    #                HasiNbr = True
-                    CloudNbr.append(1)
-                    AirNbr.append(0)
-                else:
-    #                if Nbr in JustRemoved:
-    #                    HasAirNbr = True
-    #                    continue
-    #                HasAirNbr = True
-                    CloudNbr.append(0)
-                    AirNbr.append(1)
-    #        if HasCloudNbr and HasAirNbr:
-#            if sum(CloudNbr) > len(Nbrs) * CNbr and sum(AirNbr) > len(Nbrs) * ANbr:
-            if sum(CloudNbr) > 2 and sum(AirNbr) > 0:   
-    #            ToBeRemoved[i] = True
-                ToBeRemoved.append(Vrtx)
-        
-        if ToBeRemoved == []:
-            break
-        else: 
-            for Rmv in ToBeRemoved:
-                FundiList.remove(Rmv)
-            
-    return FundiList
-
-def lineUp(FundiList, NbrLst, VrtxCmpnt, Vrtx, CurvFile):
-    '''Line up fundus vertexes into curve segments 
-    
-    Please note that the input parameters have been changed 
+def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvFile, CurvatureDB):
+    '''Form an MST of a set of vertexes and prune unwanted subtrees
     
     Parameters
     ===========
     
-        FundiList : list of integers
-            Vertexes that are in skeletonied vertex cloud of fundi
+        Special : list of integers
+            A list of special vertexes to be connected by MST 
+            It can be all vertexes on original mesh
             
         NbrLst : list of list of integers
             neighbor list of vertexes
             
-        VrtxCmpnt : list of list of integers
-            each element of VrtxCmpnt is a list of vertexes that are in the same basin component
+        VrtxCmpnts : list of list of integers
+            each element of VrtxCmpnt is a list of vertexes that are in the same sulcal component
       
         Curve : list of integers
             vertexes on the curve segment form fundi  NOT LINED UP really now 04/12/2011
+            
+        VtxCoords : list of 3-tuples of doubles
+            each element is the coordinate of a vertex element 
+            
+        CurvatureDB : list of doubles
+            each element is the curvature value of a vertex 
+            
+        Links : list of list of 2-tuple of integers
+            each element is a list of 2-tuples containing vertexes (in global ID) at two ends of an edge on MSTs
+
+        SpecialGroup: list of list of integers 
+            each element is a list of Special vertexes in each connected component
+
+        Ring : list of integers
+            IDs of vertexes that have 0-curvature
+            
+        Curv: float
+            curvature value of a vertex
+            
+        Idx: integer
+            ID of a vertex
       
     Notes
     =======
     
-        Old Idea (expired on May 28 2011 by Forrest): 
-        
-        for any connected (within the same basin component) vertex component, pick up one vertex that is in the cloud.
-        start bfs from the vertex to find the shortest path to antoher vertex that is in the cloud.  
-    
-    '''
-# Old lineUp code, until early May 2011    
-#    Curve = []   
-#    for Fundi in FundiList: # for each fundus vertex,        
-#        for Cmpnt in VrtxCmpnt:  # search its nearest fundi neighbor in its basin component
-#            if len(Cmpnt) > 1:  
-#                if Fundi in Cmpnt: 
-#                    Seed = Fundi 
-##                    print Seed, VrtxCmpnt.index(Cmpnt)
-#                    Path = bfs(Seed, FundiList, NbrLst, Cmpnt)# DFS to fine all connected members from the Seed
-##                    Curve += Path  # commented out on Mar. 15, 2011 
-#                    Curve.append(Path)   # for each fundus vertex, we have a path from it to the nearest another fundus vertex Activated Mar. 15, 2011
-#     return Curve
-# END of Old lineUp 
+        last updated: 2011-07-17 Forrest
+        The function name lineUp does NOT reveal its purpose. Originally, this function is used to connect
+        special vertexes via MST algorithm. But now MST is spanned on both special vertexes and common
+        vertexes.  
 
-    # Step 1: reduce the graph 
-#    NewNbrLst, NewEdges = graphReduce(VrtxCmpnt, Vrtx, NbrLst)
+    '''
+
+    # Step 1: downsample the graph 
+    Ring = []
+    for Idx, Curv in enumerate(CurvatureDB):
+        if abs(Curv) <0.01:
+            Ring.append(Idx)
     
+    NewVrtxCmpnts, NewNbrLst, SpecialGroup = downsample(Special+Ring, VrtxCmpnts, NbrLst, 0.5) 
+        
     # step 2: prepare the distance matrix for FUNDUS vertex, for each fundus vertex, only 2 shortest edges are left
     #         Columns and rows for non-fundus vertexes are all zeros.
     DistFile = CurvFile + '.dist'
-# the block below is temporarily replaced by the line below it for fast debugging Forrest 2011-05-25 15:05    
-#    Dists = dist(VrtxCmpnt, NewNbrLst, FundiList, DistFile=DistFile)
-    Dists = dist(VrtxCmpnt, NbrLst, FundiList, DistFile=DistFile)
-#    fileio.wrtLists(DistFile, Dists) # This line is optional, in moost cases, it is turned off.
-    Dists = zeroout(Dists, VrtxCmpnt, FundiList)
-    # Now Dists are weighted adjecency matrix of fundus vertexes in each component
-#    fileio.wrtLists(DistFile+'.reduced', Dists)  # this line is turned on ONLY for debugging
-# End of the block below can be replaced by the line below for fast debugging Forrest 2011-05-25 15:05
-#    Dists = fileio.readLists(DistFile+'.reduced')  # a temporary line replacing the block above for fast debugging   
+   
+    Dists = dist(NewVrtxCmpnts, NewNbrLst, CurvatureDB, DistFile=DistFile)
+
+    # Dists = zeroout(Dists, VrtxCmpnt, FundiList)  # only needed if MST only spans over special vertexes
+    # Now Dists are weighted adjacency matrix of fundus vertexes in each component
+    
+#    fileio.wrtLists(DistFile+'.reduced', Dists)  # optional line, for debugging
+#    Dists = fileio.readLists(DistFile+'.reduced')  # for fast debugging   only 
     # End of step 2
     
-    # Step 3: use MST to line up fundus vertexes and dump into VTK format
-    FundusCmpnt = filterCmpnt(FundiList, VrtxCmpnt)
-    Edges = mst(Dists, VrtxCmpnt, FundusCmpnt)  # new MST call, returns length of each edge. 
+    # Step 3: use MST to connect all vertexes in NewVrtxCmpnts and dump into VTK format
+    #FundusCmpnts = filterCmpnt(Nodes, VrtxCmpnts) # no need if Nodes are all vertexes on the mesh
+    #FundusCmpnts = VrtxCmpnts # if MST will span via all nodes on the mesh
+    #Links = mst(Dists, VrtxCmpnts, FundusCmpnts, NbrLst)  # deactivated Forrest 2011-07-21 because filters is done in downsample() 
+
+    #Links = mst(Dists, NewVrtxCmpnts, SpecialGroup, NbrLst) # Running version 
+    Links = mst(Dists, NewVrtxCmpnts, NewVrtxCmpnts, NbrLst) # debugging version
     
-    # IF the edge length is not 1, use BFS to string up two fundus vertexes on cortex surface.
-    Segs = bfsReach(Edges, VrtxCmpnt, NbrLst)   
-    
-    return Segs
+    return Links
     
 def bfs(Seed, FundiList, NbrLst, Cmpnt):
     '''Use BFS to find the nearest vertex that is also in the cloud and in the same basin component. 
@@ -412,6 +355,9 @@ def bfs(Seed, FundiList, NbrLst, Cmpnt):
     Support : list of integers
         Support[i] is the node from which BFS first visit node Cmpnt[i] (Cmpnt[i] is an id for a vertex in a hemisphere.)
         Once BFS reaches another fundus vertex from the seed vertex, we can extract the path by tracing back using Support.
+        
+    Path : list of integers
+        Each integer in *Path* represents a vertex on the shortest path from *Seed* to any vertex in *FundiList*.
      
     '''
     Support = [None for i in xrange(0, len(Cmpnt))]
@@ -446,8 +392,41 @@ def bfs(Seed, FundiList, NbrLst, Cmpnt):
     
     return Path
 
-def bfsReach(Edges, Cmpnts, NbrLst):  # activated Forrest 2011-05-25 23:23
-    '''Using BFS to find the shortest (in Hamiltonian distance) path for all fundus vertexes pairs in Edges
+
+# the function below is deactivated by Forrest on 2011-07-10
+#def bfsReach(Edges, Cmpnts, NbrLst):  # activated Forrest 2011-05-25 23:23
+#    Using BFS to find the shortest (in Hamiltonian distance) path for all fundus vertexes pairs in Edges
+#    
+#    Edges : list of list (3-tuple) of integers
+#        Each element is a 3-tuple. the first two are vertex IDs. 
+#        Followed is the length of the distance between them. therefore, BFS should stop when the length is reached.
+#        The last is the ID of the component.  
+#
+#    NbrLst : list of list of integers
+#        neighbor list of vertexes 
+#    
+#    Cmpnts : list of lists of integers
+#        Cmpnts[i] is a list of vertexes in the i-th connected component
+    
+    
+#    Curve = []
+#    
+#    for Edge in Edges:
+#        (Src, Dst, Cost, CID) = Edge
+#        if Cost ==1:
+#            Curve.append([Src, Dst])
+#        else:
+#            Curve.append( bfs(Src, [Dst], NbrLst, Cmpnts[CID]) ) 
+#    return Curve
+
+
+def bfsReach(Edge, Cmpnt, NbrLst): # New version of bfsReach to connect only one MST-determined vertex pair  
+    '''This is a new version of bfsReach, activated on 2011-07-10. An older version was activated on 2011-05-25.
+    
+    The 2011-07-10 version replaces the loop of 2010-05-25 version by the loop body in the older version.  
+    
+    Parameters
+    ===========
     
     Edges : list of list (3-tuple) of integers
         Each element is a 3-tuple. the first two are vertex IDs. 
@@ -456,21 +435,23 @@ def bfsReach(Edges, Cmpnts, NbrLst):  # activated Forrest 2011-05-25 23:23
 
     NbrLst : list of list of integers
         neighbor list of vertexes 
+        
+    Cmpnt : list of integers
+        a list of vertex IDs in this coonnected component
+        
+    Curve : list of list of integers
+        Each element of *Curve* is a list of vertex IDs forming one branch on the MST
+         
+        
+    ''' 
     
-    Cmpnts : list of lists of integers
-        Cmpnts[i] is a list of vertexes in the i-th connected component
-    '''
+    (Src, Dst, Cost, CID) = Edge
+    if Cost ==1:
+        return [Src, Dst]
+    else:
+        return bfs(Src, [Dst], NbrLst, Cmpnt)
+#    return [Src, Dst] 
     
-    Curve = []
-    
-    for Edge in Edges:
-        (Src, Dst, Cost, CID) = Edge
-        if Cost ==1:
-            Curve.append([Src, Dst])
-        else:
-            Curve.append( bfs(Src, [Dst], NbrLst, Cmpnts[CID]) ) 
-    return Curve
-
 def filterCmpnt(Vrtxs, Cmpnts):
     '''Leave vertexes in Cmpnts that are also in Vrtxs only. Thus, use Vrtxs (vertexes of certian property, i.e., fundi) to filter Cmpnts. 
     
@@ -491,150 +472,87 @@ def filterCmpnt(Vrtxs, Cmpnts):
     
     return NewCmpnts
 
-def graphReduce(Cmpnts, Coordinates, NbrLst): 
-    '''Reduce the edges in fundus face strip in one connected component for using Noah's minimal spanning tree algorithm later. 
-        For each node, only a few edges left. A edge is kept by various criteria. Now we say the top 3 shortest edges.
-        
+def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB, DistFile=''): 
+    '''Compute/load weighted adjacency matrixes of all connected sulcal components. 
         
     Parameters
     ===========
     
-    NbrLst : list of list of integers
-        neighbor list of vertexes 
-        
-    Coordinates : list of list (3-tuple) of floats
-        Coordinates[i] is the coordinate of the i-th vertex on the pial surface
-        
-    Cmpnts : list of list integers
-        each element is a list of IDs of vertexes that are in a component (could have been filtered by turnCmpnt)
-        
-    Dist : list of floats
-        Distances from a vertex to all its neighbors, ordered as neighbors in NbrLst        
-    
-    Return 
-    =======
-    
-    NewNbrLst : list of list of integers
-        reduced neighbor list of vertexes
-    
-    Edges : list of list (2-tuple) of integers
-        each element represents the IDs of two vertexes that form an edge
-        Edges are left to be dumped into VTK files for visual inspection on the reduction result
-           
-    
-    '''
-    
-    NewNbrLst = list(NbrLst)
-    Edges = []
-    
-    for Cmpnt in Cmpnts:
-        for Vrtx in Cmpnt:  
-            Nbrs = NbrLst[Vrtx]
-            Dist = {} 
-            for Nbr in Nbrs:
-                Dist[Nbr] = ( (Coordinates[Vrtx][0] - Coordinates[Nbr][0])**2 \
-                            + (Coordinates[Vrtx][1] - Coordinates[Nbr][1])**2 \
-                            + (Coordinates[Vrtx][2] - Coordinates[Nbr][2])**2)**0.5 
-            Top = sorted(Dist.iteritems(), key=lambda (k,v) : (v,k))[:-1]  # the -3 here is a key, if we do a positive number, then only short edges are left and then the mesh is very discrete 
-            NewNbrLst[Vrtx] = [Tuple[0] for Tuple in Top]
-            [Edges.append([Vrtx, Tuple[0]]) for Tuple in Top]
-                
-    return NewNbrLst, Edges
-
-def dist(VrtxCmpnts, VrtxNbrLst, Candidates, DistFile=''): 
-    '''Compute the shortest distance between all pair of vertexes in the same connected component.
-    For each connected component, create an adjacency matrix. Then use graph power to compute the shortest distance between vertexes, 
-    until the distances between all pairs are non-zero (zero means the distance between two vertexes are unknown. 
-    Sometimes, it is defined as infinite.)
-    
-    If DistFile is provided, 
-        
-    Parameters
-    ===========
-    
-    Adj : list of list of integers (0 and 1 only) 
+    Adj : list of list of integers/doubles
         adjacency matrix of a connected component
         
     Dist : list of list of integers 
         Dist[i][j] is the shortest distance between vertex i and vertex j
-        
-    Candidates : list of integers
-        A list of IDs of fundus vertexes
+        Dist[i] is the Adj of the i-th connected component
         
     DistFile : string
         A path to filed extracted distance matrix
+        
+    CID : integer
+        a component ID
+    
+    Cmpnt : list of integers
+        global vertex IDs of all vertexes in a connected sulcal component 
+        
+    VrtxIdx : integer
+        local (inner-componnent) ID of a vertex
+         
+    NbrIdx : integer
+        local (inner-componnent) ID of a vertex's Nbr 
+        
+    CurvatureDB : list of doubles
+            each element is the curvature value of a vertex 
     
     Notes
     =======
     
-    1. This function was originally defined in libbasin and was marked as Unfinished. - 29011-05-20 23:08
+    Before HBM, this function uses graph power to weigh links between nodes. 
+    Now (2011-07-17) it uses curvature to weigh. 
       
     '''    
    
-    print "computing/loading graph power"
+    print "computing/loading weighted adjacency matrixes"
  
-    if DistFile != '' and os.path.exists(DistFile):
-        return fileio.readLists(DistFile)
+#    if DistFile != '' and os.path.exists(DistFile):
+#        return fileio.readFltLsts(DistFile)
+    # the block above is disabled because now computing adjacency matrix isn't time-consuming.
+    # Forrest 2011-07-17
     
     Dists = [] 
     for CID, Cmpnt in enumerate(VrtxCmpnts):
         Num = len(Cmpnt)
-        print "Computing graph power:", CID, "/", len(VrtxCmpnts), "size of this component:", Num
+        print "\t component", CID+1, ": size", Num
         if Num > 1:
             
-            # initializing the binary adjacency matrix 
             Adj = matrix(zeros((Num, Num)))
-            for Idx1, Vrtx in enumerate(Cmpnt):
+            for VrtxIdx, Vrtx in enumerate(Cmpnt):
                 for Nbr in VrtxNbrLst[Vrtx]:
                     if Nbr in Cmpnt:
-                        NbrIdx = Cmpnt.index(Nbr)
-                        Adj[Idx1, NbrIdx] = 1
-                        Adj[NbrIdx, Idx1] = 1
-                        
-            # end of initializing the binary adjacency matrix 
-
-            # Compute graph power                
-            Dist = matrix(Adj)
-            Counter = 1
-            Num2 = Num*Num - Num
-            while flatnonzero(Dist).shape[1] < Num2:  # the only zero elements are diagonal elements
-#                print flatnonzero(Dist).shape[0]
-                Adj *= Adj
-                Adj = sign(Adj)
-                Counter += 1
-                for i in xrange(0, Num-1):
-                    for j in xrange(i+1, Num):
-                        if Dist[i,j] == 0:
-                            NewValue = Adj[i,j] * Counter
-                            Dist[i,j] = NewValue
-                            Dist[j,i] = NewValue      # this part needs to be speed up using matrix operations rather than looping
-            # End of compute graph power        
-            
-            # zero out rows and columns for elements that are not in Candidate  
-            # Comment on 2011-05-21 13:59 because fundus candidates could change and i do not wanna redo graph power every time
-#            Dist = array(Dist)
-#            for Idx, Vrtx in enumerate(Cmpnt):
-#                if not Vrtx in Candidates:
-#                    Dist[Idx, :] = zeros(Num)
-#                    Dist[:, Idx] = zeros(Num)
-            # end of zero out rows and columns for elements that are not in CandidateS
+                        NbrIdx = Cmpnt.index(Nbr)                        
+                        LinkWeight = -1. * (CurvatureDB[Vrtx]  + CurvatureDB[Nbr]) 
+                         
+                        # add a double check here to ensure the matrix is diagonally symmetric
+                        if   Adj[VrtxIdx, NbrIdx] == 0:
+                            Adj[VrtxIdx, NbrIdx] = LinkWeight # 
+                            # Adj[NbrIdx, VrtxIdx] = LinkWeight # write only once for checking later
+                        elif Adj[VrtxIdx, NbrIdx] != 0 and Adj[VrtxIdx, NbrIdx] != LinkWeight:
+                            print "error, Adj is not symmetric."
+                        elif Adj[NbrIdx, VrtxIdx] != 0 and Adj[NbrIdx, VrtxIdx] != LinkWeight:
+                            print "error, Adj is not symmetric."
              
-            Dist = [[int(i) for i in Row] for Row in list(array(Dist)) ]
+            #Dist = [[int(i) for i in Row] for Row in list(array(Adj))]
+            Dist = [[i for i in Row] for Row in list(array(Adj))]
 #            for Row in list(array(Dist)):
 #                for Element in Row:
 #                    print Element
         
         else:
-            Dist = [[1]]
+            Dist = [[1]]            
             
-            
-        Dists.append(list(Dist))
-
-#        break
+        Dists.append(list(Dist)) # I forgot why this line is needed Forrest 2011-07-17
         
-        # I think it is finished though marked as unfinished before. 2011-05-20 23:57
-    if DistFile != '':
-        fileio.wrtLists(DistFile, Dists)
+#    if DistFile != '':
+#        fileio.wrtLists(DistFile, Dists)
     return Dists
 
 def zeroout(Dists, VrtxCmpnts, Fundi):
@@ -670,6 +588,102 @@ def nonZeroLn(List): # activated 2011-05-25 19:14
                 break
             
     return Counter
+
+def downsample(Special, VrtxCmpnts, NbrLst, Prob):
+    '''Randomly delete vertexes on original mesh by probability Prob. 
+    
+    
+    Parameters 
+    =============
+    
+    Special : list of integers
+        special vertexes that have to be in downsampled mesh. 
+    
+    VrtxCmpnts : list of lists of integers
+        VrtxCmpnts[i] is a list of vertexes in the i-th connected component
+        
+    NbrLst : list of lists of integers
+            neighbor list of vertexes
+    
+    Prob : float 
+        The probability \in [0, 1] that a vertex is to be KEPT. 
+        If it is 1, remove nothing.
+        If it is 0, remove ALL. 
+    
+    N : list of lists of integers
+        new vertexes to be left after downsampling
+        
+    L : list of lists of integers
+        neighbor list of vertexes after downsampling
+    
+    Vrtx : integer
+        a vertex id
+    
+    MinusVrtx : integer
+        number of vertexes removed in mesh downsampling
+    
+    MinusEdge : integer
+        number of edges removed in mesh downsampling
+    
+    Keep : list of integers
+        vertexes to be kept 
+    
+    SpecialGroup: list of list of integers 
+        each element is a list of Special vertexes in each connected component
+    
+    SpecialInThisGroup : list of integers
+        a list of Special vertexes ID, used to represent all Special vertexes in a running component
+    
+    '''
+    
+    print "Downsampling mesh..."
+    
+    import random
+    
+    N = []
+    L = [[] for i in xrange(0,len(NbrLst))]
+    SpecialGroup = []
+        
+
+    for Cmpnt in VrtxCmpnts:
+        for Vrtx in Cmpnt:
+            L[Vrtx] = NbrLst[Vrtx]
+
+    for CmpntID, Cmpnt in enumerate(VrtxCmpnts): # for each component
+        MinusVrtx, MinusEdge = 0, 0
+        NumMusthave = 0
+        Keep = []
+        SpecialInThisGroup = []
+        for Vrtx in Cmpnt:   # for each vertex in the component
+            if Vrtx in Special :
+#                N[-1].append(Vrtx)
+                NumMusthave += 1
+                SpecialInThisGroup.append(Vrtx)
+                if not Vrtx in Keep:
+                    Keep.append(Vrtx)
+            elif not Vrtx in Keep: # The purpose of not Vrtx in Keep is to avoid removing vertexes that should not be removed, such as Musthave.
+                if Prob <= random.random():  # REMOVE Vrtx
+                    MinusVrtx += 1
+                    for Nbr in NbrLst[Vrtx]:
+                        if Nbr in Cmpnt:
+                            # step 1: put Vrtx's neighbors, which are ALSO in Cmpnt, into N and thus delete Vrtx
+                            if not Nbr in Keep:
+                                Keep.append(Nbr) # yield more vertexes and edges removed
+                            # step 2: delete edges ending at Vrtx
+                            if Vrtx in L[Nbr]:
+        #                        N[-1].append(Nbr) # yield less vertexes and edges removed
+        #                        Left.append(Nbr)  # yield less vertexes and edges removed
+                                L[Nbr].remove(Vrtx)
+                                MinusEdge += 1
+                    L[Vrtx] = [] # Vrtx has no neighbor now
+                else: # KEEP this vertex
+                    Keep.append(Vrtx)
+                    
+        N.append(Keep)
+        SpecialGroup.append(SpecialInThisGroup)
+        print "\t component", CmpntID+1, ":", NumMusthave, "Specials. ", "Vtx #:", len(Cmpnt), "-", MinusVrtx,  "=>", len(Keep)
+
+    return N, L, SpecialGroup
 
 class Prim:  # modified from the code without license @http://hurring.com/scott/code/python/mst_prim/v0.1/mst_prim.py 
     INFINITY = 2**8  # this is large enough for current problem size
@@ -782,8 +796,8 @@ def otherPaths(V0, APair, Degree, Pairs):
 #    print "found a standalone edge"  # This might be a potential problem. Need to check later. Forrest 2011-05-28 15:07 
     return Result, Terminals
 
-def mst(Adjs, VrtxCmpnts, FundusCmpnts):
-    '''Using Prim algorithm to line up fundus vertexes within each connected component
+def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst):
+    '''Using Prim algorithm to connect nodes (including fundus vertexes) within each connected component
     
     Parameters
     ==========
@@ -791,8 +805,12 @@ def mst(Adjs, VrtxCmpnts, FundusCmpnts):
     VrtxCmpnts : list of lists of integers
         VrtxCmpnts[i] is a list of vertexes in the i-th connected component
     
-    FundusCmpnts : list of lists of integers
-        FundusCmpnts[i] is a list of FUNDUS vertexes in the i-th connected component 
+    SpecialGroup : list of lists of integers
+        Special[i] is a list of Special vertexes in the i-th connected component
+        Special[i] can be empty 
+    
+    NbrLst : list of list of integers
+            neighbor list of vertexes
     
     Path : list of lists (2-tuple) of integers
         Each element of *Path* is a list of the two terminals of each pair of connected fundus vertexes
@@ -818,14 +836,13 @@ def mst(Adjs, VrtxCmpnts, FundusCmpnts):
         print "Error, Adjs is not as long as VrtxCmpnts"
         exit()
     else:
-        print "Stringing up fundus vertexes in", len(VrtxCmpnts), "connected components."
-        for i in xrange(0, len(Adjs)):
-            print "MST on compoent",i
-            if len(FundusCmpnts[i]) < 2 :  # This compnent has no more than two fundus vertexes
-                continue
+        print "Connecting fundus vertexes in", len(VrtxCmpnts), "connected components."
+        for i in xrange(0, len(Adjs)):  # For each component in the hemisphere
+            print "\t MST on component",i+1, ",",
+            if len(SpecialGroup[i]) < 2 :  # This compnent has no more than two vertexes to be connected
+                print "\t Skipped. Too few vertexes (all kinds). "
             else:
-#                Root = FundusCmpnts[i][0] # this is wrong because Root should be a local index of a vertex rather than a global one. but i used to use it.
-                Root = VrtxCmpnts[i].index(FundusCmpnts[i][0])  # o/w, start building MST from the first fundus vertex 
+                Root = VrtxCmpnts[i].index(SpecialGroup[i][0])  # always start MST from a special vertex 
 #                Adj = Adjs[i]              # avoid creating new variable to speed up
 #                Cmpnt = VrtxCmpnts[i]     # avoid creating new variable to speed up
                 Num = len(Adjs[i])
@@ -834,14 +851,17 @@ def mst(Adjs, VrtxCmpnts, FundusCmpnts):
                     (Adj, W, Path, Degree) = M.mst_prim(Adjs[i], [Root], i, [], M.degree) # starting from the Root
                     #print len(Path)  # debugging line, Forrest 2011-05-25 20:33
 #                    Seg = [[VrtxCmpnts[i][Idx] for Idx in Pair] for Pair in Path]  # The Idx is LOCAL (i.e., within the connected component) index of a vertex.
+                    print len(Path), "links found."
                     for Pair in Path:                    
                         (Src, Dst, Cost, CID) = Pair
 #                        Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] )
                         # pruning heuristic 1
                         if Degree[Src] > 2 and Degree[Dst] ==1 and Cost < 4:
-                            Degree[Src] -= 1
+                            #Degree[Src] -= 1
+                            pass
                         elif Degree[Dst] > 2 and Degree[Src] ==1  and Cost < 4:
-                            Degree[Dst] -= 1
+                            #Degree[Dst] -= 1
+                            pass
                         # end of pruning heuristic 1
                         # pruning heuristic 2
 #                        elif Degree[Src] ==1:
@@ -890,11 +910,12 @@ def mst(Adjs, VrtxCmpnts, FundusCmpnts):
 #                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
                         # end of pruning heuristic 3
                         
-                        else:
-                            Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
-                    
+                        else: # no need to prune and thus put this segment into Segs directly                            
+                            #Path = bfsReach([ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i], VrtxCmpnts[i], NbrLst) # deactivated forrest 2011-07-17
+                            Path = [ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst] ] # Forrest 2011-07-17, do NOT map links onto the mesh
+                            Segs.append(Path)
 #                    Segs += Seg
-        print "\n"  
+#        print "number of segments: ", len(Segs)  
         return Segs
 
 def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
@@ -920,162 +941,245 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
     libvtx.getFeature('basin', CurvFile, SurfFile, ToVTK)
     '''
   
+    print "Connecting clouds into fundus curves."
+  
     Curvature = fileio.readCurv(CurvFile)
+    CurvDisp = []
+    for x in Curvature:
+        if x > 0:
+            CurvDisp.append(x)
+        else:
+            CurvDisp.append(0)
     
     Vrtx, Fc = fileio.readSurf(SurfFile)
     
-    NbrLstFile = SurfFile[:-1*SurfFile[::-1].find('.')] + 'vrtx.nbr'
-
-# block Commented 2011- 05- 04 22:34 Can be deleted as testing     
-#    if os.path.exists(NbrLstFile):
-#        NbrLst = fileio.loadVrtxNbrLst(NbrLstFile)
-#    else:
-#        NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile)
-# End of block Commented 2011- 05- 04 22:34 Can be deleted as testing
-# Replaced by the line below
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile)
     
-    Strict, Candidate = rawFundi(len(Vrtx), Curvature, NbrLst, Skip2 = False, Skip3 = True)  # turn Skip2 and Skip3 both on only when drawing curvature contours 
-    
-#    print len(Strict+Candidate)
+    Strict, Candidate = rawFundi(len(Vrtx), Curvature, NbrLst, Skip2 = False, Skip3 = False)  # turn Skip2 and Skip3 both on only when drawing curvature contours 
 
-# output clouds ---------------
-#    if Strict !=[]:
-#        FStrict = CurvFile + '.fundi.vrtx.strict'
-#        fileio.writeList(FStrict, Strict)
-#        
-#    FCandidate = CurvFile + '.fundi.vrtx'
-#    fileio.writeList(FCandidate, Candidate)
-#    
-#    if ToVTK:
-#        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate)
-#        if Strict != []:
-#            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#            libvtk.vrtxLst2VTK(VTKFile, SurfFile, FStrict)
-#        if SurfFile2 != '':
-#            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate)
-#            if Strict != []:  
-#                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#                libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FStrict)
-# end of clouds output  --------- 
-
-# output segments -----------
-#    Candidate = skeletonizeVrtx(Candidate + Strict, NbrLst, MaxIter=1)   # Note 2011-5-4 22:08, the skeleton may not be needed as the clouds are very lined up 
-        
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'  # need to run libbasin first to get components
     VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile) # need to run libbasin first to get components
+    Candidate
+#    print len(Strict+Candidate)
+
+# test mesh downsampling  ---
+
+#    LeftVrtx, NewNbrLst = downsample([], VrtxCmpnt, NbrLst, Prob=0.5)
+#    
+#    Links = []
+#    
+#    for Center, Ring in enumerate(NewNbrLst): # Ring means
+#        if Ring != []:
+#            for Nbr in Ring: 
+#                Links.append(str(Center) + " " + str(Nbr) + "\n")
+#    
+#    ReducedMesh = open(CurvFile + '.mesh.reduced.vtk', 'w')
+#    libvtk.writeHeader(ReducedMesh)
+#    libvtk.writePoint(ReducedMesh, Vrtx)
+#    libvtk.writeSeg(ReducedMesh, Links)
+#    ReducedMesh.close()
+#    
+#    exit(0)
+
+# end of test mesh downsampling ---
+
+
+# output clouds ---------------
+    if Strict !=[]:
+        FStrict = CurvFile + '.strict'
+        fileio.writeList(FStrict, Strict)
+        
+    FCandidate = CurvFile + '.candidate'
+    fileio.writeList(FCandidate, Candidate)
     
-#    Candidate = lineUp(Candidate+Strict, NbrLst, filterCmpnt(Candidate+Strict, VrtxCmpnt)) 
-    
-#    Candidate = lineUp(Candidate, NbrLst, VrtxCmpnt)
-# The block below does not make sense, because there is no strict sgmt here.     Commented 2011-05-04 21:36
-#    if Strict !=[]:
-#        FStrict = CurvFile + '.fundi.sgmt.vrtx.strict'
-#        fileio.writeFundiSeg(FStrict, Strict)
-# End of The block below does not make sense, because there is no strict sgmt here.  Commented 2011-05-04 21:36
-#    Strict = []   # activated 2011-05-04 21:36
-#        
-#    FCandidate = CurvFile + '.fundi.sgmt.vrtx'
-#    fileio.writeFundiSeg(FCandidate, Candidate)
-#    
-#    if ToVTK:
-#        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.seg2VTK(VTKFile, SurfFile, FCandidate)
-#        if Strict != []:
-#            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#            libvtk.seg2VTK(VTKFile, SurfFile, FStrict)
-#        if SurfFile2 != '':
-#            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#            libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate)
-#            if Strict != []:  
-#                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#                libvtk.seg2VTK(VTKFile, SurfFile2, FStrict)
-# end of segments output ----
+    if ToVTK:
+        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate)
+        if Strict != []:
+            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+            libvtk.vrtxLst2VTK(VTKFile, SurfFile, FStrict)
+        if SurfFile2 != '':
+            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate)
+            if Strict != []:  
+                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+                libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FStrict)
+# end of clouds output  --------- 
 
+# get and output fundus curves -----------    
 
-# gradually implementing Noah's minimal spanning tree algorithm. 
-#    # step 1: testing reduced edge, test passed  2011-05-19 22:28
-#    NewNbrLst, NewEdges = graphReduce(VrtxCmpnt, Vrtx, NbrLst)
-#
-##    Fp = open(SurfFile[:-1*SurfFile[::-1].find('.')] + 'vrtx.nbr.new', 'w')
-##    for i in xrange(0, len(NewNbrLst)):
-##        [Fp.write(str(Vrtx) + '\t') for Vrtx in NewNbrLst[i]]
-##        Fp.write('\n')    
-##    Fp.close()
-##    
-##    FCandidate = CurvFile + '.newedge.vrtx'
-##    fileio.writeFundiSeg(FCandidate, NewEdges)
-##    
-##    if ToVTK:
-##        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-##        libvtk.seg2VTK(VTKFile, SurfFile, FCandidate)
-##        if SurfFile2 != '':
-##            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-##            libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate)
-#    
-#    # End of step 1 
-#    
-#    # step 2: prepare the distance matrix for FUNDUS vertex, for each fundus vertex, only 2 shortest edges are left
-#    #         Columns and rows for non-fundus vertexes are all zeros.
-#    
-#    DistFile = CurvFile + '.dist'
-#    
-## the block below is temporarily replaced by the line below it for fast debugging Forrest 2011-05-25 15:05    
-##    Dists = dist(VrtxCmpnt, NewNbrLst, Candidate+Strict, DistFile=DistFile)
-###    fileio.wrtLists(DistFile, Dists) # This line is optional, in moost cases, it is turned off.
-##    Dists = zeroout(Dists, VrtxCmpnt, Candidate+Strict)
-##    # Now Dists are weighted adjecency matrix of fundus vertexes in each component
-##    fileio.wrtLists(DistFile+'.reduced', Dists)
-## the block below is temporarily replaced by the line below it for fast debugging Forrest 2011-05-25 15:05
-#    Dists = fileio.readLists(DistFile+'.reduced')  # a temporary line replacing the block above for fast debugging  
-#     
-#    # End of step 2
-#    
-#    # Step 3: use MST to line up fundus vertexes and dump into VTK format
-#    FundusCmpnt = filterCmpnt(Candidate+Strict, VrtxCmpnt)
-#    Edges = mst(Dists, VrtxCmpnt, FundusCmpnt)  # new MST call, returns length of each edge. 
-#    
-#    # IF the edge length is not 1, use BFS to string up two fundus vertexes on cortex surface.
-#    Segs = bfsReach(Edges, VrtxCmpnt, NbrLst)    
+    Nodes = Strict # can be Candidates, Strict, Pits, Skeleton, etc.  
 
-#    Segs = lineUp(Strict, NbrLst, VrtxCmpnt, Vrtx, CurvFile)
-    Segs = lineUp(Candidate, NbrLst, VrtxCmpnt, Vrtx, CurvFile) # activated 2011-05-29 19:48
+    Segs = lineUp(Nodes, NbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature)
 
     print "Saving fundus curved obtained via stringing up fundus vertexes into VTK files"
 
-    FSeg = CurvFile + '.fundi.sgmt.vrtx'
+    FSeg = CurvFile + '.fundi.from.clouds'
     fileio.writeFundiSeg(FSeg, Segs)
     
     if ToVTK:
         VTKFile = FSeg + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.seg2VTK(VTKFile, SurfFile, FSeg, LUT=[Curvature], LUTname=['Curvature'])
+        libvtk.seg2VTK(VTKFile, SurfFile, FSeg, LUT=[CurvDisp], LUTname=['Curvature'])
         if SurfFile2 != '':
             VTKFile = FSeg + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.seg2VTK(VTKFile, SurfFile2, FSeg, LUT=[Curvature], LUTname=['Curvature'])
+            libvtk.seg2VTK(VTKFile, SurfFile2, FSeg, LUT=[CurvDisp], LUTname=['Curvature'])
 
     
-    # End of Step 3: use MST to line up fundus vertexes and dump into VTK format
-    
-    
-    # the code to lineup pits into fundi
-'''    
-    print "Stringing up pits into fundus curves"
-    
-    PitsFile = CurvFile + '.pits'
-    Pits = libvtk.loadFundiList(PitsFile)
-    PSegs = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, CurvFile) # activated 2011-05-29 19:48
+# end of get and output fundus curves ----    
 
-    FPits = CurvFile + '.fundi.sgmt.from.pits'
-    fileio.writeFundiSeg(FPits, PSegs)
+
+# below are functions not in active use ---
+
+def dfs4loop(Segs):
+    '''The DFS search for check whether a graph is loop free.
     
-    print "Saving fundus curves strung up from pits into VTK files"    
-    if ToVTK:
-        VTKFile = PSegs + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.seg2VTK(VTKFile, SurfFile, FPits)
-        if SurfFile2 != '':
-            VTKFile = PSegs + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.seg2VTK(VTKFile, SurfFile2, FPits)    
-    # End of the code to lineup pits into fundi 
-'''
+    Step 1: Extract the graph as nodes and their childern from Segs
+    Step 2: Run DSF on the graph
+    Step 3: Report error if a visited node is visited again . Exit if DFS has visited all nodes. 
+    
+    
+    Parameters
+    ==========
+    Segs    : list of 2-tuples of integers
+        Each element is a 2-tuple of integers representing two vertexes. 
+        
+    Nodes    : list of integers
+        Each element is a vertexes.
+        
+    Nbrs    : list of list of integers
+        Each element is a list of Nbrs of of a node. Nodes are ordered by their vertex id. 
+        Hence, Childern[i] is childern of the node of the i-th least vertex id. 
+     
+    '''
+    
+    pass
+    
+    
+
+def loopfree():
+    '''Check whether a graph is loop free 
+    
+    Do DFS to see whether you have traversed the 
+    
+    '''
+  
+    pass
+
+def graphReduce(Cmpnts, Coordinates, NbrLst): 
+    '''Reduce the edges in fundus face strip in one connected component for using Noah's minimal spanning tree algorithm later. 
+        For each node, only a few edges left. A edge is kept by various criteria. Now we say the top 3 shortest edges.
+        
+        
+    Parameters
+    ===========
+    
+    NbrLst : list of list of integers
+        neighbor list of vertexes 
+        
+    Coordinates : list of list (3-tuple) of floats
+        Coordinates[i] is the coordinate of the i-th vertex on the pial surface
+        
+    Cmpnts : list of list integers
+        each element is a list of IDs of vertexes that are in a component (could have been filtered by turnCmpnt)
+        
+    Dist : list of floats
+        Distances from a vertex to all its neighbors, ordered as neighbors in NbrLst        
+    
+    Return 
+    =======
+    
+    NewNbrLst : list of list of integers
+        reduced neighbor list of vertexes
+    
+    Edges : list of list (2-tuple) of integers
+        each element represents the IDs of two vertexes that form an edge
+        Edges are left to be dumped into VTK files for visual inspection on the reduction result
+           
+    
+    '''
+    
+    NewNbrLst = list(NbrLst)
+    Edges = []
+    
+    for Cmpnt in Cmpnts:
+        for Vrtx in Cmpnt:  
+            Nbrs = NbrLst[Vrtx]
+            Dist = {} 
+            for Nbr in Nbrs:
+                Dist[Nbr] = ( (Coordinates[Vrtx][0] - Coordinates[Nbr][0])**2 \
+                            + (Coordinates[Vrtx][1] - Coordinates[Nbr][1])**2 \
+                            + (Coordinates[Vrtx][2] - Coordinates[Nbr][2])**2)**0.5 
+            Top = sorted(Dist.iteritems(), key=lambda (k,v) : (v,k))[:-1]  # the -3 here is a key, if we do a positive number, then only short edges are left and then the mesh is very discrete 
+            NewNbrLst[Vrtx] = [Tuple[0] for Tuple in Top]
+            [Edges.append([Vrtx, Tuple[0]]) for Tuple in Top]
+                
+    return NewNbrLst, Edges
+
+def fillUp():
+    '''Fill up spaces between vertex clouds 
+    
+    Seems no use now. 04/11/2011
+    
+    '''
+    pass
+
+
+def skeletonizeVrtx(FundiList, NbrLst, CNbr = 0.3, ANbr = 0.3, MaxIter = 10):
+    '''Skeletonize vertex clouds, by iteratively removing vertexes that have a neighbor in the cloud but 'exposed' to the outer world.
+    
+    Input
+    =====
+        FundiList:    list of integers
+            Each element is a vertex id. The vertex is considered as part of the raw fundi, as clouds. 
+            
+        NbrLst:    list of integers
+            Each element is the id of vertexes neighboring with a vertex.
+            
+        MaxIter:    integer
+            The maximum number of iteration allowed in Skeletonization by removing exposed cloud vertexes.
+            
+        CNbr :  
+    
+    Notes
+    ======
+    
+    MaxIter = 3, 4 and 5 have no big difference after lineUp
+    
+    '''
+    
+#    ToBeRemoved = [False for i in xrange(0, len(FundiList))]
+    Iteration = 0
+    while Iteration <= MaxIter:
+        ToBeRemoved = []
+        Iteration += 1
+    
+        for i in xrange(0, len(FundiList)):
+            Vrtx = FundiList[i]
+            Nbrs = NbrLst[Vrtx]
+    #        HasCloudNbr, HasAirNbr = False, False  # air neighbor means a neighbor that is not in the cloud
+            CloudNbr, AirNbr = [], []# neighbors in the cloud, and neighbors not in the cloud 
+            for Nbr in Nbrs:
+                if Nbr in FundiList:
+    #                HasiNbr = True
+                    CloudNbr.append(1)
+                    AirNbr.append(0)
+                else:
+    #                if Nbr in JustRemoved:
+    #                    HasAirNbr = True
+    #                    continue
+    #                HasAirNbr = True
+                    CloudNbr.append(0)
+                    AirNbr.append(1)
+    #        if HasCloudNbr and HasAirNbr:
+#            if sum(CloudNbr) > len(Nbrs) * CNbr and sum(AirNbr) > len(Nbrs) * ANbr:
+            if sum(CloudNbr) > 2 and sum(AirNbr) > 0:   
+    #            ToBeRemoved[i] = True
+                ToBeRemoved.append(Vrtx)
+        
+        if ToBeRemoved == []:
+            break
+        else: 
+            for Rmv in ToBeRemoved:
+                FundiList.remove(Rmv)
+            
+    return FundiList

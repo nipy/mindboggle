@@ -49,7 +49,7 @@ def writeFace(Fp, FaceList, VertexPerFace=3):
         Fp.write( str(VertexPerFace) + " " + str(V0) + " " + str(V1) + " " + str(V2) + "\n")
 
 def writeVrtx(Fp, VrtxList):
-    """Print vertexes forming triangular meshes, the POLYGONS section in DATASET POLYDATA section 
+    """Print vertexes, the VERTICES section in DATASET POLYDATA section 
     """
     # One possible solution
     Fp.write("VERTICES " + str(len(VrtxList)) + " " + str(len(VrtxList)+1) + "\n" + str(len(VrtxList)) + " ")
@@ -62,6 +62,16 @@ def writeVrtx(Fp, VrtxList):
 # end of Level 1 functions  ---
 
 # Level 2: converting my own fundi storage files into VTK representation ---
+
+def surf2VTK(SurfFile):
+    Vertex, Face = fileio.readSurf(SurfFile)
+    Fp = open(SurfFile + '.vtk', 'w')
+    writeHeader(Fp, Title='vtk output from'+SurfFile)
+    writePoint(Fp, Vertex)
+    writeFace(Fp, Face)
+    Fp.close()
+    
+
 def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, CurvFile='', LUT=[], LUTname=[]):  # new version, activated 03/15/2011
     '''Load a face list file and a surface file to map faces onto the surface and save the result into VTK format
     
@@ -142,9 +152,16 @@ def seg2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new version
 # Level 3 functions, called by Level 2 functions --- 
 def writeSeg(Fp, FundiList):
     '''Write a line segment with two ending points into VTK format 
+    
+    Parameters
+    ===========
+    
+    FundiList: list of strings (NOT integers)
+       each element of FundiList is a string containing IDs of two vertexes, like "1 3" 
+    
     '''
     Fp.write("LINES " + str(len(FundiList)) + " " + str(len(FundiList)*3) + "\n")
-    [Fp.write("2 " + Vrtx) for Vrtx in FundiList]  # each element of FundiList is a string containing the ID of two vertexes
+    [Fp.write("2 " + Vrtx) for Vrtx in FundiList]
         
 def loadFundiList(filename):
     '''Load the file storing face/vertex IDs, which are fundi faces/vertexes. 
@@ -170,7 +187,7 @@ def wrtFcFtr(Fp, Vertex, Face, FundiList):
 def writeVrtxFundi(Fp, Vertex, FundiList):
     '''Load IDs of fundi faces (in my output format) and original surface file to output fundi in VTK format
     '''
-    writeHeader(Fp, 'patient 290 fundi')
+    writeHeader(Fp, 'vtk output by Forrest')
     writePoint(Fp, Vertex)
        
     writeVrtx(Fp, FundiList)
@@ -203,7 +220,7 @@ def writeSegFundi(Fp, Vertex, FundiList):
     '''Load IDs of fundi curve segments (in my output format) and original surface file to output fundi in VTK format 
     '''
     
-    writeHeader(Fp, 'patient 290 fundi')
+    writeHeader(Fp, 'Created by Mindboggle')
     writePoint(Fp, Vertex)
     writeSeg(Fp, FundiList)
     

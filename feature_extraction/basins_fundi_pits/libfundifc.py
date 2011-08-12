@@ -262,7 +262,7 @@ def faceFundi(FaceDB, CurvDB, NbrLst, CenterDb, Ratio=0.1, Skip2 = True, Skip3 =
     
     Strict, Candidate = [], [] # to store IDs for strict and candidate faces 
 
-    t1Lb, t2Lb, t2Ub, t3Lb = mean(CurvDB) + 1*std(CurvDB), -1*std(CurvDB)*Ratio, 1*std(CurvDB)*Ratio, -1*std(CurvDB)*Ratio
+    t1Lb, t2Lb, t2Ub, t3Lb = mean(CurvDB) + 0.5*std(CurvDB), -1*std(CurvDB)*Ratio, 1*std(CurvDB)*Ratio, -1*std(CurvDB)*Ratio
 #    t1Lb, t2Lb, t2Ub, t3Lb = 0, -0.02, 0.05, 0.0045
     
     # empirical result: 
@@ -696,15 +696,13 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
     
     Curvature = fileio.readCurv(CurvFile)
     Vrtx, Fc = fileio.readSurf(SurfFile)
+    CurvDisp = []
+    for x in Curvature:
+        if x > 0:
+            CurvDisp.append(x)
+        else:
+            CurvDisp.append(0)
     
-# Commented on 2011-04-30, 21:46    
-#    NbrLstFile = SurfFile[:-1*SurfFile[::-1].find('.')] + 'fc.nbr' 
-#    if os.path.exists(NbrLstFile):
-#        NbrLst = fileio.loadFcNbrLst(NbrLstFile)
-#    else:
-#        NbrLst = libbasin.fcNbrLst(Fc, SurfFile)
-# End of commented on 2011-04-30, 21:46
-# Block above replaced by line below:
     NbrLst = libbasin.fcNbrLst(Fc, SurfFile)  # Activated 2011-04-30, 21:46 
     
     Center = getCenter(Fc, Curvature)
@@ -715,48 +713,21 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
 #    Candidate, Strict = isolate(Candidate, Strict, NbrLst)  # activated 2011-05-05 23:19
 #    Candidate, Strict = up1(Candidate, Strict, NbrLst)       # activated 2011-05-05 23:19
 
-# output part 1: fundi as face strips -----
-
-#    if Strict !=[]:
-#        FStrict = CurvFile + '.fundi.face.strict'
-#        fileio.writeList(FStrict, Strict)
-#        
-#    FCandidate = CurvFile + '.fundi.face'
-#    fileio.writeList(FCandidate, Candidate)
-#    
-#    if ToVTK:    
-#        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + ".vtk"
-#        libvtk.fcLst2VTK(VTKFile, SurfFile, FCandidate)
-#    
-#        if Strict != []:
-#            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + ".vtk"
-#            libvtk.fcLst2VTK(VTKFile, SurfFile, FStrict)
-#        
-#        if SurfFile2 != '':
-#            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + ".vtk"
-#            libvtk.fcLst2VTK(VTKFile, SurfFile2, FCandidate)
-#    
-#            if Strict != []:
-#                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + ".vtk"
-#                libvtk.fcLst2VTK(VTKFile, SurfFile2, FStrict)
-# end of output part 1 --- 
-
-# output part 2: fundi as vertex clouds obtained from face strips, with DT value and curvature values ---
+# output 1: DT map ---
 
     VrtxNbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile) # activated on 2011-04-30 21:55
     
     FaceCmpntFile = CurvFile + '.cmpnt.face'
     FaceCmpnts = fileio.loadCmpnt(FaceCmpntFile)
-#    Clouds = fc2VrtxCmpnt(Fc, Candidate, FaceCmpnts) # step 1: Convert faces in to Vrtx, clustered by components    
-#    DTMap = myDT(Clouds, VrtxNbrLst)  # step 2: my own distance transformation
-#    
-#    DTLUT = [0 for i in xrange(0,len(VrtxNbrLst))]  # initialize the LUT for all vertexes in the surface as -1
-#    for i in xrange(0,len(Clouds)):
-#        for j in xrange(0,len(Clouds[i])):
-#            DTLUT[Clouds[i][j]] = DTMap[i][j]  # option 1: let LUT be the DT map
-##            LUT[Clouds[i][j]] = Curvature[Clouds[i][j]]  # option 2: let LUT be curvature values
-#
-#    FCandidate = CurvFile + '.fundi.vrtx.from.face'
+    Clouds = fc2VrtxCmpnt(Fc, Candidate, FaceCmpnts) # step 1: Convert faces in to Vrtx, clustered by components    
+    DTMap = myDT(Clouds, VrtxNbrLst)  # step 2: my own distance transformation
+    
+    DTLUT = [0 for i in xrange(0,len(VrtxNbrLst))]  # initialize the LUT for all vertexes in the surface as -1
+    for i in xrange(0,len(Clouds)):
+        for j in xrange(0,len(Clouds[i])):
+            DTLUT[Clouds[i][j]] = DTMap[i][j] 
+
+#    FCandidate = CurvFile + '.DTmap'
 #    fileio.writeList(FCandidate, fc2Vrtx(Fc, Candidate))
 #    
 #    if ToVTK:
@@ -765,70 +736,45 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
 #        if SurfFile2 != '':
 #            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
 #            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-# End of output part 2: fundi as vertex clouds obtained from face strips, with DT value and curvature values --- 
+# End of output 1: DT map --- 
 
-
-# end of output part 2  ----
-
-# output part 3: fundi as skeletonized vertex clouds and curve segments lined up from skeletons 
+# output 2: Skeletons --- 
   
-# Step 1: Skeletonize on DT map and Output skeletonized fundus clouds    
-    
-#    FaceCmpntFile = CurvFile + '.cmpnt.face'
-#    FaceCmpnts = fileio.loadCmpnt(FaceCmpntFile)
     Skeletons = faceToCurve(Fc, Candidate, FaceCmpnts, VrtxNbrLst) 
 ##    fileio.writeDTMap(CurvFile + '.DTmap', Map)
-#
+
     Candidate = []
     for Skeleton in Skeletons:
         Candidate += Skeleton
 
-#    FCandidate = CurvFile + '.fundi.skel.from.face'
-#    fileio.writeList(FCandidate, Candidate)
-#    
-#    if ToVTK:
-#        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-#        if Strict != []:
-#            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#            libvtk.vrtxLst2VTK(VTKFile, SurfFile, FStrict)
-#        if SurfFile2 != '':
-#            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-#            if Strict != []:  
-#                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#                libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FStrict)
-# End of Step 1: Skeletonize on DT map and Output skeletonized fundus clouds
+    FCandidate = CurvFile + '.skeletons'
+    fileio.writeList(FCandidate, Candidate)
+    
+    if ToVTK:
+        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
+        if SurfFile2 != '':
+            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
+# End of output 2: Skeletons ---
 
-# Step 2: Line skeletons up into curves
+# output 3: fundus curves connected from skeletons ---
                  
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
     VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile)
     
-##    Candidate = libfundivtx.lineUp(Candidate, VrtxNbrLst, VrtxCmpnt)  # commented 2011-05-04 15:32, because we need to restrict lines in clouds
-#    Candidate = libfundivtx.lineUp(Skeletons, VrtxNbrLst, Vrtx, CurvFile)   # activated 2011-05-04 15:32
-    Candidate = libfundivtx.lineUp(Candidate, VrtxNbrLst, VrtxCmpnt, Vrtx, CurvFile) # activated 2011-05-28 17:53
-#    
-#    if Strict !=[]:
-#        FStrict = CurvFile + '.fundi.sgmt.from.face.strict'
-#        fileio.writeFundiSeg(FStrict, Strict)
+    Candidate = libfundivtx.lineUp(Candidate, VrtxNbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # activated 2011-05-28 17:53
 
     print "Saving fundus curves obtained from DT map into VTK files"
         
-    FCandidate = CurvFile + '.fundi.sgmt.from.face'
+    FCandidate = CurvFile + '.fundi.from.skeletons'
     fileio.writeFundiSeg(FCandidate, Candidate)
     
     if ToVTK:
         VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.seg2VTK(VTKFile, SurfFile, FCandidate)
-#        if Strict != []:
-#            VTKFile = FStrict + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#            libvtk.seg2VTK(VTKFile, SurfFile, FStrict)
+        libvtk.seg2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
         if SurfFile2 != '':
             VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate)
-#            if Strict != []:  
-#                VTKFile = FStrict + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#                libvtk.seg2VTK(VTKFile, SurfFile2, FStrict, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-# End of Step 2: Line skeletons up into curves
-# End of output part 3: fundi skeletonized vertex clouds and curve segments lined up from skeletons 
+            libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
+
+# End of output 3: fundus curves connected from skeletons --- 
