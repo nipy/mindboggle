@@ -1,0 +1,12 @@
+Average (mean, std, max) Hausdorff distance between landmarks and landmarks
+Fundi:
+1.95402409091 1.43864462121 10.6882102652 (forrest bao)
+2.47444253788 1.66273325758 10.8410395833 (gang li)
+2.16096397727 1.56895939394 10.3389525758 (brainvisa)
+Pits:
+2.78540477273 1.60995738636 10.2172878409 (forrest bao)
+7.17960602273 3.1784819697  16.2319618939 (yrjo hame)
+Ribbons:
+2.47551064394 1.78160128788 11.9748035985 (brainvisa)
+
+Average (mean, std, max) Hausdorff distance between landmarks and label borders:

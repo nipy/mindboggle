@@ -179,6 +179,8 @@ def basin(FaceDB, CurvatureDB, CurvFile, Threshold = 0):
             
     BasinFile = CurvFile + '.basin'   
     fileio.writeList(BasinFile, Basin)
+    GyriFile = CurvFile + '.gyri'   
+    fileio.writeList(GyriFile, Left)
     
     return Basin, Left
 
@@ -291,7 +293,7 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
     for Vrtx, Cvtr in sorted(Curv.iteritems(), key=lambda (k,v): (v,k)):
         S.append(Vrtx)
     
-    while len(S) >0 and L>0:
+    while len(S) >0 and L> Threshold:  # changed from L > 0 to L > Threshold, Forrest 2011- 06-10 08:25
         V = S.pop()
         L = CurvDB[V]
         P.append(V)
@@ -305,19 +307,19 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
                 if C[Nbr] != -1:
                     NbrCmpnt.append(C[Nbr])
         
-        if len(WetNbr) == 1:     
+        if len(WetNbr) == 1: # if the vetex has one neighbor that is already wet     
             [Nbr] = WetNbr
             if End[C[Nbr]]:
                 C[V] = Child[C[Nbr]]
             else:
                 C[V] = C[Nbr]
 #                print C[Nbr], "==>", C[V] 
-        elif len(WetNbr) >1 and all_same(NbrCmpnt):
+        elif len(WetNbr) >1 and all_same(NbrCmpnt): # if the vertex has more than one neighbors which are in the same component
             if End[NbrCmpnt[0]]:
                 C[V] = Child[NbrCmpnt[0]]
             else:
                 C[V] = NbrCmpnt[0]
-        elif len(WetNbr) >1 and not all_same(NbrCmpnt):
+        elif len(WetNbr) >1 and not all_same(NbrCmpnt):  # if the vertex has more than one neighbors which are NOT in the same component
             M += 1
             C[V] = M
             for Nbr in WetNbr:
@@ -326,11 +328,12 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
             End[M] = False
         else:
             M += 1
-            if L < Threshold:
-                B.append(V)
+#            if L < Threshold:  # I forgot why i wrote selection structure. But it seems to be UNecessary now. Forrest 2011-06-10 06:25 
+#                B.append(V)
+            B.append(V)
             End[M] = False
             C[V] = M
-    return B, C
+    return B, C, Child
 
 def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
     '''Load curvature and surface file and output sulci into SulciFile
@@ -378,18 +381,19 @@ def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
         VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
         libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, CurvFile)
         
-#        VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
+        VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+        libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
 
     if SurfFile2 != '':
         VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
         libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, CurvFile)
         
-#        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)           
+        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)           
 
 # Get pits Forrest 2011-05-30 10:16
-    Pits, Parts = pits(Curvature, VrtxNbr, Threshold = mean(Curvature) + 0.5*std(Curvature))
+    Pits, Parts, Child = pits(Curvature, VrtxNbr, Threshold = mean(Curvature) + 0.5*std(Curvature))
+#    Pits, Parts, Child = pits(Curvature, VrtxNbr, Threshold = 0)
     PitsFile = CurvFile + '.pits'
     fileio.writeList(PitsFile, Pits)
 
@@ -414,6 +418,15 @@ def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
             libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
     # End of write pits
     
+    # output tree hierarchies of basal components
+    print "writing hierarchies of basal components"
+    WetFile = CurvFile + ".hier"
+    WetP = open(WetFile,'w')
+    for LowComp, HighComp in Child.iteritems():
+        WetP.write(str(LowComp) + '\t' + str(HighComp) + '\n')
+    WetP.close()
+    # end of output tree hierarchies of basal components
+    
 # End of Get pits Forrest 2011-05-30 10:16
 
 # a monolithic code output each component
@@ -434,5 +447,7 @@ def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
 #        Counter += 1
     
 # a monolithic code output each component
+
+
            
 #---------------End of function definitions---------------------------------------------------------------  
