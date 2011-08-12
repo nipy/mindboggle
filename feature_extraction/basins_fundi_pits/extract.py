@@ -1,4 +1,4 @@
-import libfundivtx, libfundifc, libbasin, fileio, libfundipit # this line imports my own library
+import libfundivtx, libfundifc, libbasin, fileio, libfundipit, libvtk # this line imports my own library
 import sys, getopt # this line imports pulic libraries
 
 try:
@@ -30,9 +30,12 @@ for o,p in opts:
     if o in ['-T']:
         ToVTK = True
         print "\tResults will be mapped onto a surface and saved in VTK format"
+        libvtk.surf2VTK(SurfFile)
     elif o in ['-S']:
         SurfFile2 = p
         print "\tExtraction result be mapped onto the second surface file:", SurfFile2
+        libvtk.surf2VTK(SurfFile2)
+
 
 # extract basin and pits
 libbasin.getBasin(CurvFile, SurfFile, ToVTK, SurfFile2 = SurfFile2)
