@@ -14,13 +14,13 @@ from numpy import float, isnan
 # 1. Register brains to template
 # 2. Transform brains to each other via template
 # 3. Transform landmarks to template
-register_to_template = 0
-transform_pairs_via_template = 0
+register_to_template = 1
+transform_pairs_via_template = 1
 transform_landmarks_to_template = 0
 
 # Run landmark-driven registration to template:
-register_landmarks_to_template = 1
-transform_landmarks_via_template = 1
+register_landmarks_to_template = 0
+transform_landmarks_via_template = 0
 
 # Atlas-based evaluation for the above settings:
 # 1. prepare target atlas mask
@@ -38,6 +38,8 @@ dim = 3
 #
 source_files       = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']
 target_files       = ['m1','m2','m3','m4','m5','m6','m7','m8','m9','m10','m11','m12']
+#source_files       = ['m1','m2','m3','m4']#,'m5','m6']
+#target_files       = ['m1','m2','m3','m4']#,'m5','m6']
 ANTSPATH           = os.environ.get("ANTSPATH")
 FSLPATH            = '/usr/local/fsl/bin/'
 out_path           = '/hd2/Archive/registration_evaluation_2011_output/'
@@ -47,20 +49,24 @@ xfm_landmarks_dir   = os.path.join( out_path, 'Transformed_Landmarks/')
 xfm_atlas_dir      = os.path.join( out_path, 'Transformed_Atlases/')
 atlas_dir          = '/hd2/Brains/CUMC12/Atlases/'
 brain_dir          = '/hd2/Brains/CUMC12/Brains/'
+brainmask_dir      = '/hd2/Brains/CUMC12/BrainMasks/'
 ext                = '.nii.gz'
 template           = '/hd2/Brains/CUMC12/CUMC12template.nii.gz'
+
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_kiho_im_binary/'
+landmark_type      = 'pits_kiho_im'
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_yrjo_hame_binary/'
+landmark_type      = 'pits_yrjo_hame'
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_forrest_bao_binary/'
+landmark_type      = 'pits_forrest_bao'
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/ribbons_brain_visa_binary/'
+landmark_type      = 'ribbons_brain_visa'
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_gang_li_binary/'
+landmark_type      = 'fundi_gang_li'
+landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_brain_visa_binary/'
+landmark_type      = 'fundi_brain_visa'
 landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_forrest_bao_binary/'
 landmark_type      = 'fundi_forrest_bao'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_gang_li_binary/'
-#landmark_type      = 'fundi_gang_li'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/fundi_brain_visa_binary/'
-#landmark_type      = 'fundi_brain_visa'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/ribbons_brain_visa_binary/'
-#landmark_type      = 'ribbons_brain_visa'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_forrest_bao_binary/'
-#landmark_type      = 'pits_forrest_bao'
-#landmarks_dir      = '/hd2/Brains/CUMC12/Landmarks/pits_kiho_im_binary/'
-#landmark_type      = 'pits_kiho_im'
 
 results_dir        = os.path.join( out_path, 'Results/')
 label_file         = 'CUMC12_labels_regions.txt'
@@ -130,7 +136,7 @@ if register_to_template + transform_landmarks_to_template + \
 
             # Prepare binary (target atlas) masks for filling with labels:
             if prepare_target_mask:
-                args = " ".join(['c3d', atlas_dir+file+ext, '-binarize -o', atlas_dir+file+'_mask'+ext])
+                args = " ".join(['c3d', atlas_dir+file+ext, '-binarize -o', brainmask_dir+file+ext])
                 if verbose: print(args); print(''); p = call(args, shell="True")
 
             # Transform landmarks to template space:
@@ -234,7 +240,7 @@ if transform_pairs_via_template:
 
                         # Fill target atlas mask with transformed source atlas labels
                         args = " ".join(['ImageMath', str(dim), xfm_atlas_dir+output_stem+'_filled'+ext, \
-                                         'PropagateLabelsThroughMask', atlas_dir+file2+'_mask'+ext, \
+                                         'PropagateLabelsThroughMask', brainmask_dir+file2+ext, \
                                                                        xfm_atlas_dir+output_stem+ext])
                         #if verbose: print(args); print(''); p = call(args, shell="True")
 
@@ -252,18 +258,22 @@ if transform_pairs_via_template:
                             p = call(args, shell="True")
                             f = open(results_dir+'temp_overlap.txt','r')
                             temp = f.read()
-                            dice = float(temp.split()[-2].split(',')[0])
-                            jacc = float(temp.split()[-1].split(',')[0])
+                            if temp != '':
+                                dice = float(temp.split()[-2].split(',')[0])
+                                jacc = float(temp.split()[-1].split(',')[0])
+                            else:
+                                dice = 0.0
+                                jacc = 0.0
+                            if isnan(dice):
+                                dice = 0.0
+                            if isnan(jacc):
+                                jacc = 0.0
                             print_out = ' '.join(['Label:', str(label), 'Dice:', str(dice), \
                                                                      'Jaccard:', str(jacc)])
                             print(print_out)
                             f_eval.close()
                             f_eval = open(results_file, 'a')
                             f_eval.write(print_out + '\n')
-                            if isnan(dice):
-                                dice = 0
-                            if isnan(jacc):
-                                jacc = 0
                             average_dice += dice
                             average_jacc += jacc
                         average_dice = average_dice/len(labels)
@@ -315,82 +325,89 @@ if transform_landmarks_via_template:
                     xfm_stem = xfm_dir+pair+'_in_template_space_'+landmark_type
                     inv_xfm_stem = xfm_dir+inv_pair+'_in_template_space_'+landmark_type
                     # Transform brains
-                    args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
-                            source, xfm_brain_dir+output_stem+ext, '-R', target, \
-                            '-i', inv_xfm_stem+'Affine.txt', \
-                            inv_xfm_stem+'InverseWarp.nii.gz', \
-                            xfm_stem+'Warp.nii.gz', \
-                            xfm_stem+'Affine.txt'])
-                    if verbose: print(args); print(''); p = call(args, shell="True")
+                    if not os.path.exists(xfm_brain_dir+output_stem+ext):
+	                    args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
+	                            source, xfm_brain_dir+output_stem+ext, '-R', target, \
+	                            '-i', inv_xfm_stem+'Affine.txt', \
+	                            inv_xfm_stem+'InverseWarp.nii.gz', \
+	                            xfm_stem+'Warp.nii.gz', \
+	                            xfm_stem+'Affine.txt'])
+	                    if verbose: print(args); print(''); p = call(args, shell="True")
 
                     # Transform landmarks
-                    args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
-                            source_landmarks, xfm_landmarks_dir+output_stem+ext, '-R',target_landmarks, \
-                            '-i', inv_xfm_stem+'Affine.txt', \
-                            inv_xfm_stem+'InverseWarp.nii.gz', \
-                            xfm_stem+'Warp.nii.gz', \
-                            xfm_stem+'Affine.txt','--use-NN'])
-                    if verbose: print(args); print(''); p = call(args, shell="True")
+                    if not os.path.exists(xfm_landmarks_dir+output_stem+ext):
+                        args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
+	                            source_landmarks, xfm_landmarks_dir+output_stem+ext, '-R',target_landmarks, \
+	                            '-i', inv_xfm_stem+'Affine.txt', \
+	                            inv_xfm_stem+'InverseWarp.nii.gz', \
+	                            xfm_stem+'Warp.nii.gz', \
+	                            xfm_stem+'Affine.txt','--use-NN'])
+                        if verbose: print(args); print(''); p = call(args, shell="True")
 
                     if evaluate_with_atlases:
+                        if not os.path.exists(xfm_atlas_dir+output_stem+ext):
+                          if not os.path.exists(results_dir+output_stem+'.txt'):
 
-                        # Transform atlases
-                        source_labels = atlas_dir+file+ext
-                        target_labels = atlas_dir+file2+ext
-                        args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
-                                source_labels, xfm_atlas_dir+output_stem+ext, '-R', target_labels, \
-                            '-i', inv_xfm_stem+'Affine.txt', \
-                            inv_xfm_stem+'InverseWarp.nii.gz', \
-                            xfm_stem+'Warp.nii.gz', \
-                            xfm_stem+'Affine.txt','--use-NN'])
-                        if verbose: print(args); print(''); p = call(args, shell="True")
-
-                        # Fill target atlas mask with transformed source atlas labels
-                        args = " ".join(['ImageMath', str(dim), xfm_atlas_dir+output_stem+'_filled'+ext, \
-                                         'PropagateLabelsThroughMask', atlas_dir+file2+'_mask'+ext, \
-                                                                       xfm_atlas_dir+output_stem+ext])
-                        if verbose: print(args); print(''); p = call(args, shell="True")
-
-                        # Measure overlap of target atlas and transformed source atlas labels
-                        results_file = results_dir+output_stem+'.txt'
-                        f_eval = open(results_file, 'w');
-                        average_dice = 0
-                        average_jacc = 0
-
-                        for label in labels:
-                            args = " ".join(['c3d', xfm_atlas_dir+output_stem+'_filled'+ext, \
-                                                    atlas_dir+file2+ext, '-overlap', str(label), \
-                                                    '>'+results_dir+'temp_overlap.txt'])
-                            p = call(args, shell="True")
-                            f = open(results_dir+'temp_overlap.txt','r')
-                            temp = f.read()
-                            dice = float(temp.split()[-2].split(',')[0])
-                            jacc = float(temp.split()[-1].split(',')[0])
-                            print_out = " ".join(['Label:', str(label), 'Dice:', str(dice), \
-                                                                     'Jaccard:', str(jacc)])
-                            print(print_out)
-                            f_eval.close()
-                            f_eval = open(results_file, 'a')
-                            f_eval.write(print_out + '\n')
-                            if isnan(dice):
-                                dice = 0
-                            if isnan(jacc):
-                                jacc = 0
-                            average_dice += dice
-                            average_jacc += jacc
-                        average_dice = average_dice/len(labels)
-                        average_jacc = average_jacc/len(labels)
-                        print_out1 = 'Average Dice: ' + str(average_dice)
-                        print_out2 = 'Average Jacc: ' + str(average_jacc)
-                        print(print_out1);
-                        print(print_out2)
-                        f_eval.close()
-                        f_eval = open(results_file, 'a')
-                        f_eval.write('\n' + print_out1 + '\n' + print_out2 + '\n\n')
-                        f_eval.close()
-                        f_avg.close()
-                        f_avg = open(avg_results_file, 'a');
-                        f_avg.write(output_stem + ' ' + str(average_dice) + ' ' + str(average_jacc) + '\n')
+	                        # Transform atlases
+	                        source_labels = atlas_dir+file+ext
+	                        target_labels = atlas_dir+file2+ext
+	                        args = " ".join([ANTSPATH+'WarpImageMultiTransform', str(dim), \
+	                                source_labels, xfm_atlas_dir+output_stem+ext, '-R', target_labels, \
+	                            '-i', inv_xfm_stem+'Affine.txt', \
+	                            inv_xfm_stem+'InverseWarp.nii.gz', \
+	                            xfm_stem+'Warp.nii.gz', \
+	                            xfm_stem+'Affine.txt','--use-NN'])
+	                        if verbose: print(args); print(''); p = call(args, shell="True")
+	 
+	                        # Fill target atlas mask with transformed source atlas labels
+	                        args = " ".join(['ImageMath', str(dim), xfm_atlas_dir+output_stem+'_filled'+ext, \
+	                                         'PropagateLabelsThroughMask', brainmask_dir+file2+ext, \
+	                                                                       xfm_atlas_dir+output_stem+ext])
+	                        if verbose: print(args); print(''); p = call(args, shell="True")
+	
+	                        # Measure overlap of target atlas and transformed source atlas labels
+	                        results_file = results_dir+output_stem+'.txt'
+	                        f_eval = open(results_file, 'w');
+	                        average_dice = 0
+	                        average_jacc = 0
+	
+	                        for label in labels:
+	                            args = " ".join(['c3d', xfm_atlas_dir+output_stem+'_filled'+ext, \
+	                                                    atlas_dir+file2+ext, '-overlap', str(label), \
+	                                                    '>'+results_dir+'temp_overlap.txt'])
+	                            p = call(args, shell="True")
+	                            f = open(results_dir+'temp_overlap.txt','r')
+	                            temp = f.read()
+	                            dice = 0
+	                            jacc = 0
+	                            if temp != '':
+	                                dice = float(temp.split()[-2].split(',')[0])
+	                                jacc = float(temp.split()[-1].split(',')[0])
+	                            print_out = " ".join(['Label:', str(label), 'Dice:', str(dice), \
+	                                                                     'Jaccard:', str(jacc)])
+	                            print(print_out)
+	                            f_eval.close()
+	                            f_eval = open(results_file, 'a')
+	                            f_eval.write(print_out + '\n')
+	                            if isnan(dice):
+	                                dice = 0
+	                            if isnan(jacc):
+	                                jacc = 0
+	                            average_dice += dice
+	                            average_jacc += jacc
+	                        average_dice = average_dice/len(labels)
+	                        average_jacc = average_jacc/len(labels)
+	                        print_out1 = 'Average Dice: ' + str(average_dice)
+	                        print_out2 = 'Average Jacc: ' + str(average_jacc)
+	                        print(print_out1);
+	                        print(print_out2)
+	                        f_eval.close()
+	                        f_eval = open(results_file, 'a')
+	                        f_eval.write('\n' + print_out1 + '\n' + print_out2 + '\n\n')
+	                        f_eval.close()
+	                        f_avg.close()
+	                        f_avg = open(avg_results_file, 'a');
+	                        f_avg.write(output_stem + ' ' + str(average_dice) + ' ' + str(average_jacc) + '\n')
                 else:
                     if not os.path.exists(source_landmarks):
                         raise NameError('Check input file ' + source_landmarks)
