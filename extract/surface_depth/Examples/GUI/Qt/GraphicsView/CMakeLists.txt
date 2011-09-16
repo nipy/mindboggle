@@ -1,0 +1,36 @@
+PROJECT(QtImageViewer)
+
+IF(NOT VTK_BINARY_DIR)
+FIND_PACKAGE(VTK)
+IF(NOT VTK_DIR)
+  MESSAGE(FATAL_ERROR "Please set VTK_DIR.")
+ENDIF(NOT VTK_DIR)
+INCLUDE(${VTK_USE_FILE})
+ENDIF(NOT VTK_BINARY_DIR)
+
+FIND_PACKAGE(Qt4)
+
+IF(QT_USE_FILE)
+  INCLUDE(${QT_USE_FILE})
+ELSE(QT_USE_FILE)
+  SET(QT_LIBRARIES   ${QT_QT_LIBRARY})
+ENDIF(QT_USE_FILE)
+
+SET (SRCS
+  main.cxx
+)
+
+# Use the include path and library for Qt that is used by VTK.
+INCLUDE_DIRECTORIES( ${QT_INCLUDE_DIR} ${QT_QTGUI_INCLUDE_DIR}
+                     ${QT_QTCORE_INCLUDE_DIR})
+
+ADD_EXECUTABLE( qtgraphicsview MACOSX_BUNDLE ${SRCS})
+
+TARGET_LINK_LIBRARIES( qtgraphicsview
+  QVTK
+  ${QT_LIBRARIES}
+  vtkRendering
+  vtkGraphics
+  vtkIO
+  vtkCommon
+)
