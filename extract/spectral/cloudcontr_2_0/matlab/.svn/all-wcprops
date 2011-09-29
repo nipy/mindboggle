@@ -1,0 +1,179 @@
+K 25
+svn:wc:ra_dav:version-url
+V 43
+/svn/!svn/ver/8/trunk/cloudcontr_2_0/matlab
+END
+test_edge_collapse.m
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_edge_collapse.m
+END
+merge_nearby_joints.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/merge_nearby_joints.m
+END
+test_remove_small_cycles.m
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_remove_small_cycles.m
+END
+edge_collapse.m
+K 25
+svn:wc:ra_dav:version-url
+V 59
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/edge_collapse.m
+END
+test_find_root_node.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_find_root_node.m
+END
+eg_skeleton_laplacian_rosa.m
+K 25
+svn:wc:ra_dav:version-url
+V 72
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/eg_skeleton_laplacian_rosa.m
+END
+test_edge_collapse_update.m
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_edge_collapse_update.m
+END
+remove_small_cycles.m
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/remove_small_cycles.m
+END
+eg_refine_skeleton.m
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/eg_refine_skeleton.m
+END
+edge_collapse_update.m
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/edge_collapse_update.m
+END
+find_root_node.m
+K 25
+svn:wc:ra_dav:version-url
+V 60
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/find_root_node.m
+END
+build_hierarchy.m
+K 25
+svn:wc:ra_dav:version-url
+V 61
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/build_hierarchy.m
+END
+contraction_by_mesh_laplacian.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/contraction_by_mesh_laplacian.m
+END
+test_find_joints.m
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_find_joints.m
+END
+find_joints.m
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/find_joints.m
+END
+rosa_lineextract.m
+K 25
+svn:wc:ra_dav:version-url
+V 62
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/rosa_lineextract.m
+END
+test_farthest_sampling_by_sphere.m
+K 25
+svn:wc:ra_dav:version-url
+V 78
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_farthest_sampling_by_sphere.m
+END
+remove_irrelevant_extrama.m
+K 25
+svn:wc:ra_dav:version-url
+V 71
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/remove_irrelevant_extrama.m
+END
+GS.m
+K 25
+svn:wc:ra_dav:version-url
+V 48
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/GS.m
+END
+farthest_sampling_by_sphere.m
+K 25
+svn:wc:ra_dav:version-url
+V 73
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/farthest_sampling_by_sphere.m
+END
+test_refine_skeleton.m
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_refine_skeleton.m
+END
+test_compute_point_point_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_compute_point_point_ring.m
+END
+farthest_sampling_by_sphere_update.m
+K 25
+svn:wc:ra_dav:version-url
+V 80
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/farthest_sampling_by_sphere_update.m
+END
+compute_point_point_ring.m
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/compute_point_point_ring.m
+END
+test_connect_by_inherit_neigh.m
+K 25
+svn:wc:ra_dav:version-url
+V 75
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/test_connect_by_inherit_neigh.m
+END
+connect_by_inherit_neigh.m
+K 25
+svn:wc:ra_dav:version-url
+V 70
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/connect_by_inherit_neigh.m
+END
+readme.txt
+K 25
+svn:wc:ra_dav:version-url
+V 54
+/svn/!svn/ver/8/trunk/cloudcontr_2_0/matlab/readme.txt
+END
+remove_inner_nodes.m
+K 25
+svn:wc:ra_dav:version-url
+V 64
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/remove_inner_nodes.m
+END
+build_graph.m
+K 25
+svn:wc:ra_dav:version-url
+V 57
+/svn/!svn/ver/2/trunk/cloudcontr_2_0/matlab/build_graph.m
+END

@@ -1,0 +1,32 @@
+path('toolbox',path);
+%% read pcd and show it
+clear;clc;close all;    
+filename = '../data/2D/n.mat';
+load(filename);
+P.pts = M.verts;
+clear('M');
+npts = size(P.pts, 1);
+[P.bbox, P.diameter] = GS.compute_bbox(P.pts);
+
+%% call farthest_sampling_by_sphere
+P.sample_radius = P.diameter*0.02;
+[P.spls,P.corresp] = farthest_sampling_by_sphere(P.pts, P.sample_radius);
+
+%% call connect_by_inherit_neigh
+k=5;
+kdtree = kdtree_build(P.pts);
+P.neigh = zeros(npts, k);
+for i = 1:npts
+%     P.neigh(i,:)  = flipud( kdtree_k_nearest_neighbors(kdtree, P.pts(i,:), k))';
+    P.neigh(i,:) = kdtree_k_nearest_neighbors( kdtree, P.pts(i,:), k)';
+end
+    
+P.spls_adj = connect_by_inherit_neigh(P.pts, P.spls, P.corresp, P.neigh);
+
+figure; movegui('northeast');set(gcf,'color','white');hold on;
+plot3( P.spls(:,1), P.spls(:,2), P.spls(:,3), '.r', 'markersize', 1);
+axis off; axis equal;set(gcf,'Renderer','OpenGL');
+GS.plot_connectivity(P.spls, P.spls_adj, 1)
+view3d zoom;
+
+kdtree_delete( kdtree );
