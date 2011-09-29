@@ -371,11 +371,6 @@ def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
     Basin, Gyri = basin(Face, Curvature, CurvFile, Threshold =  0)
     BasinFile = CurvFile + '.basin'
     GyriFile = CurvFile + '.gyri'
-
-    VrtxNbr = vrtxNbrLst(len(Vertex), Face, SurfFile)
-    FcNbr   = fcNbrLst(Face, SurfFile)
-    
-    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, CurvFile)
             
     if ToVTK:
         VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
@@ -390,6 +385,11 @@ def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
         
         VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
         libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)           
+
+    VrtxNbr = vrtxNbrLst(len(Vertex), Face, SurfFile)
+    FcNbr   = fcNbrLst(Face, SurfFile)
+    
+    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, CurvFile)
 
 # Get pits Forrest 2011-05-30 10:16
     Pits, Parts, Child = pits(Curvature, VrtxNbr, Threshold = mean(Curvature) + 0.5*std(Curvature))
