@@ -275,8 +275,9 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvFile, CurvatureDB):
         CurvatureDB : list of doubles
             each element is the curvature value of a vertex 
             
-        Links : list of list of 2-tuple of integers
+        Links : list of list of 2-tuples of integers
             each element is a list of 2-tuples containing vertexes (in global ID) at two ends of an edge on MSTs
+            Since the original mesh has been downsampled, each link in *Links* is a real edge on the mesh. 
 
         SpecialGroup: list of list of integers 
             each element is a list of Special vertexes in each connected component
@@ -326,10 +327,83 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvFile, CurvatureDB):
     #FundusCmpnts = VrtxCmpnts # if MST will span via all nodes on the mesh
     #Links = mst(Dists, VrtxCmpnts, FundusCmpnts, NbrLst)  # deactivated Forrest 2011-07-21 because filters is done in downsample() 
 
-    #Links = mst(Dists, NewVrtxCmpnts, SpecialGroup, NbrLst) # Running version 
-    Links = mst(Dists, NewVrtxCmpnts, NewVrtxCmpnts, NbrLst) # debugging version
+    Links = mst(Dists, NewVrtxCmpnts, SpecialGroup, NbrLst) # Running version 
+    #Links = mst(Dists, NewVrtxCmpnts, NewVrtxCmpnts, NbrLst) # debugging version
+        
+    return Links, NodeColor
     
-    return Links
+def prune(Path, Degree, TreeNbr, Terminal, Branching, Special, VrtxCmpnt):
+    '''Prune an MST by deleting edges
+    
+    Parameters
+    ===========
+    Path : list of lists (2-tuple) of integers
+        Each element of *Path* is a list of the two terminals of each pair of connected fundus vertexes
+        Vertexes indexed LOCALLY, i.e., they are referred by their ID in currenct component   
+    
+    Degree : list of integers 
+        Degrees of nodes in a component
+        
+    TreeNbr : list of list of integers
+        Each element is a list of neighbors of a node. All LOCAL IDs.
+        
+    Terminal : list of integers
+        Local IDs of nodes that are terminals. 
+        
+    Branching : list of integers
+        Local IDs of nodes that are branching nodes. 
+    
+    Special : list of integers
+        Local IDs of nodes that are special vertexes connected by MST 
+        
+    Trace : list of 2-tuples of integers
+        Edges that are visited along the Path from one node to another
+        
+    Visited : list of integers
+        Nodes that are visited along the Path from one node to another
+        
+    At : integer
+        a node
+        
+    Previous : integer
+        a node
+        
+    VrtxCmpnt: list of integers
+        A list of vertexes in this component in global ID
+        
+    Returns
+    ========
+    Path : list of lists (2-tuple) of integers
+        Each element of *Path* is a list of the two terminals of each pair of connected fundus vertexes
+        Vertexes indexed LOCALLY, i.e., they are referred by their ID in currenct component
+        This one is reduced 
+        
+    ''' 
+#    print "\t # of terminals:", len(Terminal)
+    for T in Terminal:
+#        print "\t\t\t Tracing begins at ", T, 
+        if len(Branching) < 1:
+            break
+        Trace= [ ]# store the trace visited from a terminal node to a branching node
+        Visited = [] # store nodes that have been visited  
+        At = T # the node of current position in tracing
+        while(not At in Branching and not At in Special):
+            Visited.append(At)
+            for Nbr in TreeNbr[At]:
+                if not Nbr in Visited: # search toward the mainstream 
+                    Trace.append((Nbr, At))
+                    Previous = At  # the node visited before At in tracing
+                    At = Nbr
+                    break
+        if not At in Special: # after the while loop, At stops at a branching node.
+            TreeNbr[At].remove(Previous)     
+            for Pair in Trace:
+                (Src, Dst) = Pair
+                if Pair in Path:
+                    Path.remove(Pair)
+                else:  # it is possible the order of nodes is reversed in Path
+                    Path.remove((Dst, Src)) 
+    return Path
     
 def bfs(Seed, FundiList, NbrLst, Cmpnt):
     '''Use BFS to find the nearest vertex that is also in the cloud and in the same basin component. 
@@ -681,7 +755,7 @@ def downsample(Special, VrtxCmpnts, NbrLst, Prob):
                     
         N.append(Keep)
         SpecialGroup.append(SpecialInThisGroup)
-        print "\t component", CmpntID+1, ":", NumMusthave, "Specials. ", "Vtx #:", len(Cmpnt), "-", MinusVrtx,  "=>", len(Keep)
+#        print "\t component", CmpntID+1, ":", NumMusthave, "Specials. ", "Vtx #:", len(Cmpnt), "-", MinusVrtx,  "=>", len(Keep)
 
     return N, L, SpecialGroup
 
@@ -698,8 +772,9 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
         self.init_adjacency(A)
         self.remove_route(A, r)
         self.degree = [0 for i in xrange(0, len(A))] # a new member , activated Forrest 2011-05-27 20:31
+        self.tree_nbr= [[] for i in xrange(0, len(A))] # record nbrs of each node, Forrest 2011-09-24
     
-    def mst_prim(self, A, w, i, path, degree):
+    def mst_prim(self, A, w, i, path, degree, tree_nbr):
         """
         'A' is the adjacency matrix
         'w' is the list of all connected vertices (in order of discovery)
@@ -710,7 +785,7 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
         # Stop when we've added all nodes to the path
 #        if (w.__len__() == self.vertices):  # old line.  But if some nodes are not connected, it goes into infinite recursion. Deactivated Forrest 2011-05-25 19:39
         if (w.__len__() == self.nonzeros):  # new way, activated Forrest 2011-05-25 19:42
-            return (A, w, path, degree)
+            return (A, w, path, degree, tree_nbr)
         # Find minimum path coming OUT of the known vertexes            
         (vfrom, vto, vcost) = self.find_min(A, w)
         
@@ -718,13 +793,18 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
         degree[vfrom] += 1
         degree[vto] += 1
         
+        # update tree_nbr list for vfrom and vto Forrest 2011-09-24 10:55
+        tree_nbr[vfrom].append(vto)
+        tree_nbr[vto].append(vfrom)
+        
         # Mark down this vertex as being a part of the MST path
         w.append(vto)
-        path.append((vfrom,vto,vcost, i))
+        #path.append((vfrom,vto,vcost, i)) # commented, Forrest 2011-09-24
+        path.append((vfrom, vto))
         
         self.remove_route(A, vto)
         
-        return self.mst_prim(A, w, i, path, degree)
+        return self.mst_prim(A, w, i, path, degree, tree_nbr)
     
     
     def init_adjacency(self, A):
@@ -828,6 +908,21 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst):
         
     Segs : list of lists (2-tuple) of integers
         Vertexes indexed GLOBALLY, i.e., they are referred by their ID in the entire hemisphere
+        
+    Degree : list of integers 
+        Degrees of nodes in a component
+        
+    TreeNbr : list of list of integers
+        Each element is a list of neighbors of a node. All LOCAL IDs.
+        
+    Terminal : list of integers
+        Local IDs of nodes that are terminals. 
+        
+    Branching : list of integers
+        Local IDs of nodes that are branching nodes. 
+        
+    
+     
       
     '''
     Segs = []
@@ -848,20 +943,31 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst):
                 Num = len(Adjs[i])
                 if Num > 1 : 
                     M = Prim(Adjs[i], Root)  # starting from the Root 
-                    (Adj, W, Path, Degree) = M.mst_prim(Adjs[i], [Root], i, [], M.degree) # starting from the Root
+                    (Adj, W, Path, Degree, TreeNbr) = M.mst_prim(Adjs[i], [Root], i, [], M.degree, M.tree_nbr) # starting from the Root
                     #print len(Path)  # debugging line, Forrest 2011-05-25 20:33
 #                    Seg = [[VrtxCmpnts[i][Idx] for Idx in Pair] for Pair in Path]  # The Idx is LOCAL (i.e., within the connected component) index of a vertex.
                     print len(Path), "links found."
+                    
+                    # pruning the MST Forrest 2011-09-24
+                    Terminal, Branching =[], []
+                    for Vrtx in xrange(0,Num):
+                        if Degree[Vrtx] ==1:
+                            Terminal.append(Vrtx)
+                        elif Degree[Vrtx] > 2:
+                            Branching.append(Vrtx)
+                    
+                    Special = [VrtxCmpnts[i].index(Vrtx) for Vrtx in SpecialGroup[i]] # converting global ID to local ID
+                    Path = prune(Path, Degree, TreeNbr, Terminal, Branching, Special, VrtxCmpnts[i])
+                    
                     for Pair in Path:                    
-                        (Src, Dst, Cost, CID) = Pair
+#                        (Src, Dst, Cost, CID) = Pair # commented, Forrest 2011-09-24
+                        (Src, Dst) = Pair # Forrest 2011-09-24
 #                        Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] )
                         # pruning heuristic 1
-                        if Degree[Src] > 2 and Degree[Dst] ==1 and Cost < 4:
+#                        if Degree[Src] > 2 and Degree[Dst] ==1 and Cost < 4:
                             #Degree[Src] -= 1
-                            pass
-                        elif Degree[Dst] > 2 and Degree[Src] ==1  and Cost < 4:
+#                        elif Degree[Dst] > 2 and Degree[Src] ==1  and Cost < 4:
                             #Degree[Dst] -= 1
-                            pass
                         # end of pruning heuristic 1
                         # pruning heuristic 2
 #                        elif Degree[Src] ==1:
@@ -910,10 +1016,10 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst):
 #                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
                         # end of pruning heuristic 3
                         
-                        else: # no need to prune and thus put this segment into Segs directly                            
+#                        else: # no need to prune and thus put this segment into Segs directly                            
                             #Path = bfsReach([ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i], VrtxCmpnts[i], NbrLst) # deactivated forrest 2011-07-17
-                            Path = [ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst] ] # Forrest 2011-07-17, do NOT map links onto the mesh
-                            Segs.append(Path)
+                        Path = [ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst] ] # Forrest 2011-07-17, do NOT map links onto the mesh
+                        Segs.append(Path)
 #                    Segs += Seg
 #        print "number of segments: ", len(Segs)  
         return Segs
@@ -1010,7 +1116,7 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
 
     Nodes = Strict # can be Candidates, Strict, Pits, Skeleton, etc.  
 
-    Segs = lineUp(Nodes, NbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature)
+    Segs, NodeColor = lineUp(Nodes, NbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature)
 
     print "Saving fundus curved obtained via stringing up fundus vertexes into VTK files"
 
@@ -1023,7 +1129,6 @@ def getFundi(CurvFile, SurfFile, ToVTK=True, SurfFile2=''):
         if SurfFile2 != '':
             VTKFile = FSeg + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
             libvtk.seg2VTK(VTKFile, SurfFile2, FSeg, LUT=[CurvDisp], LUTname=['Curvature'])
-
     
 # end of get and output fundus curves ----    
 
