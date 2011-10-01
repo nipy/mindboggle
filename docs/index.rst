@@ -20,3 +20,13 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
+images/feather-small.gif
+Copyright © 2011 Arno Klein, Apache License `Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_.
+The Mindboggle logo is copyright of Arno Klein and the Apache feather logo is a trademark of The Apache Software Foundation.
+
+.. image:: images/feather-small.gif
+   :width: 200 px
+   :alt: Apache logo
+   :align: right
+   :target: http://www.apache.org/licenses/LICENSE-2.0
+
