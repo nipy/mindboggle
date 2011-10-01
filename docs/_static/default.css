@@ -10,7 +10,7 @@ body {
     line-height: 150%;
     text-align: center;
     /*background-color: #AFC1C4; */
-    background-color: #BFD1D4;
+    background-color: #FFFFCC;
     color: black;
     padding: 0;
     border: 1px solid #aaa;
@@ -234,7 +234,7 @@ div.sphinxsidebar h4, div.sphinxsidebar h3 {
     padding: 0.1em 0 0.1em 0.5em;
     color: white;
     border: 1px solid #86989B;
-    background-color: #AFC1C4;
+    background-color: #FFFFCC;
 }
 
 div.sphinxsidebar ul {
@@ -308,7 +308,7 @@ table td, table th {
 }
 
 div.footer {
-    background-color: #E3EFF1;
+    background-color: #FFFCCC;
     color: #86989B;
     padding: 3px 8px 3px 0;
     clear: both;
