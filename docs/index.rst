@@ -1,6 +1,6 @@
 .. mindboggle documentation master file, created by
    sphinx-quickstart on Sat Oct  1 00:24:35 2011.
-   You can adapt this file completely to your liking, but it should at least
+   You can adapt this file, but it should at least
    contain the root `toctree` directive.
 
 Welcome to mindboggle's documentation!
@@ -20,13 +20,12 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-images/feather-small.gif
 Copyright © 2011 Arno Klein, Apache License `Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_.
-The Mindboggle logo is copyright of Arno Klein and the Apache feather logo is a trademark of The Apache Software Foundation.
 
-.. image:: images/feather-small.gif
-   :width: 200 px
-   :alt: Apache logo
-   :align: right
-   :target: http://www.apache.org/licenses/LICENSE-2.0
+.. image:: ./_static/logos/osi_greyscale_logo.png
+   :width: 80 px
+   :alt: OSI logo
+   :align: left
+   :target: http://www.opensource.org/licenses/apachepl.php
+
 
