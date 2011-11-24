@@ -91,7 +91,10 @@ def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, CurvFile='', LUT=[], LUTname=[]):
 # Replaced by:               
     if LUT!=[] and CurvFile != '':
         for i in xrange(0, len(LUT)):
-            wrtVrtxLUT(Fp, LUT[i], LUTName=LUTname[i])
+            if i == 0:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i])
+            else:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i], AtLUTBegin=False)
 # End of Replaced by
     
     Fp.close()
@@ -117,7 +120,10 @@ def vrtxLst2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new ver
     writeVrtxFundi(Fp, Vertex, FundiList)
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
-            wrtVrtxLUT(Fp, LUT[i], LUTName=LUTname[i])
+            if i == 0:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i])
+            else:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i], AtLUTBegin=False)
     
     Fp.close()
 
@@ -143,7 +149,10 @@ def seg2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new version
     
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
-            wrtVrtxLUT(Fp, LUT[i], LUTName=LUTname[i])
+            if i == 0:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i])
+            else:
+                wrtVrtxLUT(Fp, LUT[i], LUTname[i], AtLUTBegin=False)
     
     Fp.close()
 
@@ -192,7 +201,7 @@ def writeVrtxFundi(Fp, Vertex, FundiList):
        
     writeVrtx(Fp, FundiList)
 
-def wrtVrtxLUT(Fp, LUT, LUTName=''):
+def wrtVrtxLUT(Fp, LUT, LUTName, AtLUTBegin=True):
     '''write per-VERTEX values as a scalar LUT into a VTK file
     
     This function is called by fcLst2VTK
@@ -203,7 +212,8 @@ def wrtVrtxLUT(Fp, LUT, LUTName=''):
     LUT    : list of floats
     
     ''' 
-    Fp.write('POINT_DATA ' + str(len(LUT)) +'\n')
+    if AtLUTBegin:
+        Fp.write('POINT_DATA ' + str(len(LUT)) +'\n')
     Fp.write('SCALARS '+ LUTName +' float\n')
     Fp.write('LOOKUP_TABLE '+ LUTName +'\n')
     for Value in LUT:
