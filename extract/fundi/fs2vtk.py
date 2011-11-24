@@ -1,4 +1,4 @@
-import libfundivtx, libfundifc, libbasin, fileio, libfundipit, libvtk # this line imports my own library
+import fileio,  libvtk # this line imports my own library
 import sys  # this line imports pulic libraries
 
 InputFile = sys.argv[1]
