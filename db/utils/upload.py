@@ -1,12 +1,7 @@
-#!/usr/local/bin/python
-
+"""Utilities to query the MindboggleDB
 """
-quick'n'dirty addition of a few nodes using model.py
-"""
-
-__author__ = 'Nolan Nichols'
-
-from model import *
+from bulbs.model import Model
+from db.models.base import *
 
 # create a root node
 mb = Database(name = 'MindboggleDB')
