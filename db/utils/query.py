@@ -4,6 +4,7 @@
 ### currently all below is using generic bulbs framework 
 
 from bulbs.graph import Graph
+from bulbs.model import Model
 
 # connect to db
 g = Graph(db_url="http://localhost:8182/graphs/mindboggle")
