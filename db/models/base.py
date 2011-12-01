@@ -1,69 +1,86 @@
-#!/usr/local/bin/python
+"""
+Base model of MindboggleDB
+
+Base is a generic set of classes that model the vertices (nodes) and
+edges (arcs) in the Mindboggle graph database implementation.
+
+ Domain Objects
+    Database
+    Project
+    Subject
+    Basin
+    SulcalSurface
+    Fundus
+    Pit
 
 """
-The start of a bulb framework for the MindboggleDB using the Neo4j graph database.
-"""
+
 from bulbs.model import Model, Node, Relationship, Resource
 from bulbs.property import Property, String, Integer
 
-__author__ = "Nolan Nichols"
-__copyright__ = ""
-__credits__ = ["Noah Lee", "Arno Klein" "Nolan Nichols"]
-__license__ = ""
-__version__ = "0.1"
-__maintainer__ = "Nolan Nichols"
-__email__ = "bnniii@uw.edu"
-__status__ = "Prototype"
-
-Model.resource = Resource('http://50.18.175.117:8182/graphs/mindboggle')
-
 class Database(Node):
-    element_type = "database"
+    """
+    Database is the root node of mbdb Base model
+
+    Relationships
+        has-a Project, Owner, User, Location
+    """
+    element_type = "db"
 
     name = Property(String, nullable=False)
-            
+
     def __unicode__(self):
-        # include code to create relationships and to index the node
         return self.name
 
 class Project(Node):
+    """
+    Project is the concept of a collection of participants in a study - potentially with a set of
+    overlapping metadata attributes
+
+    Relationships
+        has-a Subject, labelingProtocol, PI, IRB
+    """
     element_type = "project"
 
     name = Property(String, nullable=False)
 
     def __unicode__(self):
-        # include code to create relationships and to index the node
         return self.name
 
 class Subject(Node):
+    """
+    Subject is the concept of a participant in a Project with a set of data collected about them
+
+    Relationships
+        has-a sulcalBasin, sulcalSurface, Fundus, sulcalPit
+        is-a Person
+    """
     element_type = "subject"
 
     name = Property(String, nullable=False)
     age = Property(Integer)
 
     def __unicode__(self):
-        # include code to create relationships and to index the node
-        return self.name
-
-class Basins(Node):
-    element_type = "basins"
-
-    name = Property(String, nullable=False)
-
-    def __unicode__(self):
-        # include code to create relationships and to index the node
-        return self.name
+        return self.name, self.age
 
 class Basin(Node):
+    """
+    Basin is anatomical entity or image feature?
+
+    Relationships
+        has-a sucalSurface, Fundus, sulcalPit
+    """
     element_type = "basin"
 
     name = Property(String, nullable=False)
 
     def __unicode__(self):
-        # include code to create relationships and to index the node
         return self.name
 
 class hasProject(Relationship):
+    """
+    hasProject is...
+    """
     label = "has_project"
 
     @property
@@ -79,6 +96,9 @@ class hasProject(Relationship):
         return self.name
 
 class hasSubject(Relationship):
+    """
+    hasSubject is...
+    """
     label = "has_subject"
 
     @property
@@ -93,22 +113,10 @@ class hasSubject(Relationship):
         # include code to create relationships and to index the node
         return self.name
 
-class hasBasins(Relationship):
-    label = "has_basins"
-
-    @property
-    def subject(self):
-        return Subject.get(self.outV)
-
-    @property
-    def basins(self):
-        return Basins.get(self.inV)
-
-    def __unicode__(self):
-        # include code to create relationships and to index the node
-        return self.name
-
 class hasBasin(Relationship):
+    """
+    hasBasin is...
+    """
     label = "has_basin"
 
     @property

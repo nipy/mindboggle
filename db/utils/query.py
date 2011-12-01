@@ -1,6 +1,7 @@
-#!/usr/local/bin/python
+"""Utilities to query the MindboggleDB
+"""
 
-__author__ = 'Nolan Nichols'
+### currently all below is using generic bulbs framework 
 
 from bulbs.graph import Graph
 
@@ -27,7 +28,7 @@ basins = g.vertices.create({'name':'Basins',
                            'label':'Basins'})
 g.edges.create(subj,'has_basins',basins)
 
-# crate a basin node
+# create a basin node
 basin = g.vertices.create({'name':'Basin',
                            'label':'Basin1'})
 g.edges.create(basins,'has_basin',basin)
