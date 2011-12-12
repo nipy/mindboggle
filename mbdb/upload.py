@@ -1,5 +1,5 @@
 """
-Utilities to query the MindboggleDB
+Utilities for uploading data to MindboggleDB
 
     1. Initialize the database
     2. Read csv files containing fundus stats
@@ -7,6 +7,14 @@ Utilities to query the MindboggleDB
 from bulbs.rest import Resource
 from mbdb.base import *
 import csv, sys
+
+def set_db_url(server=None):
+    """
+    set_db_url is used to configure the default server for all mbdb.base domain objects
+    """
+    NodeMB.resource = Resource(db_url=server)
+    RelationshipMB.resource = Resource(db_url=server)
+    print "db_url set to", server
 
 def read_stats(file):
     """
@@ -25,50 +33,41 @@ def read_stats(file):
         print "Reading %s ..." % header
         try:
             stats = list()
+            stats.append(f.name)
             for row in reader:
-                stats.append(tuple(row))
+                stripped = [float(value) for value in row if len(value) != 0]
+                stats.append(tuple(stripped))
             return stats
         except csv.Error, e:
             sys.exit('file %s, line %d: %s' % (filename, reader.line_num, e))
 
+def create_db(db_name):
+    db = Database(name=db_name)
+    return db
 
+def create_project(project_name, db):
+    project = Project(name = project_name)
+    ContatinedIn(project, db)
+    return project
 
+def create_subject(subject_name, project):
+    subject = Subject(name=subject_name)
+    ContatinedIn(subject,project)
+    return subject
 
-# fundus_read_stats
+def create_fundus(fundus_name, subject):
+    fundus = Fundus(name=fundus_name)
+    ContatinedIn(fundus,subject)
+    return fundus
 
-
-# create a root node
-mb = Database(name = 'MindboggleDB')
-
-# create a project node
-project = Project(name = 'CUMC12')
-
-# connect mb and project
-has_proj = hasProject(mb, project)
-
-# create a subject node
-subj1 = Subject(name = 'Subject1')
-
-# connect the project to the subject
-has_subj = hasSubject(project, subj1)
-
-# create another subject node
-subj2 = Subject(name = 'Subject2')
-
-# connect the project to this subject
-has_subj = hasSubject(project, subj2)
-
-# create a basins node for the first subject
-basins1 = Basins(name = 'Basins')
-
-# connect the subject to their basins
-has_basins1 = hasBasins(subj1, basins1)
-
-# create a basin node
-basin1 = Basin(name = 'basin')
-
-# connect the basin to the basins
-has_basin1 = hasBasin(basins1, basin1)
+def set_fundus_stats(fundus, curvature, convexity, depth, thickness, length):
+    fundus.curvature = curvature
+    fundus.convexity = convexity
+    fundus.depth = depth
+    fundus.thickness = thickness
+    fundus.length = length
+    fundus.save()
+    return fundus
 
 
 
