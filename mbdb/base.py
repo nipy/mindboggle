@@ -24,12 +24,26 @@ edges (arcs) in the Mindboggle graph database implementation.
 from bulbs.model import Node, Relationship
 from bulbs.property import Property, String, Integer, Float
 
-# Tempted to create a base Node and Relationship class for MBDB to avoid
+#  Base Node and Relationship class for MBDB
 
+class NodeMB(Node):
+    """
+    NodeMB is the root node for all vertices in MBDB
+    """
+    element_type = "node"
+    def __unicode__(self):
+        return self.element_type
 
+class RelationshipMB(Relationship):
+    """
+    RelationshipMB is the root node for all vertices in MBDB
+    """
+    element_type = "relationship"
+    def __unicode__(self):
+        return self.element_type
 
 # Vertices
-class Database(Node):
+class Database(NodeMB):
     """
     Database is the root node of mbdb domain model
     """
@@ -50,13 +64,10 @@ class Project(Database):
     element_type = "project"
     name = Property(String, nullable=False)
 
-    def after_created(self):
-        return ContatinedIn(self.name,Database.get(self,))
-
     def __unicode__(self):
-        return self.name, "contained_in", self.resource.db_name
+        return self.name
 
-class Person(Node):
+class Person(NodeMB):
     """
     Project is the concept of a collection of participants in a study - potentially with a set of
     overlapping metadata attributes
@@ -85,7 +96,7 @@ class Subject(Project,Person):
     age = Property(Integer)
 
     def __unicode__(self):
-        return self.name, self.age
+        return self.name
 
 
 class Sulcus(Subject):
@@ -151,7 +162,7 @@ class Pit(Fundus):
         return self.name
 
 # Relationship types
-class ContatinedIn(Relationship):
+class ContatinedIn(RelationshipMB):
     """
     ContainedIn is a relationship type
 
