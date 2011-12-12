@@ -6,7 +6,7 @@
 from bulbs.graph import Graph
 from bulbs.model import Model
 
-# connect to db
+# connect to mbdb
 g = Graph(db_url="http://localhost:8182/graphs/mindboggle")
 
 # create root node
