@@ -25,20 +25,22 @@ from bulbs.model import Node, Relationship
 from bulbs.property import Property, String, Integer, Float
 
 #  Base Node and Relationship class for MBDB
-
 class NodeMB(Node):
     """
     NodeMB is the root node for all vertices in MBDB
     """
     element_type = "node"
+
     def __unicode__(self):
         return self.element_type
+
 
 class RelationshipMB(Relationship):
     """
     RelationshipMB is the root node for all vertices in MBDB
     """
     element_type = "relationship"
+
     def __unicode__(self):
         return self.element_type
 
@@ -48,10 +50,17 @@ class Database(NodeMB):
     Database is the root node of mbdb domain model
     """
     element_type = "database"
-    name = Property(String, nullable=False, unique=True)
+    name = Property(String, nullable=False)
+
+    #def after_initialized(self):
+    #    self.create_index(index_keys = self.name)
+
+    #def after_created(self):
+    #   self.index.put_unique(self.eid, key = self.element_type, value = self.name)
 
     def __unicode__(self):
         return self.name
+
 
 class Project(Database):
     """
@@ -64,8 +73,12 @@ class Project(Database):
     element_type = "project"
     name = Property(String, nullable=False)
 
+    def after_created(self):
+        self.create_index(index_keys=self.name)
+
     def __unicode__(self):
         return self.name
+
 
 class Person(NodeMB):
     """
@@ -82,7 +95,7 @@ class Person(NodeMB):
         return self.name
 
 
-class Subject(Project,Person):
+class Subject(Project, Person):
     """
     Subject is the concept of a participant in a Project with a set of data collected about them
 
@@ -112,6 +125,8 @@ class Sulcus(Subject):
 
     def __unicode__(self):
         return self.name
+
+
 class Ribbon(Sulcus):
     """
     Sulcus is anatomical entity with a set of image features
@@ -125,6 +140,7 @@ class Ribbon(Sulcus):
 
     def __unicode__(self):
         return self.name
+
 
 class Fundus(Sulcus):
     """
@@ -142,10 +158,11 @@ class Fundus(Sulcus):
     depth = Property(Float)
     thickness = Property(Float)
     length = Property(Float)
-    
+
 
     def __unicode__(self):
         return self.name
+
 
 class Pit(Fundus):
     """
@@ -181,15 +198,17 @@ class ContatinedIn(RelationshipMB):
     @property
     def outVObject(self):
         return self.label
+
     @outVObject.setter
     def outVObject(self, value):
         outVertex = value.__class__
         outVertex.get(self.outV)
-        
+
     # outgoing node
     @property
     def inVObject(self):
         return self.label
+
     @inVObject.setter
     def inVObject(self, value):
         inVertex = value.__class__
@@ -197,6 +216,7 @@ class ContatinedIn(RelationshipMB):
 
     def __unicode__(self):
         return self.label
+
 
 class IsA(Relationship):
     """
@@ -209,6 +229,7 @@ class IsA(Relationship):
     @property
     def outVObject(self):
         return self.label
+
     @outVObject.setter
     def outVObject(self, value):
         outVertex = value.__class__
@@ -218,6 +239,7 @@ class IsA(Relationship):
     @property
     def inVObject(self):
         return self.label
+
     @inVObject.setter
     def inVObject(self, value):
         inVertex = value.__class__
