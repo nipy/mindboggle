@@ -699,7 +699,7 @@ def stepFilter(L, Y, Z):
 
     return L
 
-def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvFile, SurfFile2):
+def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, PrefixBasin, PrefixExtract, SurfFile2):
     '''Connecting pits into fundus curves
     
     Parameters
@@ -723,8 +723,11 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvF
         SurfFile: string
             Path to the mandatory-provided surface file
             
-        CurvFile: string
-            Path to the mandatory-provided curvature file
+        PrefixBasin: string
+            Path to basin/thresholding related files, e.g., lh.curv
+            
+        PrefixExtract: string
+            Path to save pits and fundi extraction related files, e.g., lh.curv.depth.        
     
     Notes
     ========
@@ -748,15 +751,15 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvF
     
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile)   
         
-    VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'  # need to run libbasin first to get components
+    VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'  # need to run libbasin first to get components
     VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile) # need to run libbasin first to get components    
     
     # the code to lineup pits into fundi    
     
-    PitsFile = CurvFile + '.pits'
+    PitsFile = PrefixExtract + '.pits'
     Pits = libvtk.loadFundiList(PitsFile)
     
-    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # changed 2011-07-21 00:23
+    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, PrefixExtract, Curvature) # changed 2011-07-21 00:23
 
     LenLUT = [0 for i in xrange(0,len(NbrLst))]
     for Key, Value in FundusLen.iteritems():
@@ -774,7 +777,7 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvF
 
     print "Saving fundi from Pits into VTK"
     
-    FPits = CurvFile + '.fundi.from.pits'
+    FPits = PrefixExtract + '.fundi.from.pits'
     fileio.writeFundiSeg(FPits, PSegs)
     
     VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
@@ -804,6 +807,15 @@ def getFundi(InputFiles, Type, Options):
             
         mapFeature: lists of lists of floats
             lists of list of per-vertex values that will be used as structure feature vectors, e.g., thickness
+            
+        PrefixBasin: string
+            the prefix for all outputs that are only related to basin extraction,
+            e.g., connected components, basins and gyri. 
+        
+        PrefixExtract: string
+            the prefix for all outputs that are the result of extraction,
+            e.g., pits and fundi.
+        
     
     Notes
     ======
@@ -820,6 +832,10 @@ def getFundi(InputFiles, Type, Options):
         Curvature = fileio.readCurv(CurvFile)
         MapBasin = Curvature
         MapExtract = Curvature
+        
+        PrefixBasin = CurvFile
+        PrefixExtract = CurvFile    
+        
         FileBasin = CurvFile
         FileExtract = CurvFile
         MapFeature = [Curvature]
@@ -828,25 +844,30 @@ def getFundi(InputFiles, Type, Options):
             Curvature2 = fileio.readCurv(CurvFile2)
             MapExtract = Curvature2
             MapFeature.append(Curvature2)
-            FeatureNames.append(CurvFile2[(len(CurvFile) - CurvFile2[::-1].find(".")):])
+            FeatureNames.append(CurvFile2[(len(CurvFile2) - CurvFile2[::-1].find(".")):])
+            PrefixExtract = CurvFile + '.' + CurvFile2[(len(CurvFile2) - CurvFile2[::-1].find(".")):]
         if ThickFile != '':
             Thickness = fileio.readCurv(ThickFile)
             MapFeature.append(Thickness)          
             FeatureNames.append('thickness')  
-        Vertexes, Faces = fileio.readSurf(SurfFile) 
-        Mesh = [Vertexes, Faces]
-        if SurfFile2 != '':
-            Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
-            Mesh2 = [Vertexes2, Faces2]
-        else:
-            Mesh2 = []
+
 #        Prefix = SurfFile[:-1*SurfFile[::-1].find('.')] # or CurvFile[:-1*CurvFile[::-1].find('.')] also works
+    elif Type == 'vtk':
+        [DepthVTK, SurfFile, SurfFile2, ConvexityFile, ThickFile ]= InputFiles
+
+    Vertexes, Faces = fileio.readSurf(SurfFile) 
+    Mesh = [Vertexes, Faces]
+    if SurfFile2 != '':
+        Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
+        Mesh2 = [Vertexes2, Faces2]
+    else:
+        Mesh2 = []        
         
-        libbasin.getBasin(MapBasin, MapExtract, Mesh, FileBasin, FileExtract, SurfFile, Mesh2, Threshold=0, SurfFile2=SurfFile2)
+    libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFile, Mesh2, Threshold=0, SurfFile2=SurfFile2)
         
-        fundiFromPits(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
-        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
-#        fundiFromSkel(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2=CurvFile2, ThickFile=ThickFile)
+    fundiFromPits(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, PrefixBasin, PrefixExtract, SurfFile2)
+#        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
+
     
 def fundiFromSkel(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvFile, SurfFile2):
        
