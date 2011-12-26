@@ -505,8 +505,8 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst, Coordinates):
             print "\t MST on component",i+1, ",",
             if len(SpecialGroup[i]) < 2 :  # This compnent has no more than two vertexes to be connected
                 print "\t Skipped. Too few Special vertexes."
-#            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
-#                print "\t Skipped. Too many vertexes (all kinds). "
+            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
+                print "\t Skipped. Too many vertexes (all kinds). "
             else:
 #                print "\t # of special points", len(SpecialGroup[i]) , 
                 Root = VrtxCmpnts[i].index(SpecialGroup[i][0])  # always start MST from a special vertex 
@@ -687,44 +687,65 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvFile, CurvatureDB):
 
 # End of functions to connect special vertexes ---
 
-def fundiFromPits(CurvFile, SurfFile, ToVTK=True, SurfFile2='', CurvFile2='', ThickFile=''):
-    '''Connecting pits into fundus curves 
-    '''
- 
-    Curvature = rfs.readCurv(CurvFile)
-    CurvDisp = []
-    for x in Curvature:
-        if x > 0:
-            CurvDisp.append(x)
-        else:
-            CurvDisp.append(0)
-
-    Vrtx, Fc = rfs.readSurf(SurfFile)
-
-    LUTname=[CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]]
-    LUT=[CurvDisp]
-
-    if CurvFile2 != '':
-#        Prefix = CurvFile2 + "-" +  CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-        
-        Curvature2 = rfs.readCurv(CurvFile2)
-        CurvDisp = []
-        for x in Curvature2:
-            if x > 0:
-                CurvDisp.append(x)
-            else:
-                CurvDisp.append(0)
-                
-        LUTname.append(CurvFile2[(len(CurvFile) - CurvFile2[::-1].find(".")):])
-        LUT.append(CurvDisp)
-            
-#    else:
-#        Prefix = CurvFile + "-" + CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-
-#    print LUTname
+def stepFilter(L, Y, Z):
+    '''Return L such that L[i]:= L[i] if L[i] > Y, else, Z. 
     
-    Prefix= CurvFile
+    '''
+    for Idx, X in enumerate(L):
+        if X>Y:
+            L[Idx] = X 
+    else:
+            L[Idx] = Z
 
+    return L
+
+def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvFile, SurfFile2):
+    '''Connecting pits into fundus curves
+    
+    Parameters
+    ============
+    
+        Curavture: list of floats
+            a per-vertex value map used to find minimum cost path between vertexes
+            
+        FeatureNames: list of strings
+            names of per-vertex features about the surface
+            
+        MapFeature: lists of lists of floats
+            lists of list of per-vertex values that will be used as structure feature vectors, e.g., thickness
+    
+        Vrtx: list of 3-tuples of floats
+            Each element is the X-, Y- and Z-cooridnates of a vertex on the surface, normally pial
+            
+        Fc: list of 3-tuples of integers
+            Each element is the ids of 3 vertexes that form one triangle on the surface 
+            
+        SurfFile: string
+            Path to the mandatory-provided surface file
+            
+        CurvFile: string
+            Path to the mandatory-provided curvature file
+    
+    Notes
+    ========
+    
+        Function and variable names are not fully changed yet. Names like curvature is bad. 
+     
+    '''
+
+    LUTname, LUT = [], []
+    for Idx, Name in enumerate(FeatureNames):
+        Table = MapFeature[Idx]
+        if Name == 'curv':
+            LUT.append(stepFilter(Table, 0, 0))
+            LUTname.append('curv')
+        elif Name == 'sulc':  
+            LUT.append(stepFilter(Table, 0, 0))
+            LUTname.append('sulc')
+        elif Name == 'thickness':  
+            LUT.append(Table)  # no filtering for thickness
+            LUTname.append('thickness')
+    
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile)   
         
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'  # need to run libbasin first to get components
@@ -732,7 +753,7 @@ def fundiFromPits(CurvFile, SurfFile, ToVTK=True, SurfFile2='', CurvFile2='', Th
     
     # the code to lineup pits into fundi    
     
-    PitsFile = Prefix + '.pits'
+    PitsFile = CurvFile + '.pits'
     Pits = libvtk.loadFundiList(PitsFile)
     
     PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # changed 2011-07-21 00:23
@@ -750,63 +771,103 @@ def fundiFromPits(CurvFile, SurfFile, ToVTK=True, SurfFile2='', CurvFile2='', Th
 
     LUTname.append('fundusID')
     LUT.append(FIDLUT)
-    
-    # add thickness into LUT  Forrest 2011-11-01
-    if ThickFile != '':
-            Thickness = rfs.readCurv(ThickFile)
-            LUTname.append('thickness')
-            LUT.append(Thickness)
-    # end of add thickness into LUT
 
     print "Saving fundi from Pits into VTK"
     
     FPits = CurvFile + '.fundi.from.pits'
     fileio.writeFundiSeg(FPits, PSegs)
     
-    if ToVTK:
-        VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=[CurvDisp], LUTname=['Curvature'])
-#        libvtk.seg2VTK(VTKFile, SurfFile, FPits)
-        libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=LUT, LUTname=LUTname)
-        if SurfFile2 != '':
-            VTKFile = FPits + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'            
-#            libvtk.seg2VTK(VTKFile, SurfFile2, FPits, LUT=[CurvDisp], LUTname=['Curvature'])
-#            libvtk.seg2VTK(VTKFile, SurfFile2, FPits)
-            libvtk.seg2VTK(VTKFile, SurfFile2, FPits, LUT=LUT, LUTname=LUTname)    
+    VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+#   libvtk.seg2VTK(VTKFile, SurfFile, FPits)
+    libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=LUT, LUTname=LUTname)
+    if SurfFile2 != '':
+        VTKFile = FPits + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'            
+#       libvtk.seg2VTK(VTKFile, SurfFile2, FPits)
+        libvtk.seg2VTK(VTKFile, SurfFile2, FPits, LUT=LUT, LUTname=LUTname)
 
-def getFundi(CurvFile, SurfFile, SurfFile2='', CurvFile2 ='', ThickFile=''):
-    # part 1: Load files and threshold the surface
+def getFundi(InputFiles, Type, Options):
+    '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
     
-#    Curvature = rfs.readCurv(CurvFile)
-#    Vertex, Face = rfs.readSurf(SurfFile)
+    Parameters
+    ===========
+        Types string
+               
+        There are two types of inputs, VTK or FreeSurfer. 
+        If Types == 'VTK', the VTK file should contain a triangular mesh with at least one per-vertex lookup table, e.g., depth map.
+        If Types == 'FreeSurfer, the VTK files should at least be a curvature/convexity and a surface file. 
+
+        mapThreshold: list
+            a list of per-vertex values that will be used to threshold the cortical surface to get sulcal basins, e.g., curvature/convexity 
+            
+        mapExtract: list
+            a list of per-vertex values that will be used to extract fundi/pits, e.g., curvature/convexity
+            
+        mapFeature: lists of lists of floats
+            lists of list of per-vertex values that will be used as structure feature vectors, e.g., thickness
     
-    libbasin.getBasin(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2=CurvFile2)
+    Notes
+    ======
     
-    # part 2: extract special vertexes and connect them into fundi
+        12/23/2011: We are now rewriting the interface from getFundi to libbasin.getBaisn, fundiFromPits and fundiFromSkel
+        Now variables passed into them are data rather than file names
     
-    fundiFromPits(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2=CurvFile2, ThickFile=ThickFile)
-#    fundiFromSkel(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2=CurvFile2)
-    
-    
-'''def fundiFromSkel(CurvFile, SurfFile, ToVTK=True, SurfFile2='', CurvFile2=''):
-       
-    Curvature = fileio.readCurv(CurvFile)
-    Vrtx, Fc = fileio.readSurf(SurfFile)
-    CurvDisp = []
-    for x in Curvature:
-        if x > 0:
-            CurvDisp.append(x)
+    '''
+   
+    if Type == 'FreeSurfer':
+        
+        [CurvFile, SurfFile, SurfFile2, CurvFile2, ThickFile] = InputFiles
+        
+        Curvature = fileio.readCurv(CurvFile)
+        MapBasin = Curvature
+        MapExtract = Curvature
+        FileBasin = CurvFile
+        FileExtract = CurvFile
+        MapFeature = [Curvature]
+        FeatureNames = [CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]]
+        if CurvFile2 != '':
+            Curvature2 = fileio.readCurv(CurvFile2)
+            MapExtract = Curvature2
+            MapFeature.append(Curvature2)
+            FeatureNames.append(CurvFile2[(len(CurvFile) - CurvFile2[::-1].find(".")):])
+        if ThickFile != '':
+            Thickness = fileio.readCurv(ThickFile)
+            MapFeature.append(Thickness)          
+            FeatureNames.append('thickness')  
+        Vertexes, Faces = fileio.readSurf(SurfFile) 
+        Mesh = [Vertexes, Faces]
+        if SurfFile2 != '':
+            Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
+            Mesh2 = [Vertexes2, Faces2]
         else:
-            CurvDisp.append(0)
+            Mesh2 = []
+#        Prefix = SurfFile[:-1*SurfFile[::-1].find('.')] # or CurvFile[:-1*CurvFile[::-1].find('.')] also works
+        
+        libbasin.getBasin(MapBasin, MapExtract, Mesh, FileBasin, FileExtract, SurfFile, Mesh2, Threshold=0, SurfFile2=SurfFile2)
+        
+        fundiFromPits(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
+        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
+#        fundiFromSkel(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2=CurvFile2, ThickFile=ThickFile)
     
-    if CurvFile2 != '':
-        Prefix = CurvFile2 + "-" +  CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-    else:
-        Prefix = CurvFile + "-" + CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-    
+def fundiFromSkel(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, CurvFile, SurfFile2):
+       
+    LUTname, LUT = [], []
+    for Idx, Name in enumerate(FeatureNames):
+        Table = MapFeature[Idx]
+        if Name == 'curv':
+            LUT.append(stepFilter(Table, 0, 0))
+            LUTname.append('curv')
+        elif Name == 'sulc':  
+            LUT.append(stepFilter(Table, 0, 0))
+            LUTname.append('sulc')
+        elif Name == 'thickness':  
+            LUT.append(Table)  # no filtering for thickness
+            LUTname.append('thickness')
+
+    Prefix= CurvFile
+            
     NbrLst = libbasin.fcNbrLst(Fc, SurfFile)  # Activated 2011-04-30, 21:46 
     
-    Center = libskel.getCenter(Fc, Curvature)
+    Center = libskel.getCenter(Fc, Curvature) # get the per-face curvature
 
     Candidate, Strict = libskel.faceFundi(Fc, Curvature, NbrLst, Center, Skip2= True, Skip3 = True)
 
@@ -820,23 +881,14 @@ def getFundi(CurvFile, SurfFile, SurfFile2='', CurvFile2 ='', ThickFile=''):
     DTLUT = [0 for i in xrange(0,len(VrtxNbrLst))]  # initialize the LUT for all vertexes in the surface as -1
     for i in xrange(0,len(Clouds)):
         for j in xrange(0,len(Clouds[i])):
-            DTLUT[Clouds[i][j]] = DTMap[i][j] 
+            DTLUT[Clouds[i][j]] = DTMap[i][j]    
 
-#    FCandidate = CurvFile + '.DTmap'
-#    fileio.writeList(FCandidate, fc2Vrtx(Fc, Candidate))
-#    
-#    if ToVTK:
-#        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-#        if SurfFile2 != '':
-#            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, Curvature], LUTname=['DistanceTransform', 'Curvature'])
-# End of output 1: DT map 
+    LUTname.append('DT')
+    LUT.append(DTLUT)
 
 # output 2: Skeletons 
   
     Skeletons = libskel.faceToCurve(Fc, Candidate, FaceCmpnts, VrtxNbrLst) 
-##    fileio.writeDTMap(CurvFile + '.DTmap', Map)
 
     Candidate = []
     for Skeleton in Skeletons:
@@ -845,12 +897,13 @@ def getFundi(CurvFile, SurfFile, SurfFile2='', CurvFile2 ='', ThickFile=''):
     FCandidate = Prefix + '.skeletons'
     fileio.writeList(FCandidate, Candidate)
     
-    if ToVTK:
-        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
-        if SurfFile2 != '':
-            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
+    print "\t Saving Skeletons into VTK files"
+    
+    VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+    libvtk.vrtxLst2VTK(VTKFile, SurfFile, FCandidate)
+    if SurfFile2 != '':
+        VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, FCandidate)
 # End of output 2: Skeletons 
 
 # output 3: fundus curves connected from skeletons 
@@ -858,22 +911,31 @@ def getFundi(CurvFile, SurfFile, SurfFile2='', CurvFile2 ='', ThickFile=''):
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
     VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile)
     
-    Candidate, NodeColor = lineUp(Candidate, VrtxNbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # activated 2011-05-28 17:53
+    Candidate, NodeColor, FundusLen, FundusID = lineUp(Candidate, VrtxNbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # activated 2011-05-28 17:53
 
     print "\t Saving fundi from Skeleton into VTK files"
+        
+    LenLUT = [0 for i in xrange(0,len(NbrLst))]
+    for Key, Value in FundusLen.iteritems():
+        LenLUT[Key] = Value        
+         
+    LUTname.append('fundusLength')
+    LUT.append(LenLUT)
+    
+    FIDLUT = [-1 for i in xrange(0,len(NbrLst))] # value for gyri is now -1 Forrest 2011-11-01
+    for Key, Value in FundusID.iteritems():
+        FIDLUT[Key] = Value
+
+    LUTname.append('fundusID')
+    LUT.append(FIDLUT)
         
     FCandidate = Prefix + '.fundi.from.skeletons'
     fileio.writeFundiSeg(FCandidate, Candidate)
     
-    if ToVTK:
-        VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.seg2VTK(VTKFile, SurfFile, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
-        if SurfFile2 != '':
-            VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate, LUT=[DTLUT, CurvDisp], LUTname=['DistanceTransform', 'Curvature'])
+    VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+    libvtk.seg2VTK(VTKFile, SurfFile, FCandidate, LUT=LUT, LUTname=LUTname)
+    if SurfFile2 != '':
+        VTKFile = FCandidate + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.seg2VTK(VTKFile, SurfFile2, FCandidate, LUT=LUT, LUTname=LUTname)
 
 # End of output 3: fundus curves connected from skeletons 
-'''
-
-
-
