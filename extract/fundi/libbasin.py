@@ -166,7 +166,7 @@ def sulciCover(SulciList, FaceDB):
     '''
     pass
 
-def basin(FaceDB, CurvatureDB, CurvFile, Prefix, Threshold = 0):
+def basin(FaceDB, CurvatureDB, Prefix, Threshold = 0):
     '''Given a list of faces and per-vertex curvature value, return a list of faces comprising basins
     '''
     Basin = []
@@ -335,121 +335,99 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
             C[V] = M
     return B, C, Child
 
-def getBasin(CurvFile, SurfFile, ToVTK=True, SurfFile2='', CurvFile2='', Threshold=0):
+def getBasin(mapThreshold, mapExtract, Mesh, FileBasin, FilePits, SurfFile, Mesh2= [], Threshold = 0, SurfFile2=''):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
     
     Input
     =====   
-        CurvFile: string
-                file name of the curvature-format file
-                
+        mapThreshold: list
+            a per-vertex map, e.g., curvature map, for thresholding the surface
+
+        mapExtract: list
+            a per-vertex map, e.g., curvature map, for extract PITS (only pits here) from the surface
+            
+        Mesh: 2-tuple of lists
+            the first list has coordinates of vertexes while the second defines triangles on the mesh
+            
+        Mesh2: 2-tuple of lists
+            the first list has coordinates of vertexes while the second defines triangles on the mesh
+
+        FileBasin: string
+            path to the per-vertex file that is used to threshold the surface
+        
+        FilePits: string
+            path to the per-vertex file that is used to extract pits
+            
         SurfFile: string
-                file name of the surface-format file
-                               
-        ToVTK: Boolean
-                Whether map the Sulci extraction result onto a surface and save in VTK format
-                Default = True
+            path to a surface file
+
+        SurfFile2: string
+            path to the 2nd surface file
+            
+        Threshold: integer
+            the value to threshold the surface
 
     Example
     ========
 
-    libbasin.getFeature(CurvFile, SurfFile)
+    libbasin.getFeature(mapThreshold, Mesh, 'lh.')
 
     '''
       
-    Curvature = fileio.readCurv(CurvFile)
+    [Vertexes, Face] = Mesh
     
-#    print "Mean of the per-vertex values:", mean(Curvature)
-#    print "Std of the per-vertex values:", std(Curvature)
-#    print "Median of the per-vertex values:", median(Curvature)
-#    print "dynamic range of the per-vertex values:", max(Curvature) - min(Curvature)
-    
-    Vertex, Face = fileio.readSurf(SurfFile)
-    
-    '''
-    if CurvFile2 != '':
-        Prefix = CurvFile2 + "-" +  CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-    else:
-        Prefix = CurvFile + "-" + CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]
-        
-#    print Prefix
-        
-    if CurvFile2 != '':
-        Curvature2 = fileio.readCurv(CurvFile2)
-        Basin, Gyri = basin(Face, Curvature2, CurvFile, Prefix, Threshold =  Threshold)
-    else:
-        Basin, Gyri = basin(Face, Curvature, CurvFile, Prefix, Threshold =  Threshold)
-        
-    '''
-    # 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21 
-    Prefix = CurvFile  
-    Basin, Gyri = basin(Face, Curvature, CurvFile, Prefix, Threshold =  Threshold)
+    Basin, Gyri = basin(Face, mapThreshold, FileBasin, Threshold =  Threshold)
     # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
         
-    BasinFile = Prefix + '.basin'
-    GyriFile = Prefix + '.gyri'
+    BasinFile = FileBasin + '.basin'
+    GyriFile = FileBasin + '.gyri'
     
-    VrtxNbr = vrtxNbrLst(len(Vertex), Face, SurfFile)
+    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, SurfFile)
     FcNbr   = fcNbrLst(Face, SurfFile)
     
-    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, CurvFile)
+    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, FileBasin)
     
     # write component ID as LUT into basin file. 
-    CmpntLUT = [-1 for i in xrange(0, len(Curvature))]
+    CmpntLUT = [-1 for i in xrange(0, len(mapThreshold))]
     for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
         for Vrtx in Cmpnt:
             CmpntLUT[Vrtx] = CmpntID
-#    print CmpntLUT
-        
+#    print CmpntLUT     
     # end of write component ID as LUT into basin file.
-            
-    if ToVTK:
-        VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, CurvFile, LUT=[CmpntLUT, Curvature], LUTname = ['CmpntID', 'PerVertex'])
-        
-#        VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.map.vtk'
-#        libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, CurvFile, LUT=[Curvature], LUTname=['PerVertex'])
-        
-        VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
 
-        if SurfFile2 != '':
-            VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, CurvFile,  LUT=[CmpntLUT, Curvature], LUTname = ['CmpntID','PerVertex'])
-            
-#            VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.map.vtk'
-#            libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, CurvFile, LUT=[Curvature], LUTname=['PerVertex'])
-            
-            VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)           
-    exit()
+
 # Get pits Forrest 2011-05-30 10:16
-    Pits, Parts, Child = pits(Curvature, VrtxNbr, Threshold = mean(Curvature) + 0.5*std(Curvature))
-#    Pits, Parts, Child = pits(Curvature, VrtxNbr, Threshold = 0)
-    PitsFile = Prefix + '.pits'
+    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = mean(mapExtract) + 0.5*std(mapExtract))
+
+    PitsFile = FileBasin + '.pits'
     fileio.writeList(PitsFile, Pits)
 
-    # dump colored basin
+    # dump basin
     print "writing post-watershed basins into VTK files"    
-    if ToVTK:
-        VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.hier.vtk'
-        libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, CurvFile, LUT=[Parts], LUTname=['hierarchy'])
+    VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+    libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, FileBasin, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+    
+    VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+    libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
         
-        if SurfFile2 != '':
-            VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.hier.vtk'
-            libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, CurvFile, LUT=[Parts], LUTname=['hierarchy'])
-    # End of dump colored basin
+    if SurfFile2 != '':
+        VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+    
+        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)
+        
+    # End of dump basin
 
     # write Pists
     print "writing pits into VTK files"
-    if ToVTK:
-        VTKFile = PitsFile + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-        libvtk.vrtxLst2VTK(VTKFile, SurfFile, PitsFile)
-        if SurfFile2 != '':
-            VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-            libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
+    VTKFile = PitsFile + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+    libvtk.vrtxLst2VTK(VTKFile, SurfFile, PitsFile)
+    if SurfFile2 != '':
+        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
     # End of write pits
     
     # output tree hierarchies of basal components
