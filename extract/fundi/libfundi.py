@@ -706,7 +706,7 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, Prefi
     ============
     
         Curavture: list of floats
-            a per-vertex value map used to find minimum cost path between vertexes
+            i.e., MapExtract, a per-vertex value map used to find minimum cost path between vertexes
             
         FeatureNames: list of strings
             names of per-vertex features about the surface
@@ -763,29 +763,24 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, Prefi
 
     LenLUT = [0 for i in xrange(0,len(NbrLst))]
     for Key, Value in FundusLen.iteritems():
-        LenLUT[Key] = Value        
-         
+        LenLUT[Key] = Value               
     LUTname.append('fundusLength')
     LUT.append(LenLUT)
     
     FIDLUT = [-1 for i in xrange(0,len(NbrLst))] # value for gyri is now -1 Forrest 2011-11-01
     for Key, Value in FundusID.iteritems():
         FIDLUT[Key] = Value
-
     LUTname.append('fundusID')
     LUT.append(FIDLUT)
 
-    print "Saving fundi from Pits into VTK"
-    
+    print "Saving fundi from Pits into VTK"    
     FPits = PrefixExtract + '.fundi.from.pits'
     fileio.writeFundiSeg(FPits, PSegs)
     
     VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#   libvtk.seg2VTK(VTKFile, SurfFile, FPits)
     libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=LUT, LUTname=LUTname)
     if SurfFile2 != '':
         VTKFile = FPits + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'            
-#       libvtk.seg2VTK(VTKFile, SurfFile2, FPits)
         libvtk.seg2VTK(VTKFile, SurfFile2, FPits, LUT=LUT, LUTname=LUTname)
 
 def getFundi(InputFiles, Type, Options):
@@ -793,11 +788,17 @@ def getFundi(InputFiles, Type, Options):
     
     Parameters
     ===========
-        Types string
-               
-        There are two types of inputs, VTK or FreeSurfer. 
-        If Types == 'VTK', the VTK file should contain a triangular mesh with at least one per-vertex lookup table, e.g., depth map.
-        If Types == 'FreeSurfer, the VTK files should at least be a curvature/convexity and a surface file. 
+        Type: string 
+            If Types == 'VTK-curv', 
+            the VTK file should contain a triangular mesh with at least one per-vertex lookup table, e.g., depth map;
+            the surface is thresholded using another map, e.g., curvature map, from FreeSurfer.
+        
+            If Types == 'FreeSurfer, 
+            the VTK files should at least be a curvature/convexity and a surface file.
+        
+            If Type == 'vtk',
+                The user needs to specify using which map to threshold the surface 
+                and using which map to extract pits and fundi.  
 
         mapThreshold: list
             a list of per-vertex values that will be used to threshold the cortical surface to get sulcal basins, e.g., curvature/convexity 
@@ -836,8 +837,6 @@ def getFundi(InputFiles, Type, Options):
         PrefixBasin = CurvFile
         PrefixExtract = CurvFile    
         
-        FileBasin = CurvFile
-        FileExtract = CurvFile
         MapFeature = [Curvature]
         FeatureNames = [CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]]
         if CurvFile2 != '':
@@ -851,20 +850,66 @@ def getFundi(InputFiles, Type, Options):
             MapFeature.append(Thickness)          
             FeatureNames.append('thickness')  
 
+        Vertexes, Faces = fileio.readSurf(SurfFile) 
+        Mesh = [Vertexes, Faces]
+        if SurfFile2 != '':
+            Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
+            Mesh2 = [Vertexes2, Faces2]
+        else:
+            Mesh2 = []        
 #        Prefix = SurfFile[:-1*SurfFile[::-1].find('.')] # or CurvFile[:-1*CurvFile[::-1].find('.')] also works
-    elif Type == 'vtk':
-        [DepthVTK, SurfFile, SurfFile2, ConvexityFile, ThickFile ]= InputFiles
+    elif Type == 'vtk-curv':
+        [DepthVTK, CurvFile, SurfFile2, ConvexityFile, ThickFile]= InputFiles
+        
+        import vtk 
+        Reader = vtk.vtkDataSetReader()
+        Reader.SetFileName(DepthVTK)
+        Reader.ReadAllScalarsOn()
+        Reader.Update()
+        Data = Reader.GetOutput()
+        Vertexes= [Data.GetPoint(i) for i in range(0, Data.GetNumberOfPoints())]
+        Polys = Data.GetPolys()
+        Polys = Polys.GetData()
+        Faces=[ [Polys.GetValue(Idx) for Idx in range(4*i+1, 4*(i+1))]  for i in range(0, Data.GetNumberOfPolys())]
+        
+        Curvature = fileio.readCurv(CurvFile)
+        
+        PointData = Data.GetPointData()
+        DepthMap = PointData.GetArray('scalars')
+        
+        Depth = [DepthMap.GetValue(i) for i in range(0, DepthMap.GetSize() )]
+         
+        MapBasin = Curvature        
+        MapExtract = Depth
+        
+        PrefixBasin = DepthVTK[:-4] # drop suffix .vtk
+        PrefixExtract = CurvFile + '.depth'
 
-    Vertexes, Faces = fileio.readSurf(SurfFile) 
-    Mesh = [Vertexes, Faces]
-    if SurfFile2 != '':
-        Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
-        Mesh2 = [Vertexes2, Faces2]
-    else:
-        Mesh2 = []        
+        MapFeature = [Curvature, Depth]
+        FeatureNames = ['curvature','depth']
+        if ConvexityFile != '':
+            Convexity = fileio.readCurv(ConvexityFile)
+            MapFeature.append(Convexity)
+            FeatureNames.append('convexity')
+        if ThickFile != '':
+            Thickness = fileio.readCurv(ThickFile)
+            MapFeature.append(Thickness)          
+            FeatureNames.append('thickness')  
+        
+        Mesh = [Vertexes, Faces]
+        if SurfFile2 != '':
+            Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
+            Mesh2 = [Vertexes2, Faces2]
+        else:
+            Mesh2 = []
+            
+        SurfFile = 'lh.pial'  # this file name does not matter for vtk-curv
+                
+    elif Type == 'vtk': # pure VTK
+        pass
         
     libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFile, Mesh2, Threshold=0, SurfFile2=SurfFile2)
-        
+    exit()
     fundiFromPits(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, PrefixBasin, PrefixExtract, SurfFile2)
 #        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
 
