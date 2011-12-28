@@ -7,6 +7,7 @@ import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin
 import sys
 from math import sqrt
+import cPickle
 sys.setrecursionlimit(30000)
 
 def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB, DistFile=''): 
@@ -752,12 +753,19 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Vrtx, Fc, SurfFile, Prefi
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile)   
         
     VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'  # need to run libbasin first to get components
-    VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile) # need to run libbasin first to get components    
+#    VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile) # need to run libbasin first to get components
+    Fp = open(VrtxCmpntFile, 'r')
+    VrtxCmpnt = cPickle.load(Fp)
+    Fp.close()
+
     
     # the code to lineup pits into fundi    
     
     PitsFile = PrefixExtract + '.pits'
     Pits = libvtk.loadFundiList(PitsFile)
+#    FPits = open(PrefixExtract + '.pits','r')
+#    Pits  = cPickle.load(FPits)
+#    FPits.close()
     
     PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, PrefixExtract, Curvature) # changed 2011-07-21 00:23
 
@@ -859,7 +867,7 @@ def getFundi(InputFiles, Type, Options):
             Mesh2 = []        
 #        Prefix = SurfFile[:-1*SurfFile[::-1].find('.')] # or CurvFile[:-1*CurvFile[::-1].find('.')] also works
     elif Type == 'vtk-curv':
-        [DepthVTK, CurvFile, SurfFile2, ConvexityFile, ThickFile]= InputFiles
+        [DepthVTK, CurvFile, SurfFile, SurfFile2, ConvexityFile, ThickFile]= InputFiles
         
         import vtk 
         Reader = vtk.vtkDataSetReader()
@@ -902,8 +910,6 @@ def getFundi(InputFiles, Type, Options):
             Mesh2 = [Vertexes2, Faces2]
         else:
             Mesh2 = []
-            
-        SurfFile = 'lh.pial'  # this file name does not matter for vtk-curv
                 
     elif Type == 'vtk': # pure VTK
         pass
