@@ -8,7 +8,7 @@ import cPickle as pickle
 
 #-----------------Begin function definitions------------------------------------------------------------- 
 
-def fcNbrLst(FaceDB, SurfFile):
+def fcNbrLst(FaceDB, Hemi):
     '''Get a neighbor list of faces, also the vertex not shared with current face
     
     Data structure:
@@ -22,7 +22,7 @@ def fcNbrLst(FaceDB, SurfFile):
     
     print "calculating/loading face neighbor list"
     
-    NbrFile = SurfFile[:-1*SurfFile[::-1].find('.')] + 'fc.nbr'
+    NbrFile = Hemi + '.fc.nbr'
 
     if os.path.exists(NbrFile):
         return fileio.loadFcNbrLst(NbrFile)
@@ -80,16 +80,16 @@ def fcNbrLst(FaceDB, SurfFile):
                     
     return NbrLst
 
-def vrtxNbrLst(VrtxNo, FaceDB, SurfFile):
+def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
     """Given the number of vertexes and the list of faces, find the neighbors of each vertex, in list formate. 
     """
 
     print "Calculating/loading vertex neighbor list"
 
-    NbrFile = SurfFile[:-1*SurfFile[::-1].find('.')] + 'vrtx.nbr'
+    NbrFile = Hemi + '.vrtx.nbr'
         
     if os.path.exists(NbrFile):
-        return fileio.loadVrtxNbrLst(NbrFile)  
+        return fileio.loadVrtxNbrLst(NbrFile) # change to cPickle  
 
 # Commented 2011-04-29 23:35
 #    NbrLst = []    
@@ -117,7 +117,7 @@ def vrtxNbrLst(VrtxNo, FaceDB, SurfFile):
         if not V1 in NbrLst[V2]:
             NbrLst[V2].append(V1)
     
-    Fp = open(NbrFile, 'w')
+    Fp = open(NbrFile, 'w')  # need to use cPickle
     
     for i in xrange(0, VrtxNo):
         [Fp.write(str(Vrtx) + '\t') for Vrtx in NbrLst[i]]
@@ -379,8 +379,10 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
     BasinFile = PrefixBasin + '.basin'
     GyriFile = PrefixBasin + '.gyri'
     
-    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, SurfFile)
-    FcNbr   = fcNbrLst(Face, SurfFile)
+    Hemi = PrefixBasin[:PrefixBasin.find('.')]# which hemisphere, e.g., lh
+
+    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
+    FcNbr   = fcNbrLst(Face, Hemi)
     
     FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
     
