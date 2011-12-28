@@ -3,7 +3,7 @@
 import fileio, libvtk
 from numpy import mean, std, median, array, zeros, eye, flatnonzero, sign, matrix, zeros_like
 import os.path
-import cPickle as pickle 
+import cPickle 
 
 
 #-----------------Begin function definitions------------------------------------------------------------- 
@@ -25,15 +25,19 @@ def fcNbrLst(FaceDB, Hemi):
     NbrFile = Hemi + '.fc.nbr'
 
     if os.path.exists(NbrFile):
-        return fileio.loadFcNbrLst(NbrFile)
+        #return fileio.loadFcNbrLst(NbrFile)
+        Fp = open(NbrFile, 'r')
+        NbrLst = cPickle.load(Fp)
+        Fp.close()
+        return NbrLst        
     
     FaceNo = len(FaceDB)
     
     NbrLst = []
-    [NbrLst.append([[-1,-1,-1], [-1,-1,-1]]) for i in xrange(0, FaceNo)]  
+    [NbrLst.append([[-1,-1,-1], [-1,-1,-1]]) for i in xrange(FaceNo)]  
     
     Done =[]
-    [Done.append(0) for i in xrange(0, FaceNo)]
+    [Done.append(0) for i in xrange(FaceNo)]
     
     for i in xrange(0, FaceNo):
 #    for i in xrange(0, 2600+1):
@@ -66,15 +70,16 @@ def fcNbrLst(FaceDB, Hemi):
             if Done[i] ==3:
                 break  # all three neighbors of Face has been found 
 
-#        print NbrLst[i]
-##                    NbrLst[i][0][NbrID1] = thirdVertex(j, ChkFc1, ChkFc2, FaceDB)
-##                    NbrLst[j][0][NbrID2] = thirdVertex(i, ChkFc1, ChkFc2, FaceDB)   
-    
     Fp = open(NbrFile, 'w')
-    for i in xrange(0, len(FaceDB)):
-        for j in NbrLst[i]:
-            Fp.write(str(j[0]) + '\t' + str(j[1]) + '\t' + str(j[2]) + '\t')
-        Fp.write('\n')
+    
+# Commented 2011-11-27 23:54     
+#    for i in xrange(0, len(FaceDB)
+#        for j in NbrLst[i]:
+#            Fp.write(str(j[0]) + '\t' + str(j[1]) + '\t' + str(j[2]) + '\t')
+#        Fp.write('\n')
+# End of Commented 2011-11-27 23:54
+
+    cPickle.dump(NbrLst, Fp)
 
     Fp.close()
                     
@@ -89,14 +94,12 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
     NbrFile = Hemi + '.vrtx.nbr'
         
     if os.path.exists(NbrFile):
-        return fileio.loadVrtxNbrLst(NbrFile) # change to cPickle  
-
-# Commented 2011-04-29 23:35
-#    NbrLst = []    
-#    for Vrtx in xrange(0, VrtxNo):
-#        NbrLst.append([])
-# end of Commented 2011-04-29 23:35
-        
+        #return fileio.loadVrtxNbrLst(NbrFile) # change to cPickle
+        Fp = open(NbrFile, 'r')  # need to use cPickle
+        NbrLst = cPickle.load(Fp)
+        Fp.close()
+        return NbrLst
+       
     NbrLst = [[] for i in xrange(0, VrtxNo)]
         
     for Face in FaceDB:
@@ -118,17 +121,13 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
             NbrLst[V2].append(V1)
     
     Fp = open(NbrFile, 'w')  # need to use cPickle
-    
-    for i in xrange(0, VrtxNo):
-        [Fp.write(str(Vrtx) + '\t') for Vrtx in NbrLst[i]]
-        Fp.write('\n')
-    
-# Commented 2011-04-29 23:35    
+
+# Commented 2011-11-27 23:54    
 #    for i in xrange(0, VrtxNo):
-#        for j in NbrLst[i]:
-#            Fp.write(str(j) + '\t')
-#        Fp.write('\n')
-# End of Commented 2011-04-29 23:35
+#        [Fp.write(str(Vrtx) + '\t') for Vrtx in NbrLst[i]]
+#        Fp.write('\n')    
+# End of Commented 2011-11-27 23:54
+    cPickle.dump(NbrLst, Fp)
 
     Fp.close()
 
@@ -243,7 +242,15 @@ def compnent(FaceDB, Basin, NbrLst, CurvFile):
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
         
     if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
-        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
+#        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
+        Fp = open(FcCmpntFile, 'r')
+        FcCmpnt = cPickle.load(Fp)
+        Fp.close()
+        Fp = open(VrtxCmpntFile, 'r')
+        VrtxCmpnt = cPickle.load(Fp)
+        Fp.close()
+        return FcCmpnt, VrtxCmpnt
+        
     
     Visited = [False for i in xrange(0, len(Basin))]
     
@@ -256,8 +263,14 @@ def compnent(FaceDB, Basin, NbrLst, CurvFile):
         FcCmpnt.append(FcMbr)
         VrtxCmpnt.append(VrtxMbr)
             
-    fileio.writeCmpnt(FcCmpnt, FcCmpntFile)
-    fileio.writeCmpnt(VrtxCmpnt, VrtxCmpntFile)
+#    fileio.writeCmpnt(FcCmpnt, FcCmpntFile)
+#    fileio.writeCmpnt(VrtxCmpnt, VrtxCmpntFile)
+    Fp = open(FcCmpntFile, 'w')
+    cPickle.dump(FcCmpnt, Fp)
+    Fp.close()
+    Fp = open(VrtxCmpntFile, 'w')
+    cPickle.dump(VrtxCmpnt, Fp)
+    Fp.close()
                 
     return FcCmpnt, VrtxCmpnt
 
@@ -398,6 +411,9 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
 # Get pits Forrest 2011-05-30 10:16
     Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = mean(mapExtract) + 0.5*std(mapExtract))
 
+#    FPits = open(PrefixExtract + '.pits', 'w')
+#    cPickle.dump(Pits, FPits)
+#    FPits.close()
     PitsFile = PrefixExtract + '.pits'
     fileio.writeList(PitsFile, Pits)
 
@@ -405,10 +421,25 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
     print "writing post-watershed basins into VTK files"    
     VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
     libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+
+#    from pyvtk import PolyData, PointData, Scalars, VtkData
+#    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
+#    Pointdata = PointData(\
+#            Scalars(mapThreshold,name='PerVertex'), 
+#            Scalars(Parts,name='hierarchy'),
+#            Scalars(CmpntLUT,name='CmpntID'))
+#            
+#    Wdata = VtkData(Structure,Pointdata)
+#    Wdata.tofile('example1.vtk','ascii')
     
     VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
     libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
-        
+    
+#    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])
+#            
+#    Wdata = VtkData(Structure)
+#    Wdata.tofile('example2.vtk','ascii')
+            
     if SurfFile2 != '':
         VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
         libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
