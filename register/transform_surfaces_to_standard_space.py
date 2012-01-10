@@ -1,25 +1,31 @@
 #!/usr/bin/python
 
 """
-Apply FreeSurfer's "Talairach" transform matrix to take a conformed volume and surfaces to standard space.
+Apply FreeSurfer's "Talairach" transform matrix 
+to take a conformed volume and surfaces to standard space.
 
-Command: python transform_surfaces_to_standard_space.py <FreeSurfer subjects directory>
-                                                        <FreeSurfer subject> <output directory>
+Command: python transform_surfaces_to_standard_space.py 
+                <FreeSurfer subjects directory>
+                <FreeSurfer subject> <output directory>
 
-Example: python transform_surfaces_to_standard_space.py /Applications/freesurfer/subjects/ bert output/
+Example: python transform_surfaces_to_standard_space.py 
+                /Applications/freesurfer/subjects/ bert output/
 
-# Example: Apply Talairach xfm to white surface, save as binary:
-  mris_convert -t bert lh.white lh.white.tal
-
-2011 Arno Klein (arno@mindboggle.info)
-Apache License, Version 2.0
-
-# Example
-for s in ss:
+Batch Example:
+  for s in ss:
     args=['python transform_surfaces_to_standard_space.py',
-          '/home/arno/Data/Brains/Perrot62_sulci/freesurfer5.1_output_plus_surface_features/', s,
-          '/home/arno/Documents/Projects/mindboggle/mindboggle/utilities/freesurfer/transformed_surfaces_Perrot62/' ]
+          'Perrot62_sulci/freesurfer5.1_output_plus_surface_features/', s,
+          'transformed_surfaces_Perrot62/' ]
     print(" ".join(args)); os.system(" ".join(args))
+
+This program uses FreeSurfer's mris_convert. 
+Example: Apply Talairach xfm to white surface, save as binary:
+         mris_convert -t bert lh.white lh.white.tal
+
+
+Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+
+(c) 2011  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
 
