@@ -3,28 +3,29 @@
 """
 Apply FreeSurfer's "Talairach" transform matrix to take an unconformed volume to a standard space.
 
-Command: python transform_unconformed_volume_to_standard_space.py
-                <input nifti volume> <path to FreeSurfer subject> <output directory> <output name stem> <interpolation>
+Command: python <this file name> <input nifti volume> <path to FreeSurfer subject> 
+                <output directory> <output name stem> <interpolation>
 
-Example: python transform_unconformed_volume_to_standard_space.py
+Example: python unconformed_volume_to_standard_space.py
                 subject1.nii.gz /Applications/freesurfer/subjects/bert output/ bert nearest
 
 See http://surfer.nmr.mgh.harvard.edu/fswiki/mri_convert
 
-2011 Arno Klein (arno@mindboggle.info)
-Apache License, Version 2.0
-
-# Example: Run transform_unconformed_volume_to_standard_space on a directory:
-import os
-output_path = 'transformed_brainvisa_fundus_volumes_Perrot62'
-subjects_path = '/home/arno/Data/Brains/Perrot62_sulci/freesurfer5.1_output_plus_surface_features/'
-volumes_path = '/home/arno/Data/Brains/Perrot62_sulci/manually_labeled_brainvisa_fundi/sulci_volumes/'
-subjects = os.listdir(subjects_path)
-volumes = os.listdir(volumes_path)
-for i,volume in enumerate(volumes):
+Batch example: Run transform_unconformed_volume_to_standard_space on a directory:
+  import os
+  output_path = 'transformed_brainvisa_fundus_volumes_Perrot62'
+  subjects_path = '/home/arno/Data/Brains/Perrot62_sulci/freesurfer5.1_output_plus_surface_features/'
+  volumes_path = '/home/arno/Data/Brains/Perrot62_sulci/manually_labeled_brainvisa_fundi/sulci_volumes/'
+  subjects = os.listdir(subjects_path)
+  volumes = os.listdir(volumes_path)
+  for i,volume in enumerate(volumes):
     args = ['python transform_unconformed_volume_to_standard_space.py',
             volumes_path+volume, subjects_path+subjects[i], output_path, volume, 'nearest']
     print(" ".join(args)); os.system(" ".join(args));  # p = Popen(args); p.close()
+
+Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+
+(c) 2011  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
 
