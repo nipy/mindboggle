@@ -1,17 +1,22 @@
 #!/usr/bin/python
 
 """
-Transform FreeSurfer surfaces to the original ("native") space of a given image.
+Transform FreeSurfer surfaces to the original ("native") space of an image.
 
-Command: python transform_surfaces_to_native_space.py <path to FreeSurfer subject> <output directory>
+Command: python transform_surfaces_to_native_space.py <path to subject> 
+                                                      <output directory>
 
-Example: python transform_surfaces_to_native_space.py /Applications/freesurfer/subjects/ output/
+Example: python transform_surfaces_to_native_space.py 
+                /Applications/freesurfer/subjects/ output/
 
-For volumes*, see http://surfer.nmr.mgh.harvard.edu/fswiki/FsAnat-to-NativeAnat
+For volumes, see http://surfer.nmr.mgh.harvard.edu/fswiki/FsAnat-to-NativeAnat
 
-2011 Arno Klein (arno@mindboggle.info) from
-https://gist.github.com/1459725 by Satrajit Ghosh
-Apache License, Version 2.0
+Authors:  
+
+* Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+* After https://gist.github.com/1459725 by Satrajit Ghosh
+
+(c) 2011  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
 

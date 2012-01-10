@@ -1,7 +1,14 @@
 """
 Feature-based registration
 
-(c) Arno Klein (2011)  .  arno@mindboggle.info  .  http://www.mindboggle.info
+Command:
+
+Example:
+
+Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+
+(c) 2011  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+
 """
                                                                                
 import os
