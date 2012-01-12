@@ -127,29 +127,7 @@ def loadFcNbrLst(Filename):
     Fp.close()
     return NbrLst
 
-def writeCmpnt(Cmpnts, Filename):
-    '''Write connected components into a file, one line for each connected component
-    '''
-    Fp = open(Filename, 'w')
-    for Cmpnt in Cmpnts:
-        for Element in Cmpnt:
-            Fp.write(str(Element) + '\t')
-        Fp.write('\n')
-    Fp.close()
-    
-def loadCmpnt(Filename):
-    '''Read in connected components from a file, one line for each connected component
-    '''
-    Fp = open(Filename, 'r')
-    Cmpnts = []
-    lines = Fp.readlines()
-    Fp.close()
-    
-    for line in lines:
-        Cmpnt = [int(i) for i in line.split()]
-        Cmpnts.append(Cmpnt)
-        
-    return Cmpnts
+
 
 def writeFundiSeg(Filename, Paths):
     '''Write fundi as curve segments, each line contains segments consisting the path from a fundus vertex to the nearest the other fundus vertex. 
@@ -239,3 +217,28 @@ def readFltLsts(Filename):
     Fp.close()
                 
     return Lists[:-1] # because last one is an empty list
+
+## Deprecated functions
+#def writeCmpnt(Cmpnts, Filename):
+#    '''Write connected components into a file, one line for each connected component
+#    '''
+#    Fp = open(Filename, 'w')
+#    for Cmpnt in Cmpnts:
+#        for Element in Cmpnt:
+#            Fp.write(str(Element) + '\t')
+#        Fp.write('\n')
+#    Fp.close()
+#    
+#def loadCmpnt(Filename):
+#    '''Read in connected components from a file, one line for each connected component
+#    '''
+#    Fp = open(Filename, 'r')
+#    Cmpnts = []
+#    lines = Fp.readlines()
+#    Fp.close()
+#    
+#    for line in lines:
+#        Cmpnt = [int(i) for i in line.split()]
+#        Cmpnts.append(Cmpnt)
+#        
+#    return Cmpnts
