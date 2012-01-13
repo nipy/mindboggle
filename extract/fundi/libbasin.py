@@ -133,6 +133,55 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
 
     return NbrLst
 
+def compnent(FaceDB, Basin, NbrLst, CurvFile):
+    '''Get connected component, in each of all basins, represented as faces and vertex clouds
+    
+    Parameters
+    -----------
+    
+    NbrLst : list
+        neighbor list of faces, NOT VERTEXES
+    
+    '''
+    
+    print "calculating/loading face and vertex components"
+    
+    FcCmpntFile = CurvFile + '.cmpnt.face' 
+    VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
+        
+    if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
+#        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
+        Fp = open(FcCmpntFile, 'r')
+        FcCmpnt = cPickle.load(Fp)
+        Fp.close()
+        Fp = open(VrtxCmpntFile, 'r')
+        VrtxCmpnt = cPickle.load(Fp)
+        Fp.close()
+        return FcCmpnt, VrtxCmpnt
+        
+    
+    Visited = [False for i in xrange(0, len(Basin))]
+    
+    FcCmpnt, VrtxCmpnt = [], [] 
+    
+    while not allTrue(Visited):    
+        Seed = dfsSeed(Visited, Basin)# first basin face that is not True in Visited
+#        print Seed
+        Visited, FcMbr, VrtxMbr = dfs(Seed, Basin, Visited, NbrLst, FaceDB)# DFS to fine all connected members from the Seed
+        FcCmpnt.append(FcMbr)
+        VrtxCmpnt.append(VrtxMbr)
+            
+#    fileio.writeCmpnt(FcCmpnt, FcCmpntFile)
+#    fileio.writeCmpnt(VrtxCmpnt, VrtxCmpntFile)
+    Fp = open(FcCmpntFile, 'w')
+    cPickle.dump(FcCmpnt, Fp)
+    Fp.close()
+    Fp = open(VrtxCmpntFile, 'w')
+    cPickle.dump(VrtxCmpnt, Fp)
+    Fp.close()
+                
+    return FcCmpnt, VrtxCmpnt
+
 def judgeFace1(FaceID, FaceDB, CurvatureDB, Threshold = 0):
     """Check whether a face satisfies the zero-order criterion
     
@@ -225,55 +274,6 @@ def dfs(Seed, Basin, Visited, NbrLst, FaceDB):
             
     return Visited, FcMbr, VrtxMbr
 
-def compnent(FaceDB, Basin, NbrLst, CurvFile):
-    '''Get connected component, in each of all basins, represented as faces and vertex clouds
-    
-    Parameters
-    -----------
-    
-    NbrLst : list
-        neighbor list of faces, NOT VERTEXES
-    
-    '''
-    
-    print "calculating/loading face and vertex components"
-    
-    FcCmpntFile = CurvFile + '.cmpnt.face' 
-    VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
-        
-    if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
-#        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
-        Fp = open(FcCmpntFile, 'r')
-        FcCmpnt = cPickle.load(Fp)
-        Fp.close()
-        Fp = open(VrtxCmpntFile, 'r')
-        VrtxCmpnt = cPickle.load(Fp)
-        Fp.close()
-        return FcCmpnt, VrtxCmpnt
-        
-    
-    Visited = [False for i in xrange(0, len(Basin))]
-    
-    FcCmpnt, VrtxCmpnt = [], [] 
-    
-    while not allTrue(Visited):    
-        Seed = dfsSeed(Visited, Basin)# first basin face that is not True in Visited
-#        print Seed
-        Visited, FcMbr, VrtxMbr = dfs(Seed, Basin, Visited, NbrLst, FaceDB)# DFS to fine all connected members from the Seed
-        FcCmpnt.append(FcMbr)
-        VrtxCmpnt.append(VrtxMbr)
-            
-#    fileio.writeCmpnt(FcCmpnt, FcCmpntFile)
-#    fileio.writeCmpnt(VrtxCmpnt, VrtxCmpntFile)
-    Fp = open(FcCmpntFile, 'w')
-    cPickle.dump(FcCmpnt, Fp)
-    Fp.close()
-    Fp = open(VrtxCmpntFile, 'w')
-    cPickle.dump(VrtxCmpnt, Fp)
-    Fp.close()
-                
-    return FcCmpnt, VrtxCmpnt
-
 def pmtx(Adj):
     '''Print a matrix as shown in MATLAB stdio
     '''
@@ -348,7 +348,7 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
             C[V] = M
     return B, C, Child
 
-def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFile, Mesh2= [], Threshold = 0, SurfFile2=''):
+def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2= [], Threshold = 0, SurfFile2=''):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
@@ -363,9 +363,12 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
             
         Mesh: 2-tuple of lists
             the first list has coordinates of vertexes while the second defines triangles on the mesh
+            This is a mandatory surface, normally a non-inflated surface. 
             
         Mesh2: 2-tuple of lists
             the first list has coordinates of vertexes while the second defines triangles on the mesh
+            This is an optional surface, normally an inflated surface.
+            Default = []
 
         FileBasin: string
             path to the per-vertex file that is used to threshold the surface
@@ -385,18 +388,19 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
     '''
       
     [Vertexes, Face] = Mesh
-    
-    Basin, Gyri = basin(Face, mapThreshold, PrefixBasin, Threshold =  Threshold)
+    if SurfFile2 != '':
+        Vertexes2, Face2 = fileio.readSurf(SurfFile2)
+        
+    Basin, Gyri = basin(Face, mapThreshold, PrefixBasin, Threshold = Threshold)
     # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
         
     BasinFile = PrefixBasin + '.basin'
     GyriFile = PrefixBasin + '.gyri'
     
-    Hemi = PrefixBasin[:PrefixBasin.find('.')]# which hemisphere, e.g., lh
+    Hemi = PrefixBasin[:PrefixBasin.find('.')]# path up to which hemisphere, e.g., /home/data/lh
 
     VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
     FcNbr   = fcNbrLst(Face, Hemi)
-    
     FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
     
     # write component ID as LUT into basin file. 
@@ -404,63 +408,75 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, SurfFil
     for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
         for Vrtx in Cmpnt:
             CmpntLUT[Vrtx] = CmpntID
-#    print CmpntLUT     
     # end of write component ID as LUT into basin file.
 
-
-# Get pits Forrest 2011-05-30 10:16
-    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = mean(mapExtract) + 0.5*std(mapExtract))
+    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = Threshold )
 
 #    FPits = open(PrefixExtract + '.pits', 'w')
 #    cPickle.dump(Pits, FPits)
 #    FPits.close()
-    PitsFile = PrefixExtract + '.pits'
-    fileio.writeList(PitsFile, Pits)
+#    PitsFile = PrefixExtract + '.pits'
+#    fileio.writeList(PitsFile, Pits)
 
     # dump basin
-    print "writing post-watershed basins into VTK files"    
-    VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-    libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+    print "writing basins into VTK files"
+## commented to use pyvtk API's to output, Forrest 2011-01-08 
+#    VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+#    libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+## end of commented to use pyvtk API's to output, Forrest 2011-01-08 
 
-#    from pyvtk import PolyData, PointData, Scalars, VtkData
-#    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
-#    Pointdata = PointData(\
-#            Scalars(mapThreshold,name='PerVertex'), 
-#            Scalars(Parts,name='hierarchy'),
-#            Scalars(CmpntLUT,name='CmpntID'))
-#            
-#    Wdata = VtkData(Structure,Pointdata)
-#    Wdata.tofile('example1.vtk','ascii')
+# basin pyvtk output
+    from pyvtk import PolyData, PointData, Scalars, VtkData
+    Face = [map(int,i) for i in Face]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
+    Vertexes = map(list, Vertexes)
+    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
+    Pointdata = PointData(Scalars(mapThreshold,name='PerVertex'), Scalars(CmpntLUT,name='CmpntID'),\
+                          Scalars(Parts,name='hierarchy'))
+    VtkData(Structure, Pointdata).tofile(PrefixBasin + '.basin.vtk','ascii')
+# end of basin pyvtk output
+
+## commented to use pyvtk API's to output, Forrest 2011-01-08    
+#    VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
+#    libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
+## end of commented to use pyvtk API's to output, Forrest 2011-01-08
     
-    VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-    libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
-    
-#    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])
-#            
-#    Wdata = VtkData(Structure)
-#    Wdata.tofile('example2.vtk','ascii')
+    VtkData(PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.vtk','ascii')
             
-    if SurfFile2 != '':
-        VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-        libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
-    
-        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)
+    if SurfFile2 != '': 
+        VtkData(PolyData(points=Vertexes, polygons=[Face2[Idx] for Idx in Basin])).tofile(PrefixBasin + '.2nd.basin.vtk','ascii')
+        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.2nd.gyri.vtk','ascii')
+## commented to use pyVTK         
+#        VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+#        libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
+#    
+#        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+#        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)
+## end of commented to use pyvtk
         
     # End of dump basin
 
-    # write Pists
+    # write Pits
     print "writing pits into VTK files"
-    VTKFile = PitsFile + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-    libvtk.vrtxLst2VTK(VTKFile, SurfFile, PitsFile)
+## commented to use pyvtk API's to output, Forrest 2011-01-08
+#    VTKFile = PitsFile + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'  
+#    libvtk.vrtxLst2VTK(VTKFile, SurfFile, PitsFile)
+## commented to use pyvtk API's to output, Forrest 2011-01-08
+
+    VtkData(PolyData(points=Vertexes, vertices=Pits)).tofile(PrefixExtract + '.pits.vtk','ascii')
+    
+## a testing code to write pits and basin all together
+ 
+## end of a testing code to write pits and basin all together
+
     if SurfFile2 != '':
-        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
+        VtkData(PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.2nd.pits.vtk','ascii')
+#        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
+#        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
     # End of write pits
     
     # output tree hierarchies of basal components
     print "writing hierarchies of basal components"
-    WetFile = PitsFile + ".hier"
+    WetFile = PrefixExtract + '.pits.hier'
     WetP = open(WetFile,'w')
     for LowComp, HighComp in Child.iteritems():
         WetP.write(str(LowComp) + '\t' + str(HighComp) + '\n')
