@@ -348,7 +348,7 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
             C[V] = M
     return B, C, Child
 
-def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2= [], Threshold = 0, SurfFile2=''):
+def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0, Mesh2=[]):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
@@ -388,8 +388,8 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2= 
     '''
       
     [Vertexes, Face] = Mesh
-    if SurfFile2 != '':
-        Vertexes2, Face2 = fileio.readSurf(SurfFile2)
+    if Mesh2 != []:
+        [Vertexes2, Face2] = Mesh2
         
     Basin, Gyri = basin(Face, mapThreshold, PrefixBasin, Threshold = Threshold)
     # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
@@ -442,7 +442,7 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2= 
     
     VtkData(PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.vtk','ascii')
             
-    if SurfFile2 != '': 
+    if Mesh2 != []: 
         VtkData(PolyData(points=Vertexes, polygons=[Face2[Idx] for Idx in Basin])).tofile(PrefixBasin + '.2nd.basin.vtk','ascii')
         VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.2nd.gyri.vtk','ascii')
 ## commented to use pyVTK         
@@ -468,7 +468,7 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2= 
  
 ## end of a testing code to write pits and basin all together
 
-    if SurfFile2 != '':
+    if Mesh2 != []:
         VtkData(PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.2nd.pits.vtk','ascii')
 #        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
 #        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
