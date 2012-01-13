@@ -8,18 +8,18 @@ try:
     opts, args = getopt.getopt(sys.argv[1:],'T:S:C:')
 except getopt.GetoptError, err:
     print str(err) # will print something like "option -a not recognized"
-    print "\n\t Usage: python vtk_extract.py  [-T thickness] [-S 2nd surface] [-C Convexity] VTKFile CurvFile"
+    print "\n\t Usage: python vtk_extract.py  [-T thickness] [-S 2nd surface] [-C Convexity] VTKFile"
     sys.exit(2)
 
-if len(args)!=2:
+if len(args)!=1:
     print "\n\t Please give at least one input VTK file containing a per-vertex map"
-    print "\t Usage: python vtk_extract.py  [-T thickness] [-S 2nd surface] [-C Convexity] VTKFile CurvFile"
+    print "\t Usage: python vtk_extract.py  [-T thickness] [-S 2nd surface] [-C Convexity] VTKFile"
     sys.exit()
 
 #print args
 #print opts
 
-[VTKFile, CurvFile] = args
+[VTKFile] = args
 
 print "\tRead in a VTK file:", VTKFile
 
@@ -37,4 +37,24 @@ for o,p in opts:
         ThickFile = p
         print "\t Thickness file in use:", ThickFile
 
-libfundi.getFundi([VTKFile, CurvFile, SurfFile2, ConvexFile, ThickFile], 'vtk-curv','')
+libfundi.getFundi([VTKFile, SurfFile2, ConvexFile, ThickFile], 'vtk','')
+
+
+# write Mesh from one file into VTK
+# import vtk
+# R = vtk.vtkDataSetReader()
+# R.SetFileName('triangles.vtk')
+# R.ReadAllScalarsOn()
+# R.Update()
+# D=R.GetOutput()
+# Points = D.GetPoints()
+# Poly = D.GetPolys()
+# W= vtk.vtkPolyDataWriter()
+# W.SetFileName('output.vtk')
+# WD = vtk.vtkPolyData()
+# WD.SetPoints(Points)
+# WD.SetPolys(Poly)
+# WD.Modified()
+# WD.Update()
+# W.SetInput(WD)
+# W.Write()
