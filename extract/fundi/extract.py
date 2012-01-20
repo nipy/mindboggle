@@ -23,6 +23,7 @@ print "\tRead in FreeSurfer curvature file:", CurvFile
 print "\tRead in FreeSurfer surfer file:", SurfFile
 
 SurfFile2, CurvFile2 = '', ''
+ThickFile  = ''
 
 #print opts
 
@@ -42,7 +43,7 @@ for o,p in opts:
 
 
 # new unified extraction function Forrest 2011-10-08 
-libfundi.getFundi(CurvFile, SurfFile, SurfFile2=SurfFile2, CurvFile2 = CurvFile2, ThickFile = ThickFile)
+libfundi.getFundi([CurvFile, SurfFile, SurfFile2, CurvFile2, ThickFile], 'FreeSurfer', '')
 
 
 # extract basin and pits
