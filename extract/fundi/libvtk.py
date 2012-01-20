@@ -72,7 +72,7 @@ def surf2VTK(SurfFile):
     Fp.close()
     
 
-def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, CurvFile='', LUT=[], LUTname=[]):  # new version, activated 03/15/2011
+def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new version, activated 03/15/2011
     '''Load a face list file and a surface file to map faces onto the surface and save the result into VTK format
     
     This function is called libbasin.getBasin()
@@ -89,7 +89,7 @@ def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, CurvFile='', LUT=[], LUTname=[]):
 #        wrtVrtxLUT(Fp, Curvature, LUTName = 'curvature')
 # End of commented out Forrest 20110-05-30 13:53
 # Replaced by:               
-    if LUT!=[] and CurvFile != '':
+    if LUT!=[] :
         for i in xrange(0, len(LUT)):
             if i == 0:
                 wrtVrtxLUT(Fp, LUT[i], LUTname[i])
