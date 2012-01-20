@@ -225,10 +225,10 @@ def basin(FaceDB, CurvatureDB, Prefix, Threshold = 0):
         else:
             Left.append(FaceID)
             
-    BasinFile = Prefix + '.basin'   
-    fileio.writeList(BasinFile, Basin)
-    GyriFile = Prefix + '.gyri'   
-    fileio.writeList(GyriFile, Left)
+#    BasinFile = Prefix + '.basin'   
+#    fileio.writeList(BasinFile, Basin)
+#    GyriFile = Prefix + '.gyri'   
+#    fileio.writeList(GyriFile, Left)
     
     return Basin, Left
 
@@ -397,7 +397,8 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Thresho
     BasinFile = PrefixBasin + '.basin'
     GyriFile = PrefixBasin + '.gyri'
     
-    Hemi = PrefixBasin[:PrefixBasin.find('.')]# path up to which hemisphere, e.g., /home/data/lh
+    Hemi =  PrefixBasin[:-1*PrefixBasin[::-1].find('.')][:-1]# path up to which hemisphere, e.g., /home/data/lh
+    
 
     VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
     FcNbr   = fcNbrLst(Face, Hemi)
