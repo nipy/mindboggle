@@ -20,16 +20,18 @@ def fcNbrLst(FaceDB, Hemi):
     
     '''
     
-    print "calculating/loading face neighbor list"
     
     NbrFile = Hemi + '.fc.nbr'
 
     if os.path.exists(NbrFile):
         #return fileio.loadFcNbrLst(NbrFile)
+        print "loading  face nbr lst from:" , NbrFile
         Fp = open(NbrFile, 'r')
         NbrLst = cPickle.load(Fp)
         Fp.close()
         return NbrLst        
+
+    print "calculating face neighbor list"
     
     FaceNo = len(FaceDB)
     
@@ -89,17 +91,18 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
     """Given the number of vertexes and the list of faces, find the neighbors of each vertex, in list formate. 
     """
 
-    print "Calculating/loading vertex neighbor list"
-
     NbrFile = Hemi + '.vrtx.nbr'
         
     if os.path.exists(NbrFile):
         #return fileio.loadVrtxNbrLst(NbrFile) # change to cPickle
+        print "Loading vertex nbr lst from:", NbrFile
         Fp = open(NbrFile, 'r')  # need to use cPickle
         NbrLst = cPickle.load(Fp)
         Fp.close()
         return NbrLst
        
+    print "Calculating vertex neighbor list"
+    
     NbrLst = [[] for i in xrange(0, VrtxNo)]
         
     for Face in FaceDB:
@@ -144,27 +147,29 @@ def compnent(FaceDB, Basin, NbrLst, CurvFile):
     
     '''
     
-    print "calculating/loading face and vertex components"
-    
     FcCmpntFile = CurvFile + '.cmpnt.face' 
     VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
         
     if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
 #        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
+        print "Loading Face Components from:", FcCmpntFile
         Fp = open(FcCmpntFile, 'r')
         FcCmpnt = cPickle.load(Fp)
         Fp.close()
+        
+        print "Loading Vertex Components from:", VrtxCmpntFile
         Fp = open(VrtxCmpntFile, 'r')
         VrtxCmpnt = cPickle.load(Fp)
         Fp.close()
         return FcCmpnt, VrtxCmpnt
         
+    print "calculating face and vertex components"
     
     Visited = [False for i in xrange(0, len(Basin))]
     
     FcCmpnt, VrtxCmpnt = [], [] 
     
-    while not allTrue(Visited):    
+    while not allTrue(Visited):
         Seed = dfsSeed(Visited, Basin)# first basin face that is not True in Visited
 #        print Seed
         Visited, FcMbr, VrtxMbr = dfs(Seed, Basin, Visited, NbrLst, FaceDB)# DFS to fine all connected members from the Seed
