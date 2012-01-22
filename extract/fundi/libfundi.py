@@ -987,7 +987,9 @@ def getFundi(InputFiles, Type, Options):
         MapFeature = [Curvature, Depth]
         
         PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
+        print "PrefixBasin:", PrefixBasin 
         PrefixExtract = DepthVTK[:-4] + '.depth' + '.depth' # those we don't plan to use curvature + depth combination now
+        print "PrefixExtract:", PrefixExtract 
 
         if ThickFile != '':
             MapFeature.append(fileio.readCurv(ThickFile))          
@@ -1004,7 +1006,7 @@ def getFundi(InputFiles, Type, Options):
         else:
             Mesh2 = []
         
-        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0.4 - mean(MapBasin), Mesh2 = Mesh2)
+        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0.5 - mean(MapBasin), Mesh2 = Mesh2)
 
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 #        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
