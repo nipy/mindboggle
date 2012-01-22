@@ -61,8 +61,29 @@ def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB, DistFile=''):
         Num = len(Cmpnt)
 #        print "\t component", CID+1, ": size", Num
         if Num > 1:
-            
-            Adj = matrix(zeros((Num, Num)))
+
+# Commented Forrest 2012-01-21, drop matrix for accessing larger memory            
+#            Adj = matrix(zeros((Num, Num)))  
+#            for VrtxIdx, Vrtx in enumerate(Cmpnt):
+#                for Nbr in VrtxNbrLst[Vrtx]:
+#                    if Nbr in Cmpnt:
+#                        NbrIdx = Cmpnt.index(Nbr)                        
+#                        LinkWeight = -1. * (CurvatureDB[Vrtx]  + CurvatureDB[Nbr]) 
+#                         
+#                        # add a double check here to ensure the matrix is diagonally symmetric
+#                        if   Adj[VrtxIdx, NbrIdx] == 0:
+#                            Adj[VrtxIdx, NbrIdx] = LinkWeight # 
+#                            # Adj[NbrIdx, VrtxIdx] = LinkWeight # write only once for checking later
+#                        elif Adj[VrtxIdx, NbrIdx] != 0 and Adj[VrtxIdx, NbrIdx] != LinkWeight:
+#                            print "error, Adj is not symmetric."
+#                        elif Adj[NbrIdx, VrtxIdx] != 0 and Adj[NbrIdx, VrtxIdx] != LinkWeight:
+#                            print "error, Adj is not symmetric."
+#             
+#            Dist = [[i for i in Row] for Row in list(array(Adj))]
+# End of  Commented Forrest 2012-01-21, drop matrix for accessing larger memory
+
+# now use a new solution. 
+            Dist=[[0 for i in range(Num)] for j in range(Num)]
             for VrtxIdx, Vrtx in enumerate(Cmpnt):
                 for Nbr in VrtxNbrLst[Vrtx]:
                     if Nbr in Cmpnt:
@@ -70,22 +91,17 @@ def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB, DistFile=''):
                         LinkWeight = -1. * (CurvatureDB[Vrtx]  + CurvatureDB[Nbr]) 
                          
                         # add a double check here to ensure the matrix is diagonally symmetric
-                        if   Adj[VrtxIdx, NbrIdx] == 0:
-                            Adj[VrtxIdx, NbrIdx] = LinkWeight # 
+                        if   Dist[VrtxIdx][NbrIdx] == 0:
+                            Dist[VrtxIdx][NbrIdx] = LinkWeight # 
                             # Adj[NbrIdx, VrtxIdx] = LinkWeight # write only once for checking later
-                        elif Adj[VrtxIdx, NbrIdx] != 0 and Adj[VrtxIdx, NbrIdx] != LinkWeight:
+                        elif Dist[VrtxIdx][NbrIdx] != 0 and Dist[VrtxIdx][NbrIdx] != LinkWeight:
                             print "error, Adj is not symmetric."
-                        elif Adj[NbrIdx, VrtxIdx] != 0 and Adj[NbrIdx, VrtxIdx] != LinkWeight:
+                        elif Dist[NbrIdx][VrtxIdx] != 0 and Dist[NbrIdx][VrtxIdx] != LinkWeight:
                             print "error, Adj is not symmetric."
-             
-            #Dist = [[int(i) for i in Row] for Row in list(array(Adj))]
-            Dist = [[i for i in Row] for Row in list(array(Adj))]
-#            for Row in list(array(Dist)):
-#                for Element in Row:
-#                    print Element
+# end of now use a new solution 
         
         else:
-            Dist = [[1]]            
+            Dist = [[1]]
             
         Dists.append(list(Dist)) # this step might be the cause of large memory consumption 
         
