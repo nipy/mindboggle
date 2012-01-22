@@ -16,4 +16,6 @@ Alpha 3.1: 2011-11-24 Last stable version to take FreeSurfer output only
 
 Alpha 4.0: 2011-01-10 First stable version compatible with both FreeSurfer files and VTK files containing Joachim's depth map. 
 
-Alpha 4.1: to be released on 2011-01-30 This version will greatly reduce memory cost and hopefully speed up
+Alpha 4.1: 2011-01-21 Fixed a few minor bugs in version 4.0.
+
+Alpha 4.2: to be released on 2011-01-30 This version will greatly reduce memory cost and hopefully speed up
