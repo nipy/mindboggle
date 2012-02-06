@@ -353,18 +353,18 @@ def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
             C[V] = M
     return B, C, Child
 
-def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0, Mesh2=[]):
+def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
     
     Input
     =====   
-        mapThreshold: list
-            a per-vertex map, e.g., curvature map, for thresholding the surface
+        MapBasin: list
+            a per-vertex map, e.g., curvature map, for extract sulcal basin
 
         mapExtract: list
-            a per-vertex map, e.g., curvature map, for extract PITS (only pits here) from the surface
+            a per-vertex map, e.g., travel depth map, for extract PITS from the surface
             
         Mesh: 2-tuple of lists
             the first list has coordinates of vertexes while the second defines triangles on the mesh
@@ -396,7 +396,7 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Thresho
     if Mesh2 != []:
         [Vertexes2, Face2] = Mesh2
         
-    Basin, Gyri = basin(Face, mapThreshold, PrefixBasin, Threshold = Threshold)
+    Basin, Gyri = basin(Face, MapBasin, PrefixBasin, Threshold = Threshold)
     # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
         
     BasinFile = PrefixBasin + '.basin'
@@ -410,13 +410,13 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Thresho
     FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
     
     # write component ID as LUT into basin file. 
-    CmpntLUT = [-1 for i in xrange(0, len(mapThreshold))]
+    CmpntLUT = [-1 for i in xrange(0, len(MapBasin))]
     for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
         for Vrtx in Cmpnt:
             CmpntLUT[Vrtx] = CmpntID
     # end of write component ID as LUT into basin file.
 
-    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = Threshold )
+    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = 0.5 - mean(MapBasin))
 
 #    FPits = open(PrefixExtract + '.pits', 'w')
 #    cPickle.dump(Pits, FPits)
@@ -436,7 +436,7 @@ def getBasin(mapThreshold, mapExtract, Mesh, PrefixBasin, PrefixExtract, Thresho
     Face = [map(int,i) for i in Face]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
     Vertexes = map(list, Vertexes)
     Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
-    Pointdata = PointData(Scalars(mapThreshold,name='PerVertex'), Scalars(CmpntLUT,name='CmpntID'),\
+    Pointdata = PointData(Scalars(MapBasin,name='PerVertex'), Scalars(CmpntLUT,name='CmpntID'),\
                           Scalars(Parts,name='hierarchy'))
     VtkData(Structure, Pointdata).tofile(PrefixBasin + '.basin.vtk','ascii')
 # end of basin pyvtk output

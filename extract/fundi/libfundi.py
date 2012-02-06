@@ -522,8 +522,8 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst, Coordinates):
             print "\t MST on component",i+1, ",",
             if len(SpecialGroup[i]) < 2 :  # This compnent has no more than two vertexes to be connected
                 print "\t Skipped. Too few Special vertexes."
-            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
-                print "\t Skipped. Too many vertexes (all kinds). "
+#            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
+#                print "\t Skipped. Too many vertexes (all kinds). "
             else:
 #                print "\t # of special points", len(SpecialGroup[i]) , 
                 Root = VrtxCmpnts[i].index(SpecialGroup[i][0])  # always start MST from a special vertex 
@@ -770,7 +770,7 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, Prefix
             LUT.append(Table)
         LUTname.append(Name)
         
-    Hemi = PrefixBasin[:PrefixBasin.find('.')]# which hemisphere, e.g., lh
+    Hemi = PrefixBasin[:-1*(PrefixBasin[::-1].find('.')+1)]
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, Hemi)
         
     VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'  # need to run libbasin first to get components
@@ -932,7 +932,7 @@ def getFundi(InputFiles, Type, Options):
         else:
             Mesh2 = []
         
-        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0, Mesh2 = Mesh2)
+        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0)
 
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 ## The following elif case is temporarily impossible. So commented.         
@@ -996,15 +996,15 @@ def getFundi(InputFiles, Type, Options):
         Depth =     VTKReader.point_data.data[1].scalars
         Curvature = VTKReader.point_data.data[2].scalars  
          
-        MapBasin = Depth
+        MapBasin = Curvature
         MapExtract = Depth
         
         FeatureNames = ['curvature','depth']
         MapFeature = [Curvature, Depth]
         
-        PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
+        PrefixBasin = DepthVTK[:-4] + '.curv' # drop suffix .vtk
         print "PrefixBasin:", PrefixBasin 
-        PrefixExtract = DepthVTK[:-4] + '.depth' + '.depth' # those we don't plan to use curvature + depth combination now
+        PrefixExtract = PrefixBasin + '.depth' # we decide to use curvature + depth combination now
         print "PrefixExtract:", PrefixExtract 
 
         if ThickFile != '':
@@ -1013,7 +1013,7 @@ def getFundi(InputFiles, Type, Options):
 
         if ConvexityFile != '':
             MapFeature.append(fileio.readCurv(ConvexityFile))          
-            FeatureNames.append('sulc') 
+            FeatureNames.append('sulc')
         
         Mesh = [Vertexes, Faces]
         if SurfFile2 != '':
@@ -1022,7 +1022,7 @@ def getFundi(InputFiles, Type, Options):
         else:
             Mesh2 = []
         
-        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Threshold = 0.5 - mean(MapBasin), Mesh2 = Mesh2)
+        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0)
 
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 #        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
