@@ -1,6 +1,0 @@
-[submodule "surface_travel_depth"]
-	path = surface_travel_depth
-	url = git://github.com/binarybottle/surface_travel_depth.git
-[submodule "extract/surface_travel_depth"]
-	path = extract/surface_travel_depth
-	url = git://github.com/binarybottle/surface_travel_depth.git
