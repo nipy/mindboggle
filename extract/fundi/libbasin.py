@@ -1,6 +1,5 @@
 # This file includes all function for curvauture/convexity-based basin extraction
  
-import fileio, libvtk
 from numpy import mean, std, median, array, zeros, eye, flatnonzero, sign, matrix, zeros_like
 import os.path
 import cPickle 
@@ -136,7 +135,7 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
 
     return NbrLst
 
-def compnent(FaceDB, Basin, NbrLst, CurvFile):
+def compnent(FaceDB, Basin, NbrLst, PrefixBasin):
     '''Get connected component, in each of all basins, represented as faces and vertex clouds
     
     Parameters
@@ -147,8 +146,8 @@ def compnent(FaceDB, Basin, NbrLst, CurvFile):
     
     '''
     
-    FcCmpntFile = CurvFile + '.cmpnt.face' 
-    VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
+    FcCmpntFile = PrefixBasin + '.cmpnt.face' 
+    VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'
         
     if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
 #        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
@@ -402,8 +401,8 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
     BasinFile = PrefixBasin + '.basin'
     GyriFile = PrefixBasin + '.gyri'
     
-    Hemi =  PrefixBasin[:-1*PrefixBasin[::-1].find('.')][:-1]# path up to which hemisphere, e.g., /home/data/lh
-    
+    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
 
     VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
     FcNbr   = fcNbrLst(Face, Hemi)
@@ -449,8 +448,8 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
     VtkData(PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.vtk','ascii')
             
     if Mesh2 != []: 
-        VtkData(PolyData(points=Vertexes, polygons=[Face2[Idx] for Idx in Basin])).tofile(PrefixBasin + '.2nd.basin.vtk','ascii')
-        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.2nd.gyri.vtk','ascii')
+        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin])).tofile(PrefixBasin + '.basin.2nd.vtk','ascii')
+        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.2nd.vtk','ascii')
 ## commented to use pyVTK         
 #        VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
 #        libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
@@ -475,7 +474,7 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
 ## end of a testing code to write pits and basin all together
 
     if Mesh2 != []:
-        VtkData(PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.2nd.pits.vtk','ascii')
+        VtkData(PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.pits.2nd.vtk','ascii')
 #        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
 #        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
     # End of write pits
