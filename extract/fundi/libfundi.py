@@ -2,7 +2,7 @@
 # Last updated: 2011-08-09 Forrest Sheng Bao 
 
 import readFreeSurfer as rfs
-import libvtk, fileio, libbasin
+import fileio, libbasin
 import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin, median
 import sys
@@ -850,7 +850,7 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, Prefix
 
     if Mesh2 != []:
         [Vertexes2, Face2] = Mesh2
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(PrefixExtract+'.fundi.vtk', 'ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(PrefixExtract+'.fundi.2nd.vtk', 'ascii')
 
 def getFundi(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -919,12 +919,12 @@ def getFundi(InputFiles, Type, Options):
             PrefixExtract = CurvFile + '.' + CurvFile2[(len(CurvFile2) - CurvFile2[::-1].find(".")):]
         if ThickFile != '':
             MapFeature.append(fileio.readCurv(ThickFile))          
-            FeatureNames.append('thickness')  
+            FeatureNames.append('thickness')
 
 #        print PrefixBasin, PrefixExtract
 #        exit()
 
-        Vertexes, Faces = fileio.readSurf(SurfFile) 
+        Vertexes, Faces = fileio.readSurf(SurfFile)
         Mesh = [Vertexes, Faces]
         if SurfFile2 != '':
             Vertexes2, Face2 = fileio.readSurf(SurfFile2)
