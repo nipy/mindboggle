@@ -295,61 +295,134 @@ def pmtx(Adj):
 def all_same(items):
     return all(x == items[0] for x in items)
 
-def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
-    '''Watershed algorithm to find pits (lowest point in each pond) and pond hierarchies.
+## Commented Forrest 2012-02-11, this part is being replaced by new code   
+#def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
+#    '''My  algorithm to find pits (lowest point in each pond) and pond hierarchies.
+#     
+#    Docs for this function is detailed in GDoc
+#     
+#    '''
+#    
+#    print "Extracting pits"
+#    
+#    S, P, Child, M, B, End, L  = [], [], {}, -1, [], {}, 10
+#    C = [-1 for i in xrange(0, len(VrtxNbrLst))]
+#    Curv=dict([(i, CurvDB[i]) for i in xrange(0, len(CurvDB))])
+#    for Vrtx, Cvtr in sorted(Curv.iteritems(), key=lambda (k,v): (v,k)):
+#        S.append(Vrtx)
+#    
+#    while len(S) >0 and L> Threshold:  # changed from L > 0 to L > Threshold, Forrest 2011- 06-10 08:25
+#        V = S.pop()
+#        L = CurvDB[V]
+#        P.append(V)
+#        Nbrs = list(set(VrtxNbrLst[V]))
+#        
+#        WetNbr = []
+#        NbrCmpnt = []
+#        for Nbr in Nbrs:
+#            if Nbr in P:
+#                WetNbr.append(Nbr)
+#                if C[Nbr] != -1:
+#                    NbrCmpnt.append(C[Nbr])
+#        
+#        if len(WetNbr) == 1: # if the vetex has one neighbor that is already wet     
+#            [Nbr] = WetNbr
+#            if End[C[Nbr]]:
+#                C[V] = Child[C[Nbr]]
+#            else:
+#                C[V] = C[Nbr]
+##                print C[Nbr], "==>", C[V] 
+#        elif len(WetNbr) >1 and all_same(NbrCmpnt): # if the vertex has more than one neighbors which are in the same component
+#            if End[NbrCmpnt[0]]:
+#                C[V] = Child[NbrCmpnt[0]]
+#            else:
+#                C[V] = NbrCmpnt[0]
+#        elif len(WetNbr) >1 and not all_same(NbrCmpnt):  # if the vertex has more than one neighbors which are NOT in the same component
+#            M += 1
+#            C[V] = M
+#            for Nbr in WetNbr:
+#                Child[C[Nbr]] = M
+#                End[C[Nbr]] = True
+#            End[M] = False
+#        else:
+#            M += 1
+##            if L < Threshold:  # I forgot why i wrote selection structure. But it seems to be UNecessary now. Forrest 2011-06-10 06:25 
+##                B.append(V)
+#            B.append(V)
+#            End[M] = False
+#            C[V] = M
+#    return B, C, Child
+## End of Commented Forrest 2012-02-11
+
+def pits(CurvDB, VrtxNbrLst, VrtxCmpnt): 
+    '''My  algorithm to find pits (lowest point in each pond) and pond hierarchies.
      
-    Docs for this function is detailed in GDoc
+    Docs for this function is in GDoc
      
     '''
     
     print "Extracting pits"
     
-    S, P, Child, M, B, End, L  = [], [], {}, -1, [], {}, 10
+#    Stack, P, Child, M, B, End, L  = [], [], {}, -1, [], {}, 10
     C = [-1 for i in xrange(0, len(VrtxNbrLst))]
-    Curv=dict([(i, CurvDB[i]) for i in xrange(0, len(CurvDB))])
-    for Vrtx, Cvtr in sorted(Curv.iteritems(), key=lambda (k,v): (v,k)):
-        S.append(Vrtx)
+    Child = {}
+    End = {}
+    M = -1
+    B = []
+
+    for Cmpnt in VrtxCmpnt:  # for each component
+        
+        Curv=dict([(i, CurvDB[i]) for i in Cmpnt])
+        
+        Stack = []
+        for Vrtx, Cvtr in sorted(Curv.iteritems(), key=lambda (k,v): (v,k)):
+            Stack.append(Vrtx)
     
-    while len(S) >0 and L> Threshold:  # changed from L > 0 to L > Threshold, Forrest 2011- 06-10 08:25
-        V = S.pop()
-        L = CurvDB[V]
-        P.append(V)
-        Nbrs = list(set(VrtxNbrLst[V]))
-        
-        WetNbr = []
-        NbrCmpnt = []
-        for Nbr in Nbrs:
-            if Nbr in P:
-                WetNbr.append(Nbr)
-                if C[Nbr] != -1:
-                    NbrCmpnt.append(C[Nbr])
-        
-        if len(WetNbr) == 1: # if the vetex has one neighbor that is already wet     
-            [Nbr] = WetNbr
-            if End[C[Nbr]]:
-                C[V] = Child[C[Nbr]]
+        Visited = []
+        while len(Stack) >0:
+            Skip_This_Vrtx = False # updated Forrest 2012-02-12, skip vertexes whose neighbors are not in the component to denoise
+            Vrtx = Stack.pop()
+            
+            WetNbr = []
+            NbrCmpnt = []
+            for Nbr in list(set(VrtxNbrLst[Vrtx])):
+                if not Nbr in Cmpnt:
+                    Skip_This_Vrtx = True 
+                if Nbr in Visited:  # This condition maybe replaced by If C[Vrtx] ==-1
+                    WetNbr.append(Nbr)
+                    if C[Nbr] != -1: 
+                        NbrCmpnt.append(C[Nbr])
+            
+            if Skip_This_Vrtx :
+                continue
+            
+            Visited.append(Vrtx)
+            
+            if len(WetNbr) == 1: # if the vertex has one neighbor that is already wet     
+                [Nbr] = WetNbr
+                if End[C[Nbr]]:
+                    C[Vrtx] = Child[C[Nbr]]
+                else:
+                    C[Vrtx] = C[Nbr]
+    #                print C[Nbr], "==>", C[V] 
+            elif len(WetNbr) >1 and all_same(NbrCmpnt): # if the vertex has more than one neighbors which are in the same component
+                if End[NbrCmpnt[0]]:
+                    C[Vrtx] = Child[NbrCmpnt[0]]
+                else:
+                    C[Vrtx] = NbrCmpnt[0]
+            elif len(WetNbr) >1 and not all_same(NbrCmpnt):  # if the vertex has more than one neighbors which are NOT in the same component
+                M += 1
+                C[Vrtx] = M
+                for Nbr in WetNbr:
+                    Child[C[Nbr]] = M
+                    End[C[Nbr]] = True
+                End[M] = False
+#            elif : # the vertex's neighbor are not fully in the component 
             else:
-                C[V] = C[Nbr]
-#                print C[Nbr], "==>", C[V] 
-        elif len(WetNbr) >1 and all_same(NbrCmpnt): # if the vertex has more than one neighbors which are in the same component
-            if End[NbrCmpnt[0]]:
-                C[V] = Child[NbrCmpnt[0]]
-            else:
-                C[V] = NbrCmpnt[0]
-        elif len(WetNbr) >1 and not all_same(NbrCmpnt):  # if the vertex has more than one neighbors which are NOT in the same component
-            M += 1
-            C[V] = M
-            for Nbr in WetNbr:
-                Child[C[Nbr]] = M
-                End[C[Nbr]] = True
-            End[M] = False
-        else:
-            M += 1
-#            if L < Threshold:  # I forgot why i wrote selection structure. But it seems to be UNecessary now. Forrest 2011-06-10 06:25 
-#                B.append(V)
-            B.append(V)
-            End[M] = False
-            C[V] = M
+                M += 1
+                B.append(Vrtx)
+                End[M] = False
+                C[Vrtx] = M
     return B, C, Child
 
 def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0):
@@ -415,7 +488,7 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
             CmpntLUT[Vrtx] = CmpntID
     # end of write component ID as LUT into basin file.
 
-    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = 0.5 - mean(MapBasin))
+    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = 0.3 - mean(mapExtract))
 
 #    FPits = open(PrefixExtract + '.pits', 'w')
 #    cPickle.dump(Pits, FPits)
