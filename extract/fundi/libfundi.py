@@ -1023,7 +1023,7 @@ def getFundi(InputFiles, Type, Options):
             Mesh2 = []
         
         libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0)
-
+        exit()
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 #        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
 
