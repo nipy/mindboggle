@@ -175,21 +175,21 @@ def downsample(SpecialAndRing, Special, VrtxCmpnts, NbrLst, Prob):
             L[Vrtx] = NbrLst[Vrtx]
 
     for CmpntID, Cmpnt in enumerate(VrtxCmpnts): # for each component
-        MinusVrtx, MinusEdge = 0, 0
-        NumMusthave = 0
+#        MinusVrtx, MinusEdge = 0, 0
+#        NumMusthave = 0
         Keep = []
         SpecialInThisGroup = []
         for Vrtx in Cmpnt:   # for each vertex in the component
             if Vrtx in SpecialAndRing:
 #                N[-1].append(Vrtx)
-                NumMusthave += 1
+#                NumMusthave += 1
                 if Vrtx in Special:
                     SpecialInThisGroup.append(Vrtx)
                 if not Vrtx in Keep:
                     Keep.append(Vrtx)
             elif not Vrtx in Keep: # The purpose of not Vrtx in Keep is to avoid removing vertexes that should not be removed, such as Musthave.
                 if Prob <= random.random():  # REMOVE Vrtx
-                    MinusVrtx += 1
+#                    MinusVrtx += 1
                     for Nbr in NbrLst[Vrtx]:
                         if Nbr in Cmpnt:
                             # step 1: put Vrtx's neighbors, which are ALSO in Cmpnt, into N and thus delete Vrtx
@@ -200,7 +200,7 @@ def downsample(SpecialAndRing, Special, VrtxCmpnts, NbrLst, Prob):
         #                        N[-1].append(Nbr) # yield less vertexes and edges removed
         #                        Left.append(Nbr)  # yield less vertexes and edges removed
                                 L[Nbr].remove(Vrtx)
-                                MinusEdge += 1
+#                                MinusEdge += 1
                     L[Vrtx] = [] # Vrtx has no neighbor now
                 else: # KEEP this vertex
                     Keep.append(Vrtx)
@@ -677,7 +677,7 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvFile, CurvatureDB):
 #        if abs(Curv) <0.01:
 #            Ring.append(Idx)
     
-    NewVrtxCmpnts, NewNbrLst, SpecialGroup = downsample(Special+Ring, Special, VrtxCmpnts, NbrLst, 0.2) 
+    NewVrtxCmpnts, NewNbrLst, SpecialGroup = downsample(Special+Ring, Special, VrtxCmpnts, NbrLst, 0) 
         
     # step 2: prepare the distance matrix for FUNDUS vertex, for each fundus vertex, only 2 shortest edges are left
     #         Columns and rows for non-fundus vertexes are all zeros.
@@ -770,7 +770,8 @@ def fundiFromPits(Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, Prefix
             LUT.append(Table)
         LUTname.append(Name)
         
-    Hemi = PrefixBasin[:-1*(PrefixBasin[::-1].find('.')+1)]
+    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, Hemi)
         
     VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'  # need to run libbasin first to get components
@@ -933,7 +934,6 @@ def getFundi(InputFiles, Type, Options):
             Mesh2 = []
         
         libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0)
-
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 ## The following elif case is temporarily impossible. So commented.         
 #    elif Type == 'vtk-curv':
@@ -996,13 +996,13 @@ def getFundi(InputFiles, Type, Options):
         Depth =     VTKReader.point_data.data[1].scalars
         Curvature = VTKReader.point_data.data[2].scalars  
          
-        MapBasin = Curvature
+        MapBasin = Depth
         MapExtract = Depth
         
         FeatureNames = ['curvature','depth']
         MapFeature = [Curvature, Depth]
         
-        PrefixBasin = DepthVTK[:-4] + '.curv' # drop suffix .vtk
+        PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
         print "PrefixBasin:", PrefixBasin 
         PrefixExtract = PrefixBasin + '.depth' # we decide to use curvature + depth combination now
         print "PrefixExtract:", PrefixExtract 
@@ -1022,8 +1022,8 @@ def getFundi(InputFiles, Type, Options):
         else:
             Mesh2 = []
         
-        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0)
-        exit()
+#        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = mean(MapExtract))
+        libbasin.getBasin(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0.01, Quick = True)
         fundiFromPits(MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
 #        fundiFromSkel(MapExtract, FeatureNames, MapFeature, Vertexes, Faces, SurfFile, CurvFile, SurfFile2)
 
