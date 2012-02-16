@@ -96,6 +96,8 @@ void MeshAnalyser::Initialize()
     this->geoDistRing=vtkDoubleArray::New();
     this->geoDistRingSimple=vtkDoubleArray::New();
     this->curv=vtkDoubleArray::New();
+    this->curv1=vtkDoubleArray::New();
+    this->curv2=vtkDoubleArray::New();
     this->gCurv=vtkDoubleArray::New();
     this->totalSurface=0;
     this->totalSurfaceSimple=0;
@@ -125,6 +127,8 @@ MeshAnalyser::~MeshAnalyser()
     this->geoDistRing->Delete();
     this->geoDistRingSimple->Delete();
     this->curv->Delete();
+    this->curv1->Delete();
+    this->curv2->Delete();
     this->gCurv->Delete();
     this->inRing->Delete();
     this->inRingSimple->Delete();
@@ -1522,6 +1526,80 @@ void MeshAnalyser::ComputeCurvature(double res)
 
 }
 
+void MeshAnalyser::ComputePrincipalCurvatures()
+{
+    vtkIdList* neib = vtkIdList::New();
+
+    int nbn;
+    double n1[3], n2[3];
+
+    vtkIdType i1, i2;
+
+    double point1[3], point2[3];
+
+    double vec[3];
+
+    double d1, d2, d;
+
+    double maxD, minD;
+
+    this->test->Reset();
+
+    double ec;
+
+    for(int i = 0 ; i<this->nbPoints ; i++)
+    {
+        GetPointNeighbors(i, neib);
+
+        nbn = neib->GetNumberOfIds();
+
+        minD = 100000;
+        maxD = -1000000;
+
+
+        for(int j = 0; j<nbn ; j++)
+        {
+            i1 = neib->GetId(j);
+            this->normals->GetTuple(i1, n1);
+            this->mesh->GetPoint(i1, point1);
+
+            for(int k = 0; k<nbn ; k++)
+            {
+                i2 = neib->GetId(k);
+                this->normals->GetTuple(i2, n2);
+                this->mesh->GetPoint(i2, point2);
+
+                for(int m =0; m<3 ; m++)
+                {
+                    vec[m] = point2[m] - point1[m];
+                }
+
+                ec = vtkMath::Norm(vec);
+
+                d1 = vtkMath::Dot(vec, n1)/ec/ec; //one time to normallize the dot product and one time to regularize the gradient computatation.
+                d2 = vtkMath::Dot(vec, n2)/ec/ec;
+
+                d = d1 - d2;
+
+                if(d > maxD) maxD = d;
+                if(d < minD) minD = d;
+            }
+        }
+
+        if(nbn == 0)
+        {
+            maxD = 0;
+            minD = 0;
+        }
+
+        this->curv1->InsertNextValue(maxD);
+        this->curv2->InsertNextValue(minD);
+        this->curv->InsertNextValue((maxD+minD)/2);
+        this->gCurv->InsertNextValue(maxD*minD);
+
+        this->test->InsertNextValue(maxD-fabs(minD));
+    }
+}
 
 void MeshAnalyser::ComputeVoronoi(vtkIdList* centroidsList, double maxDist)
 {
