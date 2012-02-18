@@ -178,6 +178,14 @@ public:
 	//The more the ray is small, the more it's local
 	//Compute the local surface mean and gaussian curvature and fill this->curv and this->gCurv
 	void ComputeBothCurvatures(double ray);
+
+    //ComputePrincipalCurvatures()
+    //
+    //Compute the principal curvature, the mean and the gaussian curvature the deviation of the normal vectors.
+    //
+    //Compute the local surface mean and gaussian curvature and fill this->curv1, this->curv2,
+    //this->curv and this->gCurv
+    void ComputePrincipalCurvatures();
 	
 	//Simplify(double arg1)
 	//
@@ -229,6 +237,8 @@ public:
 	vtkDoubleArray* GetTravelDepth(){return this->depth;}
         vtkDoubleArray* GetEuclideanDepth(){return this->euclideanDepth;}
 	vtkDoubleArray* GetCurvature(){return this->curv;}
+    vtkDoubleArray* GetCurvature1(){return this->curv1;}
+    vtkDoubleArray* GetCurvature2(){return this->curv2;}
 	vtkDoubleArray* GetGaussianCurvature(){return this->gCurv;}
 	vtkPolyData* GetSimpleMesh(){return this->simpl;}
 	vtkIdList* GetVoronoiBin(){return this->voronoiBin;}
@@ -285,11 +295,17 @@ private:
 	//vector containg geodesic distances for the simplified mesh (GeoDistRingSimple)
 	vtkDoubleArray* geoDistRingSimple;
 	
-	//vector containg curvature values (ComputeCurvature or computeBothCurvatures)
-	vtkDoubleArray* curv;
-	
-	//vector containg gaussian curvature values (ComputeBothCurvatures)
-	vtkDoubleArray* gCurv;
+    //vector containg curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
+    vtkDoubleArray* curv;
+
+    //vector containg the first principal curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
+    vtkDoubleArray* curv1;
+
+    //vector containg the second principal curvature values (ComputeCurvature or computeBothCurvature or computePrincipalCurvaturess)
+    vtkDoubleArray* curv2;
+
+    //vector containg gaussian curvature values (ComputeBothCurvatures or computePrincipalCurvatures)
+    vtkDoubleArray* gCurv;
 	
 	//vector of the normals (ComputeNormals)
 	vtkDataArray* normals;
