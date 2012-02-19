@@ -173,26 +173,44 @@ def vote21(LeftLabels, RightLabels):
     
     RightAssign: list of integers
         The ``voting'' result of all vertexes on right hemisphere  
+        
+    LeftConsensus: list of integers
+        Number of consensus labels for all vertexes on left hemisphere 
+  
+    RightConsensus: list of integers
+        Number of consensus labels for all vertexes on right hemisphere
   
     '''
+    from collections import Counter
     
     print "Begin voting"
+    
     LeftNum, RightNum = len(LeftLabels[0]), len(RightLabels[0])
     LeftAssign = [-1 for i in xrange(LeftNum)]   # if no consistent vote, the label is -1, meaning this vertex is unlabeled
     RightAssign = [-1 for i in xrange(RightNum)]
+    LeftDiff = [1 for i in xrange(LeftNum)]   
+    RightDiff = [1 for i in xrange(RightNum)]
+    LeftConsensus = [21 for i in xrange(LeftNum)]   
+    RightConsensus = [21 for i in xrange(RightNum)]
     
     for Vrtx in xrange(LeftNum):
-        Votes = set([LeftLabels[i][Vrtx] for i in xrange(21)])
+        Votes = Counter([LeftLabels[i][Vrtx] for i in xrange(21)])
         if len(Votes) == 1:
-            LeftAssign[Vrtx] = list(Votes)[0]
+            LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
+        else: 
+            LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
+            LeftDiff[Vrtx] = len(Votes)
             
     for Vrtx in xrange(RightNum):
-        Votes = set([RightLabels[i][Vrtx] for i in xrange(21)])
+        Votes = Counter([RightLabels[i][Vrtx] for i in xrange(21)])
         if len(Votes) == 1:
-            RightAssign[Vrtx] = list(Votes)[0]
+            RightAssign[Vrtx] = Votes.most_common(1)[0][0]
+        else:
+            RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
+            RightDiff[Vrtx] = len(Votes)
             
     print "Voting done"
-    return LeftAssign, RightAssign
+    return LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff 
 
 def labeling(SurfPath, Subject, AnnotPath):
     '''Load vtk surfaces from SurfPath, and write assigned labels of Subject into SurfPath as VTK files, 
@@ -201,37 +219,49 @@ def labeling(SurfPath, Subject, AnnotPath):
     '''
     
     LeftLabels, RightLabels = load21(AnnotPath, Subject)
-    LeftAssign, RightAssign = vote21(LeftLabels, RightLabels)
+    LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff = vote21(LeftLabels, RightLabels)
     
     import pyvtk
     VTKReader = pyvtk.VtkData(SurfPath+"lh.pial.vtk")
     Vertexes =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned Labels'))).\
+                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
+                                  pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
+                                  pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
                   tofile(SurfPath+'lh.assign.pial.vtk', 'ascii')
     
     VTKReader = pyvtk.VtkData(SurfPath+"lh.inflated.vtk")
     Vertexes =  VTKReader.structure.points
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned Labels'))).\
+                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
+                                  pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
+                                  pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
                   tofile(SurfPath+'lh.assign.inflated.vtk', 'ascii')
 
     VTKReader = pyvtk.VtkData(SurfPath+"rh.pial.vtk")
     Vertexes =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned Labels'))).\
+                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
+                                  pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
+                                  pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
                   tofile(SurfPath+'rh.assign.pial.vtk', 'ascii')
 
     VTKReader = pyvtk.VtkData(SurfPath+"rh.inflated.vtk")
     Vertexes =  VTKReader.structure.points
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned Labels'))).\
-                  tofile(SurfPath+'lh.assign.inflated.vtk', 'ascii')
+                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
+                                  pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
+                                  pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
+                  tofile(SurfPath+'rh.assign.inflated.vtk', 'ascii')
+
+# test 
+labeling('/forrest/data/MRI/MDD/50332/surf/', '50332', '/forrest/data/MRI/MDD/atlas_to_patients/')
 
 # do some real work
-import os
-for Dir in os.listdir('/forrest/data/MRI/MDD'):
-    if len(Dir) == 5:
-        labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
+#import os
+#for DirIndx, Dir in enumerate(os.listdir('/forrest/data/MRI/MDD')):
+#    if len(Dir) == 5 and DirIndx <= 30:
+#        print Dir
+#        labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
