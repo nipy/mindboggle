@@ -15,7 +15,7 @@ Parameters:
 Features:
 ---------
 rbf_kernel - Gaussian kernel, with parameter sigma
-cotangent_kernel - weight calculation for laplace_beltrami_operator
+cotangent_kernel - weight calculation for Laplace_Beltrami_Operator
 inverse_distance - additional kernel where the weight is the inverse of the disance between two nodes
 --------------------------------------------------------------------
 """
@@ -38,8 +38,10 @@ def compute_weights(Nodes, Meshes, kernel=default_kernel, add_to_graph=True,
 		print 'Computing weights using specified kernel with parameter =', sigma
 		
 		# Construct matrix of edge lines by breaking triangle into three edges.
-		edge_mat = np.vstack((Meshes.T[0:2].T, Meshes.T[1:3].T, Meshes.T[:3:2].T))
-
+		if Meshes.shape[1] == 3:
+			edge_mat = np.vstack((Meshes.T[0:2].T, Meshes.T[1:3].T, Meshes.T[:3:2].T))
+		elif Meshes.shape[1] == 2:
+			edge_mat = Meshes
 		# Augment matrix to contain edge weight in the third column 
 		weighted_edges = np.asarray([[i, j, kernel(Nodes[i], Nodes[j], sigma)] 
 									  for [i, j] in edge_mat])

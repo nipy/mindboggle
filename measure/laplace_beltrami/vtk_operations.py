@@ -36,15 +36,15 @@ Returns:
 ------------------------------------------------
 """
 
-import numpy as np
+import numpy as np 
+import pyvtk 
 
-# Default files to test performance:
-default_VTK ='/Users/eli/Dropbox/PythonFiles/Data/testdatalabels.txt'
-default_fundi_file ='/Users/eli/Dropbox/PythonFiles/Data/testdatafundi.txt' 
+##############################################################################
+# Reading Functions: #
 
-def convert_vtk_to_matrix(VTK=default_VTK, fundi_file=default_fundi_file, return_files=True,
+def convert_vtk_to_matrix(VTK, fundi_file, return_files=True,
 						  nodes=True, meshes=True, labels=True, fundi=True, delete=True, 
-						  keep_fundi=True, keep_attached=True, keep_random=False):
+						  keep_fundi=True, keep_attached=True, keep_random=False, fundi_curvature=True):
 	"""Converts vtk files into (optionally) four matrices: 
 	   Nodes, Meshes, Manual_Labels, Fundi_Labels."""
 	results = {}
@@ -64,7 +64,7 @@ def convert_vtk_to_matrix(VTK=default_VTK, fundi_file=default_fundi_file, return
 		results['Nodes'] = Nodes
 	if meshes:
 		Meshes = np.asarray([indices for i in xrange(6+num_points, 6+num_points+num_meshes) 
-						     for indices in map(int, A[i].split()[1:4])]).reshape(-1,3)
+						     for indices in map(int, A[i].split()[1:])]).reshape(num_meshes,-1)
 		results['Meshes'] = Meshes
 	if labels:	
 		Labels = np.asarray(map(int, A[-num_points:]))	
@@ -81,7 +81,12 @@ def convert_vtk_to_matrix(VTK=default_VTK, fundi_file=default_fundi_file, return
 		Fundi = np.asarray([indices for i in xrange(6+num_points, 6+num_points+num_lines) 
 						    for indices in map(int, B[i].split()[1:3])]).reshape(-1,2)
 		results['Fundi'] = Fundi
-	# Delete a portion of the manual labels to test the performance of the algorithm:
+	
+		# if fundi_curvature:
+		#Fundi_Curvature = np.asarray([label for ])
+		#results['Fundi_Curvature'] = Fundi_Curvature	
+		
+		# Delete a portion of the manual labels to test the performance of the algorithm:
 	if delete:
 		# Array of indices of nodes whose labels are to be preserved
 		print 'Deleting the labels from some of the nodes...'
@@ -127,3 +132,68 @@ def convert_vtk_to_matrix(VTK=default_VTK, fundi_file=default_fundi_file, return
 		print "percent_changed:", (num_changed+0.0)/num_points*100	
 		
 	return results
+	
+#############################################################
+# Writing Functions: #
+
+def write_header(file_name, msg='By Eli'):
+	f = open(file_name, 'w')
+	f.write('# vtk DataFile Version 2.0\n')
+	f.write(msg+'\n')
+	f.write('ASCII\n')
+	f.write('DATASET POLYDATA\n')
+	f.close()
+	return f
+	
+def write_nodes(file_name, Nodes):
+	f = open(file_name, 'a')
+	nodes = np.asarray(Nodes)
+	num_points = nodes.shape[0]
+	f.write('POINTS ' + str(num_points) + ' float\n')
+	for line in nodes:
+		f.write(str(line[0]) + ' ' + str(line[1]) + ' ' + str(line[2]) + '\n')
+	f.close()
+	return f
+
+def write_edges(file_name, Edges):
+	f = open(file_name, 'a')
+	edges = np.asarray(Edges)
+	
+	edge_type = edges.shape[1]
+	if edge_type == 3:
+		edge_name = 'POLYGONS '
+	elif edge_type == 2:
+		edge_name = 'LINES '
+	else:
+		print 'ERROR - unrecognized face type'
+		
+	num_edges = edges.shape[0]
+	
+	f.write(edge_name + str(num_edges) + ' ' + str(num_edges*(edge_type+1)) + '\n')
+	for line in edges:
+		f.write(str(edge_type)+ ' ')
+		for element in line:
+			f.write(str(element) + ' ')
+		f.write('\n')
+	f.close()
+	return f
+	
+def write_labels(file_name, Labels, label_type='Labels'):
+	f = open(file_name, 'a')
+	labels = np.asarray(Labels)
+	
+	f.write('POINT_DATA ' + str(labels.shape[0]) + '\n')
+	f.write('SCALARS ' + str(label_type) + ' float\n')
+	f.write('LOOKUP_TABLE ' + str(label_type) + '\n')
+	
+	for i in labels:
+		f.write(str(i) + '\n')
+	f.close()
+	return f
+	
+def write_all(file_name, Nodes, Edges, Labels, label_type='Labels', msg='By Eli'):
+	f = write_header(file_name, msg=msg)
+	f = write_nodes(file_name, Nodes)
+	f = write_edges(file_name, Edges)
+	f = write_labels(file_name, Labels, label_type = label_type)
+	return f
