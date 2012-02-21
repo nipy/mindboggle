@@ -195,20 +195,33 @@ def vote21(LeftLabels, RightLabels):
     
     for Vrtx in xrange(LeftNum):
         Votes = Counter([LeftLabels[i][Vrtx] for i in xrange(21)])
-        if len(Votes) == 1:
-            LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
-        else: 
-            LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
-            LeftDiff[Vrtx] = len(Votes)
+        
+        # the block below is commented to use MaxProb principle, Forrest 2012-02-20 
+#        if len(Votes) == 1:
+#            LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
+#        else: 
+#            LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
+#            LeftDiff[Vrtx] = len(Votes)
+        # end of the block below is commented to use MaxProb principle, Forrest 2012-02-20
+        
+        LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
+        LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
+        LeftDiff[Vrtx] = len(Votes)
             
     for Vrtx in xrange(RightNum):
         Votes = Counter([RightLabels[i][Vrtx] for i in xrange(21)])
-        if len(Votes) == 1:
-            RightAssign[Vrtx] = Votes.most_common(1)[0][0]
-        else:
-            RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
-            RightDiff[Vrtx] = len(Votes)
-            
+        # the block below is commented to use MaxProb principle, Forrest 2012-02-20
+#        if len(Votes) == 1:
+#            RightAssign[Vrtx] = Votes.most_common(1)[0][0]
+#        else:
+#            RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
+#            RightDiff[Vrtx] = len(Votes)
+        # end of the block below is commented to use MaxProb principle, Forrest 2012-02-20
+        
+        RightAssign[Vrtx] = Votes.most_common(1)[0][0]
+        RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
+        RightDiff[Vrtx] = len(Votes)
+        
     print "Voting done"
     return LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff 
 
@@ -257,11 +270,11 @@ def labeling(SurfPath, Subject, AnnotPath):
                   tofile(SurfPath+'rh.assign.inflated.vtk', 'ascii')
 
 # test 
-labeling('/forrest/data/MRI/MDD/50332/surf/', '50332', '/forrest/data/MRI/MDD/atlas_to_patients/')
+#labeling('/forrest/data/MRI/MDD/50014/surf/', '50014', '/forrest/data/MRI/MDD/atlas_to_patients/')
 
 # do some real work
-#import os
-#for DirIndx, Dir in enumerate(os.listdir('/forrest/data/MRI/MDD')):
-#    if len(Dir) == 5 and DirIndx <= 30:
-#        print Dir
-#        labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
+import os
+for DirIndx, Dir in enumerate(os.listdir('/forrest/data/MRI/MDD')):
+    if len(Dir) == 5: # and DirIndx <= 30:
+        print Dir
+        labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
