@@ -1,4 +1,5 @@
-# segmentation based on nearest labels for fundus vertexes, and output shape measures for grouped vertexes
+# segmentation based on nearest labels for fundus vertexes
+
 
 def load_fundus(VTKFile):
     '''Load fundus vertex from a VTK file
@@ -53,7 +54,7 @@ def label_vertex(Vrtx, NbrLst, Labels):
     ===========
     
     Vrtx : integer
-        The ID of a Vrtx
+        The ID of a vertex
         
     NbrLst: List of lists of integers
         the i-th element is the neighbors of vertex i 
@@ -175,47 +176,6 @@ def label_fundi(Fundus_Vertexes, NbrLst, Labels):
     
     return Fundus_Labels, Fundus_Dists
 
-def seg_fundi(Fundus_Labels):
-    '''Segment fundus vertexes based on their labels
-    
-    Parameters
-    ============
-    
-    Fundus_Labels: a dictionary
-        key is the ID of a vertex on a fundus; value are 2-tuples,
-        which are the two nearest labels for the vertex,
-        
-    Fundus_Dist: a dictionary 
-        key is the ID of a vertex on fundu; value are 2-tuples,
-        which are distances from the vertex to two nearest labeled vertexes
-    
-    Groups: a dictionary 
-        key is 4-digit label pair, value is a list of fundus vertexes that are assigned the label pair
-        using two nearest labels scheme 
-        
-        
-    Notes
-    ======
-    
-    Label pairs are converted into 4-digit integer here.
-    
-    All measures are per segment.   
-    
-    '''
-    
-    Groups = {}
-    for LabelPair in Fundus_Labels.values():
-#        if not Pair in LabelPairs:
-#            LabelPairs.append(Pair)
-        Groups[LabelPair[0]*100 + LabelPair[1]] = []
-    
-    for Vrtx, LabelPair in Fundus_Labels.iteritems():
-        Groups[LabelPair[0]*100 + LabelPair[1]].append(Vrtx)
-        
-    
-
-    return Groups
-
 def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     '''Write the segmentation result into VTK
     
@@ -248,16 +208,11 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     for LabelPair in Fundus_Labels.values():
         if not LabelPair[0]*100 + LabelPair[1] in All_Pairs:
             All_Pairs.append(LabelPair[0]*100 + LabelPair[1]) 
-            
-    print len(All_Pairs)
-    
+              
     for Vrtx, LabelPair in Fundus_Labels.iteritems():
-#        Segment[Vrtx] = LabelPair[0]*100 + LabelPair[1]  # for correct visualization, commented, F 2012-02-21
-#        Segment[Vrtx] = max(LabelPair)*100 + min(LabelPair)
-        Segment[Vrtx] = All_Pairs.index(LabelPair[0]*100 + LabelPair[1])
-        
-    print set(Segment) 
-        
+        Segment[Vrtx] = LabelPair[0]*100 + LabelPair[1]# for absolute labels, use this line
+#        Segment[Vrtx] = All_Pairs.index(LabelPair[0]*100 + LabelPair[1]) # for better visualization, use this line
+                
     Distance = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
     for Vrtx, DistPair in Fundus_Dists.iteritems():
 #        Distance[Vrtx] = DistPair[0] + DistPair[1]
@@ -318,48 +273,17 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
 
     return 0
     
-def gen_shape(Groups, LUTs, FundiFile):
-    '''Generate shape table for this hemisphere and write to TSV file
-    
-    Parameters
-    ==========
-    
-    LUTs: list of lists of integers
-        Each element is a per-vertex list of shape descriptor.
-        The order is curvature, depth, thickness, sulc and fundus length  
-     
-    '''
-    
-    from numpy import mean
-    
-    TSV = FundiFile[:-4]+'.shape.tsv'
-    FP = open(TSV, 'w')
-    FP.write('label_pair \t curvature \t depth \t thickness \t convexity \t length \n')
-    
-    for LabelPair in Groups.keys():
-        FP.write(str(LabelPair) + '\t')
-        [FP.write(str(mean([LUT[j] for j in Groups[LabelPair]])) + ' \t ') for LUT in LUTs] 
-        # i know the line above is horrible. - Forrest 2012-02-19
-        FP.write('\n')
-
-    FP.close()
-    return 0
-
-#FV= load_fundus('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk')
-
-def seg_shape_main(FundiFile, NbrLstFile, LabelFile):
+def seg_main(FundiFile, NbrLstFile, LabelFile):
     
     Fundus_Vertexes, Num_Vrtx, LUTs = load_fundus(FundiFile)
     NbrLst = load_nbr(NbrLstFile)
     Labels = load_labels(LabelFile)
     
     Fundus_Labels, Fundus_Dists = label_fundi(Fundus_Vertexes, NbrLst, Labels)
-#    Groups = seg_fundi(Fundus_Labels)
     write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile[:-4]+'.2nd.vtk')
-#    gen_shape(Groups, LUTs, FundiFile)
 
 
-seg_shape_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
+seg_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
                              '/forrest/data/MRI/MDD/50014/surf/lh.vrtx.nbr',\
                              '/forrest/data/MRI/MDD/50014/surf/lh.assign.pial.vtk')
 
