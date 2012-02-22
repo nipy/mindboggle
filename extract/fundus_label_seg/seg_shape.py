@@ -78,6 +78,18 @@ def label_vertex(Vrtx, NbrLst, Labels):
         
     TwoLabels: list of two floats
         the two Euclidean distances from Vrtx's nearest two labeled neighbors
+        
+    Notes
+    ========
+    
+    The code used to assign label was different from what Arno expects. 
+    Now it is updated to assign two nearest DIFFERENT labels to each fundus vertex. 
+    - Forrest, 2012-02-21
+    
+    For labels on a ring, do we assign the closest or the most common label?
+    - Forrest, 2012-02-21
+    
+    Always return the smaller label first. So (12,32) and (32,12) are the same, (12.32). 
      
     ''' 
 
@@ -97,11 +109,11 @@ def label_vertex(Vrtx, NbrLst, Labels):
         # step 1: check labels in fringe
         for V in Fringe:
             Visited.append(V)
-            if Labels[V] > 0:
+            if Labels[V] > 0 and not Labels[V] in TwoLabels: 
+            # added the AND condition to ensure two different labels, F 2012-02-21
                     TwoLabels.append(Labels[V])
                     TwoDists.append(Ring)
-        
-        
+                
         # step 2: search fringe propagation
         Nbrs = []
         for V in Fringe:
@@ -115,14 +127,19 @@ def label_vertex(Vrtx, NbrLst, Labels):
         if Ring > 500: # something may go wrong
             print "Taking too long to find nearest two labeled neighbors"
             print "Vrtx is:", Vrtx
-            return [-1,-1], [-1,-1]
+            return [-1, -1], [-1, -1]
+
+    if TwoLabels[0] > TwoLabels[1]:
+        return TwoLabels[::-1], TwoDists[::-1] # Always smaller label first 
+    else:
+        return TwoLabels, TwoDists
     
-    Top2Labels = Counter(TwoLabels).most_common(2)  
+#    Top2Labels = Counter(TwoLabels).most_common(2)  
    
-    if len(Top2Labels) < 2:
-        return TwoLabels[:2], TwoDists[:2]
-    else: 
-        return [Top2Labels[0][0], Top2Labels[1][0]], [TwoDists[TwoLabels.index(Top2Labels[0][0])], TwoDists[TwoLabels.index(Top2Labels[1][0])]] 
+#    if len(Top2Labels) < 2:
+#        return TwoLabels[:2], TwoDists[:2]
+#    else: 
+#        return [Top2Labels[0][0], Top2Labels[1][0]], [TwoDists[TwoLabels.index(Top2Labels[0][0])], TwoDists[TwoLabels.index(Top2Labels[1][0])]] 
     
 #    return TwoLabels[:2], TwoDists[:2] # let's say randomly pick the first two for fast prototyping 
 
@@ -143,7 +160,7 @@ def label_fundi(Fundus_Vertexes, NbrLst, Labels):
         
     
     '''
-    Count = 0
+#    Count = 0
     Fundus_Labels, Fundus_Dists = {}, {}  
     for ID, Vrtx in enumerate(Fundus_Vertexes):
         TwoLbs, TwoDists = label_vertex(Vrtx, NbrLst, Labels)
@@ -152,9 +169,9 @@ def label_fundi(Fundus_Vertexes, NbrLst, Labels):
         
 #        print ID,"-th fundus vertex:", Vrtx
         
-        Count += 1 
-        if Count > 10:
-            break 
+#        Count += 1 
+#        if Count > 10:
+#            break 
     
     return Fundus_Labels, Fundus_Dists
 
@@ -180,7 +197,9 @@ def seg_fundi(Fundus_Labels):
     Notes
     ======
     
-    Label pairs are converted into 4-digit integer here. 
+    Label pairs are converted into 4-digit integer here.
+    
+    All measures are per segment.   
     
     '''
     
@@ -192,6 +211,8 @@ def seg_fundi(Fundus_Labels):
     
     for Vrtx, LabelPair in Fundus_Labels.iteritems():
         Groups[LabelPair[0]*100 + LabelPair[1]].append(Vrtx)
+        
+    
 
     return Groups
 
@@ -217,9 +238,30 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     '''
 
     Segment = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
+    
+#    Pair_Index, Num_Diff_Labels = {}, 0
+#    for Label_Pair in Fundus_Labels.values():
+#        if not Label_Pair in Pair_Index.keys():
+#            Pair_Index[(Label_Pair[0],Label_Pair[1])] = Num_Diff_Labels
+#            Num_Diff_Labels += 1
+    All_Pairs = []
+    for LabelPair in Fundus_Labels.values():
+        if not LabelPair[0]*100 + LabelPair[1] in All_Pairs:
+            All_Pairs.append(LabelPair[0]*100 + LabelPair[1]) 
+            
+    print len(All_Pairs)
+    
     for Vrtx, LabelPair in Fundus_Labels.iteritems():
-        Segment[Vrtx] = LabelPair[0]*100 + LabelPair[1]
-
+#        Segment[Vrtx] = LabelPair[0]*100 + LabelPair[1]  # for correct visualization, commented, F 2012-02-21
+#        Segment[Vrtx] = max(LabelPair)*100 + min(LabelPair)
+        Segment[Vrtx] = All_Pairs.index(LabelPair[0]*100 + LabelPair[1])
+        
+    print set(Segment) 
+        
+    Distance = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
+    for Vrtx, DistPair in Fundus_Dists.iteritems():
+#        Distance[Vrtx] = DistPair[0] + DistPair[1]
+        Distance[Vrtx] = DistPair[0]*100 + DistPair[1]
     
     SegFile = FundiFile[:-4] + '.seg.vtk'  # drop .vtk suffix
     SegFP = open(SegFile, 'w')
@@ -234,10 +276,16 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     FundiFP.close()        
     
     SegFP.write('\nSCALARS Segment int \n')
-    SegFP.write('LOOKUP_TABEL default\n')
+    SegFP.write('LOOKUP_TABLE default\n')
     
     for Seg in Segment: 
         SegFP.write(str(Seg)+'\n')
+
+    SegFP.write('\nSCALARS To_Nearest int \n')
+    SegFP.write('LOOKUP_TABLE default\n')
+    
+    for Dist in Distance: 
+        SegFP.write(str(Dist)+'\n')
     
     SegFP.close()
 
@@ -255,11 +303,17 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
         FundiFP.close()        
         
         SegFP.write('\nSCALARS Segment int \n')
-        SegFP.write('LOOKUP_TABEL default\n')
+        SegFP.write('LOOKUP_TABLE default\n')
         
         for Seg in Segment: 
             SegFP.write(str(Seg)+'\n')
+
+        SegFP.write('\nSCALARS To_Nearest int \n')
+        SegFP.write('LOOKUP_TABLE default\n')
         
+        for Dist in Distance: 
+            SegFP.write(str(Dist)+'\n')
+            
         SegFP.close()
 
     return 0
@@ -300,9 +354,10 @@ def seg_shape_main(FundiFile, NbrLstFile, LabelFile):
     Labels = load_labels(LabelFile)
     
     Fundus_Labels, Fundus_Dists = label_fundi(Fundus_Vertexes, NbrLst, Labels)
-    Groups = seg_fundi(Fundus_Labels)
+#    Groups = seg_fundi(Fundus_Labels)
     write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile[:-4]+'.2nd.vtk')
-    gen_shape(Groups, LUTs, FundiFile)
+#    gen_shape(Groups, LUTs, FundiFile)
+
 
 seg_shape_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
                              '/forrest/data/MRI/MDD/50014/surf/lh.vrtx.nbr',\
