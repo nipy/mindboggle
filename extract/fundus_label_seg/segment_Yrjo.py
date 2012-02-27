@@ -53,41 +53,44 @@ def label_vertex(Vrtx, NbrLst, Labels):
     
     Returns
     ========
-    
-    SelfLabel: an integer
-        the Label on the vertex 
-        
-    SecondLabel: an integer
-        The 2nd nearest label to the vertex
-        
-    Distance: an integer
-        the distance from the vertex to its 2nd nearest label 
+           
+    FourLabels: list of 4 integers
+        The 1st, 2nd, 3rd and 4th nearest labels
+                
+    Distances: list of 3 integers
+        the distance from the vertex to its 2nd, 3rd, and 4th nearest labels 
      
-    SecondVrtx: an integer
-        the index of the vertex who offers the 2nd nearest label 
+    LabelVrtxes: list of 3 integers
+        the indexes of the vertexes who offer the 2nd, 3rd and 4th nearest labels 
+        
+    Notes
+    =======
+    
+    The labels from VTK file are MATLAB-indexed. I need to convert it to Python-indexed. 
+    Stick with the labels on my file. 
      
     ''' 
 
 #    from collections import Counter
     
 
-    SelfLabel = Labels[Vrtx]
-    SecondLabel = -2
+    FourLabels = []
+    Distances = []
+    LabelVrtxes = []
      
     Visited = [Vrtx]
     
     Fringe  = [Vrtx]
-    Ring = 1
-    while SecondLabel == -2:
+    Ring = 0
+    while len(FourLabels) < 4:
         # step 1: check labels in fringe
         for V in Fringe:
             Visited.append(V)
-            if Labels[V] > 0 and Labels[V]!= SelfLabel: 
+            if Labels[V]-1 > 0 and not Labels[V]-1 in FourLabels: 
             # added the AND condition to ensure two different labels, F 2012-02-21
-                    SecondLabel = Labels[V]
-                    Distance = Ring 
-                    SecondVrtx = V
-                    break
+                    FourLabels.append(Labels[V]-1)
+                    Distances.append(Ring) 
+                    LabelVrtxes.append(V)
                 
         # step 2: search fringe propagation
         Nbrs = []
@@ -102,9 +105,9 @@ def label_vertex(Vrtx, NbrLst, Labels):
         if Ring > 500: # something may go wrong
             print "Taking too long to find nearest two labeled neighbors"
             print "Vrtx is:", Vrtx
-            return -1,-1,-1
+            return -1, [], [], []
 
-    return SelfLabel, SecondLabel, Distance, SecondVrtx
+    return FourLabels, Distances, LabelVrtxes
 
 def label_pits(Pits, NbrLst, Labels):
     '''Label Pits    
@@ -113,33 +116,27 @@ def label_pits(Pits, NbrLst, Labels):
     ========
     
    Pit_Labels: a dictionary
-        key is the ID of a pit; value are 2-tuples,
-        which are the two nearest labels for the vertex,
+        key is the ID of a pit; value are 4-tuples,
+        the 1st, 2nd, 3rd and 4th labels
         
     Pit_Dists: a dictionary 
-        key is the ID of a pit; value are 2-tuples,
-        which are distances from the vertex to two nearest labeled vertexes
+        key is the ID of a pit; value are 4-tuples,
+        which are distances from the vertex to 1st, 2nd, 3rd and 4th nearest labeled vertexes
         
     
     '''
 #    Count = 0
     Pit_Labels, Pit_Dists = {}, {}
-    SecondVrtxes={}
+    Pit_Vrtxes={}
     for ID, Vrtx in enumerate(Pits):
-        SelfLabel, SecondLabel, Distance, SecondVrtx = label_vertex(Vrtx, NbrLst, Labels)
-        Pit_Labels[Vrtx] = [SelfLabel, SecondLabel]
-        Pit_Dists[Vrtx]  = Distance
-        SecondVrtxes[Vrtx] = SecondVrtx
-        
-#        print ID,"-th fundus vertex:", Vrtx
-        
-#        Count += 1 
-#        if Count > 10:
-#            break 
+        FourLabels, Distances, LabelVrtxes = label_vertex(Vrtx, NbrLst, Labels)
+        Pit_Labels[Vrtx] = FourLabels
+        Pit_Dists[Vrtx]  = Distances[1:]  # because the 1st one is 0 
+        Pit_Vrtxes[Vrtx] = LabelVrtxes[1:] # because the 1st one is itself
     
-    return Pit_Labels, Pit_Dists, SecondVrtxes
+    return Pit_Labels, Pit_Dists, Pit_Vrtxes
 
-def write_seg_TSV(Pit_Labels, Pit_Dists, SecondVrtxes, PitsFile, LabelFile):
+def write_seg_TSV(Pit_Labels, Pit_Dists, Pit_Vrtxes, PitsFile, LabelFile):
     '''Dump the results into TSV to give to Yrjo 
     
     
@@ -165,10 +162,17 @@ def write_seg_TSV(Pit_Labels, Pit_Dists, SecondVrtxes, PitsFile, LabelFile):
     Fp = open(PitsFile + '.seg.tsv','w')
     
     for Vrtx, LabelPair in Pit_Labels.iteritems():
-        Fp.write(str(Vrtx) + '\t' + str(LabelPair[0]) + '\t' + str(LabelPair[1]) + '\t' + str(Pit_Dists[Vrtx]) + '\t' + str(SecondVrtxes[Vrtx]) + '\n')
+        Line  = str(Vrtx) + '\t' 
+        for i in range(4):
+            Line += (str(LabelPair[i]) + '\t' )
+        for i in range(3):
+            Line += (str(Pit_Dists[Vrtx][i]) + '\t' )
+        for i in range(3):
+            Line += (str(Pit_Vrtxes[Vrtx][i]) + '\t' )
+            
+        Fp.write(Line + '\n')
     
     Fp.close()
-
   
 def seg_main(PitsFile, NbrLstFile, LabelFile):
     
@@ -187,7 +191,6 @@ def seg_main(PitsFile, NbrLstFile, LabelFile):
 
 import sys
 seg_main(sys.argv[1], sys.argv[2], sys.argv[3]) 
-
 
 #def write_seg_VTK(Pit_Labels, Pit_Dists, FundiFile, LabelFile2, LabelFile):
 #    '''Obsolete function. DO NOT USE!    
