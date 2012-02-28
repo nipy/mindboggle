@@ -114,6 +114,8 @@ def label_vertex(Vrtx, NbrLst, Labels):
             # added the AND condition to ensure two different labels, F 2012-02-21
                     TwoLabels.append(Labels[V])
                     TwoDists.append(Ring)
+                    if len(TwoLabels) ==2 :
+                        break
                 
         # step 2: search fringe propagation
         Nbrs = []
@@ -131,6 +133,7 @@ def label_vertex(Vrtx, NbrLst, Labels):
             return [-1, -1], [-1, -1]
 
     if TwoLabels[0] > TwoLabels[1]:
+#        print TwoLabels, TwoLabels[::-1]
         return TwoLabels[::-1], TwoDists[::-1] # Always smaller label first 
     else:
         return TwoLabels, TwoDists
@@ -176,7 +179,7 @@ def label_fundi(Fundus_Vertexes, NbrLst, Labels):
     
     return Fundus_Labels, Fundus_Dists
 
-def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
+def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2=''):
     '''Write the segmentation result into VTK
     
     To make things easier, this function copies everything from FundiFile and FundiFiles2 
@@ -198,6 +201,7 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     '''
 
     Segment = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
+    SegmentIdx = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
     
 #    Pair_Index, Num_Diff_Labels = {}, 0
 #    for Label_Pair in Fundus_Labels.values():
@@ -211,8 +215,8 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
               
     for Vrtx, LabelPair in Fundus_Labels.iteritems():
         Segment[Vrtx] = LabelPair[0]*100 + LabelPair[1]# for absolute labels, use this line
-#        Segment[Vrtx] = All_Pairs.index(LabelPair[0]*100 + LabelPair[1]) # for better visualization, use this line
-                
+        SegmentIdx[Vrtx] = All_Pairs.index(LabelPair[0]*100 + LabelPair[1]) # for better visualization, use this line
+                    
     Distance = [-1 for i in xrange(Num_Vrtx)] # -1 means this not a fundus vertex
     for Vrtx, DistPair in Fundus_Dists.iteritems():
 #        Distance[Vrtx] = DistPair[0] + DistPair[1]
@@ -235,12 +239,18 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
     
     for Seg in Segment: 
         SegFP.write(str(Seg)+'\n')
-
-    SegFP.write('\nSCALARS To_Nearest int \n')
+        
+    SegFP.write('\nSCALARS SegIdx int \n')
     SegFP.write('LOOKUP_TABLE default\n')
     
-    for Dist in Distance: 
-        SegFP.write(str(Dist)+'\n')
+    for Seg in SegmentIdx: 
+        SegFP.write(str(Seg)+'\n')
+#
+#    SegFP.write('\nSCALARS To_Nearest int \n')
+#    SegFP.write('LOOKUP_TABLE default\n')
+#    
+#    for Dist in Distance: 
+#        SegFP.write(str(Dist)+'\n')
     
     SegFP.close()
 
@@ -263,11 +273,17 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2):
         for Seg in Segment: 
             SegFP.write(str(Seg)+'\n')
 
-        SegFP.write('\nSCALARS To_Nearest int \n')
+        SegFP.write('\nSCALARS SegIdx int \n')
         SegFP.write('LOOKUP_TABLE default\n')
-        
-        for Dist in Distance: 
-            SegFP.write(str(Dist)+'\n')
+    
+        for Seg in SegmentIdx: 
+            SegFP.write(str(Seg)+'\n')
+
+#        SegFP.write('\nSCALARS To_Nearest int \n')
+#        SegFP.write('LOOKUP_TABLE default\n')
+#        
+#        for Dist in Distance: 
+#            SegFP.write(str(Dist)+'\n')
             
         SegFP.close()
 
@@ -281,10 +297,12 @@ def seg_main(FundiFile, NbrLstFile, LabelFile):
     
     Fundus_Labels, Fundus_Dists = label_fundi(Fundus_Vertexes, NbrLst, Labels)
     write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile[:-4]+'.2nd.vtk')
+#    write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile)  # do NOT write to inflated surface, unless visualization 
 
 
-seg_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
-                             '/forrest/data/MRI/MDD/50014/surf/lh.vrtx.nbr',\
-                             '/forrest/data/MRI/MDD/50014/surf/lh.assign.pial.vtk')
+#seg_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
+#                             '/forrest/data/MRI/MDD/50014/surf/lh.vrtx.nbr',\
+#                             '/forrest/data/MRI/MDD/50014/surf/lh.assign.pial.vtk')
 
- 
+import sys
+seg_main(sys.argv[1], sys.argv[2], sys.argv[3]) 
