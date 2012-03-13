@@ -558,6 +558,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     //If no valid code is used, the index of the point is the scalar
     else
     {
+/*
         vtkDoubleArray* noValue=vtkDoubleArray::New();
 
         for(int i=0;i<this->nbPoints;i++)
@@ -566,6 +567,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         }
         this->mesh->GetPointData()->SetScalars(noValue);
         noValue->Delete();
+*/
     }
 
 
@@ -1547,6 +1549,12 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     double ec;
 
+    double maxCurv=-10;  // added Forrest 2012-03-05
+    double minCurv=1000;  // added Forrest 2012-03-05
+    double maxgCurv=-10;  // added Forrest 2012-03-05
+    double mingCurv=1000;  // added Forrest 2012-03-05
+
+
     for(int i = 0 ; i<this->nbPoints ; i++)
     {
         GetPointNeighbors(i, neib);
@@ -1598,7 +1606,29 @@ void MeshAnalyser::ComputePrincipalCurvatures()
         this->gCurv->InsertNextValue(maxD*minD);
 
         this->test->InsertNextValue(maxD-fabs(minD));
+
+        /*added Forrest 2012-03-05*/
+        double MCurv = (maxD+minD)/2;
+	double GCurv = maxD*minD;
+        if(MCurv<minCurv)minCurv=MCurv;
+        if(MCurv>maxCurv)maxCurv=MCurv;
+        if(GCurv<mingCurv)mingCurv=GCurv;
+        if(GCurv>maxgCurv)maxgCurv=GCurv;
+        /*end of added Forrest 2012-03-05*/
+
+    }  // End of for i in 0 to nbPoints
+
+    /* added Forrest 2012-03-05 */ 
+    double curCurv;
+    for(int i=0;i<this->nbPoints;i++)
+    {
+        curCurv=this->curv->GetValue(i);
+        this->curv->SetValue(i,(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1);
+        curCurv=this->gCurv->GetValue(i);
+        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
     }
+    /* end of added Forrest 2012-03-05 */ 
+
 }
 
 void MeshAnalyser::ComputeVoronoi(vtkIdList* centroidsList, double maxDist)
