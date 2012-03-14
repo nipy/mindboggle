@@ -2,8 +2,8 @@
 # The main function is labeling(). The last few lines calls this function while traversing a path. 
 # labels are 0-indexing because we used read_annot
 
-def label_aggregate(Label):
-    '''Replace some labels by aggregated labels. 
+def label_combine(Label):
+    '''Replace some labels by combined labels. 
 
     Parameters
     ============
@@ -13,11 +13,11 @@ def label_aggregate(Label):
     Returns
     =========
 
-        no variable. Directe return. 
+        no variable. Direct return. 
 
     Notes
     ======= 
-        Label aggregation:
+        Label combination:
         2= 2,10,23,26
         3= 3, 27
         18=18,19,20
@@ -171,11 +171,11 @@ def load21(AnnotPath, Subject):
     LeftLabels, RightLabels = [], []
     for File in LeftFiles:
         Labels, ColorTable, Names = read_annot(AnnotPath+File)
-        LeftLabels.append(map(label_aggregate,Labels))
+        LeftLabels.append(map(label_combine,Labels))
 
     for File in RightFiles:
         Labels, ColorTable, Names = read_annot(AnnotPath+File)
-        RightLabels.append(map(label_aggregate,Labels))
+        RightLabels.append(map(label_combine,Labels))
     
     print "21 annotations loaded"
     
