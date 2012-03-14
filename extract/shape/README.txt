@@ -2,15 +2,37 @@ Files in this folder:
 
 1. label21.py: Traverse a path. For each subject directory in the path, load all 21 atlases-to-patient label sets (21 FreeSurfer .annot files) and vote out one label for every vertex on the hemisphere. Result saved in VTK format. 
 Since the voting takes time, the result is saved as a pickle file. 
+Input: atlases-to-patient manual label files. 
+Output: assignment VTK files in name ?h.assign.{pial,inflated}.vtk in each subject's surf folder. 
 
 Update 2012-02-13: Now output labels are aggregated. 
 2= 2,10,23,26
 3= 3, 27
 18=18,19,20
 
-2. segment.py: Assign TWO NEAREST labels to every fundus vertex to segment fundi. Segmentation results are saved in VTK. 
+2. segment.py: Assign TWO NEAREST labels to every fundus vertex. Thus, this segments fundi. Segmentation results are saved in VTK. 
+Input: fundi files, neighboring files (?h.vrtx.nbr), assignment VTK files
+Output: segmented fundi file with suffix seg.vtk or seg.2nd.vtk. These VTK files have additional SCALARS blocks for segmentation information. 
 
-3. shape_table.py: Generate shape table.
+Update 2012-02-13: Label pairs are aggregated as follows. 
+        precentral: [28,24]*,[3,24]*,[18,24]*
+        postcentral: [22,29],[22,31]
+        intraparietal: [29,31],[29,8]
+        lateral occipital sulcus: [11,8]*, [11,29]*
+        anterior occipital sulcus: [11,15]*,[11,9]
+        circular sulcus: [35,30],[35,34],[35,12],[35,2],[35,24],[35,22],[35,31]
+        cingulate sulcus: [2,14],[2,28],[2,17],[25,17]
+        calcarine fissure: [13,25],[13,2]
+        lateral H-shaped orbital sulcus: [12,18],[12,3]
+        occipitotemporal sulcus: [7,9],[7,11]
+        collateral sulcus: [7,6],[7,16],[7,13]
+        interhemispheric fissure, dorsal margin: [17,28],[17,24],[17,22],[25,29],[5,29],[5,11]
+
+3. shape_table.py: Generate shape table. Fundus vertexes of the same AGGREGTED label pair are grouped together.
+Input: segmented fundi in VTK. 
+Output: two kinds of shape tables, the average one and the individual one. In TSV. 
+
+4. segment_Yrjo.py: Assign up to 4 nearest labels to Yrjo's pits and return distances from every pit to its 4 labels. 
 
 Pipeline to use scripts:
 1. label21.py
