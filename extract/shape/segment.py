@@ -1,5 +1,6 @@
-# segmentation based on nearest labels for fundus vertexes
-
+# assign two nearest labels (a label pair) to every fundus vertex
+# Label pairs are aggregated to lowest number id of the regions in the aggregate
+# The ending lines of this script does not traverse on a path. Loop in Shell.  
 
 def load_fundus(VTKFile):
     '''Load fundus vertex from a VTK file
@@ -47,6 +48,65 @@ def load_nbr(PickleFile):
     Fp.close()
     return NbrLst
 
+def label_pair_aggregate(LabelPair):
+    '''Map a label pair to the lowest number id of the same region
+    
+    Parameters
+    ============
+    LabelPair: list of two integers
+        A label pair to be mapped to aggregated label pair 
+        
+    Returns
+    ==========
+    
+    no variable. Direct return. 
+
+    Notes
+    ======= 
+        Label pair aggregation:
+        precentral: [28,24]*,[3,24]*,[18,24]*
+        postcentral: [22,29],[22,31]
+        intraparietal: [29,31],[29,8]
+        lateral occipital sulcus: [11,8]*, [11,29]*
+        anterior occipital sulcus: [11,15]*,[11,9]
+        circular sulcus: [35,30],[35,34],[35,12],[35,2],[35,24],[35,22],[35,31]
+        cingulate sulcus: [2,14],[2,28],[2,17],[25,17]
+        calcarine fissure: [13,25],[13,2]
+        lateral H-shaped orbital sulcus: [12,18],[12,3]
+        occipitotemporal sulcus: [7,9],[7,11]
+        collateral sulcus: [7,6],[7,16],[7,13]
+        interhemispheric fissure, dorsal margin: [17,28],[17,24],[17,22],[25,29],[5,29],[5,11]
+       
+    '''
+    if LabelPair == [3, 24] or LabelPair == [18, 24]:
+        return [24,28]
+    elif LabelPair == [22, 31]:
+        return [22, 29]
+    elif LabelPair == [8, 29]:
+        return [29, 31]
+    elif LabelPair == [11, 29]:
+        return [8, 11]
+    elif LabelPair == [9, 11]:
+        return [11, 15]
+    elif LabelPair == [34, 35] or LabelPair == [12, 35] or LabelPair == [2, 35]\
+     or LabelPair == [24, 35] or LabelPair == [22, 35] or LabelPair == [31, 35]:
+        return [30, 35]
+    elif LabelPair == [2, 28] or LabelPair == [2, 17] or LabelPair == [17, 25]:
+        return [2, 14]
+    elif LabelPair == [2, 13]:
+        return [13, 25]
+    elif LabelPair == [3, 12]:
+        return [12, 18]
+    elif LabelPair == [7, 11]:
+        return [7, 9]
+    elif LabelPair == [7, 16] or LabelPair == [7, 13]:
+        return [7, 6]
+    elif LabelPair == [17, 24] or LabelPair == [17, 22] or LabelPair == [25, 29]\
+     or LabelPair == [5, 29] or LabelPair == [5, 11]:
+        return [17, 28]
+    else:
+        return LabelPair
+
 def label_vertex(Vrtx, NbrLst, Labels):
     '''Give a vertex two labels from its nearest labeled neighbors, using BFS
     
@@ -77,7 +137,7 @@ def label_vertex(Vrtx, NbrLst, Labels):
     TwoLabels: list of two integers
         the two most comment labels from Vrtx's nearest at least 2 labeled neighbors
         
-    TwoLabels: list of two floats
+    TwoDists: list of two floats
         the two Euclidean distances from Vrtx's nearest two labeled neighbors
         
     Notes
@@ -168,7 +228,7 @@ def label_fundi(Fundus_Vertexes, NbrLst, Labels):
     Fundus_Labels, Fundus_Dists = {}, {}  
     for ID, Vrtx in enumerate(Fundus_Vertexes):
         TwoLbs, TwoDists = label_vertex(Vrtx, NbrLst, Labels)
-        Fundus_Labels[Vrtx] = TwoLbs
+        Fundus_Labels[Vrtx] = label_pair_aggregate(TwoLbs)
         Fundus_Dists[Vrtx]   = TwoDists
         
 #        print ID,"-th fundus vertex:", Vrtx
@@ -290,6 +350,7 @@ def write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile2=''):
     return 0
     
 def seg_main(FundiFile, NbrLstFile, LabelFile):
+    print "Segmenting fundi in", FundiFile 
     
     Fundus_Vertexes, Num_Vrtx, LUTs = load_fundus(FundiFile)
     NbrLst = load_nbr(NbrLstFile)
@@ -299,10 +360,23 @@ def seg_main(FundiFile, NbrLstFile, LabelFile):
     write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile, FundiFile[:-4]+'.2nd.vtk')
 #    write_seg(Fundus_Labels, Fundus_Dists, Num_Vrtx, FundiFile)  # do NOT write to inflated surface, unless visualization 
 
-
+# a test run 
 #seg_main('/forrest/data/MRI/MDD/50014/surf/lh.travel.depth.depth.fundi.vtk',\
 #                             '/forrest/data/MRI/MDD/50014/surf/lh.vrtx.nbr',\
 #                             '/forrest/data/MRI/MDD/50014/surf/lh.assign.pial.vtk')
 
+# run under a path
 import sys
-seg_main(sys.argv[1], sys.argv[2], sys.argv[3]) 
+#seg_main(sys.argv[1], sys.argv[2], sys.argv[3])
+
+import os
+Path = '/forrest/data/MRI/MDD/'
+#Hemi = [sys.argv[1]]  # like lh or rh
+for Hemi in ['lh','rh']:
+    for DirIndx, Dir in enumerate(os.listdir(Path)):
+        if len(Dir) == 5: # and DirIndx <= 30:
+            print DirIndx, Dir, Hemi
+            Prefix = Path+Dir+'/surf/'+Hemi
+            seg_main(Prefix+'.euclidean.depth.depth.fundi.vtk', Prefix+'.vrtx.nbr', Prefix+'.assign.pial.vtk')
+            
+            

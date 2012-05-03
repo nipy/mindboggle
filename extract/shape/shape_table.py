@@ -1,8 +1,9 @@
 # this script loads segmented fundi 42 brains and filter label pairs that do not appear in all braings
 # then, it computes the shape tables, which consist of mean values of shape measures of largest 
 # components for each label pairs in each brain
+# The load_multi_segs takes really long to run. So use ending lines to pickle the results
 
-def load_multi_segs(Path, Quit=1000):
+def load_multi_segs(Path, Suffix, Quit=1000):
     '''Load segmented fundi from from 52x2=104 hemisphere hemispheres     
     
     
@@ -12,6 +13,10 @@ def load_multi_segs(Path, Quit=1000):
     Path: string
         a path. The Path is highly specified for our current file hierarchy, 
         thus    Path/subject/surf/....
+   
+    Suffix: string
+        The suffix of the VTK file that contains label pairs assigned to fundus vertexes, 
+        e.g., '.euclidean.depth.depth.fundi.seg.vtk' 
    
     LUT: all SCALARS loaded from a segmented fundi file
         The order of SCALARS is:
@@ -46,12 +51,15 @@ def load_multi_segs(Path, Quit=1000):
     LUT_All: list of LUT's
     
     Fundus_Vertex_All: list of lists of integers
-        Each element is a Fundus_Vertex
+        Each element is a *Fundus_Vertex*
         Left hemisphere: first 52. 
         
     Fundus_Line_All: list of lists of 2-tuples of integers
-        Each element is a Fundus_Line
-        
+        Each element is a *Fundus_Line*
+    
+    Vertexes_All: list of list of 3-tuples of floats (obsolete)
+        Each element is the coordinates of all vertexes in one hemisphere
+    
     Notes
     ======
     
@@ -70,10 +78,10 @@ def load_multi_segs(Path, Quit=1000):
     for Hemi in ['/surf/lh','/surf/rh']:
         for Subj in os.listdir(Path):
             if len(Subj) == 5: # for MDD subjects
-                VTKFile = Path + Subj + Hemi + '.travel.depth.depth.fundi.seg.vtk'
+                VTKFile = Path + Subj + Hemi + Suffix
                 print VTKFile
                 Data = pyvtk.VtkData(VTKFile)
-#                Points = Data.structure.points
+                #Points = Data.structure.points
                 Fundus_Line = Data.structure.lines
                 
                 LUT = [Data.point_data.data[i].scalars for i in [0,1,2,3]]
@@ -92,7 +100,7 @@ def load_multi_segs(Path, Quit=1000):
                 Fundus_Line_All.append(Fundus_Line)
                 
                 LabelPair_All.append(LabelPair)
-                
+                                
                 Count += 1  # for fast debugging
             
             if Count == Quit:   # for fast debugging 
@@ -162,7 +170,7 @@ def the_other(One, Tuple):
     else:
         return -1
     
-def span(Seed, Fundus_Line, Vertex_this_Group):
+def span(Seed, Fundus_Line, Vertex_this_Group, Vertexes):
     '''From Seed, tracking along Fundus_Lines, return all contiguous vertexes of the same Label and the length of them
     
     Parameters 
@@ -176,6 +184,9 @@ def span(Seed, Fundus_Line, Vertex_this_Group):
         
     Vertex_this_Group: list of integers
         All vertexes that have the same label pair as Seed
+
+    Vertexes: list of floats
+        Coordinates of all vertexes 
         
     Extended: Boolean
         Whether a new round of search has found new fundus vertexes of the same label pair
@@ -198,6 +209,8 @@ def span(Seed, Fundus_Line, Vertex_this_Group):
     
     '''
     
+    from math import sqrt
+    
     Spanned = [Seed]
     Extended = True
     Length = 0
@@ -211,11 +224,14 @@ def span(Seed, Fundus_Line, Vertex_this_Group):
                     if Another in Vertex_this_Group and not Another in Spanned:
                         Spanned.append(Another)
                         Extended = True
-                        Length += 1
+#                        Length += 1
+                        Length += sqrt( (Vertexes[Vrtx][0] - Vertexes[Another][0])**2 + \
+                                        (Vertexes[Vrtx][1] - Vertexes[Another][1])**2 + \
+                                        (Vertexes[Vrtx][2] - Vertexes[Another][2])**2  ) 
                     
     return Spanned, Length
 
-def largest_groups(Common, Fundus_Line, Fundus_Vertex, LabelPair):
+def largest_groups(Common, Fundus_Line, Fundus_Vertex, LabelPair, Vertexes):
     '''Find largest contiguous groups of vertexes of all common label pairs in a hemisphere
     
     Parameters
@@ -232,6 +248,9 @@ def largest_groups(Common, Fundus_Line, Fundus_Vertex, LabelPair):
         
     LabelPair: dictionary
         Keys are vertex IDs; values are label pair as a 4-digit integer  
+
+    Vertexes: list of floats
+        Coordinates of all vertexes 
 
     Groups_of_this_Pair: list of lists of integers
         Each element is vertexes consisting of a connected component of the label pair *Pair*
@@ -253,14 +272,14 @@ def largest_groups(Common, Fundus_Line, Fundus_Vertex, LabelPair):
     Largest_Groups = {}
     Length_LabelPairs = {}
     
-    print "Common label pairs", len(Common)
+#    print "Common label pairs", len(Common)
     
     for Pair in Common:  # for every label pair that is common across hemispheres
         Vertexes_of_this_Group = [Vrtx for Vrtx in Fundus_Vertex if LabelPair[Vrtx] == Pair]
         Vertexes_of_this_Group_yet_Visited =list(Vertexes_of_this_Group)
         Groups_of_this_Pair, Length_of_this_Pair = [], []
         while len(Vertexes_of_this_Group_yet_Visited) > 0:
-            Spanned, Length = span(Vertexes_of_this_Group_yet_Visited[0], Fundus_Line, Vertexes_of_this_Group)
+            Spanned, Length = span(Vertexes_of_this_Group_yet_Visited[0], Fundus_Line, Vertexes_of_this_Group, Vertexes)
             Groups_of_this_Pair.append(Spanned)
             Length_of_this_Pair.append(Length)
             
@@ -274,12 +293,13 @@ def largest_groups(Common, Fundus_Line, Fundus_Vertex, LabelPair):
         Largest_Groups[Pair] = Groups_of_this_Pair[Largest_Index]
         Length_LabelPairs[Pair] = Length_of_this_Pair[Largest_Index] 
                         
-        print len(Groups_of_this_Pair), " for label pair", Pair, "sizes:", map(len, Groups_of_this_Pair), Largest_Index
+#        print "label pair", Pair, "size(s):", map(len, Groups_of_this_Pair)#, Largest_Index
+        print "label pair", Pair, "size(s):", Length_of_this_Pair
          
     return Largest_Groups, Length_LabelPairs
 
-def gen_shape(Groups, LUTs, Table_File, Length):
-    '''Generate shape table for this hemisphere and write to TSV file
+def gen_shape(Groups, LUTs, AvgFile, IdvFile,  Length):
+    '''Generate two kinds of shape tables for this hemisphere and write to TSV files
     
     Parameters
     ==========
@@ -291,11 +311,22 @@ def gen_shape(Groups, LUTs, Table_File, Length):
     Length: dictionary 
         Keys are label pairs (as 4-digit integer) and values are lengths of the largest component of corresponding label pairs
      
+    AvgFile: string
+        File path to save averages of shape measures 
+        
+    IdvFile: string
+        File path to save shape measures of every vertex on longest fundus component of a label pair
+    
+    Notes
+    ========
+    
+    We generate two kinds of shape tables here. One for averages of shape measures. One for all fundus vertexes.  
+    
     '''
     
     from numpy import mean
     
-    FP = open(Table_File, 'w')
+    FP = open(AvgFile, 'w')
     FP.write('label_pair \t curvature \t depth \t thickness \t convexity \t length \n')
     
     for LabelPair in Groups.keys():
@@ -306,6 +337,19 @@ def gen_shape(Groups, LUTs, Table_File, Length):
         FP.write('\n')
 
     FP.close()
+    
+    FP = open(IdvFile, 'w')
+    FP.write('label_pair \t curvature \t depth \t thickness \t convexity \t length \n')
+    
+    for LabelPair, Fundus_Vertexes in Groups.iteritems():
+        for Vertex in Fundus_Vertexes:
+            FP.write(str(LabelPair) + '\t')
+            [FP.write(str(LUT[Vertex]) + ' \t ') for LUT in LUTs] 
+            FP.write(str(Length[LabelPair]))
+            FP.write('\n')
+
+    FP.close()
+    
     return 0
 
 def gen_shape_all(Path, Common, LabelPair_All, LUT_All, Fundus_Vertex_All, Fundus_Line_All):
@@ -341,30 +385,40 @@ def gen_shape_all(Path, Common, LabelPair_All, LUT_All, Fundus_Vertex_All, Fundu
     Count = 0
      
     import os
+    import pyvtk
     
     for Hemi in ['/surf/lh','/surf/rh']:
         for Subj in os.listdir(Path):
             if len(Subj) == 5: # for MDD subjects
-                TableFile = './Shape/' + Subj + Hemi[len(Hemi)-Hemi[::-1].find('/'):] + '.tsv'
-                Group, Lengths = largest_groups(Common, Fundus_Line_All[Count], Fundus_Vertex_All[Count], LabelPair_All[Count])
-                gen_shape(Group, LUT_All[Count], TableFile, Lengths)
+                print Subj + Hemi[len(Hemi)-Hemi[::-1].find('/'):]
+                AvgFile = './Shape_Travel/' + Subj + Hemi[len(Hemi)-Hemi[::-1].find('/'):] + '.avg.tsv'
+                IdvFile = './Shape_Travel/' + Subj + Hemi[len(Hemi)-Hemi[::-1].find('/'):] + '.idv.tsv'
+                
+                # load Vertexes from here
+                VTKFile = Path + Subj + Hemi + '.pial.vtk'
+                print "Loading coordinates from", VTKFile
+                Data = pyvtk.VtkData(VTKFile)
+                Vertexes = Data.structure.points
+                # end load Vertexes from here
+                
+                Group, Lengths = largest_groups(Common, Fundus_Line_All[Count], Fundus_Vertex_All[Count], LabelPair_All[Count], Vertexes)
+                gen_shape(Group, LUT_All[Count], AvgFile, IdvFile, Lengths)
                 Count += 1
                 
-                if Count == 2:  # for quick debugging 
-                    return 0
+#                if Count == 2:  # for quick debugging 
+#                    return 0
                  
-    return 0 
+    return 0
 # now something real 
 
 import cPickle
 
-S,L,FV,FL = load_multi_segs('/forrest/data/MRI/MDD/', Quit= 5)
-
+#S,L,FV,FL = load_multi_segs('/forrest/data/MRI/MDD/', '.travel.depth.depth.fundi.seg.vtk', Quit= 500)
 #with open('labels.pickle', 'w') as f:
 #    cPickle.dump([S,L,FV,FL], f)
 
-#with open('labels_core.pickle') as f:
-#    S,L,FV,FL = cPickle.load(f)
+with open('labels.pickle') as f:
+    S,L,FV,FL = cPickle.load(f)
 
 Common = common_pairs(S)
 
