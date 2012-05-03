@@ -208,10 +208,16 @@ def judgeFace1(FaceID, FaceDB, CurvatureDB, Threshold = 0):
     """
     
     [V0, V1, V2] = FaceDB[FaceID]
-    if (CurvatureDB[V0] > Threshold) and (CurvatureDB[V1] > Threshold) and (CurvatureDB[V2] > Threshold):
-        return True
-    else:
+##    
+#    if (CurvatureDB[V0] > Threshold) and (CurvatureDB[V1] > Threshold) and (CurvatureDB[V2] > Threshold):
+#        return True
+#    else:
+#        return False
+##
+    if (CurvatureDB[V0] <= Threshold) or (CurvatureDB[V1] <= Threshold) or (CurvatureDB[V2] <= Threshold):
         return False
+    else:
+        return True    
 
 def sulciCover(SulciList, FaceDB):
     '''Add a polygon cover for an extracted sulcus
@@ -354,10 +360,8 @@ def all_same(items):
 #    return B, C, Child
 ## End of Commented Forrest 2012-02-11
 
-def pits(CurvDB, VrtxNbrLst, VrtxCmpnt): 
-    '''My  algorithm to find pits (lowest point in each pond) and pond hierarchies.
-     
-    Docs for this function is in GDoc
+def univariate_pits(CurvDB, VrtxNbrLst, VrtxCmpnt, Thld): 
+    '''Finding pits using one variable, e.g., depth. 
      
     '''
     
@@ -420,18 +424,65 @@ def pits(CurvDB, VrtxNbrLst, VrtxCmpnt):
 #            elif : # the vertex's neighbor are not fully in the component 
             else:
                 M += 1
-                B.append(Vrtx)
+                if CurvDB[Vrtx] > Thld:
+                    B.append(Vrtx)
                 End[M] = False
                 C[Vrtx] = M
     return B, C, Child
 
-def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0):
+def getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0):
+    '''Only extract sulci. No Pits.
+    
+    Parameters
+    ============
+        MapBasin: list
+            a per-vertex map, e.g., curvature map, for extract sulcal basin
+          
+        Mesh: 2-tuple of lists
+            the first list has coordinates of vertexes while the second defines triangles on the mesh
+            This is a mandatory surface, normally a non-inflated surface. 
+            
+        Mesh2: 2-tuple of lists
+            the first list has coordinates of vertexes while the second defines triangles on the mesh
+            This is an optional surface, normally an inflated surface.
+            Default = []
+
+        PrefixBasin: string
+            the prefix for all outputs that are only related to basin extraction,
+            e.g., connected components, basins and gyri. 
+
+        Threshold: float
+            the value to threshold the surface       
+    
+    '''
+    [Vertexes, Face] = Mesh
+    if Mesh2 != []:
+        [Vertexes2, Face2] = Mesh2
+        
+    Basin, Gyri = basin(Face, MapBasin, PrefixBasin, Threshold = Threshold)
+    BasinFile = PrefixBasin + '.basin'
+    
+    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+    if PrefixBasin[::-1].find('/') == -1:
+        LastSlash = 0
+    else:
+        LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+#    print "LastSlash=",LastSlash 
+    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
+#    print "Hemi=", Hemi
+
+    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
+    FcNbr   = fcNbrLst(Face, Hemi)
+    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
+
+
+def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0, Quick=False):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
     
-    Input
-    =====   
+    Parameters
+    =============
         MapBasin: list
             a per-vertex map, e.g., curvature map, for extract sulcal basin
 
@@ -447,6 +498,14 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
             This is an optional surface, normally an inflated surface.
             Default = []
 
+        PrefixBasin: string
+            the prefix for all outputs that are only related to basin extraction,
+            e.g., connected components, basins and gyri. 
+
+        PrefixExtract: string
+            the prefix for all outputs that are the result of extraction,
+            e.g., pits and fundi.
+
         FileBasin: string
             path to the per-vertex file that is used to threshold the surface
         
@@ -459,11 +518,16 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
         SurfFile2: string
             path to the 2nd surface file
             
-        Threshold: integer
+        Threshold: float
             the value to threshold the surface
+            
+        PitsThld: float
+            vertexes deeper than this value can be considered as pits
 
     '''
       
+    print "\t thresholding the surface using threshold = ", Threshold
+    
     [Vertexes, Face] = Mesh
     if Mesh2 != []:
         [Vertexes2, Face2] = Mesh2
@@ -479,57 +543,55 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
 
     VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
     FcNbr   = fcNbrLst(Face, Hemi)
-    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
+    if not Quick:
+        FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
     
-    # write component ID as LUT into basin file. 
-    CmpntLUT = [-1 for i in xrange(0, len(MapBasin))]
-    for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
-        for Vrtx in Cmpnt:
-            CmpntLUT[Vrtx] = CmpntID
-    # end of write component ID as LUT into basin file.
-
-    Pits, Parts, Child = pits(mapExtract, VrtxNbr, Threshold = 0.3 - mean(mapExtract))
-
-#    FPits = open(PrefixExtract + '.pits', 'w')
-#    cPickle.dump(Pits, FPits)
-#    FPits.close()
-#    PitsFile = PrefixExtract + '.pits'
-#    fileio.writeList(PitsFile, Pits)
+        # write component ID as LUT into basin file. 
+        CmpntLUT = [-1 for i in xrange(0, len(MapBasin))]
+        for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
+            for Vrtx in Cmpnt:
+                CmpntLUT[Vrtx] = CmpntID
+        # end of write component ID as LUT into basin file.
+        
+        # finding the proper depth threshold for pits is tricking. the code below are commented. 
+#        DeepHalf = []
+#        for i in xrange(0,len(VrtxCmpnt)):
+#            if mapExtract[i] > median(mapExtract): 
+#                DeepHalf.append(mapExtract[i])
+#        print len(DeepHalf)
+        PitsThld = 0 # 
+        Pits, Parts, Child = univariate_pits(mapExtract, VrtxNbr, VrtxCmpnt, PitsThld)
+    else:
+        print "\t\t GETTING SULCI ONLY"
 
     # dump basin
     print "writing basins into VTK files"
-## commented to use pyvtk API's to output, Forrest 2011-01-08 
-#    VTKFile = BasinFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#    libvtk.fcLst2VTK(VTKFile, SurfFile, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
-## end of commented to use pyvtk API's to output, Forrest 2011-01-08 
 
 # basin pyvtk output
-    from pyvtk import PolyData, PointData, Scalars, VtkData
+    import pyvtk
     Face = [map(int,i) for i in Face]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
     Vertexes = map(list, Vertexes)
-    Structure = PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
-    Pointdata = PointData(Scalars(MapBasin,name='PerVertex'), Scalars(CmpntLUT,name='CmpntID'),\
-                          Scalars(Parts,name='hierarchy'))
-    VtkData(Structure, Pointdata).tofile(PrefixBasin + '.basin.vtk','ascii')
+    Structure = pyvtk.PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
+    if Quick:
+        Pointdata = pyvtk.PointData(pyvtk.Scalars(MapBasin,name='ThresholdFeature'),\
+                                    pyvtk.Scalars(mapExtract,name='ExtractFeature'))
+#                                pyvtk.Scalars(Parts,name='hierarchy'))
+    else: # regular pits extraction case
+        Pointdata = pyvtk.PointData(pyvtk.Scalars(MapBasin,name='ThresholdFeature'),\
+                                    pyvtk.Scalars(mapExtract,name='ExtractFeature'),\
+                                    pyvtk.Scalars(CmpntLUT,name='CmpntID'),\
+                                    pyvtk.Scalars(Parts,name='hierarchy'))
+    pyvtk.VtkData(Structure, Pointdata).tofile(PrefixBasin + '.basin.vtk','ascii')
 # end of basin pyvtk output
-
-## commented to use pyvtk API's to output, Forrest 2011-01-08    
-#    VTKFile = GyriFile + '.' + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#    libvtk.fcLst2VTK(VTKFile, SurfFile, GyriFile)
-## end of commented to use pyvtk API's to output, Forrest 2011-01-08
     
-    VtkData(PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.vtk','ascii')
+#    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.vtk','ascii')
             
     if Mesh2 != []: 
-        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin])).tofile(PrefixBasin + '.basin.2nd.vtk','ascii')
-        VtkData(PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.2nd.vtk','ascii')
-## commented to use pyVTK         
-#        VTKFile = BasinFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#        libvtk.fcLst2VTK(VTKFile, SurfFile2, BasinFile, LUT=[mapThreshold, Parts, CmpntLUT], LUTname=['PerVertex', 'hierarchy', 'CmpntID'])
-#    
-#        VTKFile = GyriFile + '.' + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#        libvtk.fcLst2VTK(VTKFile, SurfFile2, GyriFile)
-## end of commented to use pyvtk
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin]), Pointdata).tofile(PrefixBasin + '.basin.2nd.vtk','ascii')
+#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.2nd.vtk','ascii')
+
+    if Quick:
+        exit()
         
     # End of dump basin
 
@@ -540,14 +602,14 @@ def getBasin(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Thre
 #    libvtk.vrtxLst2VTK(VTKFile, SurfFile, PitsFile)
 ## commented to use pyvtk API's to output, Forrest 2011-01-08
 
-    VtkData(PolyData(points=Vertexes, vertices=Pits)).tofile(PrefixExtract + '.pits.vtk','ascii')
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, vertices=Pits)).tofile(PrefixExtract + '.pits.vtk','ascii')
     
 ## a testing code to write pits and basin all together
  
 ## end of a testing code to write pits and basin all together
 
     if Mesh2 != []:
-        VtkData(PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.pits.2nd.vtk','ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, vertices=Pits)).tofile(PrefixExtract + '.pits.2nd.vtk','ascii')
 #        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
 #        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
     # End of write pits

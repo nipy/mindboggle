@@ -1,5 +1,38 @@
-# Read in 21 FreeSurfer *.annot files and output one VTK file of all consistent labels for vertexes
- 
+# For every hemisphere, read in 21 FreeSurfer *.annot files (21 atlases to one hemisphere) and output one VTK file of majority labels for vertexes
+# The main function is labeling(). The last few lines calls this function while traversing a path. 
+# labels are 0-indexing because we used read_annot
+
+def label_combine(Label):
+    '''Replace some labels by combined labels. 
+
+    Parameters
+    ============
+        Label: integer
+            label of a vertex
+
+    Returns
+    =========
+
+        no variable. Direct return. 
+
+    Notes
+    ======= 
+        Label combination:
+        2= 2,10,23,26
+        3= 3, 27
+        18=18,19,20
+
+    '''
+
+    if Label == 10 or Label == 23 or Label == 26:
+        return 2
+    elif Label == 27:
+        return 3
+    elif Label == 19 or Label == 20:
+        return 18
+    else:
+        return Label
+
 def read_annot(filepath, orig_ids=False):
     """Read in a Freesurfer annotation from a .annot file.
     From https://github.com/nipy/PySurfer/blob/master/surfer/io.py
@@ -138,11 +171,11 @@ def load21(AnnotPath, Subject):
     LeftLabels, RightLabels = [], []
     for File in LeftFiles:
         Labels, ColorTable, Names = read_annot(AnnotPath+File)
-        LeftLabels.append(Labels)
+        LeftLabels.append(map(label_combine,Labels))
 
     for File in RightFiles:
         Labels, ColorTable, Names = read_annot(AnnotPath+File)
-        RightLabels.append(Labels)
+        RightLabels.append(map(label_combine,Labels))
     
     print "21 annotations loaded"
     
