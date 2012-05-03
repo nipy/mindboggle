@@ -96,8 +96,6 @@ void MeshAnalyser::Initialize()
     this->geoDistRing=vtkDoubleArray::New();
     this->geoDistRingSimple=vtkDoubleArray::New();
     this->curv=vtkDoubleArray::New();
-    this->curv1=vtkDoubleArray::New();
-    this->curv2=vtkDoubleArray::New();
     this->gCurv=vtkDoubleArray::New();
     this->totalSurface=0;
     this->totalSurfaceSimple=0;
@@ -127,8 +125,6 @@ MeshAnalyser::~MeshAnalyser()
     this->geoDistRing->Delete();
     this->geoDistRingSimple->Delete();
     this->curv->Delete();
-    this->curv1->Delete();
-    this->curv2->Delete();
     this->gCurv->Delete();
     this->inRing->Delete();
     this->inRingSimple->Delete();
@@ -558,6 +554,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     //If no valid code is used, the index of the point is the scalar
     else
     {
+/*
         vtkDoubleArray* noValue=vtkDoubleArray::New();
 
         for(int i=0;i<this->nbPoints;i++)
@@ -566,6 +563,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         }
         this->mesh->GetPointData()->SetScalars(noValue);
         noValue->Delete();
+*/
     }
 
 
@@ -1547,6 +1545,12 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     double ec;
 
+    double maxCurv=-10;  // added Forrest 2012-03-05
+    double minCurv=1000;  // added Forrest 2012-03-05
+    double maxgCurv=-10;  // added Forrest 2012-03-05
+    double mingCurv=1000;  // added Forrest 2012-03-05
+
+
     for(int i = 0 ; i<this->nbPoints ; i++)
     {
         GetPointNeighbors(i, neib);
@@ -1598,7 +1602,29 @@ void MeshAnalyser::ComputePrincipalCurvatures()
         this->gCurv->InsertNextValue(maxD*minD);
 
         this->test->InsertNextValue(maxD-fabs(minD));
+
+        /*added Forrest 2012-03-05*/
+        double MCurv = (maxD+minD)/2;
+	double GCurv = maxD*minD;
+        if(MCurv<minCurv)minCurv=MCurv;
+        if(MCurv>maxCurv)maxCurv=MCurv;
+        if(GCurv<mingCurv)mingCurv=GCurv;
+        if(GCurv>maxgCurv)maxgCurv=GCurv;
+        /*end of added Forrest 2012-03-05*/
+
+    }  // End of for i in 0 to nbPoints
+
+    /* added Forrest 2012-03-05 */ 
+    double curCurv;
+    for(int i=0;i<this->nbPoints;i++)
+    {
+        curCurv=this->curv->GetValue(i);
+        this->curv->SetValue(i,(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1);
+        curCurv=this->gCurv->GetValue(i);
+        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
     }
+    /* end of added Forrest 2012-03-05 */ 
+
 }
 
 void MeshAnalyser::ComputeVoronoi(vtkIdList* centroidsList, double maxDist)
@@ -1695,93 +1721,115 @@ void MeshAnalyser::ComputeHistogram(char* prop, int nbBins)
 void MeshAnalyser::ComputeClosedMesh()
 {
 
+    int recPlan=3;
 
-    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
-    double bounds[6];
-    this->mesh->GetBounds(bounds);
-    double spacing[3]; // desired volume spacing
-    spacing[0] = 2;
-    spacing[1] = 2;
-    spacing[2] = 2;
-    whiteImage->SetSpacing(spacing);
-    double sk = 5;
-    double sec = 1.5;
+    vtkHull *hull = vtkHull::New();
+    hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->AddRecursiveSpherePlanes(recPlan);
+    hull->Update();
 
-    for(int i = 0; i < 3 ; i++)
-    {
-        bounds[2*i] -= sec*sk;
-        bounds[2*i+1] += sec*sk;
-    }
+    vtkTriangleFilter* triFil = vtkTriangleFilter::New();
+    triFil->SetInputConnection(hull->GetOutputPort());
+    triFil->Update();
 
+    vtkLinearSubdivisionFilter* sub = vtkLinearSubdivisionFilter::New();
+    sub->SetInputConnection(triFil->GetOutputPort());
+    sub->SetNumberOfSubdivisions(3);
+    sub->Update();
 
-    // compute dimensions
-    int dim[3];
-    for (int i = 0; i < 3; i++)
-    {
-        dim[i] = static_cast<int>(ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]));
-    }
-    whiteImage->SetDimensions(dim);
-    whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+    vtkSmoothPolyDataFilter* smooth = vtkSmoothPolyDataFilter::New();
+    smooth->SetInputConnection(sub->GetOutputPort());
+    smooth->SetSource(this->mesh);
+    smooth->Update();
 
-    double origin[3];
-    // NOTE: I am not sure whether or not we had to add some offset!
-    origin[0] = bounds[0];// + spacing[0] / 2;
-    origin[1] = bounds[2];// + spacing[1] / 2;
-    origin[2] = bounds[4];// + spacing[2] / 2;
-    whiteImage->SetOrigin(origin);
+    this->closedMesh->DeepCopy(smooth->GetOutput());
 
-    whiteImage->SetScalarTypeToUnsignedChar();
-    whiteImage->AllocateScalars();
+//    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+//    double bounds[6];
+//    this->mesh->GetBounds(bounds);
+//    double spacing[3]; // desired volume spacing
+//    spacing[0] = 2;
+//    spacing[1] = 2;
+//    spacing[2] = 2;
+//    whiteImage->SetSpacing(spacing);
+//    double sk = 5;
+//    double sec = 1.5;
 
-    // fill the image with foreground voxels:
-    unsigned char inval = 255;
-    unsigned char outval = 0;
-    vtkIdType count = whiteImage->GetNumberOfPoints();
-    for (vtkIdType i = 0; i < count; ++i)
-    {
-        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-    }
-
-    // polygonal data --> image stencil:
-    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-    pol2stenc->SetInput(this->mesh);
-    pol2stenc->SetOutputOrigin(origin);
-    pol2stenc->SetOutputSpacing(spacing);
-    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-    pol2stenc->Update();
-
-    // cut the corresponding white image and set the background:
-    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
-    imgstenc->SetInput(whiteImage);
-    imgstenc->SetStencil(pol2stenc->GetOutput());
-    imgstenc->ReverseStencilOff();
-    imgstenc->SetBackgroundValue(outval);
-    imgstenc->Update();
-
-    //Dilatation
-    vtkImageContinuousDilate3D *dilate = vtkImageContinuousDilate3D::New();
-    dilate->SetInputConnection(imgstenc->GetOutputPort());
-    //sk is the size of the dilation kernel in each direction
+//    for(int i = 0; i < 3 ; i++)
+//    {
+//        bounds[2*i] -= sec*sk;
+//        bounds[2*i+1] += sec*sk;
+//    }
 
 
-    dilate->SetKernelSize(sk,sk,sk);
-    dilate->UpdateWholeExtent();
+//    // compute dimensions
+//    int dim[3];
+//    for (int i = 0; i < 3; i++)
+//    {
+//        dim[i] = static_cast<int>(ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]));
+//    }
+//    whiteImage->SetDimensions(dim);
+//    whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+//    double origin[3];
+//    // NOTE: I am not sure whether or not we had to add some offset!
+//    origin[0] = bounds[0];// + spacing[0] / 2;
+//    origin[1] = bounds[2];// + spacing[1] / 2;
+//    origin[2] = bounds[4];// + spacing[2] / 2;
+//    whiteImage->SetOrigin(origin);
+
+//    whiteImage->SetScalarTypeToUnsignedChar();
+//    whiteImage->AllocateScalars();
+
+//    // fill the image with foreground voxels:
+//    unsigned char inval = 255;
+//    unsigned char outval = 0;
+//    vtkIdType count = whiteImage->GetNumberOfPoints();
+//    for (vtkIdType i = 0; i < count; ++i)
+//    {
+//        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+//    }
+
+//    // polygonal data --> image stencil:
+//    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+//    pol2stenc->SetInput(this->mesh);
+//    pol2stenc->SetOutputOrigin(origin);
+//    pol2stenc->SetOutputSpacing(spacing);
+//    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
+//    pol2stenc->Update();
+
+//    // cut the corresponding white image and set the background:
+//    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
+//    imgstenc->SetInput(whiteImage);
+//    imgstenc->SetStencil(pol2stenc->GetOutput());
+//    imgstenc->ReverseStencilOff();
+//    imgstenc->SetBackgroundValue(outval);
+//    imgstenc->Update();
+
+//    //Dilatation
+//    vtkImageContinuousDilate3D *dilate = vtkImageContinuousDilate3D::New();
+//    dilate->SetInputConnection(imgstenc->GetOutputPort());
+//    //sk is the size of the dilation kernel in each direction
 
 
-    //Erosion
-    vtkImageContinuousErode3D *erode = vtkImageContinuousErode3D::New();
-    erode->SetInputConnection(dilate->GetOutputPort());
-    erode->SetKernelSize(sk,sk,sk);
-    erode->UpdateWholeExtent();
+//    dilate->SetKernelSize(sk,sk,sk);
+//    dilate->UpdateWholeExtent();
 
-    vtkMarchingContourFilter* imc3=vtkMarchingContourFilter::New();
-    imc3->SetInputConnection(erode->GetOutputPort());
-    imc3->SetValue(0,100);
-    imc3->UpdateWholeExtent();
 
-    this->closedMesh->DeepCopy(imc3->GetOutput());
+//    //Erosion
+//    vtkImageContinuousErode3D *erode = vtkImageContinuousErode3D::New();
+//    erode->SetInputConnection(dilate->GetOutputPort());
+//    erode->SetKernelSize(sk,sk,sk);
+//    erode->UpdateWholeExtent();
 
-    cout<<"Closed mesh computed"<<endl;
+//    vtkMarchingContourFilter* imc3=vtkMarchingContourFilter::New();
+//    imc3->SetInputConnection(erode->GetOutputPort());
+//    imc3->SetValue(0,100);
+//    imc3->UpdateWholeExtent();
+
+//    this->closedMesh->DeepCopy(imc3->GetOutput());
+
+//    cout<<"Closed mesh computed"<<endl;
 
 }
 
