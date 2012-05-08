@@ -13,10 +13,13 @@ INCLUDE(${VTK_USE_FILE})
 
 ADD_SUBDIRECTORY(
 travel_depth
+medial_surface
 )
 
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 VtkFileEditor VtkFileEditor.cpp
+FsSurfaceReader FsSurfaceReader.cpp
+MedialSurfaceComputer MedialSurfaceComputer.cpp
 )
 
