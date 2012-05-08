@@ -1,0 +1,25 @@
+digraph structs {
+node [shape=record];
+pipelineData [label="{IN}|{ Data | io |  }|{OUT|<outcurvaturefile> curvature_file|<outsurfacefile> surface_file}"];
+pipelineExtract_features [label="{IN|<incurvaturefile> curvature_file|<insurfacefile> surface_file}|{ Extract_features | utility |  }|{OUT|<outfeaturefiles> feature_files}"];
+pipelineStore_features [label="{IN|<infeature> feature}|{ Store_features | utility |  }|{OUT}"];
+pipelineMeasure_curvature [label="{IN|<infeature> feature}|{ Measure_curvature | utility |  }|{OUT|<outcurvature> curvature}"];
+pipelineMeasure_depth [label="{IN|<infeature> feature}|{ Measure_depth | utility |  }|{OUT|<outdepth> depth}"];
+pipelineMeasure_spectra [label="{IN|<infeature> feature}|{ Measure_spectra | utility |  }|{OUT|<outspectra> spectra}"];
+pipelineMeasure_extent [label="{IN|<infeature> feature}|{ Measure_extent | utility |  }|{OUT|<outextent> extent}"];
+pipelineMeasure_position [label="{IN|<infeature> feature}|{ Measure_position | utility |  }|{OUT|<outposition> position}"];
+pipelineStore_measures [label="{IN|<incurvature> curvature|<indepth> depth|<inextent> extent|<inposition> position|<inspectra> spectra}|{ Store_measures | utility |  }|{OUT}"];
+pipelineData:outcurvaturefile:e -> pipelineExtract_features:incurvaturefile:w;
+pipelineData:outsurfacefile:e -> pipelineExtract_features:insurfacefile:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineMeasure_curvature:infeature:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineMeasure_depth:infeature:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineMeasure_extent:infeature:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineMeasure_position:infeature:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineMeasure_spectra:infeature:w;
+pipelineExtract_features:outfeaturefiles:e -> pipelineStore_features:infeature:w;
+pipelineMeasure_curvature:outcurvature:e -> pipelineStore_measures:incurvature:w;
+pipelineMeasure_depth:outdepth:e -> pipelineStore_measures:indepth:w;
+pipelineMeasure_extent:outextent:e -> pipelineStore_measures:inextent:w;
+pipelineMeasure_position:outposition:e -> pipelineStore_measures:inposition:w;
+pipelineMeasure_spectra:outspectra:e -> pipelineStore_measures:inspectra:w;
+}
