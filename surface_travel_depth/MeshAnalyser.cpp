@@ -52,6 +52,9 @@
 
 #include <vtkExtractEdges.h>
 
+#include <vtkLinearSubdivisionFilter.h>
+
+
 MeshAnalyser::MeshAnalyser(char* fileName)
 {
 
