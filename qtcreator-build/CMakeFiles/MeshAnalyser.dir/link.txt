@@ -1,0 +1,2 @@
+/usr/bin/ar cr libMeshAnalyser.a  CMakeFiles/MeshAnalyser.dir/MeshAnalyser.cpp.o CMakeFiles/MeshAnalyser.dir/VtkFileEditor.cpp.o CMakeFiles/MeshAnalyser.dir/FsSurfaceReader.cpp.o CMakeFiles/MeshAnalyser.dir/MedialSurfaceComputer.cpp.o
+/usr/bin/ranlib libMeshAnalyser.a
