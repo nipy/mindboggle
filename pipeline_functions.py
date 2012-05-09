@@ -18,22 +18,68 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def extract_features(surface_file, curvature_file):
-    """Extract features: sulcus, medial surface, fundi, and pits
+def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract sulci
 
-    extract_features('../data/lh.curv','../data/lh.pial')
+    extract_sulci
     """
     from glob import glob
     import subprocess as sp
-    cmd = '/projects/mindboggle/mindboggle/extract/fundi/extract.py'
-    cmd = ['python', cmd, '%s'%curvature_file, '%s'%surface_file]
+    cmd = 'feature = extract/sulci/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
     proc = sp.Popen(cmd)
     o, e = proc.communicate()
     if proc.returncode > 0 :
         raise Exception('\n'.join(['extract.py failed', o, e]))
     #output_file = glob('file1.vtk').pop()
-    feature_files = glob('*.vtk')
-    return feature_files
+    #feature_files = glob('*.vtk')
+    #return feature_files
+    return sulci
+
+def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract fundi
+
+    extract_fundi
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/fundi/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return fundi
+
+def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract pits
+
+    extract_pits
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/pits/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return pits
+
+def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract medial
+
+    extract_medial
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/medial/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return medial
 
 def measure_position(feature):
     """Measure
@@ -73,16 +119,6 @@ def measure_curvature(feature):
     from measure.py import measure_curvature
     if type(feature) is np.ndarray:
         measurement = measure_curvature(feature)
-    return measurement
-
-def measure_depth(feature):
-    """Measure
-
-    measure_()
-    """
-    from measure.py import measure_depth
-    if type(feature) is np.ndarray:
-        measurement = measure_depth(feature)
     return measurement
 
 def measure_LaplaceBeltrami(feature):
