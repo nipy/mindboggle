@@ -24,6 +24,40 @@ import nipype.interfaces.io as nio
 import numpy as np
 from pipeline_functions import *
 
+"""
+def create_extraction_workflow():
+    Create a feature extraction workflow
+    # Create an instance of a workflow
+    flow = pe.Workflow(name='Feature_extraction_pipeline')
+    flow.base_dir = '.'
+
+    # Define nodes
+
+    # Feature extraction node
+    features = pe.MapNode(util.Function(input_names=['surface_file',
+                                                     'curvature_file'],
+                                        output_names=['feature_files'],
+                                        function = extract_features),
+                          iterfield=['surface_file','curvature_file'],
+                          name='Extract_features')
+
+    #def create_extraction_flow():
+    #    Create a feature extraction workflow
+    #    # Create an instance of a workflow
+    #    extraction_flow = pe.Workflow(name='FeatureExtraction')
+    #    extraction_flow.base_dir = '.'
+    #def create_measurement_workflow():
+    #    Create a shape measurement workflow
+    #    # Create an instance of a workflow
+    #    measurement_flow = pe.Workflow(name='Measurement')
+    #    measurement_flow.base_dir = '.'
+    #def create_database_workflow():
+    #    Create a write-to-database workflow
+    #    # Create an instance of a workflow
+    #    database_flow = pe.Workflow(name='Database')
+    #    database_flow.base_dir = '.'
+"""
+
 def create_workflow():
     """Create a Mindboggle workflow"""
 
@@ -32,22 +66,6 @@ def create_workflow():
     flow = pe.Workflow(name='pipeline')
     flow.base_dir = '.'
 
-    #def create_extraction_flow():
-    #    """Create a feature extraction workflow"""
-    #    # Create an instance of a workflow
-    #    extraction_flow = pe.Workflow(name='FeatureExtraction')
-    #    extraction_flow.base_dir = '.'
-    #def create_measurement_workflow():
-    #    """Create a shape measurement workflow"""
-    #    # Create an instance of a workflow
-    #    measurement_flow = pe.Workflow(name='Measurement')
-    #    measurement_flow.base_dir = '.'
-    #def create_database_workflow():
-    #    """Create a write-to-database workflow"""
-    #    # Create an instance of a workflow
-    #    database_flow = pe.Workflow(name='Database')
-    #    database_flow.base_dir = '.'
-
     # Define nodes
 
     # DataGrabber node
@@ -55,6 +73,7 @@ def create_workflow():
                                                    outfields=['surface_file',
                                                               'curvature_file']),
                          name = 'Data')
+
     # Feature extraction node
     features = pe.MapNode(util.Function(input_names=['surface_file',
                                                      'curvature_file'],
@@ -62,6 +81,7 @@ def create_workflow():
                                         function = extract_features),
                           iterfield=['surface_file','curvature_file'],
                           name='Extract_features')
+
     # Shape measurement nodes
     position = pe.MapNode(util.Function(input_names = ['feature'],
                                         output_names=['position'],
@@ -88,6 +108,7 @@ def create_workflow():
                                        function = measure_LaplaceBeltrami),
                          iterfield=['feature'],
                          name='Measure_spectra')
+
     # Database nodes
     featuresDB = pe.MapNode(util.Function(input_names = ['feature'],
                                           output_names=['success'],
@@ -122,6 +143,7 @@ def create_workflow():
     flow.connect(depth, 'depth', measuresDB, 'depth')
     flow.connect(spectra, 'spectra', measuresDB, 'spectra')
     return flow
+
 
 if __name__ == '__main__':
     flow = create_workflow()
