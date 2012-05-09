@@ -70,78 +70,155 @@ def create_workflow():
 
     # DataGrabber node
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                   outfields=['surface_file',
-                                                              'curvature_file']),
+                                                   outfields=['surface_file']),
                          name = 'Data')
 
-    # Feature extraction node
-    features = pe.MapNode(util.Function(input_names=['surface_file',
-                                                     'curvature_file'],
-                                        output_names=['feature_files'],
-                                        function = extract_features),
-                          iterfield=['surface_file','curvature_file'],
-                          name='Extract_features')
+    # Measure surface maps node
+    maps = pe.MapNode(util.Function(input_names = ['surface_file'],
+                                    output_names=['depth_map',
+                                                  'mean_curvature_map',
+                                                  'gauss_curvature_map'],
+                                    function = measure_depth),
+                      iterfield=['surface_file'],
+                      name='Measure_surface_maps')
 
+    # Feature extraction nodes
+    sulci = pe.MapNode(util.Function(input_names=['surface_file',
+                                                  'depth_map',
+                                                  'mean_curvature_map',
+                                                  'gauss_curvature_map'],
+                                     output_names=['sulci'],
+                                     function = extract_sulci),
+                       iterfield=['surface_file'],
+                       name='Extract_sulci')
+    fundi = pe.MapNode(util.Function(input_names=['surface_file',
+                                                  'depth_map',
+                                                  'mean_curvature_map',
+                                                  'gauss_curvature_map'],
+                                     output_names=['fundi'],
+                                     function = extract_fundi),
+                       iterfield=['surface_file'],
+                       name='Extract_fundi')
+    pits = pe.MapNode(util.Function(input_names=['surface_file',
+                                                 'depth_map',
+                                                 'mean_curvature_map',
+                                                 'gauss_curvature_map'],
+                                    output_names=['pits'],
+                                    function = extract_pits),
+                      iterfield=['surface_file'],
+                      name='Extract_pits')
+    medial = pe.MapNode(util.Function(input_names=['surface_file',
+                                                   'depth_map',
+                                                   'mean_curvature_map',
+                                                   'gauss_curvature_map'],
+                                      output_names=['medial'],
+                                      function = extract_medial),
+                        iterfield=['surface_file'],
+                        name='Extract_medial')
+
+    # Multi-atlas registration
+    """
+    registration = pe.MapNode(util.Function(input_names=['surface_file',
+                                                         'curvature_file'],
+                                            output_names=['feature_files'],
+                                            function = register),
+                              iterfield=['surface_file','curvature_file'],
+                              name='Register_atlases')
+    """
     # Shape measurement nodes
-    position = pe.MapNode(util.Function(input_names = ['feature'],
+    position = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                       'pits','medial'],
                                         output_names=['position'],
                                         function = measure_position),
-                          iterfield=['feature'],
+                          iterfield=['sulci'],
                           name='Measure_position')
-    extent = pe.MapNode(util.Function(input_names = ['feature'],
+    extent = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                     'pits','medial'],
                                       output_names=['extent'],
                                       function = measure_extent),
                         iterfield=['feature'],
                         name='Measure_extent')
-    curvature = pe.MapNode(util.Function(input_names = ['feature'],
+    curvature = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                        'pits','medial'],
                                          output_names=['curvature'],
                                          function = measure_curvature),
                            iterfield=['feature'],
                            name='Measure_curvature')
-    depth = pe.MapNode(util.Function(input_names = ['feature'],
+    depth = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                    'pits','medial'],
                                      output_names=['depth'],
                                      function = measure_depth),
                            iterfield=['feature'],
                            name='Measure_depth')
-    spectra = pe.MapNode(util.Function(input_names = ['feature'],
+    spectra = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                      'pits','medial'],
                                        output_names=['spectra'],
                                        function = measure_LaplaceBeltrami),
                          iterfield=['feature'],
                          name='Measure_spectra')
 
     # Database nodes
-    featuresDB = pe.MapNode(util.Function(input_names = ['feature'],
-                                          output_names=['success'],
-                                          function = write_features_to_database),
-                            iterfield=['feature'],
-                            name='Store_features')
-    measuresDB = pe.MapNode(util.Function(input_names = ['position',
-                                                         'extent',
-                                                         'curvature',
-                                                         'depth',
-                                                         'spectra'],
-                                          output_names=['success'],
-                                          function = write_measures_to_database),
-                            iterfield=['measurement'],
-                            name='Store_measures')
+    featureDB = pe.MapNode(util.Function(input_names = ['sulci','fundi',
+                                                        'pits','medial'],
+                                         output_names=['success'],
+                                         function = write_features_to_database),
+                           iterfield=['feature'],
+                           name='Store_features')
+    measureDB = pe.MapNode(util.Function(input_names = ['position',
+                                                        'extent',
+                                                        'curvature',
+                                                        'depth',
+                                                        'spectra'],
+                                         output_names=['success'],
+                                         function = write_measures_to_database),
+                           iterfield=['measurement'],
+                           name='Store_measures')
 
     # Define connections
-    flow.connect([(datasource,features,[('surface_file','surface_file'),
-                                            ('curvature_file','curvature_file')]
-                    )])
-    flow.connect(features, 'feature_files', position, 'feature')
-    flow.connect(features, 'feature_files', extent, 'feature')
-    flow.connect(features, 'feature_files', curvature, 'feature')
-    flow.connect(features, 'feature_files', depth, 'feature')
-    flow.connect(features, 'feature_files', spectra, 'feature')
+    flow.connect(datasource, 'surface_file', maps, 'surface_file')
+    flow.connect([(maps, sulci, [('depth_map','depth_map'),
+                                 ('mean_curvature_map','mean_curvature_map'),
+                                 ('gauss_curvature_map','gauss_curvature_map')])])
+    flow.connect([(maps, fundi, [('depth_map','depth_map'),
+                                 ('mean_curvature_map','mean_curvature_map'),
+                                 ('gauss_curvature_map','gauss_curvature_map')])])
+    flow.connect([(maps, pits, [('depth_map','depth_map'),
+                                ('mean_curvature_map','mean_curvature_map'),
+                                ('gauss_curvature_map','gauss_curvature_map')])])
+    flow.connect([(maps, medial, [('depth_map','depth_map'),
+                                  ('mean_curvature_map','mean_curvature_map'),
+                                  ('gauss_curvature_map','gauss_curvature_map')])])
+    flow.connect([(sulci,  position,  [('sulci', 'sulci')])])
+    flow.connect([(fundi,  position,  [('fundi', 'fundi')])])
+    flow.connect([(pits,   position,  [('pits',  'pits')])])
+    flow.connect([(medial, position,  [('medial','medial')])])
+    flow.connect([(sulci,  extent,    [('sulci', 'sulci')])])
+    flow.connect([(fundi,  extent,    [('fundi', 'fundi')])])
+    flow.connect([(pits,   extent,    [('pits',  'pits')])])
+    flow.connect([(medial, extent,    [('medial','medial')])])
+    flow.connect([(sulci,  curvature, [('sulci', 'sulci')])])
+    flow.connect([(fundi,  curvature, [('fundi', 'fundi')])])
+    flow.connect([(pits,   curvature, [('pits',  'pits')])])
+    flow.connect([(medial, curvature, [('medial','medial')])])
+    flow.connect([(sulci,  depth,     [('sulci', 'sulci')])])
+    flow.connect([(fundi,  depth,     [('fundi', 'fundi')])])
+    flow.connect([(pits,   depth,     [('pits',  'pits')])])
+    flow.connect([(medial, depth,     [('medial','medial')])])
+    flow.connect([(sulci,  spectra,   [('sulci', 'sulci')])])
+    flow.connect([(fundi,  spectra,   [('fundi', 'fundi')])])
+    flow.connect([(pits,   spectra,   [('pits',  'pits')])])
+    flow.connect([(medial, spectra,   [('medial','medial')])])
 
-    flow.connect(features, 'feature_files', featuresDB, 'feature')
+    flow.connect(sulci,  'sulci',  featureDB, 'sulci')
+    flow.connect(fundi,  'fundi',  featureDB, 'fundi')
+    flow.connect(pits,   'pits',   featureDB, 'pits')
+    flow.connect(medial, 'medial', featureDB, 'medial')
 
-    flow.connect(position, 'position', measuresDB, 'position')
-    flow.connect(extent, 'extent', measuresDB, 'extent')
-    flow.connect(curvature, 'curvature', measuresDB, 'curvature')
-    flow.connect(depth, 'depth', measuresDB, 'depth')
-    flow.connect(spectra, 'spectra', measuresDB, 'spectra')
+    flow.connect(position,  'position',  measureDB, 'position')
+    flow.connect(extent,    'extent',    measureDB, 'extent')
+    flow.connect(curvature, 'curvature', measureDB, 'curvature')
+    flow.connect(depth,     'depth',     measureDB, 'depth')
+    flow.connect(spectra,   'spectra',   measureDB, 'spectra')
     return flow
 
 
@@ -151,8 +228,7 @@ if __name__ == '__main__':
     # Initiate the DataGrabber node with the infield: 'subject_id'
     # and the outfield: 'curv' and 'pial'
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                   outfields=['surface_file',
-                                                              'curvature_file']),
+                                                   outfields=['surface_file']),
                               name = 'DataSource')
     # Specify the location of the data folder
     datasource.inputs.base_directory = '/projects/mindboggle/data/ManualSurfandVolLabels/subjects'
@@ -163,7 +239,6 @@ if __name__ == '__main__':
 
     # Define the arguments for the template
     datasource.inputs.template_args['surface_file'] = [['subject_id', 'pial']]
-    datasource.inputs.template_args['curvature_file'] = [['subject_id', 'curv']]
 
     # Define the list of subjects
     datasource.iterables = ('subject_id', ['KKI2009-14'])
