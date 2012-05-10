@@ -81,6 +81,37 @@ def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return medial
 
+def register_to_template(subject_id):
+    """Register surface to template
+
+    
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = register/surfaces_to_template.py'
+    cmd = ['python', cmd, '%s%s'%(subjects_directory, subject_id),
+           '%s'%template_directory, '%s'%template_name, '%s'%registration_append]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join([cmd + ' failed', o, e]))
+    #return
+
+def multiatlas_label_via_template(subjects_directory, subject_id, 
+                                  output_directory, atlas_list):
+    """Transform the labels from multiple atlases via the template
+    
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = ['python', cmd, '%s%s'%(subjects_directory, subject_id),
+           '%s'%output_directory, '%s'%atlas_list]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join([cmd + ' failed', o, e]))
+    #return 
+
 def measure_position(feature):
     """Measure
 
