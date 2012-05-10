@@ -81,36 +81,76 @@ def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return medial
 
-def register_to_template(subject_id):
+def register_to_template(subject_path,
+                         average_template_path, 
+                         average_template_name):
     """Register surface to template
 
-    
+    Example: /Applications/freesurfer/subjects/bert
+             ./templates_freesurfer/  KKI_2  .sphere_to_OASIStemplate.reg
+             ("KKI" above refers to, for example, "lh.KKI_2.tif")  
     """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = register/surfaces_to_template.py'
-    cmd = ['python', cmd, '%s%s'%(subjects_directory, subject_id),
-           '%s'%template_directory, '%s'%template_name, '%s'%registration_append]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join([cmd + ' failed', o, e]))
-    #return
+    import os
 
-def multiatlas_label_via_template(subjects_directory, subject_id, 
-                                  output_directory, atlas_list):
-    """Transform the labels from multiple atlases via the template
-    
+    registration_name = 'sphere_to_template.reg'
+
+    for hemi in ['lh','rh']:
+        average_template_file = os.join(average_template_path,
+                                        hemi + '.' + \
+                                        average_template_name + '.tif')
+
+        input_file = subject_path + '/surf/' + h + '.sphere'
+        output_file = subject_path + '/surf/' + h + registration_name
+        args = ['mris_register -curv',
+                input_file,
+                average_template_file,
+                output_file]
+        print(' '.join(args));
+        #os.system(' '.join(args)); # p = Popen(args);
+        proc = sp.Popen(args)
+        o, e = proc.communicate()
+        if proc.returncode > 0 :
+            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        #return
+
+def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
+    """Transform the labels from multiple atlases via a template
+
+    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
+    wraps command **mri_surf2surf**:
+    "Transform a surface file from one subject to another via a spherical registration.
+    Both the source and target subject must reside in your Subjects Directory,
+    and they must have been processed with recon-all, unless you are transforming
+    to one of the icosahedron meshes."
     """
-    from glob import glob
-    import subprocess as sp
-    cmd = ['python', cmd, '%s%s'%(subjects_directory, subject_id),
-           '%s'%output_directory, '%s'%atlas_list]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join([cmd + ' failed', o, e]))
-    #return 
+    import os
+    from nipype.interfaces.freesurfer import SurfaceTransform
+
+    annot_file = 'aparcNMMjt.annot'
+    registration_name = 'sphere_to_template.reg'
+
+    sxfm = SurfaceTransform()
+    sxfm.inputs.target_subject = subject_id
+
+    # Get list of atlas subjects from a file
+    f = open(atlas_list_file)
+    atlas_list = f.readlines()
+    for atlas_line in atlas_list:
+        # For each atlas
+        atlas_name = atlas_line.strip("\n")
+        sxfm.inputs.source_subject = atlas_name
+        # For each hemisphere
+        for hemi in ['lh','rh']:        
+            sxfm.inputs.hemi = hemi
+            # Specify annotation file
+            output_annot = os.path.join(output_path, hemi + '.' + atlas_name + '_to_' + \
+                           subject_id + '_' + annot_file
+            args = ['--sval-annot', annot_file,
+                    '--tval', output_annot,
+                    '--srcsurfreg', registration_name,
+                    '--trgsurfreg', registration_name]
+            sxfm.inputs.args = ' '.join(args);    
+            sxfm.run()
 
 def measure_position(feature):
     """Measure
