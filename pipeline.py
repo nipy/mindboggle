@@ -58,20 +58,23 @@ def create_extraction_workflow():
     #    database_flow.base_dir = '.'
 """
 
-def create_workflow():
+def create_mbflow():
     """Create a Mindboggle workflow"""
 
     # Create an instance of a workflow and 
     # indicate that it should operate in the current directory:
     flow = pe.Workflow(name='pipeline')
-    flow.base_dir = '.'
 
     # Define nodes
-
-    # DataGrabber node
+    
+    # Input and output nodes
+    infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
+                         name = 'Input')
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['surface_file']),
-                         name = 'Data')
+                         name = 'DataSource')
+    datasink = pe.Node(interface=nio.DataSink(),
+                         name = 'DataSink')
 
     # Measure surface maps node
     maps = pe.MapNode(util.Function(input_names = ['surface_file'],
@@ -175,7 +178,19 @@ def create_workflow():
                            name='Store_measures')
 
     # Define connections
-    flow.connect(datasource, 'surface_file', maps, 'surface_file')
+
+    # Input and output connections
+    flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
+    flow.connect([(datasource, maps, [('surface_file','surface_file')])])
+    flow.connect([(maps, datasink, [('depth_map','depth_map'),
+                                    ('mean_curvature_map','mean_curvature_map'),
+                                    ('gauss_curvature_map','gauss_curvature_map')])])
+    flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
+                  (fundi,  datasink, [('fundi', 'fundi')]),
+                  (pits,   datasink, [('pits',  'pits')]),
+                  (medial, datasink, [('medial','medial')])])
+    
+    # Extract features from maps
     flow.connect([(maps, sulci, [('depth_map','depth_map'),
                                  ('mean_curvature_map','mean_curvature_map'),
                                  ('gauss_curvature_map','gauss_curvature_map')])])
@@ -188,6 +203,8 @@ def create_workflow():
     flow.connect([(maps, medial, [('depth_map','depth_map'),
                                   ('mean_curvature_map','mean_curvature_map'),
                                   ('gauss_curvature_map','gauss_curvature_map')])])
+
+    # Measure shapes of features
     flow.connect([(sulci,  position,  [('sulci', 'sulci')])])
     flow.connect([(fundi,  position,  [('fundi', 'fundi')])])
     flow.connect([(pits,   position,  [('pits',  'pits')])])
@@ -209,41 +226,60 @@ def create_workflow():
     flow.connect([(pits,   spectra,   [('pits',  'pits')])])
     flow.connect([(medial, spectra,   [('medial','medial')])])
 
+    # Store features in database
     flow.connect(sulci,  'sulci',  featureDB, 'sulci')
     flow.connect(fundi,  'fundi',  featureDB, 'fundi')
     flow.connect(pits,   'pits',   featureDB, 'pits')
     flow.connect(medial, 'medial', featureDB, 'medial')
 
+    # Store measures in database
     flow.connect(position,  'position',  measureDB, 'position')
     flow.connect(extent,    'extent',    measureDB, 'extent')
     flow.connect(curvature, 'curvature', measureDB, 'curvature')
     flow.connect(depth,     'depth',     measureDB, 'depth')
     flow.connect(spectra,   'spectra',   measureDB, 'spectra')
+
     return flow
 
 
 if __name__ == '__main__':
-    flow = create_workflow()
 
-    # Initiate the DataGrabber node with the infield: 'subject_id'
-    # and the outfield: 'curv' and 'pial'
+    flow = create_mbflow()
+    flow.base_dir = '.'
+
+    infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
+                         name = 'Input')
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['surface_file']),
-                              name = 'DataSource')
-    # Specify the location of the data folder
+                         name = 'DataSource')
+    datasink = pe.Node(interface=nio.DataSink(),
+                         name = 'DataSink')
+
+    """
+    flow = pe.Workflow(name='metaflow')
+    flow.base_dir = '.'
+    # Input and output nodes
+    infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
+                         name = 'Input')
+    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
+                                                   outfields=['surface_file']),
+                         name = 'DataSource')
+    datasink = pe.Node(interface=nio.DataSink(),
+                         name = 'DataSink')
+    """
+                         
+    # Specify the location and structure of the inputs and outputs
     datasource.inputs.base_directory = '/projects/mindboggle/data/ManualSurfandVolLabels/subjects'
-
-    # Define the structure of the data folders and files.
-    # Each '%s' will later be filled by a template argument.
     datasource.inputs.template = '%s/surf/lh.%s'
-
-    # Define the arguments for the template
     datasource.inputs.template_args['surface_file'] = [['subject_id', 'pial']]
+    datasink.inputs.base_directory = '/projects/mindboggle'
+    datasink.inputs.container = 'output'
+    #flow.connect([(register, datasink, [('blah.blah.r_e_g','bbregister')])])
 
-    # Define the list of subjects
-    datasource.iterables = ('subject_id', ['KKI2009-14'])
+    # Iterate over subjects
+    infosource.iterables = ('subject_id', ['KKI2009-14'])
 
-    # Write graphs
+    # Write graphs and run workflow
     flow.write_graph(graph2use='flat')
     flow.write_graph(graph2use='hierarchical')
     #flow.run()
