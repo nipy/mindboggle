@@ -81,30 +81,22 @@ def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return medial
 
-def register_to_template(subject_path,
-                         average_template_path, 
-                         average_template_name):
-    """Register surface to template
+def register_to_template(input_files, average_template_files):
+    """Register surface to template with FreeSurfer's mris_register
 
-    Example: /Applications/freesurfer/subjects/bert
-             ./templates_freesurfer/  KKI_2  .sphere_to_OASIStemplate.reg
-             ("KKI" above refers to, for example, "lh.KKI_2.tif")  
+    Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
+              '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
+             ['./templates_freesurfer/lh.KKI_2.tif',
+              './templates_freesurfer/rh.KKI_2.tif']
     """
     import os
 
-    registration_name = 'sphere_to_template.reg'
+    output_append = '_to_template.reg'
 
-    for hemi in ['lh','rh']:
-        average_template_file = os.join(average_template_path,
-                                        hemi + '.' + \
-                                        average_template_name + '.tif')
-
-        input_file = subject_path + '/surf/' + h + '.sphere'
-        output_file = subject_path + '/surf/' + h + registration_name
-        args = ['mris_register -curv',
-                input_file,
-                average_template_file,
-                output_file]
+    for i, template in enumerate(average_template_files):
+        input_file = input_files[i]
+        output_file = input_file + output_append
+        args = ['mris_register -curv', input_file, template, output_file]
         print(' '.join(args));
         #os.system(' '.join(args)); # p = Popen(args);
         proc = sp.Popen(args)
@@ -115,6 +107,7 @@ def register_to_template(subject_path,
 
 def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
     """Transform the labels from multiple atlases via a template
+    using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
     nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
     wraps command **mri_surf2surf**:
@@ -126,7 +119,7 @@ def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
     import os
     from nipype.interfaces.freesurfer import SurfaceTransform
 
-    annot_file = 'aparcNMMjt.annot'
+    annot_file_name = 'aparcNMMjt.annot'
     registration_name = 'sphere_to_template.reg'
 
     sxfm = SurfaceTransform()
@@ -144,12 +137,12 @@ def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
             sxfm.inputs.hemi = hemi
             # Specify annotation file
             output_annot = os.path.join(output_path, hemi + '.' + atlas_name + '_to_' + \
-                           subject_id + '_' + annot_file
-            args = ['--sval-annot', annot_file,
+                                        subject_id + '_' + annot_file_name)
+            args = ['--sval-annot', annot_file_name,
                     '--tval', output_annot,
                     '--srcsurfreg', registration_name,
                     '--trgsurfreg', registration_name]
-            sxfm.inputs.args = ' '.join(args);    
+            sxfm.inputs.args = ' '.join(args)
             sxfm.run()
 
 def measure_position(feature):

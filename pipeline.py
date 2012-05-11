@@ -124,23 +124,28 @@ flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
 ##############################################################################
 
 # Registration nodes
-registration = pe.Node(util.Function(input_names=['template_directory',
-                                                  'template_name',
-                                                  'registration_append'],
-                                     output_names=['success'],
+"""
+Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
+          '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
+         ['./templates_freesurfer/lh.KKI_2.tif',
+          './templates_freesurfer/rh.KKI_2.tif']
+"""
+registration = pe.Node(util.Function(input_names=['input_files',
+                                                  'average_template_files',
+                                                  'template_directory'],
+                                     output_names=['fs_files'],
                                      function = register_to_template),
                        name='Register_to_template')
 
-multiatlas_labeling = pe.Node(util.Function(input_names=['subjects_directory', 
-                                                         'subject_id', 
-                                                         'multilabel_directory', 
-                                                         'atlas_list'],
-                                            output_names=['success'],
+multiatlas_labeling = pe.Node(util.Function(input_names=['subject_id',
+                                                         'atlas_list_file',
+                                                         'output_path'],
+                                            output_names=['fs_files'],
                                             function = multiatlas_label_via_template),
                              name='Multiatlas_label')
 
 # Connect registration and multiatlas labeling nodes
-#flow.connect([(registration, multiatlas_labeling, [('','')])])
+flow.connect([(registration, multiatlas_labeling, [('fs_files','fs_files')])])
 
 ##############################################################################
 #   Shape measurement
@@ -242,5 +247,4 @@ if __name__ == '__main__':
     flow.write_graph(graph2use='flat')
     flow.write_graph(graph2use='hierarchical')
     #flow.run()
-
 
