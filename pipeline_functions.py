@@ -81,7 +81,7 @@ def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return medial
 
-def register_to_template(subject_id, subject_surf_path, template_path, 
+def register_template(subject_id, subject_surf_path, template_path, 
                          template_name, registration_name):
     """Register surface to template with FreeSurfer's mris_register
 
@@ -105,7 +105,7 @@ def register_to_template(subject_id, subject_surf_path, template_path,
             raise Exception('\n'.join([cmd + ' failed', o, e]))
         return output_name
 
-def multiatlas_label_via_template(subject_id, atlas_list_file, 
+def register_atlases(subject_id, atlas_list_file, 
                                   registration_name, output_path):
     """Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
