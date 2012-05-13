@@ -81,31 +81,32 @@ def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return medial
 
-def register_to_template(input_files, average_template_files):
+def register_to_template(subject_id, subject_surf_path, template_path, 
+                         template_name, registration_name):
     """Register surface to template with FreeSurfer's mris_register
 
-    Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
-              '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
-             ['./templates_freesurfer/lh.KKI_2.tif',
-              './templates_freesurfer/rh.KKI_2.tif']
+    Example: /Applications/freesurfer/subjects/bert/surf
+             ./templates_freesurfer
+             KKI_2.tif
+             sphere_to_template.reg
     """
     import os
 
-    output_append = '_to_template.reg'
-
-    for i, template in enumerate(average_template_files):
-        input_file = input_files[i]
-        output_file = input_file + output_append
-        args = ['mris_register -curv', input_file, template, output_file]
+    for hemi in ['lh','rh']:
+        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_name)
+        args = ['mris_register -curv', input_file, template_file, output_file]
         print(' '.join(args));
         #os.system(' '.join(args)); # p = Popen(args);
         proc = sp.Popen(args)
         o, e = proc.communicate()
         if proc.returncode > 0 :
             raise Exception('\n'.join([cmd + ' failed', o, e]))
-        #return
+        return output_name
 
-def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
+def multiatlas_label_via_template(subject_id, atlas_list_file, 
+                                  registration_name, output_path):
     """Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -120,7 +121,6 @@ def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
     from nipype.interfaces.freesurfer import SurfaceTransform
 
     annot_file_name = 'aparcNMMjt.annot'
-    registration_name = 'sphere_to_template.reg'
 
     sxfm = SurfaceTransform()
     sxfm.inputs.target_subject = subject_id
@@ -144,6 +144,25 @@ def multiatlas_label_via_template(subject_id, atlas_list_file, output_path):
                     '--trgsurfreg', registration_name]
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
+    return atlas_list
+
+def identify_fundi(atlas_list):
+    """Identify fundi
+    """
+    import os
+
+    for hemi in ['lh','rh']:
+        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_name)
+        args = ['mris_register -curv', input_file, template_file, output_file]
+        print(' '.join(args));
+        #os.system(' '.join(args)); # p = Popen(args);
+        proc = sp.Popen(args)
+        o, e = proc.communicate()
+        if proc.returncode > 0 :
+            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        return labeled_fundi
 
 def measure_position(feature):
     """Measure
