@@ -130,28 +130,28 @@ Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
          ['./templates_freesurfer/lh.KKI_2.tif',
           './templates_freesurfer/rh.KKI_2.tif']
 """
-registration = pe.Node(util.Function(input_names=['subject_id',
+template_registration = pe.Node(util.Function(input_names=['subject_id',
                                                   'subject_surf_path', 
                                                   'template_path', 
                                                   'template_name', 
                                                   'registration_name'],
                                      output_names=['registration_name'],
-                                     function = register_to_template),
-                       name='Register_to_template')
+                                     function = register_template),
+                       name='Register_template')
 
-multiatlas_labeling = pe.Node(util.Function(input_names=['subject_id',
+atlas_registration = pe.Node(util.Function(input_names=['subject_id',
                                                          'atlas_list_file',
                                                          'registration_name',
                                                          'output_path'],
                                             output_names=['atlas_list'],
-                                            function = multiatlas_label_via_template),
-                             name='Multiatlas_label')
+                                            function = register_atlases),
+                             name='Register_atlases')
 
 # Connect input to registration nodes
-flow.connect([(datasource, registration, [('subject_id','subject_id')])])
+flow.connect([(datasource, template_registration, [('subject_id','subject_id')])])
 
 # Connect registration and multiatlas labeling nodes
-flow.connect([(registration, multiatlas_labeling, 
+flow.connect([(template_registration, atlas_registration, 
                [('registration_name','registration_name')])])
 
 ##############################################################################
@@ -166,8 +166,8 @@ fundus_identification = pe.Node(util.Function(input_names=['fundi','atlas_list']
                                      function = identify_fundi),
                        name='Identify_fundi')
 
-# Connect multiatlas labeling and feature identification nodes
-flow.connect([(multiatlas_labeling, fundus_identification,
+# Connect multi-atlas registration-based labeling and feature identification nodes
+flow.connect([(atlas_registration, fundus_identification,
                [('atlas_list','atlas_list')]),
               (fundi, fundus_identification,
                [('fundi','fundi')])])
