@@ -117,7 +117,7 @@ flow.connect([(maps, datasink, [('depth_map','depth_map'),
 flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
               (fundi,  datasink, [('fundi', 'fundi')]),
               (pits,   datasink, [('pits',  'pits')]),
-              (medial, datasink, [('medial','medial')])])
+              (medial, datasink, [('medial','labeled_medial')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -130,80 +130,105 @@ Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
          ['./templates_freesurfer/lh.KKI_2.tif',
           './templates_freesurfer/rh.KKI_2.tif']
 """
-registration = pe.Node(util.Function(input_names=['input_files',
-                                                  'average_template_files',
-                                                  'template_directory'],
-                                     output_names=['fs_files'],
+registration = pe.Node(util.Function(input_names=['subject_id',
+                                                  'subject_surf_path', 
+                                                  'template_path', 
+                                                  'template_name', 
+                                                  'registration_name'],
+                                     output_names=['registration_name'],
                                      function = register_to_template),
                        name='Register_to_template')
 
 multiatlas_labeling = pe.Node(util.Function(input_names=['subject_id',
                                                          'atlas_list_file',
+                                                         'registration_name',
                                                          'output_path'],
-                                            output_names=['fs_files'],
+                                            output_names=['atlas_list'],
                                             function = multiatlas_label_via_template),
                              name='Multiatlas_label')
 
+# Connect input to registration nodes
+flow.connect([(datasource, registration, [('subject_id','subject_id')])])
+
 # Connect registration and multiatlas labeling nodes
-flow.connect([(registration, multiatlas_labeling, [('fs_files','fs_files')])])
+flow.connect([(registration, multiatlas_labeling, 
+               [('registration_name','registration_name')])])
+
+##############################################################################
+#   Feature identification
+##############################################################################
+
+# Feature identification node
+"""
+"""
+fundus_identification = pe.Node(util.Function(input_names=['atlas_list'],
+                                     output_names=['labeled_fundi'],
+                                     function = identify_fundi),
+                       name='Identify_fundi')
+
+# Connect multiatlas labeling and feature identification nodes
+flow.connect([(multiatlas_labeling, fundus_identification,
+               [('atlas_list','atlas_list')])])
+
+#flow.connect([(labeled_fundi, fundus_identification, [('fundi', 'labeled_fundi')])])
 
 ##############################################################################
 #   Shape measurement
 ##############################################################################
 
 # Shape measurement nodes
-position = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                   'pits','medial'],
+position = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
+                                                   'labeled_pits','labeled_medial'],
                                     output_names=['position'],
                                     function = measure_position),
                       iterfield=['sulci'],
                       name='Measure_position')
-extent = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                 'pits','medial'],
+extent = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
+                                                 'labeled_pits','labeled_medial'],
                                   output_names=['extent'],
                                   function = measure_extent),
                     iterfield=['feature'],
                     name='Measure_extent')
-curvature = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                    'pits','medial'],
+curvature = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
+                                                    'labeled_pits','labeled_medial'],
                                      output_names=['curvature'],
                                      function = measure_curvature),
                        iterfield=['feature'],
                        name='Measure_curvature')
-depth = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                'pits','medial'],
+depth = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
+                                                'labeled_pits','labeled_medial'],
                                  output_names=['depth'],
                                  function = measure_depth),
                        iterfield=['feature'],
                        name='Measure_depth')
-spectra = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                  'pits','medial'],
+spectra = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
+                                                  'labeled_pits','labeled_medial'],
                                    output_names=['spectra'],
                                    function = measure_LaplaceBeltrami),
                      iterfield=['feature'],
                      name='Measure_spectra')
 
 # Connect feature to shape measurement nodes
-flow.connect([(sulci,  position,  [('sulci', 'sulci')])])
-flow.connect([(fundi,  position,  [('fundi', 'fundi')])])
-flow.connect([(pits,   position,  [('pits',  'pits')])])
-flow.connect([(medial, position,  [('medial','medial')])])
-flow.connect([(sulci,  extent,    [('sulci', 'sulci')])])
-flow.connect([(fundi,  extent,    [('fundi', 'fundi')])])
-flow.connect([(pits,   extent,    [('pits',  'pits')])])
-flow.connect([(medial, extent,    [('medial','medial')])])
-flow.connect([(sulci,  curvature, [('sulci', 'sulci')])])
-flow.connect([(fundi,  curvature, [('fundi', 'fundi')])])
-flow.connect([(pits,   curvature, [('pits',  'pits')])])
-flow.connect([(medial, curvature, [('medial','medial')])])
-flow.connect([(sulci,  depth,     [('sulci', 'sulci')])])
-flow.connect([(fundi,  depth,     [('fundi', 'fundi')])])
-flow.connect([(pits,   depth,     [('pits',  'pits')])])
-flow.connect([(medial, depth,     [('medial','medial')])])
-flow.connect([(sulci,  spectra,   [('sulci', 'sulci')])])
-flow.connect([(fundi,  spectra,   [('fundi', 'fundi')])])
-flow.connect([(pits,   spectra,   [('pits',  'pits')])])
-flow.connect([(medial, spectra,   [('medial','medial')])])
+flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(fundus_identification,  position,  [('labeled_fundi', 'labeled_fundi')])])
+flow.connect([(pit_identification,     position,  [('labeled_pits',  'labeled_pits')])])
+flow.connect([(medial_identification,  position,  [('labeled_medial','labeled_medial')])])
+flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(fundus_identification,  extent,    [('labeled_fundi', 'labeled_fundi')])])
+flow.connect([(pit_identification,     extent,    [('labeled_pits',  'labeled_pits')])])
+flow.connect([(medial_identification,  extent,    [('labeled_medial','labeled_medial')])])
+flow.connect([(sulcus_identification,  curvature, [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(fundus_identification,  curvature, [('labeled_fundi', 'labeled_fundi')])])
+flow.connect([(pit_identification,     curvature, [('labeled_pits',  'labeled_pits')])])
+flow.connect([(medial_identification,  curvature, [('labeled_medial','labeled_medial')])])
+flow.connect([(sulcus_identification,  depth,     [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(fundus_identification,  depth,     [('labeled_fundi', 'labeled_fundi')])])
+flow.connect([(pit_identification,     depth,     [('labeled_pits',  'labeled_pits')])])
+flow.connect([(medial_identification,  depth,     [('labeled_medial','labeled_medial')])])
+flow.connect([(sulcus_identification,  spectra,   [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(fundus_identification,  spectra,   [('labeled_fundi', 'labeled_fundi')])])
+flow.connect([(pit_identification,     spectra,   [('labeled_pits',  'labeled_pits')])])
+flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_medial')])])
 
 ##############################################################################
 #    Store features in database
@@ -242,7 +267,7 @@ flow.connect(spectra,   'spectra',   measureDB, 'spectra')
 ##############################################################################
 #    Run workflow
 ##############################################################################
-if __name__ == '__main__':
+if __name__== '__main__':
 
     flow.write_graph(graph2use='flat')
     flow.write_graph(graph2use='hierarchical')
