@@ -25,7 +25,7 @@ import numpy as np
 from pipeline_functions import *
 
 ##############################################################################
-#   Create a Mindboggle workflow
+#   Workflow setup
 ##############################################################################
 flow = pe.Workflow(name='pipeline')
 flow.base_dir = '.'
@@ -117,7 +117,7 @@ flow.connect([(maps, datasink, [('depth_map','depth_map'),
 flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
               (fundi,  datasink, [('fundi', 'fundi')]),
               (pits,   datasink, [('pits',  'pits')]),
-              (medial, datasink, [('medial','labeled_medial')])])
+              (medial, datasink, [('medial','medial')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -161,14 +161,16 @@ flow.connect([(registration, multiatlas_labeling,
 # Feature identification node
 """
 """
-fundus_identification = pe.Node(util.Function(input_names=['atlas_list'],
+fundus_identification = pe.Node(util.Function(input_names=['fundi','atlas_list'],
                                      output_names=['labeled_fundi'],
                                      function = identify_fundi),
                        name='Identify_fundi')
 
 # Connect multiatlas labeling and feature identification nodes
 flow.connect([(multiatlas_labeling, fundus_identification,
-               [('atlas_list','atlas_list')])])
+               [('atlas_list','atlas_list')]),
+              (fundi, fundus_identification,
+               [('fundi','fundi')])])
 
 #flow.connect([(labeled_fundi, fundus_identification, [('fundi', 'labeled_fundi')])])
 
@@ -209,47 +211,63 @@ spectra = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi
                      name='Measure_spectra')
 
 # Connect feature to shape measurement nodes
-flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_sulci')])])
+#flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  position,  [('labeled_fundi', 'labeled_fundi')])])
-flow.connect([(pit_identification,     position,  [('labeled_pits',  'labeled_pits')])])
-flow.connect([(medial_identification,  position,  [('labeled_medial','labeled_medial')])])
-flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
+#flow.connect([(pit_identification,     position,  [('labeled_pits',  'labeled_pits')])])
+#flow.connect([(medial_identification,  position,  [('labeled_medial','labeled_medial')])])
+#flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  extent,    [('labeled_fundi', 'labeled_fundi')])])
-flow.connect([(pit_identification,     extent,    [('labeled_pits',  'labeled_pits')])])
-flow.connect([(medial_identification,  extent,    [('labeled_medial','labeled_medial')])])
-flow.connect([(sulcus_identification,  curvature, [('labeled_sulci', 'labeled_sulci')])])
+#flow.connect([(pit_identification,     extent,    [('labeled_pits',  'labeled_pits')])])
+#flow.connect([(medial_identification,  extent,    [('labeled_medial','labeled_medial')])])
+#flow.connect([(sulcus_identification,  curvature, [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  curvature, [('labeled_fundi', 'labeled_fundi')])])
-flow.connect([(pit_identification,     curvature, [('labeled_pits',  'labeled_pits')])])
-flow.connect([(medial_identification,  curvature, [('labeled_medial','labeled_medial')])])
-flow.connect([(sulcus_identification,  depth,     [('labeled_sulci', 'labeled_sulci')])])
+#flow.connect([(pit_identification,     curvature, [('labeled_pits',  'labeled_pits')])])
+#flow.connect([(medial_identification,  curvature, [('labeled_medial','labeled_medial')])])
+#flow.connect([(sulcus_identification,  depth,     [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  depth,     [('labeled_fundi', 'labeled_fundi')])])
-flow.connect([(pit_identification,     depth,     [('labeled_pits',  'labeled_pits')])])
-flow.connect([(medial_identification,  depth,     [('labeled_medial','labeled_medial')])])
-flow.connect([(sulcus_identification,  spectra,   [('labeled_sulci', 'labeled_sulci')])])
+#flow.connect([(pit_identification,     depth,     [('labeled_pits',  'labeled_pits')])])
+#flow.connect([(medial_identification,  depth,     [('labeled_medial','labeled_medial')])])
+#flow.connect([(sulcus_identification,  spectra,   [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  spectra,   [('labeled_fundi', 'labeled_fundi')])])
-flow.connect([(pit_identification,     spectra,   [('labeled_pits',  'labeled_pits')])])
-flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_medial')])])
+#flow.connect([(pit_identification,     spectra,   [('labeled_pits',  'labeled_pits')])])
+#flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_medial')])])
 
 ##############################################################################
 #    Store features in database
 ##############################################################################
 
+"""
 # Database nodes
-featureDB = pe.MapNode(util.Function(input_names = ['sulci','fundi',
-                                                    'pits','medial'],
-                                     output_names=['success'],
-                                     function = write_features_to_database),
-                       iterfield=['feature'],
-                       name='Store_features')
-measureDB = pe.MapNode(util.Function(input_names = ['position',
-                                                    'extent',
-                                                    'curvature',
-                                                    'depth',
-                                                    'spectra'],
-                                     output_names=['success'],
-                                     function = write_measures_to_database),
-                       iterfield=['measurement'],
-                       name='Store_measures')
+database = pe.MapNode(util.Function(input_names = ['depth_map',
+                                                   'mean_curvature_map',
+                                                   'gauss_curvature_map',
+                                                   'labeled_sulci',
+                                                   'labeled_fundi',
+                                                   'labeled_pits',
+                                                   'labeled_medial',
+                                                   'position',
+                                                   'extent',
+                                                   'curvature',
+                                                   'depth',
+                                                   'spectra'],
+                                    output_names=['success'],
+                                    function = write_to_database),
+                      iterfield=['storees'],
+                      name='Write_to_database')
+
+# Connect maps to database nodes
+flow.connect([(maps, database, [('depth_map','depth_map'),
+                                ('mean_curvature_map','mean_curvature_map'),
+                                ('gauss_curvature_map','gauss_curvature_map'),
+                                ('labeled_sulci','labeled_sulci'),
+                                ('labeled_fundi','labeled_fundi'),
+                                ('labeled_pits','labeled_pits'),
+                                ('labeled_medial','labeled_medial'),
+                                ('position','position'),
+                                ('extent','extent'),
+                                ('curvature','curvature'),
+                                ('depth','depth'),
+                                ('spectra','spectra')])])
 
 # Connect feature to database nodes
 flow.connect(sulci,  'sulci',  featureDB, 'sulci')
@@ -263,6 +281,8 @@ flow.connect(extent,    'extent',    measureDB, 'extent')
 flow.connect(curvature, 'curvature', measureDB, 'curvature')
 flow.connect(depth,     'depth',     measureDB, 'depth')
 flow.connect(spectra,   'spectra',   measureDB, 'spectra')
+
+"""
 
 ##############################################################################
 #    Run workflow
