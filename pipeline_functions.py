@@ -146,7 +146,7 @@ def multiatlas_label_via_template(subject_id, atlas_list_file,
             sxfm.run()
     return atlas_list
 
-def identify_fundi(atlas_list):
+def identify_fundi(fundi, atlas_list):
     """Identify fundi
     """
     import os
