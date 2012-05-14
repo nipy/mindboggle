@@ -259,17 +259,17 @@ def measure_curvature(feature):
         measurement = measure_curvature(feature)
     return measurement
 
-def measure_LaplaceBeltrami(feature):
+def measure_spectra(feature):
     """Measure
 
     measure_()
     """
-    from measure.py import measure_LaplaceBeltrami
+    from measure.py import measure_spectra
     if type(feature) is np.ndarray:
-        measurement = measure_LaplaceBeltrami(feature)
+        measurement = measure_spectra(feature)
     return measurement
 
-def write_features_to_database(feature):
+def write_to_database(feature):
     """Write to database
 
     write_to_database()
