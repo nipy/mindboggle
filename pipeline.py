@@ -36,8 +36,10 @@ infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
 datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                outfields=['surface_file']),
                      name = 'DataSource')
+"""
 datasink = pe.Node(interface=nio.DataSink(),
                      name = 'DataSink')
+"""
 
 # Iterate over subjects
 infosource.iterables = ('subject_id', ['KKI2009-14'])
@@ -46,9 +48,10 @@ infosource.iterables = ('subject_id', ['KKI2009-14'])
 datasource.inputs.base_directory = '/projects/mindboggle/data/ManualSurfandVolLabels/subjects'
 datasource.inputs.template = '%s/surf/lh.%s'
 datasource.inputs.template_args['surface_file'] = [['subject_id', 'pial']]
+"""
 datasink.inputs.base_directory = '/projects/mindboggle'
 datasink.inputs.container = 'output'
-
+"""
 subjects_directory = '/Applications/freesurfer/subjects/'
 subject_id = 'bert'
 multilabel_directory = 'multilabels'
@@ -67,6 +70,16 @@ maps = pe.Node(util.Function(input_names = ['surface_file'],
                name='Measure_surface_maps')
 
 # Feature extraction nodes
+feature_extraction = pe.Node(util.Function(input_names = ['depth_map',
+                                                'mean_curvature_map',
+                                                'gauss_curvature_map',
+                                                'feature_type'],
+                                  output_names = ['feature_type'],
+                                  function = extract_features),
+                             name='Extract_features')
+feature_extraction.iterables = ('feature_type', ['sulci', 'fundi', 'pits', 'medial'])
+
+"""
 sulci = pe.Node(util.Function(input_names = ['depth_map',
                                              'mean_curvature_map',
                                              'gauss_curvature_map'],
@@ -91,12 +104,17 @@ medial = pe.Node(util.Function(input_names = ['depth_map',
                                output_names = ['medial'],
                                function = extract_medial),
                  name='Extract_medial')
+"""
 
 # Connect input to surface maps node
 flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
 flow.connect([(datasource, maps, [('surface_file','surface_file')])])
 
 # Connect surface maps node to feature extraction nodes
+flow.connect([(maps, feature_extraction, [('depth_map','depth_map'),
+                                ('mean_curvature_map','mean_curvature_map'),
+                                ('gauss_curvature_map','gauss_curvature_map')])])
+"""
 flow.connect([(maps, sulci, [('depth_map','depth_map'),
                              ('mean_curvature_map','mean_curvature_map'),
                              ('gauss_curvature_map','gauss_curvature_map')])])
@@ -109,15 +127,20 @@ flow.connect([(maps, pits, [('depth_map','depth_map'),
 flow.connect([(maps, medial, [('depth_map','depth_map'),
                               ('mean_curvature_map','mean_curvature_map'),
                               ('gauss_curvature_map','gauss_curvature_map')])])
-
+"""
+"""
 # Save output
 flow.connect([(maps, datasink, [('depth_map','depth_map'),
                                 ('mean_curvature_map','mean_curvature_map'),
                                 ('gauss_curvature_map','gauss_curvature_map')])])
+flow.connect([(feature_extraction,  datasink, [('feature_type', 'feature_type')])])
+"""
+"""
 flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
               (fundi,  datasink, [('fundi', 'fundi')]),
               (pits,   datasink, [('pits',  'pits')]),
               (medial, datasink, [('medial','medial')])])
+"""
 
 ##############################################################################
 #   Multi-atlas registration
@@ -131,106 +154,142 @@ Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
           './templates_freesurfer/rh.KKI_2.tif']
 """
 template_registration = pe.Node(util.Function(input_names=['subject_id',
-                                                  'subject_surf_path', 
-                                                  'template_path', 
-                                                  'template_name', 
-                                                  'registration_name'],
+                                              'subject_surf_path', 
+                                              'template_path', 
+                                              'template_name', 
+                                              'registration_name'],
                                      output_names=['registration_name'],
                                      function = register_template),
-                       name='Register_template')
+                                name='Register_template')
 
 atlas_registration = pe.Node(util.Function(input_names=['subject_id',
-                                                         'atlas_list_file',
-                                                         'registration_name',
-                                                         'output_path'],
-                                            output_names=['atlas_list'],
-                                            function = register_atlases),
+                                                        'atlas_list_file',
+                                                        'registration_name',
+                                                        'output_path'],
+                                           output_names=['atlas_list'],
+                                           function = register_atlases),
                              name='Register_atlases')
 
 # Connect input to registration nodes
 flow.connect([(datasource, template_registration, [('subject_id','subject_id')])])
 
-# Connect registration and multiatlas labeling nodes
+# Connect template registration and multiatlas registration(-based labeling) nodes
 flow.connect([(template_registration, atlas_registration, 
                [('registration_name','registration_name')])])
 
 ##############################################################################
-#   Feature identification
+#   Feature segmentation / identification
 ##############################################################################
 
-# Feature identification node
+# Feature segmentation node
 """
 """
+feature_segmentation = pe.Node(util.Function(input_names=['feature_type','atlas_list'],
+                                             output_names=['segmented_features','feature_type'],
+                                             function = segment_features),
+                               name='Segment_features')
+feature_segmentation.iterables = ('feature_type', ['sulci', 'fundi', 'medial'])
+
+"""
+sulcus_identification = pe.Node(util.Function(input_names=['sulci','atlas_list'],
+                                              output_names=['labeled_sulci'],
+                                              function = identify_sulci),
+                                name='Identify_sulci')
+
 fundus_identification = pe.Node(util.Function(input_names=['fundi','atlas_list'],
-                                     output_names=['labeled_fundi'],
-                                     function = identify_fundi),
-                       name='Identify_fundi')
+                                              output_names=['labeled_fundi'],
+                                              function = identify_fundi),
+                                name='Identify_fundi')
 
-# Connect multi-atlas registration-based labeling and feature identification nodes
-flow.connect([(atlas_registration, fundus_identification,
-               [('atlas_list','atlas_list')]),
-              (fundi, fundus_identification,
-               [('fundi','fundi')])])
+medial_identification = pe.Node(util.Function(input_names=['medial','atlas_list'],
+                                              output_names=['labeled_medial'],
+                                              function = identify_medial),
+                                name='Identify_medial')
+"""
 
-#flow.connect([(labeled_fundi, fundus_identification, [('fundi', 'labeled_fundi')])])
+# Connect multiatlas registration(-based labeling) and feature segmentation nodes
+flow.connect([(atlas_registration, feature_segmentation,
+               [('atlas_list','atlas_list')])])
+
+flow.connect([(feature_extraction, feature_segmentation,
+               [('feature_type','feature_type')])])
+
+"""
+              (sulci, sulcus_identification, [('sulci','sulci')]),
+              (fundi, fundus_identification, [('fundi','fundi')]),
+              (medial, medial_identification, [('medial','medial')])])
+"""
 
 ##############################################################################
 #   Shape measurement
 ##############################################################################
 
 # Shape measurement nodes
-position = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
-                                                   'labeled_pits','labeled_medial'],
+position = pe.Node(util.Function(input_names = ['feature_type'],
+                                 output_names=['position'],
+                                 function = measure_position),
+                   name='Measure_position')
+position.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
+"""
+position = pe.MapNode(util.Function(input_names = ['labeled_sulci', 'labeled_fundi',
+                                                   'labeled_medial', 'pits'],
                                     output_names=['position'],
                                     function = measure_position),
                       iterfield=['sulci'],
                       name='Measure_position')
-extent = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
-                                                 'labeled_pits','labeled_medial'],
+"""
+"""
+extent = pe.MapNode(util.Function(input_names = ['labeled_sulci', 'labeled_fundi',
+                                                 'labeled_medial', 'pits'],
                                   output_names=['extent'],
                                   function = measure_extent),
                     iterfield=['feature'],
                     name='Measure_extent')
-curvature = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
-                                                    'labeled_pits','labeled_medial'],
+curvature = pe.MapNode(util.Function(input_names = ['labeled_sulci', 'labeled_fundi',
+                                                    'labeled_medial', 'pits'],
                                      output_names=['curvature'],
                                      function = measure_curvature),
                        iterfield=['feature'],
                        name='Measure_curvature')
 depth = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
-                                                'labeled_pits','labeled_medial'],
+                                                'labeled_medial', 'pits'],
                                  output_names=['depth'],
                                  function = measure_depth),
                        iterfield=['feature'],
                        name='Measure_depth')
 spectra = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi',
-                                                  'labeled_pits','labeled_medial'],
+                                                  'labeled_medial', 'pits'],
                                    output_names=['spectra'],
                                    function = measure_LaplaceBeltrami),
                      iterfield=['feature'],
                      name='Measure_spectra')
 
+"""
 # Connect feature to shape measurement nodes
-#flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_sulci')])])
-flow.connect([(fundus_identification,  position,  [('labeled_fundi', 'labeled_fundi')])])
-#flow.connect([(pit_identification,     position,  [('labeled_pits',  'labeled_pits')])])
-#flow.connect([(medial_identification,  position,  [('labeled_medial','labeled_medial')])])
-#flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(feature_segmentation,  position,  [('feature_type', 'feature_type')])])
+"""
+#flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_fundi')])])
+flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(sulcus_identification,  curvature, [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(sulcus_identification,  depth,     [('labeled_sulci', 'labeled_sulci')])])
+flow.connect([(sulcus_identification,  spectra,   [('labeled_sulci', 'labeled_sulci')])])
+
+#flow.connect([(fundus_identification,  position,  [('labeled_fundi', 'features')])])
 flow.connect([(fundus_identification,  extent,    [('labeled_fundi', 'labeled_fundi')])])
-#flow.connect([(pit_identification,     extent,    [('labeled_pits',  'labeled_pits')])])
-#flow.connect([(medial_identification,  extent,    [('labeled_medial','labeled_medial')])])
-#flow.connect([(sulcus_identification,  curvature, [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  curvature, [('labeled_fundi', 'labeled_fundi')])])
-#flow.connect([(pit_identification,     curvature, [('labeled_pits',  'labeled_pits')])])
-#flow.connect([(medial_identification,  curvature, [('labeled_medial','labeled_medial')])])
-#flow.connect([(sulcus_identification,  depth,     [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  depth,     [('labeled_fundi', 'labeled_fundi')])])
-#flow.connect([(pit_identification,     depth,     [('labeled_pits',  'labeled_pits')])])
-#flow.connect([(medial_identification,  depth,     [('labeled_medial','labeled_medial')])])
-#flow.connect([(sulcus_identification,  spectra,   [('labeled_sulci', 'labeled_sulci')])])
 flow.connect([(fundus_identification,  spectra,   [('labeled_fundi', 'labeled_fundi')])])
-#flow.connect([(pit_identification,     spectra,   [('labeled_pits',  'labeled_pits')])])
-#flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_medial')])])
+
+#flow.connect([(pits, position,  [('pits', 'pits')])])
+flow.connect([(pits, curvature, [('pits', 'pits')])])
+flow.connect([(pits, depth,     [('pits', 'pits')])])
+
+#flow.connect([(medial_identification,  position,  [('labeled_medial','labeled_medial')])])
+flow.connect([(medial_identification,  extent,    [('labeled_medial','labeled_medial')])])
+flow.connect([(medial_identification,  curvature, [('labeled_medial','labeled_medial')])])
+flow.connect([(medial_identification,  depth,     [('labeled_medial','labeled_medial')])])
+flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_medial')])])
+"""
 
 ##############################################################################
 #    Store features in database
