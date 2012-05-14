@@ -18,68 +18,78 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract sulci
+def extract_features(surface_file, depth_map, mean_curvature_map, gauss_curvature_map, feature_type):
+    """Extract features
 
-    extract_sulci
+    extract_features
     """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = extract/sulci/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    #output_file = glob('file1.vtk').pop()
-    #feature_files = glob('*.vtk')
-    #return feature_files
-    return sulci
 
-def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract fundi
+    if feature_type == 'sulci':
+        def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+            """Extract sulci
+        
+            extract_sulci
+            """
+            from glob import glob
+            import subprocess as sp
+            cmd = 'feature = extract/sulci/extract.py'
+            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+            proc = sp.Popen(cmd)
+            o, e = proc.communicate()
+            if proc.returncode > 0 :
+                raise Exception('\n'.join(['extract.py failed', o, e]))
+            #output_file = glob('file1.vtk').pop()
+            #feature_files = glob('*.vtk')
+            #return feature_files
+            return sulci
 
-    extract_fundi
-    """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = extract/fundi/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return fundi
+    elif feature_type == 'fundi':
+        def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+            """Extract fundi
+        
+            extract_fundi
+            """
+            from glob import glob
+            import subprocess as sp
+            cmd = 'feature = extract/fundi/extract.py'
+            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+            proc = sp.Popen(cmd)
+            o, e = proc.communicate()
+            if proc.returncode > 0 :
+                raise Exception('\n'.join(['extract.py failed', o, e]))
+            return fundi
 
-def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract pits
+    elif feature_type == 'pits':
+        def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+            """Extract pits
+        
+            extract_pits
+            """
+            from glob import glob
+            import subprocess as sp
+            cmd = 'feature = extract/pits/extract.py'
+            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+            proc = sp.Popen(cmd)
+            o, e = proc.communicate()
+            if proc.returncode > 0 :
+                raise Exception('\n'.join(['extract.py failed', o, e]))
+            return pits
 
-    extract_pits
-    """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = extract/pits/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return pits
-
-def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract medial
-
-    extract_medial
-    """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = extract/medial/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return medial
+    elif feature_type == 'medial':
+        def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+            """Extract medial
+        
+            extract_medial
+            """
+            from glob import glob
+            import subprocess as sp
+            cmd = 'feature = extract/medial/extract.py'
+            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+            proc = sp.Popen(cmd)
+            o, e = proc.communicate()
+            if proc.returncode > 0 :
+                raise Exception('\n'.join(['extract.py failed', o, e]))
+            return medial
 
 def register_template(subject_id, subject_surf_path, template_path, 
                          template_name, registration_name):
@@ -146,23 +156,68 @@ def register_atlases(subject_id, atlas_list_file,
             sxfm.run()
     return atlas_list
 
-def identify_fundi(fundi, atlas_list):
-    """Identify fundi
-    """
-    import os
+def segment_features(feature_type, atlas_list):
+    """Extract features
 
-    for hemi in ['lh','rh']:
-        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_name)
-        args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args));
-        #os.system(' '.join(args)); # p = Popen(args);
-        proc = sp.Popen(args)
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
-        return labeled_fundi
+    extract_features
+    """
+
+    if feature_type == 'sulci':
+        def segment_sulci(sulci):
+            """Segment and identify sulci
+            """
+            import os
+        
+            for hemi in ['lh','rh']:
+                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+                template_file = os.path.join(template_path, hemi + '.' + template_name)
+                args = ['mris_register -curv', input_file, template_file, output_file]
+                print(' '.join(args));
+                #os.system(' '.join(args)); # p = Popen(args);
+                proc = sp.Popen(args)
+                o, e = proc.communicate()
+                if proc.returncode > 0 :
+                    raise Exception('\n'.join([cmd + ' failed', o, e]))
+                return segmented_sulci
+        
+    elif feature_type == 'fundi':
+        def segment_fundi(fundi):
+            """Segment and identify fundi
+            """
+            import os
+        
+            for hemi in ['lh','rh']:
+                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+                template_file = os.path.join(template_path, hemi + '.' + template_name)
+                args = ['mris_register -curv', input_file, template_file, output_file]
+                print(' '.join(args));
+                #os.system(' '.join(args)); # p = Popen(args);
+                proc = sp.Popen(args)
+                o, e = proc.communicate()
+                if proc.returncode > 0 :
+                    raise Exception('\n'.join([cmd + ' failed', o, e]))
+                return segmented_fundi
+
+    elif feature_type == 'medial':
+        def segment_medial(medial):
+            """Segment and identify medial surfaces
+            """
+            import os
+        
+            for hemi in ['lh','rh']:
+                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+                template_file = os.path.join(template_path, hemi + '.' + template_name)
+                args = ['mris_register -curv', input_file, template_file, output_file]
+                print(' '.join(args));
+                #os.system(' '.join(args)); # p = Popen(args);
+                proc = sp.Popen(args)
+                o, e = proc.communicate()
+                if proc.returncode > 0 :
+                    raise Exception('\n'.join([cmd + ' failed', o, e]))
+                return segmented_medial
 
 def measure_position(feature):
     """Measure
@@ -235,5 +290,3 @@ def write_measures_to_database(measurement):
         measures_to_database(measurement)
     success = 'True'
     return success
-
-
