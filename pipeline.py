@@ -44,7 +44,7 @@ atlas_source = pe.Node(interface=nio.DataGrabber(infields=['atlas_list_file'],
                                                  outfields=['atlas_list_file']),
                        name = 'Atlases')
 datasink = pe.Node(interface=nio.DataSink(),
-                     name = 'DataSink')
+                   name = 'DataSink')
 
 # Iterate over subjects
 infosource.iterables = ('subject_id', ['KKI2009-14'])
@@ -54,14 +54,6 @@ datasource.inputs.base_directory = '/projects/mindboggle/data/ManualSurfandVolLa
 datasource.inputs.template = '%s/surf/lh.%s'
 datasource.inputs.template_args['surface_file'] = [['subject_id', 'pial']]
 
-# Specify the location and structure of the template
-template_source.inputs.template = '%s/surf/lh.%s'
-template_source.inputs.template_args['template_surface_file'] = [['template_id', 'pial']]
-
-# Specify the location and structure of the atlases
-atlas_source.inputs.template = '%s/%s'
-atlas_source.inputs.template_args['atlas_list'] = [['atlases', 'atlas_list.txt']]
-
 datasink.inputs.base_directory = '/projects/mindboggle'
 datasink.inputs.container = 'output'
 
@@ -69,6 +61,14 @@ subjects_directory = '/Applications/freesurfer/subjects/'
 subject_id = 'bert'
 multilabel_directory = 'multilabels'
 atlas_list = '../../data/KKI_OASIS.txt' 
+
+# Specify the location and structure of the template
+template_source.inputs.template = '%s/surf/lh.%s'
+template_source.inputs.template_args['template_surface_file'] = [['template_id', 'pial']]
+
+# Specify the location and structure of the atlases
+atlas_source.inputs.template = '%s/%s'
+atlas_source.inputs.template_args['atlas_list'] = [['atlases', 'atlas_list.txt']]
 
 ##############################################################################
 #   Surface map calculation
@@ -135,13 +135,6 @@ flow.connect([(surface_maps, medialaxis, [('depth_map','depth_map'),
 flow.connect([(surface_maps, datasink, [('depth_map','depth_map'),
                                 ('mean_curvature_map','mean_curvature_map'),
                                 ('gauss_curvature_map','gauss_curvature_map')])])
-flow.connect([(feature_extraction,  datasink, [('feature_type', 'feature_type')])])
-"""
-"""
-flow.connect([(sulci,  datasink, [('sulci', 'sulci')]),
-              (fundi,  datasink, [('fundi', 'fundi')]),
-              (pits,   datasink, [('pits',  'pits')]),
-              (medialaxis, datasink, [('medialaxis','medialaxis')])])
 """
 
 ##############################################################################
@@ -226,7 +219,7 @@ flow.connect([(sulci, sulcus_segmentation, [('sulci','sulci')]),
 
 # Connect multiatlas registration(-based labeling) and feature segmentation nodes
 flow.connect([(label_propagation, sulcus_segmentation, [('labels','labels')]),
-              (sulcus_segmentation, fundus_segmentation, [('segmented_sulci','labels')]),
+              (label_propagation, fundus_segmentation, [('labels','labels')]),
               (sulcus_segmentation, medialaxis_segmentation, [('segmented_sulci','labels')])])
               
 ##############################################################################
