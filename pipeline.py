@@ -230,6 +230,30 @@ position = pe.Node(util.Function(input_names = ['feature_type'],
                                  function = measure_position),
                    name='Measure_position')
 position.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
+
+extent = pe.Node(util.Function(input_names = ['feature_type'],
+                               output_names=['extent'],
+                               function = measure_extent),
+                 name='Measure_extent')
+extent.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
+
+curvature = pe.Node(util.Function(input_names = ['feature_type'],
+                                 output_names=['curvature'],
+                                 function = measure_curvature),
+                   name='Measure_curvature')
+curvature.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
+
+depth = pe.Node(util.Function(input_names = ['feature_type'],
+                                 output_names=['depth'],
+                                 function = measure_depth),
+                   name='Measure_depth')
+depth.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
+
+spectra = pe.Node(util.Function(input_names = ['feature_type'],
+                                 output_names=['spectra'],
+                                 function = measure_spectra),
+                   name='Measure_spectra')
+spectra.iterables = ('feature_type', ['segmented_sulci', 'segmented_fundi', 'segmented_medial', 'pits'])
 """
 position = pe.MapNode(util.Function(input_names = ['labeled_sulci', 'labeled_fundi',
                                                    'labeled_medial', 'pits'],
@@ -266,7 +290,11 @@ spectra = pe.MapNode(util.Function(input_names = ['labeled_sulci','labeled_fundi
 
 """
 # Connect feature to shape measurement nodes
-flow.connect([(feature_segmentation,  position,  [('feature_type', 'feature_type')])])
+flow.connect([(feature_segmentation, position,  [('feature_type', 'feature_type')])])
+flow.connect([(feature_segmentation, extent,  [('feature_type', 'feature_type')])])
+flow.connect([(feature_segmentation, curvature,  [('feature_type', 'feature_type')])])
+flow.connect([(feature_segmentation, depth,  [('feature_type', 'feature_type')])])
+flow.connect([(feature_segmentation, spectra,  [('feature_type', 'feature_type')])])
 """
 #flow.connect([(sulcus_identification,  position,  [('labeled_sulci', 'labeled_fundi')])])
 flow.connect([(sulcus_identification,  extent,    [('labeled_sulci', 'labeled_sulci')])])
@@ -295,15 +323,11 @@ flow.connect([(medial_identification,  spectra,   [('labeled_medial','labeled_me
 #    Store features in database
 ##############################################################################
 
-"""
 # Database nodes
 database = pe.MapNode(util.Function(input_names = ['depth_map',
                                                    'mean_curvature_map',
                                                    'gauss_curvature_map',
-                                                   'labeled_sulci',
-                                                   'labeled_fundi',
-                                                   'labeled_pits',
-                                                   'labeled_medial',
+                                                   'segmented_features',
                                                    'position',
                                                    'extent',
                                                    'curvature',
@@ -313,7 +337,7 @@ database = pe.MapNode(util.Function(input_names = ['depth_map',
                                     function = write_to_database),
                       iterfield=['storees'],
                       name='Write_to_database')
-
+"""
 # Connect maps to database nodes
 flow.connect([(maps, database, [('depth_map','depth_map'),
                                 ('mean_curvature_map','mean_curvature_map'),
