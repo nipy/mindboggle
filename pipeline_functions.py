@@ -18,84 +18,97 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def extract_features(surface_file, depth_map, mean_curvature_map, gauss_curvature_map, feature_type):
-    """Extract features
+##############################################################################
+#   Surface map calculation
+##############################################################################
 
-    extract_features
+def measure_surface_maps(surface_file):
+    """Measure
+
+    measure_()
     """
+    from measure.py import measure_surface_maps
+    if type(surface_file) is np.ndarray:
+        depth_map, mean_curvature_map, gauss_curvature_map = measure_surface_maps(surface_file)
+    return depth_map, mean_curvature_map, gauss_curvature_map
 
-    if feature_type == 'sulci':
-        def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-            """Extract sulci
-        
-            extract_sulci
-            """
-            from glob import glob
-            import subprocess as sp
-            cmd = 'feature = extract/sulci/extract.py'
-            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-            proc = sp.Popen(cmd)
-            o, e = proc.communicate()
-            if proc.returncode > 0 :
-                raise Exception('\n'.join(['extract.py failed', o, e]))
-            #output_file = glob('file1.vtk').pop()
-            #feature_files = glob('*.vtk')
-            #return feature_files
-            return sulci
+##############################################################################
+#   Feature extraction
+##############################################################################
 
-    elif feature_type == 'fundi':
-        def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-            """Extract fundi
-        
-            extract_fundi
-            """
-            from glob import glob
-            import subprocess as sp
-            cmd = 'feature = extract/fundi/extract.py'
-            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-            proc = sp.Popen(cmd)
-            o, e = proc.communicate()
-            if proc.returncode > 0 :
-                raise Exception('\n'.join(['extract.py failed', o, e]))
-            return fundi
+def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract sulci
 
-    elif feature_type == 'pits':
-        def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-            """Extract pits
-        
-            extract_pits
-            """
-            from glob import glob
-            import subprocess as sp
-            cmd = 'feature = extract/pits/extract.py'
-            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-            proc = sp.Popen(cmd)
-            o, e = proc.communicate()
-            if proc.returncode > 0 :
-                raise Exception('\n'.join(['extract.py failed', o, e]))
-            return pits
+    extract_sulci
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/sulci/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    #output_file = glob('file1.vtk').pop()
+    #feature_files = glob('*.vtk')
+    #return feature_files
+    return sulci
 
-    elif feature_type == 'medial':
-        def extract_medial(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-            """Extract medial
-        
-            extract_medial
-            """
-            from glob import glob
-            import subprocess as sp
-            cmd = 'feature = extract/medial/extract.py'
-            cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-            proc = sp.Popen(cmd)
-            o, e = proc.communicate()
-            if proc.returncode > 0 :
-                raise Exception('\n'.join(['extract.py failed', o, e]))
-            return medial
+def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract fundi
 
-def register_template(subject_id, subject_surf_path, template_path, 
-                         template_name, registration_name):
+    extract_fundi
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/fundi/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return fundi
+
+def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract pits
+
+    extract_pits
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/pits/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return pits
+
+def extract_medialaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract medialaxis
+
+    extract_medialaxis
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'feature = extract/medialaxis/extract.py'
+    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return medialaxis
+
+##############################################################################
+#   Multi-atlas registration
+##############################################################################
+
+def register_template(subject_id, subjects_path, 
+                      template_id, template_path, registration_name):
     """Register surface to template with FreeSurfer's mris_register
 
-    Example: /Applications/freesurfer/subjects/bert/surf
+    Example: bert
+             /Applications/freesurfer/subjects
              ./templates_freesurfer
              KKI_2.tif
              sphere_to_template.reg
@@ -103,9 +116,9 @@ def register_template(subject_id, subject_surf_path, template_path,
     import os
 
     for hemi in ['lh','rh']:
-        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_name)
+        input_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
+        output_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_id)
         args = ['mris_register -curv', input_file, template_file, output_file]
         print(' '.join(args));
         #os.system(' '.join(args)); # p = Popen(args);
@@ -116,7 +129,7 @@ def register_template(subject_id, subject_surf_path, template_path,
         return output_name
 
 def register_atlases(subject_id, atlas_list_file, 
-                                  registration_name, output_path):
+                     registration_name, output_path):
     """Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -156,68 +169,130 @@ def register_atlases(subject_id, atlas_list_file,
             sxfm.run()
     return atlas_list
 
-def segment_features(feature_type, atlas_list):
-    """Extract features
+##############################################################################
+#   Label propagation
+##############################################################################
 
-    extract_features
+def propagate_labels(labels, fundi):
+    """Propagate labels
     """
+    return labels
 
-    if feature_type == 'sulci':
-        def segment_sulci(sulci):
-            """Segment and identify sulci
-            """
-            import os
-        
-            for hemi in ['lh','rh']:
-                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-                template_file = os.path.join(template_path, hemi + '.' + template_name)
-                args = ['mris_register -curv', input_file, template_file, output_file]
-                print(' '.join(args));
-                #os.system(' '.join(args)); # p = Popen(args);
-                proc = sp.Popen(args)
-                o, e = proc.communicate()
-                if proc.returncode > 0 :
-                    raise Exception('\n'.join([cmd + ' failed', o, e]))
-                return segmented_sulci
-        
-    elif feature_type == 'fundi':
-        def segment_fundi(fundi):
-            """Segment and identify fundi
-            """
-            import os
-        
-            for hemi in ['lh','rh']:
-                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-                template_file = os.path.join(template_path, hemi + '.' + template_name)
-                args = ['mris_register -curv', input_file, template_file, output_file]
-                print(' '.join(args));
-                #os.system(' '.join(args)); # p = Popen(args);
-                proc = sp.Popen(args)
-                o, e = proc.communicate()
-                if proc.returncode > 0 :
-                    raise Exception('\n'.join([cmd + ' failed', o, e]))
-                return segmented_fundi
+##############################################################################
+#   Feature segmentation / identification
+##############################################################################
 
-    elif feature_type == 'medial':
-        def segment_medial(medial):
-            """Segment and identify medial surfaces
-            """
-            import os
-        
-            for hemi in ['lh','rh']:
-                input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-                output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-                template_file = os.path.join(template_path, hemi + '.' + template_name)
-                args = ['mris_register -curv', input_file, template_file, output_file]
-                print(' '.join(args));
-                #os.system(' '.join(args)); # p = Popen(args);
-                proc = sp.Popen(args)
-                o, e = proc.communicate()
-                if proc.returncode > 0 :
-                    raise Exception('\n'.join([cmd + ' failed', o, e]))
-                return segmented_medial
+def segment_sulci(sulci):
+    """Segment and identify sulci
+    """
+    import os
+
+    for hemi in ['lh','rh']:
+        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        args = ['mris_register -curv', input_file, template_file, output_file]
+        print(' '.join(args));
+        #os.system(' '.join(args)); # p = Popen(args);
+        proc = sp.Popen(args)
+        o, e = proc.communicate()
+        if proc.returncode > 0 :
+            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        return feature_type, segmented_sulci
+
+def segment_fundi(fundi):
+    """Segment and identify fundi
+    """
+    import os
+
+    for hemi in ['lh','rh']:
+        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        args = ['mris_register -curv', input_file, template_file, output_file]
+        print(' '.join(args));
+        #os.system(' '.join(args)); # p = Popen(args);
+        proc = sp.Popen(args)
+        o, e = proc.communicate()
+        if proc.returncode > 0 :
+            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        return feature_type, segmented_fundi
+
+def segment_medialaxis(medialaxis):
+    """Segment and identify medialaxis surfaces
+    """
+    import os
+
+    for hemi in ['lh','rh']:
+        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
+        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
+        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        args = ['mris_register -curv', input_file, template_file, output_file]
+        print(' '.join(args));
+        #os.system(' '.join(args)); # p = Popen(args);
+        proc = sp.Popen(args)
+        o, e = proc.communicate()
+        if proc.returncode > 0 :
+            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        return feature_type, segmented_medialaxis
+
+##############################################################################
+#   High-level shape measurement functions
+##############################################################################
+
+def measure_positions(features):
+    """Measure
+
+    measure_()
+    """
+    for feature in features:
+        from measure.py import measure_position
+        if type(feature) is np.ndarray:
+            measurement = measure_position(feature)
+
+def measure_extents(features):
+    """Measure
+
+    measure_()
+    """
+    for feature in features:
+        from measure.py import measure_extent
+        if type(feature) is np.ndarray:
+            measurement = measure_extent(feature)
+
+def measure_curvatures(features):
+    """Measure
+
+    measure_()
+    """
+    for feature in features:
+        from measure.py import measure_curvature
+        if type(feature) is np.ndarray:
+            measurement = measure_curvature(feature)
+
+def measure_depths(features):
+    """Measure
+
+    measure_()
+    """
+    for feature in features:
+        from measure.py import measure_depth
+        if type(feature) is np.ndarray:
+            measurement = measure_depth(feature)
+
+def measure_spectra(features):
+    """Measure
+
+    measure_()
+    """
+    for feature in features:
+        from measure.py import measure_spectrum
+        if type(feature) is np.ndarray:
+            measurement = measure_spectrum(feature)
+
+##############################################################################
+#   Individual shape measurement functions
+##############################################################################
 
 def measure_position(feature):
     """Measure
@@ -259,17 +334,32 @@ def measure_curvature(feature):
         measurement = measure_curvature(feature)
     return measurement
 
-def measure_spectra(feature):
+def measure_spectrum(feature):
     """Measure
 
     measure_()
     """
-    from measure.py import measure_spectra
+    from measure.py import measure_spectrum
     if type(feature) is np.ndarray:
-        measurement = measure_spectra(feature)
+        measurement = measure_spectrum(feature)
     return measurement
 
-def write_to_database(feature):
+##############################################################################
+#    Store features in database
+##############################################################################
+
+def write_maps_to_database(surface_map):
+    """Write to database
+
+    write_to_database()
+    """
+    from write_to_database.py import maps_to_database
+    if type(feature) is np.ndarray:
+        maps_to_database(surface_map)
+    success = 'True'
+    return success
+
+def write_features_to_database(feature):
     """Write to database
 
     write_to_database()
@@ -280,13 +370,27 @@ def write_to_database(feature):
     success = 'True'
     return success
 
-def write_measures_to_database(measurement):
+def write_measures_to_database(measurements):
     """Write to database
 
     write_to_database()
     """
-    from write_to_database.py import measures_to_database
-    if type(measurement) is np.ndarray:
-        measures_to_database(measurement)
+    from write_to_database.py import measure_to_database
+    for measurement in measurements:
+        if type(measurement) is np.ndarray:
+            measure_to_database(measurement)
     success = 'True'
     return success
+    
+def write_measures_to_table(measurement):
+    """Write to database
+
+    write_to_database()
+    """
+    from write_to_table.py import measure_to_table
+    for measurement in measurements:
+        if type(measurement) is np.ndarray:
+            measure_to_table(measurement)
+    success = 'True'
+    return success
+
