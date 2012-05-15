@@ -84,20 +84,51 @@ def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_ma
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return pits
 
-def extract_medialaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract medialaxis
+def extract_midaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    """Extract midaxis
 
-    extract_medialaxis
+    extract_midaxis
     """
     from glob import glob
     import subprocess as sp
-    cmd = 'feature = extract/medialaxis/extract.py'
+    cmd = 'feature = extract/midaxis/extract.py'
     cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
     proc = sp.Popen(cmd)
     o, e = proc.communicate()
     if proc.returncode > 0 :
         raise Exception('\n'.join(['extract.py failed', o, e]))
-    return medialaxis
+    return midaxis
+
+# Labeled surface patch and volume extraction nodes
+def extract_patches(labels):
+    """Extract labeled surface patches
+    
+    extract_patches
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'patch = extract/labels/extract.py'
+    cmd = ['python', cmd]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return patches
+
+def extract_regions(labels):
+    """Extract labeled region volumes
+    
+    extract_regions
+    """
+    from glob import glob
+    import subprocess as sp
+    cmd = 'region = extract/labels/extract.py'
+    cmd = ['python', cmd]
+    proc = sp.Popen(cmd)
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join(['extract.py failed', o, e]))
+    return regions
 
 ##############################################################################
 #   Multi-atlas registration
@@ -178,6 +209,13 @@ def propagate_labels(labels, fundi):
     """
     return labels
 
+# Volume label propagation node
+def propagate_volume_labels(labels):
+    """Propagate labels through volume
+    """
+    return labels
+
+
 ##############################################################################
 #   Feature segmentation / identification
 ##############################################################################
@@ -218,8 +256,8 @@ def segment_fundi(fundi):
             raise Exception('\n'.join([cmd + ' failed', o, e]))
         return feature_type, segmented_fundi
 
-def segment_medialaxis(medialaxis):
-    """Segment and identify medialaxis surfaces
+def segment_midaxis(midaxis):
+    """Segment and identify medial axis surfaces
     """
     import os
 
@@ -234,7 +272,7 @@ def segment_medialaxis(medialaxis):
         o, e = proc.communicate()
         if proc.returncode > 0 :
             raise Exception('\n'.join([cmd + ' failed', o, e]))
-        return feature_type, segmented_medialaxis
+        return feature_type, segmented_midaxis
 
 ##############################################################################
 #   High-level shape measurement functions
