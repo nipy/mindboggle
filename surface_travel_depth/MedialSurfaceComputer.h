@@ -32,11 +32,19 @@ private:
     vtkPointLocator* m_originalPointLocator;
     MeshAnalyser* m_originalMeshAnalyser;
 
+    MeshAnalyser* m_fundiMeshAnalyser;
+
     vtkPolyData* m_processedFundi;
 
     vector<vtkPolyData*> m_layers;
 
     vtkDoubleArray* m_pitsNorm;
+
+    vtkPoints* m_candidatePoints;
+    vtkPolyData* m_candidatePolyData;
+
+    vtkDataArray* m_metric;
+    vtkPointLocator* m_candidateLocator;
 
     int m_nbLayers;
 
@@ -45,6 +53,10 @@ private:
     void BuildMedialSurface();
     void AffectNormalsToFundi();
     void BuildMeshFromLayers();
+    void FindCandidatePoints();
+    void FilterPointPosition(vtkPolyData* mesh);
+    void AnchorPointToCandidate(double point[3]);
+    void AnchorAllPointsToCandidates();
 
     void SelectNextPoint(double point[3], MeshAnalyser *mal0, int i);
 
