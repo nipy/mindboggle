@@ -1,0 +1,2 @@
+/usr/bin/ar cr libMedialSurfaceComputer.a  CMakeFiles/MedialSurfaceComputer.dir/MedialSurfaceComputer.cpp.o
+/usr/bin/ranlib libMedialSurfaceComputer.a
