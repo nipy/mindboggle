@@ -1,0 +1,6 @@
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/CMakeFiles/FsSurfaceReader.dir
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/CMakeFiles/MedialSurfaceComputer.dir
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/medial_surface/CMakeFiles/MedialSurfaceMain.dir
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/CMakeFiles/MeshAnalyser.dir
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/travel_depth/CMakeFiles/TravelDepthMain.dir
+/home/arno/Documents/Projects/mindboggle/mindboggle/measure/surface_travel_depth/CMakeFiles/VtkFileEditor.dir
