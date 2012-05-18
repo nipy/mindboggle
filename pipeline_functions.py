@@ -22,6 +22,20 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface map calculation
 ##############################################################################
 
+def convert_to_vtk(fs_surface_file):
+    """Measure
+
+    measure_()
+    """
+    import subprocess as sp
+    surface_file = fs_surface_file + '.vtk'
+    cmd = ['mris_convert', fs_surface_file, vtk_file]
+    proc = sp.Popen(' '.join(cmd))
+    o, e = proc.communicate()
+    if proc.returncode > 0 :
+        raise Exception('\n'.join([cmd + ' failed', o, e]))
+    return surface_file
+
 def measure_surface_maps(surface_file):
     """Measure
 
@@ -41,7 +55,6 @@ def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_m
 
     extract_sulci
     """
-    from glob import glob
     import subprocess as sp
     cmd = 'feature = extract/sulci/extract.py'
     cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
@@ -59,7 +72,6 @@ def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_m
 
     extract_fundi
     """
-    from glob import glob
     import subprocess as sp
     cmd = 'feature = extract/fundi/extract.py'
     cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
