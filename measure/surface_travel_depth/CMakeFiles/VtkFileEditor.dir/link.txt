@@ -1,0 +1,2 @@
+/usr/bin/ar cr libVtkFileEditor.a  CMakeFiles/VtkFileEditor.dir/VtkFileEditor.cpp.o
+/usr/bin/ranlib libVtkFileEditor.a
