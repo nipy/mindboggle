@@ -27,6 +27,8 @@ import nipype.interfaces.io as nio
 import numpy as np
 from pipeline_functions import *
 
+use_freesurfer_surfaces = 1
+
 ##############################################################################
 #   Workflow setup
 ##############################################################################
@@ -37,10 +39,10 @@ flow.base_dir = '.'
 infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
                      name = 'Input')
 datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                               outfields=['surface_file']),
+                                               outfields=['surface_files']),
                      name = 'DataSource')
-template = pe.Node(interface=nio.DataGrabber(infields=['template_id'],
-                                             outfields=['template_file']),
+templates = pe.Node(interface=nio.DataGrabber(infields=['template_id'],
+                                             outfields=['template_files']),
                    name = 'Template')
 atlases = pe.Node(interface=nio.DataGrabber(infields=['atlas_list_file'],
                                             outfields=['atlas_list_file']),
@@ -49,34 +51,67 @@ datasink = pe.Node(interface=nio.DataSink(),
                    name = 'DataSink')
 
 # Iterate over subjects
-infosource.iterables = ('subject_id', ['KKI2009-14'])
+infosource.iterables = ('subject_id', ['50014']) #'KKI2009-14'])
 
 # Specify the location and structure of the inputs and outputs
-datasource.inputs.base_directory = \
-    '/projects/mindboggle/data/ManualSurfandVolLabels/subjects'
-datasource.inputs.template = '%s/surf/lh.%s'
-datasource.inputs.template_args['surface_file'] = [['subject_id', 'pial']]
+datasource.inputs.base_directory = '../data'
+datasource.inputs.template = '%s/surf/%s.%s'
+
+if use_freesurfer_surfaces:
+    datasource_input_L = [['subject_id', 'lh', 'pial']]
+    datasource_input_R = [['subject_id', 'rh', 'pial']]
+else:
+    datasource_input_L = [['subject_id', 'lh', 'pial.vtk']]
+    datasource_input_R = [['subject_id', 'rh', 'pial.vtk']]
+
+datasource.inputs.template_args['surface_file_L', 'surface_file_R'] = \
+                     [['datasource_input_L'], ['datasource_input_R']]
 
 datasink.inputs.base_directory = '/projects/mindboggle'
 datasink.inputs.container = 'output'
 
-subjects_directory = '/Applications/freesurfer/subjects/'
-subject_id = 'bert'
-multilabel_directory = 'multilabels'
-atlas_list = '../../data/KKI_OASIS.txt' 
+#subjects_directory = '/Applications/freesurfer/subjects/'
+#multilabel_directory = 'multilabels'
 
-# Specify the location and structure of the template
-template.inputs.template = '%s/surf/lh.%s'
-template.inputs.template_args['template_file'] = [['template_id', 'pial']]
+# Specify the location and structure of the templates
+templates.inputs.base_directory = '../data/templates_freesurfer'
+templates.inputs.template = '%sh.%s_2.tif'
+templates.inputs.template_args['template_file_L'] = [['lh', 'template_id']]
+templates.inputs.template_args['template_file_R'] = [['rh', 'template_id']]
 
 # Specify the location and structure of the atlases
+atlases.inputs.base_directory = '../data/atlases'
 atlases.inputs.template = '%s/%s'
-atlases.inputs.template_args['atlas_list'] = [['atlases', 'atlas_list.txt']]
+atlases.inputs.template_args['atlas_list_file'] = [['MMRR_labeled', 'KKI.txt']]
+
+##############################################################################
+#   Surface conversion
+##############################################################################
+
+# Connect input nodes
+flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
+
+# Convert FreeSurfer surfaces to VTK format
+if use_freesurfer_surfaces:
+    surface_conversion = pe.Node(util.Function(input_names = ['surface_files'],
+                                               output_names = ['surface_files'],
+                                               function = convert_to_vtk),
+                                 name='Convert_surfaces')
+
+    # Connect input to surface surface_maps node
+    flow.connect([(datasource, surface_conversion, 
+                   [('surface_files','surface_files')])])
+    flow.connect([(surface_conversion, surface_maps, 
+                   [('surface_files','surface_files')])])
+else:
+    # Connect input to surface surface_maps node
+    flow.connect([(datasource, surface_maps, [('surface_file','surface_file')])])
 
 ##############################################################################
 #   Surface map calculation
 ##############################################################################
 
+"""
 # Measure surface surface_maps node
 surface_maps = pe.Node(util.Function(input_names = ['surface_file'],
                                      output_names = ['depth_map',
@@ -115,10 +150,6 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_map',
                                               function = extract_midaxis),
                                 name='Extract_midaxis')
 
-# Connect input to surface surface_maps node
-flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
-flow.connect([(datasource, surface_maps, [('surface_file','surface_file')])])
-
 # Connect surface surface_maps node to feature extraction nodes
 flow.connect([(surface_maps, sulcus_extraction, 
                [('depth_map', 'depth_map'),
@@ -137,12 +168,10 @@ flow.connect([(surface_maps, midaxis_extraction,
                 ('mean_curv_map', 'mean_curv_map'),
                 ('gauss_curv_map', 'gauss_curv_map')])])
 
-"""
 # Save output
-flow.connect([(surface_maps, datasink, [('depth_map', 'depth_map'),
-                                ('mean_curv_map', 'mean_curv_map'),
-                                ('gauss_curv_map', 'gauss_curv_map')])])
-"""
+#flow.connect([(surface_maps, datasink, [('depth_map', 'depth_map'),
+#                                ('mean_curv_map', 'mean_curv_map'),
+#                                ('gauss_curv_map', 'gauss_curv_map')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -150,10 +179,12 @@ flow.connect([(surface_maps, datasink, [('depth_map', 'depth_map'),
 
 # Registration nodes
 """
+"""
 Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
           '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
          ['./templates_freesurfer/lh.KKI_2.tif',
           './templates_freesurfer/rh.KKI_2.tif']
+"""
 """
 template_registration = pe.Node(util.Function(input_names=['subject_id',
                                               'subjects_path',
@@ -182,7 +213,7 @@ flow.connect([(atlases, atlas_registration,
 flow.connect([(datasource, template_registration, 
                [('subject_id','subject_id')])])
 
-# Connect template registration to multiatlas registration(-based labeling) nodes
+# Connect template registration to multiatlas registration-based labeling nodes
 flow.connect([(template_registration, atlas_registration, 
                [('registration_name','registration_name')])])
 
@@ -480,4 +511,4 @@ if __name__== '__main__':
     flow.write_graph(graph2use='flat')
     flow.write_graph(graph2use='hierarchical')
     #flow.run()
-
+"""
