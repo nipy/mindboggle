@@ -29,10 +29,6 @@ def convert_to_vtk(fs_surface_files):
     """
     #import subprocess as sp
     import os
-    if type(fs_surface_files) is str:
-        dummy = []
-        dummy.append(fs_surface_files)
-        fs_surface_files = dummy
     surface_files = []
     for fs_surface_file in fs_surface_files:
         surface_file = fs_surface_file + '.vtk'
@@ -45,41 +41,36 @@ def convert_to_vtk(fs_surface_files):
     #    raise Exception('\n'.join([cmd + ' failed', o, e]))
     return surface_files
 
-def measure_surface_maps(surface_files):
+def measure_surface_maps(travel_depth_command, surface_files):
     """Measure
 
     measure_()
     """
-    travel_depth_path = 'measure/surface_travel_depth/travel_depth/'
-    if type(surface_files) is str:
-        dummy = []
-        dummy.append(surface_files)
-        surface_files = dummy
+    import os
     depth_curv_map_files = []
     for surface_file in surface_files:
         depth_curv_map_file = surface_file.strip('.vtk') + '.depth.vtk'
         depth_curv_map_files.append(depth_curv_map_file)
-        cmd = [travel_depth_path + 'TravelDepthMain', surface_file, depth_curv_map_file]
-        print(' '.join(cmd))
-        #os.system(' '.join(cmd))
-    return depth_curv_map_files
+        cmd = [travel_depth_command, surface_file, depth_curv_map_file]
+        os.system(' '.join(cmd))
+    return surface_files, depth_curv_map_files
 
 ##############################################################################
 #   Feature extraction
 ##############################################################################
 
-def extract_fundi(depth_curv_map_files):
+def extract_fundi(extract_fundi_command, surface_files, depth_curv_map_files):
     """Extract fundi
 
     extract_fundi
     """
-    import subprocess as sp
-    cmd = 'feature = extract/fundi/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
+    import os
+    fundi = []
+    for i, surface_file in enumerate(surface_files):
+        depth_curv_map_file = depth_curv_map_files[i]
+        cmd = ['python', extract_fundi_command, 
+               '%s'%surface_file, '%s'%depth_curv_map_file]
+        os.system(' '.join(cmd))
     return fundi
 
 """
