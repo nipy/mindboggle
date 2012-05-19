@@ -82,21 +82,11 @@ atlases.inputs.template = '%s/%s'
 atlases.inputs.template_args['atlas_list_file'] = [['MMRR_labeled', 'KKI.txt']]
 
 ##############################################################################
-#   Surface map calculation
+#   Surface input and conversion
 ##############################################################################
 
 # Connect input nodes
 flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
-
-# Measure surface surface_maps node
-surface_maps = pe.Node(util.Function(input_names = ['surface_files'],
-                                     output_names = ['depth_curv_map_files'],
-                                     function = measure_surface_maps),
-                       name='Measure_surface_maps')
-
-##############################################################################
-#   Surface conversion
-##############################################################################
 
 # Convert FreeSurfer surfaces to VTK format
 if use_freesurfer_surfaces:
@@ -108,6 +98,19 @@ if use_freesurfer_surfaces:
     # Connect input to surface surface_maps node
     flow.connect([(datasource, surface_conversion,
                    [('fs_surface_files','fs_surface_files')])])
+
+##############################################################################
+#   Surface map calculation
+##############################################################################
+
+# Measure surface surface_maps node
+surface_maps = pe.Node(util.Function(input_names = ['surface_files'],
+                                     output_names = ['depth_curv_map_files'],
+                                     function = measure_surface_maps),
+                       name='Measure_surface_maps')
+
+# Connect input to surface maps nodes
+if use_freesurfer_surfaces:
     flow.connect([(surface_conversion, surface_maps, 
                    [('surface_files','surface_files')])])
 else:
@@ -115,47 +118,40 @@ else:
     flow.connect([(datasource, surface_maps,
                    [('surface_files','surface_files')])])
 
-"""
 ##############################################################################
 #   Feature extraction
 ##############################################################################
 
 # Feature extraction nodes
+fundus_extraction = pe.Node(util.Function(input_names = ['depth_curv_map_files'],
+                                          output_names = ['fundi'],
+                                          function = extract_fundi),
+                            name='Extract_fundi')
+
+"""
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_map',
                                                          'mean_curv_map',
                                                          'gauss_curv_map'],
                                           output_names = ['sulci'],
                                           function = extract_sulci),
                             name='Extract_sulci')
-fundus_extraction = pe.Node(util.Function(input_names = ['depth_map',
-                                                         'mean_curv_map',
-                                                         'gauss_curv_map'],
-                                          output_names = ['fundi'],
-                                          function = extract_fundi),
-                            name='Extract_fundi')
-pit_extraction = pe.Node(util.Function(input_names = ['depth_map',
-                                                      'mean_curv_map',
-                                                      'gauss_curv_map'],
-                                       output_names = ['pits'],
-                                       function = extract_pits),
-                         name='Extract_pits')
+
 midaxis_extraction = pe.Node(util.Function(input_names = ['depth_map',
                                                              'mean_curv_map',
                                                              'gauss_curv_map'],
                                               output_names = ['midaxis'],
                                               function = extract_midaxis),
                                 name='Extract_midaxis')
+"""
 
 # Connect surface surface_maps node to feature extraction nodes
+#flow.connect([(surface_maps, fundus_extraction, 
+#               [('depth_map', 'depth_map'),
+#                ('mean_curv_map', 'mean_curv_map'),
+#                ('gauss_curv_map', 'gauss_curv_map')])])
+
+"""
 flow.connect([(surface_maps, sulcus_extraction, 
-               [('depth_map', 'depth_map'),
-                ('mean_curv_map', 'mean_curv_map'),
-                ('gauss_curv_map', 'gauss_curv_map')])])
-flow.connect([(surface_maps, fundus_extraction, 
-               [('depth_map', 'depth_map'),
-                ('mean_curv_map', 'mean_curv_map'),
-                ('gauss_curv_map', 'gauss_curv_map')])])
-flow.connect([(surface_maps, pit_extraction, 
                [('depth_map', 'depth_map'),
                 ('mean_curv_map', 'mean_curv_map'),
                 ('gauss_curv_map', 'gauss_curv_map')])])

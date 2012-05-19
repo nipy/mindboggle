@@ -36,7 +36,7 @@ Execution Outputs
 Runtime info
 ------------
 
-* duration : 1.78813934326e-05
+* duration : 1.50203704834e-05
 * hostname : bijli.local
 
 Environment
