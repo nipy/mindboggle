@@ -68,24 +68,7 @@ def measure_surface_maps(surface_files):
 #   Feature extraction
 ##############################################################################
 
-def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract sulci
-
-    extract_sulci
-    """
-    import subprocess as sp
-    cmd = 'feature = extract/sulci/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    #output_file = glob('file1.vtk').pop()
-    #feature_files = glob('*.vtk')
-    #return feature_files
-    return sulci
-
-def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+def extract_fundi(depth_curv_map_files):
     """Extract fundi
 
     extract_fundi
@@ -99,26 +82,29 @@ def extract_fundi(surface_file, depth_map, mean_curvature_map, gauss_curvature_m
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return fundi
 
-def extract_pits(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract pits
+"""
+def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    ""Extract sulci
 
-    extract_pits
-    """
-    from glob import glob
+    extract_sulci
+    ""
     import subprocess as sp
-    cmd = 'feature = extract/pits/extract.py'
+    cmd = 'feature = extract/sulci/extract.py'
     cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
     proc = sp.Popen(cmd)
     o, e = proc.communicate()
     if proc.returncode > 0 :
         raise Exception('\n'.join(['extract.py failed', o, e]))
-    return pits
+    #output_file = glob('file1.vtk').pop()
+    #feature_files = glob('*.vtk')
+    #return feature_files
+    return sulci
 
 def extract_midaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    """Extract midaxis
+    ""Extract midaxis
 
     extract_midaxis
-    """
+    ""
     from glob import glob
     import subprocess as sp
     cmd = 'feature = extract/midaxis/extract.py'
@@ -128,6 +114,7 @@ def extract_midaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature
     if proc.returncode > 0 :
         raise Exception('\n'.join(['extract.py failed', o, e]))
     return midaxis
+"""
 
 # Labeled surface patch and volume extraction nodes
 def extract_patches(labels):
