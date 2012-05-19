@@ -27,27 +27,42 @@ def convert_to_vtk(fs_surface_files):
 
     measure_()
     """
-    import subprocess as sp
+    #import subprocess as sp
+    import os
+    if type(fs_surface_files) is str:
+        dummy = []
+        dummy.append(fs_surface_files)
+        fs_surface_files = dummy
     surface_files = []
     for fs_surface_file in fs_surface_files:
         surface_file = fs_surface_file + '.vtk'
         surface_files.append(surface_file)
         cmd = ['mris_convert', fs_surface_file, surface_file]
-        proc = sp.Popen(' '.join(cmd))
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        os.system(' '.join(cmd))
+    #proc = sp.Popen(' '.join(cmd))
+    #o, e = proc.communicate()
+    #if proc.returncode > 0 :
+    #    raise Exception('\n'.join([cmd + ' failed', o, e]))
     return surface_files
 
-def measure_surface_maps(surface_file):
+def measure_surface_maps(surface_files):
     """Measure
 
     measure_()
     """
-    from measure.py import measure_surface_maps
-    if type(surface_file) is np.ndarray:
-        depth_map, mean_curvature_map, gauss_curvature_map = measure_surface_maps(surface_file)
-    return depth_map, mean_curvature_map, gauss_curvature_map
+    travel_depth_path = 'measure/surface_travel_depth/travel_depth/'
+    if type(surface_files) is str:
+        dummy = []
+        dummy.append(surface_files)
+        surface_files = dummy
+    depth_curv_map_files = []
+    for surface_file in surface_files:
+        depth_curv_map_file = surface_file.strip('.vtk') + '.depth.vtk'
+        depth_curv_map_files.append(depth_curv_map_file)
+        cmd = [travel_depth_path + 'TravelDepthMain', surface_file, depth_curv_map_file]
+        print(' '.join(cmd))
+        #os.system(' '.join(cmd))
+    return depth_curv_map_files
 
 ##############################################################################
 #   Feature extraction
