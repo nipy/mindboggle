@@ -38,9 +38,14 @@ flow.base_dir = '.'
 # Input and output nodes
 infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
                      name = 'Input')
-datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                               outfields=['surface_files']),
-                     name = 'DataSource')
+if use_freesurfer_surfaces:
+    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
+                                                   outfields=['fs_surface_files']),
+                         name = 'DataSource')
+else:
+    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
+                                                   outfields=['surface_files']),
+                         name = 'DataSource')
 templates = pe.Node(interface=nio.DataGrabber(infields=['template_id'],
                                              outfields=['template_files']),
                    name = 'Template')
@@ -57,31 +62,24 @@ infosource.iterables = ('subject_id', ['KKI2009-11'])
 datasource.inputs.base_directory = '/projects/mindboggle/data'
 datasource.inputs.template = '%s/surf/%s.%s'
 if use_freesurfer_surfaces:
-    #datasources = [['subject_id', ['lh','rh'], 'pial']]
-    datasources = [['subject_id', 'lh', 'pial']]
+    datasources = [['subject_id', ['lh','rh'], 'pial']]
     datasource.inputs.template_args['fs_surface_files'] = datasources
 else:
-    #datasources = [['subject_id', ['lh','rh'], 'pial.vtk']]
-    datasources = [['subject_id', 'lh', 'pial.vtk']]
+    datasources = [['subject_id', ['lh','rh'], 'pial.vtk']]
     datasource.inputs.template_args['surface_files'] = datasources
 
 datasink.inputs.base_directory = '/projects/mindboggle'
 datasink.inputs.container = 'output'
 
-#subjects_directory = '/Applications/freesurfer/subjects/'
-#multilabel_directory = 'multilabels'
-"""
 # Specify the location and structure of the templates
 templates.inputs.base_directory = '../data/templates_freesurfer'
 templates.inputs.template = '%s.%s_2.tif'
-#templates.inputs.template_args['template_files'] = [[['lh','rh'], 'template_id']]
-templates.inputs.template_args['template_files'] = [['lh', 'template_id']]
+templates.inputs.template_args['template_files'] = [[['lh','rh'], 'template_id']]
 
 # Specify the location and structure of the atlases
 atlases.inputs.base_directory = '../data/atlases'
 atlases.inputs.template = '%s/%s'
 atlases.inputs.template_args['atlas_list_file'] = [['MMRR_labeled', 'KKI.txt']]
-"""
 
 ##############################################################################
 #   Surface map calculation
@@ -92,9 +90,7 @@ flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
 
 # Measure surface surface_maps node
 surface_maps = pe.Node(util.Function(input_names = ['surface_files'],
-                                     output_names = ['depth_map',
-                                                     'mean_curv_map',
-                                                     'gauss_curv_map'],
+                                     output_names = ['depth_curv_map_files'],
                                      function = measure_surface_maps),
                        name='Measure_surface_maps')
 
@@ -110,13 +106,14 @@ if use_freesurfer_surfaces:
                                  name='Convert_surfaces')
 
     # Connect input to surface surface_maps node
-#    flow.connect([(datasource, surface_conversion, 
-#                   [('fs_surface_files','fs_surface_files')])])
-#    flow.connect([(surface_conversion, surface_maps, 
-#                   [('surface_files','surface_files')])])
+    flow.connect([(datasource, surface_conversion,
+                   [('fs_surface_files','fs_surface_files')])])
+    flow.connect([(surface_conversion, surface_maps, 
+                   [('surface_files','surface_files')])])
 else:
     # Connect input to surface surface_maps node
-    flow.connect([(datasource, surface_maps, [('surface_files','surface_files')])])
+    flow.connect([(datasource, surface_maps,
+                   [('surface_files','surface_files')])])
 
 """
 ##############################################################################
@@ -509,6 +506,6 @@ flow.connect([(measures_database, measures_table, [('measures', 'measures')])])
 ##############################################################################
 if __name__== '__main__':
 
-    #flow.write_graph(graph2use='flat')
-    #flow.write_graph(graph2use='hierarchical')
+    flow.write_graph(graph2use='flat')
+    flow.write_graph(graph2use='hierarchical')
     flow.run()

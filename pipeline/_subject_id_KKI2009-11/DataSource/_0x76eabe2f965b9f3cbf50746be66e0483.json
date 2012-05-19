@@ -1,0 +1,23 @@
+{
+    "base_directory": "/projects/mindboggle/data", 
+    "ignore_exception": false, 
+    "needed_outputs": [
+        "fs_surface_files"
+    ], 
+    "raise_on_empty": true, 
+    "sort_filelist": false, 
+    "subject_id": "KKI2009-11", 
+    "template": "%s/surf/%s.%s", 
+    "template_args": {
+        "fs_surface_files": [
+            [
+                "subject_id", 
+                [
+                    "lh", 
+                    "rh"
+                ], 
+                "pial"
+            ]
+        ]
+    }
+}

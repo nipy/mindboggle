@@ -1,0 +1,13 @@
+{
+    "_outputs": {
+        "surface_files": [
+            "/projects/mindboggle/data/KKI2009-11/surf/lh.pial", 
+            "fcd1630c01e02aaff4de694026cd2f8f"
+        ]
+    }, 
+    "base_directory": "/projects/mindboggle", 
+    "container": "output", 
+    "ignore_exception": false, 
+    "parameterization": true, 
+    "remove_dest_dir": false
+}
