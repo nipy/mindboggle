@@ -21,6 +21,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+import os
 import nipype.pipeline.engine as pe          # pypeline engine
 import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
@@ -81,6 +82,12 @@ atlases.inputs.base_directory = '../data/atlases'
 atlases.inputs.template = '%s/%s'
 atlases.inputs.template_args['atlas_list_file'] = [['MMRR_labeled', 'KKI.txt']]
 
+# Commands
+base_directory = '/projects/mindboggle/mindboggle'
+travel_depth_command = os.path.join(base_directory,
+             'measure/surface_travel_depth/travel_depth/TravelDepthMain')
+extract_fundi_command = os.path.join(base_directory, 'extract/fundi/extract.py')
+
 ##############################################################################
 #   Surface input and conversion
 ##############################################################################
@@ -104,10 +111,13 @@ if use_freesurfer_surfaces:
 ##############################################################################
 
 # Measure surface surface_maps node
-surface_maps = pe.Node(util.Function(input_names = ['surface_files'],
-                                     output_names = ['depth_curv_map_files'],
+surface_maps = pe.Node(util.Function(input_names = ['travel_depth_command',
+                                                    'surface_files'],
+                                     output_names = ['surface_files',
+                                                     'depth_curv_map_files'],
                                      function = measure_surface_maps),
                        name='Measure_surface_maps')
+surface_maps.inputs.travel_depth_command = travel_depth_command
 
 # Connect input to surface maps nodes
 if use_freesurfer_surfaces:
@@ -123,10 +133,13 @@ else:
 ##############################################################################
 
 # Feature extraction nodes
-fundus_extraction = pe.Node(util.Function(input_names = ['depth_curv_map_files'],
+fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command',
+                                                         'surface_files', 
+                                                         'depth_curv_map_files'],
                                           output_names = ['fundi'],
                                           function = extract_fundi),
                             name='Extract_fundi')
+fundus_extraction.inputs.extract_fundi_command = extract_fundi_command
 
 """
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_map',
@@ -145,10 +158,9 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_map',
 """
 
 # Connect surface surface_maps node to feature extraction nodes
-#flow.connect([(surface_maps, fundus_extraction, 
-#               [('depth_map', 'depth_map'),
-#                ('mean_curv_map', 'mean_curv_map'),
-#                ('gauss_curv_map', 'gauss_curv_map')])])
+flow.connect([(surface_maps, fundus_extraction, 
+               [('surface_files', 'surface_files'),
+                ('depth_curv_map_files', 'depth_curv_map_files')])])
 
 """
 flow.connect([(surface_maps, sulcus_extraction, 
