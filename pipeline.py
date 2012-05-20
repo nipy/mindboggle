@@ -27,6 +27,7 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 from pipeline_functions import *
+from extract.shape.label21 import *
 
 use_freesurfer_surfaces = 1
 
@@ -38,29 +39,33 @@ flow.base_dir = '.'
 
 # Input and output nodes
 infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
-                     name = 'Input')
+                     name = 'Subjects')
 if use_freesurfer_surfaces:
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['fs_surface_files']),
-                         name = 'DataSource')
+                         name = 'Data')
 else:
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['surface_files']),
-                         name = 'DataSource')
-templates = pe.Node(interface=nio.DataGrabber(infields=['template_id'],
-                                             outfields=['template_files']),
-                   name = 'Template')
-atlases = pe.Node(interface=nio.DataGrabber(infields=['atlas_list_file'],
-                                            outfields=['atlas_list_file']),
-                  name = 'Atlases')
-datasink = pe.Node(interface=nio.DataSink(),
-                   name = 'DataSink')
+                         name = 'Data')
+#templates = pe.Node(interface=nio.DataGrabber(infields=['template_id'],
+#                                             outfields=['template_files']),
+#                   name = 'Template')
+
+#atlases = pe.Node(interface=nio.DataGrabber(infields=['atlas_list_file'],
+#                                            outfields=['atlas_list_file']),
+#                  name = 'Atlases')
+
+#datasink = pe.Node(interface=nio.DataSink(),
+#                   name = 'DataSink')
 
 # Iterate over subjects
 infosource.iterables = ('subject_id', ['KKI2009-11'])
 
 # Specify the location and structure of the inputs and outputs
-datasource.inputs.base_directory = '/projects/mindboggle/data'
+base_directory = '/projects/mindboggle'
+subjects_path = '/usr/local/freesurfer/subjects'
+datasource.inputs.base_directory = subjects_path
 datasource.inputs.template = '%s/surf/%s.%s'
 if use_freesurfer_surfaces:
     datasources = [['subject_id', ['lh','rh'], 'pial']]
@@ -69,25 +74,116 @@ else:
     datasources = [['subject_id', ['lh','rh'], 'pial.vtk']]
     datasource.inputs.template_args['surface_files'] = datasources
 
-datasink.inputs.base_directory = '/projects/mindboggle'
-datasink.inputs.container = 'output'
+#datasink.inputs.base_directory = '/projects/mindboggle'
+#datasink.inputs.container = 'output'
 
 # Specify the location and structure of the templates
-templates.inputs.base_directory = '../data/templates_freesurfer'
-templates.inputs.template = '%s.%s_2.tif'
-templates.inputs.template_args['template_files'] = [[['lh','rh'], 'template_id']]
+#templates.inputs.base_directory = templates_path
+#templates.inputs.template_id = 'KKI'
+#templates.inputs.template = '%s.%s_2.tif'
+#templates.inputs.template_args['template_files'] = [[['lh','rh'], 'template_id']]
 
-# Specify the location and structure of the atlases
-atlases.inputs.base_directory = '../data/atlases'
-atlases.inputs.template = '%s/%s'
-atlases.inputs.template_args['atlas_list_file'] = [['MMRR_labeled', 'KKI.txt']]
+# Define a template node
+template = pe.Node(interface=util.IdentityInterface(fields=[
+                   'template_name', 'templates_path', 'reg_name']),
+                   name='Template')
+template_id = 'KKI'
+template.inputs.template_name = template_id + '_2.tif'
+template.inputs.templates_path = os.path.join(base_directory, 
+                                    'data/templates_freesurfer')
+reg_name = 'sphere_to_' + template_id + '_template.reg'
+template.inputs.reg_name = reg_name
+
+# Define an atlases node
+atlases = pe.Node(interface=util.IdentityInterface(fields=[
+                  'atlases_path', 'atlas_list_file', 'annot_file_name']),
+                  name='Atlases')
+atlases_path = os.path.join(base_directory, 'data/atlases')
+atlases.inputs.atlases_path = atlases_path
+atlases.inputs.atlas_list_file = os.path.join(atlases_path, 'MMRR_labeled', 'KKI.txt')
+annot_file_name = 'aparcNMMjt.annot'
+atlases.inputs.annot_file_name = annot_file_name
 
 # Commands
-base_directory = '/projects/mindboggle/mindboggle'
-travel_depth_command = os.path.join(base_directory,
+code_directory = os.path.join(base_directory, 'mindboggle')
+travel_depth_command = os.path.join(code_directory,
              'measure/surface_travel_depth/travel_depth/TravelDepthMain')
-extract_fundi_command = os.path.join(base_directory, 'extract/fundi/extract.py')
+extract_fundi_command = os.path.join(code_directory, 
+                                     'extract/fundi/extract.py')
 
+##############################################################################
+#   Multi-atlas registration
+##############################################################################
+
+# Registration nodes
+"""
+Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
+          '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
+         ['./templates_freesurfer/lh.KKI_2.tif',
+          './templates_freesurfer/rh.KKI_2.tif']
+"""
+template_registration = pe.Node(util.Function(input_names=['subject_id',
+                                              'subjects_path',
+                                              'template_name', 
+                                              'templates_path', 
+                                              'reg_name'],
+                                     output_names=['reg_name'],
+                                     function = register_template),
+                                name='Register_template')
+template_registration.inputs.subjects_path = subjects_path
+
+atlas_registration = pe.Node(util.Function(input_names=['subject_id',
+                                                        'atlas_list_file',
+                                                        'annot_file_name',
+                                                        'reg_name',
+                                                        'output_path'],
+                                           output_names=['atlas_list'],
+                                           function = register_atlases),
+                             name='Register_atlases')
+atlas_registration.inputs.annot_file_name = annot_file_name
+atlas_registration.inputs.output_path = subjects_path
+
+"""
+# Output majority vote rule labels
+majority_vote = pe.Node(util.Function(input_names=['subject_id',
+                                              'subjects_path',
+                                              'reg_name'],
+                                     output_names=['LeftAssign',
+                                                   'RightAssign'],
+                                     function = labeling),
+                                name='Vote_majority')
+majority_vote.inputs.subjects_path = subjects_path
+"""
+# Connect input to registration nodes
+flow.connect([(infosource, template_registration, 
+               [('subject_id', 'subject_id')])])
+flow.connect([(infosource, atlas_registration, 
+               [('subject_id', 'subject_id')])])
+"""
+flow.connect([(infosource, majority_vote,
+               [('subject_id', 'subject_id')])])
+flow.connect([(template_registration, majority_vote, 
+               [('reg_name', 'reg_name')])])
+"""
+
+# Connect template and atlases to registration nodes
+flow.connect([(template, template_registration, 
+               [('template_name', 'template_name'),
+                ('templates_path', 'templates_path'),
+                ('reg_name', 'reg_name')])])
+flow.connect([(atlases, atlas_registration, 
+               [('atlas_list_file', 'atlas_list_file'),
+                ('annot_file_name', 'annot_file_name')])])
+
+# Connect template registration to multiatlas registration-based labeling nodes
+flow.connect([(template_registration, atlas_registration, 
+               [('reg_name', 'reg_name')])])
+
+# Connect multiatlas registration-based labeling to majority vote nodes
+#flow.connect([(atlas_registration, majority_vote,
+#               [('atlas_list', 'atlas_list')])])
+
+"""
 ##############################################################################
 #   Surface input and conversion
 ##############################################################################
@@ -140,7 +236,7 @@ fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command'
                                           function = extract_fundi),
                             name='Extract_fundi')
 fundus_extraction.inputs.extract_fundi_command = extract_fundi_command
-
+"""
 """
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_map',
                                                          'mean_curv_map',
@@ -156,12 +252,12 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_map',
                                               function = extract_midaxis),
                                 name='Extract_midaxis')
 """
-
+"""
 # Connect surface surface_maps node to feature extraction nodes
 flow.connect([(surface_maps, fundus_extraction, 
                [('surface_files', 'surface_files'),
                 ('depth_curv_map_files', 'depth_curv_map_files')])])
-
+"""
 """
 flow.connect([(surface_maps, sulcus_extraction, 
                [('depth_map', 'depth_map'),
@@ -176,51 +272,8 @@ flow.connect([(surface_maps, midaxis_extraction,
 #flow.connect([(surface_maps, datasink, [('depth_map', 'depth_map'),
 #                                ('mean_curv_map', 'mean_curv_map'),
 #                                ('gauss_curv_map', 'gauss_curv_map')])])
-
-##############################################################################
-#   Multi-atlas registration
-##############################################################################
-
-# Registration nodes
 """
 """
-Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
-          '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
-         ['./templates_freesurfer/lh.KKI_2.tif',
-          './templates_freesurfer/rh.KKI_2.tif']
-"""
-"""
-template_registration = pe.Node(util.Function(input_names=['subject_id',
-                                              'subjects_path',
-                                              'template_id', 
-                                              'template_path', 
-                                              'registration_name'],
-                                     output_names=['registration_name'],
-                                     function = register_template),
-                                name='Register_template')
-
-atlas_registration = pe.Node(util.Function(input_names=['subject_id',
-                                                        'atlas_list_file',
-                                                        'registration_name',
-                                                        'output_path'],
-                                           output_names=['labels'],
-                                           function = register_atlases),
-                             name='Register_atlases')
-
-# Connect template and atlases to registration nodes
-flow.connect([(template, template_registration, 
-               [('template_id','template_id')])])
-flow.connect([(atlases, atlas_registration, 
-               [('atlas_list_file','atlas_list_file')])])
-
-# Connect input to registration nodes
-flow.connect([(datasource, template_registration, 
-               [('subject_id','subject_id')])])
-
-# Connect template registration to multiatlas registration-based labeling nodes
-flow.connect([(template_registration, atlas_registration, 
-               [('registration_name','registration_name')])])
-
 ##############################################################################
 #   Label propagation
 ##############################################################################

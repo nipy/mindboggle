@@ -120,14 +120,14 @@ def read_annot(filepath, orig_ids=False):
 #
 #    return Map[Label]
 
-def load21(AnnotPath, Subject):
+def load21(atlas_annot_path, reg_name):
     '''Load 21 annotation files for each of the two hemispheres of a subject
     
     Parameters
     ===========
     
-    Subject: string
-        The ID an MDD subject
+    reg_name: string
+        The ...
     
     LeftFiles: list of strings
         Each element is an annotation file for the subject's left hemisphere from 21 atlases 
@@ -157,10 +157,10 @@ def load21(AnnotPath, Subject):
     print "Loading 21 annotations "
     
     from os import listdir
-    Allfiles  = listdir(AnnotPath)
+    Allfiles  = listdir(atlas_annot_path)
     LeftFiles, RightFiles = [], []
     for File in Allfiles:
-        if File.find(Subject) > -1:
+        if File.find(reg_name) > -1:
             if File[0] == 'l':
                 LeftFiles.append(File)
             elif File[0] == 'r':        
@@ -170,11 +170,11 @@ def load21(AnnotPath, Subject):
     
     LeftLabels, RightLabels = [], []
     for File in LeftFiles:
-        Labels, ColorTable, Names = read_annot(AnnotPath+File)
+        Labels, ColorTable, Names = read_annot(atlas_annot_path+File)
         LeftLabels.append(map(label_combine,Labels))
 
     for File in RightFiles:
-        Labels, ColorTable, Names = read_annot(AnnotPath+File)
+        Labels, ColorTable, Names = read_annot(atlas_annot_path+File)
         RightLabels.append(map(label_combine,Labels))
     
     print "21 annotations loaded"
@@ -258,56 +258,61 @@ def vote21(LeftLabels, RightLabels):
     print "Voting done"
     return LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff 
 
-def labeling(SurfPath, Subject, AnnotPath):
-    '''Load vtk surfaces from SurfPath, and write assigned labels of Subject into SurfPath as VTK files, 
-    according to labels from 21 atlases in AnnotPath
+def labeling(subject_id, subjects_path, reg_name):
+    '''Load vtk surfaces from subject_surf_path, and write assigned labels of Subject into subject_surf_path as VTK files, 
+    according to labels from 21 atlases in atlas_annot_path
     
     '''
+    import os
+    subject_surf_path = os.path.join(subjects_path, subject_id, 'surf')
+    atlas_annot_path = os.path.join(subjects_path, subject_id, 'label')
     
-    LeftLabels, RightLabels = load21(AnnotPath, Subject)
+    LeftLabels, RightLabels = load21(atlas_annot_path, reg_name)
     LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff = vote21(LeftLabels, RightLabels)
     
     import pyvtk
-    VTKReader = pyvtk.VtkData(SurfPath+"lh.pial.vtk")
+    VTKReader = pyvtk.VtkData(subject_surf_path+"lh.pial.vtk")
     Vertexes =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
                   pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
                                   pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
                                   pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
-                  tofile(SurfPath+'lh.assign.pial.vtk', 'ascii')
+                  tofile(subject_surf_path+'lh.assign.pial.vtk', 'ascii')
     
-    VTKReader = pyvtk.VtkData(SurfPath+"lh.inflated.vtk")
+    VTKReader = pyvtk.VtkData(subject_surf_path+"lh.inflated.vtk")
     Vertexes =  VTKReader.structure.points
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
                   pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
                                   pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
                                   pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
-                  tofile(SurfPath+'lh.assign.inflated.vtk', 'ascii')
+                  tofile(subject_surf_path+'lh.assign.inflated.vtk', 'ascii')
 
-    VTKReader = pyvtk.VtkData(SurfPath+"rh.pial.vtk")
+    VTKReader = pyvtk.VtkData(subject_surf_path+"rh.pial.vtk")
     Vertexes =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
                   pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
                                   pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
                                   pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
-                  tofile(SurfPath+'rh.assign.pial.vtk', 'ascii')
+                  tofile(subject_surf_path+'rh.assign.pial.vtk', 'ascii')
 
-    VTKReader = pyvtk.VtkData(SurfPath+"rh.inflated.vtk")
+    VTKReader = pyvtk.VtkData(subject_surf_path+"rh.inflated.vtk")
     Vertexes =  VTKReader.structure.points
     pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
                   pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
                                   pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
                                   pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
-                  tofile(SurfPath+'rh.assign.inflated.vtk', 'ascii')
+                  tofile(subject_surf_path+'rh.assign.inflated.vtk', 'ascii')
 
 # test 
 #labeling('/forrest/data/MRI/MDD/50014/surf/', '50014', '/forrest/data/MRI/MDD/atlas_to_patients/')
 
 # do some real work
+"""
 import os
 for DirIndx, Dir in enumerate(os.listdir('/forrest/data/MRI/MDD')):
     if len(Dir) == 5: # and DirIndx <= 30:
         print Dir
         labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
+"""
