@@ -19,131 +19,11 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 ##############################################################################
-#   Surface map calculation
-##############################################################################
-
-def convert_to_vtk(fs_surface_files):
-    """Measure
-
-    measure_()
-    """
-    #import subprocess as sp
-    import os
-    surface_files = []
-    for fs_surface_file in fs_surface_files:
-        surface_file = fs_surface_file + '.vtk'
-        surface_files.append(surface_file)
-        cmd = ['mris_convert', fs_surface_file, surface_file]
-        os.system(' '.join(cmd))
-    #proc = sp.Popen(' '.join(cmd))
-    #o, e = proc.communicate()
-    #if proc.returncode > 0 :
-    #    raise Exception('\n'.join([cmd + ' failed', o, e]))
-    return surface_files
-
-def measure_surface_maps(travel_depth_command, surface_files):
-    """Measure
-
-    measure_()
-    """
-    import os
-    depth_curv_map_files = []
-    for surface_file in surface_files:
-        depth_curv_map_file = surface_file.strip('.vtk') + '.depth.vtk'
-        depth_curv_map_files.append(depth_curv_map_file)
-        cmd = [travel_depth_command, surface_file, depth_curv_map_file]
-        os.system(' '.join(cmd))
-    return surface_files, depth_curv_map_files
-
-##############################################################################
-#   Feature extraction
-##############################################################################
-
-def extract_fundi(extract_fundi_command, surface_files, depth_curv_map_files):
-    """Extract fundi
-
-    extract_fundi
-    """
-    import os
-    fundi = []
-    for i, surface_file in enumerate(surface_files):
-        depth_curv_map_file = depth_curv_map_files[i]
-        cmd = ['python', extract_fundi_command, 
-               '%s'%surface_file, '%s'%depth_curv_map_file]
-        os.system(' '.join(cmd))
-    return fundi
-
-"""
-def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    ""Extract sulci
-
-    extract_sulci
-    ""
-    import subprocess as sp
-    cmd = 'feature = extract/sulci/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    #output_file = glob('file1.vtk').pop()
-    #feature_files = glob('*.vtk')
-    #return feature_files
-    return sulci
-
-def extract_midaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
-    ""Extract midaxis
-
-    extract_midaxis
-    ""
-    from glob import glob
-    import subprocess as sp
-    cmd = 'feature = extract/midaxis/extract.py'
-    cmd = ['python', cmd, '%s'%surface_file, '%s'%depth_map]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return midaxis
-"""
-
-# Labeled surface patch and volume extraction nodes
-def extract_patches(labels):
-    """Extract labeled surface patches
-    
-    extract_patches
-    """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'patch = extract/labels/extract.py'
-    cmd = ['python', cmd]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return patches
-
-def extract_regions(labels):
-    """Extract labeled region volumes
-    
-    extract_regions
-    """
-    from glob import glob
-    import subprocess as sp
-    cmd = 'region = extract/labels/extract.py'
-    cmd = ['python', cmd]
-    proc = sp.Popen(cmd)
-    o, e = proc.communicate()
-    if proc.returncode > 0 :
-        raise Exception('\n'.join(['extract.py failed', o, e]))
-    return regions
-
-##############################################################################
 #   Multi-atlas registration
 ##############################################################################
 
 def register_template(subject_id, subjects_path, 
-                      template_id, template_path, registration_name):
+                      template_name, templates_path, reg_name):
     """Register surface to template with FreeSurfer's mris_register
 
     Example: bert
@@ -156,19 +36,14 @@ def register_template(subject_id, subjects_path,
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
-        output_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        output_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.' + reg_name)
+        template_file = os.path.join(templates_path, hemi + '.' + template_name)
         args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args));
-        #os.system(' '.join(args)); # p = Popen(args);
-        proc = sp.Popen(args)
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
-        return output_name
+        print(' '.join(args)); os.system(' '.join(args))
+    return reg_name
 
-def register_atlases(subject_id, atlas_list_file, 
-                     registration_name, output_path):
+def register_atlases(subject_id, atlas_list_file, annot_file_name,
+                     reg_name, output_path):
     """Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -181,8 +56,6 @@ def register_atlases(subject_id, atlas_list_file,
     """
     import os
     from nipype.interfaces.freesurfer import SurfaceTransform
-
-    annot_file_name = 'aparcNMMjt.annot'
 
     sxfm = SurfaceTransform()
     sxfm.inputs.target_subject = subject_id
@@ -198,15 +71,122 @@ def register_atlases(subject_id, atlas_list_file,
         for hemi in ['lh','rh']:        
             sxfm.inputs.hemi = hemi
             # Specify annotation file
-            output_annot = os.path.join(output_path, hemi + '.' + atlas_name + '_to_' + \
+            output_annot = os.path.join(output_path, subject_id, 'label',
+                                        hemi + '.' + atlas_name + '_to_' + \
                                         subject_id + '_' + annot_file_name)
             args = ['--sval-annot', annot_file_name,
                     '--tval', output_annot,
-                    '--srcsurfreg', registration_name,
-                    '--trgsurfreg', registration_name]
+                    '--srcsurfreg', reg_name,
+                    '--trgsurfreg', reg_name]
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
     return atlas_list
+
+##############################################################################
+#   Surface map calculation
+##############################################################################
+
+def convert_to_vtk(fs_surface_files):
+    """Measure
+
+    measure_()
+    """
+    #import subprocess as sp
+    import os
+    surface_files = []
+    for fs_surface_file in fs_surface_files:
+        surface_file = fs_surface_file + '.vtk'
+        surface_files.append(surface_file)
+        args = ['mris_convert', fs_surface_file, surface_file]
+        print(' '.join(args)); os.system(' '.join(args))
+    #proc = sp.Popen(' '.join(args))
+    #o, e = proc.communicate()
+    #if proc.returncode > 0 :
+    #    raise Exception('\n'.join([args + ' failed', o, e]))
+    return surface_files
+
+def measure_surface_maps(travel_depth_command, surface_files):
+    """Measure
+
+    measure_()
+    """
+    import os
+    depth_curv_map_files = []
+    for surface_file in surface_files:
+        depth_curv_map_file = surface_file.strip('.vtk') + '.depth.vtk'
+        depth_curv_map_files.append(depth_curv_map_file)
+        args = [travel_depth_command, surface_file, depth_curv_map_file]
+        print(' '.join(args)); os.system(' '.join(args))
+    return surface_files, depth_curv_map_files
+
+##############################################################################
+#   Feature extraction
+##############################################################################
+
+def extract_fundi(extract_fundi_command, surface_files, depth_curv_map_files):
+    """Extract fundi
+
+    extract_fundi
+    """
+    import os
+    fundi = []
+    for i, surface_file in enumerate(surface_files):
+        depth_curv_map_file = depth_curv_map_files[i]
+        args = ['python', extract_fundi_command, 
+               '%s'%surface_file, '%s'%depth_curv_map_file]
+        print(' '.join(args)); os.system(' '.join(args))
+    return fundi
+
+"""
+def extract_sulci(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    ""Extract sulci
+
+    extract_sulci
+    ""
+    import subprocess as sp
+    args = 'feature = extract/sulci/extract.py'
+    args = ['python', args, '%s'%surface_file, '%s'%depth_map]
+    print(' '.join(args)); os.system(' '.join(args))
+    #output_file = glob('file1.vtk').pop()
+    #feature_files = glob('*.vtk')
+    #return feature_files
+    return sulci
+
+def extract_midaxis(surface_file, depth_map, mean_curvature_map, gauss_curvature_map):
+    ""Extract midaxis
+
+    extract_midaxis
+    ""
+    from glob import glob
+    import subprocess as sp
+    args = 'feature = extract/midaxis/extract.py'
+    args = ['python', args, '%s'%surface_file, '%s'%depth_map]
+    print(' '.join(args)); os.system(' '.join(args))
+    return midaxis
+"""
+
+# Labeled surface patch and volume extraction nodes
+def extract_patches(labels):
+    """Extract labeled surface patches
+    
+    extract_patches
+    """
+    from glob import glob
+    import subprocess as sp
+    args = ['python', 'patch = extract/labels/extract.py']
+    print(' '.join(args)); os.system(' '.join(args))
+    return patches
+
+def extract_regions(labels):
+    """Extract labeled region volumes
+    
+    extract_regions
+    """
+    from glob import glob
+    import subprocess as sp
+    args = ['python', 'region = extract/labels/extract.py']
+    print(' '.join(args)); os.system(' '.join(args))
+    return regions
 
 ##############################################################################
 #   Label propagation
@@ -235,15 +215,10 @@ def segment_sulci(sulci):
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
+        template_file = os.path.join(templates_path, hemi + '.' + template_name)
         args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args));
-        #os.system(' '.join(args)); # p = Popen(args);
-        proc = sp.Popen(args)
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        print(' '.join(args)); os.system(' '.join(args))
         return feature_type, segmented_sulci
 
 def segment_fundi(fundi):
@@ -253,15 +228,10 @@ def segment_fundi(fundi):
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
+        template_file = os.path.join(templates_path, hemi + '.' + template_name)
         args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args));
-        #os.system(' '.join(args)); # p = Popen(args);
-        proc = sp.Popen(args)
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        print(' '.join(args)); os.system(' '.join(args))
         return feature_type, segmented_fundi
 
 def segment_midaxis(midaxis):
@@ -271,15 +241,10 @@ def segment_midaxis(midaxis):
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + registration_name)
-        template_file = os.path.join(template_path, hemi + '.' + template_id)
+        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
+        template_file = os.path.join(templates_path, hemi + '.' + template_name)
         args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args));
-        #os.system(' '.join(args)); # p = Popen(args);
-        proc = sp.Popen(args)
-        o, e = proc.communicate()
-        if proc.returncode > 0 :
-            raise Exception('\n'.join([cmd + ' failed', o, e]))
+        print(' '.join(args)); os.system(' '.join(args))
         return feature_type, segmented_midaxis
 
 ##############################################################################
