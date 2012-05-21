@@ -27,7 +27,8 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 from pipeline_functions import *
-from extract.shape.label21 import *
+#from extract.shape.label21 import *
+from multilabel import labeling
 
 use_freesurfer_surfaces = 1
 
@@ -96,13 +97,13 @@ template.inputs.reg_name = reg_name
 
 # Define an atlases node
 atlases = pe.Node(interface=util.IdentityInterface(fields=[
-                  'atlases_path', 'atlas_list_file', 'annot_file_name']),
+                  'atlases_path', 'atlas_list_file', 'annot_name']),
                   name='Atlases')
-atlases_path = os.path.join(base_directory, 'data/atlases')
+atlases_path = subjects_path #os.path.join(base_directory, 'data/atlases')
 atlases.inputs.atlases_path = atlases_path
-atlases.inputs.atlas_list_file = os.path.join(atlases_path, 'MMRR_labeled', 'KKI.txt')
-annot_file_name = 'aparcNMMjt.annot'
-atlases.inputs.annot_file_name = annot_file_name
+atlases.inputs.atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
+annot_name = 'aparcNMMjt.annot'
+atlases.inputs.annot_name = annot_name
 
 # Commands
 code_directory = os.path.join(base_directory, 'mindboggle')
@@ -110,6 +111,24 @@ travel_depth_command = os.path.join(code_directory,
              'measure/surface_travel_depth/travel_depth/TravelDepthMain')
 extract_fundi_command = os.path.join(code_directory, 
                                      'extract/fundi/extract.py')
+
+##############################################################################
+#   Surface input and conversion
+##############################################################################
+
+# Connect input nodes
+flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
+
+# Convert FreeSurfer surfaces to VTK format
+if use_freesurfer_surfaces:
+    surface_conversion = pe.Node(util.Function(input_names = ['fs_surface_files'],
+                                               output_names = ['surface_files'],
+                                               function = convert_to_vtk),
+                                 name='Convert_surfaces')
+
+    # Connect input to surface surface_maps node
+    flow.connect([(datasource, surface_conversion,
+                   [('fs_surface_files','fs_surface_files')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -133,38 +152,32 @@ template_registration = pe.Node(util.Function(input_names=['subject_id',
 template_registration.inputs.subjects_path = subjects_path
 
 atlas_registration = pe.Node(util.Function(input_names=['subject_id',
+                                                        'subjects_path',
                                                         'atlas_list_file',
-                                                        'annot_file_name',
-                                                        'reg_name',
-                                                        'output_path'],
+                                                        'annot_name',
+                                                        'reg_name'],
                                            output_names=['atlas_list'],
                                            function = register_atlases),
                              name='Register_atlases')
-atlas_registration.inputs.annot_file_name = annot_file_name
-atlas_registration.inputs.output_path = subjects_path
+atlas_registration.inputs.subjects_path = subjects_path
 
-"""
 # Output majority vote rule labels
 majority_vote = pe.Node(util.Function(input_names=['subject_id',
                                               'subjects_path',
-                                              'reg_name'],
+                                              'annot_name'],
                                      output_names=['LeftAssign',
                                                    'RightAssign'],
                                      function = labeling),
                                 name='Vote_majority')
 majority_vote.inputs.subjects_path = subjects_path
-"""
+
 # Connect input to registration nodes
 flow.connect([(infosource, template_registration, 
                [('subject_id', 'subject_id')])])
 flow.connect([(infosource, atlas_registration, 
                [('subject_id', 'subject_id')])])
-"""
 flow.connect([(infosource, majority_vote,
                [('subject_id', 'subject_id')])])
-flow.connect([(template_registration, majority_vote, 
-               [('reg_name', 'reg_name')])])
-"""
 
 # Connect template and atlases to registration nodes
 flow.connect([(template, template_registration, 
@@ -173,35 +186,15 @@ flow.connect([(template, template_registration,
                 ('reg_name', 'reg_name')])])
 flow.connect([(atlases, atlas_registration, 
                [('atlas_list_file', 'atlas_list_file'),
-                ('annot_file_name', 'annot_file_name')])])
+                ('annot_name', 'annot_name')])])
 
 # Connect template registration to multiatlas registration-based labeling nodes
 flow.connect([(template_registration, atlas_registration, 
                [('reg_name', 'reg_name')])])
-
-# Connect multiatlas registration-based labeling to majority vote nodes
-#flow.connect([(atlas_registration, majority_vote,
-#               [('atlas_list', 'atlas_list')])])
+flow.connect([(atlases, majority_vote, 
+               [('annot_name', 'annot_name')])])
 
 """
-##############################################################################
-#   Surface input and conversion
-##############################################################################
-
-# Connect input nodes
-flow.connect([(infosource, datasource, [('subject_id','subject_id')])])
-
-# Convert FreeSurfer surfaces to VTK format
-if use_freesurfer_surfaces:
-    surface_conversion = pe.Node(util.Function(input_names = ['fs_surface_files'],
-                                               output_names = ['surface_files'],
-                                               function = convert_to_vtk),
-                                 name='Convert_surfaces')
-
-    # Connect input to surface surface_maps node
-    flow.connect([(datasource, surface_conversion,
-                   [('fs_surface_files','fs_surface_files')])])
-
 ##############################################################################
 #   Surface map calculation
 ##############################################################################
