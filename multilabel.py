@@ -1,59 +1,68 @@
-# For every hemisphere, read in 21 FreeSurfer *.annot files (21 atlases to one hemisphere) and output one VTK file of majority labels for vertexes
-# The main function is labeling(). The last few lines calls this function while traversing a path. 
-# labels are 0-indexing because we used read_annot
+#!/usr/bin/python
 
-def label_combine(Label):
-    '''Replace some labels by combined labels. 
+"""
+For each brain hemisphere (left and right) in a given subject, 
+read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
+of majority vote labels, representing a "maximum probability" labeling.
+
+The main function is labeling() and calls: 
+load_labels, vote_labels, combine_labels, and read_annot (0-index labels).
+
+Authors:  
+Forrest Bao  .  forrest.bao@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+
+(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+
+"""
+
+def combine_labels(label_index):
+    """
+    Replace some labels by combined labels. 
 
     Parameters
     ============
-        Label: integer
-            label of a vertex
+    label_index: integer label of a vertex
 
     Returns
     =========
-
-        no variable. Direct return. 
+    No variable. Direct return. 
 
     Notes
     ======= 
-        Label combination:
+    label_index combinations:
         2= 2,10,23,26
         3= 3, 27
         18=18,19,20
 
-    '''
-
-    if Label == 10 or Label == 23 or Label == 26:
+    """
+    
+    if label_index == 10 or label_index == 23 or label_index == 26:
         return 2
-    elif Label == 27:
+    elif label_index == 27:
         return 3
-    elif Label == 19 or Label == 20:
+    elif label_index == 19 or label_index == 20:
         return 18
     else:
-        return Label
+        return label_index
 
 def read_annot(filepath, orig_ids=False):
-    """Read in a Freesurfer annotation from a .annot file.
+    """
+    Read in a Freesurfer annotation from a .annot file.
     From https://github.com/nipy/PySurfer/blob/master/surfer/io.py
 
     Parameters
     ----------
-    filepath : str
-    Path to annotation file
-    orig_ids : bool
-    Whether to return the vertex ids as stored in the annotation
-    file or the positional colortable ids
+    filepath : str  (path to annotation file)
+    orig_ids : bool  (?return the vertex ids as stored in the annotation file 
+                       or colortable ids)
     
     Returns
     -------
-    labels : n_vtx numpy array
-    Annotation id at each vertex
-    ctab : numpy array
-    RGBA + label id colortable array
-    names : numpy array
-    Array of region names as stored in the annot file
-    
+    labels : n_vtx numpy array  (annotation id at each vertex)
+    ctab : numpy array  (RGBA + label id colortable array)
+    names : numpy array  (array of region names as stored in the annot file)   
+
     """
     import numpy as np
     
@@ -64,7 +73,7 @@ def read_annot(filepath, orig_ids=False):
         labels = data[:, 1]
         ctab_exists = np.fromfile(fobj, dt, 1)[0]
         if not ctab_exists:
-            raise Exception('Color table not found in annotation file')
+            raise Exception('Color table not found in annotation file.')
         n_entries = np.fromfile(fobj, dt, 1)[0]
         if n_entries > 0:
             length = np.fromfile(fobj, dt, 1)[0]
@@ -84,7 +93,7 @@ def read_annot(filepath, orig_ids=False):
         else:
             ctab_version = -n_entries
             if ctab_version != 2:
-                raise Exception('Color table version not supported')
+                raise Exception('Color table version not supported.')
             n_entries = np.fromfile(fobj, dt, 1)[0]
             ctab = np.zeros((n_entries, 5), np.int)
             length = np.fromfile(fobj, dt, 1)[0]
@@ -105,219 +114,193 @@ def read_annot(filepath, orig_ids=False):
         labels = ord[np.searchsorted(ctab[ord, -1], labels)]
     return labels, ctab, names 
 
-#def labelMap(Label):
-#    '''Given a label as in http://surfer.nmr.mgh.harvard.edu/fswiki/AnnotFiles, return its index
-#    
-#    '''
-#    
-#    Map = {1639705:1, 2647065:2, 10511485:3, 6500:4, 3294840:5,\
-#           6558940:6, 660700:7, 9231540:8, 14433500:9, 7874740:10,\
-#           9180300:11, 9182740:12, 3296035:13, 9211105:14, 4924360:15,\
-#           3302560:16, 3988500:17, 3988540:18, 9221340:19, 3302420:20,\
-#           1326300:21, 3957880:22, 1316060:23, 14464220:24, 14423100:25,\
-#           11832480:26, 9180240:27, 8204875:28, 10542100:29, 9221140:30,\
-#           14474380:31, 1351760:32, 6553700:33, 11146310:34, 13145750:35, 2146559:36, 0:0}
-#
-#    return Map[Label]
-
-def load21(atlas_annot_path, annot_name):
-    '''Load 21 annotation files for each of the two hemispheres of a subject
+def load_labels(annot_path, annot_name):
+    """
+    Load multiple annotation files for each of the hemispheres of a subject
     
     Parameters
     ===========
-    
-    annot_name: string
-        The ...
-    
-    LeftFiles: list of strings
-        Each element is an annotation file for the subject's left hemisphere from 21 atlases 
-
-    RightFiles: list of strings
-        Each element is an annotation file for the subject's right hemisphere from 21 atlases
-        
-    AnnotPath: string
-        Path where all annotation files are saved
+    annot_name: string  (identifies annot files by their file name)
+    left_files: list of strings  (annotation files for the left hemisphere)
+    right_files: list of strings  (annotation files for the right hemisphere)
+    AnnotPath: string  (path where all annotation files are saved)
     
     Returns 
     ========
-    
-    LeftLabels: list of 21 lists of integers
-        Each element is a list of labels for all vertexes on Subject's left hemisphere
-        
-    RightLabels: list of 21 lists of integers
-        Each element is a list of labels for all vertexes on Subject's right hemisphere 
+    left_labels: list of lists of integers  (labels for left vertices)      
+    right_labels: list of lists of integers  (labels for right vertices) 
     
     Notes
     ======
-    
     The labels from read_annot range from 1 to 35 
+
+    """
     
-    '''
-    
-    print "Loading 21 annotations "
+    print "Loading multiple annotations..."
     
     from os import listdir, path
-    Allfiles  = listdir(atlas_annot_path)
-    LeftFiles, RightFiles = [], []
-    for File in Allfiles:
-        if File.find(annot_name) > -1:
-            if File[0] == 'l':
-                LeftFiles.append(File)
-            elif File[0] == 'r':        
-                RightFiles.append(File)
+    Allfiles  = listdir(annot_path)
+    left_files, right_files = [], []
+    for file in Allfiles:
+        if file.find(annot_name) > -1:
+            if file[0] == 'l':
+                left_files.append(file)
+            elif file[0] == 'r':        
+                right_files.append(file)
             else:
-                print "unable to match any file names"
+                print "Unable to match any file names."
     
-    LeftLabels, RightLabels = [], []
-    for File in LeftFiles:
-        Labels, ColorTable, Names = read_annot(path.join(atlas_annot_path, File))
-        LeftLabels.append(map(label_combine,Labels))
+    left_labels, right_labels = [], []
+    for file in left_files:
+        Labels, ColorTable, Names = read_annot(path.join(annot_path, file))
+        left_labels.append(map(combine_labels,Labels))
 
-    for File in RightFiles:
-        Labels, ColorTable, Names = read_annot(path.join(atlas_annot_path, File))
-        RightLabels.append(map(label_combine,Labels))
+    for file in right_files:
+        Labels, ColorTable, Names = read_annot(path.join(annot_path, file))
+        right_labels.append(map(combine_labels,Labels))
     
-    print "21 annotations loaded"
+    print "Multiple annotations loaded."
     
-    return LeftLabels, RightLabels
+    return left_labels, right_labels
     
-def vote21(LeftLabels, RightLabels):
-    '''For each vertex, let 21 labels of it vote. If they do not all agree, the vertex is unlabeled
+def vote_labels(left_labels, right_labels):
+    """
+    For each vertex, vote on the majority label.
 
     Parameters 
     ========
-    LeftLabels: list of 21 lists of integers
-        Each element is a list of labels for all vertexes on Subject's left hemisphere
-        
-    RightLabels: list of 21 lists of integers
-        Each element is a list of labels for all vertexes on Subject's right hemisphere
-        
-    LeftNum: integer
-        number of vertexes on the left hemisphere
-        
-    RightNum: integer
-        number of vertexes on the right hemisphere
+    left_labels: list of lists of integers  (labels for left vertices)          
+    right_labels: list of lists of integers  (labels for right vertices)
+    left_n_labels: integer  (number of left vertices)
+    right_n_labels: integer  (number of right vertices)
         
     Returns
     ========
-    
-    LeftAssign: list of integers
-        The ``voting'' result of all vertexes on left hemisphere  
-    
-    RightAssign: list of integers
-        The ``voting'' result of all vertexes on right hemisphere  
-        
-    LeftConsensus: list of integers
-        Number of consensus labels for all vertexes on left hemisphere 
+    left_assign: list of integers  (winning labels for left vertices)  
+    right_assign: list of integers  (winning labels for right vertices)
+    left_consensus: list of integers  (number of left consensus labels) 
+    right_consensus: list of integers  (number of right consensus labels)
   
-    RightConsensus: list of integers
-        Number of consensus labels for all vertexes on right hemisphere
-  
-    '''
+    """
     from collections import Counter
     
-    print "Begin voting"
+    compute_diff_consensus = 0
     
-    LeftNum, RightNum = len(LeftLabels[0]), len(RightLabels[0])
-    LeftAssign = [-1 for i in xrange(LeftNum)]   # if no consistent vote, the label is -1, meaning this vertex is unlabeled
-    RightAssign = [-1 for i in xrange(RightNum)]
-    LeftDiff = [1 for i in xrange(LeftNum)]   
-    RightDiff = [1 for i in xrange(RightNum)]
-    LeftConsensus = [21 for i in xrange(LeftNum)]   
-    RightConsensus = [21 for i in xrange(RightNum)]
+    print "Begin voting..."
     
-    for Vrtx in xrange(LeftNum):
-        Votes = Counter([LeftLabels[i][Vrtx] for i in xrange(21)])
+    left_n_labels, right_n_labels = len(left_labels[0]), len(right_labels[0])
+    left_assign = [-1 for i in xrange(left_n_labels)]  
+                  # if no consistent vote, the label is -1 (vertex is unlabeled)
+    right_assign = [-1 for i in xrange(right_n_labels)]
+
+    if compute_diff_consensus:
+        left_diff = [1 for i in xrange(left_n_labels)]   
+        right_diff = [1 for i in xrange(right_n_labels)]
+        left_consensus = [21 for i in xrange(left_n_labels)]   
+        right_consensus = [21 for i in xrange(right_n_labels)]
+    
+    for vertex in xrange(left_n_labels):
+        votes = Counter([left_labels[i][vertex] for i in xrange(21)])
         
-        # the block below is commented to use MaxProb principle, Forrest 2012-02-20 
-#        if len(Votes) == 1:
-#            LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
-#        else: 
-#            LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
-#            LeftDiff[Vrtx] = len(Votes)
-        # end of the block below is commented to use MaxProb principle, Forrest 2012-02-20
-        
-        LeftAssign[Vrtx] = Votes.most_common(1)[0][0]
-        LeftConsensus[Vrtx] = Votes.most_common(1)[0][1]
-        LeftDiff[Vrtx] = len(Votes)
+        left_assign[vertex] = votes.most_common(1)[0][0]
+        if compute_diff_consensus:
+            left_consensus[vertex] = votes.most_common(1)[0][1]
+            left_diff[vertex] = len(votes)
             
-    for Vrtx in xrange(RightNum):
-        Votes = Counter([RightLabels[i][Vrtx] for i in xrange(21)])
-        # the block below is commented to use MaxProb principle, Forrest 2012-02-20
-#        if len(Votes) == 1:
-#            RightAssign[Vrtx] = Votes.most_common(1)[0][0]
-#        else:
-#            RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
-#            RightDiff[Vrtx] = len(Votes)
-        # end of the block below is commented to use MaxProb principle, Forrest 2012-02-20
+    for vertex in xrange(right_n_labels):
+        votes = Counter([right_labels[i][vertex] for i in xrange(21)])
         
-        RightAssign[Vrtx] = Votes.most_common(1)[0][0]
-        RightConsensus[Vrtx] = Votes.most_common(1)[0][1]
-        RightDiff[Vrtx] = len(Votes)
+        right_assign[vertex] = votes.most_common(1)[0][0]
+        if compute_diff_consensus:
+            right_consensus[vertex] = votes.most_common(1)[0][1]
+            right_diff[vertex] = len(votes)
         
-    print "Voting done"
-    return LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff 
-
+    print "Voting done."
+    if compute_diff_consensus:
+        return left_assign, right_assign,\
+               left_consensus, right_consensus, left_diff, right_diff 
+    else:
+        return left_assign, right_assign
+ 
 def labeling(subject_id, subjects_path, annot_name):
-    '''Load vtk surfaces from subject_surf_path, and write assigned labels of Subject into subject_surf_path as VTK files, 
-    according to labels from 21 atlases in atlas_annot_path
+    """
+    Load VTK surfaces and write majority vote labels as VTK files, 
+    according to multiple labelings (annot_name).
     
-    '''
+    """
     from os import path
-    subject_surf_path = path.join(subjects_path, subject_id, 'surf')
-    atlas_annot_path = path.join(subjects_path, subject_id, 'label')
-    
-    from multilabel import load21, vote21
-    LeftLabels, RightLabels = load21(atlas_annot_path, annot_name)
-    LeftAssign, RightAssign, LeftConsensus, RightConsensus, LeftDiff, RightDiff = vote21(LeftLabels, RightLabels)
-    
     import pyvtk
-    VTKReader = pyvtk.VtkData(path.join(subject_surf_path, 'lh.pial.vtk'))
-    Vertexes =  VTKReader.structure.points
-    Faces =     VTKReader.structure.polygons
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
-                                  pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
-                                  pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
-                  tofile(path.join(atlas_annot_path, 'lh.pial.labels.vtk'), 'ascii')
+    from multilabel import load_labels, vote_labels
+
+    compute_diff_consensus = 0
+    save_inflated = 0
+
+    subject_surf_path = path.join(subjects_path, subject_id, 'surf')
+    annot_path = path.join(subjects_path, subject_id, 'label')
     
-    """
-    VTKReader = pyvtk.VtkData(path.join(subject_surf_path, 'lh.inflated.vtk'))
-    Vertexes =  VTKReader.structure.points
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(LeftAssign, name='Assigned_Label'),\
-                                  pyvtk.Scalars(LeftDiff, name='Diff_Labels'),\
-                                  pyvtk.Scalars(LeftConsensus, name='Common_Labels'))).\
-                  tofile(path.join(atlas_annot_path, 'lh.inflated.labels.vtk'), 'ascii')
-    """
+    # Load multiple label sets
+    left_labels, right_labels = load_labels(annot_path, annot_name)
+ 
+    # Vote on labels for each vertex
+    if compute_diff_consensus:
+        left_assign, right_assign, left_consensus, right_consensus,\
+        left_diff, right_diff = vote_labels(left_labels, right_labels)
+    else:
+        left_assign, right_assign = vote_labels(left_labels, right_labels)
+    
+    if save_inflated:
+        input_files = ['lh.pial.vtk', 'rh.pial.vtk', 
+                       'lh.inflated.vtk', 'rh.inflated.vtk']
+        output_files = ['lh.pial.labels.vtk', 'rh.pial.labels.vtk', 
+                        'lh.inflated.labels.vtk', 'rh.inflated.labels.vtk']
+        if compute_diff_consensus:
+            dv = [[left_assign, left_diff, left_consensus],
+                  [right_assign, right_diff, right_consensus],
+                  [left_assign, left_diff, left_consensus],
+                  [right_assign, right_diff, right_consensus]]
+        else:
+            dv = [[left_assign], [right_assign],
+                  [left_assign], [right_assign]]
+    else:
+        input_files = ['lh.pial.vtk', 'rh.pial.vtk']
+        output_files = ['lh.pial.labels.vtk', 'rh.pial.labels.vtk']
+        if compute_diff_consensus:
+            dv = [[left_assign, left_diff, left_consensus],
+                  [right_assign, right_diff, right_consensus]]
+        else:
+            dv = [[left_assign], [right_assign]]
 
-    VTKReader = pyvtk.VtkData(path.join(subject_surf_path, 'rh.pial.vtk'))
-    Vertexes =  VTKReader.structure.points
-    Faces =     VTKReader.structure.polygons
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
-                                  pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
-                                  pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
-                  tofile(path.join(atlas_annot_path, 'rh.pial.labels.vtk'), 'ascii')
+    for i, input_file in enumerate(input_files):
+        VTKReader = pyvtk.VtkData(path.join(subject_surf_path, input_file))
+        Vertexes =  VTKReader.structure.points
+        Faces =     VTKReader.structure.polygons
+        
+        if compute_diff_consensus:
+            pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Assigned'),\
+                                  pyvtk.Scalars(dv[i][1], name='Different'),\
+                                  pyvtk.Scalars(dv[i][2], name='Common'))).\
+                  tofile(path.join(annot_path, output_files[i]), 'ascii')
+        else:
+            pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Assigned'))).\
+                  tofile(path.join(annot_path, output_files[i]), 'ascii')
+    return annot_name  
+    
 
-    """
-    VTKReader = pyvtk.VtkData(path.join(subject_surf_path, 'rh.inflated.vtk'))
-    Vertexes =  VTKReader.structure.points
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(RightAssign, name='Assigned_Label'),\
-                                  pyvtk.Scalars(RightDiff, name='Diff_Labels'),\
-                                  pyvtk.Scalars(RightConsensus, name='Common_Labels'))).\
-                  tofile(path.join(atlas_annot_path, 'rh.inflated.labels.vtk'), 'ascii')
-    """
-
-# test 
-#labeling('/forrest/data/MRI/MDD/50014/surf/', '50014', '/forrest/data/MRI/MDD/atlas_to_patients/')
-
-# do some real work
 """
-import os
-for DirIndx, Dir in enumerate(os.listdir('/forrest/data/MRI/MDD')):
-    if len(Dir) == 5: # and DirIndx <= 30:
-        print Dir
-        labeling('/forrest/data/MRI/MDD/'+Dir+'/surf/', Dir, '/forrest/data/MRI/MDD/atlas_to_patients/')
+def labelMap(label_index):
+    # Given a label as in http://surfer.nmr.mgh.harvard.edu/fswiki/AnnotFiles, 
+    # return its index
+    
+    Map = {1639705:1, 2647065:2, 10511485:3, 6500:4, 3294840:5,\
+           6558940:6, 660700:7, 9231540:8, 14433500:9, 7874740:10,\
+           9180300:11, 9182740:12, 3296035:13, 9211105:14, 4924360:15,\
+           3302560:16, 3988500:17, 3988540:18, 9221340:19, 3302420:20,\
+           1326300:21, 3957880:22, 1316060:23, 14464220:24, 14423100:25,\
+           11832480:26, 9180240:27, 8204875:28, 10542100:29, 9221140:30,\
+           14474380:31, 1351760:32, 6553700:33, 11146310:34, 13145750:35, 2146559:36, 0:0}
+
+    return Map[label_index]
 """
+
