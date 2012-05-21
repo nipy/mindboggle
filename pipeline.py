@@ -163,15 +163,15 @@ atlas_registration.inputs.subjects_path = subjects_path
 
 # Output majority vote rule labels
 majority_vote = pe.Node(util.Function(input_names=['subject_id',
-                                              'subjects_path',
-                                              'annot_name'],
-                                     output_names=['LeftAssign',
-                                                   'RightAssign'],
-                                     function = labeling),
-                                name='Vote_majority')
+                                                   'subjects_path',
+                                                   'annot_name'],
+                                      output_names=['LeftAssign',
+                                                    'RightAssign'],
+                                      function = labeling),
+                        name='Vote_majority')
 majority_vote.inputs.subjects_path = subjects_path
 
-# Connect input to registration nodes
+# Connect input to registration and labeling nodes
 flow.connect([(infosource, template_registration, 
                [('subject_id', 'subject_id')])])
 flow.connect([(infosource, atlas_registration, 
@@ -179,7 +179,7 @@ flow.connect([(infosource, atlas_registration,
 flow.connect([(infosource, majority_vote,
                [('subject_id', 'subject_id')])])
 
-# Connect template and atlases to registration nodes
+# Connect template and atlases to registration and labeling nodes
 flow.connect([(template, template_registration, 
                [('template_name', 'template_name'),
                 ('templates_path', 'templates_path'),
@@ -188,7 +188,7 @@ flow.connect([(atlases, atlas_registration,
                [('atlas_list_file', 'atlas_list_file'),
                 ('annot_name', 'annot_name')])])
 
-# Connect template registration to multiatlas registration-based labeling nodes
+# Connect template registration to labeling nodes
 flow.connect([(template_registration, atlas_registration, 
                [('reg_name', 'reg_name')])])
 flow.connect([(atlases, majority_vote, 
