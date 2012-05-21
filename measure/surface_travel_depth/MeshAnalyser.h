@@ -195,38 +195,12 @@ public:
 	//Decimate this->mesh. this->simpl is filled with the result  
 	void Simplify(double factor);
 
-	//ComputeVoronoi
-	//
-	//Compute the geodesic voronoi regions on the surface given e list 
-	//of centroids (slow and naive implementation)
-	//
-	//arg1 = a list of the indices of centroids
-	//arg2 = maximal distance. points too far from centroids are labeled with -1
-	//Compute the voronoi partition and fill this->voronoiBin with the indices
-	// of the closest centroid for each point of the mesh
-	void ComputeVoronoi(vtkIdList* centroidsList, double maxDist);
-
-
-	//ComputeHistogram
-	//
-	//Compute an histogram for a particular surface variable
-	//
-	//arg1 = variable name (the same name as for WriteIntoFile)
-	//arg2 = the number of bins in the histogram
-	//
-	//Compute the number of occurance of the variable comprised in the arg2 bins
-	//covering [min,max] the min and the max of the variable. Print out the result.
-	void ComputeHistogram(char* prop, int nbBins);
 
         //ComputeClosedMesh
         //
         //Compute a mesh that correspond to a morphological closing
         //of the interior volume of the mesh. Stores it to this->closedMesh
         void ComputeClosedMesh();
-
-        void ComputeMedialSurfaces();
-
-
 
 	//Methods to get instance variables
 	vtkDoubleArray* GetGeoDistRing(){return this->geoDistRing;}
@@ -235,13 +209,12 @@ public:
 	vtkPolyData* GetMesh(){return this->mesh;}
 	vtkDoubleArray* GetPointSurface(){return this->pointSurf;}
 	vtkDoubleArray* GetTravelDepth(){return this->depth;}
-        vtkDoubleArray* GetEuclideanDepth(){return this->euclideanDepth;}
+    vtkDoubleArray* GetEuclideanDepth(){return this->euclideanDepth;}
 	vtkDoubleArray* GetCurvature(){return this->curv;}
     vtkDoubleArray* GetCurvature1(){return this->curv1;}
     vtkDoubleArray* GetCurvature2(){return this->curv2;}
 	vtkDoubleArray* GetGaussianCurvature(){return this->gCurv;}
 	vtkPolyData* GetSimpleMesh(){return this->simpl;}
-	vtkIdList* GetVoronoiBin(){return this->voronoiBin;}
 	vtkDataArray* GetNormals(){return this->normals;}
 
 protected:
@@ -346,9 +319,6 @@ private:
 	//list of point of this->simpl which are close from this->mesh. length N x nbPoints
 	// (geoDistRing(arg1,arg2,arg3))
 	vtkIdList* close;
-
-	//Indices of the voronoi bin in which the vertex is contained (ComputeVoronoi)
-	vtkIdList* voronoiBin;
 
         //A mesh corresponding to the morphological closing
         //of the interior volume of the original mesh.

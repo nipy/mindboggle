@@ -1,2 +1,0 @@
-/usr/bin/ar cr libMeshAnalyser.a  CMakeFiles/MeshAnalyser.dir/MeshAnalyser.cpp.o
-/usr/bin/ranlib libMeshAnalyser.a

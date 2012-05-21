@@ -4,32 +4,22 @@ IF(COMMAND CMAKE_POLICY)
   CMAKE_POLICY(SET CMP0003 NEW)
 ENDIF(COMMAND CMAKE_POLICY)
 
-PROJECT(brain)
+
+# This project is designed to be built outside the Insight source tree.
+PROJECT(curvature)
 
 # Find VTK.
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
-ADD_SUBDIRECTORY(
-travel_depth
-)
-
-ADD_SUBDIRECTORY(
-curvature
-)
-
-ADD_LIBRARY(
-MeshAnalyser MeshAnalyser.cpp
-)
-
-ADD_LIBRARY(
-FsSurfaceReader FsSurfaceReader.cpp
-)
-
-ADD_LIBRARY(
-VtkFileEditor VtkFileEditor.cpp
+ADD_EXECUTABLE(
+CurvatureMain CurvatureMain.cpp
 )
 
 TARGET_LINK_LIBRARIES(
+CurvatureMain
 MeshAnalyser
+vtkCommon
+vtkRendering
+vtkHybrid
 )

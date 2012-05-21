@@ -1,2 +1,0 @@
-/usr/bin/ar cr libFsSurfaceReader.a  CMakeFiles/FsSurfaceReader.dir/FsSurfaceReader.cpp.o
-/usr/bin/ranlib libFsSurfaceReader.a

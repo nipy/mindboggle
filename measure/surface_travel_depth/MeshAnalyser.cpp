@@ -99,6 +99,8 @@ void MeshAnalyser::Initialize()
     this->geoDistRing=vtkDoubleArray::New();
     this->geoDistRingSimple=vtkDoubleArray::New();
     this->curv=vtkDoubleArray::New();
+    this->curv1=vtkDoubleArray::New();
+    this->curv2=vtkDoubleArray::New();
     this->gCurv=vtkDoubleArray::New();
     this->totalSurface=0;
     this->totalSurfaceSimple=0;
@@ -107,7 +109,6 @@ void MeshAnalyser::Initialize()
     this->predGeo=vtkIdList::New();
     this->test=vtkDoubleArray::New();
     this->close=vtkIdList::New();
-    this->voronoiBin=vtkIdList::New();
     this->closedMesh=vtkPolyData::New();
     this->meshLocator=vtkCellLocator::New();
     this->medialSurface=vtkPolyData::New();
@@ -128,19 +129,17 @@ MeshAnalyser::~MeshAnalyser()
     this->geoDistRing->Delete();
     this->geoDistRingSimple->Delete();
     this->curv->Delete();
+    this->curv1->Delete();
+    this->curv2->Delete();
     this->gCurv->Delete();
     this->inRing->Delete();
     this->inRingSimple->Delete();
     this->predGeo->Delete();
     this->test->Delete();
     this->close->Delete();
-    this->voronoiBin->Delete();
     this->closedMesh->Delete();
     this->euclideanDepth->Delete();
     this->meshLocator->Delete();
-    //        this->medialSurface->Delete();
-
-    //this->visi->Delete();
 }
 
 void MeshAnalyser::SetMesh(char* fileName)
@@ -529,19 +528,6 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     else if(strcmp("gCurv",prop)==0) this->mesh->GetPointData()->SetScalars(this->gCurv);
     else if(strcmp("test",prop)==0) this->mesh->GetPointData()->SetScalars(this->test);
     else if(strcmp("surf",prop)==0) this->mesh->GetPointData()->SetScalars(this->pointSurf);
-    //convert the voronoi bin indices from Id to double
-    else if(strcmp("voronoi",prop)==0)
-    {
-        vtkDoubleArray* value=vtkDoubleArray::New();
-
-        for(int i=0;i<this->nbPoints;i++)
-        {
-            value->InsertNextValue(this->voronoiBin->GetId(i));
-        }
-        this->mesh->GetPointData()->SetScalars(value);
-        value->Delete();
-
-    }
     else if(strcmp("1color",prop)==0)
     {
         vtkDoubleArray* value=vtkDoubleArray::New();
@@ -1548,10 +1534,10 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     double ec;
 
-    double maxCurv=-10;  // added Forrest 2012-03-05
-    double minCurv=1000;  // added Forrest 2012-03-05
-    double maxgCurv=-10;  // added Forrest 2012-03-05
-    double mingCurv=1000;  // added Forrest 2012-03-05
+//    double maxCurv=-10;  // added Forrest 2012-03-05
+//    double minCurv=1000;  // added Forrest 2012-03-05
+//    double maxgCurv=-10;  // added Forrest 2012-03-05
+//    double mingCurv=1000;  // added Forrest 2012-03-05
 
 
     for(int i = 0 ; i<this->nbPoints ; i++)
@@ -1607,117 +1593,26 @@ void MeshAnalyser::ComputePrincipalCurvatures()
         this->test->InsertNextValue(maxD-fabs(minD));
 
         /*added Forrest 2012-03-05*/
-        double MCurv = (maxD+minD)/2;
-	double GCurv = maxD*minD;
-        if(MCurv<minCurv)minCurv=MCurv;
-        if(MCurv>maxCurv)maxCurv=MCurv;
-        if(GCurv<mingCurv)mingCurv=GCurv;
-        if(GCurv>maxgCurv)maxgCurv=GCurv;
+//        double MCurv = (maxD+minD)/2;
+//	double GCurv = maxD*minD;
+//        if(MCurv<minCurv)minCurv=MCurv;
+//        if(MCurv>maxCurv)maxCurv=MCurv;
+//        if(GCurv<mingCurv)mingCurv=GCurv;
+//        if(GCurv>maxgCurv)maxgCurv=GCurv;
         /*end of added Forrest 2012-03-05*/
 
     }  // End of for i in 0 to nbPoints
 
-    /* added Forrest 2012-03-05 */ 
-    double curCurv;
-    for(int i=0;i<this->nbPoints;i++)
-    {
-        curCurv=this->curv->GetValue(i);
-        this->curv->SetValue(i,(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1);
-        curCurv=this->gCurv->GetValue(i);
-        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
-    }
+    /* added Forrest 2012-03-05 */
+//    double curCurv;
+//    for(int i=0;i<this->nbPoints;i++)
+//    {
+//        curCurv=this->curv->GetValue(i);
+//        this->curv->SetValue(i,(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1);
+//        curCurv=this->gCurv->GetValue(i);
+//        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
+//    }
     /* end of added Forrest 2012-03-05 */ 
-
-}
-
-void MeshAnalyser::ComputeVoronoi(vtkIdList* centroidsList, double maxDist)
-{
-    //initialisation
-    int nbCentroids	=centroidsList->GetNumberOfIds();
-    vtkDoubleArray* shortestDists=vtkDoubleArray::New();
-
-    int nbApprox=500;
-
-    for(int i=0; i<this->nbPoints;i++)
-    {
-        shortestDists->InsertNextValue(maxDist);
-        this->voronoiBin->InsertNextId(-1);
-    }
-
-    vtkIdType curCentroid;
-
-    double pointc[3], point[3];
-    double ec;
-    //compute the geodesic distance from centroids to all points
-    for(int i=0;i<nbCentroids;i++)
-    {
-        curCentroid=centroidsList->GetId(i);
-        //~ GeoDistRing(curCentroid,maxDist);
-        this->mesh->GetPoint(curCentroid,pointc);
-        for(int j=0;j<this->nbPoints;j++)
-        {
-            this->mesh->GetPoint(j,point);
-
-            ec=vtkMath::Distance2BetweenPoints(pointc,point);
-            ec=sqrt(ec);
-
-            //~ if(shortestDists->GetValue(j)>this->geoDistRing->GetValue(j))
-            if(shortestDists->GetValue(j)>ec)
-            {
-                //~ shortestDists->SetValue(j,this->geoDistRing->GetValue(j));
-                shortestDists->SetValue(j,ec);
-                this->voronoiBin->SetId(j,curCentroid);
-            }
-        }
-    }
-    shortestDists->Delete();
-    cout<<"Voronoi computed"<<endl;
-}
-
-void MeshAnalyser::ComputeHistogram(char* prop, int nbBins)
-{
-    vtkDoubleArray* data=vtkDoubleArray::New();
-
-    if(strcmp("geoDist",prop)==0) data=this->geoDistRing;
-    else if(strcmp("depth",prop)==0) data=this->depth;
-    else if(strcmp("curv",prop)==0) data=this->curv;
-    else if(strcmp("gCurv",prop)==0) data=this->gCurv;
-    else if(strcmp("test",prop)==0) data=this->test;
-    else if(strcmp("surf",prop)==0) data=this->pointSurf;
-
-    double min=10000000;
-    double max=-100000000;
-
-    for(int i=0;i<this->nbPoints;i++)
-    {
-        if(min>data->GetValue(i))min=data->GetValue(i);
-        if(max<data->GetValue(i))max=data->GetValue(i);
-    }
-
-    double hist[nbBins];
-
-    for(int j=0;j<nbBins;j++)
-    {
-        hist[j]=0;
-    }
-
-    int curBin;
-    double s=(max-min)/(double)nbBins;
-
-
-    for(int i=0;i<this->nbPoints;i++)
-    {
-        curBin=(int)floor((data->GetValue(i)-min)/s);
-        hist[curBin]=hist[curBin]+this->pointSurf->GetValue(i);
-    }
-    cout<<"histogram of "<<prop<<endl;
-    cout<<"min: "<<min<<"; max: "<<max<<"; step: "<<s<<endl;
-
-    for(int j=0;j<nbBins;j++)
-    {
-        cout<<hist[j]<<" ";
-    }
-    cout<<endl;
 
 }
 
@@ -1836,353 +1731,6 @@ void MeshAnalyser::ComputeClosedMesh()
 
 }
 
-void MeshAnalyser::ComputeMedialSurfaces()
-{
-    //    Simplify(40000);
-
-    //    cout<<"medial: mesh simplified"<<endl;
-
-    //    vtkPolyDataNormals *pdn = vtkPolyDataNormals::New();
-    //    pdn->SetInput(this->simpl);
-    //    pdn->SetFeatureAngle(90);
-    //    pdn->Update();
-
-    //    vtkPolyData* no=pdn->GetOutput();
-    //    no->Update();
-    //    vtkDataArray* normal = no->GetPointData()->GetNormals();
-
-    //    cout<<"medial: normals computed"<<endl;
-
-    //    vtkPoints* medPoints = vtkPoints::New();
-
-
-    //    vtkPolyData* evMesh = vtkPolyData::New();
-    //    evMesh->DeepCopy(this->simpl);
-    //    evMesh->Update();
-
-    //    vtkPoints* evPoints = evMesh->GetPoints();
-
-    //    vtkIdList* toProcess = vtkIdList::New();
-
-    //    double evFactor = 0.001;
-    //    double eps = 0.0001;
-    //    int maxNbSteps = 100;
-
-
-    //    int nbToProcess = this->simpl->GetNumberOfPoints();
-
-    //    for (int i = 0 ; i < nbToProcess ; i++ )
-    //    {
-    //        toProcess->InsertNextId(i);
-    //    }
-
-
-    //    double curPoint[3], disPoint[3], midPoint[3];
-    //    double nor[3];
-    //    vtkIdType curId;
-
-
-
-    ////    cout<<"evMesh"<<endl;
-    ////    vtkIndent indent;
-    ////    evMesh->PrintSelf(cout, indent);
-    ////    cout<<endl;
-
-    //    vtkCellLocator* cl = vtkCellLocator::New();
-    //    cl->SetDataSet(evMesh);
-    //    cl->BuildLocator();
-    //    cl->Update();
-
-    //    double t, ptline[3], pcoords[3];
-    //    int subId;
-    //    int isInter;
-
-
-    //    cout<<"medial: loop about to start"<<endl;
-
-    //    for(int nbs = 0 ; nbs < maxNbSteps ; nbs ++)
-    //    {
-    //        cout<<"medial: step "<<nbs<<endl;
-
-    //        cl->SetDataSet(evMesh);
-    //        cl->BuildLocator();
-    //        cl->Update();
-
-    //        nbToProcess = toProcess->GetNumberOfIds();
-
-    //        for (int i = 0 ; i < nbToProcess ; i++ )
-    //        {
-    //            curId = toProcess->GetId(i);
-    //            evPoints->GetPoint(curId,curPoint);
-    //            normal->GetTuple(curId,nor);
-
-    //            for(int k = 0; k < 3 ; k++)
-    //            {
-    //                curPoint[k] += eps;
-    //                disPoint[k] = curPoint[k] + evFactor*nor[k] - eps;
-    //            }
-
-    //            isInter = cl->IntersectWithLine(curPoint, disPoint, 0.0001, t, ptline, pcoords, subId);
-    //            if(isInter != 0)
-    //            {
-    //                for(int k = 0; k < 3; k++)
-    //                {
-    //                    midPoint[k] = curPoint[k] - eps + t*disPoint[k];
-    //                }
-    //                medPoints->InsertNextPoint(midPoint);
-    //                toProcess->DeleteId(curId);
-    //            }
-
-    //            evPoints->SetPoint(curId, disPoint[0], disPoint[1], disPoint[2]);
-    //        }
-
-    //        evMesh->SetPoints(evPoints);
-    //        evMesh->Update();
-    //    }
-
-    //    vtkPolyData* midPD = vtkPolyData::New();
-    //    midPD->SetPoints(medPoints);
-    //    midPD->Update();
-
-    ////    cout<<"midPD"<<endl;
-    ////    midPD->PrintSelf(cout, indent);
-    ////    cout<<endl;
-
-    //    cout<<"medial: mesh generated"<<endl;
-
-    //    vtkDelaunay3D* delFin = vtkDelaunay3D::New();
-    //    delFin->SetInput(midPD);
-    //    delFin->SetAlpha(4);
-    //    delFin->Update();
-
-    //    cout<<"medial: delaunay computed"<<endl;
-
-
-    //    this->medialSurface->SetPoints(delFin->GetOutput()->GetPoints());
-    //    this->medialSurface->SetPolys(delFin->GetOutput()->GetCells());
-
-
-    //    if(this->euclideanDepth->GetSize()< 1)
-    //    {
-    //        ComputeEuclideanDepthFromClosed(true);
-    //    }
-    //    cout<<"ok"<<endl;
-
-    //    vtkPoints* deepPoints = vtkPoints::New();
-
-    //    double threshold = 0.2;
-    double thr = -0.75;
-
-    //    vtkIdList* corrMeshId = vtkIdList::New();
-
-    //    for(int i = 0 ; i < this->nbPoints ; i++)
-    //    {
-    //        if(this->euclideanDepth->GetValue(i) > threshold)
-    //        {
-    //            deepPoints->InsertNextPoint(this->mesh->GetPoint(i));
-    //            corrMeshId->InsertNextId(i);
-    //        }
-    //    }
-    //    cout<<"ok"<<endl;
-
-    //    int nbDeep = deepPoints->GetNumberOfPoints();
-
-    //    double norm [3];
-    //    double pos [3];
-
-    ComputeNormals();
-
-    //    for(int i = 0; i<nbDeep ; i++)
-    //    {
-
-    //        this->normals->GetTuple(corrMeshId->GetId(i),norm);
-    //        deepPoints->GetPoint(i,pos);
-
-    //        pos[0]+=10*norm[0];
-    //        pos[1]+=10*norm[1];
-    //        pos[2]+=10*norm[2];
-
-    //        deepPoints->SetPoint(i,pos);
-
-    //    }
-
-    //    vtkPolyData* deepPD = vtkPolyData::New();
-    //    deepPD->SetPoints(deepPoints);
-    //    deepPD->Update();
-    //    cout<<"ok"<<endl;
-
-
-    //    vtkUnstructuredGrid* deepPD = vtkUnstructuredGrid::New();
-    //    deepPD->SetPoints(deepPoints);
-    //    deepPD->Update();
-    //    cout<<"ok"<<endl;
-
-
-    //    vtkDelaunay3D* del = vtkDelaunay3D::New();
-    //    del->SetInput(this->mesh);
-    //    del->SetAlpha(2);
-    //    del->Update();
-
-
-    //    vtkExtractEdges* ee = vtkExtractEdges::New();
-    //    ee->SetInput(del->GetOutput());
-    //    ee->Update();
-
-    //    int nbLines = ee->GetOutput()->GetNumberOfLines();
-
-    vtkIdType npts;
-    vtkIdType* pts;
-    vtkIdType c1, c2;
-
-    double point1[3];
-    double point2[3];
-    double vec[3];
-    double meanPoint[3];
-    double res;
-    double n1[3], n2[3];
-    double ec;
-
-    vtkPoints* midPoints = vtkPoints::New();
-
-    vtkIdList *cellids = vtkIdList::New();
-
-    vtkIdList* neighbors = vtkIdList::New();
-
-    int nbn;
-
-    vtkPointLocator* pl=vtkPointLocator::New();
-    pl->SetDataSet(this->mesh);
-    pl->BuildLocator();
-    //    vtkIdList* Nclo = vtkIdList::New();
-
-
-    for(int i = 0 ; i<this->nbPoints ; i++)
-    {
-        c1 = i;
-        this->mesh->GetPoint(c1, point1);
-        this->normals->GetTuple(c1,n1);
-
-        pl->FindPointsWithinRadius(5,point1,neighbors);
-        //        ee->GetOutput()->GetPointCells(i,cellids);
-        //        for (int i = 0; i < cellids->GetNumberOfIds(); i++)
-        //        {
-        //                for(int j = 0; j < ee->GetOutput()->GetCell(cellids->GetId(i))->GetNumberOfPoints(); j++)
-        //                {
-        //                        if( ee->GetOutput()->GetCell(cellids->GetId(i))->GetPointId(j) < this->nbPoints )
-        //                        {
-        //                                neighbors->InsertUniqueId(ee->GetOutput()->GetCell(cellids->GetId(i))->GetPointId(j));
-        //                        }
-        //                }
-        //        }
-
-        nbn = neighbors->GetNumberOfIds();
-
-
-        for(int j = 0; j < nbn ; j++)
-        {
-
-            c2 = neighbors->GetId(j);
-
-            this->mesh->GetPoint(c2, point2);
-            this->normals->GetTuple(c2,n2);
-
-            res = vtkMath::Dot(n1,n2);
-
-            if(res<thr)
-            {
-                for(int k = 0; k < 3 ; k++)
-                {
-                    meanPoint[k] = (point2[k] + point1[k])/2;
-                }
-                midPoints->InsertNextPoint(meanPoint);
-            }
-        }
-    }
-
-    cellids->Delete();
-
-
-    //    for(int i = 0; i < nbLines ; i++)
-    //    {
-    //        ee->GetOutput()->GetLines()->GetCell(i, npts, pts);
-
-    //        if(npts !=2)
-    //        {
-    //            cout<<"error, wrong usage of a vtk function"<<endl;
-    ////            return;
-    //        }
-
-    //        c1 = corrMeshId->GetId(pts[0]);
-    //        c2 = corrMeshId->GetId(pts[1]);
-
-    //        this->mesh->GetPoint(c1, point1);
-    //        this->mesh->GetPoint(c2, point2);
-
-    ////        IsIntersecting(point1,point2);
-    //        for(int k = 0; k < 3 ; k++)
-    //        {
-    //            vec[k] = point2[k] - point1[k];
-    //            meanPoint[k] = (point2[k] + point1[k])/2;
-    //        }
-
-    //        this->normals->GetTuple(c1,n);
-
-    //        ec=vtkMath::Distance2BetweenPoints(point1,point2);
-    //        ec=sqrt(ec);
-
-    //        res = vtkMath::Dot(vec,n)/ec;
-
-    //        if(fabs(res)>thr)
-    //        {
-    //            midPoints->InsertNextPoint(meanPoint);
-    //        }
-
-
-    //    }
-
-    vtkPolyData* midPD = vtkPolyData::New();
-    midPD->SetPoints(midPoints);
-    midPD->Update();
-
-    vtkDelaunay3D* delFin = vtkDelaunay3D::New();
-    delFin->SetInput(midPD);
-    delFin->SetAlpha(2);
-    delFin->Update();
-
-    //    vtkPolyDataConnectivityFilter* con = vtkPolyDataConnectivityFilter::New();
-    //    con->SetInput(delFin->GetOutput());
-    //    con->Update();
-
-    //    this->medialSurface->DeepCopy(con->GetOutput());
-
-
-    this->medialSurface->SetPoints(delFin->GetOutput()->GetPoints());
-    this->medialSurface->SetPolys(delFin->GetOutput()->GetCells());
-
-
-    vtkPolyDataNormals *pdn = vtkPolyDataNormals::New();
-    pdn->SetInput(this->medialSurface);
-    pdn->SetFeatureAngle(90);
-    pdn->Update();
-
-    vtkSmoothPolyDataFilter* spdf = vtkSmoothPolyDataFilter::New();
-    spdf->SetInput(pdn->GetOutput());
-    spdf->SetRelaxationFactor(0.7);
-    spdf->SetNumberOfIterations(20);
-    spdf->FeatureEdgeSmoothingOff();
-    spdf->BoundarySmoothingOff();
-    spdf->Update();
-
-    this->medialSurface=spdf->GetOutput();
-    this->medialSurface->Update();
-
-
-
-    cout<<"ok"<<endl;
-
-
-
-}
 
 double MeshAnalyser::IsIntersecting(double point1[3], double point2[3])
 {
