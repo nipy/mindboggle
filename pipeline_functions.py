@@ -19,6 +19,31 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 ##############################################################################
+#   Surface map conversion
+##############################################################################
+
+def convert_to_vtk(fs_surface_files):
+    """Measure
+
+    # import nipype.interfaces.freesurfer as fs
+    # mris = fs.MRIsConvert()
+    # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
+    """
+    #import subprocess as sp
+    import os
+    surface_files = []
+    for fs_surface_file in fs_surface_files:
+        surface_file = fs_surface_file + '.vtk'
+        surface_files.append(surface_file)
+        args = ['mris_convert', fs_surface_file, surface_file]
+        print(' '.join(args)); os.system(' '.join(args))
+    #proc = sp.Popen(' '.join(args))
+    #o, e = proc.communicate()
+    #if proc.returncode > 0 :
+    #    raise Exception('\n'.join([args + ' failed', o, e]))
+    return surface_files
+
+##############################################################################
 #   Multi-atlas registration
 ##############################################################################
 
@@ -42,8 +67,8 @@ def register_template(subject_id, subjects_path,
         print(' '.join(args)); os.system(' '.join(args))
     return reg_name
 
-def register_atlases(subject_id, atlas_list_file, annot_file_name,
-                     reg_name, output_path):
+def register_atlases(subject_id, subjects_path, atlas_list_file, 
+                     annot_name, reg_name):
     """Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -54,6 +79,43 @@ def register_atlases(subject_id, atlas_list_file, annot_file_name,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
     """
+    import os
+
+    # Get list of atlas subjects from a file
+    f = open(atlas_list_file)
+    atlas_list = f.readlines()
+    for atlas_line in atlas_list:
+        # For each atlas
+        atlas_name = atlas_line.strip("\n")
+        # For each hemisphere
+        for hemi in ['lh','rh']:        
+            annot_file = os.path.join(subjects_path, atlas_name, 'label',
+                                      hemi + '.' + annot_name) 
+            output_annot = hemi + '.' + atlas_name + '_to_' + \
+                           subject_id + '_' + annot_name
+            args = ['mri_surf2surf',
+                    '--hemi', hemi,
+                    '--srcsubject', atlas_name,
+                    '--trgsubject', subject_id,
+                    '--sval-annot', annot_file,
+                    '--tval', output_annot,
+                    '--srcsurfreg', reg_name,
+                    '--trgsurfreg', reg_name]
+            print(' '.join(args)); os.system(' '.join(args))
+    return atlas_list
+"""
+def register_atlases(subject_id, subjects_path, atlas_list_file, 
+                     annot_name, reg_name):
+    ""Transform the labels from multiple atlases via a template
+    using FreeSurfer's mri_surf2surf (wrapped in NiPype)
+
+    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
+    wraps command **mri_surf2surf**:
+    "Transform a surface file from one subject to another via a spherical registration.
+    Both the source and target subject must reside in your Subjects Directory,
+    and they must have been processed with recon-all, unless you are transforming
+    to one of the icosahedron meshes."
+    ""
     import os
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -70,40 +132,24 @@ def register_atlases(subject_id, atlas_list_file, annot_file_name,
         # For each hemisphere
         for hemi in ['lh','rh']:        
             sxfm.inputs.hemi = hemi
+            source_file = os.path.join(subjects_path, atlas_name, 'label',
+                                       hemi + '.' + annot_name) 
+            sxfm.inputs.source_file = source_file
             # Specify annotation file
-            output_annot = os.path.join(output_path, subject_id, 'label',
+            output_annot = os.path.join(subjects_path, subject_id, 'label',
                                         hemi + '.' + atlas_name + '_to_' + \
-                                        subject_id + '_' + annot_file_name)
-            args = ['--sval-annot', annot_file_name,
-                    '--tval', output_annot,
+                                        subject_id + '_' + annot_name)
+            args = ['--tval', output_annot,
                     '--srcsurfreg', reg_name,
                     '--trgsurfreg', reg_name]
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
     return atlas_list
+"""
 
 ##############################################################################
 #   Surface map calculation
 ##############################################################################
-
-def convert_to_vtk(fs_surface_files):
-    """Measure
-
-    measure_()
-    """
-    #import subprocess as sp
-    import os
-    surface_files = []
-    for fs_surface_file in fs_surface_files:
-        surface_file = fs_surface_file + '.vtk'
-        surface_files.append(surface_file)
-        args = ['mris_convert', fs_surface_file, surface_file]
-        print(' '.join(args)); os.system(' '.join(args))
-    #proc = sp.Popen(' '.join(args))
-    #o, e = proc.communicate()
-    #if proc.returncode > 0 :
-    #    raise Exception('\n'.join([args + ' failed', o, e]))
-    return surface_files
 
 def measure_surface_maps(travel_depth_command, surface_files):
     """Measure
