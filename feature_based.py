@@ -24,26 +24,41 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface calculations
 ##############################################################################
 
-def measure_surfaces(travel_depth_command, surface_files):
+def measure_surface_depth(depth_command, surface_files):
     """
     Measure
 
     measure_()
     """
     import os
-    depth_curv_files = []
+    depth_files = []
     for surface_file in surface_files:
-        depth_curv_file = surface_file.strip('.vtk') + '.depth.vtk'
-        depth_curv_files.append(depth_curv_file)
-        args = [travel_depth_command, surface_file, depth_curv_file]
+        depth_file = surface_file.strip('.vtk') + '.depth.vtk'
+        depth_files.append(depth_file)
+        args = [depth_command, surface_file, depth_file]
         print(' '.join(args)); os.system(' '.join(args))
-    return surface_files, depth_curv_files
+    return depth_files, surface_files 
+    
+def measure_surface_curvature(curvature_command, surface_files):
+    """
+    Measure
 
+    measure_()
+    """
+    import os
+    curvature_files = []
+    for surface_file in surface_files:
+        curvature_file = surface_file.strip('.vtk') + '.curvature.vtk'
+        curvature_files.append(curvature_file)
+        args = [curvature_command, surface_file, curvature_file]
+        print(' '.join(args)); os.system(' '.join(args))
+    return curvature_files, surface_files 
+    
 ##############################################################################
 #   Feature extraction
 ##############################################################################
 
-def extract_fundi(extract_fundi_command, surface_files, depth_curv_files):
+def extract_fundi(extract_fundi_command, surface_files, depth_files):
     """
     Extract fundi
 
@@ -52,9 +67,9 @@ def extract_fundi(extract_fundi_command, surface_files, depth_curv_files):
     import os
     fundi = []
     for i, surface_file in enumerate(surface_files):
-        depth_curv_file = depth_curv_files[i]
+        depth_file = depth_files[i]
         args = ['python', extract_fundi_command, 
-               '%s'%surface_file, '%s'%depth_curv_file]
+               '%s'%surface_file, '%s'%depth_file]
         print(' '.join(args)); os.system(' '.join(args))
     return fundi
 
