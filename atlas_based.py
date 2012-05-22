@@ -14,7 +14,7 @@ Transform the labels from multiple atlases via a template
 For each brain hemisphere (left and right) in a given subject, 
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
-The main function is labeling() and calls: 
+The main function is multilabel() and calls: 
 load_labels, vote_labels, combine_labels, and read_annot (0-index labels).
 
 
@@ -77,13 +77,12 @@ def register_template(subject_id, subjects_path,
         print(' '.join(args)); os.system(' '.join(args))
     return reg_name
 
-"""
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
                      annot_name, reg_name):
-    ""
+    """
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
-    ""
+    """
     import os
 
     # Get list of atlas subjects from a file
@@ -108,11 +107,18 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
                     '--trgsurfreg', reg_name]
             print(' '.join(args)); os.system(' '.join(args))
     return annot_name
+
 """
+USING mri_surf2surf WRAPPED IN NIPYPE
+NOTE: RECEIVING ERROR:
+
+ mri_surf2surf --srcsurfreg sphere_to_KKI_template.reg --trgsurfreg sphere_to_KKI_template.reg --hemi lh --tval /usr/local/freesurfer/subjects/KKI2009-11/label/lh.KKI2009-11_to_KKI2009-11_aparcNMMjt.annot --sval /usr/local/freesurfer/subjects/KKI2009-11/label/lh.aparcNMMjt.annot --srcsubject KKI2009-11 --trgsubject KKI2009-11
+Standard output:
+ERROR: could not determine type of /usr/local/freesurfer/subjects/KKI2009-11/label/lh.aparcNMMjt.annot
 
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
                      annot_name, reg_name):
-    """
+    ""
     Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -122,7 +128,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     Both the source and target subject must reside in your Subjects Directory,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
-    """
+    ""
     import os
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -152,7 +158,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
     return annot_name
-
+"""
 ##############################################################################
 #   Multi-atlas labeling
 ##############################################################################
@@ -172,10 +178,23 @@ def combine_labels(label_index):
     Notes
     ======= 
     label_index combinations:
-        2= 2,10,23,26
-        3= 3, 27
-        18=18,19,20
 
+    2  = 2, 10, 23, 26
+    3  = 3, 27  
+    18 = 18, 19, 20
+    
+    Temporal (33) and frontal (32) poles, and bankstss (1) regions eliminated, 
+    corresponding cortex absorbed by adjacent regions.
+
+    Caudal (2), isthmus (10), posterior (23), and rostral anterior (26) cingulate 
+    combined to form single cingulate region (2)
+ 
+    Caudal (3) and rostral (27) middle frontal regions combined to form 
+    single middle frontal region (3)
+    
+    Opercular (18), orbital (19), and triangular (20) inferior frontal regions 
+    combined to form a single inferior frontal region (18)
+    
     """
     
     if label_index == 10 or label_index == 23 or label_index == 26:
@@ -277,7 +296,7 @@ def load_labels(annot_path, annot_name):
 
     """
     
-    print "Loading multiple annotations..."
+    print("Loading multiple annotations...")
     
     from os import listdir, path
 
@@ -290,7 +309,7 @@ def load_labels(annot_path, annot_name):
             elif file1[0] == 'r':        
                 right_files.append(file1)
             else:
-                print "Unable to match any file names."
+                print("Unable to match any file names.")
 
     left_labels, right_labels = [], []
     for file1 in left_files:
@@ -301,7 +320,7 @@ def load_labels(annot_path, annot_name):
         Labels, ColorTable, Names = read_annot(path.join(annot_path, file1))
         right_labels.append(map(combine_labels,Labels))
     
-    print "Multiple annotations loaded."
+    print("Multiple annotations loaded.")
     
     return left_labels, right_labels
     
@@ -318,54 +337,46 @@ def vote_labels(left_labels, right_labels):
         
     Returns
     ========
-    left_assign: list of integers  (winning labels for left vertices)  
-    right_assign: list of integers  (winning labels for right vertices)
+    left_majority: list of integers  (winning labels for left vertices)  
+    right_majority: list of integers  (winning labels for right vertices)
     left_consensus: list of integers  (number of left consensus labels) 
     right_consensus: list of integers  (number of right consensus labels)
   
     """
     from collections import Counter
     
-    compute_diff_consensus = 0
-    
-    print "Begin voting..."
+    print("Begin voting...")
     
     n_labelings = len(left_labels)  # number of atlases used to label subject
     left_n_labels, right_n_labels = len(left_labels[0]), len(right_labels[0])
-    left_assign = [-1 for i in xrange(left_n_labels)]  
-                  # if no consistent vote, the label is -1 (vertex is unlabeled)
-    right_assign = [-1 for i in xrange(right_n_labels)]
-
-    if compute_diff_consensus:
-        left_diff = [1 for i in xrange(left_n_labels)]   
-        right_diff = [1 for i in xrange(right_n_labels)]
-        left_consensus = [n_labelings for i in xrange(left_n_labels)]   
-        right_consensus = [n_labelings for i in xrange(right_n_labels)]
+    # if no consistent vote, the label is -1 (vertex is unlabeled)
+    left_majority = [-1 for i in xrange(left_n_labels)]  
+    right_majority = [-1 for i in xrange(right_n_labels)]
+    left_different = [1 for i in xrange(left_n_labels)]   
+    right_different = [1 for i in xrange(right_n_labels)]
+    left_consensus = [n_labelings for i in xrange(left_n_labels)]   
+    right_consensus = [n_labelings for i in xrange(right_n_labels)]
     
     for vertex in xrange(left_n_labels):
         votes = Counter([left_labels[i][vertex] for i in xrange(n_labelings)])
         
-        left_assign[vertex] = votes.most_common(1)[0][0]
-        if compute_diff_consensus:
-            left_consensus[vertex] = votes.most_common(1)[0][1]
-            left_diff[vertex] = len(votes)
+        left_majority[vertex] = votes.most_common(1)[0][0]
+        left_consensus[vertex] = votes.most_common(1)[0][1]
+        left_different[vertex] = len(votes)
             
     for vertex in xrange(right_n_labels):
         votes = Counter([right_labels[i][vertex] for i in xrange(n_labelings)])
         
-        right_assign[vertex] = votes.most_common(1)[0][0]
-        if compute_diff_consensus:
-            right_consensus[vertex] = votes.most_common(1)[0][1]
-            right_diff[vertex] = len(votes)
+        right_majority[vertex] = votes.most_common(1)[0][0]
+        right_consensus[vertex] = votes.most_common(1)[0][1]
+        right_different[vertex] = len(votes)
         
-    print "Voting done."
-    if compute_diff_consensus:
-        return left_assign, right_assign,\
-               left_consensus, right_consensus, left_diff, right_diff 
-    else:
-        return left_assign, right_assign
+    print("Voting done.")
+    return left_majority, right_majority,\
+           left_consensus, right_consensus,\
+           left_different, right_different 
  
-def labeling(subject_id, subjects_path, annot_name):
+def multilabel(subject_id, subjects_path, annot_name, use_inflated_surfaces=1):
     """
     Load VTK surfaces and write majority vote labels as VTK files, 
     according to multiple labelings (annot_name).
@@ -374,58 +385,59 @@ def labeling(subject_id, subjects_path, annot_name):
     import pyvtk
     from atlas_based import load_labels, vote_labels
 
-    compute_diff_consensus = 0
-    save_inflated = 0
-
     subject_surf_path = path.join(subjects_path, subject_id, 'surf')
     annot_path = path.join(subjects_path, subject_id, 'label')
-    
+
     # Load multiple label sets
     left_labels, right_labels = load_labels(annot_path, annot_name)
  
     # Vote on labels for each vertex
-    if compute_diff_consensus:
-        left_assign, right_assign, left_consensus, right_consensus,\
-        left_diff, right_diff = vote_labels(left_labels, right_labels)
-    else:
-        left_assign, right_assign = vote_labels(left_labels, right_labels)
+    left_majority, right_majority, left_consensus, right_consensus,\
+    left_different, right_different = vote_labels(left_labels, right_labels)
     
-    if save_inflated:
+    if use_inflated_surfaces:
         input_files = ['lh.pial.vtk', 'rh.pial.vtk', 
                        'lh.inflated.vtk', 'rh.inflated.vtk']
-        output_files = ['lh.pial.labels.vtk', 'rh.pial.labels.vtk', 
-                        'lh.inflated.labels.vtk', 'rh.inflated.labels.vtk']
-        if compute_diff_consensus:
-            dv = [[left_assign, left_diff, left_consensus],
-                  [right_assign, right_diff, right_consensus],
-                  [left_assign, left_diff, left_consensus],
-                  [right_assign, right_diff, right_consensus]]
-        else:
-            dv = [[left_assign], [right_assign],
-                  [left_assign], [right_assign]]
+        output_files = [['lh.pial.labels.majority.vtk', 
+                         'rh.pial.labels.majority.vtk', 
+                         'lh.inflated.labels.majority.vtk', 
+                         'rh.inflated.labels.majority.vtk'],
+                        ['lh.pial.labels.different.vtk', 
+                         'rh.pial.labels.different.vtk', 
+                         'lh.inflated.labels.different.vtk', 
+                         'rh.inflated.labels.different.vtk']
+                        ['lh.pial.labels.consensus.vtk', 
+                         'rh.pial.labels.consensus.vtk', 
+                         'lh.inflated.labels.consensus.vtk', 
+                         'rh.inflated.labels.consensus.vtk']]
+        dv = [[left_majority, left_different, left_consensus],
+              [right_majority, right_different, right_consensus],
+              [left_majority, left_different, left_consensus],
+              [right_majority, right_different, right_consensus]]
     else:
         input_files = ['lh.pial.vtk', 'rh.pial.vtk']
-        output_files = ['lh.pial.labels.vtk', 'rh.pial.labels.vtk']
-        if compute_diff_consensus:
-            dv = [[left_assign, left_diff, left_consensus],
-                  [right_assign, right_diff, right_consensus]]
-        else:
-            dv = [[left_assign], [right_assign]]
+        output_files = [['lh.pial.labels.majority.vtk', 
+                         'rh.pial.labels.majority.vtk'], 
+                        ['lh.pial.labels.different.vtk', 
+                         'rh.pial.labels.different.vtk'], 
+                        ['lh.pial.labels.consensus.vtk', 
+                         'rh.pial.labels.consensus.vtk']] 
+        dv = [[left_majority, left_different, left_consensus],
+              [right_majority, right_different, right_consensus]]
 
     for i, input_file in enumerate(input_files):
         VTKReader = pyvtk.VtkData(path.join(subject_surf_path, input_file))
         Vertices =  VTKReader.structure.points
         Faces =     VTKReader.structure.polygons
         
-        if compute_diff_consensus:
-            pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Assigned'),\
-                                  pyvtk.Scalars(dv[i][1], name='Different'),\
-                                  pyvtk.Scalars(dv[i][2], name='Common'))).\
-                  tofile(path.join(annot_path, output_files[i]), 'ascii')
-        else:
-            pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Assigned'))).\
-                  tofile(path.join(annot_path, output_files[i]), 'ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Majority'))).\
+              tofile(path.join(annot_path, output_files[i][0]), 'ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][1], name='Different'))).\
+              tofile(path.join(annot_path, output_files[i][1]), 'ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][2], name='Common'))).\
+              tofile(path.join(annot_path, output_files[i][2]), 'ascii')
     return annot_name  
     

@@ -28,10 +28,11 @@ import nipype.interfaces.io as nio
 import numpy as np
 
 from atlas_based import convert_to_vtk, register_template, register_atlases
-from atlas_based import load_labels, labeling
+from atlas_based import multilabel
 from feature_based import *
 
 use_freesurfer_surfaces = 1
+use_inflated_surfaces = 1
 
 # Subjects
 subjects_list = ['KKI2009-11']
@@ -46,10 +47,12 @@ atlases_path = subjects_path
 working_directory = os.path.join(base_directory, 'results/workingdir')
 #os.makedirs(working_directory)
 
-travel_depth_command = os.path.join(code_directory,
-             'measure/surface_travel_depth/travel_depth/TravelDepthMain')
+depth_command = os.path.join(code_directory,
+                             'measure/bin/travel_depth/TravelDepthMain')
+curvature_command = os.path.join(code_directory,
+                                 'measure/bin/curvature/CurvatureMain')
 extract_fundi_command = os.path.join(code_directory, 
-              'extract/fundi/extract.py')
+                                     'extract/fundi/extract.py')
 
 ##############################################################################
 #
@@ -76,10 +79,18 @@ if use_freesurfer_surfaces:
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['fs_surface_files']),
                          name = 'Surfaces')
+    if use_inflated_surfaces:
+        datasource2 = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
+                                                        outfields=['fs_inflated_files']),
+                              name = 'Inflated_surfaces')
 else:
     datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
                                                    outfields=['surface_files']),
                          name = 'Surfaces')
+    if use_inflated_surfaces:
+        datasource2 = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
+                                                        outfields=['inflated_files']),
+                              name = 'Inflated_surfaces')
 
 # Iterate over subjects
 infosource.iterables = ('subject_id', subjects_list)
@@ -87,12 +98,21 @@ infosource.iterables = ('subject_id', subjects_list)
 # Specify the location and structure of the inputs and outputs
 datasource.inputs.base_directory = subjects_path
 datasource.inputs.template = '%s/surf/%s.%s'
+if use_inflated_surfaces:
+    datasource2.inputs.base_directory = subjects_path
+    datasource2.inputs.template = '%s/surf/%s.%s'
 if use_freesurfer_surfaces:
     datasources = [['subject_id', ['lh','rh'], 'pial']]
     datasource.inputs.template_args['fs_surface_files'] = datasources
+    if use_inflated_surfaces:
+        datasources2 = [['subject_id', ['lh','rh'], 'inflated']]
+        datasource2.inputs.template_args['fs_inflated_files'] = datasources2
 else:
     datasources = [['subject_id', ['lh','rh'], 'pial.vtk']]
     datasource.inputs.template_args['surface_files'] = datasources
+    if use_inflated_surfaces:
+        datasources2 = [['subject_id', ['lh','rh'], 'inflated.vtk']]   
+        datasource2.inputs.template_args['inflated_files'] = datasources2
 
 # Define a template node
 template = pe.Node(interface=util.IdentityInterface(fields=[
@@ -119,6 +139,8 @@ atlases.inputs.annot_name = annot_name
 
 # Connect input nodes
 flo1.connect([(infosource, datasource, [('subject_id','subject_id')])])
+if use_inflated_surfaces:
+    flo1.connect([(infosource, datasource2, [('subject_id','subject_id')])])
 
 # Convert FreeSurfer surfaces to VTK format
 if use_freesurfer_surfaces:
@@ -126,10 +148,17 @@ if use_freesurfer_surfaces:
                                                output_names = ['surface_files'],
                                                function = convert_to_vtk),
                                  name='Convert_surfaces')
-
     # Connect input to surface node
     flo1.connect([(datasource, surface_conversion,
                    [('fs_surface_files','fs_surface_files')])])
+
+    if use_inflated_surfaces:
+        surface_conversion2 = pe.Node(util.Function(input_names = ['fs_inflated_files'],
+                                                    output_names = ['inflated_files'],
+                                                    function = convert_to_vtk),
+                                      name='Convert_inflated_surfaces')
+        flo1.connect([(datasource2, surface_conversion2,
+                       [('fs_inflated_files','fs_inflated_files')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -165,11 +194,13 @@ atlas_registration.inputs.subjects_path = subjects_path
 # Output majority vote rule labels
 majority_vote = pe.Node(util.Function(input_names=['subject_id',
                                                    'subjects_path',
-                                                   'annot_name'],
+                                                   'annot_name',
+                                                   'use_inflated_surfaces'],
                                       output_names=['annot_name'],
-                                      function = labeling),
+                                      function = multilabel),
                         name='Vote_majority')
 majority_vote.inputs.subjects_path = subjects_path
+majority_vote.inputs.use_inflated_surfaces = use_inflated_surfaces
 
 # Connect input to registration and labeling nodes
 flo1.connect([(infosource, template_registration, 
@@ -207,25 +238,35 @@ flo2.base_dir = working_directory
 #   Surface calculations
 ##############################################################################
 
-# Measure surface surfaces node
-surfaces = pe.Node(util.Function(input_names = ['travel_depth_command',
-                                                'surface_files'],
+# Measure surface depth and curvature nodes
+surface_depth = pe.Node(util.Function(input_names = ['depth_command',
+                                                     'surface_files'],
                                  output_names = ['surface_files',
-                                                 'depth_curv_files'],
-                                 function = measure_surfaces),
-                   name='Measure_surfaces')
-surfaces.inputs.travel_depth_command = travel_depth_command
+                                                 'depth_files'],
+                                 function = measure_surface_depth),
+                   name='Measure_surface_depth')
+surface_depth.inputs.depth_command = depth_command
 
-# Connect input to surfaces nodes
+surface_curvature = pe.Node(util.Function(input_names = ['curvature_command',
+                                                     'surface_files'],
+                                 output_names = ['surface_files',
+                                                 'curvature_files'],
+                                 function = measure_surface_curvature),
+                   name='Measure_surface_curvature')
+surface_curvature.inputs.curvature_command = curvature_command
+
+# Connect input to surface depth and curvature nodes
 flo2.connect([(infosource, datasource, [('subject_id','subject_id')])])
 
 if use_freesurfer_surfaces:
     flo2.connect([(datasource, surface_conversion,
                    [('fs_surface_files','fs_surface_files')])])
-    flo2.connect([(surface_conversion, surfaces, 
+    flo2.connect([(surface_conversion, surface_depth, 
+                   [('surface_files','surface_files')])])
+    flo2.connect([(surface_conversion, surface_curvature, 
                    [('surface_files','surface_files')])])
 #    mbflow.connect([(flo1, flo2, 
-#                   [('surface_conversion.surface_files','surfaces.surface_files')])])
+#                   [('surface_conversion.surface_files','surface_depth.surface_files')])])
 else:
     # Connect input to surface surfaces node
     flo2.connect([(datasource, surfaces,
@@ -258,12 +299,10 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                            function = extract_midaxis),
                              name='Extract_midaxis')
 
-"""
 # Connect surface surfaces node to feature extraction nodes
-flo2.connect([(surfaces, fundus_extraction, 
-               [('surface_files', 'surface_files'),
-                ('depth_curv_files', 'depth_curv_files')])])
-"""
+#flo2.connect([(surfaces, fundus_extraction, 
+#               [('surface_files', 'surface_files'),
+#                ('depth_files', 'depth_files')])])
 """
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
@@ -574,7 +613,7 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 if __name__== '__main__':
 
     flo1.run()
-    flo2.run()
+    #flo2.run()
 """
     mbflow.connect([(flo1, flo2,
                      [('', '')])])
