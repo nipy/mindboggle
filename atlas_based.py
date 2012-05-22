@@ -77,12 +77,13 @@ def register_template(subject_id, subjects_path,
         print(' '.join(args)); os.system(' '.join(args))
     return reg_name
 
+"""
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
                      annot_name, reg_name):
-    """
+    ""
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
-    """
+    ""
     import os
 
     # Get list of atlas subjects from a file
@@ -107,11 +108,11 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
                     '--trgsurfreg', reg_name]
             print(' '.join(args)); os.system(' '.join(args))
     return annot_name
-
 """
+
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
                      annot_name, reg_name):
-    ""
+    """
     Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -121,7 +122,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     Both the source and target subject must reside in your Subjects Directory,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
-    ""
+    """
     import os
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -145,13 +146,12 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
             output_annot = os.path.join(subjects_path, subject_id, 'label',
                                         hemi + '.' + atlas_name + '_to_' + \
                                         subject_id + '_' + annot_name)
-            args = ['--tval', output_annot,
-                    '--srcsurfreg', reg_name,
+            sxfm.inputs.out_file = output_annot
+            args = ['--srcsurfreg', reg_name,
                     '--trgsurfreg', reg_name]
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
-    return atlas_list
-"""
+    return annot_name
 
 ##############################################################################
 #   Multi-atlas labeling
@@ -429,20 +429,3 @@ def labeling(subject_id, subjects_path, annot_name):
                   tofile(path.join(annot_path, output_files[i]), 'ascii')
     return annot_name  
     
-
-"""
-def labelMap(label_index):
-    # Given a label as in http://surfer.nmr.mgh.harvard.edu/fswiki/AnnotFiles, 
-    # return its index
-    
-    Map = {1639705:1, 2647065:2, 10511485:3, 6500:4, 3294840:5,\
-           6558940:6, 660700:7, 9231540:8, 14433500:9, 7874740:10,\
-           9180300:11, 9182740:12, 3296035:13, 9211105:14, 4924360:15,\
-           3302560:16, 3988500:17, 3988540:18, 9221340:19, 3302420:20,\
-           1326300:21, 3957880:22, 1316060:23, 14464220:24, 14423100:25,\
-           11832480:26, 9180240:27, 8204875:28, 10542100:29, 9221140:30,\
-           14474380:31, 1351760:32, 6553700:33, 11146310:34, 13145750:35, 2146559:36, 0:0}
-
-    return Map[label_index]
-"""
-
