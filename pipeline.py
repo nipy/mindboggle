@@ -200,7 +200,7 @@ flo1.connect([(atlas_registration, majority_vote,
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-flo2 = pe.Workflow(name='pipeline2')
+flo2 = pe.Workflow(name='feature_based')
 flo2.base_dir = working_directory
 
 ##############################################################################
@@ -209,22 +209,28 @@ flo2.base_dir = working_directory
 
 # Measure surface surfaces node
 surfaces = pe.Node(util.Function(input_names = ['travel_depth_command',
-                                                    'surface_files'],
-                                     output_names = ['surface_files',
-                                                     'depth_curv_files'],
-                                     function = measure_surfaces),
-                       name='Measure_surfaces')
+                                                'surface_files'],
+                                 output_names = ['surface_files',
+                                                 'depth_curv_files'],
+                                 function = measure_surfaces),
+                   name='Measure_surfaces')
 surfaces.inputs.travel_depth_command = travel_depth_command
 
-# Connect input to surface maps nodes
+# Connect input to surfaces nodes
+flo2.connect([(infosource, datasource, [('subject_id','subject_id')])])
+
 if use_freesurfer_surfaces:
+    flo2.connect([(datasource, surface_conversion,
+                   [('fs_surface_files','fs_surface_files')])])
     flo2.connect([(surface_conversion, surfaces, 
                    [('surface_files','surface_files')])])
+#    mbflow.connect([(flo1, flo2, 
+#                   [('surface_conversion.surface_files','surfaces.surface_files')])])
 else:
     # Connect input to surface surfaces node
     flo2.connect([(datasource, surfaces,
                    [('surface_files','surface_files')])])
-"""
+
 ##############################################################################
 #   Feature extraction
 ##############################################################################
@@ -237,8 +243,7 @@ fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command'
                                           function = extract_fundi),
                             name='Extract_fundi')
 fundus_extraction.inputs.extract_fundi_command = extract_fundi_command
-"""
-"""
+
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
                                                          'gauss_curv_file'],
@@ -247,12 +252,12 @@ sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                             name='Extract_sulci')
 
 midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
-                                                             'mean_curv_file',
-                                                             'gauss_curv_file'],
-                                              output_names = ['midaxis'],
-                                              function = extract_midaxis),
-                                name='Extract_midaxis')
-"""
+                                                          'mean_curv_file',
+                                                          'gauss_curv_file'],
+                                           output_names = ['midaxis'],
+                                           function = extract_midaxis),
+                             name='Extract_midaxis')
+
 """
 # Connect surface surfaces node to feature extraction nodes
 flo2.connect([(surfaces, fundus_extraction, 
@@ -568,13 +573,16 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 ##############################################################################
 if __name__== '__main__':
 
-#    mbflow.connect([(flo1, flo2,
-#                     [('', '')])])
-#    flo2.connect([(surface_conversion, surfaces, 
-#                   [('surface_files','surface_files')])])
-
-#    mbflow.write_graph(graph2use='flat')
-#    mbflow.write_graph(graph2use='hierarchical')
-
     flo1.run()
+    flo2.run()
+"""
+    mbflow.connect([(flo1, flo2,
+                     [('', '')])])
+    flo2.connect([(surface_conversion, surfaces, 
+                   [('surface_files','surface_files')])])
 
+    mbflow.write_graph(graph2use='flat')
+    mbflow.write_graph(graph2use='hierarchical')
+
+    mbflow.run()
+"""
