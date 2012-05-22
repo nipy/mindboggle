@@ -253,31 +253,31 @@ private:
 	//Simplified mesh (Simplify)
 	vtkPolyData* simpl;
 	
-	//vector containg travel depth values (ComputeTravelDepth)
+	//vector containing travel depth values (ComputeTravelDepth)
 	vtkDoubleArray* depth;	
 	
-	//vector containg point surface areas (ComputePointSurface)
+	//vector containing point surface areas (ComputePointSurface)
 	vtkDoubleArray* pointSurf;
 	
-	//vector containg this->simpl point surface areas (ComputePointSurfaceSimple)
+	//vector containing this->simpl point surface areas (ComputePointSurfaceSimple)
 	vtkDoubleArray* pointSurfSimple;
 	
-	//vector containg geodesic distances (GeoDistRing)
+	//vector containing geodesic distances (GeoDistRing)
 	vtkDoubleArray* geoDistRing;
 	
-	//vector containg geodesic distances for the simplified mesh (GeoDistRingSimple)
+	//vector containing geodesic distances for the simplified mesh (GeoDistRingSimple)
 	vtkDoubleArray* geoDistRingSimple;
 	
-    //vector containg curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
+    //vector containing curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
     vtkDoubleArray* curv;
 
-    //vector containg the first principal curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
+    //vector containing the first principal curvature values (ComputeCurvature or computeBothCurvatures or computePrincipalCurvatures)
     vtkDoubleArray* curv1;
 
-    //vector containg the second principal curvature values (ComputeCurvature or computeBothCurvature or computePrincipalCurvaturess)
+    //vector containing the second principal curvature values (ComputeCurvature or computeBothCurvature or computePrincipalCurvaturess)
     vtkDoubleArray* curv2;
 
-    //vector containg gaussian curvature values (ComputeBothCurvatures or computePrincipalCurvatures)
+    //vector containing gaussian curvature values (ComputeBothCurvatures or computePrincipalCurvatures)
     vtkDoubleArray* gCurv;
 	
 	//vector of the normals (ComputeNormals)
@@ -324,7 +324,7 @@ private:
         //of the interior volume of the original mesh.
         vtkPolyData* closedMesh;
 
-        //vector containg Euclidean depth values (ComputeEuclideanDepth)
+        //vector containing Euclidean depth values (ComputeEuclideanDepth)
         vtkDoubleArray* euclideanDepth;
 
         vtkCellLocator* meshLocator;
