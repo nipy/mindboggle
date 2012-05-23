@@ -58,7 +58,7 @@ def measure_surface_curvature(curvature_command, surface_files):
 #   Feature extraction
 ##############################################################################
 
-def extract_fundi(extract_fundi_command, surface_files, depth_files):
+def extract_fundi(extract_fundi_command, depth_files):
     """
     Extract fundi
 
@@ -66,10 +66,8 @@ def extract_fundi(extract_fundi_command, surface_files, depth_files):
     """
     import os
     fundi = []
-    for i, surface_file in enumerate(surface_files):
-        depth_file = depth_files[i]
-        args = ['python', extract_fundi_command, 
-               '%s'%surface_file, '%s'%depth_file]
+    for depth_file in depth_files:
+        args = ['python', extract_fundi_command, '%s'%depth_file]
         print(' '.join(args)); os.system(' '.join(args))
     return fundi
 
