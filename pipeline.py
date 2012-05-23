@@ -268,8 +268,10 @@ if use_freesurfer_surfaces:
 #    mbflow.connect([(flo1, flo2, 
 #                   [('surface_conversion.surface_files','surface_depth.surface_files')])])
 else:
-    # Connect input to surface surfaces node
-    flo2.connect([(datasource, surfaces,
+    # Connect input to surface depth and curvature nodes
+    flo2.connect([(datasource, surface_depth,
+                   [('surface_files','surface_files')])])
+    flo2.connect([(datasource, surface_curvature,
                    [('surface_files','surface_files')])])
 
 ##############################################################################
@@ -279,7 +281,7 @@ else:
 # Feature extraction nodes
 fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command',
                                                          'surface_files', 
-                                                         'depth_curv_files'],
+                                                         'depth_files'],
                                           output_names = ['fundi'],
                                           function = extract_fundi),
                             name='Extract_fundi')
@@ -299,10 +301,10 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                            function = extract_midaxis),
                              name='Extract_midaxis')
 
-# Connect surface surfaces node to feature extraction nodes
-#flo2.connect([(surfaces, fundus_extraction, 
-#               [('surface_files', 'surface_files'),
-#                ('depth_files', 'depth_files')])])
+# Connect surface depth to feature extraction nodes
+flo2.connect([(surface_depth, fundus_extraction, 
+               [('surface_files', 'surface_files'),
+                ('depth_files', 'depth_files')])])
 """
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
@@ -313,10 +315,6 @@ flo2.connect([(surfaces, midaxis_extraction,
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
 
-# Save output
-#flo2.connect([(surfaces, datasink, [('depth_file', 'depth_file'),
-#                                ('mean_curv_file', 'mean_curv_file'),
-#                                ('gauss_curv_file', 'gauss_curv_file')])])
 """
 """
 ##############################################################################
@@ -613,7 +611,7 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 if __name__== '__main__':
 
     flo1.run()
-    #flo2.run()
+    flo2.run()
 """
     mbflow.connect([(flo1, flo2,
                      [('', '')])])
