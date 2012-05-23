@@ -52,7 +52,7 @@ depth_command = os.path.join(code_directory,
 curvature_command = os.path.join(code_directory,
                                  'measure/bin/curvature/CurvatureMain')
 extract_fundi_command = os.path.join(code_directory, 
-                                     'extract/fundi/extract.py')
+                                     'extract/fundi/vtk_extract.py')
 
 ##############################################################################
 #
@@ -280,7 +280,6 @@ else:
 
 # Feature extraction nodes
 fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command',
-                                                         'surface_files', 
                                                          'depth_files'],
                                           output_names = ['fundi'],
                                           function = extract_fundi),
@@ -303,8 +302,7 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
 
 # Connect surface depth to feature extraction nodes
 flo2.connect([(surface_depth, fundus_extraction, 
-               [('surface_files', 'surface_files'),
-                ('depth_files', 'depth_files')])])
+               [('depth_files', 'depth_files')])])
 """
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
