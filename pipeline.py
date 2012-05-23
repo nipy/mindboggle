@@ -27,8 +27,8 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 
-from atlas_based import convert_to_vtk, register_template, register_atlases
-from atlas_based import multilabel
+from atlas_based import convert_to_vtk, convert_to_vtk2, \
+                        register_template, register_atlases, multilabel
 from feature_based import *
 
 use_freesurfer_surfaces = 1
@@ -155,7 +155,7 @@ if use_freesurfer_surfaces:
     if use_inflated_surfaces:
         surface_conversion2 = pe.Node(util.Function(input_names = ['fs_inflated_files'],
                                                     output_names = ['inflated_files'],
-                                                    function = convert_to_vtk),
+                                                    function = convert_to_vtk2),
                                       name='Convert_inflated_surfaces')
         flo1.connect([(datasource2, surface_conversion2,
                        [('fs_inflated_files','fs_inflated_files')])])
