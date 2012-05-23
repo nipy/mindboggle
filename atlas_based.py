@@ -39,18 +39,35 @@ def convert_to_vtk(fs_surface_files):
     # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
     """
     #import subprocess as sp
-    import os
+    from os import system
     surface_files = []
     for fs_surface_file in fs_surface_files:
         surface_file = fs_surface_file + '.vtk'
         surface_files.append(surface_file)
         args = ['mris_convert', fs_surface_file, surface_file]
-        print(' '.join(args)); os.system(' '.join(args))
+        print(' '.join(args)); system(' '.join(args))
     #proc = sp.Popen(' '.join(args))
     #o, e = proc.communicate()
     #if proc.returncode > 0 :
     #    raise Exception('\n'.join([args + ' failed', o, e]))
     return surface_files
+
+def convert_to_vtk2(fs_inflated_files):
+    """
+    Measure
+
+    # import nipype.interfaces.freesurfer as fs
+    # mris = fs.MRIsConvert()
+    # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
+    """
+    from os import system
+    inflated_files = []
+    for fs_inflated_file in fs_inflated_files:
+        inflated_file = fs_inflated_file + '.vtk'
+        inflated_files.append(inflated_file)
+        args = ['mris_convert', fs_inflated_file, inflated_file]
+        print(' '.join(args)); system(' '.join(args))
+    return inflated_files
 
 ##############################################################################
 #   Multi-atlas registration
@@ -67,14 +84,14 @@ def register_template(subject_id, subjects_path,
              KKI_2.tif
              sphere_to_template.reg
     """
-    import os
+    from os import path, system
 
     for hemi in ['lh','rh']:
-        input_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
-        output_file = os.path.join(subjects_path, subject_id, 'surf', hemi + '.' + reg_name)
-        template_file = os.path.join(templates_path, hemi + '.' + template_name)
+        input_file = path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
+        output_file = path.join(subjects_path, subject_id, 'surf', hemi + '.' + reg_name)
+        template_file = path.join(templates_path, hemi + '.' + template_name)
         args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args)); os.system(' '.join(args))
+        print(' '.join(args)); system(' '.join(args))
     return reg_name
 
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
@@ -83,7 +100,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
     """
-    import os
+    from os import path, system
 
     # Get list of atlas subjects from a file
     f = open(atlas_list_file)
@@ -93,8 +110,8 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
         atlas_name = atlas_line.strip("\n")
         # For each hemisphere
         for hemi in ['lh','rh']:        
-            annot_file = os.path.join(subjects_path, atlas_name, 'label',
-                                      hemi + '.' + annot_name) 
+            annot_file = path.join(subjects_path, atlas_name, 'label',
+                                   hemi + '.' + annot_name) 
             output_annot = hemi + '.' + atlas_name + '_to_' + \
                            subject_id + '_' + annot_name
             args = ['mri_surf2surf',
@@ -105,7 +122,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
                     '--tval', output_annot,
                     '--srcsurfreg', reg_name,
                     '--trgsurfreg', reg_name]
-            print(' '.join(args)); os.system(' '.join(args))
+            print(' '.join(args)); system(' '.join(args))
     return annot_name
 
 """
@@ -129,7 +146,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
     ""
-    import os
+    from os import path
     from nipype.interfaces.freesurfer import SurfaceTransform
 
     sxfm = SurfaceTransform()
@@ -145,13 +162,13 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
         # For each hemisphere
         for hemi in ['lh','rh']:        
             sxfm.inputs.hemi = hemi
-            source_file = os.path.join(subjects_path, atlas_name, 'label',
-                                       hemi + '.' + annot_name) 
+            source_file = path.join(subjects_path, atlas_name, 'label',
+                                    hemi + '.' + annot_name) 
             sxfm.inputs.source_file = source_file
             # Specify annotation file
-            output_annot = os.path.join(subjects_path, subject_id, 'label',
-                                        hemi + '.' + atlas_name + '_to_' + \
-                                        subject_id + '_' + annot_name)
+            output_annot = path.join(subjects_path, subject_id, 'label',
+                                     hemi + '.' + atlas_name + '_to_' + \
+                                     subject_id + '_' + annot_name)
             sxfm.inputs.out_file = output_annot
             args = ['--srcsurfreg', reg_name,
                     '--trgsurfreg', reg_name]
@@ -332,49 +349,64 @@ def vote_labels(left_labels, right_labels):
     ========
     left_labels: list of lists of integers  (labels for left vertices)          
     right_labels: list of lists of integers  (labels for right vertices)
-    left_n_labels: integer  (number of left vertices)
-    right_n_labels: integer  (number of right vertices)
+    n_vertices_left: integer  (number of left vertices)
+    n_vertices_right: integer  (number of right vertices)
         
     Returns
     ========
-    left_majority: list of integers  (winning labels for left vertices)  
-    right_majority: list of integers  (winning labels for right vertices)
-    left_consensus: list of integers  (number of left consensus labels) 
-    right_consensus: list of integers  (number of right consensus labels)
+    left_max: list of integers  (majority labels for left vertices)  
+    right_max: list of integers  (majority labels for right vertices)
+    left_counts: list of integers  (number of different labels for left vertices)
+    right_counts: list of integers  (number of different labels for right vertices)
+    left_votes: list of integers  (number of votes for the left majority labels) 
+    right_votes: list of integers  (number of votes for the right majority labels)
   
     """
     from collections import Counter
     
     print("Begin voting...")
     
-    n_labelings = len(left_labels)  # number of atlases used to label subject
-    left_n_labels, right_n_labels = len(left_labels[0]), len(right_labels[0])
-    # if no consistent vote, the label is -1 (vertex is unlabeled)
-    left_majority = [-1 for i in xrange(left_n_labels)]  
-    right_majority = [-1 for i in xrange(right_n_labels)]
-    left_different = [1 for i in xrange(left_n_labels)]   
-    right_different = [1 for i in xrange(right_n_labels)]
-    left_consensus = [n_labelings for i in xrange(left_n_labels)]   
-    right_consensus = [n_labelings for i in xrange(right_n_labels)]
+    n_atlases = len(left_labels)  # number of atlases used to label subject
+    n_vertices_left, n_vertices_right = len(left_labels[0]), len(right_labels[0])
+    left_max = [-1 for i in xrange(n_vertices_left)]  
+    right_max = [-1 for i in xrange(n_vertices_right)]
+    left_counts = [1 for i in xrange(n_vertices_left)]   
+    right_counts = [1 for i in xrange(n_vertices_right)]
+    left_votes = [n_atlases for i in xrange(n_vertices_left)]   
+    right_votes = [n_atlases for i in xrange(n_vertices_right)]
     
-    for vertex in xrange(left_n_labels):
-        votes = Counter([left_labels[i][vertex] for i in xrange(n_labelings)])
-        
-        left_majority[vertex] = votes.most_common(1)[0][0]
-        left_consensus[vertex] = votes.most_common(1)[0][1]
-        left_different[vertex] = len(votes)
+    """
+    Example of Counter:
+    In [1]: from collections import Counter
+    In [2]: X = [1,1,2,3,4,2,1,2,1,2,1,2]
+    In [4]: Votes = Counter(X)
+    In [7]: Votes
+    Out[7]: Counter({1: 5, 2: 5, 3: 1, 4: 1})
+    In [5]: Votes.most_common(1)
+    Out[5]: [(1, 5)]
+    In [6]: Votes.most_common(2)
+    Out[6]: [(1, 5), (2, 5)]
+    In [8]: len(Votes)
+    Out[8]: 4
+    """
+    for vertex in xrange(n_vertices_left):
+        votes = Counter([left_labels[i][vertex] for i in xrange(n_atlases)])
+
+        left_max[vertex] = votes.most_common(1)[0][0]
+        left_votes[vertex] = votes.most_common(1)[0][1]
+        left_counts[vertex] = len(votes)
             
-    for vertex in xrange(right_n_labels):
-        votes = Counter([right_labels[i][vertex] for i in xrange(n_labelings)])
+    for vertex in xrange(n_vertices_right):
+        votes = Counter([right_labels[i][vertex] for i in xrange(n_atlases)])
         
-        right_majority[vertex] = votes.most_common(1)[0][0]
-        right_consensus[vertex] = votes.most_common(1)[0][1]
-        right_different[vertex] = len(votes)
+        right_max[vertex] = votes.most_common(1)[0][0]
+        right_votes[vertex] = votes.most_common(1)[0][1]
+        right_counts[vertex] = len(votes)
         
     print("Voting done.")
-    return left_majority, right_majority,\
-           left_consensus, right_consensus,\
-           left_different, right_different 
+    return left_max, right_max,\
+           left_votes, right_votes,\
+           left_counts, right_counts 
  
 def multilabel(subject_id, subjects_path, annot_name, use_inflated_surfaces=1):
     """
@@ -392,52 +424,55 @@ def multilabel(subject_id, subjects_path, annot_name, use_inflated_surfaces=1):
     left_labels, right_labels = load_labels(annot_path, annot_name)
  
     # Vote on labels for each vertex
-    left_majority, right_majority, left_consensus, right_consensus,\
-    left_different, right_different = vote_labels(left_labels, right_labels)
+    left_max, right_max, left_votes, right_votes,\
+    left_counts, right_counts = vote_labels(left_labels, right_labels)
     
     if use_inflated_surfaces:
         input_files = ['lh.pial.vtk', 'rh.pial.vtk', 
                        'lh.inflated.vtk', 'rh.inflated.vtk']
-        output_files = [['lh.pial.labels.majority.vtk', 
-                         'rh.pial.labels.majority.vtk', 
-                         'lh.inflated.labels.majority.vtk', 
-                         'rh.inflated.labels.majority.vtk'],
-                        ['lh.pial.labels.different.vtk', 
-                         'rh.pial.labels.different.vtk', 
-                         'lh.inflated.labels.different.vtk', 
-                         'rh.inflated.labels.different.vtk']
-                        ['lh.pial.labels.consensus.vtk', 
-                         'rh.pial.labels.consensus.vtk', 
-                         'lh.inflated.labels.consensus.vtk', 
-                         'rh.inflated.labels.consensus.vtk']]
-        dv = [[left_majority, left_different, left_consensus],
-              [right_majority, right_different, right_consensus],
-              [left_majority, left_different, left_consensus],
-              [right_majority, right_different, right_consensus]]
+        output_files = [['lh.pial.labels.max.vtk',
+                         'lh.pial.labelcounts.vtk', 
+                         'lh.pial.labelvotes.vtk'], 
+                        ['rh.pial.labels.max.vtk', 
+                         'rh.pial.labelcounts.vtk', 
+                         'rh.pial.labelvotes.vtk'], 
+                        ['lh.inflated.labels.max.vtk', 
+                         'lh.inflated.labelcounts.vtk', 
+                         'lh.inflated.labelvotes.vtk'], 
+                        ['rh.inflated.labels.max.vtk', 
+                         'rh.inflated.labelcounts.vtk', 
+                         'rh.inflated.labelvotes.vtk']]
+        dv = [[left_max, left_counts, left_votes],
+              [right_max, right_counts, right_votes],
+              [left_max, left_counts, left_votes],
+              [right_max, right_counts, right_votes]]
     else:
         input_files = ['lh.pial.vtk', 'rh.pial.vtk']
-        output_files = [['lh.pial.labels.majority.vtk', 
-                         'rh.pial.labels.majority.vtk'], 
-                        ['lh.pial.labels.different.vtk', 
-                         'rh.pial.labels.different.vtk'], 
-                        ['lh.pial.labels.consensus.vtk', 
-                         'rh.pial.labels.consensus.vtk']] 
-        dv = [[left_majority, left_different, left_consensus],
-              [right_majority, right_different, right_consensus]]
+        output_files = [['lh.pial.labels.max.vtk', 
+                         'lh.pial.labelcounts.vtk', 
+                         'lh.pial.labelvotes.vtk'], 
+                        ['rh.pial.labels.max.vtk', 
+                         'rh.pial.labelcounts.vtk', 
+                         'rh.pial.labelvotes.vtk']]
+        dv = [[left_max, left_counts, left_votes],
+              [right_max, right_counts, right_votes]]
 
     for i, input_file in enumerate(input_files):
         VTKReader = pyvtk.VtkData(path.join(subject_surf_path, input_file))
         Vertices =  VTKReader.structure.points
         Faces =     VTKReader.structure.polygons
-        
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][0], name='Majority'))).\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][0],\
+                    name='Max (majority labels)'))).\
               tofile(path.join(annot_path, output_files[i][0]), 'ascii')
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][1], name='Different'))).\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][1],\
+                    name='Counts (number of different labels)'))).\
               tofile(path.join(annot_path, output_files[i][1]), 'ascii')
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][2], name='Common'))).\
+              pyvtk.PointData(pyvtk.Scalars(dv[i][2],\
+                    name='Votes (number of votes for majority labels)'))).\
               tofile(path.join(annot_path, output_files[i][2]), 'ascii')
+
     return annot_name  
     
