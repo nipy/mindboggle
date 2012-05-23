@@ -1534,6 +1534,8 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     double ec;
 
+    double saturation = 1;
+
 //    double maxCurv=-10;  // added Forrest 2012-03-05
 //    double minCurv=1000;  // added Forrest 2012-03-05
 //    double maxgCurv=-10;  // added Forrest 2012-03-05
@@ -1584,6 +1586,12 @@ void MeshAnalyser::ComputePrincipalCurvatures()
             maxD = 0;
             minD = 0;
         }
+
+        //saturation to avoid very large values
+        if(maxD > saturation) maxD = saturation;
+        if(minD > saturation) minD = saturation;
+        if(maxD < -saturation) maxD = -saturation;
+        if(minD < -saturation) minD = -saturation;
 
         this->curv1->InsertNextValue(maxD);
         this->curv2->InsertNextValue(minD);
