@@ -52,23 +52,6 @@ def convert_to_vtk(fs_surface_files):
     #    raise Exception('\n'.join([args + ' failed', o, e]))
     return surface_files
 
-def convert_to_vtk2(fs_inflated_files):
-    """
-    Measure
-
-    # import nipype.interfaces.freesurfer as fs
-    # mris = fs.MRIsConvert()
-    # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
-    """
-    from os import system
-    inflated_files = []
-    for fs_inflated_file in fs_inflated_files:
-        inflated_file = fs_inflated_file + '.vtk'
-        inflated_files.append(inflated_file)
-        args = ['mris_convert', fs_inflated_file, inflated_file]
-        print(' '.join(args)); system(' '.join(args))
-    return inflated_files
-
 ##############################################################################
 #   Multi-atlas registration
 ##############################################################################
@@ -126,13 +109,6 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     return annot_name
 
 """
-USING mri_surf2surf WRAPPED IN NIPYPE
-NOTE: RECEIVING ERROR:
-
- mri_surf2surf --srcsurfreg sphere_to_KKI_template.reg --trgsurfreg sphere_to_KKI_template.reg --hemi lh --tval /usr/local/freesurfer/subjects/KKI2009-11/label/lh.KKI2009-11_to_KKI2009-11_aparcNMMjt.annot --sval /usr/local/freesurfer/subjects/KKI2009-11/label/lh.aparcNMMjt.annot --srcsubject KKI2009-11 --trgsubject KKI2009-11
-Standard output:
-ERROR: could not determine type of /usr/local/freesurfer/subjects/KKI2009-11/label/lh.aparcNMMjt.annot
-
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
                      annot_name, reg_name):
     ""
@@ -166,16 +142,18 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
                                     hemi + '.' + annot_name) 
             sxfm.inputs.source_file = source_file
             # Specify annotation file
-            output_annot = path.join(subjects_path, subject_id, 'label',
-                                     hemi + '.' + atlas_name + '_to_' + \
-                                     subject_id + '_' + annot_name)
+            output_annot = hemi + '.' + atlas_name + '_to_' + \
+                           subject_id + '_' + annot_name
             sxfm.inputs.out_file = output_annot
             args = ['--srcsurfreg', reg_name,
-                    '--trgsurfreg', reg_name]
+                    '--trgsurfreg', reg_name,
+                    '--sfmt', 'a',
+                    '--tfmt', 'a']
             sxfm.inputs.args = ' '.join(args)
             sxfm.run()
     return annot_name
 """
+
 ##############################################################################
 #   Multi-atlas labeling
 ##############################################################################
