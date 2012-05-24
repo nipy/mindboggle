@@ -27,8 +27,7 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 
-from atlas_based import convert_to_vtk, convert_to_vtk2, \
-                        register_template, register_atlases, multilabel
+from atlas_based import convert_to_vtk, register_template, register_atlases, multilabel
 from feature_based import *
 
 use_freesurfer_surfaces = 1
@@ -36,7 +35,8 @@ use_inflated_surfaces = 1
 
 # Subjects
 subjects_list = ['KKI2009-11']
-subjects_path = '/usr/local/freesurfer/subjects'
+#subjects_path = '/usr/local/freesurfer/subjects'
+subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
 base_directory = '/projects/mindboggle'
@@ -48,9 +48,9 @@ working_directory = os.path.join(base_directory, 'results/workingdir')
 #os.makedirs(working_directory)
 
 depth_command = os.path.join(code_directory,
-                             'measure/bin/travel_depth/TravelDepthMain')
+                             'measure/surface_measures/bin/travel_depth/TravelDepthMain')
 curvature_command = os.path.join(code_directory,
-                                 'measure/bin/curvature/CurvatureMain')
+                                 'measure/surface_measures/bin/curvature/CurvatureMain')
 extract_fundi_command = os.path.join(code_directory, 
                                      'extract/fundi/vtk_extract.py')
 
@@ -153,12 +153,9 @@ if use_freesurfer_surfaces:
                    [('fs_surface_files','fs_surface_files')])])
 
     if use_inflated_surfaces:
-        surface_conversion2 = pe.Node(util.Function(input_names = ['fs_inflated_files'],
-                                                    output_names = ['inflated_files'],
-                                                    function = convert_to_vtk2),
-                                      name='Convert_inflated_surfaces')
+        surface_conversion2 = surface_conversion.clone('Convert_inflated_surfaces') 
         flo1.connect([(datasource2, surface_conversion2,
-                       [('fs_inflated_files','fs_inflated_files')])])
+                       [('fs_inflated_files','fs_surface_files')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -255,24 +252,16 @@ surface_curvature = pe.Node(util.Function(input_names = ['curvature_command',
                    name='Measure_surface_curvature')
 surface_curvature.inputs.curvature_command = curvature_command
 
-# Connect input to surface depth and curvature nodes
-flo2.connect([(infosource, datasource, [('subject_id','subject_id')])])
+# Add node
+flo2.add_nodes([surface_depth])
 
 if use_freesurfer_surfaces:
-    flo2.connect([(datasource, surface_conversion,
-                   [('fs_surface_files','fs_surface_files')])])
-    flo2.connect([(surface_conversion, surface_depth, 
-                   [('surface_files','surface_files')])])
-    flo2.connect([(surface_conversion, surface_curvature, 
-                   [('surface_files','surface_files')])])
-#    mbflow.connect([(flo1, flo2, 
-#                   [('surface_conversion.surface_files','surface_depth.surface_files')])])
+    mbflow.connect([(flo1, flo2, [('Convert_surfaces.surface_files',
+                     'Measure_surface_depth.surface_files')])])
 else:
     # Connect input to surface depth and curvature nodes
-    flo2.connect([(datasource, surface_depth,
-                   [('surface_files','surface_files')])])
-    flo2.connect([(datasource, surface_curvature,
-                   [('surface_files','surface_files')])])
+    mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
+                     'Measure_surface_depth.surface_files')])])
 
 ##############################################################################
 #   Feature extraction
@@ -301,8 +290,8 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                              name='Extract_midaxis')
 
 # Connect surface depth to feature extraction nodes
-flo2.connect([(surface_depth, fundus_extraction, 
-               [('depth_files', 'depth_files')])])
+#flo2.connect([(surface_depth, fundus_extraction, 
+#               [('depth_files', 'depth_files')])])
 """
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
@@ -608,16 +597,15 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 ##############################################################################
 if __name__== '__main__':
 
-    flo1.run()
-    flo2.run()
-"""
-    mbflow.connect([(flo1, flo2,
-                     [('', '')])])
-    flo2.connect([(surface_conversion, surfaces, 
-                   [('surface_files','surface_files')])])
+    #flo1.run()
+    #flo1.write_graph(graph2use='flat')
+    #flo1.write_graph(graph2use='hierarchical')
+    #flo2.run()
+    #flo2.write_graph(graph2use='flat')
+    #flo2.write_graph(graph2use='hierarchical')
 
     mbflow.write_graph(graph2use='flat')
     mbflow.write_graph(graph2use='hierarchical')
 
     mbflow.run()
-"""
+
