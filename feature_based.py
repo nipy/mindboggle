@@ -30,29 +30,42 @@ def measure_surface_depth(depth_command, surface_files):
 
     measure_()
     """
-    import os
+    from os import system
     depth_files = []
     for surface_file in surface_files:
         depth_file = surface_file.strip('.vtk') + '.depth.vtk'
         depth_files.append(depth_file)
         args = [depth_command, surface_file, depth_file]
-        print(' '.join(args)); os.system(' '.join(args))
-    return depth_files, surface_files 
+        print(' '.join(args)); system(' '.join(args))
+    return surface_files, depth_files
     
 def measure_surface_curvature(curvature_command, surface_files):
     """
     Measure
-
+    CurvatureMain input MeanCurvatureOutput [GaussianCurvatureOutput]
+                        [MaximalCurvatureOutput] [MinimalCurvatureOutput]
     measure_()
     """
-    import os
-    curvature_files = []
+    from os import system
+    mean_curvature_files = []
+    gauss_curvature_files = []
+    max_curvature_files = []
+    min_curvature_files = []
     for surface_file in surface_files:
-        curvature_file = surface_file.strip('.vtk') + '.curvature.vtk'
-        curvature_files.append(curvature_file)
-        args = [curvature_command, surface_file, curvature_file]
-        print(' '.join(args)); os.system(' '.join(args))
-    return curvature_files, surface_files 
+        mean_curvature_file = surface_file.strip('.vtk') + '.curvature.mean.vtk'
+        gauss_curvature_file = surface_file.strip('.vtk') + '.curvature.gauss.vtk'
+        max_curvature_file = surface_file.strip('.vtk') + '.curvature.max.vtk'
+        min_curvature_file = surface_file.strip('.vtk') + '.curvature.min.vtk'
+        mean_curvature_files.append(mean_curvature_file)
+        gauss_curvature_files.append(gauss_curvature_file)
+        max_curvature_files.append(max_curvature_file)
+        min_curvature_files.append(min_curvature_file)
+        args = [curvature_command, surface_file, 
+                mean_curvature_file, gauss_curvature_file,
+                max_curvature_file, min_curvature_file]
+        print(' '.join(args)); system(' '.join(args))
+    return surface_files, mean_curvature_files, gauss_curvature_files,\
+           max_curvature_files, min_curvature_files  
     
 ##############################################################################
 #   Feature extraction
