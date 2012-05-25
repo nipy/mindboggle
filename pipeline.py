@@ -69,7 +69,7 @@ mbflow.base_dir = working_directory
 #   Multi-atlas registration-based labeling workflow
 #
 ##############################################################################
-flo1 = pe.Workflow(name='Multi-atlas_workflow')
+flo1 = pe.Workflow(name='Multiatlas_workflow')
 flo1.base_dir = working_directory
 
 # Input and output nodes
@@ -614,8 +614,9 @@ if __name__== '__main__':
     #flo2.write_graph(graph2use='flat')
     #flo2.write_graph(graph2use='hierarchical')
 
-    mbflow.write_graph(graph2use='flat')
-    mbflow.write_graph(graph2use='hierarchical')
+#    mbflow.write_graph(graph2use='flat')
+#    mbflow.write_graph(graph2use='hierarchical')
 
+#    mbflow.run(updatehash=True)
     mbflow.run()
 
