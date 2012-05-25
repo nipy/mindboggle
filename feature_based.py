@@ -30,13 +30,15 @@ def measure_surface_depth(depth_command, surface_files):
 
     measure_()
     """
-    from os import system
+    from nipype.interfaces.base import CommandLine
+
     depth_files = []
     for surface_file in surface_files:
         depth_file = surface_file.strip('.vtk') + '.depth.vtk'
         depth_files.append(depth_file)
-        args = [depth_command, surface_file, depth_file]
-        print(' '.join(args)); system(' '.join(args))
+        cli = CommandLine(command = depth_command)
+        cli.inputs.args = ' '.join([surface_file, depth_file])
+        cli.cmdline
     return surface_files, depth_files
     
 def measure_surface_curvature(curvature_command, surface_files):
@@ -46,7 +48,8 @@ def measure_surface_curvature(curvature_command, surface_files):
                         [MaximalCurvatureOutput] [MinimalCurvatureOutput]
     measure_()
     """
-    from os import system
+    from nipype.interfaces.base import CommandLine
+
     mean_curvature_files = []
     gauss_curvature_files = []
     max_curvature_files = []
@@ -60,10 +63,12 @@ def measure_surface_curvature(curvature_command, surface_files):
         gauss_curvature_files.append(gauss_curvature_file)
         max_curvature_files.append(max_curvature_file)
         min_curvature_files.append(min_curvature_file)
-        args = [curvature_command, surface_file, 
+        args = [surface_file, 
                 mean_curvature_file, gauss_curvature_file,
                 max_curvature_file, min_curvature_file]
-        print(' '.join(args)); system(' '.join(args))
+        cli = CommandLine(command = curvature_command)
+        cli.inputs.args = ' '.join(args)
+        cli.cmdline
     return surface_files, mean_curvature_files, gauss_curvature_files,\
            max_curvature_files, min_curvature_files  
     
@@ -77,11 +82,14 @@ def extract_fundi(extract_fundi_command, depth_files):
 
     extract_fundi
     """
-    import os
+    from nipype.interfaces.base import CommandLine
+
     fundi = []
     for depth_file in depth_files:
         args = ['python', extract_fundi_command, '%s'%depth_file]
-        print(' '.join(args)); os.system(' '.join(args))
+        cli = CommandLine(command = curvature_command)
+        cli.inputs.args = ' '.join(args)
+        cli.cmdline
     return fundi
 
 def extract_sulci(surface_file, depth_file, mean_curvature_file, gauss_curvature_file):
@@ -90,7 +98,8 @@ def extract_sulci(surface_file, depth_file, mean_curvature_file, gauss_curvature
 
     extract_sulci    
     """
-    import subprocess as sp
+    from nipype.interfaces.base import CommandLine
+
     args = 'feature = extract/sulci/extract.py'
     args = ['python', args, '%s'%surface_file, '%s'%depth_file]
     print(' '.join(args)); os.system(' '.join(args))
@@ -105,8 +114,8 @@ def extract_midaxis(surface_file, depth_file, mean_curvature_file, gauss_curvatu
 
     extract_midaxis    
     """
-    from glob import glob
-    import subprocess as sp
+    from nipype.interfaces.base import CommandLine
+
     args = 'feature = extract/midaxis/extract.py'
     args = ['python', args, '%s'%surface_file, '%s'%depth_file]
     print(' '.join(args)); os.system(' '.join(args))
@@ -119,8 +128,8 @@ def extract_patches(labels):
     
     extract_patches    
     """
-    from glob import glob
-    import subprocess as sp
+    from nipype.interfaces.base import CommandLine
+
     args = ['python', 'patch = extract/labels/extract.py']
     print(' '.join(args)); os.system(' '.join(args))
     return patches
@@ -131,8 +140,8 @@ def extract_regions(labels):
     
     extract_regions
     """
-    from glob import glob
-    import subprocess as sp
+    from nipype.interfaces.base import CommandLine
+
     args = ['python', 'region = extract/labels/extract.py']
     print(' '.join(args)); os.system(' '.join(args))
     return regions
@@ -163,7 +172,7 @@ def segment_sulci(sulci):
     """
     Segment and identify sulci
     """
-    import os
+    from nipype.interfaces.base import CommandLine
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
@@ -177,7 +186,7 @@ def segment_fundi(fundi):
     """
     Segment and identify fundi
     """
-    import os
+    from nipype.interfaces.base import CommandLine
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
@@ -191,7 +200,7 @@ def segment_midaxis(midaxis):
     """
     Segment and identify medial axis surfaces
     """
-    import os
+    from nipype.interfaces.base import CommandLine
 
     for hemi in ['lh','rh']:
         input_file = os.path.join(subject_surf_path, hemi + '.sphere')
