@@ -51,7 +51,7 @@ def register_template(subject_id, subjects_path,
         cli.cmdline
     return reg_name
 
-def register_atlases(subject_id, subjects_path, atlas_list_file, 
+def register_atlases(subject_id, subjects_path, atlas_list, 
                      annot_name, reg_name):
     """
     Transform the labels from multiple atlases via a template
@@ -60,12 +60,8 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     from os import path
     from nipype.interfaces.base import CommandLine
 
-    # Get list of atlas subjects from a file
-    f = open(atlas_list_file)
-    atlas_list = f.readlines()
-    for atlas_line in atlas_list:
-        # For each atlas
-        atlas_name = atlas_line.strip("\n")
+    # For each atlas
+    for atlas_name in atlas_list:
         # For each hemisphere
         for hemi in ['lh','rh']:        
             annot_file = path.join(subjects_path, atlas_name, 'label',
@@ -85,7 +81,7 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     return annot_name
 
 """
-def register_atlases(subject_id, subjects_path, atlas_list_file, 
+def register_atlases(subject_id, subjects_path, atlas_list, 
                      annot_name, reg_name):
     ""
     Transform the labels from multiple atlases via a template
@@ -104,12 +100,8 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     sxfm = SurfaceTransform()
     sxfm.inputs.target_subject = subject_id
 
-    # Get list of atlas subjects from a file
-    f = open(atlas_list_file)
-    atlas_list = f.readlines()
-    for atlas_line in atlas_list:
-        # For each atlas
-        atlas_name = atlas_line.strip("\n")
+    # For each atlas
+    for atlas_name in atlas_list:
         sxfm.inputs.source_subject = atlas_name
         # For each hemisphere
         for hemi in ['lh','rh']:        
