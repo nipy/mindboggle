@@ -38,18 +38,15 @@ def convert_to_vtk(fs_surface_files):
     # mris = fs.MRIsConvert()
     # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
     """
-    #import subprocess as sp
-    from os import system
+    from nipype.interfaces.base import CommandLine
+ 
     surface_files = []
     for fs_surface_file in fs_surface_files:
         surface_file = fs_surface_file + '.vtk'
         surface_files.append(surface_file)
-        args = ['mris_convert', fs_surface_file, surface_file]
-        print(' '.join(args)); system(' '.join(args))
-    #proc = sp.Popen(' '.join(args))
-    #o, e = proc.communicate()
-    #if proc.returncode > 0 :
-    #    raise Exception('\n'.join([args + ' failed', o, e]))
+        cli = CommandLine(command='mris_convert')
+        cli.inputs.args = ' '.join([fs_surface_file, surface_file])
+        cli.cmdline
     return surface_files
 
 ##############################################################################
@@ -67,14 +64,16 @@ def register_template(subject_id, subjects_path,
              KKI_2.tif
              sphere_to_template.reg
     """
-    from os import path, system
+    from os import path
+    from nipype.interfaces.base import CommandLine
 
     for hemi in ['lh','rh']:
         input_file = path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
         output_file = path.join(subjects_path, subject_id, 'surf', hemi + '.' + reg_name)
         template_file = path.join(templates_path, hemi + '.' + template_name)
-        args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args)); system(' '.join(args))
+        cli = CommandLine(command='mris_register')
+        cli.inputs.args = ' '.join(['-curv', input_file, template_file, output_file])
+        cli.cmdline
     return reg_name
 
 def register_atlases(subject_id, subjects_path, atlas_list_file, 
@@ -83,7 +82,8 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
     """
-    from os import path, system
+    from os import path
+    from nipype.interfaces.base import CommandLine
 
     # Get list of atlas subjects from a file
     f = open(atlas_list_file)
@@ -97,15 +97,16 @@ def register_atlases(subject_id, subjects_path, atlas_list_file,
                                    hemi + '.' + annot_name) 
             output_annot = hemi + '.' + atlas_name + '_to_' + \
                            subject_id + '_' + annot_name
-            args = ['mri_surf2surf',
-                    '--hemi', hemi,
+            args = ['--hemi', hemi,
                     '--srcsubject', atlas_name,
                     '--trgsubject', subject_id,
                     '--sval-annot', annot_file,
                     '--tval', output_annot,
                     '--srcsurfreg', reg_name,
                     '--trgsurfreg', reg_name]
-            print(' '.join(args)); system(' '.join(args))
+            cli = CommandLine(command='mri_surf2surf')
+            cli.inputs.args = ' '.join(args)
+            cli.cmdline
     return annot_name
 
 """
