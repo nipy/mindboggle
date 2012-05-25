@@ -61,7 +61,7 @@ extract_fundi_command = os.path.join(code_directory,
 #   * Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-mbflow = pe.Workflow(name='pipeline')
+mbflow = pe.Workflow(name='Mindboggle_workflow')
 mbflow.base_dir = working_directory
 
 ##############################################################################
@@ -69,7 +69,7 @@ mbflow.base_dir = working_directory
 #   Multi-atlas registration-based labeling workflow
 #
 ##############################################################################
-flo1 = pe.Workflow(name='atlas_based')
+flo1 = pe.Workflow(name='Multi-atlas_workflow')
 flo1.base_dir = working_directory
 
 # Input and output nodes
@@ -228,7 +228,7 @@ flo1.connect([(atlas_registration, majority_vote,
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-flo2 = pe.Workflow(name='feature_based')
+flo2 = pe.Workflow(name='Feature_workflow')
 flo2.base_dir = working_directory
 
 ##############################################################################
@@ -241,27 +241,37 @@ surface_depth = pe.Node(util.Function(input_names = ['depth_command',
                                  output_names = ['surface_files',
                                                  'depth_files'],
                                  function = measure_surface_depth),
-                   name='Measure_surface_depth')
+                   name='Measure_depth')
 surface_depth.inputs.depth_command = depth_command
 
 surface_curvature = pe.Node(util.Function(input_names = ['curvature_command',
-                                                     'surface_files'],
+                                                         'surface_files'],
                                  output_names = ['surface_files',
-                                                 'curvature_files'],
+                                                 'mean_curvature_files',
+                                                 'gauss_curvature_files',
+                                                 'max_curvature_files',
+                                                 'min_curvature_files'],
                                  function = measure_surface_curvature),
-                   name='Measure_surface_curvature')
+                            name='Measure_curvature')
 surface_curvature.inputs.curvature_command = curvature_command
 
 # Add node
-flo2.add_nodes([surface_depth])
+flo2.add_nodes([surface_depth, surface_curvature])
 
 if use_freesurfer_surfaces:
-    mbflow.connect([(flo1, flo2, [('Convert_surfaces.surface_files',
-                     'Measure_surface_depth.surface_files')])])
+    mbflow.connect([(flo1, flo2, 
+                     [('Convert_surfaces.surface_files',
+                       'Measure_depth.surface_files')])])
+    mbflow.connect([(flo1, flo2, 
+                     [('Convert_surfaces.surface_files',
+                       'Measure_curvature.surface_files')])])
 else:
     # Connect input to surface depth and curvature nodes
     mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
-                     'Measure_surface_depth.surface_files')])])
+                     'Measure_depth.surface_files')])])
+    mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
+                     'Measure_curvature.surface_files')])])
+
 
 ##############################################################################
 #   Feature extraction
