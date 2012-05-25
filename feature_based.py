@@ -24,7 +24,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface calculations
 ##############################################################################
 
-def measure_surface_depth(depth_command, surface_files):
+def measure_surface_depth(command, surface_file):
     """
     Measure
 
@@ -32,16 +32,13 @@ def measure_surface_depth(depth_command, surface_files):
     """
     from nipype.interfaces.base import CommandLine
 
-    depth_files = []
-    for surface_file in surface_files:
-        depth_file = surface_file.strip('.vtk') + '.depth.vtk'
-        depth_files.append(depth_file)
-        cli = CommandLine(command = depth_command)
-        cli.inputs.args = ' '.join([surface_file, depth_file])
-        cli.cmdline
-    return surface_files, depth_files
+    depth_file = surface_file.strip('.vtk') + '.depth.vtk'
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join([surface_file, depth_file])
+    cli.cmdline
+    return depth_file
     
-def measure_surface_curvature(curvature_command, surface_files):
+def measure_surface_curvature(command, surface_file):
     """
     Measure
     CurvatureMain input MeanCurvatureOutput [GaussianCurvatureOutput]
@@ -50,27 +47,18 @@ def measure_surface_curvature(curvature_command, surface_files):
     """
     from nipype.interfaces.base import CommandLine
 
-    mean_curvature_files = []
-    gauss_curvature_files = []
-    max_curvature_files = []
-    min_curvature_files = []
-    for surface_file in surface_files:
-        mean_curvature_file = surface_file.strip('.vtk') + '.curvature.mean.vtk'
-        gauss_curvature_file = surface_file.strip('.vtk') + '.curvature.gauss.vtk'
-        max_curvature_file = surface_file.strip('.vtk') + '.curvature.max.vtk'
-        min_curvature_file = surface_file.strip('.vtk') + '.curvature.min.vtk'
-        mean_curvature_files.append(mean_curvature_file)
-        gauss_curvature_files.append(gauss_curvature_file)
-        max_curvature_files.append(max_curvature_file)
-        min_curvature_files.append(min_curvature_file)
-        args = [surface_file, 
-                mean_curvature_file, gauss_curvature_file,
-                max_curvature_file, min_curvature_file]
-        cli = CommandLine(command = curvature_command)
-        cli.inputs.args = ' '.join(args)
-        cli.cmdline
-    return surface_files, mean_curvature_files, gauss_curvature_files,\
-           max_curvature_files, min_curvature_files  
+    mean_curvature_file = surface_file.strip('.vtk') + '.curvature.mean.vtk'
+    gauss_curvature_file = surface_file.strip('.vtk') + '.curvature.gauss.vtk'
+    max_curvature_file = surface_file.strip('.vtk') + '.curvature.max.vtk'
+    min_curvature_file = surface_file.strip('.vtk') + '.curvature.min.vtk'
+    args = [surface_file, 
+            mean_curvature_file, gauss_curvature_file,
+            max_curvature_file, min_curvature_file]
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join(args)
+    cli.cmdline
+    return mean_curvature_file, gauss_curvature_file,\
+           max_curvature_file, min_curvature_file  
     
 ##############################################################################
 #   Feature extraction

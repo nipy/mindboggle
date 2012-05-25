@@ -27,7 +27,7 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 
-from atlas_based import convert_to_vtk, register_template, register_atlases, multilabel
+from atlas_based import register_template, register_atlases, multilabel
 from feature_based import *
 
 use_freesurfer_surfaces = 1
@@ -44,15 +44,24 @@ code_directory = os.path.join(base_directory, 'mindboggle')
 templates_path = os.path.join(base_directory, 'data/templates_freesurfer')
 atlases_path = subjects_path
 
+# Output directory
 working_directory = os.path.join(base_directory, 'results/workingdir')
 #os.makedirs(working_directory)
 
+# Commands
 depth_command = os.path.join(code_directory,
                              'measure/surface_measures/bin/travel_depth/TravelDepthMain')
 curvature_command = os.path.join(code_directory,
                                  'measure/surface_measures/bin/curvature/CurvatureMain')
 extract_fundi_command = os.path.join(code_directory, 
                                      'extract/fundi/vtk_extract.py')
+
+# List of atlas subjects
+atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
+f = open(atlas_list_file)
+atlas_list_lines = f.readlines()
+atlas_list = [a.strip("\n") for a in atlas_list_lines]
+
 
 ##############################################################################
 #
@@ -126,10 +135,10 @@ template.inputs.reg_name = reg_name
 
 # Define an atlases node
 atlases = pe.Node(interface=util.IdentityInterface(fields=[
-                  'atlases_path', 'atlas_list_file', 'annot_name']),
+                  'atlases_path', 'atlas_list', 'annot_name']),
                   name='Atlases')
 atlases.inputs.atlases_path = atlases_path
-atlases.inputs.atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
+atlases.inputs.atlas_list = atlas_list
 annot_name = 'aparcNMMjt.annot'
 atlases.inputs.annot_name = annot_name
 
@@ -181,7 +190,7 @@ template_registration.inputs.subjects_path = subjects_path
 
 atlas_registration = pe.Node(util.Function(input_names=['subject_id',
                                                         'subjects_path',
-                                                        'atlas_list_file',
+                                                        'atlas_list',
                                                         'annot_name',
                                                         'reg_name'],
                                            output_names=['annot_name'],
@@ -214,7 +223,7 @@ flo1.connect([(template, template_registration,
                 ('templates_path', 'templates_path'),
                 ('reg_name', 'reg_name')])])
 flo1.connect([(atlases, atlas_registration, 
-               [('atlas_list_file', 'atlas_list_file'),
+               [('atlas_list', 'atlas_list'),
                 ('annot_name', 'annot_name')])])
 
 # Connect template registration to labeling nodes
@@ -237,24 +246,24 @@ flo2.base_dir = working_directory
 ##############################################################################
 
 # Measure surface depth and curvature nodes
-surface_depth = pe.Node(util.Function(input_names = ['depth_command',
-                                                     'surface_files'],
-                                 output_names = ['surface_files',
-                                                 'depth_files'],
-                                 function = measure_surface_depth),
-                   name='Measure_depth')
-surface_depth.inputs.depth_command = depth_command
+surface_depth = pe.MapNode(util.Function(input_names = ['command',
+                                                        'surface_file'],
+                                         output_names = ['depth_file'],
+                                         function = measure_surface_depth),
+                           iterfield = ['surface_file'],
+                           name='Measure_depth')
+surface_depth.inputs.command = depth_command
 
-surface_curvature = pe.Node(util.Function(input_names = ['curvature_command',
-                                                         'surface_files'],
-                                 output_names = ['surface_files',
-                                                 'mean_curvature_files',
-                                                 'gauss_curvature_files',
-                                                 'max_curvature_files',
-                                                 'min_curvature_files'],
-                                 function = measure_surface_curvature),
-                            name='Measure_curvature')
-surface_curvature.inputs.curvature_command = curvature_command
+surface_curvature = pe.MapNode(util.Function(input_names = ['command',
+                                                            'surface_file'],
+                                    output_names = ['mean_curvature_file',
+                                                    'gauss_curvature_file',
+                                                    'max_curvature_file',
+                                                    'min_curvature_file'],
+                                    function = measure_surface_curvature),
+                               iterfield = ['surface_file'],
+                               name='Measure_curvature')
+surface_curvature.inputs.command = curvature_command
 
 # Add node
 flo2.add_nodes([surface_depth, surface_curvature])
@@ -262,16 +271,16 @@ flo2.add_nodes([surface_depth, surface_curvature])
 if use_freesurfer_surfaces:
     mbflow.connect([(flo1, flo2, 
                      [('Convert_surfaces.converted',
-                       'Measure_depth.surface_files')])])
+                       'Measure_depth.surface_file')])])
     mbflow.connect([(flo1, flo2, 
                      [('Convert_surfaces.converted',
-                       'Measure_curvature.surface_files')])])
+                       'Measure_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
     mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
-                     'Measure_depth.surface_files')])])
+                     'Measure_depth.surface_file')])])
     mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
-                     'Measure_curvature.surface_files')])])
+                     'Measure_curvature.surface_file')])])
 
 
 ##############################################################################
@@ -279,12 +288,13 @@ else:
 ##############################################################################
 
 # Feature extraction nodes
-fundus_extraction = pe.Node(util.Function(input_names = ['extract_fundi_command',
-                                                         'depth_files'],
+"""
+fundus_extraction = pe.Node(util.Function(input_names = ['command',
+                                                         'depth_file'],
                                           output_names = ['fundi'],
                                           function = extract_fundi),
                             name='Extract_fundi')
-fundus_extraction.inputs.extract_fundi_command = extract_fundi_command
+fundus_extraction.inputs.command = extract_fundi_command
 
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
@@ -299,7 +309,7 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                            output_names = ['midaxis'],
                                            function = extract_midaxis),
                              name='Extract_midaxis')
-
+"""
 # Connect surface depth to feature extraction nodes
 #flo2.connect([(surface_depth, fundus_extraction, 
 #               [('depth_files', 'depth_files')])])
