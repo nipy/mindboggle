@@ -3,14 +3,12 @@
 """
 Atlas-based functions for surface registration-based labeling:
 
-1. Surface map conversion (from FreeSurfer to VTK format)
-
-2. Multi-atlas registration
+1. Multi-atlas registration
 Register surface to template with FreeSurfer's mris_register.
 Transform the labels from multiple atlases via a template 
 (using FreeSurfer's mri_surf2surf).
 
-3. Multi-atlas labeling
+2. Multi-atlas labeling
 For each brain hemisphere (left and right) in a given subject, 
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
@@ -25,29 +23,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
-
-##############################################################################
-#   Surface map conversion
-##############################################################################
-
-def convert_to_vtk(fs_surface_files):
-    """
-    Measure
-
-    # import nipype.interfaces.freesurfer as fs
-    # mris = fs.MRIsConvert()
-    # mris.inputs(in_file = '', out_file = '', subjects_dir = '')
-    """
-    from nipype.interfaces.base import CommandLine
- 
-    surface_files = []
-    for fs_surface_file in fs_surface_files:
-        surface_file = fs_surface_file + '.vtk'
-        surface_files.append(surface_file)
-        cli = CommandLine(command='mris_convert')
-        cli.inputs.args = ' '.join([fs_surface_file, surface_file])
-        cli.cmdline
-    return surface_files
 
 ##############################################################################
 #   Multi-atlas registration

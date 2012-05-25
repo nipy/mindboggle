@@ -69,7 +69,7 @@ mbflow.base_dir = working_directory
 #   Multi-atlas registration-based labeling workflow
 #
 ##############################################################################
-flo1 = pe.Workflow(name='Multiatlas_workflow')
+flo1 = pe.Workflow(name='Multiatlas_workflow_test')
 flo1.base_dir = working_directory
 
 # Input and output nodes
@@ -144,18 +144,19 @@ if use_inflated_surfaces:
 
 # Convert FreeSurfer surfaces to VTK format
 if use_freesurfer_surfaces:
-    surface_conversion = pe.Node(util.Function(input_names = ['fs_surface_files'],
-                                               output_names = ['surface_files'],
-                                               function = convert_to_vtk),
-                                 name='Convert_surfaces')
+    import nipype.interfaces.freesurfer as fs
+
+    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
+                                                   iterfield=['in_file'],
+                                    name='Convert_surfaces')
     # Connect input to surface node
     flo1.connect([(datasource, surface_conversion,
-                   [('fs_surface_files','fs_surface_files')])])
+                   [('fs_surface_files','in_file')])])
 
     if use_inflated_surfaces:
         surface_conversion2 = surface_conversion.clone('Convert_inflated_surfaces') 
         flo1.connect([(datasource2, surface_conversion2,
-                       [('fs_inflated_files','fs_surface_files')])])
+                       [('fs_inflated_files','in_file')])])
 
 ##############################################################################
 #   Multi-atlas registration
@@ -260,10 +261,10 @@ flo2.add_nodes([surface_depth, surface_curvature])
 
 if use_freesurfer_surfaces:
     mbflow.connect([(flo1, flo2, 
-                     [('Convert_surfaces.surface_files',
+                     [('Convert_surfaces.converted',
                        'Measure_depth.surface_files')])])
     mbflow.connect([(flo1, flo2, 
-                     [('Convert_surfaces.surface_files',
+                     [('Convert_surfaces.converted',
                        'Measure_curvature.surface_files')])])
 else:
     # Connect input to surface depth and curvature nodes
