@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-""" pull request test
+""" pull request trial
 Feature-based functions for morphometry and labeling:
 
 1. Surface calculations
