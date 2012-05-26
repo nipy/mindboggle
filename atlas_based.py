@@ -51,12 +51,13 @@ def register_template(subject_id, subjects_path,
         cli.cmdline
     return reg_name
 
+"""
 def register_atlases(subject_id, subjects_path, atlas_list, 
                      annot_name, reg_name):
-    """
+    ""
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
-    """
+    ""
     from os import path
     from nipype.interfaces.base import CommandLine
 
@@ -83,7 +84,7 @@ def register_atlases(subject_id, subjects_path, atlas_list,
 """
 def register_atlases(subject_id, subjects_path, atlas_list, 
                      annot_name, reg_name):
-    ""
+    """
     Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -93,7 +94,7 @@ def register_atlases(subject_id, subjects_path, atlas_list,
     Both the source and target subject must reside in your Subjects Directory,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
-    ""
+    """
     from os import path
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -103,24 +104,29 @@ def register_atlases(subject_id, subjects_path, atlas_list,
     # For each atlas
     for atlas_name in atlas_list:
         sxfm.inputs.source_subject = atlas_name
+
         # For each hemisphere
         for hemi in ['lh','rh']:        
             sxfm.inputs.hemi = hemi
+
+            # Source file
             source_file = path.join(subjects_path, atlas_name, 'label',
                                     hemi + '.' + annot_name) 
             sxfm.inputs.source_file = source_file
-            # Specify annotation file
-            output_annot = hemi + '.' + atlas_name + '_to_' + \
-                           subject_id + '_' + annot_name
-            sxfm.inputs.out_file = output_annot
+            sxfm.inputs.svalannot = source_file
+
+            # Output annotation file
+            sxfm.inputs.tval = hemi + '.' + atlas_name + '_to_' + \
+                               subject_id + '_' + annot_name
+
+            # Arguments: strings within registered files
             args = ['--srcsurfreg', reg_name,
-                    '--trgsurfreg', reg_name,
-                    '--sfmt', 'a',
-                    '--tfmt', 'a']
+                    '--trgsurfreg', reg_name]
             sxfm.inputs.args = ' '.join(args)
+
             sxfm.run()
+
     return annot_name
-"""
 
 ##############################################################################
 #   Multi-atlas labeling
