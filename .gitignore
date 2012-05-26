@@ -1,4 +1,3 @@
-x
 .DS_Store
 ._*
 *~
@@ -10,4 +9,7 @@ _$*
 .del-* 
 *.cache*
 
-
+x
+CMakeCache.txt
+CMakeFiles
+bin
