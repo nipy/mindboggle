@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-""" original
+"""
 Feature-based functions for morphometry and labeling:
 
 1. Surface calculations
