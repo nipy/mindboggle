@@ -5,13 +5,6 @@ This is Mindboggle's NiPype pipeline!
 
 Example usage:
 
-FIX:
-from pipeline import create_mindboggle_flow
-wf = create_mindboggle_flow()
-wf.inputs.feature_extractor.curv_file = \
-'/projects/mindboggle/data/ManualSurfandVolLabels/subjects/KKI2009-14/surf/lh.curv'
-wf.inputs.feature_extractor.surface_file = \
-'/projects/mindboggle/data/ManualSurfandVolLabels/subjects/KKI2009-14/surf/lh.pial'
 wf.run() # doctest: +SKIP
 
 
@@ -39,22 +32,18 @@ subjects_list = ['KKI2009-11']
 subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
-base_directory = '/projects/mindboggle'
-code_directory = os.path.join(base_directory, 'mindboggle')
-templates_path = os.path.join(base_directory, 'data/templates_freesurfer')
+templates_path = '../data/templates_freesurfer'
 atlases_path = subjects_path
 
 # Output directory
-working_directory = os.path.join(base_directory, 'results/workingdir')
-#os.makedirs(working_directory)
+working_directory = '../results/workingdir'
+if not os.path.isdir(working_directory):
+    os.makedirs(working_directory)
 
 # Commands
-depth_command = os.path.join(code_directory,
-                             'measure/surface_measures/bin/travel_depth/TravelDepthMain')
-curvature_command = os.path.join(code_directory,
-                                 'measure/surface_measures/bin/curvature/CurvatureMain')
-extract_fundi_command = os.path.join(code_directory, 
-                                     'extract/fundi/vtk_extract.py')
+depth_command = './measure/surface_measures/bin/travel_depth/TravelDepthMain'
+curvature_command = './measure/surface_measures/bin/curvature/CurvatureMain'
+extract_fundi_command = './extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
@@ -78,7 +67,7 @@ mbflow.base_dir = working_directory
 #   Multi-atlas registration-based labeling workflow
 #
 ##############################################################################
-flo1 = pe.Workflow(name='Multiatlas_workflow')
+flo1 = pe.Workflow(name='Atlas_workflow')
 flo1.base_dir = working_directory
 
 # Input and output nodes
