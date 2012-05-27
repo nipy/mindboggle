@@ -51,8 +51,7 @@ def register_template(subject_id, subjects_path,
         cli.cmdline
     return reg_name
 
-def register_atlases(subject_id, subjects_path, atlas_list, 
-                     annot_name, reg_name):
+def register_atlases(subject_id, atlas_list, atlases_path, annot_name, reg_name):
     """
     Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
@@ -79,9 +78,9 @@ def register_atlases(subject_id, subjects_path, atlas_list,
             sxfm.inputs.hemi = hemi
 
             # Source file
-            sxfm.inputs.source_annot_file = path.join(subjects_path, 
-                                                 atlas_name, 'label',
-                                                 hemi + '.' + annot_name) 
+            sxfm.inputs.source_annot_file = path.join(atlases_path, 
+                                                      atlas_name, 'label',
+                                                      hemi + '.' + annot_name) 
 
             # Output annotation file
             sxfm.inputs.out_file = getcwd() + hemi + '.' + atlas_name + '_to_' + \
