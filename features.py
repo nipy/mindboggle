@@ -1,6 +1,6 @@
 #!/usr/bin/python
 
-""" pull request trial -- 2nd commit
+"""
 Feature-based functions for morphometry and labeling:
 
 1. Surface calculations
@@ -30,11 +30,12 @@ def measure_surface_depth(command, surface_file):
 
     measure_()
     """
+    from os import getcwd, path
     from nipype.interfaces.base import CommandLine
 
-    depth_file = surface_file.strip('.vtk') + '.depth.vtk'
+    depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, depth_file])
+    cli.inputs.args = ' '.join([surface_file, getcwd() + depth_file])
     cli.cmdline
     return depth_file
     
@@ -45,12 +46,14 @@ def measure_surface_curvature(command, surface_file):
                         [MaximalCurvatureOutput] [MinimalCurvatureOutput]
     measure_()
     """
+    from os import getcwd
     from nipype.interfaces.base import CommandLine
 
-    mean_curvature_file = surface_file.strip('.vtk') + '.curvature.mean.vtk'
-    gauss_curvature_file = surface_file.strip('.vtk') + '.curvature.gauss.vtk'
-    max_curvature_file = surface_file.strip('.vtk') + '.curvature.max.vtk'
-    min_curvature_file = surface_file.strip('.vtk') + '.curvature.min.vtk'
+    file_stem = getcwd() + path.splitext(path.basename(surface_file))[0]
+    mean_curvature_file = file_stem + '.curvature.mean.vtk'
+    gauss_curvature_file = file_stem + '.curvature.gauss.vtk'
+    max_curvature_file = file_stem + '.curvature.max.vtk'
+    min_curvature_file = file_stem + '.curvature.min.vtk'
     args = [surface_file, 
             mean_curvature_file, gauss_curvature_file,
             max_curvature_file, min_curvature_file]
