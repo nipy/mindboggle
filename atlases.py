@@ -39,49 +39,18 @@ def register_template(subject_id, subjects_path,
              KKI_2.tif
              sphere_to_template.reg
     """
-    from os import path
+    from os import path, getcwd
     from nipype.interfaces.base import CommandLine
 
     for hemi in ['lh','rh']:
         input_file = path.join(subjects_path, subject_id, 'surf', hemi + '.sphere')
-        output_file = path.join(subjects_path, subject_id, 'surf', hemi + '.' + reg_name)
         template_file = path.join(templates_path, hemi + '.' + template_name)
+        output_file = getcwd() + hemi + '.' + reg_name
         cli = CommandLine(command='mris_register')
         cli.inputs.args = ' '.join(['-curv', input_file, template_file, output_file])
         cli.cmdline
     return reg_name
 
-"""
-def register_atlases(subject_id, subjects_path, atlas_list, 
-                     annot_name, reg_name):
-    ""
-    Transform the labels from multiple atlases via a template
-    (using FreeSurfer's mri_surf2surf)
-    ""
-    from os import path
-    from nipype.interfaces.base import CommandLine
-
-    # For each atlas
-    for atlas_name in atlas_list:
-        # For each hemisphere
-        for hemi in ['lh','rh']:        
-            annot_file = path.join(subjects_path, atlas_name, 'label',
-                                   hemi + '.' + annot_name) 
-            output_annot = hemi + '.' + atlas_name + '_to_' + \
-                           subject_id + '_' + annot_name
-            args = ['--hemi', hemi,
-                    '--srcsubject', atlas_name,
-                    '--trgsubject', subject_id,
-                    '--sval-annot', annot_file,
-                    '--tval', output_annot,
-                    '--srcsurfreg', reg_name,
-                    '--trgsurfreg', reg_name]
-            cli = CommandLine(command='mri_surf2surf')
-            cli.inputs.args = ' '.join(args)
-            cli.cmdline
-    return annot_name
-
-"""
 def register_atlases(subject_id, subjects_path, atlas_list, 
                      annot_name, reg_name):
     """
@@ -110,14 +79,13 @@ def register_atlases(subject_id, subjects_path, atlas_list,
             sxfm.inputs.hemi = hemi
 
             # Source file
-            source_file = path.join(subjects_path, atlas_name, 'label',
-                                    hemi + '.' + annot_name) 
-            sxfm.inputs.source_file = source_file
-            sxfm.inputs.svalannot = source_file
+            sxfm.inputs.source_annot_file = path.join(subjects_path, 
+                                                 atlas_name, 'label',
+                                                 hemi + '.' + annot_name) 
 
             # Output annotation file
-            sxfm.inputs.tval = hemi + '.' + atlas_name + '_to_' + \
-                               subject_id + '_' + annot_name
+            sxfm.inputs.out_file = getcwd() + hemi + '.' + atlas_name + '_to_' + \
+                                   subject_id + '_' + annot_name
 
             # Arguments: strings within registered files
             args = ['--srcsurfreg', reg_name,
@@ -137,15 +105,15 @@ def combine_labels(label_index):
     Replace some labels by combined labels. 
 
     Parameters
-    ============
+    ==========
     label_index: integer label of a vertex
 
     Returns
-    =========
+    =======
     No variable. Direct return. 
 
     Notes
-    ======= 
+    ===== 
     label_index combinations:
 
     2  = 2, 10, 23, 26
@@ -181,13 +149,13 @@ def read_annot(filepath, orig_ids=False):
     From https://github.com/nipy/PySurfer/blob/master/surfer/io.py
 
     Parameters
-    ----------
+    ==========
     filepath : str  (path to annotation file)
     orig_ids : bool  (?return the vertex ids as stored in the annotation file 
                        or colortable ids)
     
     Returns
-    -------
+    =======
     labels : n_vtx numpy array  (annotation id at each vertex)
     ctab : numpy array  (RGBA + label id colortable array)
     names : numpy array  (array of region names as stored in the annot file)   
@@ -248,20 +216,14 @@ def load_labels(annot_path, annot_name):
     Load multiple annotation files for each of the hemispheres of a subject
     
     Parameters
-    ===========
+    ==========
+    annot_path: string  (path where all annotation files are saved)
     annot_name: string  (identifies annot files by their file name)
-    left_files: list of strings  (annotation files for the left hemisphere)
-    right_files: list of strings  (annotation files for the right hemisphere)
-    AnnotPath: string  (path where all annotation files are saved)
     
     Returns 
-    ========
+    =======
     left_labels: list of lists of integers  (labels for left vertices)      
     right_labels: list of lists of integers  (labels for right vertices) 
-    
-    Notes
-    ======
-    The labels from read_annot range from 1 to 35 
 
     """
     
@@ -298,14 +260,14 @@ def vote_labels(left_labels, right_labels):
     For each vertex, vote on the majority label.
 
     Parameters 
-    ========
+    ==========
     left_labels: list of lists of integers  (labels for left vertices)          
     right_labels: list of lists of integers  (labels for right vertices)
     n_vertices_left: integer  (number of left vertices)
     n_vertices_right: integer  (number of right vertices)
         
     Returns
-    ========
+    =======
     left_max: list of integers  (majority labels for left vertices)  
     right_max: list of integers  (majority labels for right vertices)
     left_counts: list of integers  (number of different labels for left vertices)
@@ -416,15 +378,15 @@ def multilabel(subject_id, subjects_path, annot_name, use_inflated_surfaces=1):
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
               pyvtk.PointData(pyvtk.Scalars(dv[i][0],\
                     name='Max (majority labels)'))).\
-              tofile(path.join(annot_path, output_files[i][0]), 'ascii')
+              tofile(getcwd() + output_files[i][0], 'ascii')
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
               pyvtk.PointData(pyvtk.Scalars(dv[i][1],\
                     name='Counts (number of different labels)'))).\
-              tofile(path.join(annot_path, output_files[i][1]), 'ascii')
+              tofile(getcwd() + output_files[i][1], 'ascii')
         pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
               pyvtk.PointData(pyvtk.Scalars(dv[i][2],\
                     name='Votes (number of votes for majority labels)'))).\
-              tofile(path.join(annot_path, output_files[i][2]), 'ascii')
+              tofile(getcwd() + output_files[i][2], 'ascii')
 
     return annot_name  
     
