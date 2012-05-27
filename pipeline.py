@@ -178,8 +178,8 @@ template_registration = pe.Node(util.Function(input_names=['subject_id',
 template_registration.inputs.subjects_path = subjects_path
 
 atlas_registration = pe.Node(util.Function(input_names=['subject_id',
-                                                        'subjects_path',
                                                         'atlas_list',
+                                                        'atlases_path',
                                                         'annot_name',
                                                         'reg_name'],
                                            output_names=['annot_name'],
