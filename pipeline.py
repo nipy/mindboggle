@@ -20,11 +20,16 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 
-from atlas_based import register_template, register_atlases, multilabel
-from feature_based import *
+from atlases import register_template, register_atlas, multilabel
+from features import *
 
 use_freesurfer_surfaces = 1
-use_inflated_surfaces = 1
+hemis = ['lh','rh']
+surface_types = ['pial'] #,'inflated']
+template_id = 'KKI'
+template_name = template_id + '_2.tif'
+template_reg_name = 'sphere_to_' + template_id + '_template.reg'
+atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
 subjects_list = ['KKI2009-11']
@@ -32,13 +37,16 @@ subjects_list = ['KKI2009-11']
 subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
-templates_path = '../data/templates_freesurfer'
+templates_path = '/projects/mindboggle/data/templates_freesurfer'
 atlases_path = subjects_path
 
 # Output directory
-working_directory = '../results/workingdir'
-if not os.path.isdir(working_directory):
-    os.makedirs(working_directory)
+results_path = '/projects/mindboggle/results/'
+working_path = results_path + 'workingdir'
+if not os.path.isdir(results_path):
+    os.makedirs(results_path)
+if not os.path.isdir(working_path):
+    os.makedirs(working_path)
 
 # Commands
 depth_command = './measure/surface_measures/bin/travel_depth/TravelDepthMain'
@@ -49,8 +57,7 @@ extract_fundi_command = './extract/fundi/vtk_extract.py'
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
 f = open(atlas_list_file)
 atlas_list_lines = f.readlines()
-atlas_list = [a.strip("\n") for a in atlas_list_lines]
-
+atlas_names = [a.strip("\n") for a in atlas_list_lines if a.strip("\n")]
 
 ##############################################################################
 #
@@ -60,7 +67,7 @@ atlas_list = [a.strip("\n") for a in atlas_list_lines]
 #
 ##############################################################################
 mbflow = pe.Workflow(name='Mindboggle_workflow')
-mbflow.base_dir = working_directory
+mbflow.base_dir = working_path
 
 ##############################################################################
 #
@@ -68,77 +75,46 @@ mbflow.base_dir = working_directory
 #
 ##############################################################################
 flo1 = pe.Workflow(name='Atlas_workflow')
-flo1.base_dir = working_directory
+flo1.base_dir = working_path
 
-# Input and output nodes
-infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id']),
-                     name = 'Subjects')
-if use_freesurfer_surfaces:
-    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                   outfields=['fs_surface_files']),
-                         name = 'Surfaces')
-    if use_inflated_surfaces:
-        datasource2 = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                        outfields=['fs_inflated_files']),
-                              name = 'Inflated_surfaces')
-else:
-    datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                   outfields=['surface_files']),
-                         name = 'Surfaces')
-    if use_inflated_surfaces:
-        datasource2 = pe.Node(interface=nio.DataGrabber(infields=['subject_id'],
-                                                        outfields=['inflated_files']),
-                              name = 'Inflated_surfaces')
-
-# Iterate over subjects
-infosource.iterables = ('subject_id', subjects_list)
+# Iterate inputs over subjects, hemispheres, surface types
+infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id',
+                                                              'hemi',
+                                                              'surface_type']),
+                     name = 'Inputs')
+infosource.iterables = ([('subject_id', subjects_list),
+                         ('hemi', hemis)])
+datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id',
+                                                         'hemi'],
+                                               outfields=['surface_files',
+                                               'inf_surface_files',
+                                               'sph_surface_files']),
+                     name = 'Surfaces')
 
 # Specify the location and structure of the inputs and outputs
 datasource.inputs.base_directory = subjects_path
 datasource.inputs.template = '%s/surf/%s.%s'
-if use_inflated_surfaces:
-    datasource2.inputs.base_directory = subjects_path
-    datasource2.inputs.template = '%s/surf/%s.%s'
-if use_freesurfer_surfaces:
-    datasources = [['subject_id', ['lh','rh'], 'pial']]
-    datasource.inputs.template_args['fs_surface_files'] = datasources
-    if use_inflated_surfaces:
-        datasources2 = [['subject_id', ['lh','rh'], 'inflated']]
-        datasource2.inputs.template_args['fs_inflated_files'] = datasources2
-else:
-    datasources = [['subject_id', ['lh','rh'], 'pial.vtk']]
-    datasource.inputs.template_args['surface_files'] = datasources
-    if use_inflated_surfaces:
-        datasources2 = [['subject_id', ['lh','rh'], 'inflated.vtk']]   
-        datasource2.inputs.template_args['inflated_files'] = datasources2
+datasource.inputs.template_args['surface_files'] = [['subject_id', 
+                                                     'hemi', 
+                                                     'pial']]
+datasource.inputs.template_args['inf_surface_files'] = [['subject_id', 
+                                                         'hemi', 
+                                                         'inflated']]
+datasource.inputs.template_args['sph_surface_files'] = [['subject_id', 
+                                                         'hemi', 
+                                                         'sphere']]
 
-# Define a template node
-template = pe.Node(interface=util.IdentityInterface(fields=[
-                   'template_name', 'templates_path', 'reg_name']),
-                   name='Template')
-template_id = 'KKI'
-template.inputs.template_name = template_id + '_2.tif'
-template.inputs.templates_path = templates_path
-reg_name = 'sphere_to_' + template_id + '_template.reg'
-template.inputs.reg_name = reg_name
-
-# Define an atlases node
-atlases = pe.Node(interface=util.IdentityInterface(fields=[
-                  'atlases_path', 'atlas_list', 'annot_name']),
-                  name='Atlases')
-atlases.inputs.atlases_path = atlases_path
-atlases.inputs.atlas_list = atlas_list
-annot_name = 'aparcNMMjt.annot'
-atlases.inputs.annot_name = annot_name
+datasink = pe.Node(nio.DataSink(), name = 'Results')
+datasink.inputs.base_directory = results_path
 
 ##############################################################################
 #   Surface input and conversion
 ##############################################################################
 
 # Connect input nodes
-flo1.connect([(infosource, datasource, [('subject_id','subject_id')])])
-if use_inflated_surfaces:
-    flo1.connect([(infosource, datasource2, [('subject_id','subject_id')])])
+flo1.connect([(infosource, datasource, 
+               [('subject_id','subject_id'),
+                ('hemi','hemi')])])
 
 # Convert FreeSurfer surfaces to VTK format
 if use_freesurfer_surfaces:
@@ -146,89 +122,83 @@ if use_freesurfer_surfaces:
 
     surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
                                                    iterfield=['in_file'],
-                                    name='Convert_surfaces')
-    # Connect input to surface node
+                                    name = 'Convert_surfaces')
     flo1.connect([(datasource, surface_conversion,
-                   [('fs_surface_files','in_file')])])
-
-    if use_inflated_surfaces:
-        surface_conversion2 = surface_conversion.clone('Convert_inflated_surfaces') 
-        flo1.connect([(datasource2, surface_conversion2,
-                       [('fs_inflated_files','in_file')])])
+                   [('surface_files','in_file')])])
 
 ##############################################################################
 #   Multi-atlas registration
 ##############################################################################
 
-# Registration nodes
-"""
-Example: ['/Applications/freesurfer/subjects/bert/surf/lh.sphere',
-          '/Applications/freesurfer/subjects/bert/surf/rh.sphere']
-         ['./templates_freesurfer/lh.KKI_2.tif',
-          './templates_freesurfer/rh.KKI_2.tif']
-"""
-template_registration = pe.Node(util.Function(input_names=['subject_id',
-                                              'subjects_path',
-                                              'template_name', 
-                                              'templates_path', 
-                                              'reg_name'],
-                                     output_names=['reg_name'],
+# Template registration
+template_reg = pe.Node(util.Function(input_names=['hemi',
+                                                  'sph_surface_file',
+                                                  'template_name',
+                                                  'templates_path',
+                                                  'template_reg_name'],
+                                     output_names=['template_reg_name'],
                                      function = register_template),
-                                name='Register_template')
-template_registration.inputs.subjects_path = subjects_path
+                       name = 'Register_template')
+template_reg.inputs.template_name = template_name
+template_reg.inputs.templates_path = templates_path
+template_reg.inputs.template_reg_name = template_reg_name
 
-atlas_registration = pe.Node(util.Function(input_names=['subject_id',
-                                                        'atlas_list',
-                                                        'atlases_path',
-                                                        'annot_name',
-                                                        'reg_name'],
-                                           output_names=['annot_name'],
-                                           function = register_atlases),
-                             name='Register_atlases')
-atlas_registration.inputs.subjects_path = subjects_path
+flo1.connect([(infosource, template_reg, 
+               [('hemi', 'hemi')])])
+flo1.connect([(datasource, template_reg, 
+               [('sph_surface_files', 'sph_surface_file')])])
 
-# Output majority vote rule labels
-majority_vote = pe.Node(util.Function(input_names=['subject_id',
+# Atlas registration
+print(atlas_names)
+atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
+                                                  'subject_id',
+                                                  'template_reg_name',
+                                                  'atlas_name',
+                                                  'atlases_path',
+                                                  'atlas_annot_name'],
+                                     output_names=['output_file'],
+                                     function = register_atlas),
+                       iterfield = ['atlas_name'],
+                       name='Register_atlases')
+atlas_reg.inputs.atlas_name = atlas_names
+atlas_reg.inputs.atlases_path = atlases_path
+atlas_reg.inputs.atlas_annot_name = atlas_annot_name
+
+flo1.connect([(infosource, atlas_reg, 
+               [('hemi', 'hemi'),
+                ('subject_id', 'subject_id')]),
+              (template_reg, atlas_reg, 
+               [('template_reg_name', 'template_reg_name')])])
+
+# Majority vote labels
+"""
+majority_vote = pe.Node(util.Function(input_names=['hemi',
+                                                   'subject_id',
                                                    'subjects_path',
-                                                   'annot_name',
-                                                   'use_inflated_surfaces'],
-                                      output_names=['annot_name'],
+                                                   'atlases_path',
+                                                   'atlas_annot_name'],
+                                      output_names=['output_files'],
                                       function = multilabel),
                         name='Vote_majority')
 majority_vote.inputs.subjects_path = subjects_path
-majority_vote.inputs.use_inflated_surfaces = use_inflated_surfaces
+majority_vote.inputs.atlases_path = atlases_path
+majority_vote.inputs.atlas_annot_name = atlas_annot_name
 
-# Connect input to registration and labeling nodes
-flo1.connect([(infosource, template_registration, 
-               [('subject_id', 'subject_id')])])
-flo1.connect([(infosource, atlas_registration, 
-               [('subject_id', 'subject_id')])])
 flo1.connect([(infosource, majority_vote,
-               [('subject_id', 'subject_id')])])
-
-# Connect template and atlases to registration and labeling nodes
-flo1.connect([(template, template_registration, 
-               [('template_name', 'template_name'),
-                ('templates_path', 'templates_path'),
-                ('reg_name', 'reg_name')])])
-flo1.connect([(atlases, atlas_registration, 
-               [('atlas_list', 'atlas_list'),
-                ('annot_name', 'annot_name')])])
-
+               [('hemi', 'hemi'),
+                ('subject_id', 'subject_id')])])
+"""
 # Connect template registration to labeling nodes
-flo1.connect([(template_registration, atlas_registration, 
-               [('reg_name', 'reg_name')])])
-flo1.connect([(atlas_registration, majority_vote, 
-               [('annot_name', 'annot_name')])])
-
+#flo1.connect([(atlas_reg, datasink, 
 
 ##############################################################################
 #
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
+"""
 flo2 = pe.Workflow(name='Feature_workflow')
-flo2.base_dir = working_directory
+flo2.base_dir = working_path
 
 ##############################################################################
 #   Surface calculations
@@ -271,7 +241,15 @@ else:
     mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
                      'Measure_curvature.surface_file')])])
 
-
+# Save
+flo1.connect([(surface_depth, datasink, 
+               [('depth_file', 'surfaces.@depth')])])
+flo1.connect([(surface_curvature, datasink, 
+               [('mean_curvature_file', 'surfaces.@mean_curvature'),
+                ('gauss_curvature_file', 'surfaces.@gauss_curvature'),
+                ('max_curvature_file', 'surfaces.@max_curvature'),
+                ('min_curvature_file', 'surfaces.@min_curvature')])])
+"""
 ##############################################################################
 #   Feature extraction
 ##############################################################################
@@ -298,11 +276,11 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                            output_names = ['midaxis'],
                                            function = extract_midaxis),
                              name='Extract_midaxis')
-"""
+
 # Connect surface depth to feature extraction nodes
 #flo2.connect([(surface_depth, fundus_extraction, 
 #               [('depth_files', 'depth_files')])])
-"""
+
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
@@ -312,8 +290,6 @@ flo2.connect([(surfaces, midaxis_extraction,
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
 
-"""
-"""
 ##############################################################################
 #   Label propagation
 ##############################################################################
@@ -342,7 +318,7 @@ region_extraction = pe.Node(util.Function(input_names=['labels'],
                             name='Extract_regions')
 
 # Connect multiatlas registration(-based labeling) to label propagation nodes
-flo2.connect([(atlas_registration, label_propagation, [('labels','labels')]),
+flo2.connect([(atlas_reg, label_propagation, [('labels','labels')]),
               (fundus_extraction, label_propagation, [('fundi','fundi')])])
 
 # Connect label propagation to labeled surface patch and volume extraction nodes
@@ -607,7 +583,9 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 ##############################################################################
 if __name__== '__main__':
 
-    mbflow.write_graph(graph2use='flat')
-    mbflow.write_graph(graph2use='hierarchical')
-    mbflow.run()  #mbflow.run(updatehash=True)
+    #mbflow.write_graph(graph2use='flat')
+    #mbflow.write_graph(graph2use='hierarchical')
+    flo1.write_graph(graph2use='flat')
+    flo1.write_graph(graph2use='hierarchical')
+    flo1.run()  #mbflow.run(updatehash=True)
 
