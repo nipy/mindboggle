@@ -35,7 +35,7 @@ def measure_surface_depth(command, surface_file):
 
     depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, getcwd() + depth_file])
+    cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
     cli.cmdline
     return depth_file
     
@@ -46,10 +46,10 @@ def measure_surface_curvature(command, surface_file):
                         [MaximalCurvatureOutput] [MinimalCurvatureOutput]
     measure_()
     """
-    from os import getcwd
+    from os import getcwd, path
     from nipype.interfaces.base import CommandLine
 
-    file_stem = getcwd() + path.splitext(path.basename(surface_file))[0]
+    file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
     mean_curvature_file = file_stem + '.curvature.mean.vtk'
     gauss_curvature_file = file_stem + '.curvature.gauss.vtk'
     max_curvature_file = file_stem + '.curvature.max.vtk'
