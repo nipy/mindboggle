@@ -56,7 +56,7 @@ def register_template(hemi, sph_surface_file,
     
     return template_reg_name
 
-def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
+def register_atlas(hemi, subject_id, template_reg_name,
                    atlas_name, atlases_path, atlas_annot_name):
     """
     Transform the labels from multiple atlases via a template
@@ -80,7 +80,7 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
     return output_file
 
 """
-def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
+def register_atlas(hemi, subject_id, template_reg_name,
                    atlas_name, atlases_path, atlas_annot_name):
     ""
     Transform the labels from multiple atlases via a template
@@ -106,10 +106,7 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
                                     atlas_name, 'label',
                                     hemi + '.' + atlas_annot_name) 
     # Output annotation file
-    #output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-    #                        subject_id + '_' + atlas_annot_name)
-    output_file = path.join(subjects_path, subject_id, 'label',
-                            hemi + '.' + atlas_name + '_to_' + \
+    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
                             subject_id + '_' + atlas_annot_name)
     sxfm.inputs.out_file = output_file
 
