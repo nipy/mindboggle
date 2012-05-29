@@ -151,6 +151,7 @@ flo1.connect([(datasource, template_reg,
 # Atlas registration
 atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'subject_id',
+                                                  'subjects_path',
                                                   'template_reg_name',
                                                   'atlas_name',
                                                   'atlases_path',
@@ -159,6 +160,7 @@ atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                      function = register_atlas),
                        iterfield = ['atlas_name'],
                        name='Register_atlases')
+atlas_reg.inputs.subjects_path = subjects_path
 atlas_reg.inputs.atlas_name = atlas_names
 atlas_reg.inputs.atlases_path = atlases_path
 atlas_reg.inputs.atlas_annot_name = atlas_annot_name
