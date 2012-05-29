@@ -62,12 +62,11 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
     """
-    from os import system, path
+    from os import system, path, getcwd
 
     source_annot_file = path.join(atlases_path, atlas_name, 'label',
                                   hemi + '.' + atlas_annot_name) 
-    output_file = path.join(subjects_path, subject_id, 'label',
-                            hemi + '.' + atlas_name + '_to_' + \
+    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
                             subject_id + '_' + atlas_annot_name)
     args = ['mri_surf2surf',
             '--hemi', hemi,
