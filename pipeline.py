@@ -54,8 +54,8 @@ curvature_command = './measure/surface_measures/bin/curvature/CurvatureMain'
 extract_fundi_command = './extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
-#print("\nTEST ATLAS LIST\n")
-atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
+print("\nTEST ATLAS LIST\n")
+atlas_list_file = os.path.join(atlases_path, 'MMRR_test.txt')
 f = open(atlas_list_file)
 atlas_list_lines = f.readlines()
 atlas_names = [a.strip("\n") for a in atlas_list_lines if a.strip("\n")]
@@ -76,7 +76,6 @@ mbflow.base_dir = working_path
 #
 ##############################################################################
 flo1 = pe.Workflow(name='Atlas_workflow')
-flo1.base_dir = working_path
 
 # Iterate inputs over subjects, hemispheres, surface types
 infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id',
@@ -157,7 +156,8 @@ atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'atlas_name',
                                                   'atlases_path',
                                                   'atlas_annot_name'],
-                                     output_names=['output_file'],
+                                     output_names=['atlas_annot_name',
+                                                   'output_file'],
                                      function = register_atlas),
                        iterfield = ['atlas_name'],
                        name='Register_atlases')
@@ -172,8 +172,7 @@ flo1.connect([(infosource, atlas_reg,
               (template_reg, atlas_reg, 
                [('template_reg_name', 'template_reg_name')])])
 
-"""
-# Majority vote labels
+# Majority vote labeling
 majority_vote = pe.Node(util.Function(input_names=['hemi',
                                                    'subject_id',
                                                    'subjects_path',
@@ -184,24 +183,22 @@ majority_vote = pe.Node(util.Function(input_names=['hemi',
                         name='Vote_majority')
 majority_vote.inputs.subjects_path = subjects_path
 majority_vote.inputs.atlases_path = atlases_path
-majority_vote.inputs.atlas_annot_name = atlas_annot_name
 
 flo1.connect([(infosource, majority_vote,
                [('hemi', 'hemi'),
                 ('subject_id', 'subject_id')])])
-
-# Connect template registration to labeling nodes
+flo1.connect([(atlas_reg, majority_vote,
+               [('atlas_annot_name', 'atlas_annot_name')])])
 flo1.connect([(majority_vote, datasink,
                [('output_files', 'max_labels')])])
-"""
+
 ##############################################################################
 #
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-"""
+
 flo2 = pe.Workflow(name='Feature_workflow')
-flo2.base_dir = working_path
 
 ##############################################################################
 #   Surface calculations
@@ -227,7 +224,7 @@ surface_curvature = pe.MapNode(util.Function(input_names = ['command',
                                name='Measure_curvature')
 surface_curvature.inputs.command = curvature_command
 
-# Add node
+# Add and connect nodes
 flo2.add_nodes([surface_depth, surface_curvature])
 
 if use_freesurfer_surfaces:
@@ -239,26 +236,27 @@ if use_freesurfer_surfaces:
                        'Measure_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
-    mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
-                     'Measure_depth.surface_file')])])
-    mbflow.connect([(flo1, flo2, [('Surfaces.surface_files',
-                     'Measure_curvature.surface_file')])])
+    mbflow.connect([(flo1, flo2, 
+                     [('Surfaces.surface_files',
+                       'Measure_depth.surface_file')])])
+    mbflow.connect([(flo1, flo2, 
+                     [('Surfaces.surface_files',
+                       'Measure_curvature.surface_file')])])
 
 # Save
-flo1.connect([(surface_depth, datasink, 
+flo2.connect([(surface_depth, datasink, 
                [('depth_file', 'surfaces.@depth')])])
-flo1.connect([(surface_curvature, datasink, 
+flo2.connect([(surface_curvature, datasink, 
                [('mean_curvature_file', 'surfaces.@mean_curvature'),
                 ('gauss_curvature_file', 'surfaces.@gauss_curvature'),
                 ('max_curvature_file', 'surfaces.@max_curvature'),
                 ('min_curvature_file', 'surfaces.@min_curvature')])])
-"""
+
 ##############################################################################
 #   Feature extraction
 ##############################################################################
 
-# Feature extraction nodes
-"""
+# Extract features
 fundus_extraction = pe.Node(util.Function(input_names = ['command',
                                                          'depth_file'],
                                           output_names = ['fundi'],
@@ -266,6 +264,7 @@ fundus_extraction = pe.Node(util.Function(input_names = ['command',
                             name='Extract_fundi')
 fundus_extraction.inputs.command = extract_fundi_command
 
+"""
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
                                                          'gauss_curv_file'],
@@ -280,10 +279,14 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                            function = extract_midaxis),
                              name='Extract_midaxis')
 
+"""
 # Connect surface depth to feature extraction nodes
-#flo2.connect([(surface_depth, fundus_extraction, 
-#               [('depth_files', 'depth_files')])])
+flo2.connect([(surface_depth, fundus_extraction, 
+               [('depth_file', 'depth_file')])])
+flo2.connect([(surface_depth, datasink, 
+               [('depth_file', 'surface_depth')])])
 
+"""
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
@@ -586,9 +589,9 @@ flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
 ##############################################################################
 if __name__== '__main__':
 
-    #mbflow.write_graph(graph2use='flat')
-    #mbflow.write_graph(graph2use='hierarchical')
-    flo1.write_graph(graph2use='flat')
-    flo1.write_graph(graph2use='hierarchical')
-    flo1.run()  #mbflow.run(updatehash=True)
+    mbflow.write_graph(graph2use='flat')
+    mbflow.write_graph(graph2use='hierarchical')
+    #flo1.write_graph(graph2use='flat')
+    #flo1.write_graph(graph2use='hierarchical')
+    mbflow.run()  #mbflow.run(updatehash=True)
 
