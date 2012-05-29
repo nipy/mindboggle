@@ -44,13 +44,14 @@ def register_template(hemi, sph_surface_file,
     from os import path, getcwd
     from nipype.interfaces.base import CommandLine
     from nipype import logging
-    iflogger = logging.getLogger('interface')
+    logger = logging.getLogger('interface')
 
     template_file = path.join(templates_path, hemi + '.' + template_name)
     output_file = hemi + '.' + template_reg_name
     cli = CommandLine(command='mris_register')
-    cli.inputs.args = ' '.join(['-curv', sph_surface_file, template_file, output_file])
-    iflogger.info(cli.cmdline)
+    cli.inputs.args = ' '.join(['-curv', sph_surface_file, 
+                                template_file, output_file])
+    logger.info(cli.cmdline)
     cli.run()
     
     return template_reg_name
@@ -81,9 +82,11 @@ def register_atlas(hemi, subject_id, template_reg_name,
                                     atlas_name, 'label',
                                     hemi + '.' + atlas_annot_name) 
     # Output annotation file
-    output_file = path.join(getcwd(),
-                            hemi + '.' + atlas_name + '_to_' + \
-                            subject_id + '_' + atlas_annot_name)
+    output_file = hemi + '.' + atlas_name + '_to_' + \
+                            subject_id + '_' + atlas_annot_name
+#    output_file = path.join(subjects_path, subject_id, 'label',
+#                            hemi + '.' + atlas_name + '_to_' + \
+#                            subject_id + '_' + atlas_annot_name
     sxfm.inputs.out_file = output_file
 
     # Arguments: strings within registered files
