@@ -60,6 +60,31 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
                    atlas_name, atlases_path, atlas_annot_name):
     """
     Transform the labels from multiple atlases via a template
+    (using FreeSurfer's mri_surf2surf)
+    """
+    from os import system, path
+
+    source_annot_file = path.join(atlases_path, atlas_name, 'label',
+                                  hemi + '.' + atlas_annot_name) 
+    output_annot_file = path.join(subjects_path, subject_id, 'label',
+                        hemi + '.' + atlas_name + '_to_' + \
+                        subject_id + '_' + atlas_annot_name)
+    args = ['mri_surf2surf',
+            '--hemi', hemi,
+            '--srcsubject', atlas_name,
+            '--trgsubject', subject_id,
+            '--sval-annot', source_annot_file,
+            '--tval', output_annot_file,
+            '--srcsurfreg', template_reg_name,
+            '--trgsurfreg', template_reg_name]
+    print(' '.join(args)); system(' '.join(args))
+    return output_file
+
+"""
+def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
+                   atlas_name, atlases_path, atlas_annot_name):
+    ""
+    Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
     nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
@@ -68,7 +93,7 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
     Both the source and target subject must reside in your Subjects Directory,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
-    """
+    ""
     from os import path, getcwd
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -97,6 +122,7 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
     sxfm.run()
 
     return output_file
+"""
 
 ##############################################################################
 #   Multi-atlas labeling
