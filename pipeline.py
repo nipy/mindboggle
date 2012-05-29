@@ -54,6 +54,7 @@ curvature_command = './measure/surface_measures/bin/curvature/CurvatureMain'
 extract_fundi_command = './extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
+#print("\nTEST ATLAS LIST\n")
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
 f = open(atlas_list_file)
 atlas_list_lines = f.readlines()
