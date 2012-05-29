@@ -149,7 +149,6 @@ flo1.connect([(datasource, template_reg,
                [('sph_surface_files', 'sph_surface_file')])])
 
 # Atlas registration
-print(atlas_names)
 atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'subject_id',
                                                   'template_reg_name',
@@ -170,8 +169,8 @@ flo1.connect([(infosource, atlas_reg,
               (template_reg, atlas_reg, 
                [('template_reg_name', 'template_reg_name')])])
 
-# Majority vote labels
 """
+# Majority vote labels
 majority_vote = pe.Node(util.Function(input_names=['hemi',
                                                    'subject_id',
                                                    'subjects_path',
@@ -187,10 +186,11 @@ majority_vote.inputs.atlas_annot_name = atlas_annot_name
 flo1.connect([(infosource, majority_vote,
                [('hemi', 'hemi'),
                 ('subject_id', 'subject_id')])])
-"""
-# Connect template registration to labeling nodes
-#flo1.connect([(atlas_reg, datasink, 
 
+# Connect template registration to labeling nodes
+flo1.connect([(majority_vote, datasink,
+               [('output_files', 'max_labels')])])
+"""
 ##############################################################################
 #
 #   Feature-based labeling and shape analysis workflow
