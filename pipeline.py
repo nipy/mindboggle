@@ -65,17 +65,11 @@ atlas_names = [a.strip("\n") for a in atlas_list_lines if a.strip("\n")]
 #   Mindboggle workflow combining:
 #   * Multi-atlas registration-based labeling workflow
 #   * Feature-based labeling and shape analysis workflow
+#   * Analytics
 #
 ##############################################################################
 mbflow = pe.Workflow(name='Mindboggle_workflow')
 mbflow.base_dir = working_path
-
-##############################################################################
-#
-#   Multi-atlas registration-based labeling workflow
-#
-##############################################################################
-flo1 = pe.Workflow(name='Atlas_workflow')
 
 # Iterate inputs over subjects, hemispheres, surface types
 infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id',
@@ -103,28 +97,19 @@ datasource.inputs.template_args['inf_surface_files'] = [['subject_id',
 datasource.inputs.template_args['sph_surface_files'] = [['subject_id', 
                                                          'hemi', 
                                                          'sphere']]
-
 datasink = pe.Node(nio.DataSink(), name = 'Results')
-datasink.inputs.base_directory = results_path
-
-##############################################################################
-#   Surface input and conversion
-##############################################################################
 
 # Connect input nodes
-flo1.connect([(infosource, datasource, 
-               [('subject_id','subject_id'),
-                ('hemi','hemi')])])
+mbflow.connect([(infosource, datasource, 
+                 [('subject_id','subject_id'),
+                  ('hemi','hemi')])])
 
-# Convert FreeSurfer surfaces to VTK format
-if use_freesurfer_surfaces:
-    import nipype.interfaces.freesurfer as fs
-
-    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
-                                                   iterfield=['in_file'],
-                                    name = 'Convert_surfaces')
-    flo1.connect([(datasource, surface_conversion,
-                   [('surface_files','in_file')])])
+##############################################################################
+#
+#   Multi-atlas registration-based labeling workflow
+#
+##############################################################################
+flo1 = pe.Workflow(name='Atlas_workflow')
 
 ##############################################################################
 #   Multi-atlas registration
@@ -143,15 +128,16 @@ template_reg.inputs.template_name = template_name
 template_reg.inputs.templates_path = templates_path
 template_reg.inputs.template_reg_name = template_reg_name
 
-flo1.connect([(infosource, template_reg, 
-               [('hemi', 'hemi')])])
-flo1.connect([(datasource, template_reg, 
-               [('sph_surface_files', 'sph_surface_file')])])
+flo1.add_nodes([template_reg])
+mbflow.connect([(infosource, flo1, 
+                 [('hemi', 'Register_template.hemi')])])
+mbflow.connect([(datasource, flo1, 
+                 [('sph_surface_files', 
+                   'Register_template.sph_surface_file')])])
 
 # Atlas registration
 atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'subject_id',
-                                                  'subjects_path',
                                                   'template_reg_name',
                                                   'atlas_name',
                                                   'atlases_path',
@@ -161,15 +147,15 @@ atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                      function = register_atlas),
                        iterfield = ['atlas_name'],
                        name='Register_atlases')
-atlas_reg.inputs.subjects_path = subjects_path
 atlas_reg.inputs.atlas_name = atlas_names
 atlas_reg.inputs.atlases_path = atlases_path
 atlas_reg.inputs.atlas_annot_name = atlas_annot_name
 
-flo1.connect([(infosource, atlas_reg, 
-               [('hemi', 'hemi'),
-                ('subject_id', 'subject_id')]),
-              (template_reg, atlas_reg, 
+flo1.add_nodes([atlas_reg])
+mbflow.connect([(infosource, flo1, 
+                 [('hemi', 'Register_atlases.hemi'),
+                  ('subject_id', 'Register_atlases.subject_id')])])
+flo1.connect([(template_reg, atlas_reg, 
                [('template_reg_name', 'template_reg_name')])])
 
 # Majority vote labeling
@@ -184,13 +170,14 @@ majority_vote = pe.Node(util.Function(input_names=['hemi',
 majority_vote.inputs.subjects_path = subjects_path
 majority_vote.inputs.atlases_path = atlases_path
 
-flo1.connect([(infosource, majority_vote,
-               [('hemi', 'hemi'),
-                ('subject_id', 'subject_id')])])
+flo1.add_nodes([majority_vote])
+mbflow.connect([(infosource, flo1, 
+                 [('hemi', 'Vote_majority.hemi'),
+                  ('subject_id', 'Vote_majority.subject_id')])])
 flo1.connect([(atlas_reg, majority_vote,
                [('atlas_annot_name', 'atlas_annot_name')])])
-flo1.connect([(majority_vote, datasink,
-               [('output_files', 'max_labels')])])
+mbflow.connect([(flo1, datasink,
+                 [('Vote_majority.output_files', 'majority_labels')])])
 
 ##############################################################################
 #
@@ -199,6 +186,21 @@ flo1.connect([(majority_vote, datasink,
 ##############################################################################
 
 flo2 = pe.Workflow(name='Feature_workflow')
+
+##############################################################################
+#   Surface input and conversion
+##############################################################################
+
+# Convert FreeSurfer surfaces to VTK format
+if use_freesurfer_surfaces:
+    import nipype.interfaces.freesurfer as fs
+
+    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
+                                                   iterfield=['in_file'],
+                                    name = 'Convert_surface')
+    flo2.add_nodes([surface_conversion])
+    mbflow.connect([(datasource, flo2, 
+                     [('surface_files','Convert_surface.in_file')])])
 
 ##############################################################################
 #   Surface calculations
@@ -228,12 +230,10 @@ surface_curvature.inputs.command = curvature_command
 flo2.add_nodes([surface_depth, surface_curvature])
 
 if use_freesurfer_surfaces:
-    mbflow.connect([(flo1, flo2, 
-                     [('Convert_surfaces.converted',
-                       'Measure_depth.surface_file')])])
-    mbflow.connect([(flo1, flo2, 
-                     [('Convert_surfaces.converted',
-                       'Measure_curvature.surface_file')])])
+    flo2.connect([(surface_conversion, surface_depth, 
+                   [('converted', 'surface_file')])])
+    flo2.connect([(surface_conversion, surface_curvature, 
+                   [('converted', 'surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
     mbflow.connect([(flo1, flo2, 
@@ -244,13 +244,17 @@ else:
                        'Measure_curvature.surface_file')])])
 
 # Save
-flo2.connect([(surface_depth, datasink, 
-               [('depth_file', 'surfaces.@depth')])])
-flo2.connect([(surface_curvature, datasink, 
-               [('mean_curvature_file', 'surfaces.@mean_curvature'),
-                ('gauss_curvature_file', 'surfaces.@gauss_curvature'),
-                ('max_curvature_file', 'surfaces.@max_curvature'),
-                ('min_curvature_file', 'surfaces.@min_curvature')])])
+mbflow.connect([(flo1, datasink,
+                 [('Vote_majority.output_files', 'surfaces.@depth')])])
+mbflow.connect([(flo2, datasink,
+                 [('Measure_curvature.mean_curvature_file', 
+                   'surfaces.@mean_curvature'),
+                  ('Measure_curvature.gauss_curvature_file', 
+                   'surfaces.@gauss_curvature'),
+                  ('Measure_curvature.max_curvature_file', 
+                   'surfaces.@max_curvature'),
+                  ('Measure_curvature.min_curvature_file', 
+                   'surfaces.@min_curvature')])])
 
 ##############################################################################
 #   Feature extraction
@@ -263,7 +267,6 @@ fundus_extraction = pe.Node(util.Function(input_names = ['command',
                                           function = extract_fundi),
                             name='Extract_fundi')
 fundus_extraction.inputs.command = extract_fundi_command
-
 """
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
@@ -280,12 +283,13 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                              name='Extract_midaxis')
 
 """
+"""
 # Connect surface depth to feature extraction nodes
 flo2.connect([(surface_depth, fundus_extraction, 
                [('depth_file', 'depth_file')])])
 flo2.connect([(surface_depth, datasink, 
                [('depth_file', 'surface_depth')])])
-
+"""
 """
 flo2.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
