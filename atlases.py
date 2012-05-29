@@ -66,15 +66,15 @@ def register_atlas(hemi, subject_id, subjects_path, template_reg_name,
 
     source_annot_file = path.join(atlases_path, atlas_name, 'label',
                                   hemi + '.' + atlas_annot_name) 
-    output_annot_file = path.join(subjects_path, subject_id, 'label',
-                        hemi + '.' + atlas_name + '_to_' + \
-                        subject_id + '_' + atlas_annot_name)
+    output_file = path.join(subjects_path, subject_id, 'label',
+                            hemi + '.' + atlas_name + '_to_' + \
+                            subject_id + '_' + atlas_annot_name)
     args = ['mri_surf2surf',
             '--hemi', hemi,
             '--srcsubject', atlas_name,
             '--trgsubject', subject_id,
             '--sval-annot', source_annot_file,
-            '--tval', output_annot_file,
+            '--tval', output_file,
             '--srcsurfreg', template_reg_name,
             '--trgsurfreg', template_reg_name]
     print(' '.join(args)); system(' '.join(args))
