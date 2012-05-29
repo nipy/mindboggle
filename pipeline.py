@@ -33,8 +33,8 @@ atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
 subjects_list = ['KKI2009-11']
-#subjects_path = '/usr/local/freesurfer/subjects'
-subjects_path = '/Applications/freesurfer/subjects'
+subjects_path = '/usr/local/freesurfer/subjects'
+#subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
 templates_path = '/projects/mindboggle/data/templates_freesurfer'
