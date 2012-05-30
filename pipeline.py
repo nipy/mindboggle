@@ -103,6 +103,7 @@ datasink = pe.Node(nio.DataSink(), name = 'Results')
 mbflow.connect([(infosource, datasource, 
                  [('subject_id','subject_id'),
                   ('hemi','hemi')])])
+#mbflow.add_nodes([datasink])
 
 ##############################################################################
 #   Surface input and conversion
@@ -142,13 +143,6 @@ template_reg.inputs.template_name = template_name
 template_reg.inputs.templates_path = templates_path
 template_reg.inputs.template_reg_name = template_reg_name
 
-flo1.add_nodes([template_reg])
-mbflow.connect([(infosource, flo1, 
-                 [('hemi', 'Register_template.hemi')])])
-mbflow.connect([(datasource, flo1, 
-                 [('sph_surface_files', 
-                   'Register_template.sph_surface_file')])])
-
 # Atlas registration
 atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'subject_id',
@@ -164,27 +158,28 @@ atlas_reg.inputs.atlas_name = atlas_names
 atlas_reg.inputs.atlases_path = atlases_path
 atlas_reg.inputs.atlas_annot_name = atlas_annot_name
 
-flo1.add_nodes([atlas_reg])
+# Majority vote labeling
+majority_vote = pe.Node(util.Function(input_names=['surface_file',
+                                                   'annot_files'],
+                                      output_names=['output_files'],
+                                      function = multilabel),
+                        name='Vote_majority')
+
+# Add and connect the above nodes
+flo1.add_nodes([template_reg, atlas_reg, majority_vote])
+
+mbflow.connect([(infosource, flo1,
+                 [('hemi', 'Register_template.hemi')]),
+                (datasource, flo1, 
+                 [('sph_surface_files',
+                   'Register_template.sph_surface_file')])])
+
 mbflow.connect([(infosource, flo1, 
                  [('hemi', 'Register_atlases.hemi'),
                   ('subject_id', 'Register_atlases.subject_id')])])
 flo1.connect([(template_reg, atlas_reg, 
                [('template_reg_name', 'template_reg_name')])])
 
-# Majority vote labeling
-majority_vote = pe.Node(util.Function(input_names=['hemi',
-                                                   'subject_id',
-                                                   'surface_file',
-                                                   'annot_files'],
-                                      output_names=['output_files'],
-                                      function = multilabel),
-                        name='Vote_majority')
-
-flo1.add_nodes([majority_vote])
-
-mbflow.connect([(infosource, flo1, 
-                 [('hemi', 'Vote_majority.hemi'),
-                  ('subject_id', 'Vote_majority.subject_id')])])
 if use_freesurfer_surfaces:
     mbflow.connect([(surface_conversion, flo1, 
                      [('converted', 'Vote_majority.surface_file')])])
