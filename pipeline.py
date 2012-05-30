@@ -105,6 +105,20 @@ mbflow.connect([(infosource, datasource,
                   ('hemi','hemi')])])
 
 ##############################################################################
+#   Surface input and conversion
+##############################################################################
+
+# Convert FreeSurfer surfaces to VTK format
+if use_freesurfer_surfaces:
+    import nipype.interfaces.freesurfer as fs
+
+    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
+                                                   iterfield=['in_file'],
+                                    name = 'Convert_surface')
+    mbflow.connect([(datasource, surface_conversion, 
+                     [('surface_files','in_file')])])
+
+##############################################################################
 #
 #   Multi-atlas registration-based labeling workflow
 #
@@ -142,8 +156,7 @@ atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
                                                   'atlas_name',
                                                   'atlases_path',
                                                   'atlas_annot_name'],
-                                     output_names=['atlas_annot_name',
-                                                   'output_file'],
+                                     output_names=['output_file'],
                                      function = register_atlas),
                        iterfield = ['atlas_name'],
                        name='Register_atlases')
@@ -161,25 +174,27 @@ flo1.connect([(template_reg, atlas_reg,
 # Majority vote labeling
 majority_vote = pe.Node(util.Function(input_names=['hemi',
                                                    'subject_id',
-                                                   'subjects_path',
-                                                   'in_files',
-                                                   
-                                                   'atlases_path',
-                                                   'atlas_annot_name'],
+                                                   'surface_file',
+                                                   'annot_files'],
                                       output_names=['output_files'],
                                       function = multilabel),
                         name='Vote_majority')
-majority_vote.inputs.subjects_path = subjects_path
-majority_vote.inputs.atlases_path = atlases_path
 
 flo1.add_nodes([majority_vote])
+
 mbflow.connect([(infosource, flo1, 
                  [('hemi', 'Vote_majority.hemi'),
                   ('subject_id', 'Vote_majority.subject_id')])])
+if use_freesurfer_surfaces:
+    mbflow.connect([(surface_conversion, flo1, 
+                     [('converted', 'Vote_majority.surface_file')])])
+else:
+    mbflow.connect([(datasource, flo1, 
+                     [('surface_files','Vote_majority.surface_file')])])
 flo1.connect([(atlas_reg, majority_vote,
-               [('output_file', 'in_files')])])
-mbflow.connect([(flo1, datasink,
-                 [('Vote_majority.output_files', 'majority_labels')])])
+               [('output_file', 'annot_files')])])
+#mbflow.connect([(flo1, datasink,
+#                 [('Vote_majority.output_files', 'majority_labels')])])
 
 ##############################################################################
 #
@@ -188,21 +203,6 @@ mbflow.connect([(flo1, datasink,
 ##############################################################################
 
 flo2 = pe.Workflow(name='Feature_workflow')
-
-##############################################################################
-#   Surface input and conversion
-##############################################################################
-
-# Convert FreeSurfer surfaces to VTK format
-if use_freesurfer_surfaces:
-    import nipype.interfaces.freesurfer as fs
-
-    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
-                                                   iterfield=['in_file'],
-                                    name = 'Convert_surface')
-    flo2.add_nodes([surface_conversion])
-    mbflow.connect([(datasource, flo2, 
-                     [('surface_files','Convert_surface.in_file')])])
 
 ##############################################################################
 #   Surface calculations
