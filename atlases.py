@@ -56,12 +56,13 @@ def register_template(hemi, sph_surface_file,
     
     return template_reg_name
 
+"""
 def register_atlas(hemi, subject_id, template_reg_name,
                    atlas_name, atlases_path, atlas_annot_name):
-    """
+    ""
     Transform the labels from multiple atlases via a template
     (using FreeSurfer's mri_surf2surf)
-    """
+    ""
     from os import system, path, getcwd
 
     source_annot_file = path.join(atlases_path, atlas_name, 'label',
@@ -78,11 +79,11 @@ def register_atlas(hemi, subject_id, template_reg_name,
             '--trgsurfreg', template_reg_name]
     print(' '.join(args)); system(' '.join(args))
     return output_file
-
 """
+
 def register_atlas(hemi, subject_id, template_reg_name,
                    atlas_name, atlases_path, atlas_annot_name):
-    ""
+    """
     Transform the labels from multiple atlases via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
@@ -92,7 +93,7 @@ def register_atlas(hemi, subject_id, template_reg_name,
     Both the source and target subject must reside in your Subjects Directory,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
-    ""
+    """
     from os import path, getcwd
     from nipype.interfaces.freesurfer import SurfaceTransform
 
@@ -118,7 +119,6 @@ def register_atlas(hemi, subject_id, template_reg_name,
     sxfm.run()
 
     return output_file
-"""
 
 ##############################################################################
 #   Multi-atlas labeling
@@ -235,51 +235,32 @@ def read_annot(filepath, orig_ids=False):
         labels = ord[np.searchsorted(ctab[ord, -1], labels)]
     return labels, ctab, names 
 
-def load_labels(atlas_annot_path, atlas_annot_name):
+def load_labels_from_annot(annot_file):
     """
-    Load multiple annotation files for each of the hemispheres of a subject
-    
+    Load annotation file
+
     Parameters
     ==========
-    atlas_annot_path: string  (path where all annotation files are saved)
-    atlas_annot_name: string  (identifies annot files by their file name)
-    
+    annot_file: string
+    atlas_annot_name: string  (identifies annot file)
+
     Returns 
     =======
-    left_labels: list of lists of integers  (labels for left vertices)      
-    right_labels: list of lists of integers  (labels for right vertices) 
+    labels: list of lists of integers  (vertex labels)
 
     """
-    
-    print("Loading multiple annotations...")
-    
+
     from os import listdir, path
 
-    all_files  = listdir(atlas_annot_path)
-    left_files, right_files = [], []
-    for file1 in all_files:
-        if file1.find(atlas_annot_name) > -1 and file1.find('_to_') > -1:
-            if file1[0] == 'l':
-                left_files.append(file1)
-            elif file1[0] == 'r':        
-                right_files.append(file1)
-            else:
-                print("Unable to match any file names.")
+    print("Loading multiple annotations...")
 
-    left_labels, right_labels = [], []
-    for file1 in left_files:
-        Labels, ColorTable, Names = read_annot(path.join(atlas_annot_path, file1))
-        left_labels.append(map(combine_labels,Labels))
+    labels, colortable, names = read_annot(annot_file)
 
-    for file1 in right_files:
-        Labels, ColorTable, Names = read_annot(path.join(atlas_annot_path, file1))
-        right_labels.append(map(combine_labels,Labels))
-    
-    print("Multiple annotations loaded.")
-    
-    return left_labels, right_labels
-    
-def vote_labels(left_labels, right_labels):
+    print("Annotation loaded.")
+
+    return labels
+
+def vote_labels(labels):
     """
     For each vertex, vote on the majority label.
 
@@ -298,22 +279,7 @@ def vote_labels(left_labels, right_labels):
     right_counts: list of integers  (number of different labels for right vertices)
     left_votes: list of integers  (number of votes for the left majority labels) 
     right_votes: list of integers  (number of votes for the right majority labels)
-  
-    """
-    from collections import Counter
-    
-    print("Begin voting...")
-    
-    n_atlases = len(left_labels)  # number of atlases used to label subject
-    n_vertices_left, n_vertices_right = len(left_labels[0]), len(right_labels[0])
-    left_max = [-1 for i in xrange(n_vertices_left)]  
-    right_max = [-1 for i in xrange(n_vertices_right)]
-    left_counts = [1 for i in xrange(n_vertices_left)]   
-    right_counts = [1 for i in xrange(n_vertices_right)]
-    left_votes = [n_atlases for i in xrange(n_vertices_left)]   
-    right_votes = [n_atlases for i in xrange(n_vertices_right)]
-    
-    """
+
     Example of Counter:
     In [1]: from collections import Counter
     In [2]: X = [1,1,2,3,4,2,1,2,1,2,1,2]
@@ -326,27 +292,30 @@ def vote_labels(left_labels, right_labels):
     Out[6]: [(1, 5), (2, 5)]
     In [8]: len(Votes)
     Out[8]: 4
-    """
-    for vertex in xrange(n_vertices_left):
-        votes = Counter([left_labels[i][vertex] for i in xrange(n_atlases)])
 
-        left_max[vertex] = votes.most_common(1)[0][0]
-        left_votes[vertex] = votes.most_common(1)[0][1]
-        left_counts[vertex] = len(votes)
-            
-    for vertex in xrange(n_vertices_right):
-        votes = Counter([right_labels[i][vertex] for i in xrange(n_atlases)])
-        
-        right_max[vertex] = votes.most_common(1)[0][0]
-        right_votes[vertex] = votes.most_common(1)[0][1]
-        right_counts[vertex] = len(votes)
-        
+    """
+
+    from collections import Counter
+    
+    print("Begin voting...")
+    n_atlases = len(labels)  # number of atlases used to label subject
+    n_vertices = len(labels[0])
+    labels_max = [-1 for i in xrange(n_vertices)]  
+    label_counts = [1 for i in xrange(n_vertices)]
+    label_votes = [n_atlases for i in xrange(n_vertices)]
+
+    for vertex in xrange(n_vertices):
+        votes = Counter([labels[i][vertex] for i in xrange(n_atlases)])
+
+        labels_max[vertex] = votes.most_common(1)[0][0]
+        label_votes[vertex] = votes.most_common(1)[0][1]
+        label_counts[vertex] = len(votes)
+
     print("Voting done.")
-    return left_max, right_max,\
-           left_votes, right_votes,\
-           left_counts, right_counts 
+
+    return labels_max, label_votes, label_counts
  
-def multilabel(hemi, subject_id, subjects_path, atlases_path, atlas_annot_name):
+def multilabel(hemi, subject_id, subjects_path, in_files, atlases_path, atlas_annot_name):
     """
     Load VTK surfaces and write majority vote labels as VTK files, 
     according to multiple labelings (atlas_annot_name).
@@ -355,38 +324,18 @@ def multilabel(hemi, subject_id, subjects_path, atlases_path, atlas_annot_name):
     import pyvtk
     from atlases import load_labels, vote_labels
 
-    use_inflated_surfaces = 1
-
-    subject_surf_path = path.join(subjects_path, subject_id, 'surf')
-    atlas_annot_path = path.join(atlases_path, subject_id, 'label')
+#    subject_surf_path = path.join(subjects_path, subject_id, 'surf')
+#    atlas_annot_path = path.join(atlases_path, subject_id, 'label')
 
     # Load multiple label sets
-    left_labels, right_labels = load_labels(atlas_annot_path, atlas_annot_name)
- 
+#    labels = []
+    labels = load_labels(atlas_annot_path, atlas_annot_name)
+#    labels.append(map(combine_labels,Labels))
+
     # Vote on labels for each vertex
     left_max, right_max, left_votes, right_votes,\
     left_counts, right_counts = vote_labels(left_labels, right_labels)
-    
-    if use_inflated_surfaces:
-        input_files = ['lh.pial.vtk', 'rh.pial.vtk', 
-                       'lh.inflated.vtk', 'rh.inflated.vtk']
-        output_files = [['lh.pial.labels.max.vtk',
-                         'lh.pial.labelcounts.vtk', 
-                         'lh.pial.labelvotes.vtk'], 
-                        ['rh.pial.labels.max.vtk', 
-                         'rh.pial.labelcounts.vtk', 
-                         'rh.pial.labelvotes.vtk'], 
-                        ['lh.inflated.labels.max.vtk', 
-                         'lh.inflated.labelcounts.vtk', 
-                         'lh.inflated.labelvotes.vtk'], 
-                        ['rh.inflated.labels.max.vtk', 
-                         'rh.inflated.labelcounts.vtk', 
-                         'rh.inflated.labelvotes.vtk']]
-        dv = [[left_max, left_counts, left_votes],
-              [right_max, right_counts, right_votes],
-              [left_max, left_counts, left_votes],
-              [right_max, right_counts, right_votes]]
-    else:
+
         input_files = ['lh.pial.vtk', 'rh.pial.vtk']
         output_files = [['lh.pial.labels.max.vtk', 
                          'lh.pial.labelcounts.vtk', 
