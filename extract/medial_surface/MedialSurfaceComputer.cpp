@@ -21,6 +21,10 @@
 #include <vtkMath.h>
 #include <vtkSphereSource.h>
 #include <vtkGlyph3D.h>
+#include <vtkDelaunay3D.h>
+#include <vtkDelaunay2D.h>
+
+#include <vtkUnstructuredGrid.h>
 
 MedialSurfaceComputer::MedialSurfaceComputer(vtkPolyData *originalMesh, vtkPolyData *fundi)
 {
@@ -153,6 +157,32 @@ void MedialSurfaceComputer::BuildMedialSurface()
     ProcessFundi();
     FindCandidatePoints();
 
+//    vtkDelaunay3D* del = vtkDelaunay3D::New();
+//    del->SetInput(m_candidatePolyData);
+//    del->SetAlpha(2);
+//    del->Update();
+
+//    vtkPolyData* delpd = vtkPolyData::New();
+//    delpd->SetPoints(del->GetOutput()->GetPoints());
+//    delpd->SetPolys(del->GetOutput()->GetCells());
+//    delpd->Update();
+
+//    vtkDelaunay2D* del2 = vtkDelaunay2D::New();
+////    del2->SetInput(m_candidatePolyData);
+//    del2->SetAlpha(2);
+//    del2->SetSource(delpd);
+//    del2->Update();
+
+
+//    m_medialSurface->DeepCopy(del->GetOutput());
+
+//    m_medialSurface->SetPoints(del2->GetOutput()->GetPoints());
+//    m_medialSurface->SetPolys(del2->GetOutput()->GetCells());
+////    m_medialSurface->GetPointData()->SetScalars(this->test);
+//    m_medialSurface->Update();
+
+
+
 //    vtkSphereSource* sphere =  vtkSphereSource::New();
 //    sphere->SetPhiResolution(6);
 //    sphere->SetThetaResolution(6);
@@ -191,7 +221,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
     }
 
     BuildMeshFromLayers();
-    AnchorAllPointsToCandidates();
+//    AnchorAllPointsToCandidates();
 
 }
 
@@ -275,6 +305,9 @@ void MedialSurfaceComputer::FindCandidatePoints()
     double interPoint[3];
     double point[3];
     double candidatePoint[3];
+    double radius = 3;
+    vtkIdList* radiusPoints = vtkIdList::New();
+    int nbInRadius;
 
 
     for(int i = 0; i< m_originalMesh->GetNumberOfPoints() ; i++)
@@ -289,6 +322,28 @@ void MedialSurfaceComputer::FindCandidatePoints()
             {
                 candidatePoint[k] = (point[k] + interPoint[k]) / 2;
             }
+
+//            m_originalPointLocator->FindPointsWithinRadius(radius,candidatePoint,radiusPoints);
+
+//            nbInRadius = radiusPoints->GetNumberOfIds();
+
+//            for(int k = 0 ; k < 3 ; k++)
+//            {
+//                candidatePoint[k] = 0;
+//            }
+
+//            for(int j = 0 ; j<nbInRadius ; j++)
+//            {
+//                m_originalMesh->GetPoint(radiusPoints->GetId(j), point);
+//                for(int k = 0 ; k < 3 ; k++)
+//                {
+//                    candidatePoint[k] += point[k]/nbInRadius;
+//                }
+
+
+//            }
+
+
             m_candidatePoints->InsertNextPoint(candidatePoint);
         }
 
@@ -477,26 +532,26 @@ void MedialSurfaceComputer::SelectNextPoint(double point[3], vtkPolyData* prevLa
     GetPointNeighbors(prevLayer, i, neib);
     int nbNeib = neib->GetNumberOfIds();
     int cnt = 0;
-    for(int j = 0 ; j< nbNeib ; j++)
-    {
-        if(neib->GetId(j) != i)
-        {
-            if(cnt == 1)
-            {
-                prevLayer->GetPoint(neib->GetId(j),p2);
-                cnt++;
-            }
-            else if (cnt == 0)
-            {
-                prevLayer->GetPoint(neib->GetId(j),p1);
-                cnt++;
-            }
-        }
-    }
+//    for(int j = 0 ; j< nbNeib ; j++)
+//    {
+//        if(neib->GetId(j) != i)
+//        {
+//            if(cnt == 1)
+//            {
+//                prevLayer->GetPoint(neib->GetId(j),p2);
+//                cnt++;
+//            }
+//            else if (cnt == 0)
+//            {
+//                prevLayer->GetPoint(neib->GetId(j),p1);
+//                cnt++;
+//            }
+//        }
+//    }
 
     for(int k = 0 ; k<3 ; k++)
     {
-        p0[k] = point0[k] + 2 * vec[k];
+        p0[k] = point0[k] + 3 * vec[k];
     }
 
     bi = m_candidateLocator->FindClosestPoint(p0);
@@ -518,7 +573,7 @@ void MedialSurfaceComputer::SelectNextPoint(double point[3], vtkPolyData* prevLa
         vec[k] /= nn;
     }
 
-    m_pitsNormals->SetTuple(i,vec);
+//    m_pitsNormals->SetTuple(i,vec);
 
 
 //    m_candidateLocator->FindPointsWithinRadius(radius,p0,radiusPoints);
@@ -621,7 +676,7 @@ bool MedialSurfaceComputer::ProjectInNormalDirection(vtkIdType pointId, double i
     {
         point2[k] = point1[k] + step*n[k];
 
-        point1[k] += 1*n[k];
+//        point1[k] += 0.1*n[k];
     }
 
 
