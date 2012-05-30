@@ -124,13 +124,13 @@ def register_atlas(hemi, subject_id, template_reg_name,
 #   Multi-atlas labeling
 ##############################################################################
 
-def combine_labels(label_index):
+def relabel(label):
     """
     Replace some labels by combined labels. 
 
     Parameters
     ==========
-    label_index: integer label of a vertex
+    label: integer label of a vertex
 
     Returns
     =======
@@ -138,7 +138,7 @@ def combine_labels(label_index):
 
     Notes
     ===== 
-    label_index combinations:
+    label combinations:
 
     2  = 2, 10, 23, 26
     3  = 3, 27  
@@ -158,14 +158,14 @@ def combine_labels(label_index):
     
     """
     
-    if label_index == 10 or label_index == 23 or label_index == 26:
+    if label == 10 or label == 23 or label == 26:
         return 2
-    elif label_index == 27:
+    elif label == 27:
         return 3
-    elif label_index == 19 or label_index == 20:
+    elif label == 19 or label == 20:
         return 18
     else:
-        return label_index
+        return label
 
 def read_annot(filepath, orig_ids=False):
     """
@@ -235,7 +235,7 @@ def read_annot(filepath, orig_ids=False):
         labels = ord[np.searchsorted(ctab[ord, -1], labels)]
     return labels, ctab, names 
 
-def load_labels_from_annot(annot_file):
+def load_annot_labels(annot_file):
     """
     Load annotation file
 
@@ -252,7 +252,7 @@ def load_labels_from_annot(annot_file):
 
     from os import listdir, path
 
-    print("Loading multiple annotations...")
+    print("Load annotation file...")
 
     labels, colortable, names = read_annot(annot_file)
 
@@ -260,7 +260,7 @@ def load_labels_from_annot(annot_file):
 
     return labels
 
-def vote_labels(labels):
+def vote_labels(label_lists):
     """
     For each vertex, vote on the majority label.
 
@@ -298,14 +298,14 @@ def vote_labels(labels):
     from collections import Counter
     
     print("Begin voting...")
-    n_atlases = len(labels)  # number of atlases used to label subject
-    n_vertices = len(labels[0])
+    n_atlases = len(label_lists)  # number of atlases used to label subject
+    n_vertices = len(label_lists[0])
     labels_max = [-1 for i in xrange(n_vertices)]  
     label_counts = [1 for i in xrange(n_vertices)]
     label_votes = [n_atlases for i in xrange(n_vertices)]
 
     for vertex in xrange(n_vertices):
-        votes = Counter([labels[i][vertex] for i in xrange(n_atlases)])
+        votes = Counter([label_lists[i][vertex] for i in xrange(n_atlases)])
 
         labels_max[vertex] = votes.most_common(1)[0][0]
         label_votes[vertex] = votes.most_common(1)[0][1]
@@ -314,54 +314,51 @@ def vote_labels(labels):
     print("Voting done.")
 
     return labels_max, label_votes, label_counts
- 
-def multilabel(hemi, subject_id, subjects_path, in_files, atlases_path, atlas_annot_name):
+
+def multilabel(hemi, subject_id, surface_file, annot_files):
     """
     Load VTK surfaces and write majority vote labels as VTK files, 
     according to multiple labelings (atlas_annot_name).
     """
+    print(annot_files)
+    """
     from os import path, getcwd
     import pyvtk
-    from atlases import load_labels, vote_labels
-
-#    subject_surf_path = path.join(subjects_path, subject_id, 'surf')
-#    atlas_annot_path = path.join(atlases_path, subject_id, 'label')
+    from atlases import load_annot_labels, vote_labels
 
     # Load multiple label sets
-#    labels = []
-    labels = load_labels(atlas_annot_path, atlas_annot_name)
-#    labels.append(map(combine_labels,Labels))
+    label_lists = []
+    for annot_file in annot_files:
+        labels = load_annot_labels(annot_file)
+        label_lists.append(map(relabel, labels))
 
     # Vote on labels for each vertex
-    left_max, right_max, left_votes, right_votes,\
-    left_counts, right_counts = vote_labels(left_labels, right_labels)
+    labels_max, label_votes, label_counts = vote_labels(label_lists)
 
-        input_files = ['lh.pial.vtk', 'rh.pial.vtk']
-        output_files = [['lh.pial.labels.max.vtk', 
-                         'lh.pial.labelcounts.vtk', 
-                         'lh.pial.labelvotes.vtk'], 
-                        ['rh.pial.labels.max.vtk', 
-                         'rh.pial.labelcounts.vtk', 
-                         'rh.pial.labelvotes.vtk']]
-        dv = [[left_max, left_counts, left_votes],
-              [right_max, right_counts, right_votes]]
+    # Save files
+    VTKReader = pyvtk.VtkData(surface_file)
+    Vertices =  VTKReader.structure.points
+    Faces =     VTKReader.structure.polygons
 
-    for i, input_file in enumerate(input_files):
-        VTKReader = pyvtk.VtkData(path.join(subject_surf_path, input_file))
-        Vertices =  VTKReader.structure.points
-        Faces =     VTKReader.structure.polygons
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][0],\
-                    name='Max (majority labels)'))).\
-              tofile(path.join(getcwd(), output_files[i][0]), 'ascii')
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][1],\
-                    name='Counts (number of different labels)'))).\
-              tofile(path.join(getcwd(), output_files[i][1]), 'ascii')
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-              pyvtk.PointData(pyvtk.Scalars(dv[i][2],\
-                    name='Votes (number of votes for majority labels)'))).\
-              tofile(path.join(getcwd(), output_files[i][2]), 'ascii')
+    surface_file_stem = surface_file.strip('.vtk')
+    output_files = [path.join(getcwd(), surface_file_stem + '.labels.max'),
+                    path.join(getcwd(), surface_file_stem + '.labelcounts'),
+                    path.join(getcwd(), surface_file_stem + '.labelvotes')]
 
-    return output_files  
-    
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+          pyvtk.PointData(pyvtk.Scalars(labels_max,\
+                name='Max (majority labels)'))).\
+          tofile(output_files[0], 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+          pyvtk.PointData(pyvtk.Scalars(label_counts,\
+                name='Counts (number of different labels)'))).\
+          tofile(output_files[1], 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+          pyvtk.PointData(pyvtk.Scalars(label_votes,\
+                name='Votes (number of votes for majority labels)'))).\
+          tofile(output_files[2], 'ascii')
+
+    return output_files
+    """
