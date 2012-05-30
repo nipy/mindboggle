@@ -315,12 +315,15 @@ def vote_labels(label_lists):
 
     return labels_max, label_votes, label_counts
 
-def multilabel(hemi, subject_id, surface_file, annot_files):
+def multilabel(surface_file, annot_files):
     """
     Load VTK surfaces and write majority vote labels as VTK files, 
     according to multiple labelings (atlas_annot_name).
     """
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
+    print(surface_file)
     print(annot_files)
+    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
     """
     from os import path, getcwd
     import pyvtk
