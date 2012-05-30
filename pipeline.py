@@ -33,8 +33,8 @@ atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
 subjects_list = ['KKI2009-11']
-subjects_path = '/usr/local/freesurfer/subjects'
-#subjects_path = '/Applications/freesurfer/subjects'
+#subjects_path = '/usr/local/freesurfer/subjects'
+subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
 templates_path = '/projects/mindboggle/data/templates_freesurfer'
@@ -55,7 +55,7 @@ extract_fundi_command = './extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
 print("\nTEST ATLAS LIST\n")
-atlas_list_file = os.path.join(atlases_path, 'MMRR_test.txt')
+atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
 f = open(atlas_list_file)
 atlas_list_lines = f.readlines()
 atlas_names = [a.strip("\n") for a in atlas_list_lines if a.strip("\n")]
@@ -162,6 +162,8 @@ flo1.connect([(template_reg, atlas_reg,
 majority_vote = pe.Node(util.Function(input_names=['hemi',
                                                    'subject_id',
                                                    'subjects_path',
+                                                   'in_files',
+                                                   
                                                    'atlases_path',
                                                    'atlas_annot_name'],
                                       output_names=['output_files'],
@@ -175,7 +177,7 @@ mbflow.connect([(infosource, flo1,
                  [('hemi', 'Vote_majority.hemi'),
                   ('subject_id', 'Vote_majority.subject_id')])])
 flo1.connect([(atlas_reg, majority_vote,
-               [('atlas_annot_name', 'atlas_annot_name')])])
+               [('output_file', 'in_files')])])
 mbflow.connect([(flo1, datasink,
                  [('Vote_majority.output_files', 'majority_labels')])])
 
@@ -205,7 +207,7 @@ if use_freesurfer_surfaces:
 ##############################################################################
 #   Surface calculations
 ##############################################################################
-
+"""
 # Measure surface depth and curvature nodes
 surface_depth = pe.MapNode(util.Function(input_names = ['command',
                                                         'surface_file'],
@@ -225,7 +227,8 @@ surface_curvature = pe.MapNode(util.Function(input_names = ['command',
                                iterfield = ['surface_file'],
                                name='Measure_curvature')
 surface_curvature.inputs.command = curvature_command
-
+"""
+"""
 # Add and connect nodes
 flo2.add_nodes([surface_depth, surface_curvature])
 
@@ -267,6 +270,7 @@ fundus_extraction = pe.Node(util.Function(input_names = ['command',
                                           function = extract_fundi),
                             name='Extract_fundi')
 fundus_extraction.inputs.command = extract_fundi_command
+"""
 """
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
@@ -597,5 +601,5 @@ if __name__== '__main__':
     mbflow.write_graph(graph2use='hierarchical')
     #flo1.write_graph(graph2use='flat')
     #flo1.write_graph(graph2use='hierarchical')
-    mbflow.run()  #mbflow.run(updatehash=True)
+    mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
 
