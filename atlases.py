@@ -13,7 +13,7 @@ For each brain hemisphere (left and right) in a given subject,
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
 The main function is multilabel() and calls: 
-load_labels, vote_labels, combine_labels, and read_annot (0-index labels).
+read_annot(), relabel(), and vote_labels(), with (0-index labels).
 
 
 Authors:  
@@ -24,8 +24,10 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+use_linux_paths = 1
+
 ##############################################################################
-#   Multi-atlas registration
+#   Template-based, multi-atlas registration
 ##############################################################################
 
 def register_template(hemi, sph_surface_file, 
@@ -56,116 +58,75 @@ def register_template(hemi, sph_surface_file,
     
     return template_reg_name
 
-"""
-def register_atlas(hemi, subject_id, template_reg_name,
-                   atlas_name, atlases_path, atlas_annot_name):
-    ""
-    Transform the labels from multiple atlases via a template
-    (using FreeSurfer's mri_surf2surf)
-    ""
-    from os import system, path, getcwd
+if use_linux_paths:
 
-    source_annot_file = path.join(atlases_path, atlas_name, 'label',
-                                  hemi + '.' + atlas_annot_name) 
-    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-                            subject_id + '_' + atlas_annot_name)
-    args = ['mri_surf2surf',
-            '--hemi', hemi,
-            '--srcsubject', atlas_name,
-            '--trgsubject', subject_id,
-            '--sval-annot', source_annot_file,
-            '--tval', output_file,
-            '--srcsurfreg', template_reg_name,
-            '--trgsurfreg', template_reg_name]
-    print(' '.join(args)); system(' '.join(args))
-    return output_file
-"""
+    def register_atlas(hemi, subject_id, template_reg_name,
+                       atlas_name, atlases_path, atlas_annot_name):
+        """
+        Transform the labels from multiple atlases via a template
+        (using FreeSurfer's mri_surf2surf)
+        """
+        from os import system, path, getcwd
 
-def register_atlas(hemi, subject_id, template_reg_name,
-                   atlas_name, atlases_path, atlas_annot_name):
-    """
-    Transform the labels from multiple atlases via a template
-    using FreeSurfer's mri_surf2surf (wrapped in NiPype)
+        source_annot_file = path.join(atlases_path, atlas_name, 'label',
+                                      hemi + '.' + atlas_annot_name) 
+        output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
+                                subject_id + '_' + atlas_annot_name)
+        args = ['mri_surf2surf',
+                '--hemi', hemi,
+                '--srcsubject', atlas_name,
+                '--trgsubject', subject_id,
+                '--sval-annot', source_annot_file,
+                '--tval', output_file,
+                '--srcsurfreg', template_reg_name,
+                '--trgsurfreg', template_reg_name]
+        print(' '.join(args)); system(' '.join(args))
+        return output_file
 
-    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
-    wraps command **mri_surf2surf**:
-    "Transform a surface file from one subject to another via a spherical registration.
-    Both the source and target subject must reside in your Subjects Directory,
-    and they must have been processed with recon-all, unless you are transforming
-    to one of the icosahedron meshes."
-    """
-    from os import path, getcwd
-    from nipype.interfaces.freesurfer import SurfaceTransform
+else:
 
-    sxfm = SurfaceTransform()
-    sxfm.inputs.hemi = hemi
-    sxfm.inputs.target_subject = subject_id
-    sxfm.inputs.source_subject = atlas_name
+    def register_atlas(hemi, subject_id, template_reg_name,
+                       atlas_name, atlases_path, atlas_annot_name):
+        """
+        Transform the labels from multiple atlases via a template
+        using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
-    # Source file
-    sxfm.inputs.source_annot_file = path.join(atlases_path, 
-                                    atlas_name, 'label',
-                                    hemi + '.' + atlas_annot_name) 
-    # Output annotation file
-    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-                            subject_id + '_' + atlas_annot_name)
-    sxfm.inputs.out_file = output_file
+        nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
+        wraps command **mri_surf2surf**:
+        "Transform a surface file from one subject to another via a spherical registration.
+        Both the source and target subject must reside in your Subjects Directory,
+        and they must have been processed with recon-all, unless you are transforming
+        to one of the icosahedron meshes."
+        """
+        from os import path, getcwd
+        from nipype.interfaces.freesurfer import SurfaceTransform
 
-    # Arguments: strings within registered files
-    args = ['--srcsurfreg', template_reg_name,
-            '--trgsurfreg', template_reg_name]
-    sxfm.inputs.args = ' '.join(args)
+        sxfm = SurfaceTransform()
+        sxfm.inputs.hemi = hemi
+        sxfm.inputs.target_subject = subject_id
+        sxfm.inputs.source_subject = atlas_name
 
-    sxfm.run()
+        # Source file
+        sxfm.inputs.source_annot_file = path.join(atlases_path, 
+                                        atlas_name, 'label',
+                                        hemi + '.' + atlas_annot_name) 
+        # Output annotation file
+        output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
+                                subject_id + '_' + atlas_annot_name)
+        sxfm.inputs.out_file = output_file
 
-    return output_file
+        # Arguments: strings within registered files
+        args = ['--srcsurfreg', template_reg_name,
+                '--trgsurfreg', template_reg_name]
+        sxfm.inputs.args = ' '.join(args)
+
+        sxfm.run()
+
+        return output_file
 
 ##############################################################################
 #   Multi-atlas labeling
 ##############################################################################
-
-def relabel(label):
-    """
-    Return a pre-specified label assignment for a given input label.
-
-    Parameters
-    ==========
-    label: integer label of a vertex
-
-    Returns
-    =======
-    No variable. Direct return.
-
-    Notes
-    ===== 
-    label combinations:
-
-    2  = 2, 10, 23, 26
-    3  = 3, 27  
-    18 = 18, 19, 20
-    
-    Temporal (33) and frontal (32) poles, and bankstss (1) regions eliminated, 
-    corresponding cortex absorbed by adjacent regions.
-
-    Caudal (2), isthmus (10), posterior (23), and rostral anterior (26) cingulate 
-    combined to form single cingulate region (2)
- 
-    Caudal (3) and rostral (27) middle frontal regions combined to form 
-    single middle frontal region (3)
-    
-    Opercular (18), orbital (19), and triangular (20) inferior frontal regions 
-    combined to form a single inferior frontal region (18)
-    
-    """
-    
-    if label == 10 or label == 23 or label == 26:
-        return 2
-    elif label == 27:
-        return 3
-    elif label == 19 or label == 20:
-        return 18
-    else:
-        return label
 
 def read_annot(filepath, orig_ids=False):
     """
@@ -235,29 +196,48 @@ def read_annot(filepath, orig_ids=False):
         labels = ord[np.searchsorted(ctab[ord, -1], labels)]
     return labels, ctab, names 
 
-def load_annot_labels(annot_file):
+def relabel(label):
     """
-    Load annotation file and return its labels
+    Return a pre-specified label assignment for a given input label.
 
     Parameters
     ==========
-    annot_file: string
+    label: integer label of a vertex
 
-    Returns 
+    Returns
     =======
-    labels: list of integers  (vertex labels)
+    No variable. Direct return.
 
+    Notes
+    ===== 
+    label combinations:
+
+    2  = 2, 10, 23, 26
+    3  = 3, 27  
+    18 = 18, 19, 20
+    
+    Temporal (33) and frontal (32) poles, and bankstss (1) regions eliminated, 
+    corresponding cortex absorbed by adjacent regions.
+
+    Caudal (2), isthmus (10), posterior (23), and rostral anterior (26) cingulate 
+    combined to form single cingulate region (2)
+ 
+    Caudal (3) and rostral (27) middle frontal regions combined to form 
+    single middle frontal region (3)
+    
+    Opercular (18), orbital (19), and triangular (20) inferior frontal regions 
+    combined to form a single inferior frontal region (18)
+    
     """
-
-    from os import listdir, path
-
-    print("Load annotation file...")
-
-    labels, colortable, names = read_annot(annot_file)
-
-    print("Annotation loaded.")
-
-    return labels
+    
+    if label == 10 or label == 23 or label == 26:
+        return 2
+    elif label == 27:
+        return 3
+    elif label == 19 or label == 20:
+        return 18
+    else:
+        return label
 
 def vote_labels(label_lists):
     """
@@ -312,50 +292,57 @@ def vote_labels(label_lists):
 
 def multilabel(surface_file, annot_files):
     """
-    Load VTK surfaces and write majority vote labels as VTK files,
-    according to multiple labelings in FreeSurfer annot files.
+    Load a VTK surface and corresponding FreeSurfer annot files.
+    Write majority vote labels, and label counts and votes as VTK files.
 
-    Runs: load_annot_labels(), read_annot(), relabel(), and vote_labels()
+    Runs functions: read_annot(), relabel(), and vote_labels()
 
     Parameters
     ==========
     surface_file: string  (name of VTK surface file)
-    annot_files: string  (name of FreeSurfer annot file)
+    annot_files: list of strings  (names of FreeSurfer annot files)
 
     Returns 
     =======
     output_files: list of files containing majority vote labels,
-                  number of different label counts, and 
+                  number of different label counts, and
                   number of votes per majority label
     """
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    print(surface_file)
-    print(annot_files)
-    print('>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>')
-    """
-    from os import path, getcwd
+
     import pyvtk
-    from atlases import load_annot_labels, vote_labels
+    from atlases import read_annot, relabel, vote_labels
 
     if_relabel = 1  # call relabel()
 
     # Load multiple label sets
+    print("Load annotation files...")
     label_lists = []
     for annot_file in annot_files:
-        labels = load_annot_labels(annot_file)
+        labels, colortable, names = read_annot(annot_file)
         if if_relabel:
             labels = map(relabel, labels)
         label_lists.append(labels)
-
+    if if_relabel:
+        print("Annotations loaded and labels reassigned.")
+    else:
+        print("Annotations loaded.")    
+    
     # Vote on labels for each vertex
     labels_max, label_votes, label_counts = vote_labels(label_lists)
 
     # Save files
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        import sys
+        sys.error("Check format of " + surface_file)
     VTKReader = pyvtk.VtkData(surface_file)
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
 
-    file_stem = path.join(getcwd(), surface_file.strip('.vtk')[0])
+    file_stem = surface_file.strip('.vtk')
     output_files = [file_stem + '.labels.max',
                     file_stem + '.labelcounts',
                     file_stem + '.labelvotes']
@@ -376,4 +363,4 @@ def multilabel(surface_file, annot_files):
           tofile(output_files[2], 'ascii')
 
     return output_files
-    """
+
