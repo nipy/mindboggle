@@ -32,7 +32,7 @@ template_reg_name = 'sphere_to_' + template_id + '_template.reg'
 atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
-subjects_list = ['KKI2009-11', 'KKI2009-14']
+subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
 use_linux_paths = 1
 if use_linux_paths:
@@ -212,56 +212,53 @@ flo2 = pe.Workflow(name='Feature_workflow')
 ##############################################################################
 #   Surface calculations
 ##############################################################################
-"""
+
 # Measure surface depth and curvature nodes
-surface_depth = pe.MapNode(util.Function(input_names = ['command',
-                                                        'surface_file'],
-                                         output_names = ['depth_file'],
-                                         function = measure_surface_depth),
-                           iterfield = ['surface_file'],
-                           name='Measure_depth')
+surface_depth = pe.Node(util.Function(input_names = ['command',
+                                                     'surface_file'],
+                                      output_names = ['depth_file'],
+                                      function = measure_surface_depth),
+                        name='Measure_surface_depth')
 surface_depth.inputs.command = depth_command
 
-surface_curvature = pe.MapNode(util.Function(input_names = ['command',
-                                                            'surface_file'],
-                                    output_names = ['mean_curvature_file',
-                                                    'gauss_curvature_file',
-                                                    'max_curvature_file',
-                                                    'min_curvature_file'],
-                                    function = measure_surface_curvature),
-                               iterfield = ['surface_file'],
-                               name='Measure_curvature')
+surface_curvature = pe.Node(util.Function(input_names = ['command',
+                                                         'surface_file'],
+                                 output_names = ['mean_curvature_file',
+                                                 'gauss_curvature_file',
+                                                 'max_curvature_file',
+                                                 'min_curvature_file'],
+                                 function = measure_surface_curvature),
+                            name='Measure_surface_curvature')
 surface_curvature.inputs.command = curvature_command
-"""
-"""
+
 # Add and connect nodes
 flo2.add_nodes([surface_depth, surface_curvature])
 
 if use_freesurfer_surfaces:
-    flo2.connect([(surface_conversion, surface_depth, 
-                   [('converted', 'surface_file')])])
-    flo2.connect([(surface_conversion, surface_curvature, 
-                   [('converted', 'surface_file')])])
+    mbflow.connect([(surface_conversion, flo2, 
+                   [('converted', 'Measure_surface_depth.surface_file')])])
+    mbflow.connect([(surface_conversion, flo2, 
+                   [('converted', 'Measure_surface_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
     mbflow.connect([(flo1, flo2, 
                      [('Surfaces.surface_files',
-                       'Measure_depth.surface_file')])])
+                       'Measure_surface_depth.surface_file')])])
     mbflow.connect([(flo1, flo2, 
                      [('Surfaces.surface_files',
-                       'Measure_curvature.surface_file')])])
+                       'Measure_surface_curvature.surface_file')])])
 
 # Save
-mbflow.connect([(flo1, datasink,
-                 [('Vote_majority.output_files', 'surfaces.@depth')])])
 mbflow.connect([(flo2, datasink,
-                 [('Measure_curvature.mean_curvature_file', 
+                 [('Measure_surface_depth.depth_file', 'surfaces.@depth')])])
+mbflow.connect([(flo2, datasink,
+                 [('Measure_surface_curvature.mean_curvature_file', 
                    'surfaces.@mean_curvature'),
-                  ('Measure_curvature.gauss_curvature_file', 
+                  ('Measure_surface_curvature.gauss_curvature_file', 
                    'surfaces.@gauss_curvature'),
-                  ('Measure_curvature.max_curvature_file', 
+                  ('Measure_surface_curvature.max_curvature_file', 
                    'surfaces.@max_curvature'),
-                  ('Measure_curvature.min_curvature_file', 
+                  ('Measure_surface_curvature.min_curvature_file', 
                    'surfaces.@min_curvature')])])
 
 ##############################################################################
@@ -275,7 +272,7 @@ fundus_extraction = pe.Node(util.Function(input_names = ['command',
                                           function = extract_fundi),
                             name='Extract_fundi')
 fundus_extraction.inputs.command = extract_fundi_command
-"""
+
 """
 sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',

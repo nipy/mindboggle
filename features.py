@@ -37,6 +37,7 @@ def measure_surface_depth(command, surface_file):
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
     cli.cmdline
+    cli.run()
     return depth_file
     
 def measure_surface_curvature(command, surface_file):
@@ -60,6 +61,7 @@ def measure_surface_curvature(command, surface_file):
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join(args)
     cli.cmdline
+    cli.run()
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file  
     
