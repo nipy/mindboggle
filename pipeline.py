@@ -32,9 +32,13 @@ template_reg_name = 'sphere_to_' + template_id + '_template.reg'
 atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
-subjects_list = ['KKI2009-11']
-#subjects_path = '/usr/local/freesurfer/subjects'
-subjects_path = '/Applications/freesurfer/subjects'
+subjects_list = ['KKI2009-11', 'KKI2009-14']
+
+use_linux_paths = 1
+if use_linux_paths:
+    subjects_path = '/usr/local/freesurfer/subjects'
+else:
+    subjects_path = '/Applications/freesurfer/subjects'
 
 # Paths
 templates_path = '/projects/mindboggle/data/templates_freesurfer'
@@ -98,12 +102,13 @@ datasource.inputs.template_args['sph_surface_files'] = [['subject_id',
                                                          'hemi', 
                                                          'sphere']]
 datasink = pe.Node(nio.DataSink(), name = 'Results')
+datasink.inputs.base_directory = results_path
+datasink.inputs.container = 'output'
 
 # Connect input nodes
 mbflow.connect([(infosource, datasource, 
                  [('subject_id','subject_id'),
                   ('hemi','hemi')])])
-#mbflow.add_nodes([datasink])
 
 ##############################################################################
 #   Surface input and conversion
@@ -111,6 +116,7 @@ mbflow.connect([(infosource, datasource,
 
 # Convert FreeSurfer surfaces to VTK format
 if use_freesurfer_surfaces:
+
     import nipype.interfaces.freesurfer as fs
 
     surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
@@ -189,7 +195,11 @@ else:
 flo1.connect([(atlas_reg, majority_vote,
                [('output_file', 'annot_files')])])
 #mbflow.connect([(flo1, datasink,
-#                 [('Vote_majority.output_files', 'majority_labels')])])
+#                 [('Register_atlases.output_file', 'atlas_registration')])])
+mbflow.connect([(flo1, datasink,
+                 [('Register_template.template_reg_name', 'test')])])
+mbflow.connect([(flo1, datasink,
+                 [('Vote_majority.output_files', 'maxlabels')])])
 
 ##############################################################################
 #
