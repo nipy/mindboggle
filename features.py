@@ -111,12 +111,6 @@ def extract_sulci(surface_file, depth_file, mean_curvature_file, gauss_curvature
     """
     from nipype.interfaces.base import CommandLine
 
-    args = 'feature = extract/sulci/extract.py'
-    args = ['python', args, '%s'%surface_file, '%s'%depth_file]
-    print(' '.join(args)); os.system(' '.join(args))
-    #output_file = glob('file1.vtk').pop()
-    #feature_files = glob('*.vtk')
-    #return feature_files
     return sulci
 
 def extract_midaxis(surface_file, depth_file, mean_curvature_file, gauss_curvature_file):
@@ -127,9 +121,6 @@ def extract_midaxis(surface_file, depth_file, mean_curvature_file, gauss_curvatu
     """
     from nipype.interfaces.base import CommandLine
 
-    args = 'feature = extract/midaxis/extract.py'
-    args = ['python', args, '%s'%surface_file, '%s'%depth_file]
-    print(' '.join(args)); os.system(' '.join(args))
     return midaxis
 
 # Labeled surface patch and volume extraction nodes
@@ -141,8 +132,6 @@ def extract_patches(labels):
     """
     from nipype.interfaces.base import CommandLine
 
-    args = ['python', 'patch = extract/labels/extract.py']
-    print(' '.join(args)); os.system(' '.join(args))
     return patches
 
 def extract_regions(labels):
@@ -153,8 +142,6 @@ def extract_regions(labels):
     """
     from nipype.interfaces.base import CommandLine
 
-    args = ['python', 'region = extract/labels/extract.py']
-    print(' '.join(args)); os.system(' '.join(args))
     return regions
 
 ##############################################################################
@@ -165,6 +152,7 @@ def propagate_labels(labels, fundi):
     """
     Propagate labels
     """
+
     return labels
 
 # Volume label propagation node
@@ -172,6 +160,7 @@ def propagate_volume_labels(labels):
     """
     Propagate labels through volume
     """
+
     return labels
 
 
@@ -185,13 +174,7 @@ def segment_sulci(sulci):
     """
     from nipype.interfaces.base import CommandLine
 
-    for hemi in ['lh','rh']:
-        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
-        template_file = os.path.join(templates_path, hemi + '.' + template_name)
-        args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args)); os.system(' '.join(args))
-        return feature_type, segmented_sulci
+    return feature_type, segmented_sulci
 
 def segment_fundi(fundi):
     """
@@ -199,13 +182,7 @@ def segment_fundi(fundi):
     """
     from nipype.interfaces.base import CommandLine
 
-    for hemi in ['lh','rh']:
-        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
-        template_file = os.path.join(templates_path, hemi + '.' + template_name)
-        args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args)); os.system(' '.join(args))
-        return feature_type, segmented_fundi
+    return feature_type, segmented_fundi
 
 def segment_midaxis(midaxis):
     """
@@ -213,75 +190,10 @@ def segment_midaxis(midaxis):
     """
     from nipype.interfaces.base import CommandLine
 
-    for hemi in ['lh','rh']:
-        input_file = os.path.join(subject_surf_path, hemi + '.sphere')
-        output_file = os.path.join(subject_surf_path, hemi + '.' + reg_name)
-        template_file = os.path.join(templates_path, hemi + '.' + template_name)
-        args = ['mris_register -curv', input_file, template_file, output_file]
-        print(' '.join(args)); os.system(' '.join(args))
-        return feature_type, segmented_midaxis
+    return feature_type, segmented_midaxis
 
 ##############################################################################
-#   High-level shape measurement functions
-##############################################################################
-
-def measure_positions(features):
-    """
-    Measure
-
-    measure_()
-    """
-    for feature in features:
-        from measure.py import measure_position
-        if type(feature) is np.ndarray:
-            measurement = measure_position(feature)
-
-def measure_extents(features):
-    """
-    Measure
-
-    measure_()
-    """
-    for feature in features:
-        from measure.py import measure_extent
-        if type(feature) is np.ndarray:
-            measurement = measure_extent(feature)
-
-def measure_curvatures(features):
-    """
-    Measure
-
-    measure_()
-    """
-    for feature in features:
-        from measure.py import measure_curvature
-        if type(feature) is np.ndarray:
-            measurement = measure_curvature(feature)
-
-def measure_depths(features):
-    """
-    Measure
-
-    measure_()
-    """
-    for feature in features:
-        from measure.py import measure_depth
-        if type(feature) is np.ndarray:
-            measurement = measure_depth(feature)
-
-def measure_spectra(features):
-    """
-    Measure
-
-    measure_()
-    """
-    for feature in features:
-        from measure.py import measure_spectrum
-        if type(feature) is np.ndarray:
-            measurement = measure_spectrum(feature)
-
-##############################################################################
-#   Individual shape measurement functions
+#   Shape measurement functions
 ##############################################################################
 
 def measure_position(feature):
@@ -291,8 +203,9 @@ def measure_position(feature):
     measure_()
     """
     from measure.py import measure_position
-    if type(feature) is np.ndarray:
-        measurement = measure_position(feature)
+
+    measurement = measure_position(feature)
+
     return measurement
 
 def measure_extent(feature):
@@ -302,19 +215,9 @@ def measure_extent(feature):
     measure_()
     """
     from measure.py import measure_extent
-    if type(feature) is np.ndarray:
-        measurement = measure_extent(feature)
-    return measurement
 
-def measure_depth(feature):
-    """
-    Measure
+    measurement = measure_position(feature)
 
-    measure_()
-    """
-    from measure.py import measure_depth
-    if type(feature) is np.ndarray:
-        measurement = measure_(feature)
     return measurement
 
 def measure_curvature(feature):
@@ -324,19 +227,33 @@ def measure_curvature(feature):
     measure_()
     """
     from measure.py import measure_curvature
-    if type(feature) is np.ndarray:
-        measurement = measure_curvature(feature)
+
+    measurement = measure_position(feature)
+
     return measurement
 
-def measure_spectrum(feature):
+def measure_depth(feature):
     """
     Measure
 
     measure_()
     """
-    from measure.py import measure_spectrum
-    if type(feature) is np.ndarray:
-        measurement = measure_spectrum(feature)
+    from measure.py import measure_depth
+
+    measurement = measure_position(feature)
+
+    return measurement
+
+def measure_spectra(feature):
+    """
+    Measure
+
+    measure_()
+    """
+    from measure.py import measure_spectra
+
+    measurement = measure_position(feature)
+
     return measurement
 
 ##############################################################################
