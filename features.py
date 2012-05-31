@@ -24,7 +24,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface calculations
 ##############################################################################
 
-def measure_surface_depth(command, surface_file):
+def compute_depth(command, surface_file):
     """
     Measure
 
@@ -32,6 +32,15 @@ def measure_surface_depth(command, surface_file):
     """
     from os import getcwd, path
     from nipype.interfaces.base import CommandLine
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        import sys
+        sys.error("Check format of " + surface_file)
 
     depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
@@ -40,7 +49,7 @@ def measure_surface_depth(command, surface_file):
     cli.run()
     return depth_file
     
-def measure_surface_curvature(command, surface_file):
+def compute_curvature(command, surface_file):
     """
     Measure
     CurvatureMain input MeanCurvatureOutput [GaussianCurvatureOutput]
@@ -49,6 +58,15 @@ def measure_surface_curvature(command, surface_file):
     """
     from os import getcwd, path
     from nipype.interfaces.base import CommandLine
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        import sys
+        sys.error("Check format of " + surface_file)
 
     file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
     mean_curvature_file = file_stem + '.curvature.mean.vtk'

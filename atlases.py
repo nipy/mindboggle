@@ -30,8 +30,8 @@ use_linux_paths = 1
 #   Template-based, multi-atlas registration
 ##############################################################################
 
-def register_template(hemi, sph_surface_file, 
-                      template_reg_name, template_name, templates_path):
+def register_to_template(hemi, sph_surface_file, template_transform,
+                         template_name, templates_path):
     """
     Register surface to template with FreeSurfer's mris_register
 
@@ -49,19 +49,19 @@ def register_template(hemi, sph_surface_file,
     logger = logging.getLogger('interface')
 
     template_file = path.join(templates_path, hemi + '.' + template_name)
-    output_file = hemi + '.' + template_reg_name
+    output_file = hemi + '.' + template_transform
     cli = CommandLine(command='mris_register')
     cli.inputs.args = ' '.join(['-curv', sph_surface_file, 
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()
     
-    return template_reg_name
+    return template_transform
 
 if use_linux_paths:
 
-    def register_atlas(hemi, subject_id, template_reg_name,
-                       atlas_name, atlases_path, atlas_annot_name):
+    def transform_atlas_labels(hemi, subject_id, template_transform,
+                               atlas_name, atlases_path, atlas_annot_name):
         """
         Transform the labels from multiple atlases via a template
         (using FreeSurfer's mri_surf2surf)
@@ -78,17 +78,17 @@ if use_linux_paths:
                 '--trgsubject', subject_id,
                 '--sval-annot', source_annot_file,
                 '--tval', output_file,
-                '--srcsurfreg', template_reg_name,
-                '--trgsurfreg', template_reg_name]
+                '--srcsurfreg', template_transform,
+                '--trgsurfreg', template_transform]
         print(' '.join(args)); system(' '.join(args))
         return output_file
 
 else:
 
-    def register_atlas(hemi, subject_id, template_reg_name,
-                       atlas_name, atlases_path, atlas_annot_name):
+    def transform_atlas_labels(hemi, subject_id, template_transform,
+                               atlas_name, atlases_path, atlas_annot_name):
         """
-        Transform the labels from multiple atlases via a template
+        Transform the labels from a surface atlas via a template
         using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
         nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
@@ -116,8 +116,8 @@ else:
         sxfm.inputs.out_file = output_file
 
         # Arguments: strings within registered files
-        args = ['--srcsurfreg', template_reg_name,
-                '--trgsurfreg', template_reg_name]
+        args = ['--srcsurfreg', template_transform,
+                '--trgsurfreg', template_transform]
         sxfm.inputs.args = ' '.join(args)
 
         sxfm.run()
@@ -290,7 +290,7 @@ def vote_labels(label_lists):
 
     return labels_max, label_votes, label_counts
 
-def multilabel(surface_file, annot_files):
+def majority_vote_label(surface_file, annot_files):
     """
     Load a VTK surface and corresponding FreeSurfer annot files.
     Write majority vote labels, and label counts and votes as VTK files.
@@ -330,7 +330,7 @@ def multilabel(surface_file, annot_files):
     # Vote on labels for each vertex
     labels_max, label_votes, label_counts = vote_labels(label_lists)
 
-    # Save files
+    # Check type:
     if type(surface_file) == str:
         pass
     elif type(surface_file) == list:
@@ -338,6 +338,8 @@ def multilabel(surface_file, annot_files):
     else:
         import sys
         sys.error("Check format of " + surface_file)
+
+    # Save files
     VTKReader = pyvtk.VtkData(surface_file)
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
