@@ -20,7 +20,8 @@ import nipype.interfaces.utility as util     # utility
 import nipype.interfaces.io as nio
 import numpy as np
 
-from atlases import register_template, register_atlas, multilabel
+from atlases import register_to_template, transform_atlas_labels,\
+                    majority_vote_label
 from features import *
 
 use_freesurfer_surfaces = 1
@@ -28,13 +29,13 @@ hemis = ['lh','rh']
 surface_types = ['pial'] #,'inflated']
 template_id = 'KKI'
 template_name = template_id + '_2.tif'
-template_reg_name = 'sphere_to_' + template_id + '_template.reg'
+template_transform = 'sphere_to_' + template_id + '_template.reg'
 atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
-use_linux_paths = 1
+use_linux_paths = 0
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -58,7 +59,6 @@ curvature_command = './measure/surface_measures/bin/curvature/CurvatureMain'
 extract_fundi_command = './extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
-print("\nTEST ATLAS LIST\n")
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
 f = open(atlas_list_file)
 atlas_list_lines = f.readlines()
@@ -76,18 +76,18 @@ mbflow = pe.Workflow(name='Mindboggle_workflow')
 mbflow.base_dir = working_path
 
 # Iterate inputs over subjects, hemispheres, surface types
-infosource = pe.Node(interface=util.IdentityInterface(fields=['subject_id',
-                                                              'hemi',
-                                                              'surface_type']),
-                     name = 'Inputs')
+infosource = pe.Node(name = 'Inputs',
+                     interface = util.IdentityInterface(fields=['subject_id',
+                                                                'hemi',
+                                                                'surface_type']))
 infosource.iterables = ([('subject_id', subjects_list),
                          ('hemi', hemis)])
-datasource = pe.Node(interface=nio.DataGrabber(infields=['subject_id',
-                                                         'hemi'],
-                                               outfields=['surface_files',
-                                               'inf_surface_files',
-                                               'sph_surface_files']),
-                     name = 'Surfaces')
+datasource = pe.Node(name = 'Surfaces',
+                     interface = nio.DataGrabber(infields=['subject_id',
+                                                           'hemi'],
+                                                 outfields=['surface_files',
+                                                            'inf_surface_files',
+                                                            'sph_surface_files']))
 
 # Specify the location and structure of the inputs and outputs
 datasource.inputs.base_directory = subjects_path
@@ -119,10 +119,10 @@ if use_freesurfer_surfaces:
 
     import nipype.interfaces.freesurfer as fs
 
-    surface_conversion = pe.MapNode(fs.MRIsConvert(out_datatype='vtk'),
-                                                   iterfield=['in_file'],
-                                    name = 'Convert_surface')
-    mbflow.connect([(datasource, surface_conversion, 
+    convert = pe.MapNode(name = 'Convert_surface',
+                         iterfield=['in_file'],
+                         interface = fs.MRIsConvert(out_datatype='vtk'))
+    mbflow.connect([(datasource, convert, 
                      [('surface_files','in_file')])])
 
 ##############################################################################
@@ -130,76 +130,75 @@ if use_freesurfer_surfaces:
 #   Multi-atlas registration-based labeling workflow
 #
 ##############################################################################
-flo1 = pe.Workflow(name='Atlas_workflow')
+atlasflow = pe.Workflow(name='Atlas_workflow')
 
 ##############################################################################
 #   Multi-atlas registration
 ##############################################################################
 
 # Template registration
-template_reg = pe.Node(util.Function(input_names=['hemi',
-                                                  'sph_surface_file',
-                                                  'template_name',
-                                                  'templates_path',
-                                                  'template_reg_name'],
-                                     output_names=['template_reg_name'],
-                                     function = register_template),
-                       name = 'Register_template')
-template_reg.inputs.template_name = template_name
-template_reg.inputs.templates_path = templates_path
-template_reg.inputs.template_reg_name = template_reg_name
+register = pe.Node(name = 'Register_to_template',
+                   interface = util.Function(
+                                    function = register_to_template,
+                                    input_names = ['hemi',
+                                                   'sph_surface_file',
+                                                   'template_name',
+                                                   'templates_path',
+                                                   'template_transform'],
+                                    output_names = ['template_transform']))
+register.inputs.template_name = template_name
+register.inputs.templates_path = templates_path
+register.inputs.template_transform = template_transform
 
 # Atlas registration
-atlas_reg = pe.MapNode(util.Function(input_names=['hemi',
-                                                  'subject_id',
-                                                  'template_reg_name',
-                                                  'atlas_name',
-                                                  'atlases_path',
-                                                  'atlas_annot_name'],
-                                     output_names=['output_file'],
-                                     function = register_atlas),
+transform = pe.MapNode(name = 'Transform_atlas_labels',
                        iterfield = ['atlas_name'],
-                       name='Register_atlases')
-atlas_reg.inputs.atlas_name = atlas_names
-atlas_reg.inputs.atlases_path = atlases_path
-atlas_reg.inputs.atlas_annot_name = atlas_annot_name
+                       interface = util.Function(
+                                        function = transform_atlas_labels,
+                                        input_names = ['hemi',
+                                                       'subject_id',
+                                                       'template_transform',
+                                                       'atlas_name',
+                                                       'atlases_path',
+                                                       'atlas_annot_name'],
+                                        output_names = ['output_file']))
+transform.inputs.atlas_name = atlas_names
+transform.inputs.atlases_path = atlases_path
+transform.inputs.atlas_annot_name = atlas_annot_name
 
 # Majority vote labeling
-majority_vote = pe.Node(util.Function(input_names=['surface_file',
-                                                   'annot_files'],
-                                      output_names=['output_files'],
-                                      function = multilabel),
-                        name='Vote_majority')
+vote = pe.Node(name='Majority_vote',
+               interface = util.Function(
+                                function = majority_vote_label,
+                                input_names = ['surface_file',
+                                               'annot_files'],
+                                output_names = ['output_files']))
 
 # Add and connect the above nodes
-flo1.add_nodes([template_reg, atlas_reg, majority_vote])
+atlasflow.add_nodes([register, transform, vote])
 
-mbflow.connect([(infosource, flo1,
-                 [('hemi', 'Register_template.hemi')]),
-                (datasource, flo1, 
+mbflow.connect([(infosource, atlasflow,
+                 [('hemi', 'Register_to_template.hemi')]),
+                (datasource, atlasflow, 
                  [('sph_surface_files',
-                   'Register_template.sph_surface_file')])])
+                   'Register_to_template.sph_surface_file')])])
 
-mbflow.connect([(infosource, flo1, 
-                 [('hemi', 'Register_atlases.hemi'),
-                  ('subject_id', 'Register_atlases.subject_id')])])
-flo1.connect([(template_reg, atlas_reg, 
-               [('template_reg_name', 'template_reg_name')])])
+mbflow.connect([(infosource, atlasflow, 
+                 [('hemi', 'Transform_atlas_labels.hemi'),
+                  ('subject_id', 'Transform_atlas_labels.subject_id')])])
+atlasflow.connect([(register, transform, 
+                    [('template_transform', 'template_transform')])])
 
 if use_freesurfer_surfaces:
-    mbflow.connect([(surface_conversion, flo1, 
-                     [('converted', 'Vote_majority.surface_file')])])
+    mbflow.connect([(convert, atlasflow, 
+                     [('converted', 'Majority_vote.surface_file')])])
 else:
-    mbflow.connect([(datasource, flo1, 
-                     [('surface_files','Vote_majority.surface_file')])])
-flo1.connect([(atlas_reg, majority_vote,
-               [('output_file', 'annot_files')])])
-#mbflow.connect([(flo1, datasink,
-#                 [('Register_atlases.output_file', 'atlas_registration')])])
-mbflow.connect([(flo1, datasink,
-                 [('Register_template.template_reg_name', 'test')])])
-mbflow.connect([(flo1, datasink,
-                 [('Vote_majority.output_files', 'maxlabels')])])
+    mbflow.connect([(datasource, atlasflow, 
+                     [('surface_files', 'Majority_vote.surface_file')])])
+atlasflow.connect([(transform, vote,
+                    [('output_file', 'annot_files')])])
+#mbflow.connect([(atlasflow, datasink,
+#                 [('Majority_vote.output_files', 'maxlabels')])])
 
 ##############################################################################
 #
@@ -207,58 +206,60 @@ mbflow.connect([(flo1, datasink,
 #
 ##############################################################################
 
-flo2 = pe.Workflow(name='Feature_workflow')
+featureflow = pe.Workflow(name='Feature_workflow')
 
 ##############################################################################
 #   Surface calculations
 ##############################################################################
 
 # Measure surface depth and curvature nodes
-surface_depth = pe.Node(util.Function(input_names = ['command',
-                                                     'surface_file'],
-                                      output_names = ['depth_file'],
-                                      function = measure_surface_depth),
-                        name='Measure_surface_depth')
-surface_depth.inputs.command = depth_command
+depth = pe.Node(name='Compute_depth',
+                interface = util.Function(
+                                 function = compute_depth,
+                                 input_names = ['command',
+                                                'surface_file'],
+                                 output_names = ['depth_file']))
+depth.inputs.command = depth_command
 
-surface_curvature = pe.Node(util.Function(input_names = ['command',
-                                                         'surface_file'],
-                                 output_names = ['mean_curvature_file',
-                                                 'gauss_curvature_file',
-                                                 'max_curvature_file',
-                                                 'min_curvature_file'],
-                                 function = measure_surface_curvature),
-                            name='Measure_surface_curvature')
-surface_curvature.inputs.command = curvature_command
+curvature = pe.Node(name='Compute_curvature',
+                    interface = util.Function(
+                                     function = compute_curvature),
+                                     input_names = ['command',
+                                                    'surface_file'],
+                                     output_names = ['mean_curvature_file',
+                                                     'gauss_curvature_file',
+                                                     'max_curvature_file',
+                                                     'min_curvature_file'])
+curvature.inputs.command = curvature_command
 
 # Add and connect nodes
-flo2.add_nodes([surface_depth, surface_curvature])
+featureflow.add_nodes([depth, curvature])
 
 if use_freesurfer_surfaces:
-    mbflow.connect([(surface_conversion, flo2, 
-                   [('converted', 'Measure_surface_depth.surface_file')])])
-    mbflow.connect([(surface_conversion, flo2, 
-                   [('converted', 'Measure_surface_curvature.surface_file')])])
+    mbflow.connect([(convert, featureflow, 
+                   [('converted', 'Compute_depth.surface_file')])])
+    mbflow.connect([(convert, featureflow, 
+                   [('converted', 'Compute_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
-    mbflow.connect([(flo1, flo2, 
+    mbflow.connect([(atlasflow, featureflow, 
                      [('Surfaces.surface_files',
-                       'Measure_surface_depth.surface_file')])])
-    mbflow.connect([(flo1, flo2, 
+                       'Compute_depth.surface_file')])])
+    mbflow.connect([(atlasflow, featureflow, 
                      [('Surfaces.surface_files',
-                       'Measure_surface_curvature.surface_file')])])
+                       'Compute_curvature.surface_file')])])
 
 # Save
-mbflow.connect([(flo2, datasink,
-                 [('Measure_surface_depth.depth_file', 'surfaces.@depth')])])
-mbflow.connect([(flo2, datasink,
-                 [('Measure_surface_curvature.mean_curvature_file', 
+mbflow.connect([(featureflow, datasink,
+                 [('Compute_depth.depth_file', 'surfaces.@depth')])])
+mbflow.connect([(featureflow, datasink,
+                 [('Compute_curvature.mean_curvature_file', 
                    'surfaces.@mean_curvature'),
-                  ('Measure_surface_curvature.gauss_curvature_file', 
+                  ('Compute_curvature.gauss_curvature_file', 
                    'surfaces.@gauss_curvature'),
-                  ('Measure_surface_curvature.max_curvature_file', 
+                  ('Compute_curvature.max_curvature_file', 
                    'surfaces.@max_curvature'),
-                  ('Measure_surface_curvature.min_curvature_file', 
+                  ('Compute_curvature.min_curvature_file', 
                    'surfaces.@min_curvature')])])
 
 ##############################################################################
@@ -266,22 +267,23 @@ mbflow.connect([(flo2, datasink,
 ##############################################################################
 
 # Extract features
-fundus_extraction = pe.Node(util.Function(input_names = ['command',
-                                                         'depth_file'],
-                                          output_names = ['fundi'],
-                                          function = extract_fundi),
-                            name='Extract_fundi')
-fundus_extraction.inputs.command = extract_fundi_command
+fundi = pe.Node(name='Extract_fundi',
+                interface = util.Function(
+                                 function = extract_fundi
+                                 input_names = ['command',
+                                                'depth_file'],
+                                 output_names = ['fundi']))
+fundi.inputs.command = extract_fundi_command
 
 """
-sulcus_extraction = pe.Node(util.Function(input_names = ['depth_file',
+sulcus_extraction = pe.Node(interface = util.Function(input_names = ['depth_file',
                                                          'mean_curv_file',
                                                          'gauss_curv_file'],
                                           output_names = ['sulci'],
                                           function = extract_sulci),
                             name='Extract_sulci')
 
-midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
+midaxis_extraction = pe.Node(interface = util.Function(input_names = ['depth_file',
                                                           'mean_curv_file',
                                                           'gauss_curv_file'],
                                            output_names = ['midaxis'],
@@ -289,19 +291,17 @@ midaxis_extraction = pe.Node(util.Function(input_names = ['depth_file',
                              name='Extract_midaxis')
 
 """
-"""
 # Connect surface depth to feature extraction nodes
-flo2.connect([(surface_depth, fundus_extraction, 
+featureflow.connect([(surface_depth, fundus_extraction, 
                [('depth_file', 'depth_file')])])
-flo2.connect([(surface_depth, datasink, 
+featureflow.connect([(surface_depth, datasink, 
                [('depth_file', 'surface_depth')])])
 """
-"""
-flo2.connect([(surfaces, sulcus_extraction, 
+featureflow.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
-flo2.connect([(surfaces, midaxis_extraction, 
+featureflow.connect([(surfaces, midaxis_extraction, 
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
@@ -311,64 +311,64 @@ flo2.connect([(surfaces, midaxis_extraction,
 ##############################################################################
 
 # Label propagation node
-label_propagation = pe.Node(util.Function(input_names=['labels', 'fundi'],
+label_propagation = pe.Node(interface = util.Function(input_names=['labels', 'fundi'],
                                           output_names=['labels'],
                                           function = propagate_labels),
                             name='Propagate_labels')
 
 # Volume label propagation node
-volume_propagation = pe.Node(util.Function(input_names=['labels'],
+volume_propagation = pe.Node(interface = util.Function(input_names=['labels'],
                                            output_names=['labels'],
                                            function = propagate_volume_labels),
                              name='Propagate_volume_labels')
 
 # Labeled surface patch and volume extraction nodes
-patch_extraction = pe.Node(util.Function(input_names=['labels'],
+patch_extraction = pe.Node(interface = util.Function(input_names=['labels'],
                                          output_names=['patches'],
                                          function = extract_patches),
                            name='Extract_patches')
 
-region_extraction = pe.Node(util.Function(input_names=['labels'],
+region_extraction = pe.Node(interface = util.Function(input_names=['labels'],
                                           output_names=['regions'],
                                           function = extract_regions),
                             name='Extract_regions')
 
 # Connect multiatlas registration(-based labeling) to label propagation nodes
-flo2.connect([(atlas_reg, label_propagation, [('labels','labels')]),
+featureflow.connect([(transform, label_propagation, [('labels','labels')]),
               (fundus_extraction, label_propagation, [('fundi','fundi')])])
 
 # Connect label propagation to labeled surface patch and volume extraction nodes
-flo2.connect([(label_propagation, volume_propagation, [('labels', 'labels')])])
-flo2.connect([(volume_propagation, region_extraction, [('labels', 'labels')])])
-flo2.connect([(label_propagation, patch_extraction, [('labels', 'labels')])])
+featureflow.connect([(label_propagation, volume_propagation, [('labels', 'labels')])])
+featureflow.connect([(volume_propagation, region_extraction, [('labels', 'labels')])])
+featureflow.connect([(label_propagation, patch_extraction, [('labels', 'labels')])])
 
 ##############################################################################
 #   Feature segmentation / identification
 ##############################################################################
 
 # Feature segmentation nodes
-sulcus_segmentation = pe.Node(util.Function(input_names=['sulci','labels'],
+sulcus_segmentation = pe.Node(interface = util.Function(input_names=['sulci','labels'],
                                             output_names=['segmented_sulci'],
                                             function = segment_sulci),
                               name='Segment_sulci')
 
-fundus_segmentation = pe.Node(util.Function(input_names=['fundi','labels'],
+fundus_segmentation = pe.Node(interface = util.Function(input_names=['fundi','labels'],
                                             output_names=['segmented_fundi'],
                                             function = segment_fundi),
                               name='Segment_fundi')
 
-midaxis_segmentation = pe.Node(util.Function(input_names=['midaxis','labels'],
+midaxis_segmentation = pe.Node(interface = util.Function(input_names=['midaxis','labels'],
                                              output_names=['segmented_midaxis'],
                                              function = segment_midaxis),
                                name='Segment_midaxis')
 
 # Connect feature and feature segmentation nodes
-flo2.connect([(sulcus_extraction, sulcus_segmentation, [('sulci','sulci')]),
+featureflow.connect([(sulcus_extraction, sulcus_segmentation, [('sulci','sulci')]),
               (fundus_extraction, fundus_segmentation, [('fundi','fundi')]),
               (midaxis_extraction, midaxis_segmentation, [('midaxis','midaxis')])])
 
 # Connect multiatlas registration(-based labeling) and feature segmentation nodes
-flo2.connect([(label_propagation, sulcus_segmentation, [('labels','labels')]),
+featureflow.connect([(label_propagation, sulcus_segmentation, [('labels','labels')]),
               (label_propagation, fundus_segmentation, [('labels','labels')]),
               (sulcus_segmentation, midaxis_segmentation, [('segmented_sulci','labels')])])
               
@@ -377,7 +377,7 @@ flo2.connect([(label_propagation, sulcus_segmentation, [('labels','labels')]),
 ##############################################################################
 
 # Shape measurement nodes
-positions = pe.Node(util.Function(input_names = ['segmented_sulci', 
+positions = pe.Node(interface = util.Function(input_names = ['segmented_sulci', 
                                                  'segmented_fundi',
                                                  'segmented_midaxis', 
                                                  'pits', 
@@ -392,7 +392,7 @@ positions = pe.Node(util.Function(input_names = ['segmented_sulci',
                                   function = measure_positions),
                     name='Measure_positions')
 
-extents = pe.Node(util.Function(input_names = ['segmented_sulci', 
+extents = pe.Node(interface = util.Function(input_names = ['segmented_sulci', 
                                                'segmented_fundi',
                                                'segmented_midaxis', 
                                                'pits', 
@@ -407,7 +407,7 @@ extents = pe.Node(util.Function(input_names = ['segmented_sulci',
                                 function = measure_extents),
                     name='Measure_extents')
 
-curvatures = pe.Node(util.Function(input_names = ['segmented_sulci', 
+curvatures = pe.Node(interface = util.Function(input_names = ['segmented_sulci', 
                                                   'segmented_fundi',
                                                   'segmented_midaxis', 
                                                   'pits', 
@@ -422,7 +422,7 @@ curvatures = pe.Node(util.Function(input_names = ['segmented_sulci',
                                    function = measure_curvatures),
                     name='Measure_curvatures')
 
-depths = pe.Node(util.Function(input_names = ['segmented_sulci',
+depths = pe.Node(interface = util.Function(input_names = ['segmented_sulci',
                                               'segmented_fundi',
                                               'segmented_midaxis',
                                               'pits', 
@@ -437,7 +437,7 @@ depths = pe.Node(util.Function(input_names = ['segmented_sulci',
                                function = measure_depths),
                  name='Measure_depths')
 
-spectra = pe.Node(util.Function(input_names = ['segmented_sulci',
+spectra = pe.Node(interface = util.Function(input_names = ['segmented_sulci',
                                                'segmented_fundi',
                                                'segmented_midaxis',
                                                'pits', 
@@ -453,54 +453,54 @@ spectra = pe.Node(util.Function(input_names = ['segmented_sulci',
                   name='Measure_spectra')
 
 # Connect labeled surface patches and volumes to shape measurement nodes
-flo2.connect([(patch_extraction,  positions, [('patches', 'patches')])])
-flo2.connect([(region_extraction, positions, [('regions', 'regions')])])
-flo2.connect([(patch_extraction,  extents, [('patches', 'patches')])])
-flo2.connect([(region_extraction, extents, [('regions', 'regions')])])
-flo2.connect([(patch_extraction,  depths, [('patches', 'patches')])])
-flo2.connect([(region_extraction, depths, [('regions', 'regions')])])
-flo2.connect([(patch_extraction,  curvatures, [('patches', 'patches')])])
-flo2.connect([(region_extraction, curvatures, [('regions', 'regions')])])
-flo2.connect([(patch_extraction,  spectra, [('patches', 'patches')])])
-flo2.connect([(region_extraction, spectra, [('regions', 'regions')])])
+featureflow.connect([(patch_extraction,  positions, [('patches', 'patches')])])
+featureflow.connect([(region_extraction, positions, [('regions', 'regions')])])
+featureflow.connect([(patch_extraction,  extents, [('patches', 'patches')])])
+featureflow.connect([(region_extraction, extents, [('regions', 'regions')])])
+featureflow.connect([(patch_extraction,  depths, [('patches', 'patches')])])
+featureflow.connect([(region_extraction, depths, [('regions', 'regions')])])
+featureflow.connect([(patch_extraction,  curvatures, [('patches', 'patches')])])
+featureflow.connect([(region_extraction, curvatures, [('regions', 'regions')])])
+featureflow.connect([(patch_extraction,  spectra, [('patches', 'patches')])])
+featureflow.connect([(region_extraction, spectra, [('regions', 'regions')])])
 
 # Connect feature to shape measurement nodes
-flo2.connect([(sulcus_segmentation, positions, [('segmented_sulci', 'segmented_sulci')])])
-flo2.connect([(fundus_segmentation, positions, [('segmented_fundi', 'segmented_fundi')])])
-flo2.connect([(pit_extraction, positions, [('pits', 'pits')])])
-flo2.connect([(midaxis_segmentation, positions, [('segmented_midaxis', 'segmented_midaxis')])])
+featureflow.connect([(sulcus_segmentation, positions, [('segmented_sulci', 'segmented_sulci')])])
+featureflow.connect([(fundus_segmentation, positions, [('segmented_fundi', 'segmented_fundi')])])
+featureflow.connect([(pit_extraction, positions, [('pits', 'pits')])])
+featureflow.connect([(midaxis_segmentation, positions, [('segmented_midaxis', 'segmented_midaxis')])])
 
-flo2.connect([(sulcus_segmentation, extents, [('segmented_sulci', 'segmented_sulci')])])
-flo2.connect([(fundus_segmentation, extents, [('segmented_fundi', 'segmented_fundi')])])
-flo2.connect([(midaxis_segmentation, extents, [('segmented_midaxis', 'segmented_midaxis')])])
+featureflow.connect([(sulcus_segmentation, extents, [('segmented_sulci', 'segmented_sulci')])])
+featureflow.connect([(fundus_segmentation, extents, [('segmented_fundi', 'segmented_fundi')])])
+featureflow.connect([(midaxis_segmentation, extents, [('segmented_midaxis', 'segmented_midaxis')])])
 
-flo2.connect([(sulcus_segmentation, curvatures, [('segmented_sulci', 'segmented_sulci')])])
-flo2.connect([(fundus_segmentation, curvatures, [('segmented_fundi', 'segmented_fundi')])])
-flo2.connect([(pit_extraction, curvatures, [('pits', 'pits')])])
-flo2.connect([(midaxis_segmentation, curvatures, [('segmented_midaxis', 'segmented_midaxis')])])
+featureflow.connect([(sulcus_segmentation, curvatures, [('segmented_sulci', 'segmented_sulci')])])
+featureflow.connect([(fundus_segmentation, curvatures, [('segmented_fundi', 'segmented_fundi')])])
+featureflow.connect([(pit_extraction, curvatures, [('pits', 'pits')])])
+featureflow.connect([(midaxis_segmentation, curvatures, [('segmented_midaxis', 'segmented_midaxis')])])
 
-flo2.connect([(sulcus_segmentation, depths, [('segmented_sulci', 'segmented_sulci')])])
-flo2.connect([(fundus_segmentation, depths, [('segmented_fundi', 'segmented_fundi')])])
-flo2.connect([(pit_extraction, depths, [('pits', 'pits')])])
-flo2.connect([(midaxis_segmentation, depths, [('segmented_midaxis', 'segmented_midaxis')])])
+featureflow.connect([(sulcus_segmentation, depths, [('segmented_sulci', 'segmented_sulci')])])
+featureflow.connect([(fundus_segmentation, depths, [('segmented_fundi', 'segmented_fundi')])])
+featureflow.connect([(pit_extraction, depths, [('pits', 'pits')])])
+featureflow.connect([(midaxis_segmentation, depths, [('segmented_midaxis', 'segmented_midaxis')])])
 
-flo2.connect([(sulcus_segmentation, spectra, [('segmented_sulci', 'segmented_sulci')])])
-flo2.connect([(fundus_segmentation, spectra, [('segmented_fundi', 'segmented_fundi')])])
-flo2.connect([(midaxis_segmentation, spectra, [('segmented_midaxis', 'segmented_midaxis')])])
+featureflow.connect([(sulcus_segmentation, spectra, [('segmented_sulci', 'segmented_sulci')])])
+featureflow.connect([(fundus_segmentation, spectra, [('segmented_fundi', 'segmented_fundi')])])
+featureflow.connect([(midaxis_segmentation, spectra, [('segmented_midaxis', 'segmented_midaxis')])])
 
 ##############################################################################
 #    Store surface maps, features, and measures in database
 ##############################################################################
 
 # Database nodes
-maps_database = pe.Node(util.Function(input_names = ['depth_file',
+maps_database = pe.Node(interface = util.Function(input_names = ['depth_file',
                                                      'mean_curv_file',
                                                      'gauss_curv_file'],
                                       output_names=['success'],
                                       function = write_surfaces_to_database),
                         name='Write_surfaces_to_database')
 
-features_database = pe.Node(util.Function(input_names = ['segmented_sulci',
+features_database = pe.Node(interface = util.Function(input_names = ['segmented_sulci',
                                                          'segmented_fundi',
                                                          'pits',
                                                          'segmented_midaxis'],
@@ -508,7 +508,7 @@ features_database = pe.Node(util.Function(input_names = ['segmented_sulci',
                                           function = write_features_to_database),
                             name='Write_features_to_database')
 
-measures_database = pe.Node(util.Function(input_names = ['positions_sulci',
+measures_database = pe.Node(interface = util.Function(input_names = ['positions_sulci',
                                                          'positions_fundi',
                                                          'positions_pits',
                                                          'positions_midaxis',
@@ -540,25 +540,25 @@ measures_database = pe.Node(util.Function(input_names = ['positions_sulci',
                                           function = write_measures_to_database),
                             name='Write_measures_to_database')
 
-measures_table = pe.Node(util.Function(input_names = ['measures'],
+measures_table = pe.Node(interface = util.Function(input_names = ['measures'],
                                        output_names=['success'],
                                        function = write_measures_to_table),
                          name='Write_measures_to_table')
 
 # Connect surface maps to database nodes
-flo2.connect([(surfaces, maps_database, [('depth_file','depth_file'),
+featureflow.connect([(surfaces, maps_database, [('depth_file','depth_file'),
                                 ('mean_curv_file','mean_curv_file'),
                                 ('gauss_curv_file','gauss_curv_file')])])
 
 # Connect feature to database nodes
-flo2.connect([(sulcus_segmentation, features_database, [('segmented_sulci', 'segmented_sulci')]),
+featureflow.connect([(sulcus_segmentation, features_database, [('segmented_sulci', 'segmented_sulci')]),
               (fundus_segmentation, features_database, [('segmented_fundi', 'segmented_fundi')]),
               (pit_extraction, features_database, [('pits', 'pits')]),
               (midaxis_segmentation, features_database, 
                           [('segmented_midaxis', 'segmented_midaxis')])])
 
 # Connect feature measures to database nodes
-flo2.connect([(positions, measures_database, [('positions_sulci', 'positions_sulci'),
+featureflow.connect([(positions, measures_database, [('positions_sulci', 'positions_sulci'),
                                               ('positions_fundi', 'positions_fundi'),
                                               ('positions_pits', 'positions_pits'),
                                               ('positions_midaxis', 'positions_midaxis')]),
@@ -578,7 +578,7 @@ flo2.connect([(positions, measures_database, [('positions_sulci', 'positions_sul
                                             ('spectra_midaxis', 'spectra_midaxis')])])
 
 # Connect label measures to database nodes
-flo2.connect([(positions, measures_database, [('positions_patches', 'positions_patches'),
+featureflow.connect([(positions, measures_database, [('positions_patches', 'positions_patches'),
                                               ('positions_regions', 'positions_regions')]),
               (extents, measures_database, [('extents_patches', 'extents_patches'),
                                             ('extents_regions', 'extents_regions')]),
@@ -590,7 +590,7 @@ flo2.connect([(positions, measures_database, [('positions_patches', 'positions_p
                                             ('spectra_regions', 'spectra_regions')])])
 
 # Connect measure to table nodes
-flo2.connect([(measures_database, measures_table, [('measures', 'measures')])])
+featureflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
 
 """
 
@@ -601,7 +601,7 @@ if __name__== '__main__':
 
     mbflow.write_graph(graph2use='flat')
     mbflow.write_graph(graph2use='hierarchical')
-    #flo1.write_graph(graph2use='flat')
-    #flo1.write_graph(graph2use='hierarchical')
+    #atlasflow.write_graph(graph2use='flat')
+    #atlasflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
 
