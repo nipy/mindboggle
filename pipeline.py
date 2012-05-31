@@ -54,9 +54,10 @@ if not os.path.isdir(working_path):
     os.makedirs(working_path)
 
 # Commands
-depth_command = './measure/surface_measures/bin/travel_depth/TravelDepthMain'
-curvature_command = './measure/surface_measures/bin/curvature/CurvatureMain'
-extract_fundi_command = './extract/fundi/vtk_extract.py'
+mbpath = '/projects/mindboggle/mindboggle/'
+depth_command = mbpath+'measure/surface_measures/bin/travel_depth/TravelDepthMain'
+curvature_command = mbpath+'measure/surface_measures/bin/curvature/CurvatureMain'
+extract_fundi_command = mbpath+'extract/fundi/vtk_extract.py'
 
 # List of atlas subjects
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
@@ -223,13 +224,13 @@ depth.inputs.command = depth_command
 
 curvature = pe.Node(name='Compute_curvature',
                     interface = util.Function(
-                                     function = compute_curvature),
+                                     function = compute_curvature,
                                      input_names = ['command',
                                                     'surface_file'],
                                      output_names = ['mean_curvature_file',
                                                      'gauss_curvature_file',
                                                      'max_curvature_file',
-                                                     'min_curvature_file'])
+                                                     'min_curvature_file']))
 curvature.inputs.command = curvature_command
 
 # Add and connect nodes
@@ -269,33 +270,33 @@ mbflow.connect([(featureflow, datasink,
 # Extract features
 fundi = pe.Node(name='Extract_fundi',
                 interface = util.Function(
-                                 function = extract_fundi
+                                 function = extract_fundi,
                                  input_names = ['command',
                                                 'depth_file'],
                                  output_names = ['fundi']))
 fundi.inputs.command = extract_fundi_command
 
 """
-sulcus_extraction = pe.Node(interface = util.Function(input_names = ['depth_file',
+sulci = pe.Node(interface = util.Function(name='Extract_sulci',
+                                          input_names = ['depth_file',
                                                          'mean_curv_file',
                                                          'gauss_curv_file'],
                                           output_names = ['sulci'],
-                                          function = extract_sulci),
-                            name='Extract_sulci')
+                                          function = extract_sulci))
 
-midaxis_extraction = pe.Node(interface = util.Function(input_names = ['depth_file',
-                                                          'mean_curv_file',
-                                                          'gauss_curv_file'],
-                                           output_names = ['midaxis'],
-                                           function = extract_midaxis),
-                             name='Extract_midaxis')
+midaxis = pe.Node(interface = util.Function(name='Extract_midaxis',
+                                            function = extract_midaxis,
+                                            input_names = ['depth_file',
+                                                           'mean_curv_file',
+                                                           'gauss_curv_file'],
+                                            output_names = ['midaxis']))
 
 """
 # Connect surface depth to feature extraction nodes
-featureflow.connect([(surface_depth, fundus_extraction, 
+featureflow.connect([(depth, fundi,
                [('depth_file', 'depth_file')])])
-featureflow.connect([(surface_depth, datasink, 
-               [('depth_file', 'surface_depth')])])
+#featureflow.connect([(depth, datasink, 
+#               [('depth_file', 'surface_depth')])])
 """
 featureflow.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
