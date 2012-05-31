@@ -87,7 +87,7 @@ def compute_curvature(command, surface_file):
 #   Feature extraction
 ##############################################################################
 
-def extract_fundi(extract_fundi_command, depth_files):
+def extract_fundi(command, depth_file):
     """
     Extract fundi
 
@@ -95,12 +95,12 @@ def extract_fundi(extract_fundi_command, depth_files):
     """
     from nipype.interfaces.base import CommandLine
 
-    fundi = []
-    for depth_file in depth_files:
-        args = ['python', extract_fundi_command, '%s'%depth_file]
-        cli = CommandLine(command = curvature_command)
-        cli.inputs.args = ' '.join(args)
-        cli.cmdline
+    args = [command, depth_file]
+    cli = CommandLine(command = 'python')
+    cli.inputs.args = ' '.join(args)
+    cli.cmdline
+    cli.run()
+
     return fundi
 
 def extract_sulci(surface_file, depth_file, mean_curvature_file, gauss_curvature_file):
