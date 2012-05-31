@@ -35,7 +35,7 @@ atlas_annot_name = 'aparcNMMjt.annot'
 # Subjects
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
-use_linux_paths = 0
+use_linux_paths = 1
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
