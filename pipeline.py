@@ -35,7 +35,7 @@ atlas_annot_name = 'aparcNMMjt.annot'
 # Subjects
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
-use_linux_paths = 0
+use_linux_paths = 1
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -223,13 +223,13 @@ depth.inputs.command = depth_command
 
 curvature = pe.Node(name='Compute_curvature',
                     interface = util.Function(
-                                     function = compute_curvature),
+                                     function = compute_curvature,
                                      input_names = ['command',
                                                     'surface_file'],
                                      output_names = ['mean_curvature_file',
                                                      'gauss_curvature_file',
                                                      'max_curvature_file',
-                                                     'min_curvature_file'])
+                                                     'min_curvature_file']))
 curvature.inputs.command = curvature_command
 
 # Add and connect nodes
@@ -269,7 +269,7 @@ mbflow.connect([(featureflow, datasink,
 # Extract features
 fundi = pe.Node(name='Extract_fundi',
                 interface = util.Function(
-                                 function = extract_fundi
+                                 function = extract_fundi,
                                  input_names = ['command',
                                                 'depth_file'],
                                  output_names = ['fundi']))
