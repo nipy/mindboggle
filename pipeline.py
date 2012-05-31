@@ -5,7 +5,7 @@ This is Mindboggle's NiPype pipeline!
 
 Example usage:
 
-wf.run() # doctest: +SKIP
+ # doctest: +SKIP
 
 
 Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
@@ -198,8 +198,9 @@ else:
                      [('surface_files', 'Majority_vote.surface_file')])])
 atlasflow.connect([(transform, vote,
                     [('output_file', 'annot_files')])])
-#mbflow.connect([(atlasflow, datasink,
-#                 [('Majority_vote.output_files', 'maxlabels')])])
+
+mbflow.connect([(atlasflow, datasink,
+                 [('Majority_vote.output_files', 'maxlabels')])])
 
 ##############################################################################
 #
@@ -266,7 +267,7 @@ mbflow.connect([(featureflow, datasink,
 ##############################################################################
 #   Feature extraction
 ##############################################################################
-
+"""
 # Extract features
 fundi = pe.Node(name='Extract_fundi',
                 interface = util.Function(
@@ -275,28 +276,30 @@ fundi = pe.Node(name='Extract_fundi',
                                                 'depth_file'],
                                  output_names = ['fundi']))
 fundi.inputs.command = extract_fundi_command
-
 """
-sulci = pe.Node(interface = util.Function(name='Extract_sulci',
-                                          input_names = ['depth_file',
-                                                         'mean_curv_file',
-                                                         'gauss_curv_file'],
-                                          output_names = ['sulci'],
-                                          function = extract_sulci))
+"""
+sulci = pe.Node(name='Extract_sulci',
+                interface = util.Function(
+                                 function = extract_sulci,
+                                 input_names = ['depth_file',
+                                                'mean_curv_file',
+                                                'gauss_curv_file'],
+                                 output_names = ['sulci']))
 
-midaxis = pe.Node(interface = util.Function(name='Extract_midaxis',
-                                            function = extract_midaxis,
-                                            input_names = ['depth_file',
-                                                           'mean_curv_file',
-                                                           'gauss_curv_file'],
-                                            output_names = ['midaxis']))
+medial = pe.Node(name='Extract_medial',
+                 interface = util.Function(
+                                  function = extract_midaxis,
+                                  input_names = ['depth_file',
+                                                 'mean_curv_file',
+                                                 'gauss_curv_file'],
+                                  output_names = ['midaxis']))
 
 """
 # Connect surface depth to feature extraction nodes
-featureflow.connect([(depth, fundi,
-               [('depth_file', 'depth_file')])])
-#featureflow.connect([(depth, datasink, 
-#               [('depth_file', 'surface_depth')])])
+#featureflow.connect([(depth, fundi,
+#               [('depth_file', 'depth_file')])])
+#featureflow.connect([(fundi, datasink, 
+#               [('fundi', 'fundi')])])
 """
 featureflow.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
@@ -312,66 +315,73 @@ featureflow.connect([(surfaces, midaxis_extraction,
 ##############################################################################
 
 # Label propagation node
-label_propagation = pe.Node(interface = util.Function(input_names=['labels', 'fundi'],
-                                          output_names=['labels'],
-                                          function = propagate_labels),
-                            name='Propagate_labels')
+propagate = pe.Node(name='Propagate_labels',
+                    interface = util.Function(
+                                     function = propagate_labels,
+                                     input_names=['labels', 'fundi'],
+                                     output_names=['labels']))
 
 # Volume label propagation node
-volume_propagation = pe.Node(interface = util.Function(input_names=['labels'],
-                                           output_names=['labels'],
-                                           function = propagate_volume_labels),
-                             name='Propagate_volume_labels')
-
+propagate_volume = pe.Node(name='Propagate_volume_labels',
+                           interface = util.Function(
+                                            function = propagate_volume_labels,
+                                            input_names=['labels'],
+                                            output_names=['labels']))
+                                              
 # Labeled surface patch and volume extraction nodes
-patch_extraction = pe.Node(interface = util.Function(input_names=['labels'],
-                                         output_names=['patches'],
-                                         function = extract_patches),
-                           name='Extract_patches')
+extract_patch = pe.Node(name='Extract_patch',
+                        interface = util.Function(
+                                         function = extract_patches,
+                                         input_names=['labels'],
+                                         output_names=['patches']))
 
-region_extraction = pe.Node(interface = util.Function(input_names=['labels'],
-                                          output_names=['regions'],
-                                          function = extract_regions),
-                            name='Extract_regions')
+extract_patch = pe.Node(name='Extract_region',
+                        interface = util.Function(
+                                         function = extract_patches,
+                                         input_names=['labels'],
+                                         output_names=['patches']))
 
-# Connect multiatlas registration(-based labeling) to label propagation nodes
-featureflow.connect([(transform, label_propagation, [('labels','labels')]),
-              (fundus_extraction, label_propagation, [('fundi','fundi')])])
+# Connect registration and extraction to label propagation nodes
+featureflow.connect([(transform, propagate, [('labels','labels')]),
+                     (extract_fundi, propagate, [('fundi','fundi')])])
 
 # Connect label propagation to labeled surface patch and volume extraction nodes
-featureflow.connect([(label_propagation, volume_propagation, [('labels', 'labels')])])
-featureflow.connect([(volume_propagation, region_extraction, [('labels', 'labels')])])
-featureflow.connect([(label_propagation, patch_extraction, [('labels', 'labels')])])
+featureflow.connect([(propagate, propagate_volume, [('labels', 'labels')])])
+featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
+featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 
 ##############################################################################
 #   Feature segmentation / identification
 ##############################################################################
 
 # Feature segmentation nodes
-sulcus_segmentation = pe.Node(interface = util.Function(input_names=['sulci','labels'],
-                                            output_names=['segmented_sulci'],
-                                            function = segment_sulci),
-                              name='Segment_sulci')
+segment_sulci = pe.Node(name='Segment_sulci',
+                        interface = util.Function(
+                                         function = segment_sulci,
+                                         input_names=['sulci','labels'],
+                                         output_names=['segmented_sulci']))
 
-fundus_segmentation = pe.Node(interface = util.Function(input_names=['fundi','labels'],
-                                            output_names=['segmented_fundi'],
-                                            function = segment_fundi),
-                              name='Segment_fundi')
+segment_fundi = pe.Node(name='Segment_fundi',
+                        interface = util.Function(
+                                         function = segment_fundi,
+                                         input_names=['fundi','labels'],
+                                         output_names=['segmented_fundi']))
 
-midaxis_segmentation = pe.Node(interface = util.Function(input_names=['midaxis','labels'],
-                                             output_names=['segmented_midaxis'],
-                                             function = segment_midaxis),
-                               name='Segment_midaxis')
+segment_medial = pe.Node(name='Segment_medial',
+                         interface = util.Function(
+                                          function = segment_medial,
+                                          input_names=['medial','labels'],
+                                          output_names=['segmented_medial']))
 
 # Connect feature and feature segmentation nodes
-featureflow.connect([(sulcus_extraction, sulcus_segmentation, [('sulci','sulci')]),
-              (fundus_extraction, fundus_segmentation, [('fundi','fundi')]),
-              (midaxis_extraction, midaxis_segmentation, [('midaxis','midaxis')])])
+featureflow.connect([(extract_sulci, segment_sulci, [('sulci','sulci')]),
+              (extract_fundi, segment_fundi, [('fundi','fundi')]),
+              (extract_medial, segment_medial, [('medial','medial')])])
 
-# Connect multiatlas registration(-based labeling) and feature segmentation nodes
-featureflow.connect([(label_propagation, sulcus_segmentation, [('labels','labels')]),
-              (label_propagation, fundus_segmentation, [('labels','labels')]),
-              (sulcus_segmentation, midaxis_segmentation, [('segmented_sulci','labels')])])
+# Connect label propagation and feature segmentation nodes
+featureflow.connect([(propagate, segment_sulci, [('labels','labels')]),
+              (propagate, segment_fundi, [('labels','labels')]),
+              (segment_sulci, segment_medial, [('segmented_sulci','labels')])])
               
 ##############################################################################
 #   Shape measurement
