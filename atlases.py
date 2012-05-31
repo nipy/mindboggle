@@ -3,22 +3,22 @@
 """
 Atlas-based functions for surface registration-based labeling:
 
-1. Multi-atlas registration
+1. Register to template
 Register surface to template with FreeSurfer's mris_register.
 Transform the labels from multiple atlases via a template 
 (using FreeSurfer's mri_surf2surf).
 
-2. Multi-atlas labeling
+2. Transform atlas labels
 For each brain hemisphere (left and right) in a given subject, 
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
-The main function is multilabel() and calls: 
-read_annot(), relabel(), and vote_labels(), with (0-index labels).
+The main function is majority_vote() and calls: 
+read_annot(), relabel(), and vote_labels()
 
 
 Authors:  
-Forrest Bao  .  forrest.bao@gmail.com
 Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Forrest Bao  .  forrest.bao@gmail.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -34,14 +34,6 @@ def register_to_template(hemi, sph_surface_file, template_transform,
                          template_name, templates_path):
     """
     Register surface to template with FreeSurfer's mris_register
-
-    Example: lh
-             bert
-             /Applications/freesurfer/subjects
-             sphere_to_template.reg
-             KKI_2.tif
-             ./templates_freesurfer
-             
     """
     from os import path, getcwd
     from nipype.interfaces.base import CommandLine
