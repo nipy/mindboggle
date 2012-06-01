@@ -173,7 +173,16 @@ vote = pe.Node(name='Majority_vote',
                                 function = majority_vote_label,
                                 input_names = ['surface_file',
                                                'annot_files'],
-                                output_names = ['output_files']))
+                                output_names = ['maxlabel_file', 
+                                                'labelcounts_file', 
+                                                'labelvotes_file']))
+
+# Volume majority vote label propagation node
+maxlabel_volume = pe.Node(name='Propagate_maxlabels',
+                          interface = util.Function(
+                                           function = propagate_volume_labels,
+                                           input_names = ['input_file'],
+                                           output_names = ['output_file']))
 
 # Add and connect the above nodes
 atlasflow.add_nodes([register, transform, vote])
@@ -199,8 +208,12 @@ else:
 atlasflow.connect([(transform, vote,
                     [('output_file', 'annot_files')])])
 
+atlasflow.connect([(vote, maxlabel_volume, [('maxlabel_file', 'input_file')])])
+
 mbflow.connect([(atlasflow, datasink,
                  [('Majority_vote.output_files', 'maxlabels')])])
+mbflow.connect([(atlasflow, datasink,
+                 [('Propagate_maxlabels.output_file', 'maxlabels.@volume')])])
 
 ##############################################################################
 #
@@ -309,11 +322,11 @@ featureflow.connect([(surfaces, midaxis_extraction,
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
-
+"""
 ##############################################################################
 #   Label propagation
 ##############################################################################
-
+"""
 # Label propagation node
 propagate = pe.Node(name='Propagate_labels',
                     interface = util.Function(
@@ -325,9 +338,9 @@ propagate = pe.Node(name='Propagate_labels',
 propagate_volume = pe.Node(name='Propagate_volume_labels',
                            interface = util.Function(
                                             function = propagate_volume_labels,
-                                            input_names=['labels'],
-                                            output_names=['labels']))
-                                              
+                                            input_names = ['labels'],
+                                            output_names = ['volume_labels']))
+
 # Labeled surface patch and volume extraction nodes
 extract_patch = pe.Node(name='Extract_patch',
                         interface = util.Function(
@@ -347,6 +360,8 @@ featureflow.connect([(transform, propagate, [('labels','labels')]),
 
 # Connect label propagation to labeled surface patch and volume extraction nodes
 featureflow.connect([(propagate, propagate_volume, [('labels', 'labels')])])
+
+"""
 featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
 featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 
@@ -604,6 +619,32 @@ featureflow.connect([(positions, measures_database, [('positions_patches', 'posi
 featureflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
 
 """
+
+##############################################################################
+#
+#   Label evaluation workflow
+#
+##############################################################################
+
+evalflow = pe.Workflow(name='Evaluation_workflow')
+
+##############################################################################
+#   Surface calculations
+##############################################################################
+
+# Measure surface depth and curvature nodes
+depth = pe.Node(name='Compute_depth',
+                interface = util.Function(
+                                 function = compute_depth,
+                                 input_names = ['command',
+                                                'labels'],
+                                 output_names = ['overlap']))
+depth.inputs.command = depth_command
+
+mbflow.connect([(atlasflow, evalflow,
+                 [('Majority_vote.output_files', 
+                   'Evaluation_workflow.maxlabels')])])
+
 
 ##############################################################################
 #    Run workflow
