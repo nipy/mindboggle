@@ -181,11 +181,15 @@ vote = pe.Node(name='Majority_vote',
 maxlabel_volume = pe.Node(name='Propagate_maxlabels',
                           interface = util.Function(
                                            function = propagate_volume_labels,
-                                           input_names = ['input_file'],
+                                           input_names = ['subject_id',
+                                                          'atlas_annot_name',
+                                                          'output_name'],
                                            output_names = ['output_file']))
+maxlabel_volume.inputs.atlas_annot_name = atlas_annot_name
+maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
 
 # Add and connect the above nodes
-atlasflow.add_nodes([register, transform, vote])
+atlasflow.add_nodes([register, transform, vote, maxlabel_volume])
 
 mbflow.connect([(infosource, atlasflow,
                  [('hemi', 'Register_to_template.hemi')]),
@@ -208,10 +212,13 @@ else:
 atlasflow.connect([(transform, vote,
                     [('output_file', 'annot_files')])])
 
-atlasflow.connect([(vote, maxlabel_volume, [('maxlabel_file', 'input_file')])])
+mbflow.connect([(infosource, atlasflow, 
+                 [('subject_id', 'Propagate_maxlabels.subject_id')])])
 
 mbflow.connect([(atlasflow, datasink,
-                 [('Majority_vote.output_files', 'maxlabels')])])
+                 [('Majority_vote.maxlabel_file', 'labels.@max'),
+                  ('Majority_vote.labelcounts_file', 'labels.@counts'),
+                  ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 mbflow.connect([(atlasflow, datasink,
                  [('Propagate_maxlabels.output_file', 'maxlabels.@volume')])])
 
@@ -307,13 +314,12 @@ medial = pe.Node(name='Extract_medial',
                                                  'gauss_curv_file'],
                                   output_names = ['midaxis']))
 
-"""
 # Connect surface depth to feature extraction nodes
-#featureflow.connect([(depth, fundi,
-#               [('depth_file', 'depth_file')])])
-#featureflow.connect([(fundi, datasink, 
-#               [('fundi', 'fundi')])])
-"""
+featureflow.connect([(depth, fundi,
+               [('depth_file', 'depth_file')])])
+featureflow.connect([(fundi, datasink, 
+               [('fundi', 'fundi')])])
+
 featureflow.connect([(surfaces, sulcus_extraction, 
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
@@ -361,7 +367,6 @@ featureflow.connect([(transform, propagate, [('labels','labels')]),
 # Connect label propagation to labeled surface patch and volume extraction nodes
 featureflow.connect([(propagate, propagate_volume, [('labels', 'labels')])])
 
-"""
 featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
 featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 
@@ -617,7 +622,6 @@ featureflow.connect([(positions, measures_database, [('positions_patches', 'posi
 
 # Connect measure to table nodes
 featureflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
-
 """
 
 ##############################################################################
@@ -625,7 +629,7 @@ featureflow.connect([(measures_database, measures_table, [('measures', 'measures
 #   Label evaluation workflow
 #
 ##############################################################################
-
+"""
 evalflow = pe.Workflow(name='Evaluation_workflow')
 
 ##############################################################################
@@ -645,7 +649,9 @@ mbflow.connect([(atlasflow, evalflow,
                  [('Majority_vote.output_files', 
                    'Evaluation_workflow.maxlabels')])])
 
-
+featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
+featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
+"""
 ##############################################################################
 #    Run workflow
 ##############################################################################
