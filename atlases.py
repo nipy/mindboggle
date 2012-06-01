@@ -337,9 +337,9 @@ def majority_vote_label(surface_file, annot_files):
     Faces =     VTKReader.structure.polygons
 
     file_stem = surface_file.strip('.vtk')
-    output_files = [file_stem + '.labels.max',
-                    file_stem + '.labelcounts',
-                    file_stem + '.labelvotes']
+    maxlabel_file = file_stem + '.labels.max'
+    labelcounts_file = file_stem + '.labelcounts'
+    labelvotes_file = file_stem + '.labelvotes'
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
           pyvtk.PointData(pyvtk.Scalars(labels_max,\
@@ -356,5 +356,31 @@ def majority_vote_label(surface_file, annot_files):
                 name='Votes (number of votes for majority labels)'))).\
           tofile(output_files[2], 'ascii')
 
-    return output_files
+    return maxlabel_file, labelcounts_file, labelvotes_file
 
+def propagate_volume_labels(subject_id, subjects_path, hemi, surface_type, surface_val):
+    """
+    Propagate surface labels through a gray matter volume 
+    using FreeSurfer's mri_surf2vol
+    """
+    from os import path, getcwd
+    from nipype.interfaces.base import CommandLine
+    from nipype import logging
+    logger = logging.getLogger('interface')
+
+    output_file = path.join(getcwd(), hemi + '.' + template_name)
+
+    args = ['--hemi', hemi,
+            '--surf', surface_type,
+            '--surfval', surface_val,
+            '--fillribbon',
+            '--identity', subject_id,
+            '--o', output_file,
+            '--sd', subjects_path]
+
+    cli = CommandLine(command='mri_surf2vol')
+    cli.inputs.args = ' '.join(args)
+    logger.info(cli.cmdline)
+    cli.run()
+    
+    return output_file
