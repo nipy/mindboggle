@@ -358,29 +358,30 @@ def majority_vote_label(surface_file, annot_files):
 
     return maxlabel_file, labelcounts_file, labelvotes_file
 
-def propagate_volume_labels(subject_id, subjects_path, hemi, surface_type, surface_val):
+def propagate_volume_labels(subject_id, atlas_annot_name, output_name):
     """
     Propagate surface labels through a gray matter volume 
-    using FreeSurfer's mri_surf2vol
+    using FreeSurfer's mri_aparc2aseg
+    Ex: mri_aparc2aseg --s $trgsubj --o $outsegfile 
+                       --annot $trgsubj --annot-table $colortablefile
     """
     from os import path, getcwd
     from nipype.interfaces.base import CommandLine
     from nipype import logging
     logger = logging.getLogger('interface')
 
-    output_file = path.join(getcwd(), hemi + '.' + template_name)
+    print("Propagate surface labels through gray matter volume...")
 
-    args = ['--hemi', hemi,
-            '--surf', surface_type,
-            '--surfval', surface_val,
-            '--fillribbon',
-            '--identity', subject_id,
-            '--o', output_file,
-            '--sd', subjects_path]
+    output_file = path.join(getcwd(), subject_id + '.' + output_name)
 
-    cli = CommandLine(command='mri_surf2vol')
+    args = ['--s', subject_id,
+            '--annot', annot_file,
+            '--o', output_file]
+
+    cli = CommandLine(command='mri_aparc2aseg')
     cli.inputs.args = ' '.join(args)
     logger.info(cli.cmdline)
     cli.run()
     
     return output_file
+
