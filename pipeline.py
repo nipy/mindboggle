@@ -35,7 +35,7 @@ atlas_annot_name = 'aparcNMMjt.annot'
 # Subjects
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
-use_linux_paths = 1
+use_linux_paths = 0
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -151,6 +151,13 @@ register.inputs.template_name = template_name
 register.inputs.templates_path = templates_path
 register.inputs.template_transform = template_transform
 
+atlasflow.add_nodes([register])
+mbflow.connect([(infosource, atlasflow,
+                 [('hemi', 'Register_to_template.hemi')]),
+                (datasource, atlasflow, 
+                 [('sph_surface_files',
+                   'Register_to_template.sph_surface_file')])])
+
 # Atlas registration
 transform = pe.MapNode(name = 'Transform_atlas_labels',
                        iterfield = ['atlas_name'],
@@ -162,47 +169,31 @@ transform = pe.MapNode(name = 'Transform_atlas_labels',
                                                        'atlas_name',
                                                        'atlases_path',
                                                        'atlas_annot_name'],
-                                        output_names = ['output_file']))
+                                        output_names = ['output_file', 
+                                                        'atlas_annot_name']))
 transform.inputs.atlas_name = atlas_names
 transform.inputs.atlases_path = atlases_path
 transform.inputs.atlas_annot_name = atlas_annot_name
 
-# Majority vote labeling
-vote = pe.Node(name='Majority_vote',
-               interface = util.Function(
-                                function = majority_vote_label,
-                                input_names = ['surface_file',
-                                               'annot_files'],
-                                output_names = ['maxlabel_file', 
-                                                'labelcounts_file', 
-                                                'labelvotes_file']))
-
-# Volume majority vote label propagation node
-maxlabel_volume = pe.Node(name='Propagate_maxlabels',
-                          interface = util.Function(
-                                           function = propagate_volume_labels,
-                                           input_names = ['subject_id',
-                                                          'atlas_annot_name',
-                                                          'output_name'],
-                                           output_names = ['output_file']))
-maxlabel_volume.inputs.atlas_annot_name = atlas_annot_name
-maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
-
-# Add and connect the above nodes
-atlasflow.add_nodes([register, transform, vote, maxlabel_volume])
-
-mbflow.connect([(infosource, atlasflow,
-                 [('hemi', 'Register_to_template.hemi')]),
-                (datasource, atlasflow, 
-                 [('sph_surface_files',
-                   'Register_to_template.sph_surface_file')])])
-
+atlasflow.add_nodes([transform])
 mbflow.connect([(infosource, atlasflow, 
                  [('hemi', 'Transform_atlas_labels.hemi'),
                   ('subject_id', 'Transform_atlas_labels.subject_id')])])
 atlasflow.connect([(register, transform, 
                     [('template_transform', 'template_transform')])])
 
+# Majority vote labeling
+vote = pe.Node(name='Majority_vote',
+               interface = util.Function(
+                                function = majority_vote_label,
+                                input_names = ['surface_file',
+                                               'annot_files',
+                                               'atlas_annot_name'],
+                                output_names = ['maxlabel_file', 
+                                                'labelcounts_file', 
+                                                'labelvotes_file',
+                                                'atlas_annot_name']))
+atlasflow.add_nodes([vote])
 if use_freesurfer_surfaces:
     mbflow.connect([(convert, atlasflow, 
                      [('converted', 'Majority_vote.surface_file')])])
@@ -210,17 +201,31 @@ else:
     mbflow.connect([(datasource, atlasflow, 
                      [('surface_files', 'Majority_vote.surface_file')])])
 atlasflow.connect([(transform, vote,
-                    [('output_file', 'annot_files')])])
+                    [('output_file', 'annot_files'),
+                     ('atlas_annot_name', 'atlas_annot_name')])])
 
+# Volume majority vote label propagation node
+maxlabel_volume = pe.Node(name='Fill_volume_maxlabels',
+                          interface = util.Function(
+                                           function = propagate_volume_labels,
+                                           input_names = ['subject_id',
+                                                          'annot_name',
+                                                          'output_name'],
+                                           output_names = ['output_file']))
+maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
+
+atlasflow.add_nodes([maxlabel_volume])
 mbflow.connect([(infosource, atlasflow, 
-                 [('subject_id', 'Propagate_maxlabels.subject_id')])])
+                 [('subject_id', 'Fill_volume_maxlabels.subject_id')])])
+atlasflow.connect([(vote, maxlabel_volume,
+                    [('atlas_annot_name', 'atlas_annot_name')])])
 
 mbflow.connect([(atlasflow, datasink,
                  [('Majority_vote.maxlabel_file', 'labels.@max'),
                   ('Majority_vote.labelcounts_file', 'labels.@counts'),
                   ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 mbflow.connect([(atlasflow, datasink,
-                 [('Propagate_maxlabels.output_file', 'maxlabels.@volume')])])
+                 [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
 
 ##############################################################################
 #
@@ -659,7 +664,5 @@ if __name__== '__main__':
 
     mbflow.write_graph(graph2use='flat')
     mbflow.write_graph(graph2use='hierarchical')
-    #atlasflow.write_graph(graph2use='flat')
-    #atlasflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
 
