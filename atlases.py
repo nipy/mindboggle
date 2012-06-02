@@ -232,8 +232,9 @@ def majority_vote_label(surface_file, annot_files):
                   number of votes per majority label
     """
 
+    import nibabel as nb
     import pyvtk
-    from atlases import read_annot, relabel, vote_labels
+    from atlases import relabel, vote_labels
 
     if_relabel = 1  # call relabel()
 
@@ -275,17 +276,17 @@ def majority_vote_label(surface_file, annot_files):
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
           pyvtk.PointData(pyvtk.Scalars(labels_max,\
                 name='Max (majority labels)'))).\
-          tofile(output_files[0], 'ascii')
+          tofile(maxlabel_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
           pyvtk.PointData(pyvtk.Scalars(label_counts,\
                 name='Counts (number of different labels)'))).\
-          tofile(output_files[1], 'ascii')
+          tofile(labelcounts_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
           pyvtk.PointData(pyvtk.Scalars(label_votes,\
                 name='Votes (number of votes for majority labels)'))).\
-          tofile(output_files[2], 'ascii')
+          tofile(labelvotes_file, 'ascii')
 
     return maxlabel_file, labelcounts_file, labelvotes_file
 
