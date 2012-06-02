@@ -21,7 +21,7 @@ import nipype.interfaces.io as nio
 import numpy as np
 
 from atlases import register_to_template, transform_atlas_labels,\
-                    majority_vote_label
+                    majority_vote_label, label_volume
 from features import *
 
 use_freesurfer_surfaces = 1
@@ -34,6 +34,8 @@ atlas_annot_name = 'aparcNMMjt.annot'
 
 # Subjects
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
+
+if_label_volume = 1
 
 use_linux_paths = 0
 if use_linux_paths:
@@ -80,36 +82,56 @@ mbflow.base_dir = working_path
 infosource = pe.Node(name = 'Inputs',
                      interface = util.IdentityInterface(fields=['subject_id',
                                                                 'hemi',
-                                                                'surface_type']))
+                                                                'surface_type',
+                                                                'volume_mask']))
 infosource.iterables = ([('subject_id', subjects_list),
                          ('hemi', hemis)])
-datasource = pe.Node(name = 'Surfaces',
+surfsource = pe.Node(name = 'Surfaces',
                      interface = nio.DataGrabber(infields=['subject_id',
                                                            'hemi'],
                                                  outfields=['surface_files',
                                                             'inf_surface_files',
                                                             'sph_surface_files']))
+if if_label_volume:
+    volsource = pe.Node(name = 'Volumes',
+                        interface = nio.DataGrabber(infields=['subject_id',
+                                                              'hemi'],
+                                                    outfields=['volume_files']))
 
-# Specify the location and structure of the inputs and outputs
-datasource.inputs.base_directory = subjects_path
-datasource.inputs.template = '%s/surf/%s.%s'
-datasource.inputs.template_args['surface_files'] = [['subject_id', 
+# Location and structure of the surface inputs
+surfsource.inputs.base_directory = subjects_path
+surfsource.inputs.template = '%s/surf/%s.%s'
+surfsource.inputs.template_args['surface_files'] = [['subject_id', 
                                                      'hemi', 
                                                      'pial']]
-datasource.inputs.template_args['inf_surface_files'] = [['subject_id', 
+surfsource.inputs.template_args['inf_surface_files'] = [['subject_id', 
                                                          'hemi', 
                                                          'inflated']]
-datasource.inputs.template_args['sph_surface_files'] = [['subject_id', 
+surfsource.inputs.template_args['sph_surface_files'] = [['subject_id', 
                                                          'hemi', 
                                                          'sphere']]
+
+# Location and structure of the volume inputs
+if if_label_volume:
+    volsource.inputs.base_directory = subjects_path
+    volsource.inputs.template = '%s/mri/%s.%s'
+    volsource.inputs.template_args['volume_files'] = [['subject_id', 
+                                                       'hemi', 
+                                                       'ribbon.mgz']]
+
+# Outputs
 datasink = pe.Node(nio.DataSink(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
 
 # Connect input nodes
-mbflow.connect([(infosource, datasource, 
+mbflow.connect([(infosource, surfsource, 
                  [('subject_id','subject_id'),
                   ('hemi','hemi')])])
+if if_label_volume:
+    mbflow.connect([(infosource, volsource, 
+                     [('subject_id','subject_id'),
+                      ('hemi','hemi')])])
 
 ##############################################################################
 #   Surface input and conversion
@@ -123,7 +145,7 @@ if use_freesurfer_surfaces:
     convert = pe.MapNode(name = 'Convert_surface',
                          iterfield=['in_file'],
                          interface = fs.MRIsConvert(out_datatype='vtk'))
-    mbflow.connect([(datasource, convert, 
+    mbflow.connect([(surfsource, convert, 
                      [('surface_files','in_file')])])
 
 ##############################################################################
@@ -154,7 +176,7 @@ register.inputs.template_transform = template_transform
 atlasflow.add_nodes([register])
 mbflow.connect([(infosource, atlasflow,
                  [('hemi', 'Register_to_template.hemi')]),
-                (datasource, atlasflow, 
+                (surfsource, atlasflow, 
                  [('sph_surface_files',
                    'Register_to_template.sph_surface_file')])])
 
@@ -195,7 +217,7 @@ if use_freesurfer_surfaces:
     mbflow.connect([(convert, atlasflow, 
                      [('converted', 'Majority_vote.surface_file')])])
 else:
-    mbflow.connect([(datasource, atlasflow, 
+    mbflow.connect([(surfsource, atlasflow, 
                      [('surface_files', 'Majority_vote.surface_file')])])
 atlasflow.connect([(transform, vote,
                     [('output_file', 'annot_files')])])
@@ -205,44 +227,38 @@ mbflow.connect([(atlasflow, datasink,
                   ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
-fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
-                         interface = util.Function(
-                                          function = label_volume,
-                                          input_names = ['output_file',
-                                                         'mask_file',
-                                                         'input_file'],
-                                          output_names = ['output_file']))
-maxlabel_volume.inputs.output_file = 'labels.max.nii.gz'
-#maxlabel_volume.inputs.mask_file = mask_file
-atlasflow.add_nodes([maxlabel_volume])
-#mbflow.connect([(infosource, atlasflow, 
-#                 [('output_file', 'Fill_volume_maxlabels.mask_file')])])
-#mbflow.connect([(infosource, atlasflow, 
-#                 [('output_file', 'Fill_volume_maxlabels.input_file')])])
-mbflow.connect([(atlasflow, datasink,
-                 [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
+if if_label_volume:
 
-"""
-# Filling a volume (e.g., gray matter) mask with majority vote labels
-# using FreeSurfer
-
-NB: For volume label propagation using FreeSurfer,
-    we would need to save the appropriate .annot file.
-
-maxlabel_volume_FS = pe.Node(name='Maxlabel_volume_FS',
+    fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
                              interface = util.Function(
-                                              function = label_volume_annot,
-                                              input_names = ['subject_id',
-                                                             'annot_name',
-                                                             'output_name'],
+                                              function = label_volume,
+                                              input_names = ['output_file',
+                                                             'mask_file',
+                                                             'input_file'],
                                               output_names = ['output_file']))
-maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
-atlasflow.add_nodes([maxlabel_volume])
-mbflow.connect([(infosource, atlasflow, 
-                 [('subject_id', 'Fill_volume_maxlabels.subject_id')])])
-mbflow.connect([(atlasflow, datasink,
-                 [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
-"""
+    fill_maxlabels.inputs.output_file = 'labels.max.nii.gz'
+
+    """
+    atlasflow.add_nodes([fill_maxlabels])
+    mbflow.connect([(volsource, atlasflow, 
+                     [('volume_files', 'Fill_volume_maxlabels.mask_file')])])
+    mbflow.connect([(???, atlasflow, 
+                     [('output_file', 'Fill_volume_maxlabels.input_file')])])
+    mbflow.connect([(atlasflow, datasink,
+                     [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
+    """    
+    """
+    NB: For volume label propagation using FreeSurfer,
+        we would need to save the appropriate .annot file.
+    
+    maxlabel_volume_FS = pe.Node(name='Maxlabel_volume_FS',
+                                 interface = util.Function(
+                                                  function = label_volume_annot,
+                                                  input_names = ['subject_id',
+                                                                 'annot_name',
+                                                                 'output_name'],
+                                                  output_names = ['output_file']))
+    """
 
 ##############################################################################
 #
