@@ -204,16 +204,38 @@ mbflow.connect([(atlasflow, datasink,
                   ('Majority_vote.labelcounts_file', 'labels.@counts'),
                   ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 
+# Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
+fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
+                         interface = util.Function(
+                                          function = label_volume,
+                                          input_names = ['output_file',
+                                                         'mask_file',
+                                                         'input_file'],
+                                          output_names = ['output_file']))
+maxlabel_volume.inputs.output_file = 'labels.max.nii.gz'
+#maxlabel_volume.inputs.mask_file = mask_file
+atlasflow.add_nodes([maxlabel_volume])
+#mbflow.connect([(infosource, atlasflow, 
+#                 [('output_file', 'Fill_volume_maxlabels.mask_file')])])
+#mbflow.connect([(infosource, atlasflow, 
+#                 [('output_file', 'Fill_volume_maxlabels.input_file')])])
+mbflow.connect([(atlasflow, datasink,
+                 [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
+
 """
-NB: For volume label propagation, need to save maxlabel .annot file
-# Volume majority vote label propagation
-maxlabel_volume = pe.Node(name='Fill_volume_maxlabels',
-                          interface = util.Function(
-                                           function = propagate_volume_labels,
-                                           input_names = ['subject_id',
-                                                          'annot_name',
-                                                          'output_name'],
-                                           output_names = ['output_file']))
+# Filling a volume (e.g., gray matter) mask with majority vote labels
+# using FreeSurfer
+
+NB: For volume label propagation using FreeSurfer,
+    we would need to save the appropriate .annot file.
+
+maxlabel_volume_FS = pe.Node(name='Maxlabel_volume_FS',
+                             interface = util.Function(
+                                              function = label_volume_annot,
+                                              input_names = ['subject_id',
+                                                             'annot_name',
+                                                             'output_name'],
+                                              output_names = ['output_file']))
 maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
 atlasflow.add_nodes([maxlabel_volume])
 mbflow.connect([(infosource, atlasflow, 
