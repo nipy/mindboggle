@@ -282,7 +282,7 @@ def vote_labels(label_lists):
 
     return labels_max, label_votes, label_counts
 
-def majority_vote_label(surface_file, annot_files, atlas_annot_name):
+def majority_vote_label(surface_file, annot_files):
     """
     Load a VTK surface and corresponding FreeSurfer annot files.
     Write majority vote labels, and label counts and votes as VTK files.
@@ -356,13 +356,14 @@ def majority_vote_label(surface_file, annot_files, atlas_annot_name):
                 name='Votes (number of votes for majority labels)'))).\
           tofile(output_files[2], 'ascii')
 
-    return maxlabel_file, labelcounts_file, labelvotes_file, atlas_annot_name
+    return maxlabel_file, labelcounts_file, labelvotes_file
 
+"""
 def propagate_volume_labels(subject_id, annot_name, output_name):
-    """
+    ""
     Propagate surface labels through a gray matter volume 
     using FreeSurfer's mri_aparc2aseg
-    """
+    ""
     from os import path, getcwd
     from nipype.interfaces.base import CommandLine
     from nipype import logging
@@ -380,6 +381,6 @@ def propagate_volume_labels(subject_id, annot_name, output_name):
     cli.inputs.args = ' '.join(args)
     logger.info(cli.cmdline)
     cli.run()
-    
-    return output_file
 
+    return output_file
+"""
