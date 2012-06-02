@@ -12,8 +12,7 @@ Transform the labels from multiple atlases via a template
 For each brain hemisphere (left and right) in a given subject, 
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
-The main function is majority_vote() and calls: 
-read_annot(), relabel(), and vote_labels()
+The main function is majority_vote() and calls relabel() and vote_labels().
 
 
 Authors:  
@@ -120,74 +119,6 @@ else:
 #   Multi-atlas labeling
 ##############################################################################
 
-def read_annot(filepath, orig_ids=False):
-    """
-    Read in a Freesurfer annotation from a .annot file.
-    From https://github.com/nipy/PySurfer/blob/master/surfer/io.py
-
-    Parameters
-    ==========
-    filepath : str  (path to annotation file)
-    orig_ids : bool  (?return the vertex ids as stored in the annotation file 
-                       or colortable ids)
-    
-    Returns
-    =======
-    labels : n_vtx numpy array  (annotation id at each vertex)
-    ctab : numpy array  (RGBA + label id colortable array)
-    names : numpy array  (array of region names as stored in the annot file)   
-
-    """
-    import numpy as np
-    
-    with open(filepath, "rb") as fobj:
-        dt = ">i4"
-        vnum = np.fromfile(fobj, dt, 1)[0]
-        data = np.fromfile(fobj, dt, vnum * 2).reshape(vnum, 2)
-        labels = data[:, 1]
-        ctab_exists = np.fromfile(fobj, dt, 1)[0]
-        if not ctab_exists:
-            raise Exception('Color table not found in annotation file.')
-        n_entries = np.fromfile(fobj, dt, 1)[0]
-        if n_entries > 0:
-            length = np.fromfile(fobj, dt, 1)[0]
-            orig_tab = np.fromfile(fobj, '>c', length)
-            orig_tab = orig_tab[:-1]
-
-            names = list()
-            ctab = np.zeros((n_entries, 5), np.int)
-            for i in xrange(n_entries):
-                name_length = np.fromfile(fobj, dt, 1)[0]
-                name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
-                names.append(name)
-                ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
-                              ctab[i, 2] * (2 ** 16) +
-                              ctab[i, 3] * (2 ** 24))
-        else:
-            ctab_version = -n_entries
-            if ctab_version != 2:
-                raise Exception('Color table version not supported.')
-            n_entries = np.fromfile(fobj, dt, 1)[0]
-            ctab = np.zeros((n_entries, 5), np.int)
-            length = np.fromfile(fobj, dt, 1)[0]
-            _ = np.fromfile(fobj, "|S%d" % length, 1)[0] # Orig table path
-            entries_to_read = np.fromfile(fobj, dt, 1)[0]
-            names = list()
-            for i in xrange(entries_to_read):
-                _ = np.fromfile(fobj, dt, 1)[0] # Structure
-                name_length = np.fromfile(fobj, dt, 1)[0]
-                name = np.fromfile(fobj, "|S%d" % name_length, 1)[0]
-                names.append(name)
-                ctab[i, :4] = np.fromfile(fobj, dt, 4)
-                ctab[i, 4] = (ctab[i, 0] + ctab[i, 1] * (2 ** 8) +
-                                ctab[i, 2] * (2 ** 16))
-        ctab[:, 3] = 255
-    if not orig_ids:
-        ord = np.argsort(ctab[:, -1])
-        labels = ord[np.searchsorted(ctab[ord, -1], labels)]
-    return labels, ctab, names 
-
 def relabel(label):
     """
     Return a pre-specified label assignment for a given input label.
@@ -287,7 +218,7 @@ def majority_vote_label(surface_file, annot_files):
     Load a VTK surface and corresponding FreeSurfer annot files.
     Write majority vote labels, and label counts and votes as VTK files.
 
-    Runs functions: read_annot(), relabel(), and vote_labels()
+    Runs functions: relabel() and vote_labels()
 
     Parameters
     ==========
@@ -310,7 +241,7 @@ def majority_vote_label(surface_file, annot_files):
     print("Load annotation files...")
     label_lists = []
     for annot_file in annot_files:
-        labels, colortable, names = read_annot(annot_file)
+        labels, colortable, names = nb.freesurfer.read_annot(annot_file)
         if if_relabel:
             labels = map(relabel, labels)
         label_lists.append(labels)
@@ -358,8 +289,47 @@ def majority_vote_label(surface_file, annot_files):
 
     return maxlabel_file, labelcounts_file, labelvotes_file
 
+def label_volume(output_file, mask_file, input_file):
+    """
+    Fill (e.g., gray matter) volume with surface labels using ANTS
+    (ImageMath's PropagateLabelsThroughMask)
+
+    Brian avants: 
+    The initial box labels are propagated through the gray matter with
+    gm-probability dependent speed. It uses the fast marching algorithm.
+    You can control how tightly the propagation follows the gray matter
+    label by adjusting the speed image -- e.g. a binary speed image
+    will constrain the propagated label only to the gm.
+
+    """
+    from os import path, getcwd
+    from nipype.interfaces.base import CommandLine
+    from nipype import logging
+    logger = logging.getLogger('interface')
+
+    print("Fill gray matter volume with surface labels using ANTS...")
+
+    output_file = path.join(getcwd(), output_file)
+
+    args = ['3',
+            output_file,
+            'PropagateLabelsThroughMask',
+            mask_file,
+            input_file]
+
+    cli = CommandLine(command='ImageMath')
+    cli.inputs.args = ' '.join(args)
+    logger.info(cli.cmdline)
+    cli.run()
+
+    return output_file
+
 """
-def propagate_volume_labels(subject_id, annot_name, output_name):
+NB: To fill gray matter with labels using FreeSurfer,
+    we would need to save the labels as an .annot file 
+    in the subject directory (annot_name).
+
+def label_volume_FS(subject_id, annot_name, output_name):
     ""
     Propagate surface labels through a gray matter volume 
     using FreeSurfer's mri_aparc2aseg
@@ -369,7 +339,7 @@ def propagate_volume_labels(subject_id, annot_name, output_name):
     from nipype import logging
     logger = logging.getLogger('interface')
 
-    print("Propagate surface labels through gray matter volume...")
+    print("Fill gray matter volume with surface labels using FreeSurfer...")
 
     output_file = path.join(getcwd(), output_name)
 
