@@ -169,8 +169,7 @@ transform = pe.MapNode(name = 'Transform_atlas_labels',
                                                        'atlas_name',
                                                        'atlases_path',
                                                        'atlas_annot_name'],
-                                        output_names = ['output_file', 
-                                                        'atlas_annot_name']))
+                                        output_names = ['output_file']))
 transform.inputs.atlas_name = atlas_names
 transform.inputs.atlases_path = atlases_path
 transform.inputs.atlas_annot_name = atlas_annot_name
@@ -187,12 +186,10 @@ vote = pe.Node(name='Majority_vote',
                interface = util.Function(
                                 function = majority_vote_label,
                                 input_names = ['surface_file',
-                                               'annot_files',
-                                               'atlas_annot_name'],
+                                               'annot_files'],
                                 output_names = ['maxlabel_file', 
                                                 'labelcounts_file', 
-                                                'labelvotes_file',
-                                                'atlas_annot_name']))
+                                                'labelvotes_file']))
 atlasflow.add_nodes([vote])
 if use_freesurfer_surfaces:
     mbflow.connect([(convert, atlasflow, 
@@ -201,10 +198,15 @@ else:
     mbflow.connect([(datasource, atlasflow, 
                      [('surface_files', 'Majority_vote.surface_file')])])
 atlasflow.connect([(transform, vote,
-                    [('output_file', 'annot_files'),
-                     ('atlas_annot_name', 'atlas_annot_name')])])
+                    [('output_file', 'annot_files')])])
+mbflow.connect([(atlasflow, datasink,
+                 [('Majority_vote.maxlabel_file', 'labels.@max'),
+                  ('Majority_vote.labelcounts_file', 'labels.@counts'),
+                  ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 
-# Volume majority vote label propagation node
+"""
+NB: For volume label propagation, need to save maxlabel .annot file
+# Volume majority vote label propagation
 maxlabel_volume = pe.Node(name='Fill_volume_maxlabels',
                           interface = util.Function(
                                            function = propagate_volume_labels,
@@ -213,19 +215,12 @@ maxlabel_volume = pe.Node(name='Fill_volume_maxlabels',
                                                           'output_name'],
                                            output_names = ['output_file']))
 maxlabel_volume.inputs.output_name = 'labels.max.nii.gz'
-
 atlasflow.add_nodes([maxlabel_volume])
 mbflow.connect([(infosource, atlasflow, 
                  [('subject_id', 'Fill_volume_maxlabels.subject_id')])])
-atlasflow.connect([(vote, maxlabel_volume,
-                    [('atlas_annot_name', 'atlas_annot_name')])])
-
-mbflow.connect([(atlasflow, datasink,
-                 [('Majority_vote.maxlabel_file', 'labels.@max'),
-                  ('Majority_vote.labelcounts_file', 'labels.@counts'),
-                  ('Majority_vote.labelvotes_file', 'labels.@votes')])])
 mbflow.connect([(atlasflow, datasink,
                  [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
+"""
 
 ##############################################################################
 #
