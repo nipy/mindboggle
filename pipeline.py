@@ -220,7 +220,7 @@ vote = pe.Node(name='Majority_vote',
                                                 'labelcounts_file', 
                                                 'labelvotes_file']))
 atlasflow.add_nodes([vote])
-"""
+
 if use_freesurfer_surfaces:
     mbflow.connect([(convertsurf, atlasflow,
                      [('converted', 'Majority_vote.surface_file')])])
@@ -233,7 +233,7 @@ mbflow.connect([(atlasflow, datasink,
                  [('Majority_vote.maxlabel_file', 'labels.@max'),
                   ('Majority_vote.labelcounts_file', 'labels.@counts'),
                   ('Majority_vote.labelvotes_file', 'labels.@votes')])])
-"""
+
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
 if if_label_volume:
 
@@ -248,10 +248,15 @@ if if_label_volume:
     surf2vol.inputs.use_freesurfer_surfaces = use_freesurfer_surfaces
 
     atlasflow.add_nodes([surf2vol])
-    mbflow.connect([(vote, surf2vol,
+    atlasflow.connect([(vote, surf2vol,
                      [('maxlabel_file','surface_file')])])
-    mbflow.connect([(volsource, atlasflow,
-                     [('volume_files','Surface_to_volume.volume_file')])])
+
+    if use_freesurfer_volumes:
+        mbflow.connect([(convertvol, atlasflow,
+                         [('out_file','Surface_to_volume.volume_file')])])
+    else:
+        mbflow.connect([(volsource, atlasflow,
+                         [('volume_files','Surface_to_volume.volume_file')])])
 
     # Fill volume mask with surface vertex labels
     fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
@@ -263,15 +268,19 @@ if if_label_volume:
                                               output_names = ['output_file']))
     fill_maxlabels.inputs.output_file = 'labels.max.nii.gz'
 
-    """
     atlasflow.add_nodes([fill_maxlabels])
-    mbflow.connect([(volsource, atlasflow, 
-                     [('volume_files', 'Fill_volume_maxlabels.mask_file')])])
-    mbflow.connect([(???, atlasflow, 
-                     [('output_file', 'Fill_volume_maxlabels.input_file')])])
+    if use_freesurfer_volumes:
+        mbflow.connect([(convertvol, atlasflow,
+                         [('out_file','Fill_volume_maxlabels.mask_file')])])
+    else:
+        mbflow.connect([(volsource, atlasflow,
+                         [('volume_files','Fill_volume_maxlabels.mask_file')])])
+
+    atlasflow.connect([(surf2vol, fill_maxlabels,
+                        [('output_file', 'input_file')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
-    """    
+
     """
     NB: For volume label propagation using FreeSurfer,
         we would need to save the appropriate .annot file.
