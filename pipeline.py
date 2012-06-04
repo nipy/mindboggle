@@ -22,6 +22,7 @@ import numpy as np
 
 from atlases import register_to_template, transform_atlas_labels,\
                     majority_vote_label, label_volume
+from polydata2volume import polydata2volume
 from features import *
 
 use_freesurfer_surfaces = 1
@@ -37,7 +38,7 @@ subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
 if_label_volume = 1
 
-use_linux_paths = 0
+use_linux_paths = 1
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -228,6 +229,18 @@ mbflow.connect([(atlasflow, datasink,
 
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
 if if_label_volume:
+
+def polydata2volume(hemi, surface_path, surface_name, volume_file, output_file):
+
+    surf2vol = pe.Node(name='Surface_to_volume',
+                       interface = util.Function(
+                                        function = polydata2volume,
+                                        input_names = ['hemi',
+                                                       'surface_path',
+                                                       'surface_name',
+                                                       'volume_file'],
+                                        output_names = ['output_file']))
+    surf2vol.inputs.output_file = 'labels.max.nii.gz'
 
     fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
                              interface = util.Function(
