@@ -22,10 +22,11 @@ import numpy as np
 
 from atlases import register_to_template, transform_atlas_labels,\
                     majority_vote_label, label_volume
-from polydata2volume import polydata2volume
+from label_volume import polydata2volume
 from features import *
 
 use_freesurfer_surfaces = 1
+use_freesurfer_volumes = 1
 hemis = ['lh','rh']
 surface_types = ['pial'] #,'inflated']
 template_id = 'KKI'
@@ -87,67 +88,72 @@ infosource = pe.Node(name = 'Inputs',
                                                                 'volume_mask']))
 infosource.iterables = ([('subject_id', subjects_list),
                          ('hemi', hemis)])
+
+# Location and structure of the surface inputs
 surfsource = pe.Node(name = 'Surfaces',
                      interface = nio.DataGrabber(infields=['subject_id',
                                                            'hemi'],
                                                  outfields=['surface_files',
                                                             'inf_surface_files',
                                                             'sph_surface_files']))
+surfsource.inputs.base_directory = subjects_path
+surfsource.inputs.template = '%s/surf/%s.%s'
+surfsource.inputs.template_args['surface_files'] = [['subject_id',
+                                                     'hemi',
+                                                     'pial']]
+surfsource.inputs.template_args['inf_surface_files'] = [['subject_id',
+                                                         'hemi',
+                                                         'inflated']]
+surfsource.inputs.template_args['sph_surface_files'] = [['subject_id',
+                                                         'hemi',
+                                                         'sphere']]
+mbflow.connect([(infosource, surfsource,
+                 [('subject_id','subject_id'),
+                     ('hemi','hemi')])])
+
+# Location and structure of the volume inputs
 if if_label_volume:
     volsource = pe.Node(name = 'Volumes',
                         interface = nio.DataGrabber(infields=['subject_id',
                                                               'hemi'],
                                                     outfields=['volume_files']))
-
-# Location and structure of the surface inputs
-surfsource.inputs.base_directory = subjects_path
-surfsource.inputs.template = '%s/surf/%s.%s'
-surfsource.inputs.template_args['surface_files'] = [['subject_id', 
-                                                     'hemi', 
-                                                     'pial']]
-surfsource.inputs.template_args['inf_surface_files'] = [['subject_id', 
-                                                         'hemi', 
-                                                         'inflated']]
-surfsource.inputs.template_args['sph_surface_files'] = [['subject_id', 
-                                                         'hemi', 
-                                                         'sphere']]
-
-# Location and structure of the volume inputs
-if if_label_volume:
     volsource.inputs.base_directory = subjects_path
     volsource.inputs.template = '%s/mri/%s.%s'
-    volsource.inputs.template_args['volume_files'] = [['subject_id', 
-                                                       'hemi', 
+    volsource.inputs.template_args['volume_files'] = [['subject_id',
+                                                       'hemi',
                                                        'ribbon.mgz']]
+    mbflow.connect([(infosource, volsource,
+                     [('subject_id','subject_id'),
+                      ('hemi','hemi')])])
 
 # Outputs
 datasink = pe.Node(nio.DataSink(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
 
-# Connect input nodes
-mbflow.connect([(infosource, surfsource, 
-                 [('subject_id','subject_id'),
-                  ('hemi','hemi')])])
-if if_label_volume:
-    mbflow.connect([(infosource, volsource, 
-                     [('subject_id','subject_id'),
-                      ('hemi','hemi')])])
-
 ##############################################################################
 #   Surface input and conversion
 ##############################################################################
 
-# Convert FreeSurfer surfaces to VTK format
+# Convert FreeSurfer surfaces to VTK format and volumes to NIfTI format
 if use_freesurfer_surfaces:
 
     import nipype.interfaces.freesurfer as fs
 
-    convert = pe.MapNode(name = 'Convert_surface',
-                         iterfield=['in_file'],
-                         interface = fs.MRIsConvert(out_datatype='vtk'))
-    mbflow.connect([(surfsource, convert, 
+    convertsurf = pe.MapNode(name = 'Convert_surface',
+                             iterfield=['in_file'],
+                             interface = fs.MRIsConvert(out_datatype='vtk'))
+    mbflow.connect([(surfsource, convertsurf,
                      [('surface_files','in_file')])])
+
+if use_freesurfer_volumes:
+
+    import nipype.interfaces.freesurfer as fs
+    convertvol = pe.MapNode(name = 'Convert_volume',
+                            iterfield=['in_file'],
+                            interface = fs.MRIConvert(out_type='niigz'))
+    mbflow.connect([(volsource, convertvol,
+                     [('volume_files','in_file')])])
 
 ##############################################################################
 #
@@ -214,11 +220,12 @@ vote = pe.Node(name='Majority_vote',
                                                 'labelcounts_file', 
                                                 'labelvotes_file']))
 atlasflow.add_nodes([vote])
+"""
 if use_freesurfer_surfaces:
-    mbflow.connect([(convert, atlasflow, 
+    mbflow.connect([(convertsurf, atlasflow,
                      [('converted', 'Majority_vote.surface_file')])])
 else:
-    mbflow.connect([(surfsource, atlasflow, 
+    mbflow.connect([(surfsource, atlasflow,
                      [('surface_files', 'Majority_vote.surface_file')])])
 atlasflow.connect([(transform, vote,
                     [('output_file', 'annot_files')])])
@@ -226,22 +233,27 @@ mbflow.connect([(atlasflow, datasink,
                  [('Majority_vote.maxlabel_file', 'labels.@max'),
                   ('Majority_vote.labelcounts_file', 'labels.@counts'),
                   ('Majority_vote.labelvotes_file', 'labels.@votes')])])
-
+"""
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
 if if_label_volume:
 
-def polydata2volume(hemi, surface_path, surface_name, volume_file, output_file):
-
+    # Put surface vertices in a volume
     surf2vol = pe.Node(name='Surface_to_volume',
                        interface = util.Function(
                                         function = polydata2volume,
-                                        input_names = ['hemi',
-                                                       'surface_path',
-                                                       'surface_name',
-                                                       'volume_file'],
+                                        input_names = ['surface_file',
+                                                       'volume_file',
+                                                       'use_freesurfer_surfaces'],
                                         output_names = ['output_file']))
-    surf2vol.inputs.output_file = 'labels.max.nii.gz'
+    surf2vol.inputs.use_freesurfer_surfaces = use_freesurfer_surfaces
 
+    atlasflow.add_nodes([surf2vol])
+    mbflow.connect([(vote, surf2vol,
+                     [('maxlabel_file','surface_file')])])
+    mbflow.connect([(volsource, atlasflow,
+                     [('volume_files','Surface_to_volume.volume_file')])])
+
+    # Fill volume mask with surface vertex labels
     fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
                              interface = util.Function(
                                               function = label_volume,
@@ -309,9 +321,9 @@ curvature.inputs.command = curvature_command
 featureflow.add_nodes([depth, curvature])
 
 if use_freesurfer_surfaces:
-    mbflow.connect([(convert, featureflow, 
+    mbflow.connect([(convertsurf, featureflow,
                    [('converted', 'Compute_depth.surface_file')])])
-    mbflow.connect([(convert, featureflow, 
+    mbflow.connect([(convertsurf, featureflow,
                    [('converted', 'Compute_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
@@ -711,4 +723,3 @@ if __name__== '__main__':
     mbflow.write_graph(graph2use='flat')
     mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
-
