@@ -30,7 +30,7 @@ def compute_depth(command, surface_file):
 
     measure_()
     """
-    from os import getcwd, path
+    from os import getcwd, path, error
     from nipype.interfaces.base import CommandLine
 
     # Check type:
@@ -39,8 +39,7 @@ def compute_depth(command, surface_file):
     elif type(surface_file) == list:
         surface_file = surface_file[0]
     else:
-        import sys
-        sys.error("Check format of " + surface_file)
+        error("Check format of " + surface_file)
 
     depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
@@ -56,7 +55,7 @@ def compute_curvature(command, surface_file):
                         [MaximalCurvatureOutput] [MinimalCurvatureOutput]
     measure_()
     """
-    from os import getcwd, path
+    from os import getcwd, path, error
     from nipype.interfaces.base import CommandLine
 
     # Check type:
@@ -65,8 +64,7 @@ def compute_curvature(command, surface_file):
     elif type(surface_file) == list:
         surface_file = surface_file[0]
     else:
-        import sys
-        sys.error("Check format of " + surface_file)
+        error("Check format of " + surface_file)
 
     file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
     mean_curvature_file = file_stem + '.curvature.mean.vtk'

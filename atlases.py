@@ -23,8 +23,6 @@ Forrest Bao  .  forrest.bao@gmail.com
 
 """
 
-use_linux_paths = 1
-
 ##############################################################################
 #   Template-based, multi-atlas registration
 ##############################################################################
@@ -49,71 +47,44 @@ def register_to_template(hemi, sph_surface_file, template_transform,
     
     return template_transform
 
-if use_linux_paths:
+def transform_atlas_labels(hemi, subject_id, template_transform,
+                           atlas_name, atlases_path, atlas_annot_name):
+    """
+    Transform the labels from a surface atlas via a template
+    using FreeSurfer's mri_surf2surf (wrapped in NiPype)
 
-    def transform_atlas_labels(hemi, subject_id, template_transform,
-                               atlas_name, atlases_path, atlas_annot_name):
-        """
-        Transform the labels from multiple atlases via a template
-        (using FreeSurfer's mri_surf2surf)
-        """
-        from os import system, path, getcwd
+    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
+    wraps command **mri_surf2surf**:
+    "Transform a surface file from one subject to another via a spherical registration.
+    Both the source and target subject must reside in your Subjects Directory,
+    and they must have been processed with recon-all, unless you are transforming
+    to one of the icosahedron meshes."
+    """
+    from os import path, getcwd
+    from nipype.interfaces.freesurfer import SurfaceTransform
 
-        source_annot_file = path.join(atlases_path, atlas_name, 'label',
-                                      hemi + '.' + atlas_annot_name) 
-        output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-                                subject_id + '_' + atlas_annot_name)
-        args = ['mri_surf2surf',
-                '--hemi', hemi,
-                '--srcsubject', atlas_name,
-                '--trgsubject', subject_id,
-                '--sval-annot', source_annot_file,
-                '--tval', output_file,
-                '--srcsurfreg', template_transform,
-                '--trgsurfreg', template_transform]
-        print(' '.join(args)); system(' '.join(args))
-        return output_file
+    sxfm = SurfaceTransform()
+    sxfm.inputs.hemi = hemi
+    sxfm.inputs.target_subject = subject_id
+    sxfm.inputs.source_subject = atlas_name
 
-else:
+    # Source file
+    sxfm.inputs.source_annot_file = path.join(atlases_path,
+                                    atlas_name, 'label',
+                                    hemi + '.' + atlas_annot_name)
+    # Output annotation file
+    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
+                            subject_id + '_' + atlas_annot_name)
+    sxfm.inputs.out_file = output_file
 
-    def transform_atlas_labels(hemi, subject_id, template_transform,
-                               atlas_name, atlases_path, atlas_annot_name):
-        """
-        Transform the labels from a surface atlas via a template
-        using FreeSurfer's mri_surf2surf (wrapped in NiPype)
+    # Arguments: strings within registered files
+    args = ['--srcsurfreg', template_transform,
+            '--trgsurfreg', template_transform]
+    sxfm.inputs.args = ' '.join(args)
 
-        nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
-        wraps command **mri_surf2surf**:
-        "Transform a surface file from one subject to another via a spherical registration.
-        Both the source and target subject must reside in your Subjects Directory,
-        and they must have been processed with recon-all, unless you are transforming
-        to one of the icosahedron meshes."
-        """
-        from os import path, getcwd
-        from nipype.interfaces.freesurfer import SurfaceTransform
+    sxfm.run()
 
-        sxfm = SurfaceTransform()
-        sxfm.inputs.hemi = hemi
-        sxfm.inputs.target_subject = subject_id
-        sxfm.inputs.source_subject = atlas_name
-
-        # Source file
-        sxfm.inputs.source_annot_file = path.join(atlases_path, 
-                                        atlas_name, 'label',
-                                        hemi + '.' + atlas_annot_name) 
-        # Output annotation file
-        output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-                                subject_id + '_' + atlas_annot_name)
-        sxfm.inputs.out_file = output_file
-
-        # Arguments: strings within registered files
-        args = ['--srcsurfreg', template_transform,
-                '--trgsurfreg', template_transform]
-        sxfm.inputs.args = ' '.join(args)
-
-        sxfm.run()
-
-        return output_file
+    return output_file
 
 ##############################################################################
 #   Multi-atlas labeling
@@ -260,8 +231,8 @@ def majority_vote_label(surface_file, annot_files):
     elif type(surface_file) == list:
         surface_file = surface_file[0]
     else:
-        import sys
-        sys.error("Check format of " + surface_file)
+        from os import error
+        error("Check format of " + surface_file)
 
     # Save files
     VTKReader = pyvtk.VtkData(surface_file)
