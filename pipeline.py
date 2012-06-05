@@ -26,7 +26,7 @@ from label_volume import polydata2volume, label_volume
 from features import *
 
 use_freesurfer_surfaces = 1
-use_freesurfer_volumes = 1
+use_freesurfer_volume = 1
 hemis = ['lh','rh']
 surface_types = ['pial'] #,'inflated']
 template_id = 'KKI'
@@ -39,7 +39,7 @@ subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
 if_label_volume = 1
 
-use_linux_paths = 0
+use_linux_paths = 1
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -146,7 +146,7 @@ if use_freesurfer_surfaces:
     mbflow.connect([(surfsource, convertsurf,
                      [('surface_files','in_file')])])
 
-if use_freesurfer_volumes:
+if use_freesurfer_volume:
 
     import nipype.interfaces.freesurfer as fs
     convertvol = pe.MapNode(name = 'Convert_volume',
@@ -253,7 +253,7 @@ if if_label_volume:
     atlasflow.connect([(vote, surf2vol,
                         [('maxlabel_file','surface_file')])])
 
-    if use_freesurfer_volumes:
+    if use_freesurfer_volume:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Surface_to_volume.volume_file')])])
     else:
@@ -271,30 +271,29 @@ if if_label_volume:
     fill_maxlabels.inputs.output_file = 'labels.max.nii.gz'
 
     atlasflow.add_nodes([fill_maxlabels])
-    if use_freesurfer_volumes:
-        mbflow.connect([(convertvol, atlasflow,
-                         [('out_file','Fill_volume_maxlabels.mask_file')])])
-    else:
-        mbflow.connect([(volsource, atlasflow,
-                         [('volume_file','Fill_volume_maxlabels.mask_file')])])
 
     atlasflow.connect([(surf2vol, fill_maxlabels,
                         [('output_file', 'input_file')])])
+    if use_freesurfer_volume:
+        mbflow.connect([(convertvol, atlasflow,
+                         [('out_file','Fill_volume_maxlabels.mask_file')])])
+        """
+        NB: For volume label propagation using FreeSurfer,
+            we would need to save the appropriate .annot file.
+
+        maxlabel_volume_FS = pe.Node(name='Maxlabel_volume_FS',
+                                     interface = util.Function(
+                                                      function = label_volume_annot,
+                                                      input_names = ['subject_id',
+                                                                     'annot_name',
+                                                                     'output_name'],
+                                                      output_names = ['output_file']))
+        """
+    else:
+        mbflow.connect([(volsource, atlasflow,
+                         [('volume_file','Fill_volume_maxlabels.mask_file')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
-
-    """
-    NB: For volume label propagation using FreeSurfer,
-        we would need to save the appropriate .annot file.
-    
-    maxlabel_volume_FS = pe.Node(name='Maxlabel_volume_FS',
-                                 interface = util.Function(
-                                                  function = label_volume_annot,
-                                                  input_names = ['subject_id',
-                                                                 'annot_name',
-                                                                 'output_name'],
-                                                  output_names = ['output_file']))
-    """
 
 ##############################################################################
 #
