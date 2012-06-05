@@ -17,7 +17,7 @@ def polydata2volume(surface_file, volume_file, output_file,
     Save the vertices of a FreeSurfer surface mesh as an image volume.
     """
 
-    from os import path
+    from os import path, getcwd, error
     import numpy as np
     import nibabel as nb
     import pyvtk
@@ -31,8 +31,7 @@ def polydata2volume(surface_file, volume_file, output_file,
     elif type(surface_file) == list:
         surface_file = surface_file[0]
     else:
-        import sys
-        sys.error("Check format of " + surface_file)
+        error("Check format of " + surface_file)
 
     # Check type:
     if type(volume_file) == str:
@@ -40,8 +39,7 @@ def polydata2volume(surface_file, volume_file, output_file,
     elif type(volume_file) == list:
         volume_file = volume_file[0]
     else:
-        import sys
-        sys.error("Check format of " + volume_file)
+        error("Check format of " + volume_file)
 
     # Load image volume
     vol = nb.load(volume_file)
@@ -63,7 +61,7 @@ def polydata2volume(surface_file, volume_file, output_file,
         
     # Save the image with the same affine transform
     img = nb.Nifti1Image(V, xfm)
-    img.to_filename(output_file)
+    img.to_filename(path.join(getcwd(), output_file))
 
 
     """
@@ -93,7 +91,7 @@ def label_volume(output_file, mask_file, input_file):
     will constrain the propagated label only to the gm.
 
     """
-    from os import path, getcwd
+    from os import path, getcwd, error
     from nipype.interfaces.base import CommandLine
     from nipype import logging
     logger = logging.getLogger('interface')
@@ -108,8 +106,15 @@ def label_volume(output_file, mask_file, input_file):
     elif type(mask_file) == list:
         mask_file = mask_file[0]
     else:
-        import sys
-        sys.error("Check format of " + mask_file)
+        error("Check format of " + mask_file)
+
+    # Check type:
+    if type(input_file) == str:
+        pass
+    elif type(input_file) == list:
+        input_file = input_file[0]
+    else:
+        error("Check format of " + input_file)
 
     args = ['3',
             output_file,
@@ -129,7 +134,7 @@ NB: To fill gray matter with labels using FreeSurfer,
     we would need to save the labels as an .annot file 
     in the subject directory (annot_name).
 
-def label_volume_FS(subject_id, annot_name, output_name):
+def maxlabel_volume_FS(subject_id, annot_name, output_name):
     ""
     Propagate surface labels through a gray matter volume 
     using FreeSurfer's mri_aparc2aseg
