@@ -21,8 +21,8 @@ import nipype.interfaces.io as nio
 import numpy as np
 
 from atlases import register_to_template, transform_atlas_labels,\
-                    majority_vote_label, label_volume
-from label_volume import polydata2volume
+                    majority_vote_label
+from label_volume import polydata2volume, label_volume
 from features import *
 
 use_freesurfer_surfaces = 1
@@ -39,7 +39,7 @@ subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
 
 if_label_volume = 1
 
-use_linux_paths = 1
+use_linux_paths = 0
 if use_linux_paths:
     subjects_path = '/usr/local/freesurfer/subjects'
 else:
@@ -113,13 +113,13 @@ mbflow.connect([(infosource, surfsource,
 
 # Location and structure of the volume inputs
 if if_label_volume:
-    volsource = pe.Node(name = 'Volumes',
+    volsource = pe.Node(name = 'Volume',
                         interface = nio.DataGrabber(infields=['subject_id',
                                                               'hemi'],
-                                                    outfields=['volume_files']))
+                                                    outfields=['volume_file']))
     volsource.inputs.base_directory = subjects_path
     volsource.inputs.template = '%s/mri/%s.%s'
-    volsource.inputs.template_args['volume_files'] = [['subject_id',
+    volsource.inputs.template_args['volume_file'] = [['subject_id',
                                                        'hemi',
                                                        'ribbon.mgz']]
     mbflow.connect([(infosource, volsource,
@@ -153,7 +153,7 @@ if use_freesurfer_volumes:
                             iterfield=['in_file'],
                             interface = fs.MRIConvert(out_type='niigz'))
     mbflow.connect([(volsource, convertvol,
-                     [('volume_files','in_file')])])
+                     [('volume_file','in_file')])])
 
 ##############################################################################
 #
@@ -243,20 +243,22 @@ if if_label_volume:
                                         function = polydata2volume,
                                         input_names = ['surface_file',
                                                        'volume_file',
+                                                       'output_file',
                                                        'use_freesurfer_surfaces'],
                                         output_names = ['output_file']))
     surf2vol.inputs.use_freesurfer_surfaces = use_freesurfer_surfaces
+    surf2vol.inputs.output_file = 'labels.surf.nii.gz'
 
     atlasflow.add_nodes([surf2vol])
     atlasflow.connect([(vote, surf2vol,
-                     [('maxlabel_file','surface_file')])])
+                        [('maxlabel_file','surface_file')])])
 
     if use_freesurfer_volumes:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Surface_to_volume.volume_file')])])
     else:
         mbflow.connect([(volsource, atlasflow,
-                         [('volume_files','Surface_to_volume.volume_file')])])
+                         [('volume_file','Surface_to_volume.volume_file')])])
 
     # Fill volume mask with surface vertex labels
     fill_maxlabels = pe.Node(name='Fill_volume_maxlabels',
@@ -274,7 +276,7 @@ if if_label_volume:
                          [('out_file','Fill_volume_maxlabels.mask_file')])])
     else:
         mbflow.connect([(volsource, atlasflow,
-                         [('volume_files','Fill_volume_maxlabels.mask_file')])])
+                         [('volume_file','Fill_volume_maxlabels.mask_file')])])
 
     atlasflow.connect([(surf2vol, fill_maxlabels,
                         [('output_file', 'input_file')])])
