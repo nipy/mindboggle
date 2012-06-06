@@ -33,8 +33,8 @@ from features import *
 
 # Paths
 subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
-subjects_path = '/usr/local/freesurfer/subjects'
-#subjects_path = '/Applications/freesurfer/subjects'
+#subjects_path = '/usr/local/freesurfer/subjects'
+subjects_path = '/Applications/freesurfer/subjects'
 templates_path = '/projects/mindboggle/data/templates_freesurfer'
 atlases_path = subjects_path
 
@@ -62,6 +62,7 @@ mbpath = '/projects/mindboggle/mindboggle/'
 depth_command = mbpath+'measure/surface_measures/bin/travel_depth/TravelDepthMain'
 curvature_command = mbpath+'measure/surface_measures/bin/curvature/CurvatureMain'
 extract_fundi_command = mbpath+'extract/fundi/vtk_extract.py'
+imagemath = '/Users/arno/Software/ANTS_1.9/bin/ImageMath'
 
 # List of atlas subjects
 atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
@@ -259,10 +260,12 @@ if if_label_volume:
     # Fill volume mask with surface vertex labels
     fill_maxlabels = node(name='Fill_volume_maxlabels',
                           interface = fn(function = label_volume,
-                                         input_names = ['output_file',
+                                         input_names = ['command',
+                                                        'input_file',
                                                         'mask_file',
-                                                        'input_file'],
+                                                        'output_file'],
                                          output_names = ['output_file']))
+    fill_maxlabels.inputs.command = imagemath
     fill_maxlabels.inputs.output_file = 'labels.max.nii.gz'
 
     atlasflow.add_nodes([fill_maxlabels])

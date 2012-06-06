@@ -60,9 +60,11 @@ def polydata2volume(surface_file, volume_file, output_file,
             V[vertex[0], vertex[1], vertex[2]] = 1
         
     # Save the image with the same affine transform
+    output_file = path.join(getcwd(), output_file)
     img = nb.Nifti1Image(V, xfm)
-    img.to_filename(path.join(getcwd(), output_file))
+    img.to_filename(output_file)
 
+    return output_file
 
     """
     # Create a new volume (permuted and flipped)
@@ -78,7 +80,7 @@ def polydata2volume(surface_file, volume_file, output_file,
         V[vertex[0], vertex[1], vertex[2]] = 1
     """
 
-def label_volume(output_file, mask_file, input_file):
+def label_volume(command, input_file, mask_file, output_file):
     """
     Fill (e.g., gray matter) volume with surface labels using ANTS
     (ImageMath's PropagateLabelsThroughMask)
@@ -122,7 +124,7 @@ def label_volume(output_file, mask_file, input_file):
             mask_file,
             input_file]
 
-    cli = CommandLine(command='ImageMath')
+    cli = CommandLine(command=command)
     cli.inputs.args = ' '.join(args)
     logger.info(cli.cmdline)
     cli.run()
