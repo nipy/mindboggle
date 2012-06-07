@@ -11,8 +11,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def polydata2volume(surface_file, volume_file, output_file,
-                    use_freesurfer_surfaces):
+def polydata2volume(surface_file, volume_file, output_file, use_freesurfer):
     """
     Save the vertices of a FreeSurfer surface mesh as an image volume.
     """
@@ -22,7 +21,7 @@ def polydata2volume(surface_file, volume_file, output_file,
     import nibabel as nb
     import pyvtk
 
-    if use_freesurfer_surfaces:
+    if use_freesurfer:
         trans = 128  # translation to middle of FreeSurfer conformed space
 
     # Check type:
@@ -54,7 +53,7 @@ def polydata2volume(surface_file, volume_file, output_file,
     # Create a new volume (permuted and flipped)
     V = np.zeros(vol_shape)
     for vertex in xyz:
-        if use_freesurfer_surfaces:
+        if use_freesurfer:
             V[-vertex[0]+trans, -vertex[2]+trans, vertex[1]+trans] = 1
         else:
             V[vertex[0], vertex[1], vertex[2]] = 1
