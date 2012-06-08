@@ -11,7 +11,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def polydata2volume(surface_file, volume_file, output_file, use_freesurfer):
+def polydata2volume(surface_file, volume_file, output_file, if_freesurfer):
     """
     Save the vertices of a FreeSurfer surface mesh as an image volume.
     """
@@ -19,11 +19,13 @@ def polydata2volume(surface_file, volume_file, output_file, use_freesurfer):
     from os import path, getcwd, error
     import numpy as np
     import nibabel as nb
-    import pyvtk
+    import vtk
 
+    scalar_name = "Max_(majority_labels)"
     if use_freesurfer:
         trans = 128  # translation to middle of FreeSurfer conformed space
 
+    print(surface_file, volume_file, output_file, use_freesurfer)
     # Check type:
     if type(surface_file) == str:
         pass
@@ -46,18 +48,25 @@ def polydata2volume(surface_file, volume_file, output_file, use_freesurfer):
     xfm = vol.get_affine()
 
     # Load surface
-    VTKReader = pyvtk.VtkData(surface_file)
-    xyz =  VTKReader.structure.points
-    xyz = np.array(xyz)
+    reader = vtk.vtkDataSetReader()
+    reader.SetFileName(surface_file)
+    reader.ReadAllScalarsOn()
+    reader.Update()
+    data = reader.GetOutput()
+    d = data.GetPointData()
+    labels = d.GetArray(scalar_name)
 
     # Create a new volume (permuted and flipped)
     V = np.zeros(vol_shape)
-    for vertex in xyz:
-        if use_freesurfer:
-            V[-vertex[0]+trans, -vertex[2]+trans, vertex[1]+trans] = 1
+    npoints = data.GetNumberOfPoints()
+    for i in range(npoints):
+        point = data.GetPoint(i)
+        label = labels.GetValue(i)
+        if if_freesurfer:
+            V[-point[0]+trans, -point[2]+trans, point[1]+trans] = label
         else:
-            V[vertex[0], vertex[1], vertex[2]] = 1
-        
+            V[point[0], point[1], point[2]] = label
+
     # Save the image with the same affine transform
     output_file = path.join(getcwd(), output_file)
     img = nb.Nifti1Image(V, xfm)
@@ -160,4 +169,77 @@ def maxlabel_volume_FS(subject_id, annot_name, output_name):
 
     return output_file
 """
+
+def measure_overlap(labels_file, input_file, atlas_file, output_table):
+    """
+    Measure overlap between individual label regions in a source and target image.
+
+    Input:
+    arg1, arg2:  source, target images, consisting of index-labeled pixels/voxels
+    arg3:  list of label indices
+
+    """
+
+    from os import path, getcwd, error
+    from numpy import float, isnan
+    import nibabel as nb
+    import csv
+    from nipype.interfaces.base import CommandLine
+    from nipype import logging
+    logger = logging.getLogger('interface')
+
+    # Input files
+    if type(input_file) == str:
+        pass
+    elif type(input_file) == list:
+        input_file = input_file[0]
+    else:
+        error("Check format of " + input_file)
+    input_data = nb.load(input_file).get_data().ravel()
+    atlas_data = nb.load(atlas_file).get_data().ravel()
+
+    # Set up the output csv file
+    output_table = path.join(getcwd(), output_table)
+    try:
+        f = open(output_table,"w")
+    except IOError:
+        raise
+
+    # Read unique, non-zero labels
+    table_reader = csv.reader(open(labels_file,'r'), delimiter=' ', quotechar='"')
+    labels = []
+    for row in table_reader:
+        labels.append(np.float(row[0]))
+
+    # For each label, compute Dice and Jaccard coefficients
+    avg_dice = 0
+    avg_jacc = 0
+    f.writelines("Label, Dice, Jaccard\n")
+    for label in labels:
+        f.writelines(str(label)+", ")
+        input_indices = np.where(input_data==label)[0]
+        atlas_indices = np.where(atlas_data==label)[0]
+        input_label_sum = np.sum(input_indices)
+        atlas_label_sum = np.sum(atlas_indices)
+        intersect_label_sum = np.sum(np.intersect1d(input_indices, atlas_indices))
+        union_label_sum = np.sum(np.union1d(input_indices, atlas_indices))
+
+        if same_label_sum > 0:
+            dice = 2 * intersect_label_sum / (input_label_sum + atlas_label_sum)
+            jacc = intersect_label_sum / union_label_sum
+            f.writelines(str(dice) + ", " + str(jacc) + "\n")
+        else:
+            f.writelines("0, 0\n")
+        avg_dice += dice
+        avg_jacc += jacc
+    avg_dice = average_dice/len(labels)
+    avg_jacc = average_jacc/len(labels)
+
+    f.writelines("Total, " + str(avg_dice) + ", " + str(avg_jacc) + "\n")
+    f.close()
+
+    print('Average Dice: ' + str(avg_dice))
+    print('Average Jacc: ' + str(avg_jacc))
+
+    return output_table, avg_dice, avg_jacc
 
