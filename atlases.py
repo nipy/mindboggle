@@ -240,23 +240,23 @@ def majority_vote_label(surface_file, annot_files):
     Faces =     VTKReader.structure.polygons
 
     file_stem = surface_file.strip('.vtk')
-    maxlabel_file = file_stem + '.labels.max'
-    labelcounts_file = file_stem + '.labelcounts'
-    labelvotes_file = file_stem + '.labelvotes'
+    maxlabel_file = file_stem + '.labels.max.vtk'
+    labelcounts_file = file_stem + '.labelcounts.vtk'
+    labelvotes_file = file_stem + '.labelvotes.vtk'
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(labels_max,\
-                name='Max (majority labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
+                                  name='Max (majority labels)'))).\
           tofile(maxlabel_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(label_counts,\
-                name='Counts (number of different labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
+                                  name='Counts (number of different labels)'))).\
           tofile(labelcounts_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(label_votes,\
-                name='Votes (number of votes for majority labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
+                                  name='Votes (number of votes for majority labels)'))).\
           tofile(labelvotes_file, 'ascii')
 
     return maxlabel_file, labelcounts_file, labelvotes_file
