@@ -241,5 +241,5 @@ def measure_overlap(labels_file, input_file, atlas_file, output_table):
     print('Average Dice: ' + str(avg_dice))
     print('Average Jacc: ' + str(avg_jacc))
 
-    return output_table, avg_dice, avg_jacc
+    return output_table
 
