@@ -20,13 +20,14 @@ mindboggle/
                     originalT1.nii.gz
                     ?h.pial.[depth, curv…].vtk
                     ?.inflated.vtk
-                    ?h.sphere_to_?_template.reg
-                    aparcNMMjt+aseg.vtk
-                    aparcNMMjt+aseg.nii.gz
-            copy_contents_to_freesurfer_subjects/ # (see below)
+                    labels.manual.vtk
+                    labels.manual.nii.gz
+                    labels.ants.subcortex.nii.gz
+                    labels.freesurfer.subcortex.nii.gz
+            subjects_freesurfer/ # (see below)
                 <subject>/
                     label/
-                        ?h.aparcNMMjt.annot  # manual label files
+                        ?h.labels.manual.annot  # manual label files
                     surf/
                         ?h.[pial, inflated]  # surfaces
                         ?h.sphere_to_?_template.reg  # template transforms
