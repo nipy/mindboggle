@@ -267,26 +267,26 @@ if do_label_volume:
     ##########################################################################
 
     # Evaluate volume labels
-    eval_maxlabels = node(name='Evaluate_volume_maxlabels',
-                          interface = fn(function = measure_overlap,
-                                         input_names = ['labels_file',
-                                                        'input_file',
-                                                        'atlas_file',
-                                                        'output_table'],
-                                         output_names = ['output_table',
-                                                         'avg_dice',
-                                                         'avg_jacc']))
-    # Table with unique, non-zero labels
-    eval_maxlabels.inputs.labels_file = os.path.join(mbpath, 'labels.txt')
-    eval_maxlabels.inputs.atlas_file = 'labels.manual.nii.gz'
-    eval_maxlabels.inputs.output_table = 'labels.max.eval.csv'
+    if do_evaluate_labels:
+        eval_maxlabels = node(name='Evaluate_volume_maxlabels',
+                              interface = fn(function = measure_overlap,
+                                             input_names = ['labels_file',
+                                                            'input_file',
+                                                            'atlas_file',
+                                                            'output_table'],
+                                             output_names = ['output_table']))
+        # Table with unique, non-zero labels
+        eval_maxlabels.inputs.labels_file = os.path.join(mbpath, 'labels.txt')
+        eval_maxlabels.inputs.atlas_file = 'labels.manual.nii.gz'
+        eval_maxlabels.inputs.output_table = 'labels.max.eval.csv'
 
-    atlasflow.add_nodes([eval_maxlabels])
+        atlasflow.add_nodes([eval_maxlabels])
 
-    atlasflow.connect([(fill_maxlabels, eval_maxlabels,
-                        [('output_file', 'input_file')])])
-    mbflow.connect([(atlasflow, datasink,
-                     [('Evaluate_volume_maxlabels.output_table', 'labels.@eval')])])
+        atlasflow.connect([(fill_maxlabels, eval_maxlabels,
+                            [('output_file', 'input_file')])])
+        mbflow.connect([(atlasflow, datasink,
+                         [('Evaluate_volume_maxlabels.output_table',
+                           'labels.@eval')])])
 
 ##############################################################################
 #
