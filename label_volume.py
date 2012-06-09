@@ -11,7 +11,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def polydata2volume(surface_file, volume_file, output_file, if_freesurfer):
+def polydata2volume(surface_file, volume_file, output_file, use_freesurfer):
     """
     Save the vertices of a FreeSurfer surface mesh as an image volume.
     """
@@ -62,7 +62,7 @@ def polydata2volume(surface_file, volume_file, output_file, if_freesurfer):
     for i in range(npoints):
         point = data.GetPoint(i)
         label = labels.GetValue(i)
-        if if_freesurfer:
+        if use_freesurfer:
             V[-point[0]+trans, -point[2]+trans, point[1]+trans] = label
         else:
             V[point[0], point[1], point[2]] = label
@@ -144,7 +144,7 @@ NB: To fill gray matter with labels using FreeSurfer,
     we would need to save the labels as an .annot file 
     in the subject directory (annot_name).
 
-def maxlabel_volume_FS(subject_id, annot_name, output_name):
+def maxlabel_volume_FS(subject, annot_name, output_name):
     ""
     Propagate surface labels through a gray matter volume 
     using FreeSurfer's mri_aparc2aseg
@@ -158,7 +158,7 @@ def maxlabel_volume_FS(subject_id, annot_name, output_name):
 
     output_file = path.join(getcwd(), output_name)
 
-    args = ['--s', subject_id,
+    args = ['--s', subject,
             '--annot', annot_name,
             '--o', output_file]
 
