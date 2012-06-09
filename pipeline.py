@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-This is Mindboggle's NiPype pipeline!
+This is Mindboggle's Nipype pipeline!
 
 Example usage:
 
@@ -14,6 +14,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+# Import Python libraries
 import os
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
@@ -22,60 +23,41 @@ from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
 from nipype.interfaces.io import DataSink as dataout
-
-from atlases import register_to_template, transform_atlas_labels,\
-                    majority_vote_label
+# Import Mindboggle Python libraries
+from atlases import Register_template, transform_atlas_labels,\
+                    Label_vote_label
 from label_volume import polydata2volume, label_volume, measure_overlap
 from features import *
 
 # Options
-if_linux_paths = 0
-if_freesurfer = 1
-if_label_volume = 1
-if_evaluate_labels = 1
+use_freesurfer = 1
+do_label_volume = 1
+do_evaluate_labels = 1
 
 # Paths
-subjects_list = ['KKI2009-11'] #, 'KKI2009-14']
-if if_linux_paths:
-    subjects_path = '/usr/local/freesurfer/subjects'
-else:
-    subjects_path = '/Applications/freesurfer/subjects'
-templates_path = '/projects/mindboggle/data/templates_freesurfer'
-atlases_path = subjects_path
+subjects = ['KKI2009-11'] #, 'KKI2009-14']
+subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+mbpath = '/projects/mindboggle/mindboggle'
+templates_path = os.path.join(mbpath, 'data/templates')
+atlases_path = os.path.join(mbpath, 'data/atlases')
+results_path = '/projects/mindboggle/results'
+working_path = os.path.join(results_path, 'workingdir')
+if not os.path.isdir(results_path):  os.makedirs(results_path)
+if not os.path.isdir(working_path):  os.makedirs(working_path)
 
-# File settings
-hemis = ['lh','rh']
-surface_types = ['pial'] #,'inflated']
-template_id = 'KKI'
-template_name = template_id + '_2.tif'
-template_transform = 'sphere_to_' + template_id + '_template.reg'
-atlas_name = 'aparcNMMjt'
-labels_file = 'labels.txt' # Table with unique, non-zero labels
-
-# Output directory
-results_path = '/projects/mindboggle/results/'
-working_path = results_path + 'workingdir'
-if not os.path.isdir(results_path):
-    os.makedirs(results_path)
-if not os.path.isdir(working_path):
-    os.makedirs(working_path)
-
-# Commands
-mbpath = '/projects/mindboggle/mindboggle/'
-depth_command = mbpath+'measure/surface_measures/bin/travel_depth/TravelDepthMain'
-curvature_command = mbpath+'measure/surface_measures/bin/curvature/CurvatureMain'
-extract_fundi_command = mbpath+'extract/fundi/vtk_extract.py'
-if if_linux_paths:
-    imagemath = '/usr/local/bin/ImageMath'
-else:
-    #imagemath = '/usr/bin/ants/ImageMath'
-    imagemath = '/Users/arno/Software/ANTS_1.9/bin/ImageMath'
+# Commands (must be compiled)
+depth_command = os.path.join(mbpath,\
+      'measure/surface_measures/bin/travel_depth/TravelDepthMain')
+curvature_command = os.path.join(mbpath,\
+      'measure/surface_measures/bin/curvature/CurvatureMain')
+extract_fundi_command = os.path.join(mbpath, 'extract/fundi/vtk_extract.py')
+imagemath = os.path.join(os.environ['ANTSPATH'], 'ImageMath')
 
 # List of atlas subjects
-atlas_list_file = os.path.join(atlases_path, 'MMRR.txt')
+atlas_list_file = os.path.join(atlases_path, 'test_subjects.txt')
 f = open(atlas_list_file)
-atlas_list_lines = f.readlines()
-atlas_names = [a.strip("\n") for a in atlas_list_lines if a.strip("\n")]
+atlases = f.readlines()
+atlases = [a.strip("\n") for a in atlases if a.strip("\n")]
 
 ##############################################################################
 #
@@ -92,63 +74,32 @@ mbflow.base_dir = working_path
 #   Inputs and outputs
 ##############################################################################
 
-# Iterate inputs over subjects, hemispheres, surface types
-infosource = node(name = 'Inputs',
-                  interface = identity(fields=['subject_id',
-                                               'hemi',
-                                               'surface_type',
-                                               'volume_mask']))
-infosource.iterables = ([('subject_id', subjects_list),
-                         ('hemi', hemis)])
+# Iterate inputs over subjects, hemispheres
+# (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
+
+info = node(name = 'Inputs',
+            interface = identity(fields=['subject', 'hemi']))
+info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
 
 # Location and structure of the surface inputs
-surfsource = node(name = 'Surfaces',
-                  interface = datain(infields=['subject_id',
-                                               'hemi'],
-                                     outfields=['surface_files',
-                                                'inf_surface_files',
-                                                'sph_surface_files']))
-surfsource.inputs.base_directory = subjects_path
-surfsource.inputs.template = '%s/surf/%s.%s'
-surfsource.inputs.template_args['surface_files'] = [['subject_id',
-                                                     'hemi',
-                                                     'pial']]
-surfsource.inputs.template_args['inf_surface_files'] = [['subject_id',
-                                                         'hemi',
-                                                         'inflated']]
-surfsource.inputs.template_args['sph_surface_files'] = [['subject_id',
-                                                         'hemi',
-                                                         'sphere']]
-mbflow.connect([(infosource, surfsource,
-                 [('subject_id','subject_id'),
-                  ('hemi','hemi')])])
+surf = node(name = 'Surfaces',
+            interface = datain(infields=['subject', 'hemi'],
+                               outfields=['surface_files', 'sphere_files']))
+surf.inputs.base_directory = subjects_path
+surf.inputs.template = '%s/surf/%s.%s'
+surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
+surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
+mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
 
 # Location and structure of the volume inputs
-if if_label_volume:
-    volsource = node(name = 'Volume',
-                     interface = datain(infields=['subject_id',
-                                                  'hemi'],
-                                        outfields=['volume_file']))
-    volsource.inputs.base_directory = subjects_path
-    volsource.inputs.template = '%s/mri/%s.%s'
-    volsource.inputs.template_args['volume_file'] = [['subject_id',
-                                                      'hemi',
-                                                      'ribbon.mgz']]
-    mbflow.connect([(infosource, volsource,
-                     [('subject_id','subject_id'),
-                      ('hemi','hemi')])])
-
-# Location and structure of the volume inputs
-if if_evaluate_labels:
-    atlassource = node(name = 'Atlas',
-                       interface = datain(infields=['subject_id'],
-                                          outfields=['atlas_file']))
-    atlassource.inputs.base_directory = subjects_path
-    atlassource.inputs.template = '%s/labels/%s.nii.gz'
-    atlassource.inputs.template_args['atlas_file'] = [['subject_id',
-                                                      'atlas_name']]
-    mbflow.connect([(infosource, atlassource,
-                     [('subject_id','subject_id')])])
+if do_label_volume:
+    vol = node(name = 'Volume',
+               interface = datain(infields=['subject', 'hemi'],
+                                  outfields=['volume_file']))
+    vol.inputs.base_directory = subjects_path
+    vol.inputs.template = '%s/mri/%s.ribbon.mgz'
+    vol.inputs.template_args['volume_file'] = [['subject', 'hemi']]
+    mbflow.connect([(info, vol, [('subject','subject'), ('hemi','hemi')])])
 
 # Outputs
 datasink = node(dataout(), name = 'Results')
@@ -160,21 +111,19 @@ datasink.inputs.container = 'output'
 ##############################################################################
 
 # Convert FreeSurfer surfaces to VTK format and volumes to NIfTI format
-if if_freesurfer:
+if use_freesurfer:
 
     import nipype.interfaces.freesurfer as fs
 
     convertsurf = mapnode(name = 'Convert_surface',
-                             iterfield = ['in_file'],
-                             interface = fs.MRIsConvert(out_datatype='vtk'))
-    mbflow.connect([(surfsource, convertsurf,
-                     [('surface_files','in_file')])])
+                          iterfield = ['in_file'],
+                          interface = fs.MRIsConvert(out_datatype='vtk'))
+    mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
 
     convertvol = mapnode(name = 'Convert_volume',
                          iterfield = ['in_file'],
                          interface = fs.MRIConvert(out_type='niigz'))
-    mbflow.connect([(volsource, convertvol,
-                     [('volume_file','in_file')])])
+    mbflow.connect([(vol, convertvol, [('volume_file','in_file')])])
 
 ##############################################################################
 #
@@ -188,50 +137,48 @@ atlasflow = workflow(name='Atlas_workflow')
 ##############################################################################
 
 # Template registration
-register = node(name = 'Register_to_template',
-                interface = fn(function = register_to_template,
+register = node(name = 'Register_template',
+                interface = fn(function = Register_template,
                                input_names = ['hemi',
-                                              'sph_surface_file',
-                                              'template_name',
+                                              'sphere_file',
+                                              'transform',
                                               'templates_path',
-                                              'template_transform'],
-                               output_names = ['template_transform']))
-register.inputs.template_name = template_name
-register.inputs.templates_path = templates_path
-register.inputs.template_transform = template_transform
+                                              'template'],
+                               output_names = ['transform']))
+template = 'KKI'
+register.inputs.template = template + '_2.tif'
+register.inputs.transform = 'sphere_to_' + template + '_template.reg'
+register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
 
 atlasflow.add_nodes([register])
-mbflow.connect([(infosource, atlasflow,
-                 [('hemi', 'Register_to_template.hemi')]),
-                (surfsource, atlasflow,
-                 [('sph_surface_files',
-                   'Register_to_template.sph_surface_file')])])
+mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
+                (surf, atlasflow, [('sphere_files',
+                                    'Register_template.sphere_file')])])
 
 # Atlas registration
 transform = mapnode(name = 'Transform_atlas_labels',
-                    iterfield = ['atlas_name'],
+                    iterfield = ['atlas'],
                     interface = fn(function = transform_atlas_labels,
                                    input_names = ['hemi',
-                                                  'subject_id',
-                                                  'template_transform',
-                                                  'atlas_name',
-                                                  'atlases_path',
-                                                  'atlas_annot_name'],
+                                                  'subject',
+                                                  'transform',
+                                                  'subjects_path',
+                                                  'atlas',
+                                                  'atlas_annot'],
                                    output_names = ['output_file']))
-transform.inputs.atlas_name = atlas_names
-transform.inputs.atlases_path = atlases_path
-transform.inputs.atlas_annot_name = atlas_name + '.annot'
+transform.inputs.atlas = atlases
+transform.inputs.subjects_path = subjects_path
+transform.inputs.atlas_annot = 'labels.manual.annot'
 
 atlasflow.add_nodes([transform])
-mbflow.connect([(infosource, atlasflow,
+mbflow.connect([(info, atlasflow,
                  [('hemi', 'Transform_atlas_labels.hemi'),
-                  ('subject_id', 'Transform_atlas_labels.subject_id')])])
-atlasflow.connect([(register, transform, 
-                    [('template_transform', 'template_transform')])])
+                  ('subject', 'Transform_atlas_labels.subject')])])
+atlasflow.connect([(register, transform, [('transform', 'transform')])])
 
 # Majority vote labeling
-vote = node(name='Majority_vote',
-            interface = fn(function = majority_vote_label,
+vote = node(name='Label_vote',
+            interface = fn(function = Label_vote_label,
                            input_names = ['surface_file',
                                           'annot_files'],
                            output_names = ['maxlabel_file',
@@ -239,25 +186,24 @@ vote = node(name='Majority_vote',
                                            'labelvotes_file']))
 atlasflow.add_nodes([vote])
 
-if if_freesurfer:
+if use_freesurfer:
     mbflow.connect([(convertsurf, atlasflow,
-                     [('converted', 'Majority_vote.surface_file')])])
+                     [('converted', 'Label_vote.surface_file')])])
 else:
-    mbflow.connect([(surfsource, atlasflow,
-                     [('surface_files', 'Majority_vote.surface_file')])])
-atlasflow.connect([(transform, vote,
-                    [('output_file', 'annot_files')])])
+    mbflow.connect([(surf, atlasflow,
+                     [('surface_files', 'Label_vote.surface_file')])])
+atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
 mbflow.connect([(atlasflow, datasink,
-                 [('Majority_vote.maxlabel_file', 'labels.@max'),
-                  ('Majority_vote.labelcounts_file', 'labels.@counts'),
-                  ('Majority_vote.labelvotes_file', 'labels.@votes')])])
+                 [('Label_vote.maxlabel_file', 'labels.@max'),
+                  ('Label_vote.labelcounts_file', 'labels.@counts'),
+                  ('Label_vote.labelvotes_file', 'labels.@votes')])])
 
 ##############################################################################
 #   Label propagation through a mask
 ##############################################################################
 
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
-if if_label_volume:
+if do_label_volume:
 
     # Put surface vertices in a volume
     surf2vol = node(name='Surface_to_volume',
@@ -265,20 +211,19 @@ if if_label_volume:
                                    input_names = ['surface_file',
                                                   'volume_file',
                                                   'output_file',
-                                                  'if_freesurfer'],
+                                                  'use_freesurfer'],
                                    output_names = ['output_file']))
-    surf2vol.inputs.if_freesurfer = if_freesurfer
+    surf2vol.inputs.use_freesurfer = use_freesurfer
     surf2vol.inputs.output_file = 'labels.surf.nii.gz'
 
     atlasflow.add_nodes([surf2vol])
-    atlasflow.connect([(vote, surf2vol,
-                        [('maxlabel_file','surface_file')])])
+    atlasflow.connect([(vote, surf2vol, [('maxlabel_file','surface_file')])])
 
-    if if_freesurfer:
+    if use_freesurfer:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Surface_to_volume.volume_file')])])
     else:
-        mbflow.connect([(volsource, atlasflow,
+        mbflow.connect([(vol, atlasflow,
                          [('volume_file','Surface_to_volume.volume_file')])])
 
     # Fill volume mask with surface vertex labels
@@ -296,7 +241,7 @@ if if_label_volume:
 
     atlasflow.connect([(surf2vol, fill_maxlabels,
                         [('output_file', 'input_file')])])
-    if if_freesurfer:
+    if use_freesurfer:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Fill_volume_maxlabels.mask_file')])])
         """
@@ -305,16 +250,17 @@ if if_label_volume:
 
         maxlabel_volume_FS = node(name='Maxlabel_volume_FS',
                                   interface = fn(function = label_volume_annot,
-                                                 input_names = ['subject_id',
+                                                 input_names = ['subject',
                                                                 'annot_name',
                                                                 'output_name'],
                                                  output_names = ['output_file']))
         """
     else:
-        mbflow.connect([(volsource, atlasflow,
+        mbflow.connect([(vol, atlasflow,
                          [('volume_file','Fill_volume_maxlabels.mask_file')])])
     mbflow.connect([(atlasflow, datasink,
-                     [('Fill_volume_maxlabels.output_file', 'labels.@maxvolume')])])
+                     [('Fill_volume_maxlabels.output_file',
+                       'labels.@maxvolume')])])
 
     ##########################################################################
     #   Evaluation of the volume maxlabels
@@ -330,8 +276,9 @@ if if_label_volume:
                                          output_names = ['output_table',
                                                          'avg_dice',
                                                          'avg_jacc']))
-    eval_maxlabels.inputs.labels_file = labels_file
-    eval_maxlabels.inputs.atlas_file = atlas_name + '.nii.gz'
+    # Table with unique, non-zero labels
+    eval_maxlabels.inputs.labels_file = os.path.join(mbpath, 'labels.txt')
+    eval_maxlabels.inputs.atlas_file = 'labels.manual.nii.gz'
     eval_maxlabels.inputs.output_table = 'labels.max.eval.csv'
 
     atlasflow.add_nodes([eval_maxlabels])
@@ -374,7 +321,7 @@ curvature.inputs.command = curvature_command
 # Add and connect nodes
 featureflow.add_nodes([depth, curvature])
 
-if if_freesurfer:
+if use_freesurfer:
     mbflow.connect([(convertsurf, featureflow,
                    [('converted', 'Compute_depth.surface_file')])])
     mbflow.connect([(convertsurf, featureflow,
@@ -761,7 +708,7 @@ depth = node(name='Compute_depth',
 depth.inputs.command = depth_command
 
 mbflow.connect([(atlasflow, evalflow,
-                 [('Majority_vote.output_files',
+                 [('Label_vote.output_files',
                    'Evaluation_workflow.maxlabels')])])
 
 featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
