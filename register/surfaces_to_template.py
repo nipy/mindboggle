@@ -50,5 +50,5 @@ for h in ['lh','rh']:
         args = ['mris_register -curv',
                 subject_path + '/surf/' + h + '.sphere',
                 average_template_file,
-                subject_path + '/surf/' + h + '.sphere_to_template.reg']
+                subject_path + '/surf/' + h + '.sphere_to_'+average_template_name+'_template.reg']
         print(' '.join(args)); os.system(' '.join(args)); # p = Popen(args);
