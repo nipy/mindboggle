@@ -27,8 +27,8 @@ Forrest Bao  .  forrest.bao@gmail.com
 #   Template-based, multi-atlas registration
 ##############################################################################
 
-def register_to_template(hemi, sphere__file, transform,
-                         templates_path, template):
+def register_template(hemi, sphere_file, transform,
+                      templates_path, template):
     """
     Register surface to template with FreeSurfer's mris_register
     """
@@ -40,7 +40,7 @@ def register_to_template(hemi, sphere__file, transform,
     template_file = path.join(templates_path, hemi + '.' + template)
     output_file = hemi + '.' + transform
     cli = CommandLine(command='mris_register')
-    cli.inputs.args = ' '.join(['-curv', sphere__file,
+    cli.inputs.args = ' '.join(['-curv', sphere_file,
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()
