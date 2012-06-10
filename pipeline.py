@@ -24,10 +24,16 @@ from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
 from nipype.interfaces.io import DataSink as dataout
 # Import Mindboggle Python libraries
-from atlases import Register_template, transform_atlas_labels,\
-                    Label_vote_label
+from atlases import register_template, transform_atlas_labels,\
+                    majority_vote_label
 from label_volume import polydata2volume, label_volume, measure_overlap
 from features import *
+
+
+import nipype.pipeline.engine as pe          # pypeline engine
+import nipype.interfaces.utility as util     # utility
+import nipype.interfaces.io as nio
+
 
 # Options
 use_freesurfer = 1
@@ -35,7 +41,7 @@ do_label_volume = 1
 do_evaluate_labels = 1
 
 # Paths
-subjects = ['KKI2009-11'] #, 'KKI2009-14']
+subjects = ['plos_CJ_700_3_1'] #, 'KKI2009-14']
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 mbpath = '/projects/mindboggle/mindboggle'
 templates_path = os.path.join(mbpath, 'data/templates')
@@ -54,10 +60,13 @@ extract_fundi_command = os.path.join(mbpath, 'extract/fundi/vtk_extract.py')
 imagemath = os.path.join(os.environ['ANTSPATH'], 'ImageMath')
 
 # List of atlas subjects
-atlas_list_file = os.path.join(atlases_path, 'test_subjects.txt')
+atlas_list_file = os.path.join(atlases_path, 'subjects.txt')
 f = open(atlas_list_file)
-atlases = f.readlines()
-atlases = [a.strip("\n") for a in atlases if a.strip("\n")]
+atlas_list = f.readlines()
+atlases = \
+[a.strip("\n").split("\t")[0] for a in atlas_list if a.strip("\n").split("\t")]
+atlases_original = \
+[a.strip("\n").split("\t")[1] for a in atlas_list if a.strip("\n").split("\t")]
 
 ##############################################################################
 #
@@ -138,15 +147,15 @@ atlasflow = workflow(name='Atlas_workflow')
 
 # Template registration
 register = node(name = 'Register_template',
-                interface = fn(function = Register_template,
+                interface = fn(function = register_template,
                                input_names = ['hemi',
                                               'sphere_file',
                                               'transform',
                                               'templates_path',
                                               'template'],
                                output_names = ['transform']))
-template = 'KKI'
-register.inputs.template = template + '_2.tif'
+template = 'OASIS-TRT-20'
+register.inputs.template = template + '.tif'
 register.inputs.transform = 'sphere_to_' + template + '_template.reg'
 register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
 
@@ -178,7 +187,7 @@ atlasflow.connect([(register, transform, [('transform', 'transform')])])
 
 # Majority vote labeling
 vote = node(name='Label_vote',
-            interface = fn(function = Label_vote_label,
+            interface = fn(function = majority_vote_label,
                            input_names = ['surface_file',
                                           'annot_files'],
                            output_names = ['maxlabel_file',
@@ -244,24 +253,22 @@ if do_label_volume:
     if use_freesurfer:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Fill_volume_maxlabels.mask_file')])])
-        """
-        NB: For volume label propagation using FreeSurfer,
-            we would need to save the appropriate .annot file.
-
-        maxlabel_volume_FS = node(name='Maxlabel_volume_FS',
-                                  interface = fn(function = label_volume_annot,
-                                                 input_names = ['subject',
-                                                                'annot_name',
-                                                                'output_name'],
-                                                 output_names = ['output_file']))
-        """
+        #NB: For volume label propagation using FreeSurfer,
+        #    we would need to save the appropriate .annot file.
+        #
+        #maxlabel_volume_FS = node(name='Maxlabel_volume_FS',
+        #                          interface = fn(function = label_volume_annot,
+        #                                         input_names = ['subject',
+        #                                                        'annot_name',
+        #                                                        'output_name'],
+        #                                         output_names = ['output_file']))
     else:
         mbflow.connect([(vol, atlasflow,
                          [('volume_file','Fill_volume_maxlabels.mask_file')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file',
                        'labels.@maxvolume')])])
-
+"""
     ##########################################################################
     #   Evaluation of the volume maxlabels
     ##########################################################################
@@ -287,7 +294,7 @@ if do_label_volume:
         mbflow.connect([(atlasflow, datasink,
                          [('Evaluate_volume_maxlabels.output_table',
                            'labels.@eval')])])
-
+"""
 ##############################################################################
 #
 #   Feature-based labeling and shape analysis workflow
@@ -719,6 +726,6 @@ featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 ##############################################################################
 if __name__== '__main__':
 
-    mbflow.write_graph(graph2use='flat')
-    mbflow.write_graph(graph2use='hierarchical')
+    #mbflow.write_graph(graph2use='flat')
+    #mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
