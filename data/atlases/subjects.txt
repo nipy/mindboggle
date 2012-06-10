@@ -1,18 +1,17 @@
-Subject		original name
-Arno-1-1
+Arno-1-1	-
 Colin27-1-1	colin27-t1-tal-lin
-HLN-12-1	CJ_700_3_1
-HLN-12-2	Ding_756_3_1
-HLN-12-3	Ding_1009_3_1
-HLN-12-4	Ding_1035_3_1
-HLN-12-5	Ding_1042_3_1
-HLN-12-6	Ding_1050_3_1
-HLN-12-7	Ding_1052_3_1
-HLN-12-8	Language_587_3_1
-HLN-12-9	Language_795_3_1
-HLN-12-10	Language_820_3_1
-HLN-12-11	Language_886_3_1
-HLN-12-12	Language_888_3_1
+HLN-12-1	plos_CJ_700_3_1
+HLN-12-2	plos_Ding_756_3_1
+HLN-12-3	plos_Ding_1009_3_1
+HLN-12-4	plos_Ding_1035_3_1
+HLN-12-5	plos_Ding_1042_3_1
+HLN-12-6	plos_Ding_1050_3_1
+HLN-12-7	plos_Ding_1052_3_1
+HLN-12-8	plos_Language_587_3_1
+HLN-12-9	plos_Language_795_3_1
+HLN-12-10	plos_Language_820_3_1
+HLN-12-11	plos_Language_886_3_1
+HLN-12-12	plos_Language_888_3_1
 MMRR-21-1	KKI2009-11
 MMRR-21-2	KKI2009-14
 MMRR-21-3	KKI2009-15
@@ -34,8 +33,8 @@ MMRR-21-18	KKI2009-37
 MMRR-21-19	KKI2009-40
 MMRR-21-20	KKI2009-41
 MMRR-21-21	KKI2009-42
-MMMR-3T7T-2-1
-MMMR-3T7T-2-2
+MMMR-3T7T-2-1	-
+MMMR-3T7T-2-2	-
 NKI-RS-22-1	NKI_Rockland_1097782
 NKI-RS-22-2	NKI_Rockland_1351931
 NKI-RS-22-3	NKI_Rockland_1427581
