@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 """
 This is Mindboggle's Nipype pipeline!
 
@@ -14,8 +13,10 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+#-----------------------------------------------------------------------------
 # Import Python libraries
-import os
+#-----------------------------------------------------------------------------
+from os import path, environ, makedirs
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
 from nipype.pipeline.engine import MapNode as mapnode
@@ -23,50 +24,53 @@ from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
 from nipype.interfaces.io import DataSink as dataout
+#-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
+#-----------------------------------------------------------------------------
 from atlases import register_template, transform_atlas_labels,\
                     majority_vote_label
 from label_volume import polydata2volume, label_volume, measure_overlap
 from features import *
-
-
-import nipype.pipeline.engine as pe          # pypeline engine
-import nipype.interfaces.utility as util     # utility
-import nipype.interfaces.io as nio
-
-
+#-----------------------------------------------------------------------------
 # Options
+#-----------------------------------------------------------------------------
 use_freesurfer = 1
 do_label_volume = 1
 do_evaluate_labels = 1
-
+do_create_graph = 0
+#-----------------------------------------------------------------------------
 # Paths
+#-----------------------------------------------------------------------------
 subjects = ['plos_CJ_700_3_1'] #, 'KKI2009-14']
-subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 mbpath = '/projects/mindboggle/mindboggle'
-templates_path = os.path.join(mbpath, 'data/templates')
-atlases_path = os.path.join(mbpath, 'data/atlases')
+templates_path = path.join(mbpath, 'data/templates')
+atlases_path = path.join(mbpath, 'data/atlases')
 results_path = '/projects/mindboggle/results'
-working_path = os.path.join(results_path, 'workingdir')
-if not os.path.isdir(results_path):  os.makedirs(results_path)
-if not os.path.isdir(working_path):  os.makedirs(working_path)
-
+working_path = path.join(results_path, 'workingdir')
+if not path.isdir(results_path):  makedirs(results_path)
+if not path.isdir(working_path):  makedirs(working_path)
+#-----------------------------------------------------------------------------
 # Commands (must be compiled)
-depth_command = os.path.join(mbpath,\
+#-----------------------------------------------------------------------------
+depth_command = path.join(mbpath,\
       'measure/surface_measures/bin/travel_depth/TravelDepthMain')
-curvature_command = os.path.join(mbpath,\
+curvature_command = path.join(mbpath,\
       'measure/surface_measures/bin/curvature/CurvatureMain')
-extract_fundi_command = os.path.join(mbpath, 'extract/fundi/vtk_extract.py')
-imagemath = os.path.join(os.environ['ANTSPATH'], 'ImageMath')
-
+extract_fundi_command = path.join(mbpath, 'extract/fundi/vtk_extract.py')
+imagemath = path.join(environ['ANTSPATH'], 'ImageMath')
+#-----------------------------------------------------------------------------
 # List of atlas subjects
-atlas_list_file = os.path.join(atlases_path, 'subjects.txt')
+#-----------------------------------------------------------------------------
+atlas_list_file = path.join(atlases_path, 'atlas_list_test.txt')
 f = open(atlas_list_file)
 atlas_list = f.readlines()
-atlases = \
-[a.strip("\n").split("\t")[0] for a in atlas_list if a.strip("\n").split("\t")]
-atlases_original = \
-[a.strip("\n").split("\t")[1] for a in atlas_list if a.strip("\n").split("\t")]
+atlases = [a.strip("\n") for a in atlas_list if a.strip("\n")]
+if do_evaluate_labels:
+    atlas_list_file2 = path.join(atlases_path, 'atlas_list_old_test.txt')
+    f = open(atlas_list_file2)
+    atlas_list2 = f.readlines()
+    atlases2 = [a.strip("\n") for a in atlas_list2 if a.strip("\n")]
 
 ##############################################################################
 #
@@ -157,7 +161,7 @@ register = node(name = 'Register_template',
 template = 'OASIS-TRT-20'
 register.inputs.template = template + '.tif'
 register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
+register.inputs.templates_path = path.join(templates_path, 'freesurfer')
 
 atlasflow.add_nodes([register])
 mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
@@ -283,7 +287,7 @@ if do_label_volume:
                                                             'output_table'],
                                              output_names = ['output_table']))
         # Table with unique, non-zero labels
-        eval_maxlabels.inputs.labels_file = os.path.join(mbpath, 'labels.txt')
+        eval_maxlabels.inputs.labels_file = path.join(mbpath, 'labels.txt')
         eval_maxlabels.inputs.atlas_file = 'labels.manual.nii.gz'
         eval_maxlabels.inputs.output_table = 'labels.max.eval.csv'
 
@@ -726,6 +730,7 @@ featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 ##############################################################################
 if __name__== '__main__':
 
-    #mbflow.write_graph(graph2use='flat')
-    #mbflow.write_graph(graph2use='hierarchical')
+    if do_create_graph:
+        mbflow.write_graph(graph2use='flat')
+        mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
