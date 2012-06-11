@@ -30,7 +30,7 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 from atlases import register_template, transform_atlas_labels,\
                     majority_vote_label
-from label_volume import polydata2volume, label_volume, measure_overlap
+from label_volume import surface_to_volume, label_volume, measure_overlap
 from features import *
 #-----------------------------------------------------------------------------
 # Options
@@ -38,7 +38,7 @@ from features import *
 use_freesurfer = 1
 do_label_volume = 1
 do_evaluate_labels = 1
-do_create_graph = 0
+do_create_graph = 1
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -229,7 +229,7 @@ if do_label_volume:
     # Put surface vertices in a volume
     #-------------------------------------------------------------------------
     surf2vol = node(name='Surface_to_volume',
-                    interface = fn(function = polydata2volume,
+                    interface = fn(function = surface_to_volume,
                                    input_names = ['surface_file',
                                                   'volume_file',
                                                   'use_freesurfer'],
@@ -247,7 +247,7 @@ if do_label_volume:
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
     fill_maxlabels = node(name='Fill_volume_maxlabels',
-                          interface = fn(function = label_volume,
+                          interface = fn(function = fill_volume,
                                          input_names = ['command',
                                                         'input_file',
                                                         'mask_file'],
