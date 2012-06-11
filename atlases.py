@@ -239,7 +239,7 @@ def majority_vote_label(surface_file, annot_files):
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
 
-    file_stem = surface_file.strip('.vtk')
+    file_stem = path.splitext(surface_file)[0]
     maxlabel_file = file_stem + '.labels.max.vtk'
     labelcounts_file = file_stem + '.labelcounts.vtk'
     labelvotes_file = file_stem + '.labelvotes.vtk'
