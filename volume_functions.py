@@ -67,7 +67,7 @@ def surface_to_volume(surface_file, volume_file, use_freesurfer):
             V[point[0], point[1], point[2]] = label
 
     # Save the image with the same affine transform
-    output_file = path.join(getcwd(), path.splitext(surface_file)[0]+'.nii.gz')
+    output_file = path.join(getcwd(), surface_file.strip('.nii.gz')+'.nii.gz')
     img = nb.Nifti1Image(V, xfm)
     img.to_filename(output_file)
 
@@ -108,7 +108,7 @@ def fill_volume(command, input_file, mask_file):
 
     print("Fill gray matter volume with surface labels using ANTS...")
 
-    output_file = path.join(getcwd(), path.splitext(input_file)[0]+'.fill.nii.gz')
+    output_file = path.join(getcwd(), input_file.strip('.nii.gz')+'.fill.nii.gz')
 
     # Check type:
     if type(mask_file) == str:
@@ -206,7 +206,7 @@ def measure_volume_overlap(subject, labels, input_file, atlases_path, atlases, a
     atlas_data = nb.load(atlas_file).get_data().ravel()
 
     # Set up the output csv file
-    output_table = path.join(getcwd(), path.splitext(input_file)[0]+'.csv')
+    output_table = path.join(getcwd(), input_file.strip('.nii.gz')+'.csv')
     try:
         f = open(output_table,"w")
     except IOError:
