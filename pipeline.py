@@ -139,6 +139,12 @@ if use_freesurfer:
                           interface = fs.MRIsConvert(out_datatype='vtk'))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
 
+    if do_label_volume and use_freesurfer:
+        convertvol = mapnode(name = 'Convert_volume',
+            iterfield = ['in_file'],
+            interface = fs.MRIConvert(out_type='niigz'))
+        mbflow.connect([(vol, convertvol, [('volume_file','in_file')])])
+
 ##############################################################################
 #
 #   Multi-atlas registration-based labeling workflow
@@ -253,8 +259,8 @@ if do_label_volume:
     atlasflow.connect([(surf2vol, fill_maxlabels,
                         [('output_file', 'input_file')])])
     if use_freesurfer:
-        mbflow.connect([(vol, atlasflow,
-                         [('volume_file','Fill_volume_maxlabels.mask_file')])])
+        mbflow.connect([(convertvol, atlasflow,
+                         [('out_file','Fill_volume_maxlabels.mask_file')])])
         #NB: For volume label propagation using FreeSurfer,
         #    we would need to save the appropriate .annot file.
         #
