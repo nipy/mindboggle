@@ -28,10 +28,11 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from atlases import register_template, transform_atlas_labels,\
-                    majority_vote_label
-from label_volume import surface_to_volume, label_volume, measure_overlap
-from features import *
+from atlas_functions import register_template, transform_atlas_labels, \
+                            majority_vote_label
+from volume_functions import surface_to_volume, fill_volume, \
+                             measure_volume_overlap
+from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
@@ -283,7 +284,7 @@ if do_label_volume:
     #-------------------------------------------------------------------------
     if do_evaluate_labels:
         eval_maxlabels = node(name='Evaluate_volume_maxlabels',
-                              interface = fn(function = measure_overlap,
+                              interface = fn(function = measure_volume_overlap,
                                              input_names = ['subject',
                                                             'labels',
                                                             'input_file',
