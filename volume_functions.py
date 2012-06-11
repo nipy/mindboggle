@@ -170,7 +170,7 @@ def maxlabel_volume_FS(subject, annot_name, output_name):
     return output_file
 """
 
-def measure_overlap(subject, labels, input_file, atlases_path, atlases, atlases2):
+def measure_volume_overlap(subject, labels, input_file, atlases_path, atlases, atlases2):
     """
     Measure overlap between individual label regions in a source and target image.
 
