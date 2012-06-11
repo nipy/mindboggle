@@ -17,6 +17,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 # Import Python libraries
 #-----------------------------------------------------------------------------
 from os import path, environ, makedirs
+import numpy as np
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
 from nipype.pipeline.engine import MapNode as mapnode
@@ -86,15 +87,16 @@ mbflow.base_dir = working_path
 ##############################################################################
 #   Inputs and outputs
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Iterate inputs over subjects, hemispheres
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
-
+#-----------------------------------------------------------------------------
 info = node(name = 'Inputs',
             interface = identity(fields=['subject', 'hemi']))
 info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
-
+#-----------------------------------------------------------------------------
 # Location and structure of the surface inputs
+#-----------------------------------------------------------------------------
 surf = node(name = 'Surfaces',
             interface = datain(infields=['subject', 'hemi'],
                                outfields=['surface_files', 'sphere_files']))
@@ -103,8 +105,9 @@ surf.inputs.template = '%s/surf/%s.%s'
 surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
 surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
-
+#-----------------------------------------------------------------------------
 # Location and structure of the volume inputs
+#-----------------------------------------------------------------------------
 if do_label_volume:
     vol = node(name = 'Volume',
                interface = datain(infields=['subject', 'hemi'],
@@ -113,8 +116,9 @@ if do_label_volume:
     vol.inputs.template = '%s/mri/%s.ribbon.mgz'
     vol.inputs.template_args['volume_file'] = [['subject', 'hemi']]
     mbflow.connect([(info, vol, [('subject','subject'), ('hemi','hemi')])])
-
+#-----------------------------------------------------------------------------
 # Outputs
+#-----------------------------------------------------------------------------
 datasink = node(dataout(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
@@ -122,8 +126,9 @@ datasink.inputs.container = 'output'
 ##############################################################################
 #   Surface conversion to VTK
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Convert FreeSurfer surfaces to VTK format and volumes to NIfTI format
+#-----------------------------------------------------------------------------
 if use_freesurfer:
 
     import nipype.interfaces.freesurfer as fs
@@ -148,8 +153,9 @@ atlasflow = workflow(name='Atlas_workflow')
 ##############################################################################
 #   Multi-atlas registration
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Template registration
+#-----------------------------------------------------------------------------
 register = node(name = 'Register_template',
                 interface = fn(function = register_template,
                                input_names = ['hemi',
@@ -162,13 +168,13 @@ template = 'OASIS-TRT-20'
 register.inputs.template = template + '.tif'
 register.inputs.transform = 'sphere_to_' + template + '_template.reg'
 register.inputs.templates_path = path.join(templates_path, 'freesurfer')
-
 atlasflow.add_nodes([register])
 mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
                 (surf, atlasflow, [('sphere_files',
                                     'Register_template.sphere_file')])])
-
+#-----------------------------------------------------------------------------
 # Atlas registration
+#-----------------------------------------------------------------------------
 transform = mapnode(name = 'Transform_atlas_labels',
                     iterfield = ['atlas'],
                     interface = fn(function = transform_atlas_labels,
@@ -182,14 +188,14 @@ transform = mapnode(name = 'Transform_atlas_labels',
 transform.inputs.atlas = atlases
 transform.inputs.subjects_path = subjects_path
 transform.inputs.atlas_annot = 'labels.manual.annot'
-
 atlasflow.add_nodes([transform])
 mbflow.connect([(info, atlasflow,
                  [('hemi', 'Transform_atlas_labels.hemi'),
                   ('subject', 'Transform_atlas_labels.subject')])])
 atlasflow.connect([(register, transform, [('transform', 'transform')])])
-
+#-----------------------------------------------------------------------------
 # Majority vote labeling
+#-----------------------------------------------------------------------------
 vote = node(name='Label_vote',
             interface = fn(function = majority_vote_label,
                            input_names = ['surface_file',
@@ -214,44 +220,40 @@ mbflow.connect([(atlasflow, datasink,
 ##############################################################################
 #   Label propagation through a mask
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
+#-----------------------------------------------------------------------------
 if do_label_volume:
 
+    #-------------------------------------------------------------------------
     # Put surface vertices in a volume
+    #-------------------------------------------------------------------------
     surf2vol = node(name='Surface_to_volume',
                     interface = fn(function = polydata2volume,
                                    input_names = ['surface_file',
                                                   'volume_file',
-                                                  'output_file',
                                                   'use_freesurfer'],
                                    output_names = ['output_file']))
     surf2vol.inputs.use_freesurfer = use_freesurfer
-    surf2vol.inputs.output_file = 'labels.surf.nii.gz'
-
     atlasflow.add_nodes([surf2vol])
     atlasflow.connect([(vote, surf2vol, [('maxlabel_file','surface_file')])])
-
     if use_freesurfer:
         mbflow.connect([(convertvol, atlasflow,
                          [('out_file','Surface_to_volume.volume_file')])])
     else:
         mbflow.connect([(vol, atlasflow,
                          [('volume_file','Surface_to_volume.volume_file')])])
-
+    #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
+    #-------------------------------------------------------------------------
     fill_maxlabels = node(name='Fill_volume_maxlabels',
                           interface = fn(function = label_volume,
                                          input_names = ['command',
                                                         'input_file',
-                                                        'mask_file',
-                                                        'output_file'],
+                                                        'mask_file'],
                                          output_names = ['output_file']))
     fill_maxlabels.inputs.command = imagemath
-    fill_maxlabels.inputs.output_file = 'labels.max.nii.gz'
-
     atlasflow.add_nodes([fill_maxlabels])
-
     atlasflow.connect([(surf2vol, fill_maxlabels,
                         [('output_file', 'input_file')])])
     if use_freesurfer:
@@ -272,53 +274,62 @@ if do_label_volume:
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file',
                        'labels.@maxvolume')])])
-"""
+
     ##########################################################################
     #   Evaluation of the volume maxlabels
     ##########################################################################
-
+    #-------------------------------------------------------------------------
     # Evaluate volume labels
+    #-------------------------------------------------------------------------
     if do_evaluate_labels:
         eval_maxlabels = node(name='Evaluate_volume_maxlabels',
                               interface = fn(function = measure_overlap,
-                                             input_names = ['labels_file',
+                                             input_names = ['subject',
+                                                            'labels',
                                                             'input_file',
-                                                            'atlas_file',
-                                                            'output_table'],
+                                                            'atlases_path',
+                                                            'atlases',
+                                                            'atlases2'],
                                              output_names = ['output_table']))
+        #---------------------------------------------------------------------
         # Table with unique, non-zero labels
-        eval_maxlabels.inputs.labels_file = path.join(mbpath, 'labels.txt')
-        eval_maxlabels.inputs.atlas_file = 'labels.manual.nii.gz'
-        eval_maxlabels.inputs.output_table = 'labels.max.eval.csv'
-
+        #---------------------------------------------------------------------
+        labels = np.short(np.loadtxt(path.join(atlases_path, 'label_indices.txt')))
+        eval_maxlabels.inputs.labels = labels
+        eval_maxlabels.inputs.atlases_path = atlases_path
+        eval_maxlabels.inputs.atlases = atlases
+        eval_maxlabels.inputs.atlases2 = atlases2
         atlasflow.add_nodes([eval_maxlabels])
-
+        mbflow.connect([(info, atlasflow, [('subject',
+                                            'Evaluate_volume_maxlabels.subject')])])
         atlasflow.connect([(fill_maxlabels, eval_maxlabels,
                             [('output_file', 'input_file')])])
         mbflow.connect([(atlasflow, datasink,
                          [('Evaluate_volume_maxlabels.output_table',
                            'labels.@eval')])])
-"""
+
 ##############################################################################
 #
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-
 featureflow = workflow(name='Feature_workflow')
 
 ##############################################################################
 #   Surface calculations
 ##############################################################################
-
-# Measure surface depth and curvature nodes
+#-----------------------------------------------------------------------------
+# Measure surface depth
+#-----------------------------------------------------------------------------
 depth = node(name='Compute_depth',
              interface = fn(function = compute_depth,
                             input_names = ['command',
                                            'surface_file'],
                             output_names = ['depth_file']))
 depth.inputs.command = depth_command
-
+#-----------------------------------------------------------------------------
+# Measure surface curvature
+#-----------------------------------------------------------------------------
 curvature = node(name='Compute_curvature',
                  interface = fn(function = compute_curvature,
                                 input_names = ['command',
@@ -328,10 +339,10 @@ curvature = node(name='Compute_curvature',
                                                 'max_curvature_file',
                                                 'min_curvature_file']))
 curvature.inputs.command = curvature_command
-
+#-----------------------------------------------------------------------------
 # Add and connect nodes
+#-----------------------------------------------------------------------------
 featureflow.add_nodes([depth, curvature])
-
 if use_freesurfer:
     mbflow.connect([(convertsurf, featureflow,
                    [('converted', 'Compute_depth.surface_file')])])
@@ -345,8 +356,9 @@ else:
     mbflow.connect([(atlasflow, featureflow, 
                      [('Surfaces.surface_files',
                        'Compute_curvature.surface_file')])])
-
+#-----------------------------------------------------------------------------
 # Save
+#-----------------------------------------------------------------------------
 mbflow.connect([(featureflow, datasink,
                  [('Compute_depth.depth_file', 'surfaces.@depth')])])
 mbflow.connect([(featureflow, datasink,
@@ -362,8 +374,10 @@ mbflow.connect([(featureflow, datasink,
 ##############################################################################
 #   Feature extraction
 ##############################################################################
-"""
+#-----------------------------------------------------------------------------
 # Extract features
+#-----------------------------------------------------------------------------
+"""
 fundi = node(name='Extract_fundi',
              interface = fn(function = extract_fundi,
                             input_names = ['command',
@@ -388,7 +402,9 @@ medial = node(name='Extract_medial',
                                                  'gauss_curv_file'],
                                   output_names = ['midaxis']))
 
+#-----------------------------------------------------------------------------
 # Connect surface depth to feature extraction nodes
+#-----------------------------------------------------------------------------
 featureflow.connect([(depth, fundi,
                [('depth_file', 'depth_file')])])
 featureflow.connect([(fundi, datasink, 
@@ -402,26 +418,31 @@ featureflow.connect([(surfaces, midaxis_extraction,
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
-"""
+
 ##############################################################################
 #   Label propagation
 ##############################################################################
-"""
+#-----------------------------------------------------------------------------
 # Label propagation node
+#-----------------------------------------------------------------------------
 propagate = node(name='Propagate_labels',
                     interface = fn(
                                      function = propagate_labels,
                                      input_names=['labels', 'fundi'],
                                      output_names=['labels']))
 
+#-----------------------------------------------------------------------------
 # Volume label propagation node
+#-----------------------------------------------------------------------------
 propagate_volume = node(name='Propagate_volume_labels',
                            interface = fn(
                                             function = propagate_volume_labels,
                                             input_names = ['labels'],
                                             output_names = ['volume_labels']))
 
+#-----------------------------------------------------------------------------
 # Labeled surface patch and volume extraction nodes
+#-----------------------------------------------------------------------------
 extract_patch = node(name='Extract_patch',
                         interface = fn(
                                          function = extract_patches,
@@ -434,7 +455,9 @@ extract_patch = node(name='Extract_region',
                                          input_names=['labels'],
                                          output_names=['patches']))
 
+#-----------------------------------------------------------------------------
 # Connect registration and extraction to label propagation nodes
+#-----------------------------------------------------------------------------
 featureflow.connect([(transform, propagate, [('labels','labels')]),
                      (extract_fundi, propagate, [('fundi','fundi')])])
 
@@ -447,8 +470,9 @@ featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
 ##############################################################################
 #   Feature segmentation / identification
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Feature segmentation nodes
+#-----------------------------------------------------------------------------
 segment_sulci = node(name='Segment_sulci',
                         interface = fn(
                                          function = segment_sulci,
@@ -480,8 +504,9 @@ featureflow.connect([(propagate, segment_sulci, [('labels','labels')]),
 ##############################################################################
 #   Shape measurement
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Shape measurement nodes
+#-----------------------------------------------------------------------------
 positions = node(interface = fn(input_names = ['segmented_sulci',
                                                  'segmented_fundi',
                                                  'segmented_midaxis', 
@@ -557,7 +582,9 @@ spectra = node(interface = fn(input_names = ['segmented_sulci',
                                 function = measure_spectra),
                   name='Measure_spectra')
 
+#-----------------------------------------------------------------------------
 # Connect labeled surface patches and volumes to shape measurement nodes
+#-----------------------------------------------------------------------------
 featureflow.connect([(patch_extraction,  positions, [('patches', 'patches')])])
 featureflow.connect([(region_extraction, positions, [('regions', 'regions')])])
 featureflow.connect([(patch_extraction,  extents, [('patches', 'patches')])])
@@ -569,7 +596,9 @@ featureflow.connect([(region_extraction, curvatures, [('regions', 'regions')])])
 featureflow.connect([(patch_extraction,  spectra, [('patches', 'patches')])])
 featureflow.connect([(region_extraction, spectra, [('regions', 'regions')])])
 
+#-----------------------------------------------------------------------------
 # Connect feature to shape measurement nodes
+#-----------------------------------------------------------------------------
 featureflow.connect([(sulcus_segmentation, positions, [('segmented_sulci', 'segmented_sulci')])])
 featureflow.connect([(fundus_segmentation, positions, [('segmented_fundi', 'segmented_fundi')])])
 featureflow.connect([(pit_extraction, positions, [('pits', 'pits')])])
@@ -596,8 +625,9 @@ featureflow.connect([(midaxis_segmentation, spectra, [('segmented_midaxis', 'seg
 ##############################################################################
 #    Store surface maps, features, and measures in database
 ##############################################################################
-
+#-----------------------------------------------------------------------------
 # Database nodes
+#-----------------------------------------------------------------------------
 maps_database = node(interface = fn(input_names = ['depth_file',
                                                      'mean_curv_file',
                                                      'gauss_curv_file'],
@@ -650,7 +680,9 @@ measures_table = node(interface = fn(input_names = ['measures'],
                                        function = write_measures_to_table),
                          name='Write_measures_to_table')
 
+#-----------------------------------------------------------------------------
 # Connect surface maps to database nodes
+#-----------------------------------------------------------------------------
 featureflow.connect([(surfaces, maps_database, [('depth_file','depth_file'),
                                 ('mean_curv_file','mean_curv_file'),
                                 ('gauss_curv_file','gauss_curv_file')])])
@@ -710,7 +742,9 @@ evalflow = workflow(name='Evaluation_workflow')
 #   Surface calculations
 ##############################################################################
 
+#-----------------------------------------------------------------------------
 # Measure surface depth and curvature nodes
+#-----------------------------------------------------------------------------
 depth = node(name='Compute_depth',
              interface = fn(function = compute_depth,
                             input_names = ['command',
