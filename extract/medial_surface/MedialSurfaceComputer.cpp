@@ -156,6 +156,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
 {    
     ProcessFundi();
     FindCandidatePoints();
+    FrontVoronoi();
 
 //    vtkDelaunay3D* del = vtkDelaunay3D::New();
 //    del->SetInput(m_candidatePolyData);
@@ -212,7 +213,7 @@ void MedialSurfaceComputer::BuildMedialSurface()
         lpd->SetLines(m_processedFundi->GetLines());
         lpd->Update();
 
-        FilterPointPosition(lpd);
+//        FilterPointPosition(lpd);
 
 //        vtkIndent indent;
 //        lpd->PrintSelf(cout, indent);
@@ -455,7 +456,7 @@ void MedialSurfaceComputer::FilterPointPosition(vtkPolyData *mesh)
     int nbNeib;
     double pointn[3], pn1[3];
 
-    for(int s = 0; s<5 ; s++)
+    for(int s = 0; s<10 ; s++)
     {
         for(int i = 0; i<m_processedFundi->GetNumberOfPoints() ; i++)
         {
@@ -513,16 +514,20 @@ void MedialSurfaceComputer::SelectNextPoint(double point[3], vtkPolyData* prevLa
 {
     double point0[3];
     vtkIdList* neib = vtkIdList::New();
-    double p0[3], p1[3], p2[3];
+    double p0[3], p1[3], p2[3], op[3];
     double cp[3];
     double vec[3];
+    double nvec[3];
+    double vec1[3];
     double radius = 3;
     vtkIdList* radiusPoints = vtkIdList::New();
     int nbInRadius;
-    double minScore;
+    double maxScore = -10000;
     double d0, d1, d2;
     double score1;
     vtkIdType bi;
+
+    m_processedFundi->GetPoint(i,op);
 
     prevLayer->GetPoint(i,point0);
 
@@ -551,29 +556,70 @@ void MedialSurfaceComputer::SelectNextPoint(double point[3], vtkPolyData* prevLa
 
     for(int k = 0 ; k<3 ; k++)
     {
-        p0[k] = point0[k] + 3 * vec[k];
+        p0[k] = point0[k] + 2 * vec[k];
     }
 
-    bi = m_candidateLocator->FindClosestPoint(p0);
+    vtkIdList* cpl = vtkIdList::New();
 
-    m_candidatePoints->GetPoint(bi, point);
-    m_processedFundi->GetPoint(i,cp);
+    m_candidateLocator->FindClosestNPoints(20,point0,cpl);
 
+    bool cf = false;
 
-    for(int k = 0 ; k<3 ; k++)
+    for(int j = 0; j< cpl->GetNumberOfIds() ; j++)
     {
-        vec[k] = point[k] - cp[k];
+//        cout<<i<<" "<<m_bins->GetId(cpl->GetId(j))<<endl;
+
+        if(i == m_bins->GetId(cpl->GetId(j)))
+        {
+            cf = true;
+
+            bi = cpl->GetId(j);
+            m_candidatePoints->GetPoint(bi,p1);
+
+            for(int k = 0 ; k<3 ; k++)
+            {
+                vec1[k] = p1[k] - point0[k];
+            }
+
+            d0 = vtkMath::Norm(vec1);
+
+            for(int k = 0 ; k<3 ; k++)
+            {
+                vec1[k] /= d0;
+            }
+
+            score1 = vtkMath::Dot(vec1,vec);
+
+            if(score1 > maxScore)
+            {
+                maxScore = score1;
+                for(int k = 0 ; k<3 ; k++)
+                {
+                    point[k] = p1[k];
+                    nvec[k] = p1[k] - op[k];
+                }
+
+                d1 = vtkMath::Norm(nvec);
+
+                for(int k = 0 ; k<3 ; k++)
+                {
+                    nvec[k] /= d1;
+                }
+
+            }
+        }
     }
 
-    double nn = vtkMath::Norm(vec);
-
-
-    for(int k = 0 ; k<3 ; k++)
+    if(!cf)
     {
-        vec[k] /= nn;
+        for(int k = 0 ; k<3 ; k++)
+        {
+            point[k] = p0[k];
+        }
     }
 
-//    m_pitsNormals->SetTuple(i,vec);
+//    m_pitsNormals->SetTuple(i,nvec);
+
 
 
 //    m_candidateLocator->FindPointsWithinRadius(radius,p0,radiusPoints);
@@ -632,11 +678,8 @@ void MedialSurfaceComputer::SelectNextPoint(double point[3], vtkPolyData* prevLa
 
 //    }
 
-
-
     neib->Delete();
     radiusPoints->Delete();
-
 }
 
 
@@ -714,6 +757,25 @@ bool MedialSurfaceComputer::ProjectInNormalDirection(vtkIdType pointId, double i
 
 
     return inter;
+}
+
+void MedialSurfaceComputer::FrontVoronoi()
+{
+    double point[3];
+    m_bins = vtkIdList::New();
+
+    vtkPointLocator* pl = vtkPointLocator::New();
+    pl->SetDataSet(m_processedFundi);
+    pl->BuildLocator();
+    pl->Update();
+
+    for(int i = 0 ; i< m_candidatePoints->GetNumberOfPoints(); i++)
+    {
+        m_candidatePoints->GetPoint(i,point);
+
+        m_bins->InsertNextId(pl->FindClosestPoint(point));
+    }
+
 }
 
 

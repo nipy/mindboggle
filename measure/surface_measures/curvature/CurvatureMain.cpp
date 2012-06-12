@@ -14,7 +14,7 @@ int main(int argc, char** argv)
     }
 
     MeshAnalyser* ma = new MeshAnalyser(argv[1]);
-    ma->ComputePrincipalCurvatures();
+    vtkDoubleArray* minDirections = ma->ComputePrincipalCurvatures();
 
     ma->WriteIntoFile(argv[2], (char*)"curv");
 
@@ -31,7 +31,19 @@ int main(int argc, char** argv)
         ma->WriteIntoFile(argv[5], (char*)"curv2");
     }
 
+    double dir[3];
 
+    ofstream myfile(argv[6]);
+    myfile.clear();
+
+
+    for(int i = 0; i<minDirections->GetNumberOfTuples() ; i++)
+    {
+        minDirections->GetTuple(i,dir);
+        myfile<<dir[0]<<" "<<dir[1]<<" "<<dir[2]<<endl;
+    }
+
+    myfile.close();
     cout<<"Elapsed time (meshTest): "<<time(NULL)-start<<" s"<<endl;
     return 0;
 }

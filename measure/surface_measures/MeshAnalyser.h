@@ -183,9 +183,13 @@ public:
     //
     //Compute the principal curvature, the mean and the gaussian curvature the deviation of the normal vectors.
     //
+    //The procipal curvatures are computed by comparing the normal vectors (dot product) of the 1-ring neighbors
+    //of the each point. The more the normal are divergent, the more the curvature value is low,
+    // The more the normal are convergent, the more the curvature value is high.
+    // Return the vector field of the minimal curvature direction
     //Compute the local surface mean and gaussian curvature and fill this->curv1, this->curv2,
     //this->curv and this->gCurv
-    void ComputePrincipalCurvatures();
+    vtkDoubleArray *ComputePrincipalCurvatures();
 	
 	//Simplify(double arg1)
 	//

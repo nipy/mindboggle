@@ -53,7 +53,7 @@
 #include <vtkExtractEdges.h>
 
 #include <vtkLinearSubdivisionFilter.h>
-
+#include <vtkTubeFilter.h>
 
 MeshAnalyser::MeshAnalyser(char* fileName)
 {
@@ -1513,7 +1513,7 @@ void MeshAnalyser::ComputeCurvature(double res)
 
 }
 
-void MeshAnalyser::ComputePrincipalCurvatures()
+vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
 {
     vtkIdList* neib = vtkIdList::New();
 
@@ -1522,19 +1522,23 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     vtkIdType i1, i2;
 
-    double point1[3], point2[3];
+    double point1[3], point2[3], pointc[3];
 
-    double vec[3];
+    double vec[3], vecc1[3], vecc2[3], minVec[3];
 
     double d1, d2, d;
+
+    double r, ac, ab, dc;
 
     double maxD, minD;
 
     this->test->Reset();
 
-    double ec;
+    double ec, ecv, ecc1, ecc2;
 
     double saturation = 1;
+    double maxScore, minScore, score;
+
 
 //    double maxCurv=-10;  // added Forrest 2012-03-05
 //    double minCurv=1000;  // added Forrest 2012-03-05
@@ -1542,15 +1546,32 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 //    double mingCurv=1000;  // added Forrest 2012-03-05
 
 
+    vtkCellArray* ca = vtkCellArray::New();
+    vtkPoints* vectorPoints = vtkPoints::New();
+
+    vtkDoubleArray* minDirections = vtkDoubleArray::New();
+    minDirections->SetNumberOfComponents(3);
+
     for(int i = 0 ; i<this->nbPoints ; i++)
     {
         GetPointNeighbors(i, neib);
+
+        this->mesh->GetPoint(i,pointc);
+
+//        GeoDistRing(i,3);
+//        neib = this->inRing;
 
         nbn = neib->GetNumberOfIds();
 
         minD = 100000;
         maxD = -1000000;
+        minScore = 10000000;
+        maxScore = -1000000;
 
+        for(int k = 0; k<3 ; k++)
+        {
+            minVec[k] = 0;
+        }
 
         for(int j = 0; j<nbn ; j++)
         {
@@ -1567,18 +1588,83 @@ void MeshAnalyser::ComputePrincipalCurvatures()
                 for(int m =0; m<3 ; m++)
                 {
                     vec[m] = point2[m] - point1[m];
+                    vecc1[m] = point1[m] - pointc[m];
+                    vecc2[m] = point2[m] - pointc[m];
                 }
 
                 ec = vtkMath::Norm(vec);
+                ecc1 = vtkMath::Norm(vecc1);
+                ecc2 = vtkMath::Norm(vecc2);
+
+//                if(ec != 0)
+//                {
+//                    r = vtkMath::Dot(vec,vecc) / ec;
+//                }
+//                else
+//                {
+//                    r = 0;
+//                }
+
+
+//                ecv = pow(vtkMath::Norm(vecc),2) - pow(r,2);
+
+//                if(ecv < 0)
+//                {
+//                    ecv =0;
+//                }
+
+//                dc = sqrt( ecv );
+
+                if(ecc1 !=0 && ecc2 !=0 )
+                {
+                    dc = vtkMath::Dot(vecc1, vecc2)/ecc1/ecc2;
+                }
+                else
+                {
+                    dc = 0;
+                }
+
+
+                if(isnan(dc))
+                {
+                    cout<<"r: "<<r<<" "<<vtkMath::Norm(vecc1)<<endl;
+                }
 
                 d1 = vtkMath::Dot(vec, n1)/ec/ec; //one time to normallize the dot product and one time to regularize the gradient computatation.
                 d2 = vtkMath::Dot(vec, n2)/ec/ec;
 
                 d = d1 - d2;
 
-                if(d > maxD) maxD = d;
-                if(d < minD) minD = d;
+                dc = 0;
+
+                score = d - dc;
+                if(score > maxScore)
+                {
+                    maxScore = score;
+                    maxD = d;
+
+                }
+
+                score = d + dc;
+                if(score < minScore)
+                {
+                    minScore = score;
+                    minD = d;
+                    for(int k = 0; k<3 ; k++)
+                    {
+                        minVec[k] = vec[k];
+                    }
+                }
+
+//                if(d > maxD) maxD = d;
+//                if(d < minD) minD = d;
             }
+        }
+
+        ec = vtkMath::Norm(minVec);
+        for(int k = 0 ; k<3; k++)
+        {
+            minVec[k] /= ec;
         }
 
         if(nbn == 0)
@@ -1600,6 +1686,23 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
         this->test->InsertNextValue(maxD-fabs(minD));
 
+        vectorPoints->InsertNextPoint(pointc);
+
+        for(int k = 0; k<3; k++)
+        {
+            point2[k] = pointc[k] + minVec[k];
+        }
+
+        vectorPoints->InsertNextPoint(point2);
+
+        vtkIdList* line = vtkIdList::New();
+        line->InsertNextId(2*i);
+        line->InsertNextId(2*i+1);
+
+        ca->InsertNextCell(line);
+
+        minDirections->InsertNextTuple(minVec);
+
         /*added Forrest 2012-03-05*/
 //        double MCurv = (maxD+minD)/2;
 //	double GCurv = maxD*minD;
@@ -1611,6 +1714,28 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 
     }  // End of for i in 0 to nbPoints
 
+
+    //uncomment to write the vector field into a vtk file
+    /*
+    vtkPolyData* pd = vtkPolyData::New();
+    pd->SetPoints(vectorPoints);
+    pd->SetLines(ca);
+    pd->Update();
+
+    vtkTubeFilter* tube = vtkTubeFilter::New();
+    tube->SetInput(pd);
+    tube->SetRadius(0.1);
+    tube->SetNumberOfSides(6);
+    tube->Update();
+
+    vtkPolyDataWriter* pdw = vtkPolyDataWriter::New();
+    pdw->SetInput(tube->GetOutput());
+    pdw->SetFileName("/home/giard/work/BrainProject/data/output/dir.vtk");
+    pdw->Write();
+    pdw->Update();
+    pdw->Delete();
+*/
+
     /* added Forrest 2012-03-05 */
 //    double curCurv;
 //    for(int i=0;i<this->nbPoints;i++)
@@ -1621,6 +1746,8 @@ void MeshAnalyser::ComputePrincipalCurvatures()
 //        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
 //    }
     /* end of added Forrest 2012-03-05 */ 
+
+    return minDirections;
 
 }
 
