@@ -203,9 +203,10 @@ def majority_vote_label(surface_file, annot_files):
                   number of votes per majority label
     """
 
+    from os import path
     import nibabel as nb
     import pyvtk
-    from atlases import relabel, vote_labels
+    from atlas_functions import relabel, vote_labels
 
     if_relabel = 1  # call relabel()
 
