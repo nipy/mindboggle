@@ -61,7 +61,8 @@ def compute_curvature(command, surface_file):
     gauss_curvature_file = file_stem + '.curvature.gauss.vtk'
     max_curvature_file = file_stem + '.curvature.max.vtk'
     min_curvature_file = file_stem + '.curvature.min.vtk'
-    args = [surface_file, 
+    min_curvature_vector_file = file_stem + '.curvature.min.direction.txt'
+    args = [surface_file,
             mean_curvature_file, gauss_curvature_file,
             max_curvature_file, min_curvature_file]
     cli = CommandLine(command = command)
@@ -69,4 +70,4 @@ def compute_curvature(command, surface_file):
     cli.cmdline
     cli.run()
     return mean_curvature_file, gauss_curvature_file,\
-           max_curvature_file, min_curvature_file
+           max_curvature_file, min_curvature_file, min_curvature_vector_file
