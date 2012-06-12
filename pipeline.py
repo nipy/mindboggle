@@ -339,7 +339,8 @@ curvature = node(name='Compute_curvature',
                                 output_names = ['mean_curvature_file',
                                                 'gauss_curvature_file',
                                                 'max_curvature_file',
-                                                'min_curvature_file']))
+                                                'min_curvature_file',
+                                                'min_curvature_vector_file']))
 curvature.inputs.command = curvature_command
 #-----------------------------------------------------------------------------
 # Add and connect nodes
@@ -370,8 +371,10 @@ mbflow.connect([(featureflow, datasink,
                    'surfaces.@gauss_curvature'),
                   ('Compute_curvature.max_curvature_file', 
                    'surfaces.@max_curvature'),
-                  ('Compute_curvature.min_curvature_file', 
-                   'surfaces.@min_curvature')])])
+                  ('Compute_curvature.min_curvature_file',
+                   'surfaces.@min_curvature'),
+                  ('Compute_curvature.min_curvature_vector_file',
+                   'surfaces.@min_curvature_vectors')])])
 
 ##############################################################################
 #   Feature extraction
