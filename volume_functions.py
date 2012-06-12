@@ -67,7 +67,7 @@ def surface_to_volume(surface_file, volume_file, use_freesurfer):
             V[point[0], point[1], point[2]] = label
 
     # Save the image with the same affine transform
-    output_file = path.join(getcwd(), surface_file.strip('.nii.gz')+'.nii.gz')
+    output_file = path.join(getcwd(), surface_file.strip('.vtk')+'.nii.gz')
     img = nb.Nifti1Image(V, xfm)
     img.to_filename(output_file)
 
