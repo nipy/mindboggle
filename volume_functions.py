@@ -11,7 +11,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def polydata2volume(surface_file, volume_file, use_freesurfer):
+def surface_to_volume(surface_file, volume_file, use_freesurfer):
     """
     Save the vertices of a FreeSurfer surface mesh as an image volume.
     """
@@ -74,6 +74,7 @@ def polydata2volume(surface_file, volume_file, use_freesurfer):
     return output_file
 
     """
+    # Alternative (NEEDS A FIX):
     # Create a new volume (permuted and flipped)
     from apply_utils import apply_affine
     xfm2 = np.array([[-1,0,0,128],
@@ -87,7 +88,7 @@ def polydata2volume(surface_file, volume_file, use_freesurfer):
         V[vertex[0], vertex[1], vertex[2]] = 1
     """
 
-def label_volume(command, input_file, mask_file):
+def fill_volume(command, input_file, mask_file):
     """
     Fill (e.g., gray matter) volume with surface labels using ANTS
     (ImageMath's PropagateLabelsThroughMask)
@@ -169,7 +170,7 @@ def maxlabel_volume_FS(subject, annot_name, output_name):
     return output_file
 """
 
-def measure_overlap(subject, labels, input_file, atlases_path, atlases, atlases2):
+def measure_volume_overlap(subject, labels, input_file, atlases_path, atlases, atlases2):
     """
     Measure overlap between individual label regions in a source and target image.
 
@@ -182,7 +183,6 @@ def measure_overlap(subject, labels, input_file, atlases_path, atlases, atlases2
     from os import path, getcwd, error
     import nibabel as nb
     import numpy as np
-    import csv
     from nipype import logging
     logger = logging.getLogger('interface')
 
@@ -224,6 +224,8 @@ def measure_overlap(subject, labels, input_file, atlases_path, atlases, atlases2
         atlas_label_sum = np.sum(atlas_indices)
         intersect_label_sum = np.sum(np.intersect1d(input_indices, atlas_indices))
         union_label_sum = np.sum(np.union1d(input_indices, atlas_indices))
+        #print(str(label), str(input_label_sum), str(atlas_label_sum),
+        #      str(intersect_label_sum), str(union_label_sum))
 
         if intersect_label_sum > 0:
             dice = 2 * intersect_label_sum / (input_label_sum + atlas_label_sum)
