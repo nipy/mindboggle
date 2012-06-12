@@ -28,17 +28,18 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from atlases import register_template, transform_atlas_labels,\
-                    majority_vote_label
-from label_volume import polydata2volume, label_volume, measure_overlap
-from features import *
+from atlas_functions import register_template, transform_atlas_labels, \
+                            majority_vote_label
+from volume_functions import surface_to_volume, fill_volume, \
+                             measure_volume_overlap
+from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
 do_label_volume = 1
 do_evaluate_labels = 1
-do_create_graph = 0
+do_create_graph = 1
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -127,7 +128,7 @@ datasink.inputs.container = 'output'
 #   Surface conversion to VTK
 ##############################################################################
 #-----------------------------------------------------------------------------
-# Convert FreeSurfer surfaces to VTK format and volumes to NIfTI format
+# Convert FreeSurfer surfaces to VTK format
 #-----------------------------------------------------------------------------
 if use_freesurfer:
 
@@ -138,10 +139,11 @@ if use_freesurfer:
                           interface = fs.MRIsConvert(out_datatype='vtk'))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
 
-    convertvol = mapnode(name = 'Convert_volume',
-                         iterfield = ['in_file'],
-                         interface = fs.MRIConvert(out_type='niigz'))
-    mbflow.connect([(vol, convertvol, [('volume_file','in_file')])])
+    if do_label_volume and use_freesurfer:
+        convertvol = mapnode(name = 'Convert_volume',
+            iterfield = ['in_file'],
+            interface = fs.MRIConvert(out_type='niigz'))
+        mbflow.connect([(vol, convertvol, [('volume_file','in_file')])])
 
 ##############################################################################
 #
@@ -229,7 +231,7 @@ if do_label_volume:
     # Put surface vertices in a volume
     #-------------------------------------------------------------------------
     surf2vol = node(name='Surface_to_volume',
-                    interface = fn(function = polydata2volume,
+                    interface = fn(function = surface_to_volume,
                                    input_names = ['surface_file',
                                                   'volume_file',
                                                   'use_freesurfer'],
@@ -238,8 +240,8 @@ if do_label_volume:
     atlasflow.add_nodes([surf2vol])
     atlasflow.connect([(vote, surf2vol, [('maxlabel_file','surface_file')])])
     if use_freesurfer:
-        mbflow.connect([(convertvol, atlasflow,
-                         [('out_file','Surface_to_volume.volume_file')])])
+        mbflow.connect([(vol, atlasflow,
+                         [('volume_file','Surface_to_volume.volume_file')])])
     else:
         mbflow.connect([(vol, atlasflow,
                          [('volume_file','Surface_to_volume.volume_file')])])
@@ -247,7 +249,7 @@ if do_label_volume:
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
     fill_maxlabels = node(name='Fill_volume_maxlabels',
-                          interface = fn(function = label_volume,
+                          interface = fn(function = fill_volume,
                                          input_names = ['command',
                                                         'input_file',
                                                         'mask_file'],
@@ -283,7 +285,7 @@ if do_label_volume:
     #-------------------------------------------------------------------------
     if do_evaluate_labels:
         eval_maxlabels = node(name='Evaluate_volume_maxlabels',
-                              interface = fn(function = measure_overlap,
+                              interface = fn(function = measure_volume_overlap,
                                              input_names = ['subject',
                                                             'labels',
                                                             'input_file',
