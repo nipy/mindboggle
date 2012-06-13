@@ -323,7 +323,7 @@ def write_label_file(hemi, surface_file, label_index, label_name):
 
     return label_file
 
-def write_annot_file(hemi, surface_file, label_index, label_name):
+def convert_label_to_annot_file(hemi, surface_file, label_index, label_name):
     """
     Save label file for a given label from the vertices of a labeled VTK surface mesh.
     """

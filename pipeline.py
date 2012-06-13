@@ -263,15 +263,15 @@ if do_label_volume:
                                                         'label_index',
                                                         'label_name'],
                                          output_names = ['label_file']))
-    writelabels.inputs.label_index = cortical_label_indices
-    writelabels.inputs.label_name = cortical_label_names
+    writelabels.inputs.label_index = cortical_label_indices[0]
+    writelabels.inputs.label_name = cortical_label_names[0]
     atlasflow.add_nodes([writelabels])
     mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
     atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
 
     """
-    writeannot = node(name='Write_annot_files',
-                      interface = fn(function = write_annot_file,
+    writeannot = node(name='Write_annot_file',
+                      interface = fn(function = convert_label_to_annot_file,
                                      input_names = ['label_files'],
                                      output_names = ['annot_file']))
     #writeannot.inputs.label_index = cortical_label_file
@@ -279,7 +279,7 @@ if do_label_volume:
     atlasflow.add_nodes([writeannot])
     atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
     mbflow.connect([(writeannot, datasink,
-                     [('Write_annot_files.annot_file', 'labels.@max_annot')])])
+                     [('Write_annot_file.annot_file', 'labels.@max_annot')])])
 
     """
     """
