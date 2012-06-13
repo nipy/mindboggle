@@ -40,7 +40,9 @@ def register_template(hemi, sphere_file, transform,
     template_file = path.join(templates_path, hemi + '.' + template)
     output_file = hemi + '.' + transform
     cli = CommandLine(command='mris_register')
-    cli.inputs.args = ' '.join(['-curv', sphere_file,
+    #cli.inputs.args = ' '.join(['-curv', sphere_file,
+    #                            template_file, output_file])
+    cli.inputs.args = ' '.join(['-N 0', sphere_file,
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()
@@ -262,3 +264,120 @@ def majority_vote_label(surface_file, annot_files):
 
     return maxlabel_file, labelcounts_file, labelvotes_file
 
+def write_label_file(hemi, surface_file, label_index, label_name):
+    """
+    Save label file for a given label from the vertices of a labeled VTK surface mesh.
+    """
+
+    from os import path, getcwd, error
+    import numpy as np
+    import vtk
+
+    scalar_name = "Max_(majority_labels)"
+
+    # Save the label file
+    label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
+
+    f = open(label_file, 'w')
+    # Write header
+    f.writelines('#!ascii label\n')
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        error("Check format of " + surface_file)
+
+    # Load surface
+    reader = vtk.vtkDataSetReader()
+    reader.SetFileName(surface_file)
+    reader.ReadAllScalarsOn()
+    reader.Update()
+    data = reader.GetOutput()
+    d = data.GetPointData()
+    labels = d.GetArray(scalar_name)
+
+    # Write vertex index, coordinates, and 0
+    count = 0
+    npoints = data.GetNumberOfPoints()
+    L = np.zeros((npoints,5))
+    for i in range(npoints):
+        label = labels.GetValue(i)
+        if label == label_index: # + incr:
+            #print(label, label_index)
+            L[count,0] = i
+            L[count,1:4] = data.GetPoint(i)
+            count += 1
+    f.writelines(str(count) + '\n')
+    for i in range(npoints):
+        if np.sum(L[i,:]) > 0:
+            printline = '{0} {1} {2} {3} 0\n'.format(
+                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+            print(printline)
+            f.writelines(printline)
+        else:
+            break
+    f.close()
+
+    return label_file
+
+def write_annot_file(hemi, surface_file, label_index, label_name):
+    """
+    Save label file for a given label from the vertices of a labeled VTK surface mesh.
+    """
+
+    from os import path, getcwd, error
+    import numpy as np
+    import vtk
+
+    scalar_name = "Max_(majority_labels)"
+
+    # Save the label file
+    label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
+
+    f = open(label_file, 'w')
+    # Write header
+    f.writelines('#!ascii label\n')
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        error("Check format of " + surface_file)
+
+    # Load surface
+    reader = vtk.vtkDataSetReader()
+    reader.SetFileName(surface_file)
+    reader.ReadAllScalarsOn()
+    reader.Update()
+    data = reader.GetOutput()
+    d = data.GetPointData()
+    labels = d.GetArray(scalar_name)
+
+    # Write vertex index, coordinates, and 0
+    count = 0
+    npoints = data.GetNumberOfPoints()
+    L = np.zeros((npoints,5))
+    for i in range(npoints):
+        label = labels.GetValue(i)
+        if label == label_index: # + incr:
+            #print(label, label_index)
+            L[count,0] = i
+            L[count,1:4] = data.GetPoint(i)
+            count += 1
+    f.writelines(str(count) + '\n')
+    for i in range(npoints):
+        if np.sum(L[i,:]) > 0:
+            #print('{0} {1} {2} {3} 0'.format(
+            #      np.int(L[i,0]), L[i,1], L[i,2], L[i,3]))
+            f.writelines('{0} {1} {2} {3} 0\n'.format(
+                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3]))
+        else:
+            break
+    f.close()
+
+    return label_file
