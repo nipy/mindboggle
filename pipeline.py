@@ -29,7 +29,7 @@ from nipype.interfaces.io import DataSink as dataout
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from atlas_functions import register_template, transform_atlas_labels, \
-                            majority_vote_label
+                            majority_vote_label, write_label_file
 from volume_functions import surface_to_volume, fill_volume, \
                              measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
@@ -38,12 +38,12 @@ from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
 do_label_volume = 1
-do_evaluate_labels = 1
+do_evaluate_labels = 0
 do_create_graph = 1
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
-subjects = ['plos_CJ_700_3_1'] #, 'KKI2009-14']
+subjects = ['test'] #['plos_CJ_700_3_1'] #, 'KKI2009-14']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 mbpath = '/projects/mindboggle/mindboggle'
 templates_path = path.join(mbpath, 'data/templates')
@@ -73,6 +73,27 @@ if do_evaluate_labels:
     f = open(atlas_list_file2)
     atlas_list2 = f.readlines()
     atlases2 = [a.strip("\n") for a in atlas_list2 if a.strip("\n")]
+#-----------------------------------------------------------------------------
+# List of labels
+#-----------------------------------------------------------------------------
+label_list_file = path.join(atlases_path, 'labels.txt')
+f = open(label_list_file)
+label_list = f.readlines()
+label_indices = [a.strip("\n").split("\t")[0] \
+                 for a in label_list if a.strip("\n").split("\t")[0]]
+label_names = [a.strip("\n").split("\t")[1] \
+               for a in label_list if a.strip("\n").split("\t")[1]]
+label_list_file = path.join(atlases_path, 'labels.txt')
+
+cortical_label_list_file = path.join(atlases_path, 'labels_cortex.txt')
+f = open(cortical_label_list_file)
+cortical_label_list = f.readlines()
+cortical_label_indices = [a.strip("\n").split("\t")[0] \
+                          for a in cortical_label_list \
+                          if a.strip("\n").split("\t")[0]]
+cortical_label_names = [a.strip("\n").split("\t")[1] \
+                        for a in cortical_label_list \
+                        if a.strip("\n").split("\t")[1]]
 
 ##############################################################################
 #
@@ -109,6 +130,7 @@ mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 # Location and structure of the volume inputs
 #-----------------------------------------------------------------------------
+"""
 if do_label_volume:
     vol = node(name = 'Volume',
                interface = datain(infields=['subject', 'hemi'],
@@ -117,6 +139,7 @@ if do_label_volume:
     vol.inputs.template = '%s/mri/%s.ribbon.mgz'
     vol.inputs.template_args['volume_file'] = [['subject', 'hemi']]
     mbflow.connect([(info, vol, [('subject','subject'), ('hemi','hemi')])])
+"""
 #-----------------------------------------------------------------------------
 # Outputs
 #-----------------------------------------------------------------------------
@@ -139,11 +162,13 @@ if use_freesurfer:
                           interface = fs.MRIsConvert(out_datatype='vtk'))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
 
+    """
     if do_label_volume and use_freesurfer:
         convertvol = mapnode(name = 'Convert_volume',
             iterfield = ['in_file'],
             interface = fs.MRIConvert(out_type='niigz'))
         mbflow.connect([(vol, convertvol, [('volume_file','in_file')])])
+    """
 
 ##############################################################################
 #
@@ -228,6 +253,37 @@ mbflow.connect([(atlasflow, datasink,
 if do_label_volume:
 
     #-------------------------------------------------------------------------
+    # Write labels for surface vertices in .label and .annot files
+    #-------------------------------------------------------------------------
+    writelabels = mapnode(name='Write_label_files',
+                          iterfield = ['label_index', 'label_name'],
+                          interface = fn(function = write_label_file,
+                                         input_names = ['hemi',
+                                                        'surface_file',
+                                                        'label_index',
+                                                        'label_name'],
+                                         output_names = ['label_file']))
+    writelabels.inputs.label_index = cortical_label_indices
+    writelabels.inputs.label_name = cortical_label_names
+    atlasflow.add_nodes([writelabels])
+    mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
+    atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+
+    """
+    writeannot = node(name='Write_annot_files',
+                      interface = fn(function = write_annot_file,
+                                     input_names = ['label_files'],
+                                     output_names = ['annot_file']))
+    #writeannot.inputs.label_index = cortical_label_file
+    #writeannot.inputs.label_name = label_name
+    atlasflow.add_nodes([writeannot])
+    atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
+    mbflow.connect([(writeannot, datasink,
+                     [('Write_annot_files.annot_file', 'labels.@max_annot')])])
+
+    """
+    """
+    #-------------------------------------------------------------------------
     # Put surface vertices in a volume
     #-------------------------------------------------------------------------
     surf2vol = node(name='Surface_to_volume',
@@ -309,6 +365,7 @@ if do_label_volume:
         mbflow.connect([(atlasflow, datasink,
                          [('Evaluate_volume_maxlabels.output_table',
                            'labels.@eval')])])
+    """
 
 ##############################################################################
 #
