@@ -14,6 +14,8 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 def surface_to_volume(surface_file, volume_file, use_freesurfer):
     """
     Save the vertices of a FreeSurfer surface mesh as an image volume.
+
+    FIX:  labels are incorrect!
     """
 
     from os import path, getcwd, error
