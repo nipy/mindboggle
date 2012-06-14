@@ -7,9 +7,17 @@ Command: python <this file name>
                 <template directory> <template name>
 
 Example: python surfaces_to_template.py
-                /Applications/freesurfer/subjects/bert
-                ./templates_freesurfer/  KKI
-         ("KKI" above refers to, for example, "lh.KKI.tif")
+                /usr/local/freesurfer/subjects/bert
+                ../../data/templates/templates_freesurfer/  MMRR-21
+                ("MMRR-21" above refers to "[lh,rh].MMRR-21.tif")
+Example batch:
+import os
+dir = '/projects/mindboggle/mindboggle/data/atlases/atlases_freesurfer'
+indir = os.listdir(dir);
+for s in dir:
+    c = 'python surfaces_to_template.py ' + os.path.join(dir,s) + \
+        ' ../../data/templates/freesurfer  MMRR-21'
+    print(c)
 
 This program uses FreeSurfer's mris_register:
 mris_register [options] <surface> <target template/surface> <output surface>

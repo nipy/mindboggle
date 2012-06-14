@@ -277,7 +277,7 @@ if do_label_volume:
                                                     'label_files',
                                                     'color_lut_file'],
                                      output_names = ['annot_name',
-                                     				 'annot_file']))
+                                                     'annot_file']))
     writeannot.inputs.color_lut_file = path.join(atlases_path, 'atlas_color_LUT.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
