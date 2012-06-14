@@ -41,14 +41,19 @@ else:
     sys.exit()
 
 for h in ['lh','rh']:
-    average_template_file = average_template_path + h + '.' + \
-                            average_template_name + '.tif'
-    if not os.path.exists(average_template_file):
-        print(average_template_file + " doesn't exist.")
-        sys.exit()
+    output_reg = subject_path+'/surf/'+h+'.sphere_to_'+average_template_name+'_template.reg'
+
+    if os.path.exists(output_reg):
+        print(output_reg + ' already exists')
     else:
-        args = ['mris_register -curv',
-                subject_path + '/surf/' + h + '.sphere',
-                average_template_file,
-                subject_path + '/surf/' + h + '.sphere_to_template.reg']
-        print(' '.join(args)); os.system(' '.join(args)); # p = Popen(args);
+        average_template_file = average_template_path + h + '.' + \
+                                average_template_name + '.tif'
+        if not os.path.exists(average_template_file):
+            print(average_template_file + " doesn't exist.")
+            sys.exit()
+        else:
+            args = ['mris_register -curv',
+                    subject_path + '/surf/' + h + '.sphere',
+                    average_template_file,
+                    output_reg]
+            print(' '.join(args)); os.system(' '.join(args)); # p = Popen(args);

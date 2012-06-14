@@ -53,6 +53,8 @@ private:
 
     int m_nbLayers;
 
+    vtkIdList* m_bins;
+
     void ProcessFundi();
 
     void BuildMedialSurface();
@@ -68,6 +70,8 @@ private:
     void GetPointNeighbors(vtkPolyData* pd, vtkIdType id, vtkIdList *neighbors);
 
     bool ProjectInNormalDirection(vtkIdType pointId, double interPoint[]);
+
+    void FrontVoronoi();
 
 };
 
