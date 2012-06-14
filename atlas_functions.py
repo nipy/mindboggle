@@ -27,8 +27,8 @@ Forrest Bao  .  forrest.bao@gmail.com
 #   Template-based, multi-atlas registration
 ##############################################################################
 
-def register_to_template(hemi, sph_surface_file, template_transform,
-                         template_name, templates_path):
+def register_template(hemi, sphere_file, transform,
+                      templates_path, template):
     """
     Register surface to template with FreeSurfer's mris_register
     """
@@ -37,18 +37,20 @@ def register_to_template(hemi, sph_surface_file, template_transform,
     from nipype import logging
     logger = logging.getLogger('interface')
 
-    template_file = path.join(templates_path, hemi + '.' + template_name)
-    output_file = hemi + '.' + template_transform
+    template_file = path.join(templates_path, hemi + '.' + template)
+    output_file = hemi + '.' + transform
     cli = CommandLine(command='mris_register')
-    cli.inputs.args = ' '.join(['-curv', sph_surface_file, 
+    #cli.inputs.args = ' '.join(['-curv', sphere_file,
+    #                            template_file, output_file])
+    cli.inputs.args = ' '.join(['-N 0', sphere_file,
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()
     
-    return template_transform
+    return transform
 
-def transform_atlas_labels(hemi, subject_id, template_transform,
-                           atlas_name, atlases_path, atlas_annot_name):
+def transform_atlas_labels(hemi, subject, transform,
+                           subjects_path, atlas, atlas_annot):
     """
     Transform the labels from a surface atlas via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
@@ -65,21 +67,21 @@ def transform_atlas_labels(hemi, subject_id, template_transform,
 
     sxfm = SurfaceTransform()
     sxfm.inputs.hemi = hemi
-    sxfm.inputs.target_subject = subject_id
-    sxfm.inputs.source_subject = atlas_name
+    sxfm.inputs.target_subject = subject
+    sxfm.inputs.source_subject = atlas
 
     # Source file
-    sxfm.inputs.source_annot_file = path.join(atlases_path,
-                                    atlas_name, 'label',
-                                    hemi + '.' + atlas_annot_name)
+    sxfm.inputs.source_annot_file = path.join(subjects_path,
+                                    atlas, 'label',
+                                    hemi + '.' + atlas_annot)
     # Output annotation file
-    output_file = path.join(getcwd(), hemi + '.' + atlas_name + '_to_' + \
-                            subject_id + '_' + atlas_annot_name)
+    output_file = path.join(getcwd(), hemi + '.' + atlas + '_to_' + \
+                            subject + '_' + atlas_annot)
     sxfm.inputs.out_file = output_file
 
     # Arguments: strings within registered files
-    args = ['--srcsurfreg', template_transform,
-            '--trgsurfreg', template_transform]
+    args = ['--srcsurfreg', transform,
+            '--trgsurfreg', transform]
     sxfm.inputs.args = ' '.join(args)
 
     sxfm.run()
@@ -203,9 +205,10 @@ def majority_vote_label(surface_file, annot_files):
                   number of votes per majority label
     """
 
+    from os import path
     import nibabel as nb
     import pyvtk
-    from atlases import relabel, vote_labels
+    from atlas_functions import relabel, vote_labels
 
     if_relabel = 1  # call relabel()
 
@@ -240,24 +243,23 @@ def majority_vote_label(surface_file, annot_files):
     Faces =     VTKReader.structure.polygons
 
     file_stem = surface_file.strip('.vtk')
-    maxlabel_file = file_stem + '.labels.max'
-    labelcounts_file = file_stem + '.labelcounts'
-    labelvotes_file = file_stem + '.labelvotes'
+    maxlabel_file = file_stem + '.labels.max.vtk'
+    labelcounts_file = file_stem + '.labelcounts.vtk'
+    labelvotes_file = file_stem + '.labelvotes.vtk'
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(labels_max,\
-                name='Max (majority labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
+                                  name='Max (majority labels)'))).\
           tofile(maxlabel_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(label_counts,\
-                name='Counts (number of different labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
+                                  name='Counts (number of different labels)'))).\
           tofile(labelcounts_file, 'ascii')
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-          pyvtk.PointData(pyvtk.Scalars(label_votes,\
-                name='Votes (number of votes for majority labels)'))).\
+                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
+                                  name='Votes (number of votes for majority labels)'))).\
           tofile(labelvotes_file, 'ascii')
 
     return maxlabel_file, labelcounts_file, labelvotes_file
-
