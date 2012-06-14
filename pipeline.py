@@ -29,10 +29,9 @@ from nipype.interfaces.io import DataSink as dataout
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from atlas_functions import register_template, transform_atlas_labels, \
-                            majority_vote_label, write_label_file, \
-                            label_to_annot_file
-from volume_functions import surface_to_volume, fill_volume, \
-                             measure_volume_overlap
+                            majority_vote_label
+from volume_functions import write_label_file, label_to_annot_file, \
+							 fill_label_volume, measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
@@ -277,7 +276,8 @@ if do_label_volume:
                                                     'subject',
                                                     'label_files',
                                                     'color_lut_file'],
-                                     output_names = ['annot_file']))
+                                     output_names = ['annot_name',
+                                     				 'annot_file']))
     writeannot.inputs.color_lut_file = path.join(atlases_path, 'atlas_color_LUT.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
@@ -290,51 +290,17 @@ if do_label_volume:
 
     """
     #-------------------------------------------------------------------------
-    # Put surface vertices in a volume
-    #-------------------------------------------------------------------------
-    surf2vol = node(name='Surface_to_volume',
-                    interface = fn(function = surface_to_volume,
-                                   input_names = ['surface_file',
-                                                  'volume_file',
-                                                  'use_freesurfer'],
-                                   output_names = ['output_file']))
-    surf2vol.inputs.use_freesurfer = use_freesurfer
-    atlasflow.add_nodes([surf2vol])
-    atlasflow.connect([(vote, surf2vol, [('maxlabel_file','surface_file')])])
-    if use_freesurfer:
-        mbflow.connect([(vol, atlasflow,
-                         [('volume_file','Surface_to_volume.volume_file')])])
-    else:
-        mbflow.connect([(vol, atlasflow,
-                         [('volume_file','Surface_to_volume.volume_file')])])
-    #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
-    fill_maxlabels = node(name='Fill_volume_maxlabels',
-                          interface = fn(function = fill_volume,
-                                         input_names = ['command',
-                                                        'input_file',
-                                                        'mask_file'],
-                                         output_names = ['output_file']))
-    fill_maxlabels.inputs.command = imagemath
-    atlasflow.add_nodes([fill_maxlabels])
-    atlasflow.connect([(surf2vol, fill_maxlabels,
-                        [('output_file', 'input_file')])])
-    if use_freesurfer:
-        mbflow.connect([(convertvol, atlasflow,
-                         [('out_file','Fill_volume_maxlabels.mask_file')])])
-        #NB: For volume label propagation using FreeSurfer,
-        #    we would need to save the appropriate .annot file.
-        #
-        #maxlabel_volume_FS = node(name='Maxlabel_volume_FS',
-        #                          interface = fn(function = label_volume_annot,
-        #                                         input_names = ['subject',
-        #                                                        'annot_name',
-        #                                                        'output_name'],
-        #                                         output_names = ['output_file']))
-    else:
-        mbflow.connect([(vol, atlasflow,
-                         [('volume_file','Fill_volume_maxlabels.mask_file')])])
+    fillvolume = node(name='Fill_volume_maxlabels',
+                      interface = fn(function = fill_label_volume,
+                                     input_names = ['subject', 'annot_name'],
+                                     output_names = ['output_file']))
+    atlasflow.add_nodes([fillvolume])
+    mbflow.connect([(info, atlasflow,
+                     [('subject', 'Fill_volume_maxlabels.subject')])])
+    atlasflow.connect([(writeannot, fillvolume,
+                        [('annot_name','annot_name')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file',
                        'labels.@maxvolume')])])
@@ -836,3 +802,6 @@ if __name__== '__main__':
         mbflow.write_graph(graph2use='flat')
         mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
+
+
+
