@@ -29,7 +29,8 @@ from nipype.interfaces.io import DataSink as dataout
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from atlas_functions import register_template, transform_atlas_labels, \
-                            majority_vote_label, write_label_file
+                            majority_vote_label, write_label_file, \
+                            label_to_annot_file
 from volume_functions import surface_to_volume, fill_volume, \
                              measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
@@ -39,7 +40,7 @@ from surface_functions import compute_depth, compute_curvature
 use_freesurfer = 1
 do_label_volume = 1
 do_evaluate_labels = 0
-do_create_graph = 1
+do_create_graph = 0
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -91,6 +92,7 @@ cortical_label_list = f.readlines()
 cortical_label_indices = [a.strip("\n").split("\t")[0] \
                           for a in cortical_label_list \
                           if a.strip("\n").split("\t")[0]]
+cortical_label_indices = [np.int(i) for i in cortical_label_indices]
 cortical_label_names = [a.strip("\n").split("\t")[1] \
                         for a in cortical_label_list \
                         if a.strip("\n").split("\t")[1]]
@@ -263,25 +265,29 @@ if do_label_volume:
                                                         'label_index',
                                                         'label_name'],
                                          output_names = ['label_file']))
-    writelabels.inputs.label_index = cortical_label_indices[0]
-    writelabels.inputs.label_name = cortical_label_names[0]
+    writelabels.inputs.label_index = cortical_label_indices
+    writelabels.inputs.label_name = cortical_label_names
     atlasflow.add_nodes([writelabels])
     mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
     atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
 
-    """
     writeannot = node(name='Write_annot_file',
-                      interface = fn(function = convert_label_to_annot_file,
-                                     input_names = ['label_files'],
+                      interface = fn(function = label_to_annot_file,
+                                     input_names = ['hemi',
+                                                    'subject',
+                                                    'label_files',
+                                                    'color_lut_file'],
                                      output_names = ['annot_file']))
-    #writeannot.inputs.label_index = cortical_label_file
-    #writeannot.inputs.label_name = label_name
+    writeannot.inputs.color_lut_file = path.join(atlases_path, 'atlas_color_LUT.txt')
     atlasflow.add_nodes([writeannot])
+    mbflow.connect([(info, atlasflow,
+                     [('hemi', 'Write_annot_file.hemi')])])
+    mbflow.connect([(info, atlasflow,
+                     [('subject', 'Write_annot_file.subject')])])
     atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
-    mbflow.connect([(writeannot, datasink,
+    mbflow.connect([(atlasflow, datasink,
                      [('Write_annot_file.annot_file', 'labels.@max_annot')])])
 
-    """
     """
     #-------------------------------------------------------------------------
     # Put surface vertices in a volume
