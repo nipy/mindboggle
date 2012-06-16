@@ -55,20 +55,20 @@ def write_label_file(hemi, surface_file, label_index, label_name):
  
     # Save the label file
     if count > 0:
-	    label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
-	    f = open(label_file, 'w')
-	    f.writelines('#!ascii label\n' + str(count) + '\n')
-	    #print(L)	    
-	    for i in range(npoints):
-	        if any(L[i,:]):
-	            printline = '{0} {1} {2} {3} 0\n'.format(
-	                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-	            #print(printline)
-	            f.writelines(printline)
-	        else:
-	            break
-	    f.close()
-	    return label_file
+        label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
+        f = open(label_file, 'w')
+        f.writelines('#!ascii label\n' + str(count) + '\n')
+        #print(L)
+        for i in range(npoints):
+            if any(L[i,:]):
+                printline = '{0} {1} {2} {3} 0\n'.format(
+                             np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+                #print(printline)
+                f.writelines(printline)
+            else:
+                break
+        f.close()
+        return label_file
 
 def label_to_annot_file(hemi, subject, label_files, color_lut_file):
     """
@@ -81,17 +81,17 @@ def label_to_annot_file(hemi, subject, label_files, color_lut_file):
     
     label_files = [f for f in label_files if f!=None]
     if label_files:
-	    cli = CommandLine(command='mris_label2annot')
-	    annot_name = 'labels.max'
-	    cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
-	                                '--l', ' --l '.join(label_files), \
-	                                '--ctab', color_lut_file, \
-	                                '--a', annot_name])
-	    logger.info(cli.cmdline)
-	    cli.run()
-	    
-	    annot_file = hemi + '.' + annot_name + '.annot'
-	    return annot_name, annot_file
+        cli = CommandLine(command='mris_label2annot')
+        annot_name = 'labels.max'
+        cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
+                                    '--l', ' --l '.join(label_files), \
+                                    '--ctab', color_lut_file, \
+                                    '--a', annot_name])
+        logger.info(cli.cmdline)
+        cli.run()
+
+        annot_file = hemi + '.' + annot_name + '.annot'
+        return annot_name, annot_file
 
 def fill_label_volume(subject, annot_name):
     """
