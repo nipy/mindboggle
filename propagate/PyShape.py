@@ -630,7 +630,8 @@ class Shape:
 				if self.label_boundary_segments[(a,b)]:
 					print "For classes ", a, " and ", b, ": ", self.label_boundary_segments[(a,b)]
 
-		# So far so good. This method works so far.
+		# So far so good. This method works so far. self.label_boundary_segments[(a,b)] is populated.
+		# Now...
 
 		# For each segment:
 		# Find the two endpoints, as follows:
@@ -643,8 +644,8 @@ class Shape:
 			# If no, go to the "next node".
 				# The "next node" is the node which is a neighbor of the current node, but not one of the previous nodes.
 			# Keep going until you reach a fundal node.
-				# If reach fundal node. Go to other endpoint, and repeat the above process.
-				# If never reach fundal node, i.e. if hit other enpoint. Then that's the end of this process.
+				# If you reach a fundal node. Go to other endpoint, and repeat the above process.
+				# If you never reach a fundal node, i.e. if you hit the other enpoint. Then that's the end of this process.
 			# If you didn't reach any fundal nodes, consider this whole segment as one unit.
 				# Perform the label propagation algorithm on this segment.
 					# Let the segment be 1, the fundi be 0, the other segments -1...
@@ -652,12 +653,13 @@ class Shape:
 				# Check if you can connect them using only fundal nodes.
 					# If you can, perform a label propagation algorithm with segment and fundi labeled +1.
 						# Have the threshold be .99.
+						# This is the best case scenario.
 					# If you can't, perform label propagation algorithm with segment +1 and fundi 0.
 			# If you only reached a fundal node on one side, i.e. if reached the same fundal node:
 				# Perfom a label propagation algorithm with the segment +1 and fundi 0.
 		# For each segment you perform label propagation on (i.e. for each segment you consider):
 			# Analyze the co-segment as well.
-				# If they both have double fundus intersections, use them both.
+				# If they both have double fundus intersections, use and keep them both.
 					# After all, this is the best case scenario, and is pretty fool proof.
 						# (Assuming the size is good).
 				# Otherwise, perform propagation on both segments.
@@ -669,19 +671,92 @@ class Shape:
 		for a in self.set_manual_classes:
 			for b in self.set_manual_classes:
 				if self.label_boundary_segments[(a,b)]:
-
-
-
-
-
-					partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
+					# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
+					endpoint = [-1, -1]
 					for node in self.label_boundary_segments[(a,b)]:
 						ns = self.neighbors(node)
-						global boundary_ns
-						boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments))
+						boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments[(a,b)]))
 						if len(boundary_ns) == 1:
-							global endpoint
-							endpoint = node # This is an endpoint. Construct segments starting from here.
+							if endpoint[0] == -1:
+								endpoint[0] = node # This is an endpoint. Construct segments starting from here.
+							else:
+								endpoint[1] = node
+								break
+
+					# We now have the two endpoints.
+					# We now need to find the intersecting fundi.
+						# current node = endpoint1
+						# while current node is not fundal node (i.e. is not partition point)
+							# current node = next node
+						# intersection1 = current node
+						# current node = endpoint2
+						# while current node is not fundal node (i.e. is not partition point)
+							# current node = next node
+						# intersection2 = current node
+					# We will now check to see if the two intersections can be linked by fundi.
+					# To do so we will use self.Fundi, which is a 2-column numpy array.
+					# Start with one intersection point.
+					# pointer = intersection 1
+					# while pointer != intersection2
+						# Find one or more NEW rows in self.Fundi which contain that point.
+							# (May need to use recursion here)
+						# If no new rows exist:
+							# report that intersections are not part of the same fundus curve
+							# break
+						# pointer = other fundal point in that row
+
+					intersection = [0,0]
+					for i in xrange(2):
+						current_node = endpoint[i]
+						avoid = {current_node}
+						while current_node not in self.fundal_nodes:
+							current_neighbors = set.intersection(set(self.neighbors(current_node)), set(self.label_boundary_segments[(a,b)]))
+							try:
+								next_node = set.difference(current_neighbors, avoid).pop()
+							except:
+								next_node = -1
+								break
+							avoid.add(next_node)
+							current_node = next_node
+						intersection[i] = current_node # It might be -1, if there are no intersections.
+
+					same_fundus = False
+					if -1 not in intersection and intersection[0] != intersection[1]:
+						# It found 2 intersections. We must therefore now assess whether these two intersections are
+						# part of the same fundus.
+
+						pointer = intersection[0]
+						avoid = set()
+						rows = np.nonzero([pointer in row for row in self.Fundi])[0]
+						while rows:
+							path_to_follow = rows[0]
+							avoid.add(path_to_follow)
+							pointer = set(self.Fundi[path_to_follow]).remove(pointer)
+							if pointer == intersection[1]:
+								# Bingo!
+								print 'Bingo! Both intersections are part of the same fundus!'
+								same_fundus = True
+								break
+							rows = set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid)
+
+					if same_fundus:
+						pass
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 					self.subsegments[(seg_counter,a,b)] = [endpoint, boundary_ns]
 					while boundary_ns not in partition_points:
 						boundary_ns = self.neighbors(boundary_ns).remove(endpoint)
