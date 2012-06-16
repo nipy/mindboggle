@@ -1,4 +1,3 @@
-Arno-1-1	-
 Colin27-1-1	colin27-t1-tal-lin
 HLN-12-1	plos_CJ_700_3_1
 HLN-12-2	plos_Ding_756_3_1
@@ -97,3 +96,5 @@ OASIS-TRT-20-17	OAS1_0353_MR1
 OASIS-TRT-20-18	OAS1_0368_MR1
 OASIS-TRT-20-19	OAS1_0379_MR1
 OASIS-TRT-20-20	OAS1_0395_MR1
+Twins-2-1   arno
+Twins-2-2   barrett
