@@ -41,8 +41,9 @@ def compute_depth(command, surface_file):
 def compute_curvature(command, surface_file):
     """
     Measure
-    CurvatureMain input MeanCurvatureOutput [GaussianCurvatureOutput]
-                        [MaximalCurvatureOutput] [MinimalCurvatureOutput]
+    CurvatureMain input MeanCurvatureOutput
+                  [GaussianCurvatureOutput] [MaximalCurvatureOutput]
+                  [MinimalCurvatureOutput] [MinimalCurvatureVectorOutput]
     measure_()
     """
     from os import getcwd, path, error

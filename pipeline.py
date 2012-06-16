@@ -31,7 +31,7 @@ from nipype.interfaces.io import DataSink as dataout
 from atlas_functions import register_template, transform_atlas_labels, \
                             majority_vote_label
 from volume_functions import write_label_file, label_to_annot_file, \
-							 fill_label_volume, measure_volume_overlap
+                             fill_label_volume, measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
@@ -67,12 +67,15 @@ imagemath = path.join(environ['ANTSPATH'], 'ImageMath')
 atlas_list_file = path.join(atlases_path, 'atlas_list_test.txt')
 f = open(atlas_list_file)
 atlas_list = f.readlines()
-atlases = [a.strip("\n") for a in atlas_list if a.strip("\n")]
+atlases = [a.strip("\n").strip("\t") for a in atlas_list \
+           if a.strip("\n").strip("\t")]
 if do_evaluate_labels:
     atlas_list_file2 = path.join(atlases_path, 'atlas_list_old_test.txt')
     f = open(atlas_list_file2)
     atlas_list2 = f.readlines()
-    atlases2 = [a.strip("\n") for a in atlas_list2 if a.strip("\n")]
+    atlases2 = [a.strip("\n").strip("\t") for a in atlas_list2 \
+                if a.strip("\n").strip("\t")]
+
 #-----------------------------------------------------------------------------
 # List of labels
 #-----------------------------------------------------------------------------
@@ -277,7 +280,7 @@ if do_label_volume:
                                                     'label_files',
                                                     'color_lut_file'],
                                      output_names = ['annot_name',
-                                     				 'annot_file']))
+                                                     'annot_file']))
     writeannot.inputs.color_lut_file = path.join(atlases_path, 'atlas_color_LUT.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
@@ -344,6 +347,7 @@ if do_label_volume:
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
+"""
 featureflow = workflow(name='Feature_workflow')
 
 ##############################################################################
@@ -404,7 +408,7 @@ mbflow.connect([(featureflow, datasink,
                    'surfaces.@min_curvature'),
                   ('Compute_curvature.min_curvature_vector_file',
                    'surfaces.@min_curvature_vectors')])])
-
+"""
 ##############################################################################
 #   Feature extraction
 ##############################################################################
