@@ -50,24 +50,13 @@ import os, sys
 make_initial_template = 1
 make_template = 1
 iterations = 2
-subject_path = 'ManualSurfandVolLabels/subjects/'
-save_path = 'templates_freesurfer/'
-name = 'NKI_Rockland'
+subject_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+save_path = '../freesurfer/'
+name = 'OASIS-TRT'
 hemis = ['lh','rh']
-subject_list_from_file = 1  # Get subject list from a file (1) or directory (0)
-if subject_list_from_file:
-    subject_list_file = 'subject_lists/NKI_Rockland.txt'
-
-    f = open(subject_list_file)
-    subject_lines = f.readlines()
-    subject_list = []
-    subject_string = ""
-    for subject in subject_lines:
-        subject_list.append(subject.strip("\n"))
-        subject_string += subject.strip("\n") + " "
-# Get list of subjects from a directory:
-else:
-    subject_list = os.listdir(subject_path)
+subject_list = os.listdir(subject_path)
+subject_list = [s for s in subject_list if "OAS" in s]
+subject_string = ' '.join(subject_list)
 
 # Make initial template:  mris_make_template [options] <hemi> <surface name> 
 #                                            <subject> <subject>...<output name>
