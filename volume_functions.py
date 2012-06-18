@@ -79,12 +79,15 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table)
     
     label_files = [f for f in label_files if f!=None]
     if label_files:
-        cli = CommandLine(command='mris_label2annot')
         annot_name = 'labels.max'
         annot_file = hemi + '.' + annot_name + '.annot'
         if path.exists(path.join(subjects_path, subject, 'label', annot_file)):
-            pass
+            cli = CommandLine(command='rm')
+            cli.inputs.args = path.join(subjects_path, subject, 'label', annot_file)
+            logger.info(cli.cmdline)
+            cli.run()
         else:
+            cli = CommandLine(command='mris_label2annot')
             cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
                                         '--l', ' --l '.join(label_files), \
                                         '--ctab', lookup_table, \
