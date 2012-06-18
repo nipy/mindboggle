@@ -276,12 +276,15 @@ if do_label_volume:
     writeannot = node(name='Write_annot_file',
                       interface = fn(function = label_to_annot_file,
                                      input_names = ['hemi',
+                                                    'subjects_path',
                                                     'subject',
                                                     'label_files',
-                                                    'color_lut_file'],
+                                                    'lookup_table'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-    writeannot.inputs.color_lut_file = path.join(atlases_path, 'atlas_color_LUT.txt')
+    writeannot.inputs.subjects_path = subjects_path
+    writeannot.inputs.lookup_table = path.join(atlases_path, \
+                                               'atlas_color_LUT.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Write_annot_file.hemi')])])
