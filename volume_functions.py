@@ -10,6 +10,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
+import os
 
 def write_label_file(hemi, surface_file, label_index, label_name):
     """
@@ -46,9 +47,7 @@ def write_label_file(hemi, surface_file, label_index, label_name):
     L = np.zeros((npoints,5))
     for i in range(npoints):
         label = labels.GetValue(i)
-        #print(label, label_index)
         if label == label_index:
-            #print(label, label_index)
             L[count,0] = i
             L[count,1:4] = data.GetPoint(i)
             count += 1
@@ -58,23 +57,22 @@ def write_label_file(hemi, surface_file, label_index, label_name):
         label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
         f = open(label_file, 'w')
         f.writelines('#!ascii label\n' + str(count) + '\n')
-        #print(L)
         for i in range(npoints):
             if any(L[i,:]):
                 printline = '{0} {1} {2} {3} 0\n'.format(
                              np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-                #print(printline)
                 f.writelines(printline)
             else:
                 break
         f.close()
         return label_file
 
-def label_to_annot_file(hemi, subject, label_files, color_lut_file):
+def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table):
     """
     Save label file for a given label from the vertices of a labeled VTK surface mesh.
     """
 
+    from os import path
     from nipype.interfaces.base import CommandLine
     from nipype import logging
     logger = logging.getLogger('interface')
@@ -83,14 +81,16 @@ def label_to_annot_file(hemi, subject, label_files, color_lut_file):
     if label_files:
         cli = CommandLine(command='mris_label2annot')
         annot_name = 'labels.max'
-        cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
-                                    '--l', ' --l '.join(label_files), \
-                                    '--ctab', color_lut_file, \
-                                    '--a', annot_name])
-        logger.info(cli.cmdline)
-        cli.run()
-
         annot_file = hemi + '.' + annot_name + '.annot'
+        if path.exists(path.join(subjects_path, subject, 'label', annot_file)):
+            pass
+        else:
+            cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
+                                        '--l', ' --l '.join(label_files), \
+                                        '--ctab', lookup_table, \
+                                        '--a', annot_name])
+            logger.info(cli.cmdline)
+            cli.run()
         return annot_name, annot_file
 
 def fill_label_volume(subject, annot_name):
