@@ -40,9 +40,7 @@ def register_template(hemi, sphere_file, transform,
     template_file = path.join(templates_path, hemi + '.' + template)
     output_file = hemi + '.' + transform
     cli = CommandLine(command='mris_register')
-    #cli.inputs.args = ' '.join(['-curv', sphere_file,
-    #                            template_file, output_file])
-    cli.inputs.args = ' '.join(['-N 0', sphere_file,
+    cli.inputs.args = ' '.join(['-curv', sphere_file,
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()

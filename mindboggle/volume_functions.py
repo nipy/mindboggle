@@ -14,7 +14,8 @@ import os
 
 def write_label_file(hemi, surface_file, label_index, label_name):
     """
-    Save label file for a given label from the vertices of a labeled VTK surface mesh.
+    Save a FreeSurfer .label file for a given label from the vertices
+    of a labeled VTK surface mesh.
 
     """
 
@@ -54,7 +55,10 @@ def write_label_file(hemi, surface_file, label_index, label_name):
  
     # Save the label file
     if count > 0:
-        label_file = path.join(getcwd(), hemi + '.' + label_name + '.label')
+        #label_file = path.join(getcwd(), hemi + '.ctx-' + hemi + '-' +\
+        #label_file = path.join(getcwd(), 'ctx-' + hemi + '-' +\
+        label_file = path.join(getcwd(), hemi + '.' +\
+                                         label_name + '.label')
         f = open(label_file, 'w')
         f.writelines('#!ascii label\n' + str(count) + '\n')
         for i in range(npoints):
@@ -69,7 +73,8 @@ def write_label_file(hemi, surface_file, label_index, label_name):
 
 def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table):
     """
-    Save label file for a given label from the vertices of a labeled VTK surface mesh.
+    Convert FreeSurfer .label files as a FreeSurfer .annot file
+    using FreeSurfer's mris_label2annot.
     """
 
     from os import path
@@ -83,17 +88,17 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table)
         annot_file = hemi + '.' + annot_name + '.annot'
         if path.exists(path.join(subjects_path, subject, 'label', annot_file)):
             cli = CommandLine(command='rm')
-            cli.inputs.args = path.join(subjects_path, subject, 'label', annot_file)
+            cli.inputs.args = path.join(subjects_path, subject, \
+                                        'label', annot_file)
             logger.info(cli.cmdline)
             cli.run()
-        else:
-            cli = CommandLine(command='mris_label2annot')
-            cli.inputs.args = ' '.join(['--hemi', hemi, '--s', subject, \
-                                        '--l', ' --l '.join(label_files), \
-                                        '--ctab', lookup_table, \
-                                        '--a', annot_name])
-            logger.info(cli.cmdline)
-            cli.run()
+        cli = CommandLine(command='mris_label2annot')
+        cli.inputs.args = ' '.join(['--h', hemi, '--s', subject, \
+                                    '--l', ' --l '.join(label_files), \
+                                    '--ctab', lookup_table, \
+                                    '--a', annot_name])
+        logger.info(cli.cmdline)
+        cli.run()
         return annot_name, annot_file
 
 def fill_label_volume(subject, annot_name):

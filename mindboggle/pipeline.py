@@ -32,7 +32,7 @@ from atlas_functions import register_template, transform_atlas_labels, \
                             majority_vote_label
 from volume_functions import write_label_file, label_to_annot_file, \
                              fill_label_volume, measure_volume_overlap
-from surface_functions import compute_depth, compute_curvature
+from surface_functions import convert_surface, compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
@@ -43,7 +43,7 @@ do_create_graph = 0
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
-subjects = ['test'] #['plos_CJ_700_3_1'] #, 'KKI2009-14']
+subjects = ['MMRR-21-1'] #['plos_CJ_700_3_1'] #, 'KKI2009-14']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 mbpath = '/projects/mindboggle/mindboggle'
 templates_path = path.join(mbpath, 'data/templates')
@@ -60,17 +60,16 @@ depth_command = path.join(mbpath,\
 curvature_command = path.join(mbpath,\
       'measure/surface_measures/bin/curvature/CurvatureMain')
 extract_fundi_command = path.join(mbpath, 'extract/fundi/vtk_extract.py')
-imagemath = path.join(environ['ANTSPATH'], 'ImageMath')
 #-----------------------------------------------------------------------------
 # List of atlas subjects
 #-----------------------------------------------------------------------------
-atlas_list_file = path.join(atlases_path, 'atlas_list_test.txt')
+atlas_list_file = path.join(atlases_path, 'atlas_list.txt')
 f = open(atlas_list_file)
 atlas_list = f.readlines()
 atlases = [a.strip("\n").strip("\t") for a in atlas_list \
            if a.strip("\n").strip("\t")]
 if do_evaluate_labels:
-    atlas_list_file2 = path.join(atlases_path, 'atlas_list_old_test.txt')
+    atlas_list_file2 = path.join(atlases_path, 'atlas_list_old.txt')
     f = open(atlas_list_file2)
     atlas_list2 = f.readlines()
     atlases2 = [a.strip("\n").strip("\t") for a in atlas_list2 \
@@ -159,12 +158,20 @@ datasink.inputs.container = 'output'
 #-----------------------------------------------------------------------------
 if use_freesurfer:
 
-    import nipype.interfaces.freesurfer as fs
-
-    convertsurf = mapnode(name = 'Convert_surface',
-                          iterfield = ['in_file'],
-                          interface = fs.MRIsConvert(out_datatype='vtk'))
+    use_mrisconvert = 0
+    if use_mrisconvert:
+        import nipype.interfaces.freesurfer as fs
+        convertsurf = mapnode(name = 'Convert_surface',
+               iterfield = ['in_file'],
+               interface = fs.MRIsConvert(out_datatype='vtk'))
+    else:
+        convertsurf = mapnode(name = 'Convert_surface',
+                              iterfield = ['in_file'],
+                              interface = fn(function = convert_surface,
+                              input_names = ['in_file'],
+                              output_names = ['out_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
+
 
     """
     if do_label_volume and use_freesurfer:
@@ -238,7 +245,7 @@ atlasflow.add_nodes([vote])
 
 if use_freesurfer:
     mbflow.connect([(convertsurf, atlasflow,
-                     [('converted', 'Label_vote.surface_file')])])
+                     [('out_file', 'Label_vote.surface_file')])])
 else:
     mbflow.connect([(surf, atlasflow,
                      [('surface_files', 'Label_vote.surface_file')])])
@@ -284,7 +291,7 @@ if do_label_volume:
                                                      'annot_file']))
     writeannot.inputs.subjects_path = subjects_path
     writeannot.inputs.lookup_table = path.join(atlases_path, \
-                                               'atlas_color_LUT.txt')
+                                               'atlas_cortex_colortable.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Write_annot_file.hemi')])])
@@ -294,10 +301,10 @@ if do_label_volume:
     mbflow.connect([(atlasflow, datasink,
                      [('Write_annot_file.annot_file', 'labels.@max_annot')])])
 
-    """
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
+    """
     fillvolume = node(name='Fill_volume_maxlabels',
                       interface = fn(function = fill_label_volume,
                                      input_names = ['subject', 'annot_name'],
@@ -330,8 +337,7 @@ if do_label_volume:
         #---------------------------------------------------------------------
         # Table with unique, non-zero labels
         #---------------------------------------------------------------------
-        labels = np.short(np.loadtxt(path.join(atlases_path, 'label_indices.txt')))
-        eval_maxlabels.inputs.labels = labels
+        eval_maxlabels.inputs.labels = label_indices
         eval_maxlabels.inputs.atlases_path = atlases_path
         eval_maxlabels.inputs.atlases = atlases
         eval_maxlabels.inputs.atlases2 = atlases2
@@ -384,9 +390,9 @@ curvature.inputs.command = curvature_command
 featureflow.add_nodes([depth, curvature])
 if use_freesurfer:
     mbflow.connect([(convertsurf, featureflow,
-                   [('converted', 'Compute_depth.surface_file')])])
+                   [('out_file', 'Compute_depth.surface_file')])])
     mbflow.connect([(convertsurf, featureflow,
-                   [('converted', 'Compute_curvature.surface_file')])])
+                   [('out_file', 'Compute_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
     mbflow.connect([(atlasflow, featureflow, 
