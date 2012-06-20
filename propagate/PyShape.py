@@ -705,7 +705,7 @@ class Shape:
 							# break
 						# pointer = other fundal point in that row
 
-					intersection = [0,0]
+					intersection = [0,0] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
 					for i in xrange(2):
 						current_node = endpoint[i]
 						avoid = {current_node}
@@ -722,8 +722,17 @@ class Shape:
 
 					same_fundus = False
 					if -1 not in intersection and intersection[0] != intersection[1]:
-						# It found 2 intersections. We must therefore now assess whether these two intersections are
+						# It found 2 different intersections. We must therefore now assess whether these two intersections are
 						# part of the same fundus.
+
+						# Will need to use recursion here. Think about an efficient and effective way to do this.
+						# Call external function...
+
+						# def same_fundus(points):
+						#
+
+
+						self.same_fundus(intersection)
 
 						pointer = intersection[0]
 						avoid = set()
@@ -738,6 +747,11 @@ class Shape:
 								same_fundus = True
 								break
 							rows = set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid)
+
+					elif intersection[0] == intersection[1] or -1 in intersection:
+						# It intersects at the same place, or not at all:
+						# We must now run the label propagation algorithm.
+						pass
 
 					if same_fundus:
 						pass
