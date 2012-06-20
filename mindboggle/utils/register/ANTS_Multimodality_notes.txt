@@ -1,0 +1,50 @@
+
+Brian Avants presentation on ANTS Multimodality
+(https://github.com/stnava/ANTS_MultiModality)
+
+Multi-template labeling:
+------------------------
+for x in *deformed.nii.gz; do
+Atropos -d 2 -a $x -m [0.1, 1x1 ] -i kmeans [2] -x mask.nii.gz 
+        -o [ temp${ct}seg.nii.gz ] -c [3, 0]
+
+ls temp*seg.nii.gz > list.txt
+
+ImageSetStatistics 2 list.txt PHtemplateseg.nii.gz 0
+
+
+Multiple metrics driving registration:
+--------------------------------------
+(See examples/registration mm example.sh)
+ANTS $dim -m MSQ [$lm1, $lm2, 0.5, 0] 
+     -m MSQ [$lm1b, $lm2b, 0.5, 0] 
+     -m CC [$img1, $img2, 1, 4] 
+     -t SyN [0.25] -r Gauss [3, 0] -o $out -i 50x50x20 
+     --number-of-affine-iterations 1000x1000x500 
+     --use-all-metrics-for-convergence 1
+
+Landmark-based registration:
+----------------------------
+(See examples/registration lm example.sh)
+WarpImageMultiTransform $dim $lm2 ${out}lm.nii.gz ${out}preAffine.txt 
+                        -R $img1 --use-NN
+WarpImageMultiTransform $dim $img2 ${out}img.nii.gz ${out}preAffine.txt 
+                        -R $img1
+wt=1; pct=0.5; sig=50
+
+ANTS $dim -i 55x40x30 -r Gauss [8, 0] -t SyN [0.25]
+     -m PSE [$lm1, ${out}lm.nii.gz, $lm1, ${out}lm.nii.gz,
+            $wt, $pct, $sig, 0, 10, 10000]
+     -m CC [$img1, ${out}img.nii.gz, 1, 4] -o $out -i 50x50x50 
+           --number-of-affine-iterations 0
+           --use-all-metrics-for-convergence 1 --continue-affine 0
+
+Landmark-based affine registration:
+-----------------------------------
+ANTSUseLandmarkImagesToGetAffineTransform lm1.nii.gz lm2.nii.gz affine outaffine.txt
+
+ANTSUseLandmarkImagesToBSplineDisplacementField lm1.nii.gz lm2.nii.gz 
+                                                outLMWarp.nii.gz 10x10x10 6 3 0
+Then use WarpImageMultiTransform / antsApplyTransform to apply
+the warp to the relevant image.
+
