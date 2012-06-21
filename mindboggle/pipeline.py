@@ -17,8 +17,9 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 # Import Python libraries
 #-----------------------------------------------------------------------------
 from os import path, environ, makedirs
+import sys
 from re import findall
-import numpy as np
+#import numpy as np
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
 from nipype.pipeline.engine import MapNode as mapnode
@@ -26,14 +27,6 @@ from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
 from nipype.interfaces.io import DataSink as dataout
-#-----------------------------------------------------------------------------
-# Import Mindboggle Python libraries
-#-----------------------------------------------------------------------------
-from atlas_functions import register_template, transform_atlas_labels, \
-                            majority_vote_label
-from volume_functions import write_label_file, label_to_annot_file, \
-                             fill_label_volume, measure_volume_overlap
-from surface_functions import convert_surface, compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Options
 #-----------------------------------------------------------------------------
@@ -46,19 +39,30 @@ do_create_graph = 0
 #-----------------------------------------------------------------------------
 subjects = ['MMRR-21-1']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-basepath = '/projects/mindboggle'  # Where mindboggle directory resides
+basepath = '/projects/mindboggle/mindboggle'  # mindboggle directory
 mbpath = path.join(basepath, 'mindboggle')
+utils_path = path.join(mbpath, 'utils')
 results_path = '/projects/mindboggle/results'  # Where to save output
 temp_path = path.join(results_path, 'workingdir')  # Where to save temp files
+sys.path.append(mbpath)
+sys.path.append(utils_path)
+from freesurfer2vtk import freesurfer2vtk
+#-----------------------------------------------------------------------------
+# Import Mindboggle Python libraries
+#-----------------------------------------------------------------------------
+from atlas_functions import register_template, transform_atlas_labels,\
+    majority_vote_label
+from volume_functions import write_label_file, label_to_annot_file,\
+    fill_label_volume, measure_volume_overlap
+from surface_functions import compute_depth, compute_curvature
 #-----------------------------------------------------------------------------
 # Commands (must be compiled)
 #-----------------------------------------------------------------------------
-depth_command = path.join(mbpath,\
-      'measure/surface_measures/bin/travel_depth/TravelDepthMain')
-curvature_command = path.join(mbpath,\
-      'measure/surface_measures/bin/curvature/CurvatureMain')
-extract_fundi_command = path.join(mbpath, 'extract/fundi/vtk_extract.py')
-
+depth_command = path.join(mbpath,'measure', 'surface_measures', \
+                                 'bin', 'travel_depth', 'TravelDepthMain')
+curvature_command = path.join(mbpath, 'measure', 'surface_measures', \
+                                      'bin', 'curvature', 'CurvatureMain')
+#extract_fundi_command = path.join(mbpath, 'extract', 'fundi', 'vtk_extract.py')
 
 ##############################################################################
 #
@@ -72,8 +76,8 @@ mbflow = workflow(name='Mindboggle_workflow')
 mbflow.base_dir = temp_path
 if not path.isdir(temp_path):  makedirs(temp_path)
 # Paths within mindboggle base directory
-templates_path = path.join(basepath, 'mindboggle/data/templates')
-atlases_path = path.join(basepath, 'mindboggle/data/atlases')
+templates_path = path.join(basepath, 'data', 'templates')
+atlases_path = path.join(basepath, 'data', 'atlases')
 
 ##############################################################################
 #   Inputs and outputs
@@ -125,20 +129,12 @@ if not path.isdir(results_path):  makedirs(results_path)
 #-----------------------------------------------------------------------------
 if use_freesurfer:
 
-    use_mrisconvert = 0
-    if use_mrisconvert:
-        import nipype.interfaces.freesurfer as fs
-        convertsurf = mapnode(name = 'Convert_surface',
-               iterfield = ['in_file'],
-               interface = fs.MRIsConvert(out_datatype='vtk'))
-    else:
-        convertsurf = mapnode(name = 'Convert_surface',
-                              iterfield = ['in_file'],
-                              interface = fn(function = convert_surface,
-                              input_names = ['in_file'],
-                              output_names = ['out_file']))
+    convertsurf = mapnode(name = 'Convert_surface',
+                          iterfield = ['in_file'],
+                          interface = fn(function = freesurfer2vtk,
+                          input_names = ['in_file'],
+                          output_names = ['out_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
-
 
     """
     if do_label_volume and use_freesurfer:
@@ -216,7 +212,8 @@ vote = node(name='Label_vote',
                                           'annot_files'],
                            output_names = ['maxlabel_file',
                                            'labelcounts_file',
-                                           'labelvotes_file']))
+                                           'labelvotes_file',
+                                           'consensus_vertices']))
 atlasflow.add_nodes([vote])
 
 if use_freesurfer:
@@ -257,6 +254,7 @@ if do_label_volume:
     ctx_label_numbers = []
     ctx_label_names = []
     for line2 in lines2:
+
         ctx_label_numbers.append(findall(r'\S+', line2)[0])
         ctx_label_names.append(findall(r'\S+', line2)[1])
     f2.close()
