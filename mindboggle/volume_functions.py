@@ -12,7 +12,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 import os
 
-def write_label_file(hemi, surface_file, label_index, label_name):
+def write_label_file(hemi, surface_file, label_number, label_name):
     """
     Save a FreeSurfer .label file for a given label from the vertices
     of a labeled VTK surface mesh.
@@ -48,7 +48,7 @@ def write_label_file(hemi, surface_file, label_index, label_name):
     L = np.zeros((npoints,5))
     for i in range(npoints):
         label = labels.GetValue(i)
-        if label == label_index:
+        if label == label_number:
             L[count,0] = i
             L[count,1:4] = data.GetPoint(i)
             count += 1
@@ -71,7 +71,7 @@ def write_label_file(hemi, surface_file, label_index, label_name):
         f.close()
         return label_file
 
-def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table):
+def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
     """
     Convert FreeSurfer .label files as a FreeSurfer .annot file
     using FreeSurfer's mris_label2annot.
@@ -95,7 +95,7 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, lookup_table)
         cli = CommandLine(command='mris_label2annot')
         cli.inputs.args = ' '.join(['--h', hemi, '--s', subject, \
                                     '--l', ' --l '.join(label_files), \
-                                    '--ctab', lookup_table, \
+                                    '--ctab', colortable, \
                                     '--a', annot_name])
         logger.info(cli.cmdline)
         cli.run()

@@ -11,6 +11,7 @@ _$*
 crash-*
 
 x
+.idea
 CMakeCache.txt
 CMakeFiles
 bin
