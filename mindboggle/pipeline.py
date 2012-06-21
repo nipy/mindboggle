@@ -17,6 +17,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 # Import Python libraries
 #-----------------------------------------------------------------------------
 from os import path, environ, makedirs
+from re import findall
 import numpy as np
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
@@ -45,9 +46,10 @@ do_create_graph = 0
 #-----------------------------------------------------------------------------
 subjects = ['MMRR-21-1'] #['plos_CJ_700_3_1'] #, 'KKI2009-14']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-mbpath = '/projects/mindboggle/mindboggle'
-templates_path = path.join(mbpath, 'data/templates')
-atlases_path = path.join(mbpath, 'data/atlases')
+basepath = '/projects/mindboggle/mindboggle'
+mbpath = path.join(basepath, 'mindboggle')
+templates_path = path.join(basepath, 'data/templates')
+atlases_path = path.join(basepath, 'data/atlases')
 results_path = '/projects/mindboggle/results'
 working_path = path.join(results_path, 'workingdir')
 if not path.isdir(results_path):  makedirs(results_path)
@@ -65,15 +67,12 @@ extract_fundi_command = path.join(mbpath, 'extract/fundi/vtk_extract.py')
 #-----------------------------------------------------------------------------
 atlas_list_file = path.join(atlases_path, 'atlas_list.txt')
 f = open(atlas_list_file)
-atlas_list = f.readlines()
-atlases = [a.strip("\n").strip("\t") for a in atlas_list \
-           if a.strip("\n").strip("\t")]
+atlas_lines = f.readlines()
+atlases = []
+for atlas_line in atlas_lines:
+    atlases.append(findall(r'\S+', atlas_line)[0])
 if do_evaluate_labels:
-    atlas_list_file2 = path.join(atlases_path, 'atlas_list_old.txt')
-    f = open(atlas_list_file2)
-    atlas_list2 = f.readlines()
-    atlases2 = [a.strip("\n").strip("\t") for a in atlas_list2 \
-                if a.strip("\n").strip("\t")]
+    atlases2 = atlases
 
 #-----------------------------------------------------------------------------
 # List of labels
