@@ -44,16 +44,12 @@ do_create_graph = 0
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
-subjects = ['MMRR-21-1'] #['plos_CJ_700_3_1'] #, 'KKI2009-14']
+subjects = ['MMRR-21-1']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-basepath = '/projects/mindboggle/mindboggle'
+basepath = '/projects/mindboggle'  # Where mindboggle directory resides
 mbpath = path.join(basepath, 'mindboggle')
-templates_path = path.join(basepath, 'data/templates')
-atlases_path = path.join(basepath, 'data/atlases')
-results_path = '/projects/mindboggle/results'
-working_path = path.join(results_path, 'workingdir')
-if not path.isdir(results_path):  makedirs(results_path)
-if not path.isdir(working_path):  makedirs(working_path)
+results_path = '/projects/mindboggle/results'  # Where to save output
+temp_path = path.join(results_path, 'workingdir')  # Where to save temp files
 #-----------------------------------------------------------------------------
 # Commands (must be compiled)
 #-----------------------------------------------------------------------------
@@ -62,40 +58,7 @@ depth_command = path.join(mbpath,\
 curvature_command = path.join(mbpath,\
       'measure/surface_measures/bin/curvature/CurvatureMain')
 extract_fundi_command = path.join(mbpath, 'extract/fundi/vtk_extract.py')
-#-----------------------------------------------------------------------------
-# List of atlas subjects
-#-----------------------------------------------------------------------------
-atlas_list_file = path.join(atlases_path, 'atlas_list.txt')
-f = open(atlas_list_file)
-atlas_lines = f.readlines()
-atlases = []
-for atlas_line in atlas_lines:
-    atlases.append(findall(r'\S+', atlas_line)[0])
-if do_evaluate_labels:
-    atlases2 = atlases
 
-#-----------------------------------------------------------------------------
-# List of labels
-#-----------------------------------------------------------------------------
-label_list_file = path.join(atlases_path, 'labels.txt')
-f = open(label_list_file)
-label_list = f.readlines()
-label_indices = [a.strip("\n").split("\t")[0] \
-                 for a in label_list if a.strip("\n").split("\t")[0]]
-label_names = [a.strip("\n").split("\t")[1] \
-               for a in label_list if a.strip("\n").split("\t")[1]]
-label_list_file = path.join(atlases_path, 'labels.txt')
-
-cortical_label_list_file = path.join(atlases_path, 'labels_cortex.txt')
-f = open(cortical_label_list_file)
-cortical_label_list = f.readlines()
-cortical_label_indices = [a.strip("\n").split("\t")[0] \
-                          for a in cortical_label_list \
-                          if a.strip("\n").split("\t")[0]]
-cortical_label_indices = [np.int(i) for i in cortical_label_indices]
-cortical_label_names = [a.strip("\n").split("\t")[1] \
-                        for a in cortical_label_list \
-                        if a.strip("\n").split("\t")[1]]
 
 ##############################################################################
 #
@@ -106,7 +69,11 @@ cortical_label_names = [a.strip("\n").split("\t")[1] \
 #
 ##############################################################################
 mbflow = workflow(name='Mindboggle_workflow')
-mbflow.base_dir = working_path
+mbflow.base_dir = temp_path
+if not path.isdir(temp_path):  makedirs(temp_path)
+# Paths within mindboggle base directory
+templates_path = path.join(basepath, 'mindboggle/data/templates')
+atlases_path = path.join(basepath, 'mindboggle/data/atlases')
 
 ##############################################################################
 #   Inputs and outputs
@@ -148,6 +115,7 @@ if do_label_volume:
 datasink = node(dataout(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
+if not path.isdir(results_path):  makedirs(results_path)
 
 ##############################################################################
 #   Surface conversion to VTK
@@ -222,6 +190,15 @@ transform = mapnode(name = 'Transform_atlas_labels',
                                                   'atlas',
                                                   'atlas_annot'],
                                    output_names = ['output_file']))
+# List of atlas subjects
+atlases_file = path.join(atlases_path, 'list.txt')
+f1 = open(atlases_file)
+lines1 = f1.readlines()
+atlases = []
+for line1 in lines1:
+    atlases.append(findall(r'\S+', line1)[0])
+f1.close()
+
 transform.inputs.atlas = atlases
 transform.inputs.subjects_path = subjects_path
 transform.inputs.atlas_annot = 'labels.manual.annot'
@@ -266,15 +243,26 @@ if do_label_volume:
     # Write labels for surface vertices in .label and .annot files
     #-------------------------------------------------------------------------
     writelabels = mapnode(name='Write_label_files',
-                          iterfield = ['label_index', 'label_name'],
+                          iterfield = ['label_number', 'label_name'],
                           interface = fn(function = write_label_file,
                                          input_names = ['hemi',
                                                         'surface_file',
-                                                        'label_index',
+                                                        'label_number',
                                                         'label_name'],
                                          output_names = ['label_file']))
-    writelabels.inputs.label_index = cortical_label_indices
-    writelabels.inputs.label_name = cortical_label_names
+    # List of cortical labels
+    ctx_labels_file = path.join(atlases_path, 'labels_ctx.txt')
+    f2 = open(ctx_labels_file)
+    lines2 = f2.readlines()
+    ctx_label_numbers = []
+    ctx_label_names = []
+    for line2 in lines2:
+        ctx_label_numbers.append(findall(r'\S+', line2)[0])
+        ctx_label_names.append(findall(r'\S+', line2)[1])
+    f2.close()
+
+    writelabels.inputs.label_number = ctx_label_numbers
+    writelabels.inputs.label_name = ctx_label_names
     atlasflow.add_nodes([writelabels])
     mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
     atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
@@ -285,12 +273,11 @@ if do_label_volume:
                                                     'subjects_path',
                                                     'subject',
                                                     'label_files',
-                                                    'lookup_table'],
+                                                    'colortable'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
     writeannot.inputs.subjects_path = subjects_path
-    writeannot.inputs.lookup_table = path.join(atlases_path, \
-                                               'atlas_cortex_colortable.txt')
+    writeannot.inputs.colortable = path.join(atlases_path, 'colortable.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Write_annot_file.hemi')])])
@@ -336,10 +323,18 @@ if do_label_volume:
         #---------------------------------------------------------------------
         # Table with unique, non-zero labels
         #---------------------------------------------------------------------
-        eval_maxlabels.inputs.labels = label_indices
+        # List of labels
+        #labels_file = path.join(atlases_path, 'labels.txt')
+        #f3 = open(labels_file)
+        #lines3 = f3.readlines()
+        #label_numbers = []
+        #for line3 in lines3:
+        #    label_numbers.append(findall(r'\S+', line3)[0])
+        #f3.close()
+        eval_maxlabels.inputs.labels = label_numbers
         eval_maxlabels.inputs.atlases_path = atlases_path
         eval_maxlabels.inputs.atlases = atlases
-        eval_maxlabels.inputs.atlases2 = atlases2
+        eval_maxlabels.inputs.atlases2 = atlases
         atlasflow.add_nodes([eval_maxlabels])
         mbflow.connect([(info, atlasflow, [('subject',
                                             'Evaluate_volume_maxlabels.subject')])])
