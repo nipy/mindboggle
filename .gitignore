@@ -8,6 +8,7 @@ _$*
 *$ 
 .del-* 
 *.cache*
+crash-*
 
 x
 CMakeCache.txt
