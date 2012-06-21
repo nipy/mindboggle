@@ -173,16 +173,19 @@ def vote_labels(label_lists):
     label_counts = [1 for i in xrange(n_vertices)]
     label_votes = [n_atlases for i in xrange(n_vertices)]
 
+    consensus_vertices = []
     for vertex in xrange(n_vertices):
         votes = Counter([label_lists[i][vertex] for i in xrange(n_atlases)])
 
         labels_max[vertex] = votes.most_common(1)[0][0]
         label_votes[vertex] = votes.most_common(1)[0][1]
         label_counts[vertex] = len(votes)
+        if len(votes) == n_atlases:
+            consensus_vertices.append(vertex)
 
     print("Voting done.")
 
-    return labels_max, label_votes, label_counts
+    return labels_max, label_votes, label_counts, consensus_vertices
 
 def majority_vote_label(surface_file, annot_files):
     """
@@ -224,7 +227,8 @@ def majority_vote_label(surface_file, annot_files):
         print("Annotations loaded.")    
     
     # Vote on labels for each vertex
-    labels_max, label_votes, label_counts = vote_labels(label_lists)
+    labels_max, label_votes, label_counts, \
+    consensus_vertices = vote_labels(label_lists)
 
     # Check type:
     if type(surface_file) == str:
@@ -260,4 +264,4 @@ def majority_vote_label(surface_file, annot_files):
                                   name='Votes (number of votes for majority labels)'))).\
           tofile(labelvotes_file, 'ascii')
 
-    return maxlabel_file, labelcounts_file, labelvotes_file
+    return maxlabel_file, labelcounts_file, labelvotes_file, consensus_vertices
