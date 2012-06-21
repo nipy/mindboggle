@@ -14,28 +14,6 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface calculations
 ##############################################################################
 
-def convert_surface(in_file):
-    """
-    Convert FreeSurfer surface file to vtk format
-    """
-    from os import getcwd, path, error
-    from nipype.interfaces.base import CommandLine
-
-    # Check type:
-    if type(in_file) == str:
-        pass
-    elif type(in_file) == list:
-        in_file = in_file[0]
-    else:
-        error("Check format of " + in_file)
-
-    out_file = path.join(getcwd(), path.basename(in_file) + '.vtk')
-    cli = CommandLine(command = 'python')
-    cli.inputs.args = ' '.join(['freesurfer2vtk.py', in_file, out_file])
-    cli.cmdline
-    cli.run()
-    return out_file
-
 def compute_depth(command, surface_file):
     """
     Measure
