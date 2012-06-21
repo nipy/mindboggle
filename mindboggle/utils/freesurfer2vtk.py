@@ -1,32 +1,53 @@
 #!/usr/bin/python
 
-#Copyright (C) 2011 by Forrest Sheng Bao http://fsbao.net
+"""
+Surface conversion from FreeSurfer to VTK polydata format.
 
-# This software is licensed under MIT license.
 
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
+Authors:  Forrest Sheng Bao http://fsbao.net
+Version:  0.2, last update on 2012-06-19
 
-# The above copyright notice and this permission notice shall be included in
-# all copies or substantial portions of the Software.
+(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-# THE SOFTWARE.
+"""
 
-# version 0.2 Last update 2012-06-19
+def read_surface(filename):
+    import struct, os
+    f = open(filename, "rb")
+    f.seek(3)  # skip the first 3 Bytes "Magic" number
 
-import sys  # this line imports pulic libraries
+    s = f.read(50)   # the second field is string of creation information of variable length
+    End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
 
-def writeHeader(Fp, Title='', Header='# vtk DataFile Version 2.0', FileType='ASCII', DataType='POLYDATA'):
+    f.seek(3+End2+2)  # jump to immediate Byte after the creating information
+
+    s = f.read(8)
+    vertex_count, face_count = struct.unpack(">ii", s)
+    # print("This hemisphere has", vertex_count, "vertices and", face_count, "Faces")
+
+    vertices, faces = [], []
+
+    for i in xrange(0, vertex_count):
+        s = f.read(8)
+        R, A = struct.unpack(">ff", s)
+        f.seek(-4, os.SEEK_CUR)
+        s = f.read(8)
+        A, S = struct.unpack(">ff", s)
+        vertices.append([R,A,S]) # R, A, S are the coordinates of vertices
+        #print i
+
+    for i in xrange(0, face_count):
+        s = f.read(8)
+        V0, V1 = struct.unpack(">ii", s)
+        f.seek(-4, os.SEEK_CUR)
+        s = f.read(8)
+        V1, V2 = struct.unpack(">ii", s)
+        faces.append([V0, V1, V2])
+        #print i, V0, V1, V2
+
+    return vertices, faces
+
+def write_header(Fp, Title='', Header='# vtk DataFile Version 2.0', FileType='ASCII', DataType='POLYDATA'):
     '''Write the all non-data information for a VTK-format file
     
     This part matches three things in VTK 4.2 File Formats doc
@@ -54,7 +75,7 @@ def writeHeader(Fp, Title='', Header='# vtk DataFile Version 2.0', FileType='ASC
     Fp.write(DataType)
     Fp.write("\n")
             
-def writePoint(Fp, PointList, Type="float"):
+def write_points(Fp, PointList, Type="float"):
     """Print coordinates of points, the POINTS section in DATASET POLYDATA section 
     """
     Fp.write("POINTS " + str(len(PointList)) + " " + Type + "\n")
@@ -62,62 +83,40 @@ def writePoint(Fp, PointList, Type="float"):
         [R, A, S] = PointList[i]
         Fp.write(str(R) + " " + str(A) + " " + str(S) + "\n")
     
-def writeFace(Fp, FaceList, VertexPerFace=3):
-    """Print vertexes forming triangular meshes, the POLYGONS section in DATASET POLYDATA section 
+def write_faces(f, face_list, vertices_per_face=3):
+    """Print vertices forming triangular meshes, the POLYGONS section in DATASET POLYDATA section 
     """
-    Fp.write("POLYGONS " + str(len(FaceList)) + " " + str( (VertexPerFace + 1) * len(FaceList)  )  + '\n' )
-    for i in xrange(0, len(FaceList)):
-        [V0, V1, V2] = FaceList[i]
-        Fp.write( str(VertexPerFace) + " " + str(V0) + " " + str(V1) + " " + str(V2) + "\n")
+    f.write("POLYGONS " + str(len(face_list)) + " " + str( (vertices_per_face + 1) * len(face_list)  )  + '\n' )
+    for i in xrange(0, len(face_list)):
+        [V0, V1, V2] = face_list[i]
+        f.write( str(vertices_per_face) + " " + str(V0) + " " + str(V1) + " " + str(V2) + "\n")
 
-def readSurf(filename):
-    import struct, os
-    f = open(filename, "rb")
-    f.seek(3)  # skip the first 3 Bytes "Magic" number
-    
-    s = f.read(50)   # the second field is string of creation information of variable length
-    End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
-    
-    f.seek(3+End2+2)  # jump to immediate Byte after the creating information  
-    
-    s = f.read(8)
-    VertexCount, FaceCount = struct.unpack(">ii", s)
-#    print "This hemisphere has", VertexCount, "Vertexes and", FaceCount, "Faces"
-        
-    Vertex, Face = [], []
-    
-    for i in xrange(0, VertexCount):
-        s = f.read(8)
-        R, A = struct.unpack(">ff", s)
-        f.seek(-4, os.SEEK_CUR)
-        s = f.read(8)
-        A, S = struct.unpack(">ff", s)
-        Vertex.append([R,A,S]) # R, A, S are the coordinates of vertexes
-        #print i
-        
-    for i in xrange(0, FaceCount):
-        s = f.read(8)
-        V0, V1 = struct.unpack(">ii", s)
-        f.seek(-4, os.SEEK_CUR)
-        s = f.read(8)
-        V1, V2 = struct.unpack(">ii", s)
-        Face.append([V0, V1, V2])      
-        #print i, V0, V1, V2
+def freesurfer2vtk(in_file):
+    """
+    Convert FreeSurfer surface file to vtk format
+    """
 
-    return Vertex, Face
+    from os import path, getcwd, error
+    from freesurfer2vtk import read_surface, write_header, write_points, write_faces
 
-if len(sys.argv) < 1:
-    print "Usage: python fsSurf2vtk.py FreeSurfer_Surface VTK_Output"
+    # Check type:
+    if type(in_file) == str:
+        pass
+    elif type(in_file) == list:
+        in_file = in_file[0]
+    else:
+        error("Check format of " + in_file)
 
-InputFile = sys.argv[1]
-OutputFile = sys.argv[2]
+    vertices, faces = read_surface(in_file)
 
-Vrtx, Face = readSurf(InputFile)
+    out_file = path.join(getcwd(), in_file + '.vtk')
+    f = open(out_file, 'w')
 
-OutFP = open(OutputFile, 'w')
+    write_header(f)
+    write_points(f, vertices)
+    write_faces(f, faces)
 
-writeHeader(OutFP)
-writePoint(OutFP, Vrtx)
-writeFace(OutFP, Face)
+    f.close()
 
-OutFP.close()
+    return out_file
+
