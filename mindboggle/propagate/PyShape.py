@@ -49,6 +49,7 @@ import os
 import vtk_operations as vo
 import compute_weights as cw
 import graph_operations as go
+import pickle
 
 # np.set_printoptions(threshold='nan')
 
@@ -427,7 +428,7 @@ class Shape:
 
 		return sorted(self.low_quality_triangles)
 
-	def initialize_labels(self, keep='border', fraction=.05):
+	def initialize_labels(self, keep='fundi', fraction=.05):
 		"""Initialize a set of labels to serve as the seeds for label propagation.
 		Options include: 'border' for nodes connected to fundi.
 						 'fundi' for nodes which are part of fundi.
@@ -563,7 +564,7 @@ class Shape:
 
 		# We can now output a file to show the boundary.
 		if draw:
-			filename = '/home/eli/mindboggle/propagate/realignment_test/label_boundaries_'+self.id+'.vtk'
+			filename = '/home/eli/Desktop/label_boundaries_'+self.id+'.vtk'
 			vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
 
 		# Reformat label_boundary to include only the indices of those nodes in the boundary.
@@ -593,12 +594,12 @@ class Shape:
 			class_label_boundaries = np.zeros(self.Labels.shape) - 1000
 			for Class in self.set_manual_classes:
 				class_label_boundaries[self.label_boundary_by_class[Class]] = Class
-			filename = '/home/eli/mindboggle/propagate/realignment_test/label_boundaries_by_class_'+self.id+'.vtk'
+			filename = '/home/eli/Desktop/label_boundaries_by_class_'+self.id+'.vtk'
 			vo.write_all(filename,self.Nodes,self.Mesh,class_label_boundaries)
 
 		return self.label_boundary_by_class
 
-	def find_label_boundary_segments(self):
+	def find_label_boundary_segments(self, skip_file = 0):
 		"""
 		This method will output a dictionary which will store label boundary segments (and subsegments).
 		The key will be a tuple consisting of the class it is in, along with the class it is adjacent to.
@@ -614,21 +615,31 @@ class Shape:
 			for b in self.set_manual_classes:
 				self.label_boundary_segments[(a,b)]=[]
 
-		# Populate the dictionary with nodes
-		for Class in self.set_manual_classes:
-			print Class
-			for node in self.label_boundary_by_class[Class]:
-				neighbors = self.neighbors(node)
-				A = set(self.Labels[neighbors])
-				B = set([self.Labels[node]])
-				neighbor_classes = set.difference(A,B)
-				for c in neighbor_classes:
-					self.label_boundary_segments[(Class,c)] += [node]
+		if skip_file:
+			pkl_file = open(skip_file, 'rb')
+			self.label_boundary_segments = pickle.load(pkl_file)
+			pkl_file.close()
 
-		for a in self.set_manual_classes:
-			for b in self.set_manual_classes:
-				if self.label_boundary_segments[(a,b)]:
-					print "For classes ", a, " and ", b, ": ", self.label_boundary_segments[(a,b)]
+		else:
+			# Populate the dictionary with nodes
+			for Class in self.set_manual_classes:
+				print Class
+				for node in self.label_boundary_by_class[Class]:
+					neighbors = self.neighbors(node)
+					A = set(self.Labels[neighbors])
+					B = set([self.Labels[node]])
+					neighbor_classes = set.difference(A,B)
+					for c in neighbor_classes:
+						self.label_boundary_segments[(Class,c)] += [node]
+
+			for a in self.set_manual_classes:
+				for b in self.set_manual_classes:
+					if self.label_boundary_segments[(a,b)]:
+						print "For classes ", a, " and ", b, ": ", self.label_boundary_segments[(a,b)]
+
+			output = open('/home/eli/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
+			pickle.dump(self.label_boundary_segments, output)
+			output.close()
 
 		# So far so good. This method works so far. self.label_boundary_segments[(a,b)] is populated.
 		# Now...
@@ -667,9 +678,9 @@ class Shape:
 						# One which converts fewer nodes.
 
 		self.subsegments = {}
-		seg_counter = 0
+		i = 1
 		for a in self.set_manual_classes:
-			for b in self.set_manual_classes:
+			for b in self.set_manual_classes[i:]:
 				if self.label_boundary_segments[(a,b)]:
 					# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
 					endpoint = [-1, -1]
@@ -705,7 +716,7 @@ class Shape:
 							# break
 						# pointer = other fundal point in that row
 
-					intersection = [0,0] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
+					intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
 					for i in xrange(2):
 						current_node = endpoint[i]
 						avoid = {current_node}
@@ -714,81 +725,135 @@ class Shape:
 							try:
 								next_node = set.difference(current_neighbors, avoid).pop()
 							except:
-								next_node = -1
+								print 'you have reached the exception clause. The intersection should be -1'
+								current_node = -1
 								break
 							avoid.add(next_node)
 							current_node = next_node
 						intersection[i] = current_node # It might be -1, if there are no intersections.
 
-					same_fundus = False
+					print "The intersection points are: ", intersection
+
+					self.same_fundus = False
 					if -1 not in intersection and intersection[0] != intersection[1]:
 						# It found 2 different intersections. We must therefore now assess whether these two intersections are
 						# part of the same fundus.
 
-						# Will need to use recursion here. Think about an efficient and effective way to do this.
-						# Call external function...
+						pointer = intersection[0] # This is the first intersection point.
+						print "First pointer is: ", pointer
+						avoid = set() # This will be an array of rows in self.Fundi to avoid
+						rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
+						print "And the list of rows to explore is: ", rows
 
-						# def same_fundus(points):
-						#
-
-
-						self.same_fundus(intersection)
-
-						pointer = intersection[0]
-						avoid = set()
-						rows = np.nonzero([pointer in row for row in self.Fundi])[0]
 						while rows:
 							path_to_follow = rows[0]
+							print "Following path! ", path_to_follow
 							avoid.add(path_to_follow)
-							pointer = set(self.Fundi[path_to_follow]).remove(pointer)
+							tmp = set(list(self.Fundi[path_to_follow]))
+							print "fundal nodes which are being analyzed are: ", tmp
+							pointer = tmp.remove(pointer)
+							print "pointer is now: ", pointer
 							if pointer == intersection[1]:
 								# Bingo!
 								print 'Bingo! Both intersections are part of the same fundus!'
-								same_fundus = True
+								self.same_fundus = True
 								break
-							rows = set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid)
+							rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
+							print "Rows is now: ", rows
+
+						if self.same_fundus:
+							self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
 
 					elif intersection[0] == intersection[1] or -1 in intersection:
 						# It intersects at the same place, or not at all:
 						# We must now run the label propagation algorithm.
-						pass
+						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
 
-					if same_fundus:
-						pass
+				#################################################################
+				# Now let us do the co-segment, which is defined by classes (b,a)
+				#################################################################
 
+				if self.label_boundary_segments[(b,a)]:
+					# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
+					endpoint = [-1, -1]
+					for node in self.label_boundary_segments[(b,a)]:
+						ns = self.neighbors(node)
+						boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments[(b,a)]))
+						if len(boundary_ns) == 1:
+							if endpoint[0] == -1:
+								endpoint[0] = node # This is an endpoint. Construct segments starting from here.
+							else:
+								endpoint[1] = node
+								break
 
+					intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
+					for i in xrange(2):
+						current_node = endpoint[i]
+						avoid = {current_node}
+						while current_node not in self.fundal_nodes:
+							current_neighbors = set.intersection(set(self.neighbors(current_node)), set(self.label_boundary_segments[(b,a)]))
+							try:
+								next_node = set.difference(current_neighbors, avoid).pop()
+							except:
+								print 'you have reached the exception clause. The intersection should be -1'
+								current_node = -1
+								break
+							avoid.add(next_node)
+							current_node = next_node
+						intersection[i] = current_node # It might be -1, if there are no intersections.
 
+					print "The intersection points are: ", intersection
 
+					self.same_fundus = False
+					if -1 not in intersection and intersection[0] != intersection[1]:
+						# It found 2 different intersections. We must therefore now assess whether these two intersections are
+						# part of the same fundus.
 
+						pointer = intersection[0] # This is the first intersection point.
+						print "First pointer is: ", pointer
+						avoid = set() # This will be an array of rows in self.Fundi to avoid
+						rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
+						print "And the list of rows to explore is: ", rows
 
+						while rows:
+							path_to_follow = rows[0]
+							print "Following path! ", path_to_follow
+							avoid.add(path_to_follow)
+							tmp = set(list(self.Fundi[path_to_follow]))
+							print "fundal nodes which are being analyzed are: ", tmp
+							pointer = tmp.remove(pointer)
+							print "pointer is now: ", pointer
+							if pointer == intersection[1]:
+								# Bingo!
+								print 'Bingo! Both intersections are part of the same fundus!'
+								self.same_fundus = True
+								break
+							rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
+							print "Rows is now: ", rows
 
+						if self.same_fundus:
+							print 'Propagating labels in the case of YES 2-fundi intersection.'
+							self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
 
-
-
-
-
-
-
-
-
-					self.subsegments[(seg_counter,a,b)] = [endpoint, boundary_ns]
-					while boundary_ns not in partition_points:
-						boundary_ns = self.neighbors(boundary_ns).remove(endpoint)
-
-					seg_counter += 1
-
-
+					elif intersection[0] == intersection[1] or -1 in intersection:
+						# It intersects at the same place, or not at all:
+						# We must now run the label propagation algorithm.
+						print 'Propagating labels in the case of NO 2-fundi intersection.'
+						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
+			i += 1
+		return 0
 
 	# Consider renaming this method "fix_boundary"
-	def realign_boundary(self):
+	def realign_boundary(self, skip_file = '/home/eli/label_boundary_segments_PyShape Object.pkl'):
 		""" Method to realign (or fix) the label boundary with fundi.
 		The output will be two new files:
 		1) New labels!
 		2) Label Boundary showing the results.
 		"""
 
-		self.find_label_boundary_segments()
+		self.find_label_boundary_segments(skip_file = skip_file)
 
+		return 0
 
 	def neighbors(self, node):
 		""" This method will accomplish the simple task of taking a node as input and returning
@@ -920,7 +985,8 @@ class Shape:
 
 		return self.eigenvalues
 
-	def propagate_labels(self,method='weighted_average', realign=False, kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=50, tol=1, eps=1e-7):
+	def propagate_labels(self,method='weighted_average', realign=False, current_segment=0, fundus_value=0,
+	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=5001, tol=1, eps=1e-7):
 		"""Main function to propagate labels.
 		A number of methods may be used for this purpose:
 		1) 'weighted_average'
@@ -949,11 +1015,11 @@ class Shape:
 		# Step 3. Propagate Labels!
 		if method == "weighted_average":
 			print 'Performing Weighted Average Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
-			prob_matrix = self.weighted_average(realign, max_iters, tol, vis=vis)
+			prob_matrix = self.weighted_average(realign, current_segment, fundus_value, max_iters, tol, vis=vis)
 
-		elif method == "jacobi_iteration":
-			print 'Performing Jacobi Iteration Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
-			prob_matrix = self.jacobi_iteration(alpha, max_iters, tol, eps)
+#		elif method == "jacobi_iteration":
+#			print 'Performing Jacobi Iteration Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
+#			prob_matrix = self.jacobi_iteration(alpha, max_iters, tol, eps)
 
 #		elif method == "Label_Spreading":
 #			print 'Performing Label Spreading Algorithm! Parameters: alpha={0}, max_iters={1}'.format(str(alpha), str(max_iters))
@@ -1069,7 +1135,7 @@ class Shape:
 
 		""" That's it. Now we just write the file."""
 
-		filename = '/home/eli/mindboggle/propagate/realignment_test/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
+		filename = '/home/eli/Desktop/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
 
 		vo.write_all(filename, self.Nodes, self.Mesh, indices)
 
@@ -1078,7 +1144,7 @@ class Shape:
 # 			  Helper Methods
 # ------------------------------------------
 
-	def weighted_average(self, realign, max_iters, tol, vis=True):
+	def weighted_average(self, realign, current_segment, fundus_value, max_iters, tol, vis=True):
 		"""Performs iterative weighted average algorithm to propagate labels to unlabeled nodes.
 		Features: Hard label clamps, probabilistic solution.
 		See: Zhu and Ghahramani, 2002."""
@@ -1140,6 +1206,10 @@ class Shape:
 
 		i = 0 # record of class number
 		for column in self.probabilistic_assignment.T:
+			if realign and i > 0:
+				print "We only need to run this once."
+				break
+
 			t0 = time()
 			print 'Working on class: ', i
 			restore = column[self.preserved_labels==1]
@@ -1174,7 +1244,7 @@ class Shape:
 					""" Let's define a file for output.
 					We have the nodes and meshing, and we have the labels which are found in column.todense().flatten()."""
 
-					filename = '/home/eli/Neuroscience-Research/Visualizations/Alignment/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
+					filename = '/home/eli/Desktop/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
 
 					if not np.mod(counter,1000):
 						LABELS = np.zeros(self.num_nodes)
@@ -1182,7 +1252,12 @@ class Shape:
 						vo.write_all(filename, self.Nodes, self.Mesh, LABELS)
 
 				Y_hat_next = (self.DDM * self.aff_mat * Y_hat_now).todense() # column matrix
-				Y_hat_next[self.preserved_labels==1,0] = restore # reset
+				if not realign:
+					Y_hat_next[self.preserved_labels==1,0] = restore # reset
+				else:
+					Y_hat_next[self.label_boundary, 0] = -1
+					Y_hat_next[current_segment, 0] = 1
+					Y_hat_next[self.fundal_nodes, 0] = fundus_value
 				converged = (np.sum(np.abs(Y_hat_now.todense() - Y_hat_next)) < tol) # check convergence
 				# print 'Iteration number {0}, convergence = {1}'.format(str(counter),str(np.sum(np.abs(column.todense() - tmp))))
 				Y_hat_now = csr_matrix(Y_hat_next)
@@ -1360,9 +1435,10 @@ def test2():
 
 def test3():
 	""" This test is for the realignment task."""
-	shape.import_vtk('/home/eli/mindboggle/propagate/realignment_test/testdatalabels.vtk')
-	shape.import_fundi('/home/eli/mindboggle/propagate/realignment_test/testdatafundi.vtk')
-	shape.find_label_boundary_segments()
+	shape.import_vtk('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk')
+	shape.import_fundi('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk')
+	shape.initialize_labels()
+	shape.realign_boundary()
 
 def test4():
 	""" This test assesses the neighbor() function.
