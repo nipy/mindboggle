@@ -1,3 +1,4 @@
+# Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
 import os
 
