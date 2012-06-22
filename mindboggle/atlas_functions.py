@@ -206,7 +206,7 @@ def majority_vote_label(surface_file, annot_files):
                   number of votes per majority label
     """
 
-    from os import path
+    from os import path, getcwd
     import nibabel as nb
     import pyvtk
     from atlas_functions import relabel, vote_labels
@@ -244,7 +244,7 @@ def majority_vote_label(surface_file, annot_files):
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
 
-    file_stem = surface_file.strip('.vtk')
+    file_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
     maxlabel_file = file_stem + '.labels.max.vtk'
     labelcounts_file = file_stem + '.labelcounts.vtk'
     labelvotes_file = file_stem + '.labelvotes.vtk'
