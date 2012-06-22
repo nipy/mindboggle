@@ -52,13 +52,14 @@ def write_label_file(hemi, surface_file, label_number, label_name):
             L[count,0] = i
             L[count,1:4] = data.GetPoint(i)
             count += 1
- 
+    print(L)
+    print(count)
     # Save the label file
     if count > 0:
         #label_file = path.join(getcwd(), hemi + '.ctx-' + hemi + '-' +\
         #label_file = path.join(getcwd(), 'ctx-' + hemi + '-' +\
-        label_file = path.join(getcwd(), hemi + '.' +\
-                                         label_name + '.label')
+        label_file = path.join(getcwd(), \
+                               hemi + '.' + label_name + '.label')
         f = open(label_file, 'w')
         f.writelines('#!ascii label\n' + str(count) + '\n')
         for i in range(npoints):
