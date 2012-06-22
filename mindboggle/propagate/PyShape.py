@@ -88,10 +88,13 @@ class Shape:
 		# For constructing the neighbors matrix
 		self.neighbors_constructed = 0
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Import Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def add_nodes(self, nodes):
 		"""Add 3D coordinates of nodes as 2d array."""
@@ -200,16 +203,20 @@ class Shape:
 		if np.amax(self.Fundi) >= self.num_nodes:
 			print 'The fundi reference nodes which are not in the file. Please consider.'
 
+		self.fundi_file = fname
+
 		return self.id
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Pre-Processing of Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def compute_mesh_measure(self, total=False):
-		"""Computes the surface area of a shape object.
-		Finds the area of each triangle."""
+		"""Computes the surface area of a shape object, and finds the area of each triangle."""
 
 		# Check that nodes and meshing have been inputted.
 		# Check that if shape is composed of polylines, the area is 0.
@@ -531,20 +538,34 @@ class Shape:
 
 		return self.label_matrix, self.label_mapping
 
-	def find_label_boundary(self, draw=True):
-		""" This method finds those nodes which comprise the label boundary.
-		I will define a label boundary as the set of all nodes
-		whose neighbors are not all from the same class.
-		Thus, any node which is connected to two (or more) nodes from different classes
-		will be a boundary node, and will help constitute the label boundary.
-		"""
+	def find_label_boundary(self, realigned_labels = False):
+		""" Find the set of nodes which comprise the label boundary.
 
-		""" To do so, we simply go triangle by triangle and see if they are all from the same class.
-		If yes, do nothing.
-		If no, then add the nodes from the majority class (it'll be 2 to 1) to the label boundary.
-		First, let us define an empty array to store the label boundaries.
-		It will have zeros and ones. We can then define a new array to store all and only those nodes
-		which are part of the label boundary.
+			Parameters:
+			===========
+			realigned_labels: boolean (choice of using realigned labels, as opposed to manual labels)
+
+			Returns:
+			=======
+			label_boundary: numpy array (of indices of nodes which comprise the label boundary)
+			label_boundary_file: string (VTK file name containing highlighted label boundary)
+
+
+			Explanation:
+			============
+
+			I will define a label boundary as the set of all nodes
+			whose neighbors are not all from the same class.
+			Thus, any node which is connected to two (or more) nodes from different classes
+			will be a boundary node, and will help constitute the label boundary.
+
+			To do so, we simply go triangle by triangle and see if they are all from the same class.
+			If yes, do nothing.
+			If no, then add the nodes from the majority class (it'll be 2 to 1) to the label boundary.
+			First, let us define an empty array to store the label boundaries.
+			It will have zeros and ones. We can then define a new array to store all and only those nodes
+			which are part of the label boundary.
+
 		"""
 
 		self.label_boundary = np.zeros(self.num_nodes)
@@ -556,30 +577,51 @@ class Shape:
 		for triangle in self.Mesh:
 			v0, v1, v2 = triangle[0], triangle[1], triangle[2]
 			# If they are not all the same...
-			same_labels = [self.Labels[v1]==self.Labels[v2], self.Labels[v0]==self.Labels[v2], self.Labels[v0]==self.Labels[v1]]
+			if not realigned_labels:
+				same_labels = [self.Labels[v1]==self.Labels[v2], self.Labels[v0]==self.Labels[v2], self.Labels[v0]==self.Labels[v1]]
+			else:
+				same_labels = [self.RLabels[v1]==self.RLabels[v2], self.RLabels[v0]==self.RLabels[v2], self.RLabels[v0]==self.RLabels[v1]]
+
 			# Did it this way for option to modify it later. Perhaps reconsider 'not all' statement.
 			if not all(same_labels):
 				# Then label those nodes as part of the boundary.
 				self.label_boundary[triangle] = 1
 
 		# We can now output a file to show the boundary.
-		if draw:
+		if not realigned_labels:
 			filename = '/home/eli/Desktop/label_boundaries_'+self.id+'.vtk'
-			vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
+		else:
+			filename = '/home/eli/Desktop/realigned_label_boundaries_'+self.id+'.vtk'
+
+		vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
 
 		# Reformat label_boundary to include only the indices of those nodes in the boundary.
 		self.label_boundary = np.nonzero(self.label_boundary==1)[0]
 
-		return self.label_boundary
+		self.label_boundary_file = filename
 
-	def find_label_boundary_by_class(self, draw=True):
-		"""
-		This method divides the label boundary into classes. It returns a dictionary:
-		key = class
-		value = nodes
+		return self.label_boundary, self.label_boundary_file
+
+	def find_label_boundary_by_class(self):
+		""" Divides the label boundary into classes.
+
+			Parameters:
+			===========
+
+			Returns:
+			========
+			self.label_boundary_by_class: dict (key: int class, value: list of nodes)
+
+			Explanation:
+			============
+			Helper method for find_label_boundary_segment. No real need for visualization.
+
 		"""
 
-		self.find_label_boundary() # get the initial boundaries, without regard for class.
+		try:
+			self.label_boundary
+		except AttributeError:
+			self.find_label_boundary() # get the initial boundaries, without regard for class.
 
 		self.label_boundary_by_class = {}
 		setA = set(self.label_boundary)
@@ -590,92 +632,108 @@ class Shape:
 
 			self.label_boundary_by_class[Class] = list(setC)
 
-		if draw:
-			class_label_boundaries = np.zeros(self.Labels.shape) - 1000
-			for Class in self.set_manual_classes:
-				class_label_boundaries[self.label_boundary_by_class[Class]] = Class
-			filename = '/home/eli/Desktop/label_boundaries_by_class_'+self.id+'.vtk'
-			vo.write_all(filename,self.Nodes,self.Mesh,class_label_boundaries)
-
 		return self.label_boundary_by_class
 
-	def find_label_boundary_segments(self, skip_file = 0):
-		"""
-		This method will output a dictionary which will store label boundary segments (and subsegments).
-		The key will be a tuple consisting of the class it is in, along with the class it is adjacent to.
-		The value will be the set of nodes which comprise the segment.
+	def find_label_boundary_segments(self):
+		""" Breaks up the label boundary into segments.
+
+			Parameters:
+			===========
+
+			Returns:
+			========
+			self.label_boundary_segments: dict (key: tuple of classes, value: set of nodes)
+			self.segment_file: string (pickled file containing the dictionary, for future use)
+			self.highlighted_segment_file: string (VTK file with boundary segments highlighted according to class)
+
+			Explanation:
+			============
+
+			This method will output a dictionary which will store label boundary segments (and subsegments).
+			The key will be a tuple consisting of the class it is in, along with the class it is adjacent to.
+			The value will be the set of nodes which comprise the segment.
+
+			As this method is currently very slow, I will dump the results into a file for future unpickling.
+
 		"""
 
 		self.find_label_boundary_by_class()
 
-		self.label_boundary_segments = {}
-
 		# Initialize dictionary for later ease of use (though there's probably a simpler way to do the concatenation).
+		self.label_boundary_segments = {}
 		for a in self.set_manual_classes:
 			for b in self.set_manual_classes:
 				self.label_boundary_segments[(a,b)]=[]
 
-		if skip_file:
-			pkl_file = open(skip_file, 'rb')
-			self.label_boundary_segments = pickle.load(pkl_file)
-			pkl_file.close()
 
-		else:
-			# Populate the dictionary with nodes
-			for Class in self.set_manual_classes:
-				print Class
-				for node in self.label_boundary_by_class[Class]:
-					neighbors = self.neighbors(node)
-					A = set(self.Labels[neighbors])
-					B = set([self.Labels[node]])
-					neighbor_classes = set.difference(A,B)
-					for c in neighbor_classes:
-						self.label_boundary_segments[(Class,c)] += [node]
+		# Populate the dictionary with nodes
+		for Class in self.set_manual_classes:
+			print Class
+			for node in self.label_boundary_by_class[Class]:
+				neighbors = self.neighbors(node)
+				A = set(self.Labels[neighbors])
+				B = {[self.Labels[node]]}
+				neighbor_classes = set.difference(A,B)
+				for c in neighbor_classes:
+					self.label_boundary_segments[(Class,c)] += [node]
 
-			for a in self.set_manual_classes:
-				for b in self.set_manual_classes:
-					if self.label_boundary_segments[(a,b)]:
-						print "For classes ", a, " and ", b, ": ", self.label_boundary_segments[(a,b)]
+		# Print Results
+		for key in self.label_boundary_segments.keys():
+			print "For classes: ", key, "  ", self.label_boundary_segments[key]
 
-			output = open('/home/eli/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
-			pickle.dump(self.label_boundary_segments, output)
-			output.close()
+		# Dump pickled results into a file
+		self.segment_file = open('/home/eli/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
+		pickle.dump(self.label_boundary_segments, self.segment_file)
+		self.segment_file.close()
 
-		# So far so good. This method works so far. self.label_boundary_segments[(a,b)] is populated.
-		# Now...
+		# Output the results to a VTK file
+		self.highlighted_segment_file = '/home/eli/Desktop/highlighted_segments' + self.id + '.vtk'
+		color = 0
+		colored_segments = np.array(self.Labels)
+		for value in self.label_boundary_segments.values():
+			colored_segments[value] = color
+			color += 1
+		vo.write_all(self.highlighted_segment_file, self.Nodes,self.Mesh,colored_segments)
+
+		return self.label_boundary_segments, self.segment_file, self.highlighted_segment_file
+
+	def realignment_propagation(self):
+		"""
+
+		"""
 
 		# For each segment:
 		# Find the two endpoints, as follows:
-			# Find all the nodes which only border one other node in the set.
-				# Count the number of a node's neighbors which are also part of the segment.
-				# If the number is 1, then it is an endpoint.
+		# Find all the nodes which only border one other node in the set.
+		# Count the number of a node's neighbors which are also part of the segment.
+		# If the number is 1, then it is an endpoint.
 		# Start with one of the enpoints.
-			# Check if it's a fundal node.
-			# If yes, go to the other enpoint.
-			# If no, go to the "next node".
-				# The "next node" is the node which is a neighbor of the current node, but not one of the previous nodes.
-			# Keep going until you reach a fundal node.
-				# If you reach a fundal node. Go to other endpoint, and repeat the above process.
-				# If you never reach a fundal node, i.e. if you hit the other enpoint. Then that's the end of this process.
-			# If you didn't reach any fundal nodes, consider this whole segment as one unit.
-				# Perform the label propagation algorithm on this segment.
-					# Let the segment be 1, the fundi be 0, the other segments -1...
-			# If you did reach fundal nodes on both sides:
-				# Check if you can connect them using only fundal nodes.
-					# If you can, perform a label propagation algorithm with segment and fundi labeled +1.
-						# Have the threshold be .99.
-						# This is the best case scenario.
-					# If you can't, perform label propagation algorithm with segment +1 and fundi 0.
-			# If you only reached a fundal node on one side, i.e. if reached the same fundal node:
-				# Perfom a label propagation algorithm with the segment +1 and fundi 0.
+		# Check if it's a fundal node.
+		# If yes, go to the other enpoint.
+		# If no, go to the "next node".
+		# The "next node" is the node which is a neighbor of the current node, but not one of the previous nodes.
+		# Keep going until you reach a fundal node.
+		# If you reach a fundal node. Go to other endpoint, and repeat the above process.
+		# If you never reach a fundal node, i.e. if you hit the other enpoint. Then that's the end of this process.
+		# If you didn't reach any fundal nodes, consider this whole segment as one unit.
+		# Perform the label propagation algorithm on this segment.
+		# Let the segment be 1, the fundi be 0, the other segments -1...
+		# If you did reach fundal nodes on both sides:
+		# Check if you can connect them using only fundal nodes.
+		# If you can, perform a label propagation algorithm with segment and fundi labeled +1.
+		# Have the threshold be .99.
+		# This is the best case scenario.
+		# If you can't, perform label propagation algorithm with segment +1 and fundi 0.
+		# If you only reached a fundal node on one side, i.e. if reached the same fundal node:
+		# Perfom a label propagation algorithm with the segment +1 and fundi 0.
 		# For each segment you perform label propagation on (i.e. for each segment you consider):
-			# Analyze the co-segment as well.
-				# If they both have double fundus intersections, use and keep them both.
-					# After all, this is the best case scenario, and is pretty fool proof.
-						# (Assuming the size is good).
-				# Otherwise, perform propagation on both segments.
-					# Choose smaller perturbation.
-						# One which converts fewer nodes.
+		# Analyze the co-segment as well.
+		# If they both have double fundus intersections, use and keep them both.
+		# After all, this is the best case scenario, and is pretty fool proof.
+		# (Assuming the size is good).
+		# Otherwise, perform propagation on both segments.
+		# Choose smaller perturbation.
+		# One which converts fewer nodes.
 
 		self.subsegments = {}
 		i = 1
@@ -694,27 +752,27 @@ class Shape:
 								endpoint[1] = node
 								break
 
-					# We now have the two endpoints.
-					# We now need to find the intersecting fundi.
-						# current node = endpoint1
-						# while current node is not fundal node (i.e. is not partition point)
+							# We now have the two endpoints.
+							# We now need to find the intersecting fundi.
+							# current node = endpoint1
+							# while current node is not fundal node (i.e. is not partition point)
 							# current node = next node
-						# intersection1 = current node
-						# current node = endpoint2
-						# while current node is not fundal node (i.e. is not partition point)
+							# intersection1 = current node
+							# current node = endpoint2
+							# while current node is not fundal node (i.e. is not partition point)
 							# current node = next node
-						# intersection2 = current node
-					# We will now check to see if the two intersections can be linked by fundi.
-					# To do so we will use self.Fundi, which is a 2-column numpy array.
-					# Start with one intersection point.
-					# pointer = intersection 1
-					# while pointer != intersection2
-						# Find one or more NEW rows in self.Fundi which contain that point.
+							# intersection2 = current node
+							# We will now check to see if the two intersections can be linked by fundi.
+							# To do so we will use self.Fundi, which is a 2-column numpy array.
+							# Start with one intersection point.
+							# pointer = intersection 1
+							# while pointer != intersection2
+							# Find one or more NEW rows in self.Fundi which contain that point.
 							# (May need to use recursion here)
-						# If no new rows exist:
+							# If no new rows exist:
 							# report that intersections are not part of the same fundus curve
 							# break
-						# pointer = other fundal point in that row
+							# pointer = other fundal point in that row
 
 					intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
 					for i in xrange(2):
@@ -841,19 +899,42 @@ class Shape:
 						print 'Propagating labels in the case of NO 2-fundi intersection.'
 						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
 			i += 1
-		return 0
 
-	# Consider renaming this method "fix_boundary"
 	def realign_boundary(self, skip_file = '/home/eli/label_boundary_segments_PyShape Object.pkl'):
-		""" Method to realign (or fix) the label boundary with fundi.
-		The output will be two new files:
-		1) New labels!
-		2) Label Boundary showing the results.
-		"""
+		""" Realign the label boundary to coincide with fundi.
 
+			Runs functions: find_label_boundary(), find_label_boundary_segments()
+							fff
+
+	        Parameters
+		    ==========
+		    skip_file: string (name of pickled file containing dict of label_segments to save time)
+
+	        Returns
+		    =======
+		    output_files: vtk file depicting initial (manual) label boundaries
+		            vtk file of fundi
+		            vtk file of NEW realigned boundaries
+		            vtk file highlighting changed regions
+
+        """
+
+		# Step 1. Find Manual Label Boundary Segments, Construct VTK File for Output
+		# The VTK file is stored in self.label_boundary_file
+		self.find_label_boundary(realigned = False)
+
+		# Step 2. Construct VTK File of Fundi for Output
+		# This has already been obtained, as self.fundi_file
+
+		# Step 3. Find Label Boundary Segments
 		self.find_label_boundary_segments(skip_file = skip_file)
 
-		return 0
+		# Step 4. Propagate Labels from Label Boundary Segments, With Desired Conditions In Place
+		# Define separate function to accomplish this. It will call the main label propagation function.
+
+		# Step 5.
+
+		return self.label_boundary_file, self.fundi_file
 
 	def neighbors(self, node):
 		""" This method will accomplish the simple task of taking a node as input and returning
@@ -918,10 +999,13 @@ class Shape:
 		self.check_well_formed()
 		self.create_vtk(fname)
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Processing of Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def compute_lbo(self, num=500, check=0, fname='/home/eli/Neuroscience-Research/Analysis_Hemispheres/Testing.vtk'):
 		"""Computation of the LBO using ShapeDNA_Tria software."""
@@ -1040,10 +1124,13 @@ class Shape:
 
 		return self.probabilistic_assignment
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Post-Processing of Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def assign_max_prob_label(self):
 		""" This method takes self.probabilistic_assignment and determines the most likely labeling of a node.
@@ -1077,10 +1164,13 @@ class Shape:
 
 		return self.max_prob_label
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Analysis of Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def assess_percent_correct(self):
 		""" This method compares the results of label propagation to the "ground truth" labels found
@@ -1118,10 +1208,13 @@ class Shape:
 		self.num_current_members = sum(b)
 		return self.num_current_members
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 #     'Visualization of Data' Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def highlight(self, class_label):
 		"""
@@ -1139,10 +1232,13 @@ class Shape:
 
 		vo.write_all(filename, self.Nodes, self.Mesh, indices)
 
-############################################
-# ------------------------------------------
+	"""
+#########################################
+# ---------------------------------------
 # 			  Helper Methods
-# ------------------------------------------
+# ---------------------------------------
+#########################################
+	"""
 
 	def weighted_average(self, realign, current_segment, fundus_value, max_iters, tol, vis=True):
 		"""Performs iterative weighted average algorithm to propagate labels to unlabeled nodes.
@@ -1384,71 +1480,20 @@ class Shape:
 
 		return self.probabilistic_assignment
 
-# Derived Classes:
-
-class BrainTuple(Shape):
-	""" This class derives from the basic Shape class but adds functionality to handle multiple
-	brain hemispheres and files.
 	"""
-
-	def import_bundle(self, dir):
-		""" This method allows us to import an entire directory of files.
-		It will be useful for establishing consensus labels and for performing analyses on data
-		coming from more than one hemisphere (more than one vtk file).
-		"""
-		self.Files = os.listdir(dir)
-		self.num_brains = len(self.Files)
-
-class ShapeRegions(Shape):
-	'''
-
-	'''
-
-	def __init__(self):
-		'''Establish important parameters for Analysis of Regions of Shapes.'''
-		super(ShapeRegions, self).__init__()
-		self.num_regions = []
-
-		# Affinity matrix W has diagonal entries of 0. They can be changed in the following loop.
-		# if diagonal_entries != 0:
-		#	for i in xrange(num_nodes):
-		#		self.aff_mat[i, i] = diagonal_entries
-
-############################################
-# ------------------------------------------
+#########################################
+# ---------------------------------------
 #           TESTS / DEBUGGING
-# ------------------------------------------
-############################################
+# ---------------------------------------
+#########################################
+	"""
 
 shape = Shape()
 
-def test1():
-	shape.import_vtk('/home/eli/Neuroscience-Research/Label_Prop/testdatalabels.vtk')
-	shape.import_fundi('/home/eli/Neuroscience-Research/Label_Prop/testdata_fundi.vtk')
-	shape.initialize_labels(keep='both')
-	shape.propagate_labels(max_iters=1200, sigma=10)
-
-def test2():
-	shape.import_vtk('/home/eli/Neuroscience-Research/Label_Prop/lh.aparcNMMjt.pial.vtk')
-	shape.initialize_labels(keep='label_boundary')
-	shape.propagate_labels(max_iters=6000, sigma=5)
-
-def test3():
+def test():
 	""" This test is for the realignment task."""
 	shape.import_vtk('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk')
 	shape.import_fundi('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk')
-	shape.initialize_labels()
-	shape.realign_boundary()
+	shape.find_label_boundary_segments()
 
-def test4():
-	""" This test assesses the neighbor() function.
-	"""
-	shape.import_vtk('/home/eli/Neuroscience-Research/Label_Prop/testdatalabels.vtk')
-	a = shape.neighbors(0)
-	b = shape.neighbors(1)
-	c = shape.neighbors(2)
-	print 'neighbors of 0:', a
-	print 'neighbors of 1:', b
-	print 'neighbors of 2:', c
-
-test3()
+test()
