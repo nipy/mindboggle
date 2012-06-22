@@ -31,6 +31,8 @@ from nipype.interfaces.io import DataSink as dataout
 # Options
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
+debug_skip_register = 1
+debug_skip_vote = 1
 do_label_volume = 1
 do_evaluate_labels = 0
 do_create_graph = 0
@@ -157,22 +159,23 @@ atlasflow = workflow(name='Atlas_workflow')
 #-----------------------------------------------------------------------------
 # Template registration
 #-----------------------------------------------------------------------------
-register = node(name = 'Register_template',
-                interface = fn(function = register_template,
-                               input_names = ['hemi',
-                                              'sphere_file',
-                                              'transform',
-                                              'templates_path',
-                                              'template'],
-                               output_names = ['transform']))
 template = 'OASIS-TRT-20'
-register.inputs.template = template + '.tif'
-register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-register.inputs.templates_path = path.join(templates_path, 'freesurfer')
-atlasflow.add_nodes([register])
-mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
-                (surf, atlasflow, [('sphere_files',
-                                    'Register_template.sphere_file')])])
+if not debug_skip_register:
+    register = node(name = 'Register_template',
+                    interface = fn(function = register_template,
+                                   input_names = ['hemi',
+                                                  'sphere_file',
+                                                  'transform',
+                                                  'templates_path',
+                                                  'template'],
+                                   output_names = ['transform']))
+    register.inputs.template = template + '.tif'
+    register.inputs.transform = 'sphere_to_' + template + '_template.reg'
+    register.inputs.templates_path = path.join(templates_path, 'freesurfer')
+    atlasflow.add_nodes([register])
+    mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
+                    (surf, atlasflow, [('sphere_files',
+                                        'Register_template.sphere_file')])])
 #-----------------------------------------------------------------------------
 # Atlas registration
 #-----------------------------------------------------------------------------
@@ -202,31 +205,34 @@ atlasflow.add_nodes([transform])
 mbflow.connect([(info, atlasflow,
                  [('hemi', 'Transform_atlas_labels.hemi'),
                   ('subject', 'Transform_atlas_labels.subject')])])
-atlasflow.connect([(register, transform, [('transform', 'transform')])])
+if debug_skip_register:
+    transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
+else:
+    atlasflow.connect([(register, transform, [('transform', 'transform')])])
 #-----------------------------------------------------------------------------
 # Majority vote labeling
 #-----------------------------------------------------------------------------
-vote = node(name='Label_vote',
-            interface = fn(function = majority_vote_label,
-                           input_names = ['surface_file',
-                                          'annot_files'],
-                           output_names = ['maxlabel_file',
-                                           'labelcounts_file',
-                                           'labelvotes_file',
-                                           'consensus_vertices']))
-atlasflow.add_nodes([vote])
-
-if use_freesurfer:
-    mbflow.connect([(convertsurf, atlasflow,
-                     [('out_file', 'Label_vote.surface_file')])])
-else:
-    mbflow.connect([(surf, atlasflow,
-                     [('surface_files', 'Label_vote.surface_file')])])
-atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
-mbflow.connect([(atlasflow, datasink,
-                 [('Label_vote.maxlabel_file', 'labels.@max'),
-                  ('Label_vote.labelcounts_file', 'labels.@counts'),
-                  ('Label_vote.labelvotes_file', 'labels.@votes')])])
+if not debug_skip_vote:
+    vote = node(name='Label_vote',
+                interface = fn(function = majority_vote_label,
+                               input_names = ['surface_file',
+                                              'annot_files'],
+                               output_names = ['maxlabel_file',
+                                               'labelcounts_file',
+                                               'labelvotes_file',
+                                               'consensus_vertices']))
+    atlasflow.add_nodes([vote])
+    if use_freesurfer:
+        mbflow.connect([(convertsurf, atlasflow,
+                         [('out_file', 'Label_vote.surface_file')])])
+    else:
+        mbflow.connect([(surf, atlasflow,
+                         [('surface_files', 'Label_vote.surface_file')])])
+    atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
+    mbflow.connect([(atlasflow, datasink,
+                     [('Label_vote.maxlabel_file', 'labels.@max'),
+                      ('Label_vote.labelcounts_file', 'labels.@counts'),
+                      ('Label_vote.labelvotes_file', 'labels.@votes')])])
 
 ##############################################################################
 #   Label propagation through a mask
@@ -254,17 +260,20 @@ if do_label_volume:
     ctx_label_numbers = []
     ctx_label_names = []
     for line2 in lines2:
-
         ctx_label_numbers.append(findall(r'\S+', line2)[0])
         ctx_label_names.append(findall(r'\S+', line2)[1])
     f2.close()
-
     writelabels.inputs.label_number = ctx_label_numbers
     writelabels.inputs.label_name = ctx_label_names
     atlasflow.add_nodes([writelabels])
     mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
-    atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
-
+    if debug_skip_vote:
+        mbflow.connect([(datasink, atlasflow,
+                         [('labels.@max', 'Write_label_files.surface_file')])])
+    else:
+        atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+    """
+    # Write .annot file
     writeannot = node(name='Write_annot_file',
                       interface = fn(function = label_to_annot_file,
                                      input_names = ['hemi',
@@ -284,7 +293,7 @@ if do_label_volume:
     atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Write_annot_file.annot_file', 'labels.@max_annot')])])
-
+    """
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------

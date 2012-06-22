@@ -32,7 +32,7 @@ def register_template(hemi, sphere_file, transform,
     """
     Register surface to template with FreeSurfer's mris_register
     """
-    from os import path, getcwd
+    from os import path
     from nipype.interfaces.base import CommandLine
     from nipype import logging
     logger = logging.getLogger('interface')
@@ -165,7 +165,7 @@ def vote_labels(label_lists):
     """
 
     from collections import Counter
-    
+
     print("Begin voting...")
     n_atlases = len(label_lists)  # number of atlases used to label subject
     n_vertices = len(label_lists[0])
@@ -244,10 +244,10 @@ def majority_vote_label(surface_file, annot_files):
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
 
-    file_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
-    maxlabel_file = file_stem + '.labels.max.vtk'
-    labelcounts_file = file_stem + '.labelcounts.vtk'
-    labelvotes_file = file_stem + '.labelvotes.vtk'
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    maxlabel_file = output_stem + '.labels.max.vtk'
+    labelcounts_file = output_stem + '.labelcounts.vtk'
+    labelvotes_file = output_stem + '.labelvotes.vtk'
 
     pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
                   pyvtk.PointData(pyvtk.Scalars(labels_max,\
