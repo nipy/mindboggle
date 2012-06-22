@@ -32,7 +32,7 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
 debug_skip_register = 1
-debug_skip_vote = 1
+debug_skip_vote = 0
 do_label_volume = 1
 do_evaluate_labels = 0
 do_create_graph = 0
@@ -272,7 +272,7 @@ if do_label_volume:
                          [('labels.@max', 'Write_label_files.surface_file')])])
     else:
         atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
-    """
+
     # Write .annot file
     writeannot = node(name='Write_annot_file',
                       interface = fn(function = label_to_annot_file,
@@ -293,7 +293,7 @@ if do_label_volume:
     atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Write_annot_file.annot_file', 'labels.@max_annot')])])
-    """
+
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
