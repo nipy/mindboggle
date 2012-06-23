@@ -19,65 +19,65 @@ def write_label_file(hemi, surface_file, label_number, label_name):
 
     """
 
-from os import path, getcwd, error
-import numpy as np
-import vtk
+    from os import path, getcwd, error
+    import numpy as np
+    import vtk
 
-scalar_name = "Max_(majority_labels)"
+    scalar_name = "Max_(majority_labels)"
 
-# Check type:
-if type(surface_file) == str:
-    pass
-elif type(surface_file) == list:
-    surface_file = surface_file[0]
-else:
-    error("Check format of " + surface_file)
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        error("Check format of " + surface_file)
 
-# Check type:
-if type(label_number) == int:
-    pass
-elif type(label_number) == str:
-    label_number = int(label_number)
-else:
-    error("Check format of " + label_number)
+    # Check type:
+    if type(label_number) == int:
+        pass
+    elif type(label_number) == str:
+        label_number = int(label_number)
+    else:
+        error("Check format of " + label_number)
 
-# Load surface
-reader = vtk.vtkDataSetReader()
-reader.SetFileName(surface_file)
-reader.ReadAllScalarsOn()
-reader.Update()
-data = reader.GetOutput()
-d = data.GetPointData()
-labels = d.GetArray(scalar_name)
+    # Load surface
+    reader = vtk.vtkDataSetReader()
+    reader.SetFileName(surface_file)
+    reader.ReadAllScalarsOn()
+    reader.Update()
+    data = reader.GetOutput()
+    d = data.GetPointData()
+    labels = d.GetArray(scalar_name)
 
-# Write vertex index, coordinates, and 0
-count = 0
-npoints = data.GetNumberOfPoints()
-L = np.zeros((npoints,5))
-for i in range(npoints):
-    label = labels.GetValue(i)
-    if label == label_number:
-        L[count,0] = i
-        L[count,1:4] = data.GetPoint(i)
-        count += 1
-
-# Save the label file
-if count > 0:
-    #label_file = path.join(getcwd(), hemi + '.ctx-' + hemi + '-' +\
-    #label_file = path.join(getcwd(), 'ctx-' + hemi + '-' +\
-    label_file = path.join(getcwd(), \
-                           hemi + '.' + label_name + '.label')
-    f = open(label_file, 'w')
-    f.writelines('#!ascii label\n' + str(count) + '\n')
+    # Write vertex index, coordinates, and 0
+    count = 0
+    npoints = data.GetNumberOfPoints()
+    L = np.zeros((npoints,5))
     for i in range(npoints):
-        if any(L[i,:]):
-            printline = '{0} {1} {2} {3} 0\n'.format(
-                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-            f.writelines(printline)
-        else:
-            break
-    f.close()
-    return label_file
+        label = labels.GetValue(i)
+        if label == label_number:
+            L[count,0] = i
+            L[count,1:4] = data.GetPoint(i)
+            count += 1
+
+    # Save the label file
+    if count > 0:
+        #label_file = path.join(getcwd(), hemi + '.ctx-' + hemi + '-' +\
+        #label_file = path.join(getcwd(), 'ctx-' + hemi + '-' +\
+        label_file = path.join(getcwd(), \
+                               hemi + '.' + label_name + '.label')
+        f = open(label_file, 'w')
+        f.writelines('#!ascii label\n' + str(count) + '\n')
+        for i in range(npoints):
+            if any(L[i,:]):
+                printline = '{0} {1} {2} {3} 0\n'.format(
+                             np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+                f.writelines(printline)
+            else:
+                break
+        f.close()
+        return label_file
 
 def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
     """
