@@ -31,7 +31,7 @@ from nipype.interfaces.io import DataSink as dataout
 # Options
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
-debug_skip_register = 1
+debug_skip_register = 0
 debug_skip_vote = 0
 do_label_volume = 1
 do_evaluate_labels = 0
@@ -297,7 +297,6 @@ if do_label_volume:
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels
     #-------------------------------------------------------------------------
-    """
     fillvolume = node(name='Fill_volume_maxlabels',
                       interface = fn(function = fill_label_volume,
                                      input_names = ['subject', 'annot_name'],
@@ -310,7 +309,7 @@ if do_label_volume:
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file',
                        'labels.@maxvolume')])])
-
+    """
     ##########################################################################
     #   Evaluation of the volume maxlabels
     ##########################################################################
