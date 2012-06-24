@@ -8,7 +8,7 @@ Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
 import os, sys
 
-debug = 1
+debug = 0
 
 if len(sys.argv) < 6:
     if debug:
