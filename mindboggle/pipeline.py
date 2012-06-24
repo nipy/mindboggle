@@ -356,7 +356,6 @@ if do_label_volume:
 #   Feature-based labeling and shape analysis workflow
 #
 ##############################################################################
-"""
 featureflow = workflow(name='Feature_workflow')
 
 ##############################################################################
@@ -417,7 +416,7 @@ mbflow.connect([(featureflow, datasink,
                    'surfaces.@min_curvature'),
                   ('Compute_curvature.min_curvature_vector_file',
                    'surfaces.@min_curvature_vectors')])])
-"""
+
 ##############################################################################
 #   Feature extraction
 ##############################################################################
