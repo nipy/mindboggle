@@ -10,7 +10,7 @@ from math import sqrt
 import cPickle
 sys.setrecursionlimit(30000)
 
-def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB): 
+def gen_Adj(VrtxCmpnts, VrtxNbrLst, CurvatureDB, Pits): 
     '''Compute/load weighted adjacency matrixes of all connected sulcal components. 
         
     Parameters
@@ -36,7 +36,10 @@ def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB):
         local (inner-componnent) ID of a vertex's Nbr 
         
     CurvatureDB : list of doubles
-            each element is the curvature value of a vertex 
+        each element is the curvature value of a vertex 
+    
+    Pits: list of integers
+        Vertex IDs of pits 
     
     Notes
     =======
@@ -81,6 +84,8 @@ def dist(VrtxCmpnts, VrtxNbrLst, CurvatureDB):
                     if Nbr in Cmpnt:
                         NbrIdx = Cmpnt.index(Nbr)                        
                         LinkWeight = -1. * (CurvatureDB[Vrtx]  + CurvatureDB[Nbr]) 
+                        if Vrtx in Pits or Nbr in Pits:
+                            LinkWeight *= 10  # increase the edge weight for edges connecting pits
                          
                         # add a double check here to ensure the matrix is diagonally symmetric
                         if   Dist[VrtxIdx][NbrIdx] == 0:
@@ -535,6 +540,9 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst, Coordinates):
                     
                     Special = [VrtxCmpnts[i].index(Vrtx) for Vrtx in SpecialGroup[i]] # converting global ID to local ID
                     Path, NodeColor = prune(Path, Degree, TreeNbr, Terminal, Branching, Special, VrtxCmpnts[i])
+                    
+                    # insert le troter's approach here 
+                    
                     print len(Path), "links after pruning."
                     Length_of_fundus = fundiLength(Coordinates, Path)  # Add, Forrest 2011-11-01
                     
@@ -542,61 +550,7 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst, Coordinates):
 #                        (Src, Dst, Cost, CID) = Pair # commented, Forrest 2011-09-24
                         (Src, Dst) = Pair # Forrest 2011-09-24
 #                        Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] )
-                        # pruning heuristic 1
-#                        if Degree[Src] > 2 and Degree[Dst] ==1 and Cost < 4:
-                            #Degree[Src] -= 1
-#                        elif Degree[Dst] > 2 and Degree[Src] ==1  and Cost < 4:
-                            #Degree[Dst] -= 1
-                        # end of pruning heuristic 1
-                        # pruning heuristic 2
-#                        elif Degree[Src] ==1:
-#                            OtherPairs, OtherTerminals = otherPaths(Dst, Pair, Degree[Dst], Path)
-#                            Judge = [Cost < 1/3*OtherPair[2] for OtherPair in OtherPairs]
-#                            Good = True
-#                            for J in Judge:
-#                                if J:  # if smaller do this. 
-#                                    Good = False
-#                                    Degree[Dst] -= 1
-#                                    break
-#                            if Good : # is no such a thing, do this:
-#                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
-#                        elif Degree[Dst] ==1:
-#                            OtherPairs, OtherTerminals = otherPaths(Src, Pair, Degree[Src], Path)
-#                            Judge = [Cost < 1/3*OtherPair[2] for OtherPair in OtherPairs]
-#                            Good = True
-#                            for J in Judge:
-#                                if J:  # if smaller, do this
-#                                    Good = False
-#                                    Degree[Src] -= 1
-#                                    break
-#                            if Good: # is no such a thing, do this:
-#                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
-#                        # end of pruning heuristic 2
-#                        # pruning heuristic 3
-#                        elif Degree[Src] ==1:
-#                            Results, Terminals = otherPaths(Src, Pair, Degree[Dst], Path)
-#                            Good = True 
-#                            for V in Terminals:
-#                                if Degree[V] >1 :
-#                                    Degree[Dst] -= 1
-#                                    Good = False
-#                                    break
-#                            if Good: # is no such a thing, do this:
-#                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
-#                        elif Degree[Dst] ==1:
-#                            Results, Terminals = otherPaths(Dst, Pair, Degree[Dst], Path)
-#                            Good = True 
-#                            for V in Terminals:
-#                                if Degree[V] >1 :
-#                                    Degree[Src] -= 1
-#                                    Good = False
-#                                    break
-#                            if Good: # is no such a thing, do this:
-#                                Segs.append( [VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i] ) # here local indexes are converted into global indexes
-                        # end of pruning heuristic 3
-                        
-#                        else: # no need to prune and thus put this segment into Segs directly                            
-                            #Path = bfsReach([ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst], Cost, i], VrtxCmpnts[i], NbrLst) # deactivated forrest 2011-07-17
+
                         #Path = [ VrtxCmpnts[i][Src], VrtxCmpnts[i][Dst] ] # Forrest 2011-07-17, do NOT map links onto the mesh Commented 2011-10-21 
                         # FundusLen[VrtxCmpnts[i][Src]]=len(Path) # Forrest 2011-11-01 This is Manhattan distance
                         # FundusLen[VrtxCmpnts[i][Dst]]=len(Path) # Forrest 2011-11-01 This is Manhattan distance
@@ -672,7 +626,7 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvatureDB):
     # step 2: prepare the distance matrix for FUNDUS vertex, for each fundus vertex, only 2 shortest edges are left
     #         Columns and rows for non-fundus vertexes are all zeros.
    
-    Dists = dist(NewVrtxCmpnts, NewNbrLst, CurvatureDB)
+    Dists = gen_Adj(NewVrtxCmpnts, NewNbrLst, CurvatureDB, Special)
 
     # Dists = zeroout(Dists, VrtxCmpnt, FundiList)  # only needed if MST only spans over special vertexes
     # Now Dists are weighted adjacency matrix of fundus vertexes in each component
@@ -705,7 +659,7 @@ def stepFilter(L, Y, Z):
 
     return L
 
-def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2):
+def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2):
     '''Connecting pits into fundus curves
     
     Parameters
@@ -825,11 +779,11 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
         print "LUT length undefined"
         print len(LUT)
         print LUTname
-    pyvtk.VtkData(pyvtk.PolyData(points=Vrtx, lines=PSegs), Pointdata).tofile(PrefixExtract+'.fundi.vtk', 'ascii')
+    pyvtk.VtkData(pyvtk.PolyData(points=Vrtx, lines=PSegs), Pointdata).tofile(FundiVTK, 'ascii')
 
     if Mesh2 != []:
         [Vertexes2, Face2] = Mesh2
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(PrefixExtract+'.fundi.2nd.vtk', 'ascii')
+        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(Fundi2VTK, 'ascii')
 
 def getFundi(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -881,38 +835,50 @@ def getFundi(InputFiles, Type, Options):
         if Type == 'FreeSurfer':
             print "\t FreeSurfer mode\n"
             
-            [CurvFile, SurfFile, SurfFile2, CurvFile2, ThickFile] = InputFiles
+            [SurfFile, SurfFile2, ThickFile, CurvFile, ConvFile,\
+             FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, Use, SulciThld]\
+              = InputFiles
             
-            MapBasin = fileio.readCurv(CurvFile)
-            MapExtract = MapBasin
+            # The reason we have both MapBasin and MapExtract 
+            # and PrefixBasin and PrefixExtract is for 
+            # future extension to support extracting different features
+            # from differnt maps 
             
-    #        print mean(MapBasin), mean(MapExtract), std(MapBasin), std(MapExtract)
-    #        exit()
-            
-            PrefixBasin = CurvFile
-            PrefixExtract = CurvFile
-            
-            MapFeature = [MapBasin]
-            FeatureNames = [CurvFile[(len(CurvFile) - CurvFile[::-1].find(".")):]]
-            if CurvFile2 != '':
-                Curvature2 = fileio.readCurv(CurvFile2)
-                MapExtract = Curvature2
-                MapFeature.append(Curvature2)
-                FeatureNames.append(CurvFile2[(len(CurvFile2) - CurvFile2[::-1].find(".")):])
-                PrefixExtract = CurvFile + '.' + CurvFile2[(len(CurvFile2) - CurvFile2[::-1].find(".")):]
+            if Use == 'conv':
+                MapBasin = fileio.readCurv(ConvFile)
+                PrefixBasin = ConvFile
+                PrefixExtract = ConvFile
+            elif Use == 'curv':
+                MapBasin = fileio.readCurv(CurvFile)
+                PrefixBasin = CurvFile
+                PrefixExtract = CurvFile
+            else:
+                print "[ERROR] Unrecognized map to use:", Use
+                exit()
+            MapExtract = MapBasin                
+                        
+            # Create shape descriptor array
+            MapFeature = []
+            FeatureNames = []
+            if CurvFile != "":
+                    MapFeature.append(fileio.readCurv(CurvFile))
+                    FeatureNames.append('curv')
+            if ConvFile != '':
+                    MapFeature.append(fileio.readCurv(ConvFile))
+                    FeatureNames.append('conv')
             if ThickFile != '':
-                MapFeature.append(fileio.readCurv(ThickFile))          
+                MapFeature.append(fileio.readCurv(ThickFile))
                 FeatureNames.append('thickness')
     
     #        print PrefixBasin, PrefixExtract
     #        exit()
     
-            Vertexes, Faces = fileio.readSurf(SurfFile)
-            Mesh = [Vertexes, Faces]
+            Mesh = fileio.readSurf(SurfFile)
 
-        elif Type == 'vtk':    
+        elif Type == 'vtk':
             print "\t Joachim's VTK mode\n" 
-            [DepthVTK, SurfFile2, ConvexityFile, ThickFile]= InputFiles
+#            [DepthVTK, SurfFile2, ConvexityFile, ThickFile]= InputFiles
+            [DepthVTK, ConvexityFile, ThickFile, SurfFile2, FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld] = InputFiles
             
             import pyvtk 
             
@@ -928,6 +894,7 @@ def getFundi(InputFiles, Type, Options):
             FeatureNames = ['curvature','depth']
             MapFeature = [Curvature, Depth]
             
+            # Keep PrefixBasin here and it will be removed later Forrest 2012-06-17
             PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
             print "PrefixBasin:", PrefixBasin 
             PrefixExtract = PrefixBasin + '.depth' 
@@ -945,20 +912,19 @@ def getFundi(InputFiles, Type, Options):
             
         # common for both FreeSurfer and vtk type 
         if SurfFile2 != '':
-            Vertexes2, Face2 = fileio.readSurf(SurfFile2)
-            Mesh2 = [Vertexes2, Face2]
+            Mesh2 = fileio.readSurf(SurfFile2)
+#            Mesh2 = [Vertexes2, Face2]
         else:
             Mesh2 = []
-        
-#        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0, Quick=True)
-        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, Threshold = 0.2)
+
+        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld)
         
         import pyvtk
-        Pits=pyvtk.VtkData(PrefixExtract + '.pits.vtk').structure.vertices[0]
+        Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
         
-        fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2)
+        fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2)
         # end of common for both FreeSurfer and vtk type
-         
+
     elif Type == 'clouchoux':
         print "\t Clouchoux-type pits while sulci and pits from depth"
         [VTKFile, SurfFile2, ConvexFile, ThickFile] = InputFiles
