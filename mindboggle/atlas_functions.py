@@ -48,7 +48,7 @@ def register_template(hemi, sphere_file, transform,
     return transform
 
 def transform_atlas_labels(hemi, subject, transform,
-                           subjects_path, atlas, atlas_annot_append):
+                           subjects_path, atlas, atlas_string):
     """
     Transform the labels from a surface atlas via a template
     using FreeSurfer's mri_surf2surf (wrapped in NiPype)
@@ -71,9 +71,9 @@ def transform_atlas_labels(hemi, subject, transform,
     # Source file
     sxfm.inputs.source_annot_file = path.join(subjects_path,
                                     atlas, 'label',
-                                    hemi + atlas_annot_append)
+                                    hemi + '.' + atlas_string + '.annot')
     # Output annotation file
-    output_file = path.join(getcwd(), hemi + '.' + atlas + atlas_annot_append + \
+    output_file = path.join(getcwd(), hemi + '.' + atlas + '.' + atlas_string + \
                                       '_to_' + subject + '.annot')
     sxfm.inputs.out_file = output_file
 
