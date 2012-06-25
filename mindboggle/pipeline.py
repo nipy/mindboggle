@@ -187,7 +187,7 @@ transform = mapnode(name = 'Transform_atlas_labels',
                                                   'transform',
                                                   'subjects_path',
                                                   'atlas',
-                                                  'atlas_annot'],
+                                                  'atlas_annot_append'],
                                    output_names = ['output_file']))
 # List of atlas subjects
 atlases_file = path.join(atlases_path, 'list.txt')
@@ -200,7 +200,7 @@ f1.close()
 
 transform.inputs.atlas = atlases
 transform.inputs.subjects_path = subjects_path
-transform.inputs.atlas_annot = 'labels.manual.annot'
+transform.inputs.atlas_annot_append = '.labels.manual.annot'
 atlasflow.add_nodes([transform])
 mbflow.connect([(info, atlasflow,
                  [('hemi', 'Transform_atlas_labels.hemi'),
