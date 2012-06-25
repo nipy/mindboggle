@@ -35,7 +35,7 @@ debug_skip_register = 0
 debug_skip_vote = 0
 do_label_volume = 1
 do_evaluate_labels = 0
-do_create_graph = 0
+do_create_graph = 1
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -64,7 +64,6 @@ depth_command = path.join(mbpath,'measure', 'surface_measures', \
                                  'bin', 'travel_depth', 'TravelDepthMain')
 curvature_command = path.join(mbpath, 'measure', 'surface_measures', \
                                       'bin', 'curvature', 'CurvatureMain')
-#extract_fundi_command = path.join(mbpath, 'extract', 'fundi', 'vtk_extract.py')
 
 ##############################################################################
 #
@@ -80,6 +79,7 @@ if not path.isdir(temp_path):  makedirs(temp_path)
 # Paths within mindboggle base directory
 templates_path = path.join(basepath, 'data', 'templates')
 atlases_path = path.join(basepath, 'data', 'atlases')
+atlas_string = 'labels.manual'
 
 ##############################################################################
 #   Inputs and outputs
@@ -187,7 +187,7 @@ transform = mapnode(name = 'Transform_atlas_labels',
                                                   'transform',
                                                   'subjects_path',
                                                   'atlas',
-                                                  'atlas_annot_append'],
+                                                  'atlas_string'],
                                    output_names = ['output_file']))
 # List of atlas subjects
 atlases_file = path.join(atlases_path, 'list.txt')
@@ -200,7 +200,7 @@ f1.close()
 
 transform.inputs.atlas = atlases
 transform.inputs.subjects_path = subjects_path
-transform.inputs.atlas_annot_append = '.labels.manual.annot'
+transform.inputs.atlas_string = atlas_string
 atlasflow.add_nodes([transform])
 mbflow.connect([(info, atlasflow,
                  [('hemi', 'Transform_atlas_labels.hemi'),
