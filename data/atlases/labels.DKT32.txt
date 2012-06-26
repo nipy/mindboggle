@@ -28,7 +28,5 @@
 29    superiorparietal             20  180 140 0
 30    superiortemporal             140 220 220 0
 31    supramarginal                80  160 20  0
-32    frontalpole                  100 0   100 0
-33    temporalpole                 70  70  70  0
 34    transversetemporal           150 150 200 0
 35    insula                       255 192 32  0
