@@ -19,15 +19,36 @@ Authors:
 """
 
 import numpy as np
-from find_neighbors import find_neighbors
 
+#---------------
+# Find neighbors
+#---------------
+def find_neighbors(faces, index):
+    """
+    For a set of surface mesh faces and the index of a surface vertex,
+    find unique indices for neighboring vertices.
+    """
+    # Create list of vertex indices sharing the same faces as "index"
+    I = [faces[np.where(faces[:,i] == index)[0]][0].tolist() for i in range(3) \
+         if len(np.where(faces[:,i] == index)[0]) > 0]
+
+    # Create single list from nested lists
+    I = [int(item) for sublist in I for item in sublist]
+
+    # Find unique indices not equal to "index"
+    I = np.unique(I)
+    I[I != index]
+
+    return I
+
+"""
 #------------------
 # Fill sulcus holes
 #------------------
 def fill_sulcus_holes(faces, sulci):
-    """
+    ""
     Fill sulcus holes.
-    """
+    ""
     print('Number of sulci before pruning: ' + str(max(sulci)))
 
     counter = 0
@@ -101,6 +122,8 @@ def fill_sulcus_holes(faces, sulci):
 
     return sulci
 
+"""
+
 #==============
 # Extract sulci
 #==============
@@ -109,57 +132,67 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
     Extract sulci.
 
     Inputs:
-    faces: surface mesh vertex indices [n x 3]
-    depths: depth values [m x 1]
+    faces: surface mesh vertex indices [#faces x 3]
+    depths: depth values [#vertices x 1]
     depth_threshold: depth threshold for defining sulci
      
+    Parameters:
+    depth_increment: depth increment for assigning vertices to sulci
+    
     Output:
-    sulci: [n_sulci x 1], where n_sulci is the number of sulci
-
+    sulci: [#vertices x 1]
+    
     """
-    import numpy as np
-    from find_neighbors import find_neigbhors
 
-    sulci = np.zeros(size(depths))
+    faces = np.round(10*np.random.rand(5,3)).astype(int)
+    depths = np.random.rand(10,1)
 
-    seeds = find(depths > depth_threshold)
+    depth_increment = 0.5 
 
-    seed_size = size(seeds,1)
+    # Initialize sulci and seeds (indices of deep vertices)
+    sulci = np.zeros(len(depths))
+    seeds = np.where(depths > depth_threshold)[0]
+    n_seeds = len(seeds)
+
+    # Loop until all seed vertices included in sulci
     counter = 0
+    while (n_seeds > 0):
+        counter += 1
 
-    # loop until all points included in sulci
-    while (seed_size > 0):
-        counter = counter + 1
-        TEMP = np.zeros(size(depths))
+        # Select a random seed vertex (selection does not affect result)
+        rseed = np.round(np.random.rand() * (n_seeds - 1))
+        TEMP = np.zeros(len(depths))
+        TEMP[seeds[rseed]] = 2
 
-        #choose random seed point (selection does not affect result)
-        rseed = np.round(rand*(seed_size-1)) + 1
+        # Grow region about the seed vertex until 
+        # there are no more connected vertices available.
+        # Continue loop if there are newly selected neighbors.
+        while(sum(TEMP > 1) > 0):
+            indices = np.where(TEMP == 2)[0]
+            TEMP[indices] = 1
+            # For each previously selected seed vertex
+            for index in indices:
+                # Find all neighbors deeper than the depth threshold
+                #import sys; sys.exit()
+                neighbors = find_neighbors(faces, index)
+                if any(neighbors):
+                    neighbors = neighbors[depths[neighbors][0] > depth_threshold]
+                    # Select the neighbors that have not been previously selected
+                    if any(neighbors):
+                        neighbors = neighbors[TEMP[neighbors] == 0]
+                        TEMP[neighbors] = 2
 
-        TEMP(seeds(rseed,1),1) = 2
-        new_size = size(find(TEMP>1))
+        # Assign the seed region vertices the loop counter number
+        sulci[TEMP > 0] = counter
 
-        # grow region until no more connected points available
-        while(new_size > 0):
-            indices = find(TEMP == 2)
+        # Disregard vertices already assigned to sulci
+        depths[sulci > 0] = depth_threshold - depth_increment
+        seeds = np.where(depths > depth_threshold)[0]
+        n_seeds = len(seeds)
 
-            TEMP(TEMP == 2) = 1
+        # Display current number of sulci
+        print('Number of sulci:', str(counter))
 
-            for i in range(size(indices,1)):
-                neighbors = find_neighbors(faces, indices(i,1))
-                neighbors = neighbors(depths(neighbors) > depth_threshold)
-                neighbors = neighbors(TEMP(neighbors) == 0)
-                TEMP(neighbors) = 2
-            new_size = size(find(TEMP>1))
-        sulci(TEMP > 0) = counter
-
-        depths(sulci > 0) = depth_threshold - .5
-        seeds = find(depths > depth_threshold)
-
-        seed_size = size(seeds,1)
-
-        # display current sulcus size
-        print(size(find(sulci == counter),1))
-
-    sulci = fill_sulcus_holes(faces, sulci)
+    #sulci = fill_sulcus_holes(faces, sulci)
 
     return sulci
