@@ -10,17 +10,26 @@ Arno Klein  .  arno@mindboggle.info  (translated to Python)
 
 """
 
-#===============
+import numpy as np
+
+#---------------
 # Find neighbors
-#===============
-def inds = find_neighbors(faces,pointOfInterestIndex):
+#---------------
+def find_neighbors(faces, index):
     """
-    Find neighbors
+    For a set of surface mesh faces and the index of a surface vertex,
+    find unique indices for neighboring vertices.
     """
+    # Create list of vertex indices sharing the same faces as "index"
+    I = [faces[np.where(faces[:,i] == index)[0]][0].tolist() for i in range(3) \
+         if len(np.where(faces[:,i] == index)[0]) > 0]
 
-    inds = [faces(inds1,:);faces(inds2,:);faces(inds3,:)]
-    inds = inds(:)
-    inds = unique(inds)
+    # Create single list from nested lists
+    I = [int(item) for sublist in I for item in sublist]
 
-    inds(inds == pointOfInterestIndex) = 0
-    inds = inds(inds > 0)
+    # Find unique indices not equal to "index"
+    I = np.unique(I)
+    I[I != index]
+
+    return I
+
