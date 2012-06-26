@@ -12,7 +12,7 @@ Transform the labels from multiple atlases via a template
 For each brain hemisphere (left and right) in a given subject, 
 read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
 of majority vote labels, representing a "maximum probability" labeling.
-The main function is majority_vote() and calls relabel() and vote_labels().
+The main function is majority_vote() and calls vote_labels().
 
 
 Authors:  
@@ -90,49 +90,6 @@ def transform_atlas_labels(hemi, subject, transform,
 #   Multi-atlas labeling
 ##############################################################################
 
-def relabel(label):
-    """
-    Return a pre-specified label assignment for a given input label.
-
-    Parameters
-    ==========
-    label: integer label of a vertex
-
-    Returns
-    =======
-    No variable. Direct return.
-
-    Notes
-    ===== 
-    label combinations:
-
-    2  = 2, 10, 23, 26
-    3  = 3, 27  
-    18 = 18, 19, 20
-    
-    Temporal (33) and frontal (32) poles, and bankstss (1) regions eliminated, 
-    corresponding cortex absorbed by adjacent regions.
-
-    Caudal (2), isthmus (10), posterior (23), and rostral anterior (26) cingulate 
-    combined to form single cingulate region (2)
- 
-    Caudal (3) and rostral (27) middle frontal regions combined to form 
-    single middle frontal region (3)
-    
-    Opercular (18), orbital (19), and triangular (20) inferior frontal regions 
-    combined to form a single inferior frontal region (18)
-    
-    """
-    
-    if label == 10 or label == 23 or label == 26:
-        return 2
-    elif label == 27:
-        return 3
-    elif label == 19 or label == 20:
-        return 18
-    else:
-        return label
-
 def vote_labels(label_lists):
     """
     For each vertex, vote on the majority label.
@@ -192,7 +149,7 @@ def majority_vote_label(surface_file, annot_files):
     Load a VTK surface and corresponding FreeSurfer annot files.
     Write majority vote labels, and label counts and votes as VTK files.
 
-    Runs functions: relabel() and vote_labels()
+    Runs function: vote_labels()
 
     Parameters
     ==========
@@ -209,22 +166,15 @@ def majority_vote_label(surface_file, annot_files):
     from os import path, getcwd
     import nibabel as nb
     import pyvtk
-    from atlas_functions import relabel, vote_labels
-
-    if_relabel = 1  # call relabel()
+    from atlas_functions import vote_labels
 
     # Load multiple label sets
     print("Load annotation files...")
     label_lists = []
     for annot_file in annot_files:
         labels, colortable, names = nb.freesurfer.read_annot(annot_file)
-        if if_relabel:
-            labels = map(relabel, labels)
         label_lists.append(labels)
-    if if_relabel:
-        print("Annotations loaded and labels reassigned.")
-    else:
-        print("Annotations loaded.")    
+    print("Annotations loaded.")
     
     # Vote on labels for each vertex
     labels_max, label_votes, label_counts, \

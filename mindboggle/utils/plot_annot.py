@@ -15,8 +15,8 @@ if len(sys.argv) < 6:
         subject = 'MMRR-21-1'
         hemisphere = 'lh'
         surface = 'pial'
-        annotname = 'MMRR-21-2_to_MMRR-21-1_labels.manual' #'labels.max'
-        colortable = '/projects/mindboggle/mindboggle/data/atlases/atlas_color_LUT.txt'
+        annotname = 'labels.max'
+        colortable = '/projects/mindboggle/mindboggle/data/atlases/labels.DKT26.txt'
     else:
         sys.exit('Usage: %s subject hemisphere surface-type annotname colortable' %sys.argv[0])
 else:
@@ -24,7 +24,7 @@ else:
     hemisphere = sys.argv[2]  #'lh'
     surface = sys.argv[3]  #'pial'
     annotname = sys.argv[4]  #'labels.max'
-    colortable = sys.argv[5]  #'/projects/mindboggle/mindboggle/data/atlases/colortable.txt'
+    colortable = sys.argv[5]  #'/projects/mindboggle/mindboggle/data/atlases/labels.DKT26.txt'
 
 args = ['tksurfer', subject, hemisphere, surface, '-annotation', annotname,
         '-colortable', colortable]
