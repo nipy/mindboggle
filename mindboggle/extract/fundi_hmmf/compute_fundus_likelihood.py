@@ -1,45 +1,64 @@
-function L = compFundusLikelihoodSingleSulcus(Cmean,Depth,Sulci,ind)
+#!/usr/bin/python
+"""
+Compute distance measures.
 
-massThr1 = .6;
-massThr2 = .05;
-massThr3 = .3;
-highMapValue = .9;
+Authors:
+Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
+Arno Klein  .  arno@mindboggle.info  (translated to Python)
 
-Sulci(Sulci ~= ind) = 0;
+(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
-%switch curvature values to opposite
-Cmean = (Cmean*-1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
+"""
 
-depthSearch = 0;
-massLeft = 1;
+import numpy as np
 
-% find depth value where less than [massThr1] are larger
-while(massLeft > massThr1)
-    depthSearch = depthSearch + .01;
-    massLeft = sum(Depth(Sulci > 0) > depthSearch) / sum(Sulci > 0);
-end
-halfValDepth = depthSearch;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% find depth value where less than [massThr2] are larger
-while(massLeft > massThr2)
-    depthSearch = depthSearch + .01;
-    massLeft = sum(Depth(Sulci > 0) > depthSearch) / sum(Sulci > 0);
-end
-slopeDepth = (-1/(depthSearch - halfValDepth)) * log((1/highMapValue)-1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-% find slope similarly for curvature values
-massLeft = 1;
-depthSearch = 0;
-while(massLeft > massThr3)
-    depthSearch = depthSearch + .0001;    
-    massLeft = sum(Cmean(Sulci > 0) > depthSearch) / sum(Sulci > 0);
-end
-slopeCmean = (-1/(depthSearch)) * log((1/highMapValue)-1);
-%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Map curvature and depth values with sigmoidal functions to range [0,1]
-st2 = 1./(1+exp(-slopeCmean*Cmean));
-st3 = 1./(1+exp(-slopeDepth*(Depth - halfValDepth)));
+#=================================
+# Compute fundus likelihood values
+#=================================
+def compute_fundus_likelihood(mean_curvatures, depths, sulci, ind):
+    """
+    Compute fundus likelihood values.
+    """
+    threshold1 = .6
+    threshold2 = .05
+    threshold3 = .3
+    high_map_value = .9
+    depth_search_increment1 = 0.01
+    depth_search_increment2 = 0.0001
 
-L = st2 .* st3;
-L(Sulci ==0) = 0;
+    sulci(sulci != ind) = 0
+
+    # Switch curvature values to opposite
+    mean_curvatures = (-1 * mean_curvatures)
+
+    depth_search = 0
+    mass_left = 1
+
+    # Find depth value where less than threshold1 are larger
+    while(mass_left > threshold1):
+        depth_search = depth_search + depth_search_increment1
+        mass_left = sum(depths(sulci > 0) > depth_search) / sum(sulci > 0)
+    half_depth = depth_search
+
+    # Find depth value where less than threshold2 are larger
+    while(mass_left > threshold2):
+        depth_search = depth_search + depth_search_increment1
+        mass_left = sum(depths(sulci > 0) > depth_search) / sum(sulci > 0)
+    slope_depth = (-1/(depth_search - half_depth)) * log((1/high_map_value)-1)
+
+    # Find slope similarly for curvature values
+    mass_left = 1
+    depth_search = 0
+    while(mass_left > threshold3):
+        depth_search = depth_search + depth_search_increment2
+        mass_left = sum(mean_curvatures(sulci > 0) > depth_search) / sum(sulci > 0)
+    slope_mean_curvatures = -1/depth_search * log((1/high_map_value) - 1)
+
+    # Map curvature and depth values with sigmoidal functions to range [0,1]
+    st2 = 1 ./ (1 + exp(-slope_mean_curvatures * mean_curvatures))
+    st3 = 1 ./ (1 + exp(-slope_depth * (depths - half_depth)))
+
+    L = st2 .* st3
+    L(sulci ==0) = 0
+
+    return L
