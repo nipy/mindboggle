@@ -1,36 +1,26 @@
-function [inds] = findNeighbors(faces,pointOfInterestIndex)
+#!/usr/bin/python
+"""
+Find neighbors
 
-inds1 = faces(:,1) == pointOfInterestIndex;
-inds2 = faces(:,2) == pointOfInterestIndex;
-inds3 = faces(:,3) == pointOfInterestIndex;
+Authors:
+Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
+Arno Klein  .  arno@mindboggle.info  (translated to Python)
 
+(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
-inds = [faces(inds1,:);faces(inds2,:);faces(inds3,:)];
-inds = inds(:);
-inds = unique(inds);
+"""
 
+#===============
+# Find neighbors
+#===============
+def inds = find_neighbors(faces,pointOfInterestIndex):
+    """
+    Find neighbors
+    """
 
-% inds = zeros(20,1);
-% indsCount = 0;
-% 
-% for i = 1:length(inds1)
-%    tempInds = faces(inds1(i),:);
-%    indsCount = indsCount + 3;
-%    inds(indsCount - 2 : indsCount) = tempInds;   
-% end
-% for i = 1:length(inds2)
-%    tempInds = faces(inds2(i),:);
-%    indsCount = indsCount + 3;
-%    inds(indsCount - 2 : indsCount) = tempInds;   
-% end
-% for i = 1:length(inds3)
-%    tempInds = faces(inds3(i),:);
-%    indsCount = indsCount + 3;
-%    inds(indsCount - 2 : indsCount) = tempInds;   
-% end
-% 
-% inds = unique(inds);
+    inds = [faces(inds1,:);faces(inds2,:);faces(inds3,:)]
+    inds = inds(:)
+    inds = unique(inds)
 
-inds(inds == pointOfInterestIndex) = 0;
-inds = inds(inds > 0);
-
+    inds(inds == pointOfInterestIndex) = 0
+    inds = inds(inds > 0)
