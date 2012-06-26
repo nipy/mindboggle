@@ -32,7 +32,6 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 use_freesurfer = 1
 debug_skip_register = 0
-debug_skip_vote = 0
 do_label_volume = 1
 do_evaluate_labels = 0
 do_create_graph = 1
@@ -79,7 +78,8 @@ if not path.isdir(temp_path):  makedirs(temp_path)
 # Paths within mindboggle base directory
 templates_path = path.join(basepath, 'data', 'templates')
 atlases_path = path.join(basepath, 'data', 'atlases')
-atlas_string = 'labels.manual'
+label_string = 'labels.DKT26'
+atlas_string = label_string + '.manual'
 
 ##############################################################################
 #   Inputs and outputs
@@ -190,7 +190,7 @@ transform = mapnode(name = 'Transform_atlas_labels',
                                                   'atlas_string'],
                                    output_names = ['output_file']))
 # List of atlas subjects
-atlases_file = path.join(atlases_path, 'list.txt')
+atlases_file = path.join(atlases_path, 'list_atlases.txt')
 f1 = open(atlases_file)
 lines1 = f1.readlines()
 atlases = []
@@ -212,33 +212,32 @@ else:
 #-----------------------------------------------------------------------------
 # Majority vote labeling
 #-----------------------------------------------------------------------------
-if not debug_skip_vote:
-    vote = node(name='Label_vote',
-                interface = fn(function = majority_vote_label,
-                               input_names = ['surface_file',
-                                              'annot_files'],
-                               output_names = ['maxlabel_file',
-                                               'labelcounts_file',
-                                               'labelvotes_file',
-                                               'consensus_vertices']))
-    atlasflow.add_nodes([vote])
-    if use_freesurfer:
-        mbflow.connect([(convertsurf, atlasflow,
-                         [('out_file', 'Label_vote.surface_file')])])
-    else:
-        mbflow.connect([(surf, atlasflow,
-                         [('surface_files', 'Label_vote.surface_file')])])
-    atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
-    mbflow.connect([(atlasflow, datasink,
-                     [('Label_vote.maxlabel_file', 'labels.@max'),
-                      ('Label_vote.labelcounts_file', 'labels.@counts'),
-                      ('Label_vote.labelvotes_file', 'labels.@votes')])])
+vote = node(name='Label_vote',
+            interface = fn(function = majority_vote_label,
+                           input_names = ['surface_file',
+                                          'annot_files'],
+                           output_names = ['maxlabel_file',
+                                           'labelcounts_file',
+                                           'labelvotes_file',
+                                           'consensus_vertices']))
+atlasflow.add_nodes([vote])
+if use_freesurfer:
+    mbflow.connect([(convertsurf, atlasflow,
+                     [('out_file', 'Label_vote.surface_file')])])
+else:
+    mbflow.connect([(surf, atlasflow,
+                     [('surface_files', 'Label_vote.surface_file')])])
+atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
+mbflow.connect([(atlasflow, datasink,
+                 [('Label_vote.maxlabel_file', 'labels.@max'),
+                  ('Label_vote.labelcounts_file', 'labels.@counts'),
+                  ('Label_vote.labelvotes_file', 'labels.@votes')])])
 
 ##############################################################################
 #   Label propagation through a mask
 ##############################################################################
 #-----------------------------------------------------------------------------
-# Filling a volume (e.g., gray matter) mask with majority vote labels (ANTS)
+# Filling a volume (e.g., gray matter) mask with majority vote labels
 #-----------------------------------------------------------------------------
 if do_label_volume:
 
@@ -254,7 +253,7 @@ if do_label_volume:
                                                         'label_name'],
                                          output_names = ['label_file']))
     # List of cortical labels
-    ctx_labels_file = path.join(atlases_path, 'labels_ctx.txt')
+    ctx_labels_file = path.join(atlases_path, label_string + '.txt')
     f2 = open(ctx_labels_file)
     lines2 = f2.readlines()
     ctx_label_numbers = []
@@ -267,11 +266,7 @@ if do_label_volume:
     writelabels.inputs.label_name = ctx_label_names
     atlasflow.add_nodes([writelabels])
     mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
-    if debug_skip_vote:
-        mbflow.connect([(datasink, atlasflow,
-                         [('labels.@max', 'Write_label_files.surface_file')])])
-    else:
-        atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+    atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
 
     # Write .annot file
     writeannot = node(name='Write_annot_file',
@@ -284,7 +279,7 @@ if do_label_volume:
                                      output_names = ['annot_name',
                                                      'annot_file']))
     writeannot.inputs.subjects_path = subjects_path
-    writeannot.inputs.colortable = path.join(atlases_path, 'colortable.txt')
+    writeannot.inputs.colortable = path.join(atlases_path, label_string + '.txt')
     atlasflow.add_nodes([writeannot])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Write_annot_file.hemi')])])
