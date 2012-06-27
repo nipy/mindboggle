@@ -3,12 +3,17 @@
 Extract sulci from a VTK surface mesh and fill holes in them.
 
 Inputs:
-    faces: surface mesh vertex indices [n x 3]
-    depths: depth values [m x 1]
+    faces: surface mesh vertex indices [#faces x 3]
+    depths: depth values [#vertices x 1]
     depth_threshold: depth threshold for defining sulci
-     
+
+Parameters:
+    depth_increment: depth increment for assigning vertices to sulci
+
 Output:
-    sulci: [n_sulci x 1], where n_sulci is the number of sulci
+    sulci: sulcus numbers [#vertices x 1]
+    n_sulci:  #sulci
+
 
 Authors:
     Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
@@ -27,6 +32,16 @@ def find_neighbors(faces, index):
     """
     For a set of surface mesh faces and the index of a surface vertex,
     find unique indices for neighboring vertices.
+
+    Inputs:
+    ------
+    faces: surface mesh vertex indices [#faces x 3] numpy array
+    sulci: [#vertices x 1] numpy array
+
+    Output:
+    ------
+    I: [#vertices x 1] numpy array
+
     """
     # Create list of vertex indices sharing the same faces as "index"
     I = [faces[np.where(faces[:,i] == index)[0]][0].tolist() for i in range(3) \
@@ -48,6 +63,20 @@ def find_neighbors(faces, index):
 def fill_sulcus_holes(faces, sulci):
     ""
     Fill sulcus holes.
+
+    Inputs:
+    ------
+    faces: surface mesh vertex indices [#faces x 3] numpy array
+    sulci: [#vertices x 1] numpy array
+
+    Output:
+    ------
+    sulci: [#vertices x 1] numpy array
+
+    Calls:
+    -----
+    find_neighbors(): numpy array of indices
+
     ""
     print('Number of sulci before pruning: ' + str(max(sulci)))
 
@@ -132,20 +161,29 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
     Extract sulci.
 
     Inputs:
+    ------
     faces: surface mesh vertex indices [#faces x 3]
     depths: depth values [#vertices x 1]
     depth_threshold: depth threshold for defining sulci
      
     Parameters:
+    ----------
     depth_increment: depth increment for assigning vertices to sulci
     
     Output:
-    sulci: [#vertices x 1]
-    
+    ------
+    sulci: [#vertices x 1] numpy array
+    n_sulci:  #sulci [int]
+
+    Calls:
+    -----
+    find_neighbors(): numpy array of indices
+    fill_sulcus_holes()
+
     """
 
-    faces = np.round(10*np.random.rand(5,3)).astype(int)
-    depths = np.random.rand(10,1)
+    #faces = np.round(10*np.random.rand(5,3)).astype(int)
+    #depths = np.random.rand(10,1)
 
     depth_increment = 0.5 
 
@@ -173,8 +211,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
             # For each previously selected seed vertex
             for index in indices:
                 # Find all neighbors deeper than the depth threshold
-                #import sys; sys.exit()
-                neighbors = find_neighbors(faces, index)
+                neighbors = find_neighbors(faces, index)  # numpy array
                 if any(neighbors):
                     neighbors = neighbors[depths[neighbors][0] > depth_threshold]
                     # Select the neighbors that have not been previously selected
@@ -195,4 +232,6 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
 
     #sulci = fill_sulcus_holes(faces, sulci)
 
-    return sulci
+    n_sulci = np.max(sulci)  # number of sulci
+
+    return sulci, n_sulci
