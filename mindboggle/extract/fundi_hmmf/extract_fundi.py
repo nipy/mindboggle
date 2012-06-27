@@ -12,100 +12,121 @@ Arno Klein  .  arno@mindboggle.info  (translated to Python)
 
 import numpy as np
 
-from find_neighbors import find_neigbhors
 from extract_sulci import extract_sulci
 from compute_fundus_likelihood import compute_fundus_likelihood
+from find_neighbors import find_neighbors
+from find_anchor_points import find_anchor_points
+from connect_the_dots import connect_the_dots
 
 #=================
 # Extract a fundus
 #=================
-def fundus = extract_fundus(L, Sulci, ind, vertices, faces, Umin):
+def extract_fundus(L, sulci, sulcus_index, vertices, faces,
+                            min_distances, min_sulcus_size=30, max_neighbors=15):
     """
     Extract a single fundus.
 
-    Determine minimum size for a sulcus from which we want to find fundi.
-    This can be set to 0, the result will just have very short fundi.
+    Inputs:
+    ------
+    L: fundus likelihood values [#vertices x 1] numpy array
+    sulci: sulcus values [#vertices x 1] numpy array
+    sulcus_index: sulcus number [int]
+    vertices: [#vertices x 3] numpy array
+    faces: vertices for polygons [#faces x 3] numpy array
+    min_distances: [#vertices x 1] numpy array
+    min_sulcus_size: minimum sulcus size from which to find a fundus
+    max_neighbors: maximum number of neighbors per sulcus vertex
+
+    Output:
+    ------
+    fundus: [#fundus vertices x 1] numpy array
+
+    Calls:
+    -----
+    find_neighbors(): numpy array of indices
+    find_anchor_points()
+    connect_the_dots()
+
     """
 
-    minSulcusSize = 30
+    # Retain only likelihood values for the sulcus corresponding to sulcus_index
+    L[sulci != sulcus_index] = 0
 
-    L2 = np.zeros(size(L))
-    L2(Sulci==ind) = L(Sulci==ind)
+    # If the size of the sulcus is sufficiently large, continue
+    if (sum(L > 0.5) > min_sulcus_size):
 
-    sizeCheck = sum(L2>0.5)
+        # Find neighbors for each sulcus vertex and arrange as rows in an array
+        sulcus_indices = np.where(L > 0)
+        len_sulcus = len(sulcus_indices)
+        sulcus_neighbors = np.zeros((len_sulcus, n_neighbors_max))
+        for i in range(len_sulcus):
+            neighbors = find_neighbors(faces, sulcus_indices(i))
+            len_neighbors = len(neighbors)
+            if len_neighbors > max_neighbors:
+                sulcus_neighbors[i, range(max_neighbors)] = neighbors[0:max_neighbors]
+            else:
+                sulcus_neighbors[i, range(len_neighbors)] = neighbors
 
-    if (sizeCheck > minSulcusSize):
-        Q = findSupportPoints(vertices, L2, Umin)
+        # Initialize all likelihood values within sulcus between 0.5 and 1.0
+        # This is necessary to guarantee correct topology
+        L_init = (L + 1) / 2.0
+        L_init[L_init > 1] = 1  # check L values
 
-        # Compute list of neighbors
-        inds = find(L2 > 0)
-        m = len(inds,1)
-        nList = np.zeros(m,15)
-        for i in range(m):
-            neighs = find_neighbors(faces, inds(i))
-            nList(i, 1:len(neighs,1)) = np.transpose(neighs)
-        shortInds = find(L2 > 0)
-
-        # initialize all likelihood values within sulcus between 0.5 and 1.0. 
-        # This is necessary to guarantee correct topology.
-        initValues = (L2 + 1.001) / 2
-        initValues(L2 == 0) = 0
-        initValues(initValues > 1) = 1
-
-        print(find(Q > 0.5))
-        # Q = connectTheDotsV2(L2, initValues, vertices, faces, Q, nList, shortInds)
-        if (sum(Q > 0.5) > 1):
-            Q = connectTheDotsV3(L2, initValues, vertices, faces, Q, nList, shortInds)
-            fundus = Q
-        else:
-            fundus = np.zeros(size(Q))
+        # Find fundus points
+        fundus_points = find_anchor_points(vertices, L, min_distances)
+        if any(fundus):
+            fundus = connect_the_dots(L, L_init, vertices, faces, fundus_points,
+                                      sulcus_neighbors, sulcus_indices)
     else:
-        print('Not Enough Values')
-        print(sizeCheck)
-        fundus = np.zeros(size(L2))
+        print('Sulcus too small: ', str(sum(L > 0.5) > min_sulcus_size))
+        fundus = np.zeros(len(L))
 
     return fundus
 
 #==================
 # Extract all fundi
 #==================
-def fundi = extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions):
+def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2):
     """
     Extract all fundi.
 
     Inputs:
-    1. vertices has m x 3 elements
-    2. faces has n x 3 elements
-    3. depths: depth values in vector of size m x 1
-    4. mean_curvatures: mean curvature values in vector of size m x 1
-    5. min_directions: directions of minimum curvature in matrix of size 3 x m
+    ------
+    vertices: [#vertices x 3] numpy array
+    faces: vertices for polygons [#faces x 3] numpy array
+    depths: depth values [#vertices x 1] numpy array
+    mean_curvatures: mean curvature values [#vertices x 1] numpy array
+    min_directions: directions of minimum curvature [3 x #vertices] numpy array
+    depth_threshold: depth threshold for defining sulci
 
-    Parameters:
-    -  depth_threshold: depth threshold for defining sulci
-     
     Output:
-     
-    1. fundi: Matrix of size m x n_sulci, where n_sulci is the number of sulci.
-              Each column represents a fundus for a specific sulcus. 
-              Values range from 0 to 1; values above 0.5 are considered part of the fundus.
+    ------
+    fundi: [#vertices x #sulci] numpy array
+           Each column represents a fundus for a specific sulcus.
+           Values range from 0 to 1; values above 0.5 are considered part of the fundus.
+
+    Calls:
+    -----
+    extract_sulci()
+    compute_fundus_likelihood()
+    extract_fundus()
+
     """
 
-    # Depth threshold for defining sulci
-    depth_threshold = 0.2
-
-    # Extract and topologically correct sulci
-    sulci = extract_sulci(faces, depths, depth_threshold)
-    n_sulci = np.max(sulci(:))  # number of sulci
+    # Extract sulci
+    print('Extract sulci...')
+    sulci, n_sulci = extract_sulci(faces, depths, depth_threshold)
 
     # Compute fundus likelihood values
-    print('computing likelihood values')
-    L = np.zeros(len(depths),1)
-    for i in range(n_sulci):
-        L = L + compute_fundus_likelihood(mean_curvatures, depths, sulci, i)
+    print('Compute fundus likelihood values...')
+    L = np.zeros(len(depths))
+    for sulcus_index in range(1, n_sulci+1):
+        L = L + compute_fundus_likelihood(mean_curvatures, depths, sulci, sulcus_index)
 
     # Extract individual fundi
+    print('Extract fundi...')
     fundi = np.zeros(len(L), n_sulci)
-    for i in range(n_sulci):
-        fundi(:,i) = extract_fundus(L, sulci, i, vertices, faces, min_directions)
+    for sulcus_index in range(1, n_sulci+1):
+        fundi[:, sulcus_index-1] = extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
 
     return fundi
