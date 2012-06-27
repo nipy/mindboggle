@@ -3,8 +3,8 @@
 Connect the dots.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -17,11 +17,11 @@ from simple_point_test import simple_point_test
 #--------------------
 # Compute probability
 #--------------------
-def compute_probability(wl, li, q, qneighs, wneighs):
+def prob(wl, li, q, qneighs, wt_neighbors):
     """
     Compute probability
     """
-    p = -1 * (q * np.sqrt((wl-li)**2) + (wneighs * sum((q - qneighs)**2)))
+    p = -1 * (q * np.sqrt((wl-li)**2) + (wt_neighbors * sum((q - qneighs)**2)))
     return p
 
 #-----------------------
@@ -69,26 +69,26 @@ def simple_point_test(faces, ind, values):
         sp = 1
         return
 
-    neighsInside = neighs(neighvals > thr)
-    nSets = size(neighsInside,1)
+    neighsInside = neighs[neighvals > thr]
+    nSets = len(neighsInside)
 
-    sets = zeros(nSets,20)
+    sets = np.zeros(nSets,20)
     setLabels = np.transpose(range(1,nSets+1))
 
     values(ind) = -1
 
     for i in range(nSets):
-        currNeighs = find_neighbors(faces,neighsInside(i))
+        currNeighs = find_neighbors(faces,neighsInside[i])
         currNeighs = currNeighs(values(currNeighs)>thr)
         sets(i,1:size(currNeighs,1)) = np.transpose(currNeighs)
-        sets(i,size(currNeighs,1) + 1) = neighsInside(i)
+        sets(i,size(currNeighs,1) + 1) = neighsInside[i]
 
     change = 1
     while (change > 0):
         change = 0
         for i in range(nSets):
             for j in range(nSets):
-               if (j>i && setLabels(i) != setLabels(j)):
+               if (j>i && setLabels[i] != setLabels[j]):
                     iInds = np.unique(sets(i,:))
                     iInds = iInds(iInds > 0)
                     iSize = size(iInds,2)
@@ -102,10 +102,10 @@ def simple_point_test(faces, ind, values):
 
                     if (totSize < iSize + jSize):
 
-                        minLabel = min(setLabels(j),setLabels(i))
+                        minLabel = min(setLabels[j],setLabels[i])
 
-                        setLabels(i) = minLabel
-                        setLabels(j) = minLabel
+                        setLabels[i] = minLabel
+                        setLabels[j] = minLabel
 
                         change = 1
 
@@ -122,135 +122,183 @@ def simple_point_test(faces, ind, values):
 #=================
 def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
     """
-    Connect vertices ("anchor points") to create (fundus) curves.
+    Connect dots (vertices in a surface mesh) to create curves.
 
     Inputs:
     ------
-    L: fundus likelihood values [#vertices x 1] numpy array
-    L_init: initial likelihood values from 0 to 1 [#vertices x 1] numpy array
+    L: likelihood values for a subset of vertices (zero for the rest):
+       [#vertices x 1] numpy array
+    L_init: initial likelihood values from 0 to 1: [#vertices x 1] numpy array
     vertices: [#vertices x 3] numpy array
     faces: [#faces x 3] numpy array
-    dots: anchor points [#vertices x 1] numpy array
-    sulcus_array: [#faces x 3] numpy array
-    sulcus_array: [#faces x 3] numpy array
+    dots: [#vertices x 1] numpy array
+    indices: indices of subset of vertices: [#vertices_subset x 1] numpy array
+    neighbors: indices of neighbors to each vertex in vertices_subset:
+               [#vertices_subset x #max_neighbors] numpy array
 
     Parameters:
     ----------
-    likelihood_limit
+    L_threshold
     step_size
-    wneighs
+    wt_neighbors
     wl
-    multModInit
+    mult_init
 
     Output:
     ------
     fundus: [#vertices x 1] numpy array
 
+    Calls:
+    -----
+    prob()
+
     """
-    likelihoodLimit = 0.5
-    step_size = 0.05
-    wneighs = 0.4
-    wl = 1.1
-    multModInit = 0.02
 
-    Q = zeros(length(L),1)
-    Q(L_init>likelihoodLimit) = L_init(L_init>likelihoodLimit)
+    # Set parameters
+    L_threshold = 0.5  # ????
+    step_size = 0.05  # ????
+    wt_neighbors = 0.4  # ????
+    wl = 1.1  # ????
+    mult_init = 0.02  # ????
+    n_tries_no_change = 3  # ????
+    max_count = 350  # ????
+    diff_threshold = 0.0001  # ????
+    mult_incr = 0.001  # ????
+    C_threshold = 0.01  # ???? (positive)
 
-    Q(dots > 0.5) = 1
+    # Initialize array of connected dots,
+    # containing likelihood values greater than L_threshold,
+    # and 1 for dots greater than L_threshold
+    n_vertices = len(L)
+    C = np.zeros(n_vertices)
+    C[L_init > L_threshold] = L_init[L_init > L_threshold]
+    C[dots > L_threshold] = 1
 
-    if (sum(Q>0) < 2):
-        return
+    # Continue if there are at least two candidate dots
+    if sum(C > 0) >= 2:
+        print('Initial candidates: ', str(sum(C > 0)))
 
-    m = length(L)
+        # Initialize new arrays of connected points and probability values
+        Cnew = C.copy()
+        probs = np.zeros(n_vertices)
+        L_positive = L > 0
+        n_positive = len(L_positive)
+        I_positive = np.where(L_positive)
+    
+        # Assign probability values to each neighboring vertex
+        for i in range(n_vertices):
+            if any(indices == i):
+                neighs = neighbors[indices == i, :]
+                neighs = np.unique(neighs[neighs > 0])
+                probs[i] = prob(wl, L[i], C[i], C[neighs], wt_neighbors)
 
-    print('Initial candidates:')
-    print(sum(Q>0))
+        # Loop until count reaches max_count or until end_flag equals zero
+        # (end_flag is used to allow the loop to continue even if there is
+        #  no change for n_tries_no_change times)
+        count = 0
+        end_flag = 0
+        while end_flag < n_tries_no_change and count < max_count:
+            count += 1
 
-    iterationCount = 0
+            # ????
+            mult = mult_init + count * mult_incr
 
-    QNEW = Q
+            # Loop through vertices with positive likelihood values
+            # and assign each a connectivity value (C[i])
+            for i in I_positive:
+                # Continue if connectivity value is greater than C_threshold
+                if C[i] > C_threshold:
+                    if any(indices == i):
 
-    pPrev = zeros(size(Q))
+                        # Find neighbors to this vertex
+                        neighs = neighbors[indices == i, :]
+                        neighs = np.unique(neighs[neighs > 0])
 
-    for i in range(len(pPrev)):
-        neighs = neighbors(indices == i,:)
-        neighs = neighs(neighs > 0)
-        pPrev(i) = compute_probability(wl,L(i),Q(i),Q(neighs),wneighs)
+                        # Compute the probability for this point ????
+                        q = max([C[i] - step_size, 0])
+                        prob_down = prob(wl, L[i], q, C[neighs], wt_neighbors)
+                        
+                        # Compute a decrement...????
+                        decr = mult * (prob_down - probs[i]) / step_size
 
-    totalPr = sum(pPrev(L>0))
-    totalPr2 = totalPr - 10
-    prevFundPoints = Inf
+                        # Test to update the connectivity value
+"""
+#                        # (default is not to update)
+#                        update = 0
 
-    % endFlag is used to not stop the iteration at the first occurance of no
-    % change
-    endFlag = 3
-
-    while (endFlag > 0 && iterationCount < 350):
-
-        iterationCount = iterationCount + 1
-        downCounter = 0
-        upCounter = 0
-
-        multMod = multModInit + iterationCount*.001
-
-        for i= 1:m:
-            if (L(i) > 0 && Q(i) > .01):
-
-                q = Q(i)
-
-                qDown = max(q - step_size, 0)
-
-                neighs = neighbors(indices == i,:)
-                neighs = neighs(neighs > 0)
-
-                gPDown = compute_probability(wl,L(i),qDown,Q(neighs),wneighs)
-
-                grDown = (gPDown - pPrev(i))/step_size
-                grDown = grDown * multMod
-
-                if (grDown > 0):
-
-                    if (q - grDown <= likelihoodLimit && q > likelihoodLimit):
-                        if (dots(i) > .5):
-                            c = 0
+                        # Update the connectivity value if
+                        # it is not close to L_threshold
+                        if np.abs(C[i] - L_threshold) > np.abs(decr):
+                            update = 1
+                        # Otherwise...
                         else:
-                            QConnectivity = QNEW
-                            QConnectivity(i) = q - grDown
-                            c = simple_point_test(faces, i, QConnectivity)
-                    else:
-                        c =1
-                    if (c == 1):
-                        QNEW(i) = max(q - grDown, 0)
-                        pPrev(i) = compute_probability(wl,L(i),QNEW(i),Q(neighs),wneighs)
-                        downCounter = downCounter + 1
-                else:
-                    if (q - grDown > likelihoodLimit && q <= likelihoodLimit):
-                        QConnectivity = QNEW
-                        QConnectivity(i) = q - grDown
-                        QConnectivity = 1+(QConnectivity *-1)
-                        c = simple_point_test(faces, i, QConnectivity)
-                    else:
-                        c = 1
-                    if (c == 1):
-                        QNEW(i) = min(q - grDown, 1)
-                        pPrev(i) = compute_probability(wl,L(i),QNEW(i),Q(neighs),wneighs)
-                        upCounter = upCounter + 1
+                            # If the dot value exceeds L_threshold
+                            # do not update the connectivity value
+                            if dots[i] > L_threshold:
+                                update = 0
+                            # Or if the dot value is within L_threshold
+                            # and if the vertex is a "simple point"
+                            # then update the connectivity value
+                            else:
+                                Cnew_copy = Cnew.copy()
+                                Cnew_copy[i] = C[i] - decr
+                                update = simple_point_test(faces, i, Cnew_copy)
+"""
 
-        diff = np.sqrt(sum((Q-QNEW).^2))
 
-        totalPr = sum(pPrev(L>0))
-        totalPrDiffPerPoint = (totalPr - totalPr2)/sum(L>0)
+                        if decr > 0:
+                            # If the connectivity value is very different
+                            # than L_threshold, update it
+                            if C[i] - decr > L_threshold:
+                                update = 1
+                            # Or if the connectivity value is near L_threshold...
+                            elif C[i] > L_threshold >= C[i] - decr:
+                                # ...and if the dot value exceeds L_threshold
+                                # do not update the connectivity value
+                                if dots[i] > L_threshold:
+                                    update = 0
+                                # ...or if the dot value is within L_threshold
+                                # and if the vertex is a "simple point"
+                                # then update the connectivity value
+                                else:
+                                    Cnew_copy = Cnew.copy()
+                                    Cnew_copy[i] = C[i] - decr
+                                    update = simple_point_test(faces, i, Cnew_copy)
 
-        currFundPoints = sum(Q>0.5)
+                            # Update the connectivity and probability values
+                            if update:
+                                Cnew[i] = max([C[i] - decr, 0])
+                                probs[i] = prob(wl, L[i], Cnew[i], C[neighs], wt_neighbors)
 
-        if (totalPrDiffPerPoint < 0.0001 && (currFundPoints - prevFundPoints) == 0):
-            endFlag = endFlag - 1
+                        # If the decrement is not positive, then ????
+                        else:
+                            if (C[i] - decr) > L_threshold and C[i] <= L_threshold:
+                                Cnew_copy = Cnew.copy()
+                                Cnew_copy[i] = C[i] - decr
+                                Cnew_copy = 1 - Cnew_copy
+                                update = simple_point_test(faces, i, Cnew_copy)
+                            else:
+                                update = 1
+                            if update == 1:
+                                Cnew[i] = min([C[i] - decr, 1])
+                                probs[i] = prob(wl, L[i], Cnew[i], C[neighs], wt_neighbors)
 
-        totalPr2 = totalPr
-        print([diff totalPrDiffPerPoint])
-        prevFundPoints = currFundPoints
+            # Tally the number of vertices assigned probability values
+            # and the number of points in C with probability > L_threshold.
+            # After iteration 1, compare current and previous values.
+            # If the values are similar, increment end_flag.
+            n_probs = sum(probs[L_positive])
+            if count > 0:
+                n_points = sum(C > L_threshold)
+                diff_probs = (n_probs - n_probs_previous) / n_positive
+                if diff_probs < diff_threshold and \
+                   n_points == n_points_previous:
+                    end_flag += 1
 
-        Q = QNEW
-        print(['Iteration: ' num2str(iterationCount) ' ** Up and down movement: ' num2str(upCounter) ', ' num2str(downCounter) ' ** Current fundus points (q > .5): ' num2str(currFundPoints)])
-
-    return Q
+            # Reset for next iteration
+            n_probs_previous = n_probs
+            n_points_previous = n_points
+            C = Cnew
+            print('Iteration:', str(count) + ',', str(n_points), 'points')
+    
+        return C
