@@ -222,16 +222,14 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
                         decr = mult * (prob_down - probs[i]) / step_size
 
                         # Test to update the connectivity value
-"""
-#                        # (default is not to update)
-#                        update = 0
-
-                        # Update the connectivity value if
-                        # it is not close to L_threshold
+                        # (default is not to update)
+                        update = 0
+                        # Update the connectivity value
+                        # if it is far from L_threshold
                         if np.abs(C[i] - L_threshold) > np.abs(decr):
                             update = 1
                         # Otherwise...
-                        else:
+                        elif decr > 0:
                             # If the dot value exceeds L_threshold
                             # do not update the connectivity value
                             if dots[i] > L_threshold:
@@ -243,45 +241,19 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
                                 update = simple_point_test(faces, i, Cnew_copy)
-"""
+                        elif decr < 0:
+                            Cnew_copy = Cnew.copy()
+                            Cnew_copy[i] = C[i] - decr
+                            Cnew_copy = 1 - Cnew_copy
+                            update = simple_point_test(faces, i, Cnew_copy)
 
-
-                        if decr > 0:
-                            # If the connectivity value is very different
-                            # than L_threshold, update it
-                            if C[i] - decr > L_threshold:
-                                update = 1
-                            # Or if the connectivity value is near L_threshold...
-                            elif C[i] > L_threshold >= C[i] - decr:
-                                # ...and if the dot value exceeds L_threshold
-                                # do not update the connectivity value
-                                if dots[i] > L_threshold:
-                                    update = 0
-                                # ...or if the dot value is within L_threshold
-                                # and if the vertex is a "simple point"
-                                # then update the connectivity value
-                                else:
-                                    Cnew_copy = Cnew.copy()
-                                    Cnew_copy[i] = C[i] - decr
-                                    update = simple_point_test(faces, i, Cnew_copy)
-
-                            # Update the connectivity and probability values
-                            if update:
+                        # Update the connectivity and probability values
+                        if update:
+                            if decr > 0:
                                 Cnew[i] = max([C[i] - decr, 0])
-                                probs[i] = prob(wl, L[i], Cnew[i], C[neighs], wt_neighbors)
-
-                        # If the decrement is not positive, then ????
-                        else:
-                            if (C[i] - decr) > L_threshold and C[i] <= L_threshold:
-                                Cnew_copy = Cnew.copy()
-                                Cnew_copy[i] = C[i] - decr
-                                Cnew_copy = 1 - Cnew_copy
-                                update = simple_point_test(faces, i, Cnew_copy)
                             else:
-                                update = 1
-                            if update == 1:
                                 Cnew[i] = min([C[i] - decr, 1])
-                                probs[i] = prob(wl, L[i], Cnew[i], C[neighs], wt_neighbors)
+                            probs[i] = prob(wl, L[i], Cnew[i], C[neighs], wt_neighbors)
 
             # Tally the number of vertices assigned probability values
             # and the number of points in C with probability > L_threshold.
