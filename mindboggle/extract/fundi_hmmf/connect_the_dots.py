@@ -17,16 +17,37 @@ from simple_point_test import simple_point_test
 #--------------------
 # Compute probability
 #--------------------
-def p = compute_probability(wl,li,q,qneighs,wneighs):
+def compute_probability(wl, li, q, qneighs, wneighs):
     """
     Compute probability
     """
-    p = -1 * (np.sqrt((wl-li)^2)*q + (wneighs * sum((q - qneighs).^2)))
+    p = -1 * (q * np.sqrt((wl-li)**2) + (wneighs * sum((q - qneighs)**2)))
+    return p
 
 #-----------------------
 # Test for simple points
 #-----------------------
 def simple_point_test(faces, ind, values):
+    """
+    Find anchor points
+
+    Assign maximum likelihood vertices as "anchor points"
+    for use in constructing fundus curves.
+    Ensure tht anchor points are not close to one another.
+
+    Inputs:
+    ------
+    vertices: [#vertices x 3] numpy array
+    L: fundus likelihood values [#vertices x 1] numpy array
+    min_distances: [#vertices x 1] numpy array
+    distance_threshold: distance threshold
+    max_distance: maximum distance
+
+    Output:
+    ------
+    P: anchor points [#vertices x 1] numpy array
+
+    """
     import numpy as np
     from find_neighbors import find_neigbhors
 
@@ -99,21 +120,43 @@ def simple_point_test(faces, ind, values):
 #=================
 # Connect the dots
 #=================
-def Q = connectTheDotsV3(L, initValues, vertices, faces, dots, nList, shortInds):
+def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
     """
-    Connect the dots.
+    Connect vertices ("anchor points") to create (fundus) curves.
+
+    Inputs:
+    ------
+    L: fundus likelihood values [#vertices x 1] numpy array
+    L_init: initial likelihood values from 0 to 1 [#vertices x 1] numpy array
+    vertices: [#vertices x 3] numpy array
+    faces: [#faces x 3] numpy array
+    dots: anchor points [#vertices x 1] numpy array
+    sulcus_array: [#faces x 3] numpy array
+    sulcus_array: [#faces x 3] numpy array
+
+    Parameters:
+    ----------
+    likelihood_limit
+    step_size
+    wneighs
+    wl
+    multModInit
+
+    Output:
+    ------
+    fundus: [#vertices x 1] numpy array
+
     """
-    likelihoodLimit = .5
-    stepSize = .05
-    wneighs = .4
+    likelihoodLimit = 0.5
+    step_size = 0.05
+    wneighs = 0.4
     wl = 1.1
-    multModInit = .02
-    multMod = multModInit
+    multModInit = 0.02
 
     Q = zeros(length(L),1)
-    Q(initValues>likelihoodLimit) = initValues(initValues>likelihoodLimit)
+    Q(L_init>likelihoodLimit) = L_init(L_init>likelihoodLimit)
 
-    Q(dots > .5) = 1
+    Q(dots > 0.5) = 1
 
     if (sum(Q>0) < 2):
         return
@@ -129,8 +172,8 @@ def Q = connectTheDotsV3(L, initValues, vertices, faces, dots, nList, shortInds)
 
     pPrev = zeros(size(Q))
 
-    for i = 1:size(pPrev,1):
-        neighs = nList(shortInds == i,:)
+    for i in range(len(pPrev)):
+        neighs = neighbors(indices == i,:)
         neighs = neighs(neighs > 0)
         pPrev(i) = compute_probability(wl,L(i),Q(i),Q(neighs),wneighs)
 
@@ -155,14 +198,14 @@ def Q = connectTheDotsV3(L, initValues, vertices, faces, dots, nList, shortInds)
 
                 q = Q(i)
 
-                qDown = max(q - stepSize, 0)
+                qDown = max(q - step_size, 0)
 
-                neighs = nList(shortInds == i,:)
+                neighs = neighbors(indices == i,:)
                 neighs = neighs(neighs > 0)
 
                 gPDown = compute_probability(wl,L(i),qDown,Q(neighs),wneighs)
 
-                grDown = (gPDown - pPrev(i))/stepSize
+                grDown = (gPDown - pPrev(i))/step_size
                 grDown = grDown * multMod
 
                 if (grDown > 0):
@@ -209,3 +252,5 @@ def Q = connectTheDotsV3(L, initValues, vertices, faces, dots, nList, shortInds)
 
         Q = QNEW
         print(['Iteration: ' num2str(iterationCount) ' ** Up and down movement: ' num2str(upCounter) ', ' num2str(downCounter) ' ** Current fundus points (q > .5): ' num2str(currFundPoints)])
+
+    return Q
