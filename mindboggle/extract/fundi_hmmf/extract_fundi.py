@@ -53,23 +53,24 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     L[sulci != sulcus_index] = 0
 
     # If the size of the sulcus is sufficiently large, continue
-    if (sum(L > 0.5) > min_sulcus_size):
+    if sum(L > 0.5) > min_sulcus_size:
 
         # Find neighbors for each sulcus vertex and arrange as rows in an array
         sulcus_indices = np.where(L > 0)
         len_sulcus = len(sulcus_indices)
-        sulcus_neighbors = np.zeros((len_sulcus, n_neighbors_max))
+        sulcus_neighbors = np.zeros((len_sulcus, max_neighbors))
         for i in range(len_sulcus):
             neighbors = find_neighbors(faces, sulcus_indices(i))
             len_neighbors = len(neighbors)
             if len_neighbors > max_neighbors:
-                sulcus_neighbors[i, range(max_neighbors)] = neighbors[0:max_neighbors]
+                sulcus_neighbors[i, range(max_neighbors)] = neighbors[0 : max_neighbors]
             else:
                 sulcus_neighbors[i, range(len_neighbors)] = neighbors
 
         # Initialize all likelihood values within sulcus between 0.5 and 1.0
         # This is necessary to guarantee correct topology
         L_init = (L + 1) / 2.0
+        L_init[L == 0] = 0
         L_init[L_init > 1] = 1  # check L values
 
         # Find fundus points
