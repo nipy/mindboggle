@@ -48,7 +48,7 @@ def find_anchor_points(vertices, L, min_distances, distance_threshold, max_dista
     P[imax] = 1
     L[imax] = -1
 
-    # Loop until all vertices checked
+    # Loop until all sulcus vertices are checked
     while min(check_list) == 0 and maxL > 0.5:
 
         # Find and reset maximum likelihood value
@@ -71,7 +71,9 @@ def find_anchor_points(vertices, L, min_distances, distance_threshold, max_dista
             # Compute Euclidean distance between points
             D = np.linalg.norm(P_vertices[i,:] - vertices[imax,:])
 
-            # Compute directional distance between points
+            # Compute directional distance between points if they are close
+            # Perhaps change because of instability -- only sulcus end points necessary,
+            # so that the fundus doesn't shrink -- ????
             if max_distance > D >= distance_threshold:
                 dirV = np.dot(P_vertices[i,:] - vertices[imax,:], P_distances[i])
                 D = np.linalg.norm(dirV)
