@@ -18,7 +18,15 @@ from find_neighbors import find_neighbors
 #--------------------
 def prob(wl, li, q, qneighs, wt_neighbors):
     """
-    Compute probability
+    Compute probability????
+
+    ????
+    p = -q_i * sqrt(w-l_i)**2) - lambda * sum_j(q_i - q_j)**2
+
+
+    term 1 promotes high likelihood values
+    term 2 promotes smoothness of the HMMF values
+
     Inputs:
     ------
     wl: ????
@@ -42,6 +50,9 @@ def simple_point_test(faces, index, values, thr=0.5):
     """
     Test to see if vertex is a "simple point".
 
+    A simple point is a vertex that when removed from or added to an object
+    (such as a curve) on a surface mesh does not alter the topology of the object.
+
     Inputs:
     ------
     faces: [#faces x 3] numpy array
@@ -51,7 +62,7 @@ def simple_point_test(faces, index, values, thr=0.5):
 
     Output:
     ------
-    sp: simple point decision (0 or 1)
+    sp: simple point or not? (1 or 0)
 
     Calls:
     -----
@@ -78,20 +89,21 @@ def simple_point_test(faces, index, values, thr=0.5):
     # than the vertex IS a simple point
     elif n_outside == 1 or n_sets == 1:
         sp = 1
-    # Otherwise, ????
+    # Otherwise, test to see if all of the inside neighbors share neighbors
+    # with each other, in which case the vertex IS a simple point
     else:
         neighs_inside = neighs[neighvals > thr]
 
-        # Initialize sets numpy array [#neighbors>thr x max_set_size]
+        # Initialize "sets" numpy array [#neighbors>thr x max_set_size]
         sets = np.zeros((n_sets, max_set_size))
         set_labels = range(1, n_sets + 1)
 
-        # Reset vertex value
+        # Reset vertex value????
         values[index] = -1
 
         # For each neighbor exceeding the threshold,
         # find its neighbors that also exceed the threshold,
-        # then store these neighbors' values in a row of the sets array
+        # then store these neighbors' values in a row of the "sets" array
         for i in range(n_sets):
             current_neighs = find_neighbors(faces, neighs_inside[i])
             current_neighs = current_neighs[values[current_neighs] > thr]
@@ -102,34 +114,38 @@ def simple_point_test(faces, index, values, thr=0.5):
             sets[i, range(len_current)] = current_neighs
             sets[i, len_current] = neighs_inside[i]
 
-        # ????
+        # Consolidate labels of connected vertices:
+        # Loop through neighbors (rows of the "sets" array),
+        # reassigning the labels for the rows until each label's
+        # row(s) has a unique set of vertices
         change = 1
-        while (change > 0):
+        while change > 0:
             change = 0
+
+            # Loop through pairs of rows of the "set" array
+            # and continue if their two labels are different
             for i in range(n_sets - 1):
                 for j in range(i + 1, n_sets):
-                   if set_labels[i] != set_labels[j]:
-                        iInds = np.unique(sets[i, :])
-                        iInds = iInds[iInds > 0]
-                        iSize = np.shape(iInds)[1]
+                    if set_labels[i] != set_labels[j]:
 
-                        jInds = np.unique(sets[j, :])
-                        jInds = jInds(jInds > 0)
-                        jSize = np.shape(jInds)[1]
+                        # See if the two rows share a (non-zero) vertex
+                        unique_i = np.unique(sets[i, :])
+                        unique_j = np.unique(sets[j, :])
+                        unique_i = unique_i[unique_i > 0]
+                        unique_j = unique_j[unique_j > 0]
+                        len_union = len(np.union1d(unique_i, unique_j))
 
-                        totInds = np.unique([iInds jInds])
-                        totSize = np.shape(totInds)[1]
-
-                        if (totSize < iSize + jSize):
-
-                            min_label = min([set_labels[j], set_labels[i]])
-                            set_labels[i] = min_label
-                            set_labels[j] = min_label
-
+                        # Assign the two rows the same label
+                        # if they share at least one vertex,
+                        # and continue looping
+                        if len_union < sum(unique_i > 0) + sum(unique_j > 0):
+                            set_labels[i] = set_labels[j]
                             change = 1
 
-        n_separate_sets = np.shape(np.unique(set_labels))[0]
-        if (n_separate_sets < 2):
+        # The vertex is a simple point if all of its neighbors
+        # (if any) share neighbors with each other
+        n_separate_sets = len(np.unique(set_labels))
+        if n_separate_sets == 1:
             sp = 1
         else:
             sp = 0
@@ -142,6 +158,9 @@ def simple_point_test(faces, index, values, thr=0.5):
 def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
     """
     Connect dots (vertices in a surface mesh) to create curves.
+
+    ???? explanation with HMMF description
+    -- include equations and references parameters below as vars in the equation
 
     Inputs:
     ------
@@ -184,7 +203,7 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
     max_count = 350  # ????
     diff_threshold = 0.0001  # ????
     mult_incr = 0.001  # ????
-    C_threshold = 0.01  # ???? (positive)
+    C_threshold = 0.01  # ???? ...to fix at very low values, to make the optimization faster)
 
     # Initialize array of connected dots,
     # containing likelihood values greater than L_threshold,
@@ -220,13 +239,16 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
         while end_flag < n_tries_no_change and count < max_count:
             count += 1
 
-            # ????
+            # Define a factor to multiply the probability gradient that will
+            # increase the time-step size toward the end of the optimization
             mult = mult_init + count * mult_incr
 
             # Loop through vertices with positive likelihood values
-            # and assign each a connectivity value (C[i])
+            # and assign each a locally optimal HMMF value (C[i]) 
+            # ????fuzzy continuous labeling????
             for i in I_positive:
-                # Continue if connectivity value is greater than C_threshold
+                # Continue if HMMF value is greater than C_threshold
+                # (to fix at very low values, to make the optimization faster)
                 if C[i] > C_threshold:
                     if any(indices == i):
 
@@ -234,28 +256,29 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices):
                         neighs = neighbors[indices == i, :]
                         neighs = np.unique(neighs[neighs > 0])
 
-                        # Compute a decrement...????
-                        # based on the probability for this point ????
+                        # Compute the (negative) probability gradient for the HMMF value
+                        # ????
                         q = max([C[i] - step_size, 0])
                         prob_decr = prob(wl, L[i], q, C[neighs], wt_neighbors)
                         decr = mult * (prob_decr - probs[i]) / step_size
 
-                        # Test to update the connectivity value:
-                        # Update the connectivity value
+                        # Test to update the HMMF value:
+                        # Update the HMMF value
                         # if it is far from L_threshold
+                        # ???? --- HAS TO CROSS THRESHOLD!!!
                         if np.abs(C[i] - L_threshold) > np.abs(decr):
                             update = 1
                         # Otherwise, if the decrement is positive,
                         # the dot value is less than or equal to L_threshold,
                         # and the vertex is a "simple point,"
-                        # then update the connectivity value
+                        # then update the HMMF value
                         elif decr > 0 and dots[i] <= L_threshold:
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             update = simple_point_test(faces, i, Cnew_copy, L_threshold)
                         # Or if the decrement is negative,
                         # and the vertex is a "simple point,"
-                        # then update the connectivity value
+                        # then update the HMMF value
                         elif decr < 0:
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr

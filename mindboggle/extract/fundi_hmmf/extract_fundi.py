@@ -22,9 +22,12 @@ from connect_the_dots import connect_the_dots
 # Extract a fundus
 #=================
 def extract_fundus(L, sulci, sulcus_index, vertices, faces,
-                            min_distances, min_sulcus_size=30, max_neighbors=15):
+                            min_distances, L_threshold=0.5,
+                            min_sulcus_size=30, max_neighbors=15):
     """
     Extract a single fundus.
+
+    A fundus is a connected set of high-likelihood vertices in a surface mesh.
 
     Inputs:
     ------
@@ -34,12 +37,14 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     vertices: [#vertices x 3] numpy array
     faces: vertices for polygons [#faces x 3] numpy array
     min_distances: [#vertices x 1] numpy array
+    L_threshold: likelihood threshold
     min_sulcus_size: minimum sulcus size from which to find a fundus
     max_neighbors: maximum number of neighbors per sulcus vertex
 
     Output:
     ------
-    fundus: [#fundus vertices x 1] numpy array
+    fundus: binary assignments for connected vertices:????
+            [#fundus vertices x 1] numpy array
 
     Calls:
     -----
@@ -53,7 +58,7 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     L[sulci != sulcus_index] = 0
 
     # If the size of the sulcus is sufficiently large, continue
-    if sum(L > 0.5) > min_sulcus_size:
+    if sum(L > L_threshold) > min_sulcus_size:
 
         # Find neighbors for each sulcus vertex and arrange as rows in an array
         sulcus_indices = np.where(L > 0)
@@ -67,15 +72,16 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
             else:
                 sulcus_neighbors[i, range(len_neighbors)] = neighbors
 
-        # Initialize all likelihood values within sulcus between 0.5 and 1.0
+        # Initialize all likelihood values within sulcus greater than 0.5
+        # and less than or equal to 1.0.
         # This is necessary to guarantee correct topology
-        L_init = (L + 1) / 2.0
+        L_init = (L + 1.000001) / 2.0
         L_init[L == 0] = 0
-        L_init[L_init > 1] = 1  # check L values
+        L_init[L_init > 1] = 1
 
         # Find fundus points
         fundus_points = find_anchor_points(vertices, L, min_distances)
-        if any(fundus):
+        if any(fundus_points):
             fundus = connect_the_dots(L, L_init, vertices, faces, fundus_points,
                                       sulcus_neighbors, sulcus_indices)
     else:
@@ -120,14 +126,15 @@ def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, 
 
     # Compute fundus likelihood values
     print('Compute fundus likelihood values...')
-    L = np.zeros(len(depths))
-    for sulcus_index in range(1, n_sulci+1):
+    n_vertices = len(depths)
+    L = np.zeros(n_vertices)
+    for sulcus_index in range(1, n_sulci + 1):
         L = L + compute_fundus_likelihood(mean_curvatures, depths, sulci, sulcus_index)
 
-    # Extract individual fundi
+    # Extract individual fundi and store them as
     print('Extract fundi...')
-    fundi = np.zeros(len(L), n_sulci)
-    for sulcus_index in range(1, n_sulci+1):
-        fundi[:, sulcus_index-1] = extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
+    fundi = np.zeros(n_vertices, n_sulci)
+    for sulcus_index in range(1, n_sulci + 1):
+        fundi[:, sulcus_index - 1] = extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
 
     return fundi

@@ -64,6 +64,9 @@ def fill_sulcus_holes(faces, sulci):
     ""
     Fill sulcus holes.
 
+    ????
+    ???? include explanation of sulci within holes problem
+
     Inputs:
     ------
     faces: surface mesh vertex indices [#faces x 3] numpy array
@@ -203,7 +206,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
         TEMP[seeds[rseed]] = 2
 
         # Grow region about the seed vertex until 
-        # there are no more connected vertices available.
+        # there are no more connected seed vertices available.
         # Continue loop if there are newly selected neighbors.
         while(sum(TEMP > 1) > 0):
             indices = np.where(TEMP == 2)[0]
