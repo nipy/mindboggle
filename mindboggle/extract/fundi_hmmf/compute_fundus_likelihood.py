@@ -22,6 +22,8 @@ def compute_fundus_likelihood(curvatures, depths, sulci, sulcus_index):
     """
     Compute fundus likelihood values.
 
+    ????
+
     Inputs:
     ------
     curvatures: mean curvature values [#vertices x 1] numpy array
@@ -31,22 +33,25 @@ def compute_fundus_likelihood(curvatures, depths, sulci, sulcus_index):
 
     Parameters:
     ----------
-    threshold1
-    threshold2
-    threshold3
-    high_map_value
-    increment1
-    increment2
+    threshold1: ????
+    threshold2: ????
+    threshold3: ????
+    high_map_value: ????
+    increment1: ????
+    increment2: ????
 
     Output:
     ------
     L: fundus likelihood values [#vertices x 1] numpy array
 
     """
+    # must these be fixed????
+    # ???? explain adaptive thresholding
     threshold1 = 0.6
     threshold2 = 0.05
     threshold3 = 0.3
     high_map_value = 0.9
+
     increment1 = 0.01
     increment2 = 0.0001
 
