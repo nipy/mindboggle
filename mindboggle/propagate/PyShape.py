@@ -701,6 +701,92 @@ class Shape:
 
 		return self.label_boundary_segments, self.segment_file.name, self.highlighted_segment_file
 
+	def find_endpoints(self,segment):
+		""" Find the endpoints of a given label boundary segment.
+
+		Parameters
+		==========
+		segment: list (containing nodes which comprise the label boundary segment)
+
+		Returns
+		=======
+		endpoint: list (of size 2, containing both endpoints)
+
+		"""
+
+		endpoint = [-1, -1]
+		print 'Finding endpoints...'
+
+		for node in segment:
+			ns = self.neighbors(node)
+			boundary_ns = np.intersect1d(ns, segment)
+			if len(boundary_ns) == 1:
+				if endpoint[0] == -1:
+					endpoint[0] = node
+				else:
+					endpoint[1] = node
+					break
+
+		print "Endpoints are: ", endpoint
+
+		if endpoint == [-1,-1]:
+			print segment
+			raw_input("Check this out.")
+
+		return endpoint
+
+	def find_intersections(self, segment, endpoint):
+		""" Find the terminal nodes which are at the intersection of the fundi and manual label boundary.
+
+		Parameters
+		==========
+		segment: list (nodes comprising the label boundary segment)
+		endpoint: list (two endpoints of the label boundary segment)
+
+		Returns
+		=======
+		intersection: list (two outermost nodes of the label boundary segment which intersect the fundi)
+						If there are not two intersection, return -1s in place
+
+		Explanation
+		===========
+
+		"""
+
+		print 'Finding intersection of segment with fundi...'
+		intersection = [0,0]
+
+		for i in xrange(2):
+			pointer = endpoint[i]
+			used_nodes = [pointer]
+			neighbors = []
+			while pointer not in self.fundal_nodes:
+				tmp0 = np.intersect1d(self.neighbors(pointer),segment)
+				tmp1 = np.setdiff1d(tmp0,used_nodes)
+				neighbors = neighbors + list(tmp1)
+
+				if not neighbors:
+					pointer = -1
+					print 'No neighbors left to explore.'
+					break
+
+				pointer = neighbors.pop()
+				used_nodes.append(pointer)
+
+			intersection[i] = pointer
+
+		print "The intersection points are: ", intersection
+
+		if np.product(intersection) < 0:
+			print segment
+			labels = np.zeros(self.Labels.shape)
+			labels[segment] = 100
+			labels[endpoint] = 200
+			vo.write_all('/home/eli/Desktop/debug_intersections.vtk',self.Nodes, self.Mesh, labels)
+			raw_input("Check this out...")
+
+		return intersection
+
 	def analyze_label_fundi_intersections(self, completed=''):
 		""" Find fundal nodes which intersect label boundary, and determine whether they belong to the same fundus curve.
 
@@ -717,40 +803,6 @@ class Shape:
 			1: all other cases - do label propagation, see other methods for details.
 			This list may change as the algorithm for propagation gets more sophisticated.
 
-		Explanation
-		===========
-		For each segment:
-			Find the two endpoints, as follows:
-				Find all the nodes which only border one other node in the set.
-				Count the number of a node's neighbors which are also part of the segment.
-				If the number is 1, then it is an endpoint.
-			Start with one of the enpoints.
-				Check if it's a fundal node.
-				If yes, go to the other enpoint.
-				If no, go to the "next node".
-				The "next node" is the node which is a neighbor of the current node, but not one of the previous nodes.
-				Keep going until you reach a fundal node.
-				If you reach a fundal node. Go to other endpoint, and repeat the above process.
-				If you never reach a fundal node, i.e. if you hit the other enpoint. Then that's the end of this process.
-				If you didn't reach any fundal nodes, consider this whole segment as one unit.
-					Perform the label propagation algorithm on this segment.
-						Let the segment be 1, the fundi be 0, the other segments -1...
-				If you did reach fundal nodes on both sides:
-					Check if you can connect them using only fundal nodes.
-					If you can, perform a label propagation algorithm with segment and fundi labeled +1.
-						Have the threshold be .99.
-						This is the best case scenario.
-					If you can't, perform label propagation algorithm with segment +1 and fundi 0.
-				If you only reached a fundal node on one side, i.e. if reached the same fundal node:
-					Perfom a label propagation algorithm with the segment +1 and fundi 0.
-			For each segment you perform label propagation on (i.e. for each segment you consider):
-				Analyze the co-segment as well.
-				If they both have double fundus intersections, use and keep them both.
-					After all, this is the best case scenario, and is pretty fool proof.
-					(Assuming the size is good).
-				Otherwise, perform propagation on both segments.
-				Choose smaller perturbation.
-					One which converts fewer nodes.
 		"""
 
 		try:
@@ -759,86 +811,45 @@ class Shape:
 			self.find_label_boundary_segments(completed=completed)
 
 		for key, segment in self.label_boundary_segments.items():
-			endpoint = [-1, -1]
-			for node in segment:
-				ns = self.neighbors(node)
-				boundary_ns = np.intersect1d(ns, segment)
-				if len(boundary_ns) == 1:
-					if endpoint[0] == -1:
-						endpoint[0] = node # This is an endpoint. Construct segments starting from here.
-					else:
-						endpoint[1] = node
-						break
+			if segment:
+				endpoint = self.find_endpoints(segment)
+				intersection = self.find_intersections(segment, endpoint)
 
-			print "Endpoints are: ", endpoint
+				self.same_fundus = False
+				if -1 not in intersection and intersection[0] != intersection[1]:
+					# It found 2 different intersections. We must therefore now assess whether these two intersections are
+					# part of the same fundus.
 
-				# We now have the two endpoints.
-				# We now need to find the intersecting fundi.
-				# current node = endpoint1
-				# while current node is not fundal node (i.e. is not partition point)
-				# current node = next node
-				# intersection1 = current node
-				# current node = endpoint2
-				# while current node is not fundal node (i.e. is not partition point)
-				# current node = next node
-				# intersection2 = current node
-				# We will now check to see if the two intersections can be linked by fundi.
-				# To do so we will use self.Fundi, which is a 2-column numpy array.
-				# Start with one intersection point.
-				# pointer = intersection 1
-				# while pointer != intersection2
-				# Find one or more NEW rows in self.Fundi which contain that point.
-				# (May need to use recursion here)
-				# If no new rows exist:
-				# report that intersections are not part of the same fundus curve
-				# break
-				# pointer = other fundal point in that row
+					pointer = intersection[0] # This is the first intersection point.
+					print "First pointer is: ", pointer
+					row_avoid = [] # This will be an array of rows in self.Fundi to avoid
+					node_avoid = [pointer] # This will be an array of nodes to avoid
 
-			intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
-			for i in xrange(2):
-				current_node = endpoint[i]
-				avoid = {current_node}
-				while current_node not in self.fundal_nodes:
-					current_neighbors = set.intersection(set(self.neighbors(current_node)), set(segment))
-					try:
-						next_node = set.difference(current_neighbors, avoid).pop()
-					except:
-						print 'you have reached the exception clause. The intersection should be -1'
-						current_node = -1
-						break
-					avoid.add(next_node)
-					current_node = next_node
-				intersection[i] = current_node # It might be -1, if there are no intersections.
+					rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
+					print "And the list of rows to explore is: ", rows
 
-			print "The intersection points are: ", intersection
+					while rows:
+						path_to_follow = rows.pop(0)
 
-			self.same_fundus = False
-			if -1 not in intersection and intersection[0] != intersection[1]:
-				# It found 2 different intersections. We must therefore now assess whether these two intersections are
-				# part of the same fundus.
+						print "Following path: ", path_to_follow
 
-				pointer = intersection[0] # This is the first intersection point.
-				print "First pointer is: ", pointer
-				avoid = set() # This will be an array of rows in self.Fundi to avoid
-				rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
-				print "And the list of rows to explore is: ", rows
+						row_avoid.append(path_to_follow)
 
-				while rows:
-					path_to_follow = rows[0]
-					print "Following path! ", path_to_follow
-					avoid.add(path_to_follow)
-					tmp = set(list(self.Fundi[path_to_follow]))
-					print "fundal nodes which are being analyzed are: ", tmp
-					pointer = tmp.remove(pointer)
-					print "pointer is now: ", pointer
-					if pointer == intersection[1]:
-						# Bingo!
-						print 'Bingo! Both intersections are part of the same fundus!'
-						self.same_fundus = True
-						break
-					rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
-					print "Rows is now: ", rows
-			self.label_boundary_segments[key] = np.append(segment,int(self.same_fundus))
+						tmp = list(self.Fundi[path_to_follow])
+						pointer = set.difference(set(tmp), set(node_avoid)).pop()
+						node_avoid.append(pointer)
+						print "pointer is now: ", pointer
+
+						if pointer == intersection[1]:
+							# Bingo!
+							print 'Bingo! Both intersections are part of the same fundus!'
+							self.same_fundus = True
+							break
+
+						rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),set(row_avoid)))
+						print "Rows is now: ", rows
+
+				self.label_boundary_segments[key] = np.append(segment,int(self.same_fundus))
 
 		return self.label_boundary_segments
 
@@ -958,13 +969,13 @@ class Shape:
 
 		# Step 1. Find Manual Label Boundary Segments, Construct VTK File for Output
 		# The VTK file is stored in self.label_boundary_file
-		self.find_label_boundary(realigned = False)
+		self.find_label_boundary()
 
 		# Step 2. Construct VTK File of Fundi for Output
 		# This has already been obtained, as self.fundi_file
 
 		# Step 3. Find Label Boundary Segments
-		self.find_label_boundary_segments(skip_file = skip_file)
+		self.find_label_boundary_segments()
 
 		# Step 4. Propagate Labels from Label Boundary Segments, With Desired Conditions In Place
 		# Define separate function to accomplish this. It will call the main label propagation function.
@@ -979,6 +990,9 @@ class Shape:
 		"""
 		# First check to see if the neighbors matrix was constructed.
 		if not self.neighbors_constructed:
+
+			print 'Constructing neighborhood function.'
+
 			""" Then we must construct it now."""
 			self.Neighbors = lil_matrix((self.num_nodes, self.num_nodes))
 
@@ -987,9 +1001,10 @@ class Shape:
 				self.Neighbors[row[0], row[2]] = self.Neighbors[row[2], row[0]] = 1
 				self.Neighbors[row[1], row[2]] = self.Neighbors[row[2], row[1]] = 1
 
+			self.Neighbors = self.Neighbors.tocsr()
 			self.neighbors_constructed = 1
 
-		return np.nonzero(self.Neighbors.tocsr()[node])[1]
+		return np.nonzero(self.Neighbors[node])[1]
 
 	def check_well_formed(self):
 		"""Check whether the inputted data is well formed."""
@@ -1529,8 +1544,11 @@ shape = Shape()
 
 def test():
 	""" This test is for the realignment task."""
+	t0 = time()
 	shape.import_vtk('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk')
 	shape.import_fundi('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk')
+	print 'Imported Data in: ', time() - t0
+
 	shape.analyze_label_fundi_intersections(completed='/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl')
 
 test()
