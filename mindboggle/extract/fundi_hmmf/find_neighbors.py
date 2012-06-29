@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-Find neighbors
+Find neighbors to a surface mesh vertex.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 

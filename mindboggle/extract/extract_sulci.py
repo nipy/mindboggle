@@ -16,8 +16,8 @@ Output:
 
 
 Authors:
-    Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-    Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -56,16 +56,14 @@ def find_neighbors(faces, index):
 
     return I
 
-"""
 #------------------
 # Fill sulcus holes
 #------------------
 def fill_sulcus_holes(faces, sulci):
-    ""
+    """
     Fill sulcus holes.
 
-    ????
-    ???? include explanation of sulci within holes problem
+    ????[include explanation of sulci within holes problem]
 
     Inputs:
     ------
@@ -76,85 +74,89 @@ def fill_sulcus_holes(faces, sulci):
     ------
     sulci: [#vertices x 1] numpy array
 
+    Parameters:
+    ----------
+    min_sulcus_size
+    max_indices
+
     Calls:
     -----
-    find_neighbors(): numpy array of indices
+    find_neighbors()
 
-    ""
-    print('Number of sulci before pruning: ' + str(max(sulci)))
+    """
 
+    # Parameter
+    min_sulcus_size = 50
+    max_indices = 10000
+
+    # Remove small sulci
+    print('Number of sulci before pruning:', str(max(sulci)))
     counter = 0
-
-    while (counter < max(sulci)):
-        counter = counter + 1
+    while counter < np.max(sulci):
+        counter += 1
         ns = sum(sulci == counter)
-        if (ns < 50):
-            sulci(sulci == counter) = 0
-            sulci(sulci > counter) = sulci(sulci > counter) - 1
-            counter = counter - 1
-
+        if ns < min_sulcus_size:
+            sulci[sulci == counter] = 0
+            sulci[sulci > counter] = sulci[sulci > counter] - 1
+            counter -= 1
     print('Number of sulci after pruning: ' str(max(sulci)))
 
-    Holes = np.zeros(size(sulci))
+    # Initialize holes
+    holes = np.zeros(len(sulci))
+    seeds = np.where(sulci == 0)
+    seed_size = len(seeds)
 
-    seeds = find(sulci == 0)
-
-    seedSize = size(seeds,1)
     counter = 0
-
-    while (seedSize > 0):
+    while seed_size > 0:
         counter = counter + 1
-        TEMP = np.zeros(size(sulci))
+        TEMP = np.zeros(len(sulci))
 
-        rseed = round(rand*(seedSize-1)) + 1
+        rseed = np.round(np.random.rand * (seed_size - 1)) + 1
 
-        TEMP(seeds(rseed,1),1) = 2
-        newSize = size(find(TEMP>1))
+        TEMP[seeds[rseed]] = 2
+        new_size = sum(TEMP > 1)
 
         # grow region until no more connected points available
-        while(newSize > 0):
-            indsList = find(TEMP == 2)
+        while new_size > 0:
+            indices = np.where(TEMP == 2)
 
-            TEMP(TEMP == 2) = 1
+            TEMP[TEMP == 2] = 1
 
-            for i = 1:size(indsList,1):
-                neighs = find_neighbors(faces,indsList(i,1))
-                neighs = neighs(sulci(neighs) == 0)
-                neighs = neighs(TEMP(neighs) == 0)
-                TEMP(neighs) = 2
+            for index in indices:
+                neighs = find_neighbors(faces, index)
+                neighs = neighs[sulci[neighs] == 0]
+                neighs = neighs[TEMP[neighs] == 0]
+                TEMP[neighs] = 2
 
-            newSize = size(find(TEMP>1))
+            new_size = sum(TEMP > 1)
 
-        Holes(TEMP > 0) = counter
+        holes[TEMP > 0] = counter
 
-        sulci(Holes > 0) = .5
-        seeds = find(sulci == 0)
-
-        seedSize = size(seeds,1)
+        sulci[holes > 0] = 0.5
+        seeds = np.where(sulci == 0)
+        seed_size = len(seeds)
 
         # display current sulcus size
-        print(size(find(Holes == counter),1))
+        print(sum(holes == counter))
 
-    sulci(sulci < 1) = 0
+    sulci[sulci < 1] = 0
 
-    for i in range(max(Holes)):
+    for i in range(max(holes)):
         found = 0
-        currInds = find(Holes == i)
+        current_indices = np.where(holes == i)
 
-        if (size(currInds,1) < 10000):
+        if (len(current_indices) < max_indices):
             j = 0
-            while (found == 0):
-                j = j + 1
-                neighs = find_neighbors(faces, currInds(j,1))
-                nIdx = max(sulci(neighs))
-                if (nIdx > 0):
-                    sulci(currInds) = nIdx
+            while found == 0:
+                j += 1
+                neighs = find_neighbors(faces, current_indices[j])
+                nIdx = np.max(sulci[neighs])
+                if nIdx > 0:
+                    sulci[current_indices] = nIdx
                     found = 1
-                    print('Found ' + str(i))
+                    print('Found', str(i))
 
     return sulci
-
-"""
 
 #==============
 # Extract sulci
@@ -185,6 +187,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
 
     """
 
+    # Dummy input:
     #faces = np.round(10*np.random.rand(5,3)).astype(int)
     #depths = np.random.rand(10,1)
 
@@ -233,8 +236,10 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
         # Display current number of sulci
         print('Number of sulci:', str(counter))
 
-    #sulci = fill_sulcus_holes(faces, sulci)
+    # Fill sulcus holes to preserve topology
+    sulci = fill_sulcus_holes(faces, sulci)
 
-    n_sulci = np.max(sulci)  # number of sulci
+    # Compute the number of sulci
+    n_sulci = np.max(sulci)
 
     return sulci, n_sulci
