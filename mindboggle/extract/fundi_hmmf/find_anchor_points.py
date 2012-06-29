@@ -1,10 +1,12 @@
 #!/usr/bin/python
 """
-Compute distance measures.
+Assign maximum likelihood vertices as "anchor points".
+
+Anchor points are used to construct fundus curves.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -21,7 +23,7 @@ def find_anchor_points(vertices, L, min_distances, distance_threshold, max_dista
 
     Assign maximum likelihood vertices as "anchor points"
     for use in constructing fundus curves.
-    Ensure tht anchor points are not close to one another.
+    Ensure that the anchor points are not close to one another.
 
     Inputs:
     ------

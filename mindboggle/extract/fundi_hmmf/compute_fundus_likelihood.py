@@ -2,12 +2,9 @@
 """
 Compute fundus likelihood values.
 
-Input
-
-
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -22,7 +19,7 @@ def compute_fundus_likelihood(curvatures, depths, sulci, sulcus_index):
     """
     Compute fundus likelihood values.
 
-    ????
+    ????[Include an explanation of adaptive thresholding]
 
     Inputs:
     ------
@@ -33,29 +30,30 @@ def compute_fundus_likelihood(curvatures, depths, sulci, sulcus_index):
 
     Parameters:
     ----------
-    threshold1: ????
-    threshold2: ????
-    threshold3: ????
-    high_map_value: ????
-    increment1: ????
-    increment2: ????
+    Adaptive thresholding:
+      threshold1: ????
+      threshold2: ????
+      threshold3: ????
+      high_map_value: ????
+    Increments to reduce computation time:
+      increment1
+      increment2
 
     Output:
     ------
     L: fundus likelihood values [#vertices x 1] numpy array
 
     """
-    # must these be fixed????
-    # ???? explain adaptive thresholding
+    # Parameters for adaptive thresholding
     threshold1 = 0.6
     threshold2 = 0.05
     threshold3 = 0.3
     high_map_value = 0.9
-
+    # Increments to reduce computation time
     increment1 = 0.01
     increment2 = 0.0001
 
-    slope_factor = np.log((1/high_map_value)-1)
+    slope_factor = np.log((1 / high_map_value) - 1)
 
     # Take the opposite of the curvature values
     curvatures = (-1 * curvatures)
