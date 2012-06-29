@@ -77,7 +77,6 @@ def fill_sulcus_holes(faces, sulci):
     Parameters:
     ----------
     min_sulcus_size
-    max_hole_size
 
     Calls:
     -----
@@ -87,7 +86,6 @@ def fill_sulcus_holes(faces, sulci):
 
     # Parameters
     min_sulcus_size = 50
-    max_hole_size = 10000
 
     # Remove small sulci and renumber remaining sulcus vertices
     print('Number of sulci before pruning:', str(max(sulci)))
@@ -147,12 +145,20 @@ def fill_sulcus_holes(faces, sulci):
     # Remove hole values from sulci array (new ones added below)
     sulci[sulci < 1] = 0
 
-    # For each of the small holes
+    # Find the maximum hole size (the background) to ignore below
+    max_hole_size = 0
+    for i in range(max(holes)):
+        if sum(holes == i) > max_hole_size:
+            max_hole_size = sum(holes == i)
+
+    # Look for vertices that have a sulcus label and are
+    # connected to any of the vertices in the current hole,
+    # and assign the hole the maximum label number
     for i in range(max(holes)):
         found = 0
         hole_indices = np.where(holes == i)
+        # Ignore the hole with the largest number of vertices (background)
         if len(hole_indices) < max_hole_size:
-
             # Loop until a labeled neighbor is found
             j = 0
             while not found:
