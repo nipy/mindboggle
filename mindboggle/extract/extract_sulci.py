@@ -77,7 +77,7 @@ def fill_sulcus_holes(faces, sulci):
     Parameters:
     ----------
     min_sulcus_size
-    max_indices
+    max_hole_size
 
     Calls:
     -----
@@ -85,76 +85,88 @@ def fill_sulcus_holes(faces, sulci):
 
     """
 
-    # Parameter
+    # Parameters
     min_sulcus_size = 50
-    max_indices = 10000
+    max_hole_size = 10000
 
-    # Remove small sulci
+    # Remove small sulci and renumber remaining sulcus vertices
     print('Number of sulci before pruning:', str(max(sulci)))
     counter = 0
     while counter < np.max(sulci):
         counter += 1
-        ns = sum(sulci == counter)
-        if ns < min_sulcus_size:
+        if sum(sulci == counter) < min_sulcus_size:
             sulci[sulci == counter] = 0
             sulci[sulci > counter] = sulci[sulci > counter] - 1
             counter -= 1
-    print('Number of sulci after pruning: ' str(max(sulci)))
+    print('Number of sulci after pruning:', str(max(sulci)))
 
-    # Initialize holes
+    # Initialize holes and hole seeds
     holes = np.zeros(len(sulci))
     seeds = np.where(sulci == 0)
-    seed_size = len(seeds)
+    n_seeds = len(seeds)
 
+    # Loop until there are no more hole seeds
     counter = 0
-    while seed_size > 0:
-        counter = counter + 1
+    while n_seeds > 0:
+        counter += 1
+
+        # Create a new array the size of the sulci array
+        # and mark a random (inner seed) element (with "2")
         TEMP = np.zeros(len(sulci))
-
-        rseed = np.round(np.random.rand * (seed_size - 1)) + 1
-
+        rseed = np.round(np.random.rand * (n_seeds - 1)) + 1
         TEMP[seeds[rseed]] = 2
         new_size = sum(TEMP > 1)
 
-        # grow region until no more connected points available
+        # Grow seed region (hole) until no more connected points available
         while new_size > 0:
-            indices = np.where(TEMP == 2)
 
+            # Identify and reset inner seeds
+            inner_seeds = np.where(TEMP == 2)
             TEMP[TEMP == 2] = 1
 
-            for index in indices:
-                neighs = find_neighbors(faces, index)
+            # Mark neighbors to inner seeds
+            for inner_seed in inner_seeds:
+                neighs = find_neighbors(faces, inner_seed)
                 neighs = neighs[sulci[neighs] == 0]
                 neighs = neighs[TEMP[neighs] == 0]
                 TEMP[neighs] = 2
-
             new_size = sum(TEMP > 1)
 
+        # Assign counter number to hole
         holes[TEMP > 0] = counter
 
+        # Assign 0.5 to hole vertices in "sulci" array to ignore in loop
+        # and find new hole seeds
         sulci[holes > 0] = 0.5
         seeds = np.where(sulci == 0)
-        seed_size = len(seeds)
+        n_seeds = len(seeds)
 
-        # display current sulcus size
-        print(sum(holes == counter))
+        # Display current hole size
+        print('Hole size:', str(sum(holes == counter)))
 
+    # Remove hole values from sulci array (new ones added below)
     sulci[sulci < 1] = 0
 
+    # For each of the small holes
     for i in range(max(holes)):
         found = 0
-        current_indices = np.where(holes == i)
+        hole_indices = np.where(holes == i)
+        if len(hole_indices) < max_hole_size:
 
-        if (len(current_indices) < max_indices):
+            # Loop until a labeled neighbor is found
             j = 0
-            while found == 0:
+            while not found:
                 j += 1
-                neighs = find_neighbors(faces, current_indices[j])
-                nIdx = np.max(sulci[neighs])
+                # Find neighboring vertices to the hole
+                neighs = find_neighbors(faces, hole_indices[j])
+                # If there are any neighbor sulcus labels,
+                # assign the sulci hole vertices the maximum neighbor label
+                # and end the while loop
+                nIdx = max(sulci[neighs])
                 if nIdx > 0:
-                    sulci[current_indices] = nIdx
+                    sulci[hole_indices] = nIdx
                     found = 1
-                    print('Found', str(i))
+                    print('Found hole', str(i))
 
     return sulci
 
