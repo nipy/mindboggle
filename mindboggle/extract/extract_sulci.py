@@ -145,7 +145,7 @@ def fill_sulcus_holes(faces, sulci):
     # Remove hole values from sulci array (new ones added below)
     sulci[sulci < 1] = 0
 
-    # Find the maximum hole size (the background) to ignore below
+    # Find the  to ignore below
     max_hole_size = 0
     for i in range(max(holes)):
         if sum(holes == i) > max_hole_size:
