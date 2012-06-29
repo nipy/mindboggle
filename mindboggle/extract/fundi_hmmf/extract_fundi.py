@@ -1,10 +1,10 @@
 #!/usr/bin/python
 """
-Extract fundi.
+Extract fundus curves from surface mesh patches (sulci).
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com  (original Matlab code)
-Arno Klein  .  arno@mindboggle.info  (translated to Python)
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -22,7 +22,7 @@ from connect_the_dots import connect_the_dots
 # Extract a fundus
 #=================
 def extract_fundus(L, sulci, sulcus_index, vertices, faces,
-                            min_distances, L_threshold=0.5,
+                            min_distances, thr=0.5,
                             min_sulcus_size=30, max_neighbors=15):
     """
     Extract a single fundus.
@@ -37,14 +37,13 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     vertices: [#vertices x 3] numpy array
     faces: vertices for polygons [#faces x 3] numpy array
     min_distances: [#vertices x 1] numpy array
-    L_threshold: likelihood threshold
+    thr: likelihood threshold
     min_sulcus_size: minimum sulcus size from which to find a fundus
     max_neighbors: maximum number of neighbors per sulcus vertex
 
     Output:
     ------
-    fundus: binary assignments for connected vertices:????
-            [#fundus vertices x 1] numpy array
+    fundus: [#fundus vertices x 1] numpy array
 
     Calls:
     -----
@@ -58,7 +57,7 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     L[sulci != sulcus_index] = 0
 
     # If the size of the sulcus is sufficiently large, continue
-    if sum(L > L_threshold) > min_sulcus_size:
+    if sum(L > thr) > min_sulcus_size:
 
         # Find neighbors for each sulcus vertex and arrange as rows in an array
         sulcus_indices = np.where(L > 0)
@@ -131,7 +130,7 @@ def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, 
     for sulcus_index in range(1, n_sulci + 1):
         L = L + compute_fundus_likelihood(mean_curvatures, depths, sulci, sulcus_index)
 
-    # Extract individual fundi and store them as
+    # Extract individual fundi
     print('Extract fundi...')
     fundi = np.zeros(n_vertices, n_sulci)
     for sulcus_index in range(1, n_sulci + 1):
