@@ -44,15 +44,16 @@ def find_neighbors(faces, index):
 
     """
     # Create list of vertex indices sharing the same faces as "index"
-    I = [faces[np.where(faces[:,i] == index)[0]][0].tolist() for i in range(3) \
-         if len(np.where(faces[:,i] == index)[0]) > 0]
+    I = [faces[np.where(faces[:,i] == index)[0]].tolist() for i in range(3)]
 
     # Create single list from nested lists
-    I = [int(item) for sublist in I for item in sublist]
+    I = [int(item) for sublist in I for subsublist in sublist for item in subsublist]
 
-    # Find unique indices not equal to "index"
-    I = np.unique(I)
-    I[I != index]
+    if len(I) > 0:
+
+        # Find unique indices not equal to "index"
+        I = np.unique(I)
+        I[I != index]
 
     return I
 
@@ -100,7 +101,7 @@ def fill_sulcus_holes(faces, sulci):
 
     # Initialize holes and hole seeds
     holes = np.zeros(len(sulci))
-    seeds = np.where(sulci == 0)
+    seeds = np.where(sulci == 0)[0]
     n_seeds = len(seeds)
 
     # Loop until there are no more hole seeds
@@ -119,7 +120,7 @@ def fill_sulcus_holes(faces, sulci):
         while new_size > 0:
 
             # Identify and reset inner seeds
-            inner_seeds = np.where(TEMP == 2)
+            inner_seeds = np.where(TEMP == 2)[0]
             TEMP[TEMP == 2] = 1
 
             # Mark neighbors to inner seeds
@@ -136,7 +137,7 @@ def fill_sulcus_holes(faces, sulci):
         # Assign 0.5 to hole vertices in "sulci" array to ignore in loop
         # and find new hole seeds
         sulci[holes > 0] = 0.5
-        seeds = np.where(sulci == 0)
+        seeds = np.where(sulci == 0)[0]
         n_seeds = len(seeds)
 
         # Display current hole size
@@ -156,7 +157,7 @@ def fill_sulcus_holes(faces, sulci):
     # and assign the hole the maximum label number
     for i in range(max(holes)):
         found = 0
-        hole_indices = np.where(holes == i)
+        hole_indices = np.where(holes == i)[0]
         # Ignore the hole with the largest number of vertices (background)
         if len(hole_indices) < max_hole_size:
             # Loop until a labeled neighbor is found
@@ -205,11 +206,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
 
     """
 
-    # Dummy input:
-    #faces = np.round(10*np.random.rand(5,3)).astype(int)
-    #depths = np.random.rand(10,1)
-
-    depth_increment = 0.5 
+    depth_increment = 0.5
 
     # Initialize sulci and seeds (indices of deep vertices)
     sulci = np.zeros(len(depths))
@@ -222,7 +219,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
         counter += 1
 
         # Select a random seed vertex (selection does not affect result)
-        rseed = np.round(np.random.rand() * (n_seeds - 1))
+        rseed = int(np.round(np.random.rand() * (n_seeds - 1)))
         TEMP = np.zeros(len(depths))
         TEMP[seeds[rseed]] = 2
 
@@ -237,7 +234,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
                 # Find all neighbors deeper than the depth threshold
                 neighbors = find_neighbors(faces, index)  # numpy array
                 if any(neighbors):
-                    neighbors = neighbors[depths[neighbors][0] > depth_threshold]
+                    neighbors = neighbors[depths[neighbors] > depth_threshold]
                     # Select the neighbors that have not been previously selected
                     if any(neighbors):
                         neighbors = neighbors[TEMP[neighbors] == 0]
@@ -252,7 +249,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2):
         n_seeds = len(seeds)
 
         # Display current number of sulci
-        print('Number of sulci:', str(counter))
+        print('Number of sulci: ' + str(counter))
 
     # Fill sulcus holes to preserve topology
     sulci = fill_sulcus_holes(faces, sulci)

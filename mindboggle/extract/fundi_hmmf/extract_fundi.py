@@ -17,6 +17,7 @@ from compute_fundus_likelihood import compute_fundus_likelihood
 from find_neighbors import find_neighbors
 from find_anchor_points import find_anchor_points
 from connect_the_dots import connect_the_dots
+from test import test_fundi_hmmf
 
 #=================
 # Extract a fundus
@@ -60,7 +61,7 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces,
     if sum(L > thr) > min_sulcus_size:
 
         # Find neighbors for each sulcus vertex and arrange as rows in an array
-        sulcus_indices = np.where(L > 0)
+        sulcus_indices = np.where(L > 0)[0]
         len_sulcus = len(sulcus_indices)
         sulcus_neighbors = np.zeros((len_sulcus, max_neighbors))
         for i in range(len_sulcus):
@@ -137,3 +138,7 @@ def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, 
         fundi[:, sulcus_index - 1] = extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
 
     return fundi
+
+mean_curvatures, depths, vertices, faces, min_directions = test_fundi_hmmf()
+
+fundi = extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2)
