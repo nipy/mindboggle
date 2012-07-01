@@ -1,6 +1,6 @@
 # this script extracts fundi/pits/sulci from a VTK file from the output from Joachim's code
 
-import libfundi, fileio, libvtk # this line imports my own library
+import libfundi # this line imports my own library
 import sys, getopt # this line imports pulic libraries
 
 def print_help():
