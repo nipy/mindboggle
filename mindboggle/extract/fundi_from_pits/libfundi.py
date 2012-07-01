@@ -2,7 +2,7 @@
 # Last updated: 2011-08-09 Forrest Sheng Bao 
 
 import readFreeSurfer as rfs
-import fileio, libbasin
+import io_file, libbasin
 import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin, median
 import sys
@@ -631,8 +631,8 @@ def lineUp(Special, NbrLst, VrtxCmpnts, VtxCoords, CurvatureDB):
     # Dists = zeroout(Dists, VrtxCmpnt, FundiList)  # only needed if MST only spans over special vertexes
     # Now Dists are weighted adjacency matrix of fundus vertexes in each component
     
-#    fileio.wrtLists(DistFile+'.reduced', Dists)  # optional line, for debugging
-#    Dists = fileio.readLists(DistFile+'.reduced')  # for fast debugging   only 
+#    io_file.wrtLists(DistFile+'.reduced', Dists)  # optional line, for debugging
+#    Dists = io_file.readLists(DistFile+'.reduced')  # for fast debugging   only 
     # End of step 2
     
     # Step 3: use MST to connect all vertexes in NewVrtxCmpnts and dump into VTK format
@@ -743,7 +743,7 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
 ## commented to use pyvtk's API to save fundi, no need for my own pits format, Forrest 2011-01-09
 #    print "Saving fundi from Pits into VTK"    
 #    FPits = PrefixExtract + '.fundi.from.pits'
-#    fileio.writeFundiSeg(FPits, PSegs)
+#    io_file.writeFundiSeg(FPits, PSegs)
 #    
 #    VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
 #    libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=LUT, LUTname=LUTname)
@@ -845,11 +845,11 @@ def getFundi(InputFiles, Type, Options):
             # from differnt maps 
             
             if Use == 'conv':
-                MapBasin = fileio.readCurv(ConvFile)
+                MapBasin = io_file.readCurv(ConvFile)
                 PrefixBasin = ConvFile
                 PrefixExtract = ConvFile
             elif Use == 'curv':
-                MapBasin = fileio.readCurv(CurvFile)
+                MapBasin = io_file.readCurv(CurvFile)
                 PrefixBasin = CurvFile
                 PrefixExtract = CurvFile
             else:
@@ -861,19 +861,19 @@ def getFundi(InputFiles, Type, Options):
             MapFeature = []
             FeatureNames = []
             if CurvFile != "":
-                    MapFeature.append(fileio.readCurv(CurvFile))
+                    MapFeature.append(io_file.readCurv(CurvFile))
                     FeatureNames.append('curv')
             if ConvFile != '':
-                    MapFeature.append(fileio.readCurv(ConvFile))
+                    MapFeature.append(io_file.readCurv(ConvFile))
                     FeatureNames.append('conv')
             if ThickFile != '':
-                MapFeature.append(fileio.readCurv(ThickFile))
+                MapFeature.append(io_file.readCurv(ThickFile))
                 FeatureNames.append('thickness')
     
     #        print PrefixBasin, PrefixExtract
     #        exit()
     
-            Mesh = fileio.readSurf(SurfFile)
+            Mesh = io_file.readSurf(SurfFile)
 
         elif Type == 'vtk':
             print "\t Joachim's VTK mode\n" 
@@ -901,23 +901,23 @@ def getFundi(InputFiles, Type, Options):
             print "PrefixExtract:", PrefixExtract 
     
             if ThickFile != '':
-                MapFeature.append(fileio.readCurv(ThickFile))          
+                MapFeature.append(io_file.readCurv(ThickFile))          
                 FeatureNames.append('thickness') 
     
             if ConvexityFile != '':
-                MapFeature.append(fileio.readCurv(ConvexityFile))          
+                MapFeature.append(io_file.readCurv(ConvexityFile))          
                 FeatureNames.append('sulc')
             
             Mesh = [Vertexes, Faces]
             
         # common for both FreeSurfer and vtk type 
         if SurfFile2 != '':
-            Mesh2 = fileio.readSurf(SurfFile2)
+            Mesh2 = io_file.readSurf(SurfFile2)
 #            Mesh2 = [Vertexes2, Face2]
         else:
             Mesh2 = []
 
-        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld)
+        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld, Quick=True)
         
         import pyvtk
         Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
@@ -929,7 +929,7 @@ def getFundi(InputFiles, Type, Options):
         print "\t Clouchoux-type pits while sulci and pits from depth"
         [VTKFile, SurfFile2, ConvexFile, ThickFile] = InputFiles
         if SurfFile2 != '':
-            Vertexes2, Face2 = fileio.readSurf(SurfFile2)
+            Vertexes2, Face2 = io_file.readSurf(SurfFile2)
             Mesh2 = [Vertexes2, Face2]
         else:
             Mesh2 = []
@@ -977,7 +977,7 @@ def getFundi(InputFiles, Type, Options):
 #        Polys = Polys.GetData()
 #        Faces=[ [Polys.GetValue(Idx) for Idx in range(4*i+1, 4*(i+1))]  for i in range(0, Data.GetNumberOfPolys())]
 #        
-#        Curvature = fileio.readCurv(CurvFile) 
+#        Curvature = io_file.readCurv(CurvFile) 
 #        
 #        PointData = Data.GetPointData()
 #        DepthMap = PointData.GetArray('depth')        
@@ -994,17 +994,17 @@ def getFundi(InputFiles, Type, Options):
 #
 #        FeatureNames = ['curvature','depth']
 #        if ConvexityFile != '':
-#            Convexity = fileio.readCurv(ConvexityFile)
+#            Convexity = io_file.readCurv(ConvexityFile)
 #            MapFeature.append(Convexity)
 #            FeatureNames.append('convexity')
 #        if ThickFile != '':
-#            Thickness = fileio.readCurv(ThickFile)
+#            Thickness = io_file.readCurv(ThickFile)
 #            MapFeature.append(Thickness)          
 #            FeatureNames.append('thickness')  
 #        
 #        Mesh = [Vertexes, Faces]
 #        if SurfFile2 != '':
-#            Vertexes2, Faces2 = fileio.readSurf(SurfFile2)
+#            Vertexes2, Faces2 = io_file.readSurf(SurfFile2)
 #            Mesh2 = [Vertexes2, Faces2]
 #        else:
 #            Mesh2 = []
@@ -1036,7 +1036,7 @@ def getFundi(InputFiles, Type, Options):
 #    VrtxNbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, SurfFile) # activated on 2011-04-30 21:55
 #    
 #    FaceCmpntFile = CurvFile + '.cmpnt.face'
-#    FaceCmpnts = fileio.loadCmpnt(FaceCmpntFile)
+#    FaceCmpnts = io_file.loadCmpnt(FaceCmpntFile)
 #    Clouds = libskel.fc2VrtxCmpnt(Fc, Candidate, FaceCmpnts) # step 1: Convert faces in to Vrtx, clustered by components    
 #    DTMap = libskel.myDT(Clouds, VrtxNbrLst)  # step 2: my own distance transformation
 #    
@@ -1057,7 +1057,7 @@ def getFundi(InputFiles, Type, Options):
 #        Candidate += Skeleton
 #
 #    FCandidate = Prefix + '.skeletons'
-#    fileio.writeList(FCandidate, Candidate)
+#    io_file.writeList(FCandidate, Candidate)
 #    
 #    print "\t Saving Skeletons into VTK files"
 #    
@@ -1071,7 +1071,7 @@ def getFundi(InputFiles, Type, Options):
 ## output 3: fundus curves connected from skeletons 
 #                 
 #    VrtxCmpntFile = CurvFile + '.cmpnt.vrtx'
-#    VrtxCmpnt = fileio.loadCmpnt(VrtxCmpntFile)
+#    VrtxCmpnt = io_file.loadCmpnt(VrtxCmpntFile)
 #    
 #    Candidate, NodeColor, FundusLen, FundusID = lineUp(Candidate, VrtxNbrLst, VrtxCmpnt, Vrtx, CurvFile, Curvature) # activated 2011-05-28 17:53
 #
@@ -1092,7 +1092,7 @@ def getFundi(InputFiles, Type, Options):
 #    LUT.append(FIDLUT)
 #        
 #    FCandidate = Prefix + '.fundi.from.skeletons'
-#    fileio.writeFundiSeg(FCandidate, Candidate)
+#    io_file.writeFundiSeg(FCandidate, Candidate)
 #    
 #    VTKFile = FCandidate + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
 #    libvtk.seg2VTK(VTKFile, SurfFile, FCandidate, LUT=LUT, LUTname=LUTname)
