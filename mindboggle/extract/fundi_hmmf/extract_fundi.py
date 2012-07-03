@@ -122,7 +122,7 @@ def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, 
 
     # Extract sulci
     print('Extract sulci...')
-    sulci, n_sulci = extract_sulci(faces, depths, depth_threshold)
+    sulci, n_sulci = extract_sulci(faces, depths)
 
     # Compute fundus likelihood values
     print('Compute fundus likelihood values...')
@@ -139,6 +139,9 @@ def extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, 
 
     return fundi
 
-mean_curvatures, depths, vertices, faces, min_directions = test_fundi_hmmf()
+mean_curvatures, depths, vertices, faces, min_directions, \
+output_sulci, output_anchor_points, output_L, output_fundi = test_fundi_hmmf()
 
-fundi = extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2)
+sulci, n_sulci = extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50)
+
+#fundi = extract_all_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2)
