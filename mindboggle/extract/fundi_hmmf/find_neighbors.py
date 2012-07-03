@@ -40,7 +40,7 @@ def find_neighbors(faces, index):
 
         # Find unique indices not equal to "index"
         I = np.unique(I)
-        I[I != index]
+        I = I[I != index]
 
     return I
 
