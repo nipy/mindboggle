@@ -21,7 +21,7 @@ def test_fundi_hmmf(debug = 0):
               'output_fundi']
 
     if debug:
-        n_vertices = 3000
+        n_vertices = 50000
 
     outputs = []
     for input_type in inputs:
