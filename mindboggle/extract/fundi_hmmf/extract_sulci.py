@@ -81,22 +81,6 @@ def fill_sulcus_holes(faces, sulci):
 
     """
 
-    # Remove small sulci and renumber remaining sulcus vertices
-    """
-    min_sulcus_size = 50
-    print('Number of sulci before pruning: ' + str(max(sulci)))
-    counter = 0
-    while counter < np.max(sulci):
-        counter += 1
-        print(sum(sulci == counter))
-        print(sulci)
-        if sum(sulci == counter) < min_sulcus_size:
-            sulci[sulci == counter] = 0
-            sulci[sulci > counter] = sulci[sulci > counter] - 1
-            counter -= 1
-    print('Number of sulci after pruning: ' + str(max(sulci)))
-    """
-
     # Initialize holes and hole seeds
     holes = np.zeros(len(sulci))
     seeds = np.where(sulci == 0)[0]
@@ -112,7 +96,7 @@ def fill_sulcus_holes(faces, sulci):
         # Create a new array the size of the sulci array
         # and mark a random (inner seed) element (with "2")
         TEMP = np.zeros(len(sulci))
-        rseed = 0 #round(np.random.rand() * n_seeds) - 1
+        rseed = round(np.random.rand() * n_seeds) - 1
         TEMP[seeds[rseed]] = 2
         new_size = sum(TEMP > 1)
 
@@ -245,14 +229,15 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
         # Find sulcus region grown from seed
         sulcus_bool = TEMP > 0
         # Continue if sulcus size is greater than min_sulcus_size
-        if sum(sulcus_bool) > min_sulcus_size:
+        size_sulcus = sum(sulcus_bool)
+        if size_sulcus > min_sulcus_size:
             counter += 1
 
             # Assign the seed region vertices the loop counter number
             sulci[sulcus_bool] = counter
 
             # Display current number and sizes of sulci
-            print('Sulcus ' + str(counter) + ' size: ' + str(sum(sulcus_bool)))
+            print('Sulcus ' + str(counter) + ' size: ' + str(size_sulcus))
         # Assign small sulci indices 0.5 for later removal
         else:
             sulci[sulcus_bool] = 0.5
