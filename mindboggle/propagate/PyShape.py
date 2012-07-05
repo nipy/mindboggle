@@ -1078,7 +1078,7 @@ class Shape:
 		return self.eigenvalues
 
 	def propagate_labels(self,method='weighted_average', realign=False,
-	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=5001, tol=1, eps=1e-7):
+	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=50, tol=1, eps=1e-7):
 		""" Main function to propagate labels.
 
 		Parameters
@@ -1339,6 +1339,7 @@ class Shape:
 
 			t0 = time()
 			print 'Working on class: ', i
+			print 'Number of members initially in this class: ', np.nonzero(column==1)[0].size
 
 			# Set up indices and values to be clamped during propagation
 			if not realign:
@@ -1346,6 +1347,7 @@ class Shape:
 				restore_values = column[restore_indices]
 			else:
 				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
+				print restore_indices
 				restore_values = column[restore_indices]
 				pylab.plot(restore_values)
 				pylab.show()
