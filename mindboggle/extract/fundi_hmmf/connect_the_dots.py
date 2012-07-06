@@ -17,7 +17,7 @@ from find_neighbors import find_neighbors
 #--------------------
 # Compute probability
 #--------------------
-def prob(wt_likelihood=1.1, likelihood, wt_neighbors=0.4, hmmf, hmmf_neighbors):
+def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     """
     Compute Hidden Markov Measure Field (HMMF) probability for a given vertex.
 
@@ -238,7 +238,7 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
         probs = np.zeros(n_vertices)
         L_positive = L > 0
         n_positive = len(L_positive)
-        I_positive = np.where(L_positive)
+        I_positive = np.where(L_positive)[0]
     
         # Assign probability values to each neighboring vertex
         for i in range(n_vertices):

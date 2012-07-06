@@ -31,15 +31,16 @@ def find_neighbors(faces, index):
 
     """
     # Create list of vertex indices sharing the same faces as "index"
-    I = [faces[np.where(faces[:,i] == index)[0]][0].tolist() for i in range(3) \
-         if len(np.where(faces[:,i] == index)[0]) > 0]
+    I = [faces[np.where(faces[:,i] == index)[0]].tolist() for i in range(3)]
 
     # Create single list from nested lists
-    I = [int(item) for sublist in I for item in sublist]
+    I = [int(item) for sublist in I for subsublist in sublist for item in subsublist]
 
-    # Find unique indices not equal to "index"
-    I = np.unique(I)
-    I[I != index]
+    if len(I) > 0:
+
+        # Find unique indices not equal to "index"
+        I = np.unique(I)
+        I = I[I != index]
 
     return I
 
