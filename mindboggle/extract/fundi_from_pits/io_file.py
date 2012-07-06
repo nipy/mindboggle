@@ -6,6 +6,37 @@
 import struct, os
 
 def readSurf(filename):
+    '''Read in a FreeSurfer Triangle Surface in Binary Format. 
+    
+    Parameters
+    ===========
+    Filename : string
+        A binary FreeSurfer Triangle Surface file
+    
+    Outputs
+    =======
+    Vertex : list of 3-tuples of floats
+        Each element is a 3-tuple (list) of floats, which are the X, Y and Z coordinates of a vertex, respectively. 
+        A 3-tuple's index in the list *Vertex* is the ID of a vertex. 
+    
+    Face : list of 3-tuples of integers   
+        Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertexes that form one face
+    
+    Example
+    ========
+    
+    >>> import readFreeSurfer as rfs
+    >>> Vrtx, Face = rfs.readSurf('lh.pial')
+    >>> len(Vrtx)
+    130412
+    >>> len(Face)
+    260820
+    >>> Vrtx[10]
+    [-7.902474880218506, -95.6839370727539, -21.856534957885742]
+    >>> Face[10]
+    [2, 39, 3]
+    
+    '''
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
     
@@ -41,7 +72,31 @@ def readSurf(filename):
     return Vertex, Face
     
 def readCurv(filename):
-    '''Read FreeSurfer Curvature and Convexity files
+    '''Read in a FreeSurfer curvature (per-vertex) files.
+    
+    Parameters
+    ==========
+    
+    Filename : string
+        A binary FreeSurfer curvature (pre-vertex) file
+    
+    Outputs
+    ========
+    
+    Curvature : list of floats
+        Each element is the curvature value of a FreeSurfer mesh vertex. 
+        Elements are ordered by orders of vertexes in FreeSurfer surface file. 
+    
+    Example
+    ========
+    
+    >>> import readFreeSurfer as rfs
+    >>> Curv = rfs.readCurv('lh.curv')
+    >>> len(Curv)
+    130412
+    >>> Curv[10]
+    -0.37290969491004944
+    
     '''
     f = open(filename, "rb")
     
@@ -218,27 +273,24 @@ def readFltLsts(Filename):
                 
     return Lists[:-1] # because last one is an empty list
 
-## Deprecated functions
-#def writeCmpnt(Cmpnts, Filename):
-#    '''Write connected components into a file, one line for each connected component
-#    '''
-#    Fp = open(Filename, 'w')
-#    for Cmpnt in Cmpnts:
-#        for Element in Cmpnt:
-#            Fp.write(str(Element) + '\t')
-#        Fp.write('\n')
-#    Fp.close()
-#    
-#def loadCmpnt(Filename):
-#    '''Read in connected components from a file, one line for each connected component
-#    '''
-#    Fp = open(Filename, 'r')
-#    Cmpnts = []
-#    lines = Fp.readlines()
-#    Fp.close()
-#    
-#    for line in lines:
-#        Cmpnt = [int(i) for i in line.split()]
-#        Cmpnts.append(Cmpnt)
-#        
-#    return Cmpnts
+def load_min_curv_direction(Filename):
+    """Loads the minimal curvature directions computated by Joachim's CurvatureMain.cpp
+    
+    Parameters
+    ===========
+    
+        Filename: string
+            The path to the file that stores minimal curvature directions
+    
+    Returns
+    =========
+    
+        Min_Curv_Dir: 2D numpy array of 3-by-#Vertex floats
+            Each element is a 3-tuple of floats, representing the direction of minimal curvature at a vertex on surface mesh
+    """
+    
+    import numpy
+    
+    Min_Curv_Dir = numpy.loadtxt(Filename)
+    
+    return Min_Curv_Dir 
