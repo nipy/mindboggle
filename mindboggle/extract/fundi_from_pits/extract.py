@@ -1,5 +1,5 @@
-import libfundi, fileio, libvtk # this line imports my own library
 import sys, getopt # this line imports pulic libraries
+import libfundi
 
 def print_help():
     print "\n  Usage: python extract.py [OPTIONS] SurfFile\n"
