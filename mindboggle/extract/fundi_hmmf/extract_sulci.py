@@ -38,11 +38,11 @@ def find_neighbors(faces, index):
     Inputs:
     ------
     faces: surface mesh vertex indices [#faces x 3] numpy array
-    sulci: [#vertices x 1] numpy array
+    index: index of surface vertex
 
     Output:
     ------
-    I: [#vertices x 1] numpy array
+    I: [#neighbors x 1] numpy array
 
     """
     # Create list of vertex indices sharing the same faces as "index"
@@ -119,11 +119,11 @@ def fill_sulcus_holes(faces, sulci):
             # Mark neighbors to inner seeds
             for inner_seed in inner_seeds:
                 neighs = find_neighbors(faces, inner_seed)
-                if any(neighs):
+                if len(neighs) > 0:
                     neighs = neighs[sulci[neighs] == 0]
-                    if any(neighs):
+                    if len(neighs) > 0:
                         neighs = neighs[TEMP[neighs] == 0]
-                        if any(neighs):
+                        if len(neighs) > 0:
                             TEMP[neighs] = 2
             new_size = sum(TEMP > 1)
 
@@ -197,35 +197,46 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
     """
 
+    remove_faces = 1
+
     # Initialize sulci and seeds (indices of deep vertices)
     N = len(depths)
     sulci = np.zeros(N)
     seeds = np.where(depths > depth_threshold)[0]
     n_seeds = len(seeds)
 
-    # Remove faces that do not contain seeds
-    print(len(faces))
-    remove_faces = 1
+    # Remove faces that do not contain seeds to speed up computation
     if remove_faces:
-        count=0.0
-        for seed in seeds:
-            count+=1.0
-            print(count/n_seeds)
-            faces[faces == seed] = N + 1
-    print(np.sum(np.sum(faces, axis = 1) == 3*N+3))
-    import sys
-    sys.exit()
+        faces_sulci = faces[~np.all((faces < min(seeds)) + (faces > max(seeds)), axis=1)]
+#
+#        faces_sulci = np.reshape(np.ravel([lst for lst in faces if len(np.intersect1d(seeds, lst)) > 0]), (-1,3))
+#
+#        print('Reduced ' + str(len(faces)) + ' to ' + \
+#              str(len(faces_sulci)) + ' faces')
+
+
+#        faces_sulci = faces.copy()
+#        for seed in seeds:
+#            faces_sulci *= (faces - seed)
+#        faces_sulci = faces[np.sum(faces_sulci == 0, axis = 1) > 0]
+
+        #boolsum = faces_sulci == seeds[0]
+        #for seed in seeds:
+        #    boolsum += faces_sulci == seed
+        #faces_sulci = faces_sulci[np.sum(boolsum, axis = 1)]
+        print('Reduced ' + str(len(faces)) + ' to ' + \
+              str(len(faces_sulci)) + ' faces')
 
     # Loop until all seed vertices included in sulci
     print(str(n_seeds) + ' sulcus seed vertices to grow...')
     counter = 0
     TEMP0 = np.zeros(N)
     while n_seeds > min_sulcus_size:
-
-        # Select a random seed vertex (selection does not affect result)
         TEMP = np.copy(TEMP0)
-        I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
-        TEMP[I] = 2
+
+        # Select a seed vertex (selection does not affect result)
+        #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
+        I = [seeds[0]]
 
         # Grow region about the seed vertex until 
         # there are no more connected seed vertices available.
@@ -234,17 +245,24 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
         while loop:
             loop = 0
             TEMP[I] = 1
+            Inew = np.array([])
             # Find neighbors for each selected seed vertex
             for index in I:
-                neighbors = find_neighbors(faces, index)
+                neighbors = find_neighbors(faces_sulci, index)
                 # Select neighbors that have not been previously selected
-                neighbors = neighbors[TEMP[neighbors] == 0]
-                # Select neighbors deeper than the depth threshold
-                neighbors = neighbors[depths[neighbors] > depth_threshold]
-                TEMP[neighbors] = 2
+                if len(neighbors) > 0:
+                    neighbors = neighbors[TEMP[neighbors] == 0]
+                    # Select neighbors deeper than the depth threshold
+                    if len(neighbors) > 0:
+                        neighbors = neighbors[depths[neighbors] > depth_threshold]
+                        TEMP[neighbors] = 2
+                        if len(Inew) == 0:
+                            Inew = neighbors
+                        else:
+                            Inew = np.concatenate((Inew, neighbors))
+                        loop = 1
             # Continue looping
-            I = np.where(TEMP == 2)[0]
-            loop = any(I)
+            I = Inew
 
         # Find sulcus region grown from seed
         sulcus_bool = TEMP > 0
