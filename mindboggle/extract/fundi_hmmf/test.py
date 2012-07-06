@@ -15,13 +15,13 @@ def test_fundi_hmmf(debug = 0):
     import re
     import numpy as np
 
-    test_data_path = '/Users/arno/Dropbox/yrjo_code_io_data'
+    test_data_path = '/home/arno/Dropbox/yrjo_code_io_data'
     inputs = ['mean_curvatures', 'depths', 'vertices', 'faces', 'min_directions',
               'output_sulci', 'output_anchor_points', 'output_L',
               'output_fundi']
 
     if debug:
-        n_vertices = 5000
+        n_vertices = 10000
 
     outputs = []
     for input_type in inputs:
