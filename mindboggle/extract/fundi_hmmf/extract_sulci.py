@@ -25,8 +25,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 import numpy as np
 
-debug_verbose = 1
-
 #---------------
 # Find neighbors
 #---------------
@@ -59,6 +57,102 @@ def find_neighbors(faces, index):
 
     return I
 
+#========================
+# Segment surface patches
+#========================
+def segment_surface(faces, seeds, N, min_patch_size):
+    """
+    Segment a surface into contiguous patches (seed region growing).
+
+    Inputs:
+    ------
+    faces: surface mesh vertex indices [#faces x 3]
+    seeds: mesh vertex indices for vertices to be segmented [#seeds x 1]
+    N: #vertices total
+    min_patch_size: minimum size of segmented set of vertices
+
+    Output:
+    ------
+    segments: label indices for patches: [#seeds x 1] numpy array
+    max_patch: index for largest segmented set of vertices
+
+    Calls:
+    -----
+    find_neighbors(): numpy array of indices
+
+    """
+
+    # Initialize sulci and seeds (indices of deep vertices)
+    segments = np.zeros(N)
+    n_seeds = len(seeds)
+
+    # Remove faces that do not contain seeds to speed up computation
+    fs = frozenset(seeds)
+    faces_seeds = [lst for lst in faces if fs.intersection(lst)]
+    faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
+    print('Reduced ' + str(len(faces)) + ' to ' +\
+          str(len(faces_seeds)) + ' faces')
+
+    # Loop until all seed vertices segmented
+    print('Grow ' + str(n_seeds) + ' seed vertices...')
+    max_patch_size = 0
+    max_patch = 0
+    counter = 0
+    TEMP0 = np.zeros(N)
+    while n_seeds > min_patch_size:
+        TEMP = np.copy(TEMP0)
+
+        # Select a seed vertex (selection does not affect result)
+        #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
+        I = [seeds[0]]
+
+        # Grow region about the seed vertex until
+        # there are no more connected seed vertices available.
+        # Continue loop if there are newly selected neighbors.
+        loop = 1
+        while loop:
+            loop = 0
+            TEMP[I] = 1
+            Inew = np.array([])
+            # Find neighbors for each selected seed vertex
+            for index in I:
+                neighbors = find_neighbors(faces_seeds, index)
+                # Select neighbors that have not been previously selected
+                if len(neighbors) > 0:
+                    neighbors = neighbors[TEMP[neighbors] == 0]
+                    TEMP[neighbors] = 2
+                    if len(Inew) > 0:
+                        Inew = np.concatenate((Inew, neighbors))
+                    else:
+                        Inew = neighbors
+                    # Continue looping
+                    loop = 1
+            I = Inew
+
+        # Find region grown from seed
+        Ipatch = np.where(TEMP > 0)[0]
+
+        # Disregard vertices already visited
+        seeds = list(frozenset(seeds).difference(Ipatch))
+        n_seeds = len(seeds)
+
+        # Assign counter number to segmented patch
+        # if patch size is greater than min_patch_size
+        size_patch = len(Ipatch)
+        if size_patch > min_patch_size:
+            counter += 1
+            segments[Ipatch] = counter
+            # Display current number and size of patch
+            print('Segmented patch ' + str(counter) + ': ' + str(size_patch) +\
+                  ' vertices.  ' + str(n_seeds) + ' remaining...')
+
+            # Find the maximum hole size (the background) to ignore below
+            if size_patch > max_patch_size:
+                max_patch_size = size_patch
+                max_patch = counter
+
+    return segments, max_patch
+
 #------------------
 # Fill sulcus holes
 #------------------
@@ -88,62 +182,69 @@ def fill_sulcus_holes(faces, sulci):
     seeds = np.where(sulci == 0)[0]
     n_seeds = len(seeds)
 
+    # Remove faces that do not contain seeds to speed up computation
+    fs = frozenset(seeds)
+    faces_holes = [lst for lst in faces if fs.intersection(lst)]
+    faces_holes = np.reshape(np.ravel(faces_holes), (-1, 3))
+    print('Reduced ' + str(len(faces)) + ' to ' +\
+          str(len(faces_holes)) + ' faces')
+
     # Loop until there are no more hole seeds
     max_hole_size = 0
     max_hole_count = 0
     counter = 0
+    TEMP0 = np.zeros(len(sulci))
     while n_seeds > 0:
-        counter += 1
-
-        if debug_verbose:
-            print('#counter: '+str(counter))
-            print('#seeds: '+str(n_seeds))
 
         # Create a new array the size of the sulci array
         # and mark a random (inner seed) element (with "2")
-        TEMP = np.zeros(len(sulci))
-        rseed = round(np.random.rand() * n_seeds) - 1
-        TEMP[seeds[rseed]] = 2
-        new_size = sum(TEMP > 1)
+        TEMP = np.copy(TEMP0)
+        #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
+        I = [seeds[0]]
 
-        # Grow seed region (hole) until no more connected points available
-        while new_size > 0:
+        # Grow region (hole) about the seed vertex until
+        # there are no more connected seed vertices available.
+        # Continue loop if there are newly selected neighbors.
+        loop = 1
+        while loop:
+            loop = 0
+            TEMP[I] = 1
+            Inew = np.array([])
+            # Find neighbors for each selected seed vertex
+            for index in I:
+                neighbors = find_neighbors(faces_holes, index)
+                # Select neighbors that have not been previously selected
+                if len(neighbors) > 0:
+                    neighbors = neighbors[TEMP[neighbors] == 0]
+                    TEMP[neighbors] = 2
+                    if len(Inew) > 0:
+                        Inew = np.concatenate((Inew, neighbors))
+                    else:
+                        Inew = neighbors
+                    loop = 1
+                # Continue looping
+            I = Inew
 
-            # Identify and reset inner seeds
-            inner_seeds = np.where(TEMP == 2)[0]
-            TEMP[TEMP == 2] = 1
+        # Find hole region grown from seed
+        Ihole = np.where(TEMP > 0)[0]
 
-            if debug_verbose:
-                print('#inner_seeds: '+str(len(inner_seeds)))
-
-            # Mark neighbors to inner seeds
-            for inner_seed in inner_seeds:
-                neighs = find_neighbors(faces, inner_seed)
-                if len(neighs) > 0:
-                    neighs = neighs[sulci[neighs] == 0]
-                    if len(neighs) > 0:
-                        neighs = neighs[TEMP[neighs] == 0]
-                        if len(neighs) > 0:
-                            TEMP[neighs] = 2
-            new_size = sum(TEMP > 1)
-
-        # Assign counter number to hole
-        hole_bool = TEMP > 0
-        holes[hole_bool] = counter
-        # Find the maximum hole size (the background) to ignore below
-        hole_size = sum(hole_bool)
-        if hole_size > max_hole_size:
-            max_hole_size = hole_size
-            max_hole_count = counter
-
-        # Assign 0.5 to hole vertices in "sulci" array to ignore in loop
-        # and find new hole seeds
-        sulci[hole_bool] = 0.5
-        seeds = np.where(sulci == 0)[0]
+        # Disregard vertices already visited
+        seeds = list(frozenset(seeds).difference(Ihole))
         n_seeds = len(seeds)
 
-    # Remove hole values from sulci array (new ones added below)
-    sulci[sulci < 1] = 0
+        # Assign counter number to hole
+        size_hole = len(Ihole)
+        counter += 1
+        holes[Ihole] = counter
+        # Display current number and sizes of holes
+        if size_hole > 1:
+            print('Hole ' + str(counter) + ': ' + str(size_hole) +\
+                  ' vertices.  ' + str(n_seeds) + ' remaining...')
+
+        # Find the maximum hole size (the background) to ignore below
+        if size_hole > max_hole_size:
+            max_hole_size = size_hole
+            max_hole_count = counter
 
     # Ignore the largest hole (the background)
     if max_hole_size > 0:
@@ -187,7 +288,7 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
     Output:
     ------
-    sulci: [#vertices x 1] numpy array
+    sulci: label indices for sulci: [#vertices x 1] numpy array
     n_sulci:  #sulci [int]
 
     Calls:
@@ -197,8 +298,6 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
     """
 
-    remove_faces = 1
-
     # Initialize sulci and seeds (indices of deep vertices)
     N = len(depths)
     sulci = np.zeros(N)
@@ -206,29 +305,14 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
     n_seeds = len(seeds)
 
     # Remove faces that do not contain seeds to speed up computation
-    if remove_faces:
-        faces_sulci = faces[~np.all((faces < min(seeds)) + (faces > max(seeds)), axis=1)]
-#
-#        faces_sulci = np.reshape(np.ravel([lst for lst in faces if len(np.intersect1d(seeds, lst)) > 0]), (-1,3))
-#
-#        print('Reduced ' + str(len(faces)) + ' to ' + \
-#              str(len(faces_sulci)) + ' faces')
-
-
-#        faces_sulci = faces.copy()
-#        for seed in seeds:
-#            faces_sulci *= (faces - seed)
-#        faces_sulci = faces[np.sum(faces_sulci == 0, axis = 1) > 0]
-
-        #boolsum = faces_sulci == seeds[0]
-        #for seed in seeds:
-        #    boolsum += faces_sulci == seed
-        #faces_sulci = faces_sulci[np.sum(boolsum, axis = 1)]
-        print('Reduced ' + str(len(faces)) + ' to ' + \
-              str(len(faces_sulci)) + ' faces')
+    fs = frozenset(seeds)
+    faces_seeds = [lst for lst in faces if fs.intersection(lst)]
+    faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
+    print('Reduced ' + str(len(faces)) + ' to ' +\
+          str(len(faces_seeds)) + ' faces')
 
     # Loop until all seed vertices included in sulci
-    print(str(n_seeds) + ' sulcus seed vertices to grow...')
+    print('Grow ' + str(n_seeds) + ' sulcus seed vertices...')
     counter = 0
     TEMP0 = np.zeros(N)
     while n_seeds > min_sulcus_size:
@@ -248,53 +332,41 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
             Inew = np.array([])
             # Find neighbors for each selected seed vertex
             for index in I:
-                neighbors = find_neighbors(faces_sulci, index)
+                neighbors = find_neighbors(faces_seeds, index)
                 # Select neighbors that have not been previously selected
                 if len(neighbors) > 0:
                     neighbors = neighbors[TEMP[neighbors] == 0]
-                    # Select neighbors deeper than the depth threshold
-                    if len(neighbors) > 0:
-                        neighbors = neighbors[depths[neighbors] > depth_threshold]
-                        TEMP[neighbors] = 2
-                        if len(Inew) == 0:
-                            Inew = neighbors
-                        else:
-                            Inew = np.concatenate((Inew, neighbors))
-                        loop = 1
+                    TEMP[neighbors] = 2
+                    if len(Inew) > 0:
+                        Inew = np.concatenate((Inew, neighbors))
+                    else:
+                        Inew = neighbors
+                    loop = 1
             # Continue looping
             I = Inew
 
         # Find sulcus region grown from seed
-        sulcus_bool = TEMP > 0
+        Isulcus = np.where(TEMP > 0)[0]
 
-        # Disregard vertices already assigned values in sulci
-        depths[sulcus_bool] = 0
-        seeds = np.where(depths > depth_threshold)[0]
+        # Disregard vertices already visited
+        seeds = list(frozenset(seeds).difference(Isulcus))
         n_seeds = len(seeds)
 
-        # Assign the sulcus the counter number
+        # Assign counter number to sulcus
         # if sulcus size is greater than min_sulcus_size
-        size_sulcus = sum(sulcus_bool)
+        size_sulcus = len(Isulcus)
         if size_sulcus > min_sulcus_size:
             counter += 1
-            sulci[sulcus_bool] = counter
+            sulci[Isulcus] = counter
             # Display current number and sizes of sulci
             print('Sulcus ' + str(counter) + ': ' + str(size_sulcus) +\
                   ' vertices.  ' + str(n_seeds) + ' remaining...')
-        # Otherwise, assign small sulci indices 0.5 for later removal
-        else:
-            print('Candidate sulcus too small (' + str(size_sulcus) + ')')
-            sulci[sulcus_bool] = 0.5
-
-    # Remove small sulci (sulci indices assigned a value of 0.5)
-    sulci[sulci == 0.5] = 0
 
     # Fill sulcus holes to preserve topology
     n_sulci = np.max(sulci)
     if n_sulci > 0:
         print('Filling holes in sulci...')
         sulci = fill_sulcus_holes(faces, sulci)
-        #n_sulci = np.max(sulci)
     else:
         import sys
         sys.exit('There are no sulci.')
