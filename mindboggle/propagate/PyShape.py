@@ -436,6 +436,7 @@ class Shape:
 
 		return sorted(self.low_quality_triangles)
 
+	# Works. Just update doc strings.
 	def initialize_labels(self, keep='fundi', fraction=.05):
 		"""Initialize a set of labels to serve as the seeds for label propagation.
 		Options include: 'border' for nodes connected to fundi.
@@ -549,9 +550,11 @@ class Shape:
 
 			Returns:
 			=======
-			label_boundary: numpy array (of indices of nodes which comprise the label boundary)
-			label_boundary_file: string (VTK file name containing highlighted label boundary)
-
+			self.label_boundary: numpy array (of indices of nodes which comprise the label boundary)
+			self.label_boundary_file: string (VTK file name containing highlighted label boundary)
+			--OR--
+			self.Rlabel_boundar: numpy array (of indices of nodes which comprise the realigned label boundary)
+			self.Rlabel_boundary_file: string (VTK file name containing highlighted realigned label boundary)
 
 			Explanation:
 			============
@@ -568,9 +571,13 @@ class Shape:
 			It will have zeros and ones. We can then define a new array to store all and only those nodes
 			which are part of the label boundary.
 
+			Notes
+			=====
+			Method seems highly redundant and inelegant. Find better way to incorporate realignment protocol into this method.
+
 		"""
 
-		self.label_boundary = np.zeros(self.num_nodes)
+		self.label_boundary = self.Rlabel_boundary = np.zeros(self.num_nodes)
 
 		""" Now, let us go triangle by triangle. Set the node's index in label_boundary to 1
 		if and only if it is satisfies the definition.
@@ -587,22 +594,31 @@ class Shape:
 			# Did it this way for option to modify it later. Perhaps reconsider 'not all' statement.
 			if not all(same_labels):
 				# Then label those nodes as part of the boundary.
-				self.label_boundary[triangle] = 1
+				if not realigned_labels:
+					self.label_boundary[triangle] = 1
+				else:
+					self.Rlabel_boundary[triangle] = 1
 
 		# We can now output a file to show the boundary.
 		if not realigned_labels:
 			filename = '/home/eli/Desktop/label_boundaries_'+self.id+'.vtk'
+			vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
+			self.label_boundary_file = filename
 		else:
 			filename = '/home/eli/Desktop/realigned_label_boundaries_'+self.id+'.vtk'
-
-		vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
+			vo.write_all(filename,self.Nodes,self.Mesh,self.Rlabel_boundary)
+			self.Rlabel_boundary_file = filename
 
 		# Reformat label_boundary to include only the indices of those nodes in the boundary.
-		self.label_boundary = np.nonzero(self.label_boundary==1)[0]
+		if not realigned_labels:
+			self.label_boundary = np.nonzero(self.label_boundary==1)[0]
+		else:
+			self.Rlabel_boundary = np.nonzero(self.Rlabel_boundary==1)[0]
 
-		self.label_boundary_file = filename
-
-		return self.label_boundary, self.label_boundary_file
+		if not realigned_labels:
+			return self.label_boundary, self.label_boundary_file
+		else:
+			return self.Rlabel_boundary, self.Rlabel_boundary_file
 
 	def find_label_boundary_by_class(self):
 		""" Divides the label boundary into classes.
@@ -679,6 +695,11 @@ class Shape:
 					for c in neighbor_classes:
 						self.label_boundary_segments[(Class,c)] += [node]
 
+			# Trim results - delete any dict entry which has no nodes
+			for key, value in self.label_boundary_segments.items():
+				if value == []:
+					self.label_boundary_segments.pop(key)
+
 			# Print Results
 			for key in self.label_boundary_segments.keys():
 				print "For classes: ", key, "  ", self.label_boundary_segments[key]
@@ -692,9 +713,14 @@ class Shape:
 			self.segment_file = open(completed, 'rb')
 			self.label_boundary_segments = pickle.load(self.segment_file)
 
+			# Trim results - delete any dict entry which has no nodes
+			for key, value in self.label_boundary_segments.items():
+				if value == []:
+					self.label_boundary_segments.pop(key)
+
 		# Output the results to a VTK file
 		self.highlighted_segment_file = '/home/eli/Desktop/highlighted_segments' + self.id + '.vtk'
-		color = 0
+		color = 1
 		colored_segments = np.zeros(self.Labels.shape)
 		for value in self.label_boundary_segments.values():
 			colored_segments[value] = color
@@ -1078,7 +1104,7 @@ class Shape:
 		return self.eigenvalues
 
 	def propagate_labels(self,method='weighted_average', realign=False,
-	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=50, tol=1, eps=1e-7):
+	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=200, tol=1, eps=1e-7):
 		""" Main function to propagate labels.
 
 		Parameters
@@ -1134,8 +1160,6 @@ class Shape:
 			print 'That algorithm is not available.'
 			return
 
-		print self.probabilistic_assignment[:10000:200,:]
-
 		return self.probabilistic_assignment
 
 	"""
@@ -1147,9 +1171,24 @@ class Shape:
 	"""
 
 	def assign_max_prob_label(self):
-		""" This method takes self.probabilistic_assignment and determines the most likely labeling of a node.
+		""" Assings hard labels to nodes by finding the highest probability label of self.probabilistic_assignment.
+			Outputs results to a vtk file for visualization.
+
+		Parameters
+		==========
+
+		Returns
+		=======
+		self.max_prob_label: np array (of size num_nodes which contains the most likely label for each node)
+		self.max_prob_file: string (vtk file containing highest probability labels)
+
+
+		Explanation
+		===========
+		This method takes self.probabilistic_assignment and determines the most likely labeling of a node.
 		It outputs a separate array, max_prob_label, which contains one label for each node.
 		The labels are those of the initial numbering.
+
 		"""
 
 		""" First, we must check that the label propagation algorithm has been called. """
@@ -1174,9 +1213,61 @@ class Shape:
 		for i in self.num_nodes:
 			self.max_prob_label[i] = self.label_mapping[max_col[i]]
 
-		""" self.max_prob_label is now complete."""
+		""" self.max_prob_label is now complete. Let us now visualize..."""
 
-		return self.max_prob_label
+		self.max_prob_file = '/home/eli/Desktop/max_prob_visualization.vtk'
+
+		vo.write_all(self.max_prob_file, self.Nodes, self.Mesh, self.max_prob_label)
+
+		return self.max_prob_label, self.max_prob_file
+
+	def assign_realigned_labels(self, filename = '/home/eli/Desktop/max_prob_visualization_realignment.vtk'):
+		""" Determines which nodes should be reassigned a new label from realignment propagation; visualizes results.
+
+		Parameters
+		==========
+
+		Returns
+		=======
+		self.RLabels: np array (of size num_nodes which contains the most likely realigned label for each node)
+		self.RLabels_file: string (vtk file containing highest probability labels)
+
+		Explanation
+		===========
+		This method takes self.probabilistic_assignment and determines which nodes should be relabeled.
+		It outputs a separate array, self.RLabels, which contains one label for each node.
+		The labels are those of the initial numbering.
+		Care must be taken to only reassign labels when appropriate.
+
+		First try: reassign labels to anything which is in (0,1] to the second value in the tuple in the key of
+		the dictionary self.label_boundary_segments.
+
+		"""
+
+		""" First, we must check that the label propagation algorithm has been called. """
+
+		try:
+			a = self.probabilistic_assignment[0]
+		except:
+			print 'First call propagate_labels().'
+			return
+
+		self.RLabels = self.Labels.copy()
+
+		# go column by column, find those entries which meet criterion, map to tuple, select second entry
+		counter = 0
+		for column in self.probabilistic_assignment.T:
+			nodes_to_change = list(np.nonzero(column > .65)[0])
+			print nodes_to_change
+			self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
+			counter += 1
+			break
+
+		self.RLabels_file = filename
+
+		vo.write_all(self.RLabels_file, self.Nodes, self.Mesh, self.RLabels)
+
+		return self.RLabels, self.RLabels_file
 
 	"""
 #########################################
@@ -1349,14 +1440,15 @@ class Shape:
 				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
 				print restore_indices
 				restore_values = column[restore_indices]
-				pylab.plot(restore_values)
-				pylab.show()
+				print restore_values
+				#pylab.plot(restore_values)
+				#pylab.show()
 
 			Y_hat_now = csr_matrix(column).transpose()
 			converged = False
 			counter = 0
 			while not converged and counter < max_iters:
-				""" The option will exist to visualize the proceedings of the algorith.
+				""" The option will exist to visualize the proceedings of the algorithm.
 				The results of a number of the iterations will be sent to vtk files which can then be visualized.
 				For the visualization, we will construct two types of vtk files.
 				The first will be the actual (manual) labels, as found in self.Labels,
@@ -1414,8 +1506,8 @@ class Shape:
 			#print 'The file actually had {0} nodes in this class'.format(str(self.count_real_members(self.label_mapping[i])))
 			#print 'Using only those nodes which crossed the threshold, there are now: '.format(str(self.count_real_members(i)))
 
-			pylab.plot(self.probabilistic_assignment[:,i])
-			pylab.show()
+			#pylab.plot(self.probabilistic_assignment[:,i])
+			#pylab.show()
 
 			i += 1
 
@@ -1426,6 +1518,7 @@ class Shape:
 		So, to obtain a sort of probability distribution which preserves order, we will add 1 to each number,
 		and then divide by 2. Thus -1 --> 0, 1 --> 1 and everything else keeps its order."""
 
+		""" Uncomment this section when fixed!!"""
 		self.probabilistic_assignment += 1
 		self.probabilistic_assignment /= 2
 
@@ -1530,17 +1623,26 @@ class Shape:
 	"""
 
 shape = Shape()
+f1 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
+f2 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
+f3 = '/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl'
+
+g1 = '/home/eli/Desktop/testing1.vtk'
+g2 = '/home/eli/Desktop/testing1_fundi.vtk'
+g3 = ''
 
 def test():
 	""" This test is for the realignment task."""
 	t0 = time()
-	shape.import_vtk('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk')
-	shape.import_fundi('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk')
+	shape.import_vtk(g1)
+	shape.import_fundi(g2)
 	print 'Imported Data in: ', time() - t0
 
 	shape.initialize_labels(keep='label_boundary')
-	shape.find_label_boundary_segments(completed='/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl')
-	shape.propagate_labels(realign=True)
+	shape.find_label_boundary_segments(completed=g3)
+	shape.propagate_labels(realign=True, max_iters=5000)
+	shape.assign_realigned_labels()
+	shape.find_label_boundary(realigned_labels=True)
 
 test()
 
