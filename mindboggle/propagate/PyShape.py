@@ -44,6 +44,7 @@ import pyvtk
 from time import time
 from subprocess import Popen, PIPE, STDOUT
 from scipy.sparse import csr_matrix, lil_matrix
+import pylab
 import os
 
 import vtk_operations as vo
@@ -298,7 +299,7 @@ class Shape:
 
 	def remove_isolated(self):
 		"""Remove any vertices which are not connected to others via the meshing."""
-		# Remove any vertices which are not connected via meshing.
+
 
 		if not(self.has_nodes and self.has_mesh):
 			print 'You have yet to enter the nodes and meshing!'
@@ -470,7 +471,8 @@ class Shape:
 		# To preserve the nodes which comprise the label boundary, call find_label_boundary()
 		if keep == 'label_boundary':
 			print 'Preserving nodes of the label boundary'
-			self.preserved_labels[self.find_label_boundary(draw=True)] = 1
+			self.find_label_boundary()
+			self.preserved_labels[self.label_boundary] = 1
 
 		# To preserve a fraction of random nodes, keep every 1/fraction'th label.
 		if keep == 'random':
@@ -526,7 +528,7 @@ class Shape:
 		self.label_mapping = dict([(i, int(self.set_of_labels[i+1])) for i in xrange(-1,C)])
 		print "Label Mapping: ", self.label_mapping
 
-		# Construct L x C Matrix
+		# Construct n x C Matrix
 		self.label_matrix = np.zeros((n, C))
 
 		for i in xrange(n):
@@ -712,6 +714,11 @@ class Shape:
 		=======
 		endpoint: list (of size 2, containing both endpoints)
 
+		Problems
+		========
+		1) There needn't be only two endpoints - the boundary might not be contiguous.
+		2) There needn't be even two enpoints - the "end" might be triangular: the degree of the nodes will be two.
+		Ah.
 		"""
 
 		endpoint = [-1, -1]
@@ -787,6 +794,51 @@ class Shape:
 
 		return intersection
 
+	def get_realignment_matrix(self):
+		""" Constructs a label matrix for realignment protocol.
+
+		Parameters
+		==========
+		[self.label_boundary_segments: dict (contains segments with keys of class membership tuples)]
+
+		Returns
+		=======
+		self.realignment_matrix: np array (n x num_segments matrix of initial labels, used in propagation)
+		self.realignment_mapping: dict (key-value pairs of new-old labels)
+
+		Explanation
+		===========
+		Method takes the dictionary self.label_boundary_segments and converts it into the label matrix self.realignment_matrix
+		for label propagation.
+		We have separate segments which should each be assigned separate labels.
+		The label propagation algorithms all work on some n x C label matrix.
+		It starts with a "sparsely populated" matrix, and fills it out with probabilities.
+
+		The mapping of "keys" to new labels will be stored in a dictionary
+
+		Now, we can simply run through the dictionary, and assign to each node which is part of a segment a label.
+
+		"""
+
+		# Step 0. Find num segments
+		self.num_segments = len(self.label_boundary_segments)
+
+		# Step 1. Construct n x self.num_segments matrix of labels - concurrently produce label mapping dictionary
+		self.realignment_matrix = np.zeros((self.num_nodes,self.num_segments))
+
+		self.realignment_mapping = {}
+		class_label = 0
+		for key, value in self.label_boundary_segments.items():
+			self.realignment_mapping[class_label] = key
+			self.realignment_matrix[value,:] = -1
+			self.realignment_matrix[value,class_label] = 1
+			class_label += 1
+
+		print "Mapping is: ", self.realignment_mapping
+
+
+		return self.realignment_matrix, self.realignment_mapping
+
 	def analyze_label_fundi_intersections(self, completed=''):
 		""" Find fundal nodes which intersect label boundary, and determine whether they belong to the same fundus curve.
 
@@ -853,106 +905,10 @@ class Shape:
 
 		return self.label_boundary_segments
 
-	def realignment_propagation(self):
-		""" Propagates labels from label boundary segments to enable realignment of boundaries.
-
-			Runs functions: self.find_label_boundary_segments()
-
-			Parameters
-			==========
-
-
-			Returns
-			=======
-
-
-			Explanation
-			===========
-
-
-		"""
-
-
-
-#		if self.same_fundus:
-#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
-#
-#		elif intersection[0] == intersection[1] or -1 in intersection:
-#			# It intersects at the same place, or not at all:
-#			# We must now run the label propagation algorithm.
-#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
-#
-#		#################################################################
-#		# Now let us do the co-segment, which is defined by classes (b,a)
-#		#################################################################
-#
-#		if self.label_boundary_segments[(b,a)]:
-#			# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
-#			endpoint = [-1, -1]
-#			for node in self.label_boundary_segments[(b,a)]:
-#				ns = self.neighbors(node)
-#				boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments[(b,a)]))
-#				if len(boundary_ns) == 1:
-#					if endpoint[0] == -1:
-#						endpoint[0] = node # This is an endpoint. Construct segments starting from here.
-#					else:
-#						endpoint[1] = node
-#						break
-#				intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
-#			for i in xrange(2):
-#				current_node = endpoint[i]
-#				avoid = {current_node}
-#				while current_node not in self.fundal_nodes:
-#					current_neighbors = set.intersection(set(self.neighbors(current_node)), set(self.label_boundary_segments[(b,a)]))
-#					try:
-#						next_node = set.difference(current_neighbors, avoid).pop()
-#					except:
-#						print 'you have reached the exception clause. The intersection should be -1'
-#						current_node = -1
-#						break
-#					avoid.add(next_node)
-#					current_node = next_node
-#				intersection[i] = current_node # It might be -1, if there are no intersections.
-#				print "The intersection points are: ", intersection
-#				self.same_fundus = False
-#			if -1 not in intersection and intersection[0] != intersection[1]:
-#				# It found 2 different intersections. We must therefore now assess whether these two intersections are
-#				# part of the same fundus.
-#					pointer = intersection[0] # This is the first intersection point.
-#				print "First pointer is: ", pointer
-#				avoid = set() # This will be an array of rows in self.Fundi to avoid
-#				rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
-#				print "And the list of rows to explore is: ", rows
-#					while rows:
-#					path_to_follow = rows[0]
-#					print "Following path! ", path_to_follow
-#					avoid.add(path_to_follow)
-#					tmp = set(list(self.Fundi[path_to_follow]))
-#					print "fundal nodes which are being analyzed are: ", tmp
-#					pointer = tmp.remove(pointer)
-#					print "pointer is now: ", pointer
-#					if pointer == intersection[1]:
-#						# Bingo!
-#						print 'Bingo! Both intersections are part of the same fundus!'
-#						self.same_fundus = True
-#						break
-#					rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
-#					print "Rows is now: ", rows
-#				if self.same_fundus:
-#						print 'Propagating labels in the case of YES 2-fundi intersection.'
-#						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
-#				elif intersection[0] == intersection[1] or -1 in intersection:
-#					# It intersects at the same place, or not at all:
-#					# We must now run the label propagation algorithm.
-#					print 'Propagating labels in the case of NO 2-fundi intersection.'
-#					self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
-#			i += 1
-
 	def realign_boundary(self, skip_file = '/home/eli/label_boundary_segments_PyShape Object.pkl'):
 		""" Realign the label boundary to coincide with fundi.
 
-			Runs functions: find_label_boundary(), find_label_boundary_segments()
-							fff
+			Runs functions: find_label_boundary_segments()
 
 	        Parameters
 		    ==========
@@ -975,10 +931,10 @@ class Shape:
 		# This has already been obtained, as self.fundi_file
 
 		# Step 3. Find Label Boundary Segments
-		self.find_label_boundary_segments()
+		self.find_label_boundary_segments(completed=skip_file)
 
 		# Step 4. Propagate Labels from Label Boundary Segments, With Desired Conditions In Place
-		# Define separate function to accomplish this. It will call the main label propagation function.
+		self.propagate_labels(realign=True)
 
 		# Step 5.
 
@@ -1045,7 +1001,7 @@ class Shape:
 		return self.vtk.name
 
 	def pre_process(self, fname):
-		"""Full pre-processing of the shape object."""
+		"""Full pre-processing of the shape object for Reuter's Code."""
 		self.remove_isolated()
 		self.fix_triangles()
 		self.check_well_formed()
@@ -1121,37 +1077,43 @@ class Shape:
 
 		return self.eigenvalues
 
-	def propagate_labels(self,method='weighted_average', realign=False, current_segment=0, fundus_value=0,
-	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=5001, tol=1, eps=1e-7):
-		"""Main function to propagate labels.
-		A number of methods may be used for this purpose:
-		1) 'weighted_average'
-		2) 'propagation'
-		3) 'spreading'
-		The function takes the following parameters:
-		1) method - choice of algorithm
-		2) kernel - for use in constructing affinity matrix
-		3) sigma - parameter for gaussian kernel
-		4) alpha - clamping factor (0<a<1)
-		5) repeat - number of separate times to run algorithm
-		6) max_iters - number of times to iterate an algorithm
-		7) tol - threshold to assess convergence
-		8) eps - for numerical stability
-		9) diagonal - option to change values along the diagonal, will have an effect on some alg.
-		10) vis - boolean, would you like to see the algorithm in work?
-		11) realign - boolean, would you like to realign the labels?
+	def propagate_labels(self,method='weighted_average', realign=False,
+	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=50, tol=1, eps=1e-7):
+		""" Main function to propagate labels.
+
+		Parameters
+		==========
+		method: string (choice of algorithm)
+		realign: boolean (whether label propagation will be used for realigning boundaries)
+		kernel: function (used in constructing affinity matrix)
+		sigma: float (parameter in gaussian kernel)
+		vis: boolean (whether to show progress of algorithm)
+		max_iters: int (number of times to repeat the algorithm before breaking)
+		tol: float (threshold to assess convergence of the algorithm)
+		diagonal: int (value for diagonal entries in weight matrix, optionally change them)
+		eps: float (for numerical stability in some algorithms)
+		alpha: float (clamping factor)
+
+		Returns
+		=======
+		self.probabilistic_assignment: np array (n x C matrix of probabilities that node belongs to a given class)
+
 		"""
 
 		# Step 1. Construct Affinity Matrix - compute edge weights:
 		self.aff_mat = cw.compute_weights(self.Nodes,self.Mesh,kernel=kernel,sigma=sigma, add_to_graph=False)
 
 		# Step 2. Transform column of labels into L x C Matrix, one column per class
-		a,b = self.get_label_matrix()
+		if not realign:
+			self.get_label_matrix()
+		else:
+			self.get_realignment_matrix()
 
 		# Step 3. Propagate Labels!
 		if method == "weighted_average":
 			print 'Performing Weighted Average Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
-			prob_matrix = self.weighted_average(realign, current_segment, fundus_value, max_iters, tol, vis=vis)
+			self.weighted_average(realign, max_iters, tol, vis=vis)
+			# Produces self.probabilistic assignment matrix.
 
 #		elif method == "jacobi_iteration":
 #			print 'Performing Jacobi Iteration Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
@@ -1169,7 +1131,7 @@ class Shape:
 #			Graph = nearest_neighbor(G, Label_Matrix, label_mapping)
 
 		else:
-			Graph = "That algorithm is not available."
+			print 'That algorithm is not available.'
 			return
 
 		print self.probabilistic_assignment[:10000:200,:]
@@ -1292,10 +1254,25 @@ class Shape:
 #########################################
 	"""
 
-	def weighted_average(self, realign, current_segment, fundus_value, max_iters, tol, vis=True):
+	def weighted_average(self, realign, max_iters, tol, vis=True):
 		"""Performs iterative weighted average algorithm to propagate labels to unlabeled nodes.
-		Features: Hard label clamps, probabilistic solution.
-		See: Zhu and Ghahramani, 2002."""
+
+		Parameters
+		==========
+		realign: boolean (whether the propagation is for realignment or not)
+		max_iters: int (number of iterations of algorithm to perform before breaking)
+		tol: float (threshold at which to consider algorithm complete)
+		vis: boolean (whether or not to visualize the progress of the algorithm)
+
+		Returns
+		=======
+		self.probabilistic_assignment: np array (n x C matrix of probabilities that node belongs to a given class)
+
+
+
+		Features: Hard label clamps, probabilistic solution. See: Zhu and Ghahramani, 2002.
+
+		"""
 
 		""" The first approach to be considered in the semi-supervised learning case
 		is to propagate labels on the graph.
@@ -1320,7 +1297,7 @@ class Shape:
 
 		""" Now, we can actually proceed to perform the iterative algorithm.
 		At each timestep, the labels will be updated to reflect the weighted average
-		of adjacent nodes. An important caveat of this algorithm,
+		of adjacent nodes. An important caveat of this algorithm
 		is that the labeled nodes remain fixed, or clamped.
 		They should not be changed, and will need to be reset.
 		We accomplish the reset by recalling that self.preserved_labels
@@ -1342,7 +1319,12 @@ class Shape:
 		This matrix will store a 1 for 100% probability, 0 for 0%, and fractional values for the rest.
 		We will rename self.label_matrix for this purpose."""
 
-		self.probabilistic_assignment = self.label_matrix
+		if not realign:
+			self.probabilistic_assignment = self.label_matrix
+		else:
+			# For realignment, we need to use a different labeling matrix,
+			# one which has each segment assigned a different labels
+			self.probabilistic_assignment = self.realignment_matrix
 
 		""" We will later change the -1s to 0s.
 		As nodes get labeled, we assign a confidence measure to the labeling and store the value
@@ -1354,13 +1336,22 @@ class Shape:
 
 		i = 0 # record of class number
 		for column in self.probabilistic_assignment.T:
-			if realign and i > 0:
-				print "We only need to run this once."
-				break
 
 			t0 = time()
 			print 'Working on class: ', i
-			restore = column[self.preserved_labels==1]
+			print 'Number of members initially in this class: ', np.nonzero(column==1)[0].size
+
+			# Set up indices and values to be clamped during propagation
+			if not realign:
+				restore_indices = self.preserved_labels==1
+				restore_values = column[restore_indices]
+			else:
+				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
+				print restore_indices
+				restore_values = column[restore_indices]
+				pylab.plot(restore_values)
+				pylab.show()
+
 			Y_hat_now = csr_matrix(column).transpose()
 			converged = False
 			counter = 0
@@ -1372,11 +1363,12 @@ class Shape:
 				with the class of interest highlighted (=1), and the others blanked out (=-1)
 				The other vtk files will be the result of the algorithm.
 				"""
-				if vis:
+				if vis and not realign:
 					"""First, we'll find out which class/label we're working with, by calling label_mapping.
 					We'll then send that class to the method highlight() which will do the actual work of
 					creating the vtk."""
 					label = self.label_mapping[i]
+
 					if not counter: # No need to do this more than once :-)
 						self.highlight(label)
 
@@ -1400,12 +1392,7 @@ class Shape:
 						vo.write_all(filename, self.Nodes, self.Mesh, LABELS)
 
 				Y_hat_next = (self.DDM * self.aff_mat * Y_hat_now).todense() # column matrix
-				if not realign:
-					Y_hat_next[self.preserved_labels==1,0] = restore # reset
-				else:
-					Y_hat_next[self.label_boundary, 0] = -1
-					Y_hat_next[current_segment, 0] = 1
-					Y_hat_next[self.fundal_nodes, 0] = fundus_value
+				Y_hat_next[restore_indices, 0] = restore_values # reset
 				converged = (np.sum(np.abs(Y_hat_now.todense() - Y_hat_next)) < tol) # check convergence
 				# print 'Iteration number {0}, convergence = {1}'.format(str(counter),str(np.sum(np.abs(column.todense() - tmp))))
 				Y_hat_now = csr_matrix(Y_hat_next)
@@ -1423,9 +1410,13 @@ class Shape:
 
 			self.probabilistic_assignment[:,i] = Y_hat_now.todense().flatten()
 
-			print 'There were {0} nodes initially preserved in this class'.format(str(self.count_assigned_members(i)))
-			print 'The file actually had {0} nodes in this class'.format(str(self.count_real_members(self.label_mapping[i])))
-			print 'Using only those nodes which crossed the threshold, there are now: '.format(str(self.count_real_members(i)))
+			#print 'There were {0} nodes initially preserved in this class'.format(str(self.count_assigned_members(i)))
+			#print 'The file actually had {0} nodes in this class'.format(str(self.count_real_members(self.label_mapping[i])))
+			#print 'Using only those nodes which crossed the threshold, there are now: '.format(str(self.count_real_members(i)))
+
+			pylab.plot(self.probabilistic_assignment[:,i])
+			pylab.show()
+
 			i += 1
 
 		""" Before reporting the probabilistic assignment, we change all -1's, which were used
@@ -1439,8 +1430,6 @@ class Shape:
 		self.probabilistic_assignment /= 2
 
 		""" self.probabilistic_assignment is now complete."""
-		#pylab.plot(self.probabilistic_assignment[:,3])
-		#pylab.show()
 		return self.probabilistic_assignment
 
 	### WORK ON THIS ALGORITHM NEXT. CLARIFY SLIGHT AMBIGUITY IN WORDING.
@@ -1549,6 +1538,82 @@ def test():
 	shape.import_fundi('/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk')
 	print 'Imported Data in: ', time() - t0
 
-	shape.analyze_label_fundi_intersections(completed='/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl')
+	shape.initialize_labels(keep='label_boundary')
+	shape.find_label_boundary_segments(completed='/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl')
+	shape.propagate_labels(realign=True)
 
 test()
+
+#		if self.same_fundus:
+#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
+#
+#		elif intersection[0] == intersection[1] or -1 in intersection:
+#			# It intersects at the same place, or not at all:
+#			# We must now run the label propagation algorithm.
+#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
+#
+#		#################################################################
+#		# Now let us do the co-segment, which is defined by classes (b,a)
+#		#################################################################
+#
+#		if self.label_boundary_segments[(b,a)]:
+#			# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
+#			endpoint = [-1, -1]
+#			for node in self.label_boundary_segments[(b,a)]:
+#				ns = self.neighbors(node)
+#				boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments[(b,a)]))
+#				if len(boundary_ns) == 1:
+#					if endpoint[0] == -1:
+#						endpoint[0] = node # This is an endpoint. Construct segments starting from here.
+#					else:
+#						endpoint[1] = node
+#						break
+#				intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
+#			for i in xrange(2):
+#				current_node = endpoint[i]
+#				avoid = {current_node}
+#				while current_node not in self.fundal_nodes:
+#					current_neighbors = set.intersection(set(self.neighbors(current_node)), set(self.label_boundary_segments[(b,a)]))
+#					try:
+#						next_node = set.difference(current_neighbors, avoid).pop()
+#					except:
+#						print 'you have reached the exception clause. The intersection should be -1'
+#						current_node = -1
+#						break
+#					avoid.add(next_node)
+#					current_node = next_node
+#				intersection[i] = current_node # It might be -1, if there are no intersections.
+#				print "The intersection points are: ", intersection
+#				self.same_fundus = False
+#			if -1 not in intersection and intersection[0] != intersection[1]:
+#				# It found 2 different intersections. We must therefore now assess whether these two intersections are
+#				# part of the same fundus.
+#					pointer = intersection[0] # This is the first intersection point.
+#				print "First pointer is: ", pointer
+#				avoid = set() # This will be an array of rows in self.Fundi to avoid
+#				rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
+#				print "And the list of rows to explore is: ", rows
+#					while rows:
+#					path_to_follow = rows[0]
+#					print "Following path! ", path_to_follow
+#					avoid.add(path_to_follow)
+#					tmp = set(list(self.Fundi[path_to_follow]))
+#					print "fundal nodes which are being analyzed are: ", tmp
+#					pointer = tmp.remove(pointer)
+#					print "pointer is now: ", pointer
+#					if pointer == intersection[1]:
+#						# Bingo!
+#						print 'Bingo! Both intersections are part of the same fundus!'
+#						self.same_fundus = True
+#						break
+#					rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
+#					print "Rows is now: ", rows
+#				if self.same_fundus:
+#						print 'Propagating labels in the case of YES 2-fundi intersection.'
+#						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
+#				elif intersection[0] == intersection[1] or -1 in intersection:
+#					# It intersects at the same place, or not at all:
+#					# We must now run the label propagation algorithm.
+#					print 'Propagating labels in the case of NO 2-fundi intersection.'
+#					self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
+#			i += 1
