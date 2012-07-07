@@ -16,9 +16,9 @@ def test_fundi_hmmf(debug = 0):
     import numpy as np
 
     test_data_path = '/home/arno/Dropbox/yrjo_code_io_data'
-    inputs = ['mean_curvatures', 'depths', 'vertices', 'faces', 'min_directions',
-              'output_sulci', 'output_anchor_points', 'output_L',
-              'output_fundi']
+    inputs = ['mean_curvatures', 'depths', 'vertices', 'faces', 'min_directions']
+              #'output_sulci', 'output_anchor_points', 'output_L',
+              #'output_fundi']
 
     if debug:
         n_vertices = 10000
