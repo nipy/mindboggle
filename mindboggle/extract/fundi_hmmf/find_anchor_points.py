@@ -5,8 +5,8 @@ Assign maximum likelihood vertices as "anchor points".
 Anchor points are used to construct fundus curves.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    Yrjo Hame  .  yrjo.hame@gmail.com
+    Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -17,9 +17,10 @@ import numpy as np
 #===================
 # Find anchor points
 #===================
-def find_anchor_points(vertices, L, min_distances, distance_threshold, max_distance):
+def find_anchor_points(vertices, L, min_distances, \
+                       distance_threshold=0.5, max_distance=8):
     """
-    Find anchor points
+    Find anchor points.
 
     Assign maximum likelihood vertices as "anchor points"
     for use in constructing fundus curves.
@@ -55,7 +56,7 @@ def find_anchor_points(vertices, L, min_distances, distance_threshold, max_dista
 
         # Find and reset maximum likelihood value
         maxL = max(L)
-        imax = np.where(L = maxL)[0]
+        imax = np.where(L == maxL)[0]
         check_list[imax] = 1
         L[imax] = -1
 
