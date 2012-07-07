@@ -77,7 +77,7 @@ def simple_point_test(faces, index, values, thr, max_neighbors=20):
     # and those less than or equal to thr ("inside" and "outside").
     # Count the number of "inside" and "outside" neighbors
     neighs = find_neighbors(faces, index)
-    neighvals = values(neighs)
+    neighvals = values[neighs]
     n_sets = sum(neighvals > thr)
     n_outside = sum(neighvals <= thr)
 
@@ -231,18 +231,18 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
 
     # Continue if there are at least two candidate dots
     if sum(C > 0) >= 2:
-        print(str(sum(C > 0)) + ' initial candidates vertices')
+        print(str(sum(C > 0)) + ' initial candidate vertices')
 
         # Initialize new arrays of connected points and probability values
         Cnew = C.copy()
         probs = np.zeros(n_vertices)
         L_positive = L > 0
-        n_positive = len(L_positive)
+        n_positive = sum(L_positive)
         I_positive = np.where(L_positive)[0]
     
         # Assign probability values to each neighboring vertex
         for i in range(n_vertices):
-            if any(indices == i):
+            if sum(indices == i) > 0:
                 neighs = neighbors[indices == i, :]
                 neighs = np.unique(neighs[neighs > 0])
                 probs[i] = prob(wt_likelihood, L[i], wt_neighbors, C[i], C[neighs])
@@ -265,7 +265,7 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
                 # Continue if HMMF value is greater than C_threshold
                 # (to fix at very low values, to make the optimization faster)
                 if C[i] > C_threshold:
-                    if any(indices == i):
+                    if sum(indices == i) > 0:
 
                         # Find neighbors to this vertex
                         neighs = neighbors[indices == i, :]
@@ -319,11 +319,12 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
             # After iteration 1, compare current and previous values.
             # If the values are similar, increment end_flag.
             n_probs = sum(probs[L_positive])
+            n_points = sum(C > thr)
             if count > 0:
-                n_points = sum(C > thr)
-                diff_probs = (n_probs - n_probs_previous) / n_positive
-                if diff_probs < diff_threshold and n_points == n_points_previous:
-                    end_flag += 1
+                if n_points == n_points_previous:
+                    diff_probs = (n_probs - n_probs_previous) / n_positive
+                    if diff_probs < diff_threshold:
+                        end_flag += 1
 
             # Reset for next iteration
             n_probs_previous = n_probs
