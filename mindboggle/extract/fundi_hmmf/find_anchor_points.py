@@ -17,8 +17,7 @@ import numpy as np
 #===================
 # Find anchor points
 #===================
-def find_anchor_points(vertices, L, min_distances, \
-                       distance_threshold=0.5, max_distance=8):
+def find_anchor_points(vertices, L, min_distances, thr=0.5, max_distance=8):
     """
     Find anchor points.
 
@@ -31,7 +30,7 @@ def find_anchor_points(vertices, L, min_distances, \
     vertices: [#vertices x 3] numpy array
     L: fundus likelihood values [#vertices x 1] numpy array
     min_distances: [#vertices x 1] numpy array
-    distance_threshold: distance threshold
+    thr: distance threshold
     max_distance: maximum distance
 
     Output:
@@ -77,12 +76,12 @@ def find_anchor_points(vertices, L, min_distances, \
             # Compute directional distance between points if they are close
             # Perhaps change because of instability -- only sulcus end points necessary,
             # so that the fundus doesn't shrink -- ????
-            if max_distance > D >= distance_threshold:
+            if max_distance > D >= thr:
                 dirV = np.dot(P_vertices[i,:] - vertices[imax,:], P_distances[i])
                 D = np.linalg.norm(dirV)
 
             # If distance less than threshold, consider the point found
-            if D < distance_threshold:
+            if D < thr:
                 found = 1
 
             i += 1

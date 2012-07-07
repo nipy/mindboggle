@@ -34,12 +34,14 @@ def find_neighbors(faces, index):
     I = [faces[np.where(faces[:,i] == index)[0]].tolist() for i in range(3)]
 
     # Create single list from nested lists
-    I = [int(item) for sublist in I for subsublist in sublist for item in subsublist]
+    I = [item for sublist in I for subsublist in sublist for item in subsublist]
 
     if len(I) > 0:
 
         # Find unique indices not equal to "index"
         I = np.unique(I)
         I = I[I != index]
+
+    I = [int(i) for i in I]
 
     return I
