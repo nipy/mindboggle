@@ -63,6 +63,9 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
         sulcus_indices = np.where(L > 0)[0]
         len_sulcus = len(sulcus_indices)
         sulcus_neighbors = np.zeros((len_sulcus, max_neighbors))
+        # Convert to integer array
+        sulcus_neighbors = np.reshape([int(i) for i in np.ravel(sulcus_neighbors)],
+                                                       np.shape(sulcus_neighbors))
         for i in range(len_sulcus):
             neighbors = find_neighbors(faces, sulcus_indices[i])
             len_neighbors = len(neighbors)
@@ -70,7 +73,6 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
                 sulcus_neighbors[i, range(max_neighbors)] = neighbors[0 : max_neighbors]
             else:
                 sulcus_neighbors[i, range(len_neighbors)] = neighbors
-
         # Initialize all likelihood values within sulcus greater than 0.5
         # and less than or equal to 1.0.
         # This is necessary to guarantee correct topology
@@ -79,13 +81,14 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
         L_init[L_init > 1] = 1
 
         # Find fundus points
-        fundus_points = find_anchor_points(vertices, L, min_distances, \
-            thr, max_distance=8)
+        fundus_points = find_anchor_points(vertices, L, min_distances, thr=0.5, max_distance=8)
         if any(fundus_points):
             fundus = connect_the_dots(L, L_init, faces, fundus_points,
                                       sulcus_neighbors, sulcus_indices, thr=0.5)
+        else:
+            fundus = np.zeros(len(L))
     else:
-        print('Sulcus too small: ', str(sum(L > thr) > min_sulcus_size))
+        print('Sulcus too small: ' + str(sum(L > thr) > min_sulcus_size))
         fundus = np.zeros(len(L))
 
     return fundus
@@ -124,8 +127,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, dept
     print('Extract sulci...')
     #sulci, n_sulci = extract_sulci(faces, depths)
     import pickle
-    sulci = pickle.load(open("sulci.p","rb"))
-    n_sulci = int(pickle.load(open("n_sulci.p","rb")))
+    sulci = pickle.load(open("/drop/sulci.p","rb"))
+    n_sulci = int(pickle.load(open("/drop/n_sulci.p","rb")))
 
     # Compute fundus likelihood values
     print('Compute fundus likelihood values...')
