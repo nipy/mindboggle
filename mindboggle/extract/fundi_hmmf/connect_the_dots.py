@@ -231,7 +231,7 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
 
     # Continue if there are at least two candidate dots
     if sum(C > 0) >= 2:
-        print('Initial candidates: ', str(sum(C > 0)))
+        print(str(sum(C > 0)) + ' initial candidates vertices')
 
         # Initialize new arrays of connected points and probability values
         Cnew = C.copy()

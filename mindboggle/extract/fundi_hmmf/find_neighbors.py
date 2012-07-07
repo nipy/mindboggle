@@ -23,11 +23,11 @@ def find_neighbors(faces, index):
     Inputs:
     ------
     faces: surface mesh vertex indices [#faces x 3] numpy array
-    sulci: [#vertices x 1] numpy array
+    index: index of surface vertex
 
     Output:
     ------
-    I: [#vertices x 1] numpy array
+    I: [#neighbors x 1] numpy array
 
     """
     # Create list of vertex indices sharing the same faces as "index"
@@ -43,4 +43,3 @@ def find_neighbors(faces, index):
         I = I[I != index]
 
     return I
-
