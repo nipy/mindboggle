@@ -13,6 +13,8 @@ Authors:
 
 import numpy as np
 
+print_debug = 1
+
 #=================================
 # Compute fundus likelihood values
 #=================================
@@ -32,9 +34,9 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
     Parameters:
     ----------
     Adaptive thresholding:
-      threshold1: ????
-      threshold2: ????
-      threshold3: ????
+      depth_threshold1: ????
+      depth_threshold2: ????
+      curvature_threshold: ????
       high_map_value: ????
     Increments to reduce computation time:
       increment1
@@ -46,13 +48,14 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
 
     """
     # Parameters for adaptive thresholding
-    threshold1 = 0.6
-    threshold2 = 0.05
-    threshold3 = 0.3
+    depth_threshold1 = 0.6
+    depth_threshold2 = 0.05
+    curvature_threshold = 0.3
     high_map_value = 0.9
+
     # Increments to reduce computation time
-    increment1 = 0.01
-    increment2 = 0.0001
+    depth_increment = 0.01
+    curvature_increment = 0.0001
 
     slope_factor = np.log((1. / high_map_value) - 1)
 
@@ -63,43 +66,56 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
     sulcus_bool = sulci == sulcus_index
 
     # Find sulcus depths and curvature values
-    len_sulcus = sum(sulcus_bool)
+    len_sulcus = np.float(sum(sulcus_bool))
     sulcus_depths = depths[sulcus_bool]
     sulcus_curvatures = curvatures[sulcus_bool]
 
-    # Find depth value where less than threshold1 are larger
+    # Find depth value where less than depth_threshold1 of sulcus vertices are deeper
     mass_left = 1
-    depth_search = 0
-    while mass_left > threshold1:
-        depth_search += increment1
-        mass_left = sum(sulcus_depths > depth_search) / len_sulcus
-    depth_found = depth_search
+    search = 0
+    while mass_left > depth_threshold1:
+        search += depth_increment
+        mass_left = sum(sulcus_depths > search) / len_sulcus
+    depth_found = search
+    if print_debug:
+        print(str(depth_threshold1) +
+              ' of sulcus vertices are deeper than ' + str(search))
 
-    # Find depth value where less than threshold2 are larger
-    while mass_left > threshold2:
-        depth_search += increment1
-        mass_left = sum(sulcus_depths > depth_search) / len_sulcus
-    if depth_search == depth_found:
-        slope_depth = -np.Inf
+    # Find depth value where less than depth_threshold2 of sulcus vertices are deeper
+    while mass_left > depth_threshold2:
+        search += depth_increment
+        mass_left = sum(sulcus_depths > search) / len_sulcus
+    if search == depth_found:
+        st_depths = np.zeros(len(curvatures))
     else:
-        slope_depth = -slope_factor / (depth_search - depth_found)
+        slope_depth = -slope_factor / (search - depth_found)
+        # Map depth values with sigmoidal function to range [0,1]
+        st_depths = 1 / (1 + np.exp(-slope_depth * (depths - depth_found)))
+    if print_debug:
+        print(str(depth_threshold2) +
+              ' of sulcus vertices are deeper than ' + str(search))
 
     # Find slope for curvature values
     mass_left = 1
-    depth_search = 0
-    while mass_left > threshold3:
-        depth_search += increment2
-        mass_left = sum(sulcus_curvatures > depth_search) / len_sulcus
-    if not depth_search:
-        slope_curvatures = -np.Inf
-    else:
-        slope_curvatures = -slope_factor / depth_search
+    search = 0
+    while mass_left > curvature_threshold:
+        search += curvature_increment
+        mass_left = sum(sulcus_curvatures > search) / len_sulcus
+    if print_debug:
+        print(str(curvature_threshold) +
+              ' of sulcus vertices have greater curvature than ' + str(search))
+    slope_curvature = -slope_factor / search
+    # Prevent precsion errors
+    if slope_curvature > 1000:
+        if print_debug:
+            print('(high slope curvature: ' + str(slope_curvature) + ')')
+        curvatures[curvatures < 0] = np.Inf
+        curvatures[curvatures > 0] = 0
+    # Map curvature values with sigmoidal function to range [0,1]
+    st_curvatures = 1 / (1 + np.exp(-slope_curvature * curvatures))
 
-    # Map curvature and depth values with sigmoidal functions to range [0,1]
-    st2 = 1 / (1 + np.exp(-slope_curvatures * curvatures))
-    st3 = 1 / (1 + np.exp(-slope_depth * (depths - depth_found)))
-
-    L = st2 * st3  # element-wise multiplication
+    # Assign likelihood values to sulcus vertices
+    L = st_depths * st_curvatures  # element-wise multiplication
     L[~sulcus_bool] = 0
 
     return L
