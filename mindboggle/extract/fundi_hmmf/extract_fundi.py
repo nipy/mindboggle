@@ -64,9 +64,6 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
         sulcus_indices = np.where(L > 0)[0]
         len_sulcus = len(sulcus_indices)
         sulcus_neighbors = np.zeros((len_sulcus, max_neighbors))
-        # Convert to integer array
-        sulcus_neighbors = np.reshape([int(i) for i in np.ravel(sulcus_neighbors)],
-                                                       np.shape(sulcus_neighbors))
         for i in range(len_sulcus):
             neighbors = find_neighbors(faces, sulcus_indices[i])
             len_neighbors = len(neighbors)
@@ -74,6 +71,7 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
                 sulcus_neighbors[i, range(max_neighbors)] = neighbors[0 : max_neighbors]
             else:
                 sulcus_neighbors[i, range(len_neighbors)] = neighbors
+
         # Initialize all likelihood values within sulcus greater than 0.5
         # and less than or equal to 1.0.
         # This is necessary to guarantee correct topology
@@ -82,8 +80,10 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
         L_init[L_init > 1] = 1
 
         # Find fundus points
+        print('Find anchor points...')
         anchors = find_anchor_points(vertices, L, min_directions, thr=0.5, max_distance=8)
         if any(anchors):
+            print('Connect anchor points to construct a fundus curve for each sulcus...')
             fundus = connect_the_dots(L, L_init, faces, anchors,
                                       sulcus_neighbors, sulcus_indices, thr=0.5)
         else:
