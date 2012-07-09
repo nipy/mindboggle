@@ -78,7 +78,8 @@ def simple_point_test(faces, index, values, thr, max_neighbors=20):
     # Count the number of "inside" and "outside" neighbors
     neighs = find_neighbors(faces, index)
     neighvals = values[neighs]
-    n_sets = sum(neighvals > thr)
+    neighvals_thr = neighvals > thr
+    n_sets = sum(neighvals_thr)
     n_outside = sum(neighvals <= thr)
 
     # If the number of inside or outside neighbors is zero,
@@ -92,7 +93,8 @@ def simple_point_test(faces, index, values, thr, max_neighbors=20):
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
-        neighs_inside = neighs[neighvals > thr]
+        #neighvals_list = [n for n in neighvals > thr]
+        neighs_inside = neighs[neighvals_thr]
 
         # Initialize "sets" numpy array [#neighbors>thr x max_neighbors]
         sets = np.zeros((n_sets, max_neighbors))
@@ -253,7 +255,6 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
         count = 0
         end_flag = 0
         while end_flag < n_tries_no_change and count < max_count:
-            count += 1
 
             # Define a factor to multiply the probability gradient that will
             # increase the time-step size toward the end of the optimization
@@ -330,6 +331,8 @@ def connect_the_dots(L, L_init, faces, dots, neighbors, indices, thr):
             n_probs_previous = n_probs
             n_points_previous = n_points
             C = Cnew
-            print('Iteration:', str(count) + ',', str(n_points), 'points')
+
+            count += 1
+            print(str(n_points) + ' vertices...')
     
         return C
