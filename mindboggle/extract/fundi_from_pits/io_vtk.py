@@ -1,9 +1,8 @@
 # All functions related to reading and writing VTK format file. Not the official vtk module. 
 # Last updated: 2012-06-29 by Forrest 
 
-import fileio
-
 # Level 1: basic VTK element writing functions ----
+import io_file
 
 def writeHeader(Fp, Title='', Header='# vtk DataFile Version 2.0', FileType='ASCII', DataType='POLYDATA'):
     '''Write the all non-data information for a VTK-format file
@@ -34,7 +33,7 @@ def writeHeader(Fp, Title='', Header='# vtk DataFile Version 2.0', FileType='ASC
     Fp.write("\n")
             
 def writePoint(Fp, PointList, Type="float"):
-    """Print coordinates of points, the POINTS section in DATASET POLYDATA section 
+    """Write coordinates of points, the POINTS section in DATASET POLYDATA section 
     """
     Fp.write("POINTS " + str(len(PointList)) + " " + Type + "\n")
     for i in xrange(0, len(PointList)):
@@ -42,7 +41,7 @@ def writePoint(Fp, PointList, Type="float"):
         Fp.write(str(R) + " " + str(A) + " " + str(S) + "\n")
     
 def writeFace(Fp, FaceList, VertexPerFace=3):
-    """Print vertexes forming triangular meshes, the POLYGONS section in DATASET POLYDATA section 
+    """Write vertexes forming triangular meshes, the POLYGONS section in DATASET POLYDATA section 
     """
     Fp.write("POLYGONS " + str(len(FaceList)) + " " + str( (VertexPerFace + 1) * len(FaceList)  )  + '\n' )
     for i in xrange(0, len(FaceList)):
@@ -50,22 +49,153 @@ def writeFace(Fp, FaceList, VertexPerFace=3):
         Fp.write( str(VertexPerFace) + " " + str(V0) + " " + str(V1) + " " + str(V2) + "\n")
 
 def writeVrtx(Fp, VrtxList):
-    """Print vertexes, the VERTICES section in DATASET POLYDATA section 
+    """Write vertexes, the VERTICES section in DATASET POLYDATA section 
     """
     # One possible solution
     Fp.write("VERTICES " + str(len(VrtxList)) + " " + str(len(VrtxList)+1) + "\n" + str(len(VrtxList)) + " ")
     [Fp.write(str(i)+" ") for i in VrtxList]
+    Fp.write("\n")
     
-    # The other solution, but requires larger files
-#    Fp.write("VERTICES " + str(len(VrtxList)) + " " + str(len(VrtxList)*2) + "\n")
-#    [Fp.write("1 " + str(i)+"\n") for i in VrtxList]
+def writeSeg(Fp, FundiList):
+    '''Write a line segment with two ending points into VTK format 
+    
+    Parameters
+    ===========
+    
+    FundiList: list of strings (NOT integers)
+       each element of FundiList is a string containing IDs of two vertexes, like "1 3" 
+    
+    '''
+    Fp.write("LINES " + str(len(FundiList)) + " " + str(len(FundiList)*3) + "\n")
+    [Fp.write("2 " + Vrtx) for Vrtx in FundiList]
+    
+def wrtVrtxLUT(Fp, LUT, LUTName, AtLUTBegin=True):
+    '''write per-VERTEX values as a scalar LUT into a VTK file
+    
+    This function is called by fcLst2VTK
+    
+    Parameters
+    ==========
+    
+    LUT    : list of floats
+    
+    AtLUTBegin: Boolean
+        True, if this vertex LUT is the first vertex LUT in a VTK file.  
+    
+    ''' 
+    if AtLUTBegin:
+        Fp.write('POINT_DATA ' + str(len(LUT)) +'\n')
+    Fp.write('SCALARS '+ LUTName +' float\n')
+    Fp.write('LOOKUP_TABLE '+ LUTName +'\n')
+    for Value in LUT:
+        Fp.write(str(Value) + '\n')    
+    Fp.write('\n')
 
 # end of Level 1 functions  ---
 
-# Level 2: converting my own fundi storage files into VTK representation ---
+# Level 2: saving features into VTK files ---
+
+def writeSulci(VTKFile, Points, Vertexes, Faces, LUTs=[], LUTNames=[]):
+    """Saving sulci into VTK files
+    
+    Parameters
+    =============
+    
+    VTKFile : string
+        The path of the VTK file to save sulci
+        
+    Points :  list of 3-tuples of floats
+        Each element has 3 numbers representing the coordinates of the points
+        
+    Vertexes: list of integers
+        IDs of vertexes that are part of a sulcus
+        
+    Faces: list of 3-tuples of integers
+        Each element is a face on the mesh, consisting of 3 integers representing the 3 vertexes of the face
+        
+    LUTs: list of lists of integers
+        Each element is a list of integers representing a map for the mesh
+        
+    LUTNames: list of strings
+        Each element is the name of a map, e.g., curv, depth.   
+    
+    Example
+    ===========
+    import random
+    import io_vtk
+    Points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
+    Vertexes = [1,2,3,0]
+    Faces = [[1,2,3],[0,1,3]]
+    LUTNames = ['curv','depth']
+    LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
+    io_vtk.writeSulci('test.vtk',Points, Vertexes, Faces, LUTs=LUTs, LUTNames=LUTNames)
+    
+    """
+    Fp = open(VTKFile,'w')
+    writeHeader(Fp)
+    writePoint(Fp, Points)
+    writeVrtx(Fp, Vertexes)
+    writeFace(Fp, Faces)
+    if LUTs != []:
+        for i, LUT in enumerate(LUTs):
+            if i == 0:
+                wrtVrtxLUT(Fp, LUT, LUTNames[i])
+            else:
+                wrtVrtxLUT(Fp, LUT, LUTNames[i], AtLUTBegin=False)
+    Fp.close()
+    
+def writeFundi(VTKFile, Points, Vertexes, Lines, LUTs=[], LUTNames=[]):
+    """Saving sulci into VTK files
+    
+    Parameters
+    =============
+    
+    VTKFile : string
+        The path of the VTK file to save fundi
+        
+    Points :  list of 3-tuples of floats
+        Each element has 3 numbers representing the coordinates of the points
+        
+    Vertexes: list of integers
+        IDs of vertexes that are part of a fundus
+        
+    Lines: list of 2-tuples of integers
+        Each element is an edge on the mesh, consisting of 2 integers representing the 2 vertexes of the edge
+        
+    LUTs: list of lists of integers
+        Each element is a list of integers representing a map for the mesh
+        
+    LUTNames: list of strings
+        Each element is the name of a map, e.g., curv, depth.   
+        
+    Example
+    ===========
+    import random
+    import io_vtk
+    Points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
+    Vertexes = [1,2,3,0]
+    Liness = [[1,2],[0,3]]
+    LUTNames = ['curv','depth']
+    LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
+    io_vtk.writeSulci('test.vtk',Points, Vertexes, Lines, LUTs=LUTs, LUTNames=LUTNames)
+    """
+    Fp = open(VTKFile,'w')
+    writeHeader(Fp)
+    writePoint(Fp, Points)
+    writeVrtx(Fp, Vertexes)
+    for i in xrange(0,len(Lines)):
+        Lines[i] = str(Lines[i][0]) + " " + str(Lines[i][1]) + "\n"
+    writeSeg(Fp, Lines)
+    if LUTs != []:
+        for i, LUT in enumerate(LUTs):
+            if i == 0:
+                wrtVrtxLUT(Fp, LUT, LUTNames[i])
+            else:
+                wrtVrtxLUT(Fp, LUT, LUTNames[i], AtLUTBegin=False)
+    Fp.close()
 
 def surf2VTK(SurfFile):
-    Vertex, Face = fileio.readSurf(SurfFile)
+    Vertex, Face = io_file.readSurf(SurfFile)
     Fp = open(SurfFile + '.vtk', 'w')
     writeHeader(Fp, Title='vtk output from'+SurfFile)
     writePoint(Fp, Vertex)
@@ -80,7 +210,7 @@ def fcLst2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new versi
          
     '''
     Fp = open(VTKFile,'w')
-    Vertex, Face = fileio.readSurf(SurfaceFile)    
+    Vertex, Face = io_file.readSurf(SurfaceFile)    
     FundiList = loadFundiList(FundiFile)
     wrtFcFtr(Fp, Vertex, Face, FundiList)
     
@@ -116,7 +246,7 @@ def vrtxLst2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new ver
      
     '''
     Fp = open(VTKFile,'w')
-    Vertex, Face = fileio.readSurf(SurfaceFile)
+    Vertex, Face = io_file.readSurf(SurfaceFile)
     FundiList = loadFundiList(FundiFile)
     writeVrtxFundi(Fp, Vertex, FundiList)
     if LUT!=[]:
@@ -144,7 +274,7 @@ def seg2VTK(VTKFile, SurfaceFile, FundiFile, LUT=[], LUTname=[]):  # new version
          
     '''
     Fp = open(VTKFile,'w')
-    Vertex, Face = fileio.readSurf(SurfaceFile)
+    Vertex, Face = io_file.readSurf(SurfaceFile)
     FundiList = loadSegFundi(FundiFile)
     writeSegFundi(Fp, Vertex, FundiList)
     
@@ -202,31 +332,6 @@ def writeVrtxFundi(Fp, Vertex, FundiList):
        
     writeVrtx(Fp, FundiList)
 
-def wrtVrtxLUT(Fp, LUT, LUTName, AtLUTBegin=True):
-    '''write per-VERTEX values as a scalar LUT into a VTK file
-    
-    This function is called by fcLst2VTK
-    
-    Parameters
-    ==========
-    
-    LUT    : list of floats
-    
-    ''' 
-    if AtLUTBegin:
-        Fp.write('POINT_DATA ' + str(len(LUT)) +'\n')
-    Fp.write('SCALARS '+ LUTName +' float\n')
-    Fp.write('LOOKUP_TABLE '+ LUTName +'\n')
-    for Value in LUT:
-        Fp.write(str(Value) + '\n')    
-    Fp.write('\n')
-        
-def wrtFaceLUT():
-    pass
-
-def wrtLineLUT():
-    pass
-
 def writeSegFundi(Fp, Vertex, FundiList):
     '''Load IDs of fundi curve segments (in my output format) and original surface file to output fundi in VTK format 
     '''
@@ -249,6 +354,8 @@ def loadSegFundi(Filename):
         
     return Segs
 
+
+# functions that use VTK's python binding to load VTK files ---
 def load_VTK_Map(Filename):
     """Load a VTK-format map that contains only one SCALAR segments, like those generated by Joachim's code
 
@@ -261,7 +368,7 @@ def load_VTK_Map(Filename):
 
     Outputs
     =========
-    Vertexes : list of lists of floats
+    Points : list of lists of floats
         Each element is the 3-D coordinates of a vertex on surface mesh
 
     Faces : list of lists of integers
@@ -278,10 +385,8 @@ def load_VTK_Map(Filename):
     Reader.Update() 
     
     Data = Reader.GetOutput()
-    Vertexes = [list(Data.GetPoint(PointID)) for PointID in xrange(0, Data.GetNumberOfPoints())]
-#    for PointID in xrange(0, Data.GetNumberOfPoints()):
-#        (X, Y, Z)= Data.GetPoint(PointID)
-#        Vertexes.append([X, Y, Z])
+    Points = [list(Data.GetPoint(PointID)) for PointID in xrange(0, Data.GetNumberOfPoints())]
+
     CellArray = Data.GetPolys()
     Polygons = CellArray.GetData()
     Faces = [[Polygons.GetValue(j) for j in xrange(i*3+1, i*3+4)] for i in xrange(0,  CellArray.GetNumberOfCells()) ]
@@ -293,7 +398,10 @@ def load_VTK_Map(Filename):
     Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())] 
         
     
-    return Vertexes, Faces, Scalars
+    return Points, Faces, Scalars
     
     
-    
+# functions that uses our own way to write VTK files ---
+# A reason that we do not use VTK's python binding is because it is very lack of docs
+
+
