@@ -46,6 +46,8 @@ from subprocess import Popen, PIPE, STDOUT
 from scipy.sparse import csr_matrix, lil_matrix
 import pylab
 import os
+import atlas_functions
+import create_unittest_files
 
 import vtk_operations as vo
 import compute_weights as cw
@@ -988,6 +990,30 @@ class Shape:
 
 		return np.nonzero(self.Neighbors[node])[1]
 
+	def get_consensus_labels(self,surface_file, annot_files):
+		""" Call Arno's function to obtain consensus labels for the brain of interest.
+
+		Parameters
+		==========
+		brain_vtk_file: string (name of vtk file of current brain)
+		similar_brains: list (of strings, each string corresponding to file location of comparable brains)
+
+		Returns
+		=======
+		self.consensus_labels: np array (of indices of nodes which were labeled homogeneously)
+
+		Explanation
+		===========
+		Consensus labels will be used to prevent realigning the label boundary across consensus labels.
+
+		"""
+		# a,b,c,self.consensus_labels = atlas_functions.majority_vote_label(surface_file, annot_files)
+
+		# For now, and to test it out...
+		self.consensus_labels = create_unittest_files.__consensus__()
+
+		return self.consensus_labels
+
 	def check_well_formed(self):
 		"""Check whether the inputted data is well formed."""
 		# Check that number of labels corresponds to number of nodes.
@@ -1104,7 +1130,7 @@ class Shape:
 		return self.eigenvalues
 
 	def propagate_labels(self,method='weighted_average', realign=False,
-	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=200, tol=1, eps=1e-7):
+	                     kernel=cw.rbf_kernel, sigma=10, vis=True, alpha=1, diagonal=0, repeat=1, max_iters=200, tol=.001, eps=1e-7):
 		""" Main function to propagate labels.
 
 		Parameters
@@ -1254,20 +1280,27 @@ class Shape:
 
 		self.RLabels = self.Labels.copy()
 
+		# Collect consensus labels...
+		self.get_consensus_labels(0,0)
+
 		# go column by column, find those entries which meet criterion, map to tuple, select second entry
 		counter = 0
 		for column in self.probabilistic_assignment.T:
-			nodes_to_change = list(np.nonzero(column > .65)[0])
+			nodes_to_change = list(np.nonzero(column > .5)[0])
+			if set.intersection(set(nodes_to_change), set(self.consensus_labels)):
+				print 'You are trying to cross consensus labels! Halt!'
+				nodes_to_change = []
 			print nodes_to_change
 			self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
 			counter += 1
-			break
 
 		self.RLabels_file = filename
 
 		vo.write_all(self.RLabels_file, self.Nodes, self.Mesh, self.RLabels)
 
 		return self.RLabels, self.RLabels_file
+
+
 
 	"""
 #########################################
