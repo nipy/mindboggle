@@ -41,7 +41,8 @@ def segment_surface(faces, seeds, N, min_patch_size):
     Output:
     ------
     segments: label indices for patches: [#seeds x 1] numpy array
-    max_patch: index for largest segmented set of vertices
+    n_segments: #labels
+    max_patch_label: index for largest segmented set of vertices
 
     Calls:
     -----
@@ -63,7 +64,8 @@ def segment_surface(faces, seeds, N, min_patch_size):
     # Loop until all seed vertices segmented
     print('Grow ' + str(n_seeds) + ' seed vertices...')
     max_patch_size = 0
-    max_patch = 0
+    max_patch_label = 1
+    n_segments = 0
     counter = 0
     TEMP0 = np.zeros(N)
     while n_seeds > min_patch_size:
@@ -108,18 +110,19 @@ def segment_surface(faces, seeds, N, min_patch_size):
         size_patch = len(Ipatch)
         if size_patch > min_patch_size:
             counter += 1
-            segments[Ipatch] = counter
+            n_segments = counter
+            segments[Ipatch] = n_segments
             # Display current number and size of patch
             if size_patch > 1:
-                print('Segmented patch ' + str(counter) + ': ' + str(size_patch) +\
-                      ' vertices.  ' + str(n_seeds) + ' remaining...')
+                print('Segmented patch ' + str(n_segments) + ': ' + str(size_patch) +\
+                      ' vertices.  ' + str(n_seeds) + ' seeds remaining...')
 
             # Find the maximum hole size (the background) to ignore below
             if size_patch > max_patch_size:
                 max_patch_size = size_patch
-                max_patch = counter
+                max_patch_label = counter
 
-    return segments, max_patch
+    return segments, n_segments, max_patch_label
 
 #-----------
 # Fill holes
@@ -146,8 +149,8 @@ def fill_holes(faces, sulci):
     # Segment non-sulcus surface
     seeds = np.where(sulci == 0)[0]
     print('Segment holes...')
-    holes, max_hole = segment_surface(faces, seeds, N=len(sulci),
-                                      min_patch_size=0)
+    holes, n_holes, max_hole = segment_surface(faces, seeds, N=len(sulci),
+                                               min_patch_size=0)
 
     # Ignore the largest hole (the background)
     holes[holes == max_hole] = 0
@@ -156,22 +159,21 @@ def fill_holes(faces, sulci):
     # connected to any of the vertices in the current hole,
     # and assign the hole the maximum label number
     print('Assign labels to holes...')
-    for i in np.unique(holes):
-        if i > 0:
-            found = 0
-            hole_indices = np.where(holes == i)[0]
-            # Loop until a labeled neighbor is found
-            for j in range(len(hole_indices)):
-                # Find neighboring vertices to the hole
-                neighbors = find_neighbors(faces, hole_indices[j])
-                # If there are any neighboring labels,
-                # assign the hole the maximum label
-                # of its neighbors and end the while loop
-                if any(neighbors):
-                    nIdx = max(sulci[neighbors])
-                    if nIdx > 0:
-                        sulci[hole_indices] = nIdx
-                        break
+    for i in range(1, n_holes + 1):
+        found = 0
+        hole_indices = np.where(holes == i)[0]
+        # Loop until a labeled neighbor is found
+        for j in range(len(hole_indices)):
+            # Find neighboring vertices to the hole
+            neighbors = find_neighbors(faces, hole_indices[j])
+            # If there are any neighboring labels,
+            # assign the hole the maximum label
+            # of its neighbors and end the while loop
+            if any(neighbors):
+                nIdx = max(sulci[neighbors])
+                if nIdx > 0:
+                    sulci[hole_indices] = nIdx
+                    break
 
     return sulci
 
@@ -203,11 +205,10 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
     # Segment sulcus surface
     print("Extract sulci from surface mesh...")
     seeds = np.where(depths > depth_threshold)[0]
-    sulci, max_sulcus = segment_surface(faces, seeds, N=len(depths),
-                                        min_patch_size=min_sulcus_size)
+    sulci, n_sulci, max_sulcus = segment_surface(faces, seeds, N=len(depths),
+                                                 min_patch_size=min_sulcus_size)
 
     # Fill sulcus holes to preserve topology
-    n_sulci = np.max(sulci)
     if n_sulci > 0:
         print('Fill holes in sulci...')
         sulci = fill_holes(faces, sulci)

@@ -22,7 +22,7 @@ from test import test_fundi_hmmf
 #=================
 # Extract a fundus
 #=================
-def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
+def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
                    thr=0.5, min_sulcus_size=30, max_neighbors=15):
     """
     Extract a single fundus.
@@ -56,7 +56,8 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
     # Retain only likelihood values for the sulcus corresponding to sulcus_index
     L[sulci != sulcus_index] = 0
 
-    # If the size of the sulcus is sufficiently large, continue
+    # If the size of the sulcus (according to likelihood values)
+    # is sufficiently large, continue
     if sum(L > thr) > min_sulcus_size:
 
         # Find neighbors for each sulcus vertex and arrange as rows in an array
@@ -81,15 +82,15 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_distances,
         L_init[L_init > 1] = 1
 
         # Find fundus points
-        fundus_points = find_anchor_points(vertices, L, min_distances, thr=0.5, max_distance=8)
-        if any(fundus_points):
-            fundus = connect_the_dots(L, L_init, faces, fundus_points,
+        anchors = find_anchor_points(vertices, L, min_directions, thr=0.5, max_distance=8)
+        if any(anchors):
+            fundus = connect_the_dots(L, L_init, faces, anchors,
                                       sulcus_neighbors, sulcus_indices, thr=0.5)
         else:
-            fundus = np.zeros(len(L))
+            fundus = np.zeros(len(sulci))
     else:
-        print('Sulcus too small: ' + str(sum(L > thr) > min_sulcus_size))
-        fundus = np.zeros(len(L))
+        print('Sulcus too small: ' + str(sum(L > thr)))
+        fundus = np.zeros(len(sulci))
 
     return fundus
 
@@ -123,31 +124,45 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, dept
 
     """
 
+    load_em = 1
+    if load_em:
+        import pickle
+
     # Extract sulci
-    print('Extract sulci...')
-    #sulci, n_sulci = extract_sulci(faces, depths)
-    import pickle
-    sulci = pickle.load(open("/drop/sulci.p","rb"))
-    n_sulci = int(pickle.load(open("/drop/n_sulci.p","rb")))
+    if load_em:
+        sulci = pickle.load(open("/drop/sulci.p","rb"))
+        n_sulci = int(pickle.load(open("/drop/n_sulci.p","rb")))
+    else:
+        sulci, n_sulci = extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50)
 
     # Compute fundus likelihood values
-    print('Compute fundus likelihood values...')
-    n_vertices = len(depths)
-    L = np.zeros(n_vertices)
-    for sulcus_index in range(1, n_sulci + 1):
-        L += compute_likelihood(sulci, sulcus_index, depths, mean_curvatures)
+    if load_em:
+        n_vertices = len(depths)
+        L = pickle.load(open("/drop/L.p","rb"))
+    else:
+        print('Compute fundus likelihood values for ' + str(n_sulci) + ' sulci...')
+        n_vertices = len(depths)
+        L = np.zeros(n_vertices)
+        for sulcus_index in range(1, n_sulci + 1):
+            print('Compute fundus likelihood for sulcus ' + str(sulcus_index) + '...')
+            L += compute_likelihood(sulci, sulcus_index, depths, mean_curvatures)
+
     # Extract individual fundi
-    print('Extract fundi...')
+    print('Extract fundi from ' + str(n_sulci) + ' sulci...')
     fundi = np.zeros((n_vertices, n_sulci))
     for sulcus_index in range(1, n_sulci + 1):
+        print('Extract fundus from sulcus ' + str(sulcus_index) + '...')
         fundi[:, sulcus_index - 1] = \
         extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
+
+    # Remove empty fundi (zero columns) for sulci deemed too small in extract_fundus()
+    fundi = fundi[:, np.sum(fundi, axis = 0) > 0]
 
     return fundi
 
 mean_curvatures, depths, vertices, faces, min_directions = test_fundi_hmmf()
-#output_sulci, output_anchor_points, output_L, output_fundi = test_fundi_hmmf()
-
+#mean_curvatures, depths, vertices, faces, min_directions, output_sulci, \
+#output_anchor_points, output_L, output_fundi = test_fundi_hmmf()
 #sulci, n_sulci = extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50)
 
 fundi = extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2)
