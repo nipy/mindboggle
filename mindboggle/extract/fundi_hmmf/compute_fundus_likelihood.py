@@ -12,6 +12,7 @@ Authors:
 """
 
 import numpy as np
+from scipy.stats import scoreatpercentile
 
 print_debug = 1
 
@@ -69,6 +70,14 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
     len_sulcus = np.float(sum(sulcus_bool))
     sulcus_depths = depths[sulcus_bool]
     sulcus_curvatures = curvatures[sulcus_bool]
+
+    """
+    # Find depth value where less than depth_threshold1 of sulcus vertices are deeper
+    depth_found = scoreatpercentile(sulcus_depths, depth_threshold2)
+    slope_depth = -slope_factor / (search - depth_found)
+    # Map depth values with sigmoidal function to range [0,1]
+    st_depths = 1 / (1 + np.exp(-slope_depth * (depths - depth_found)))
+    """
 
     # Find depth value where less than depth_threshold1 of sulcus vertices are deeper
     mass_left = 1
