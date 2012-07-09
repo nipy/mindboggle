@@ -13,7 +13,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 import numpy as np
 
 from extract_sulci import extract_sulci
-from compute_fundus_likelihood import compute_likelihood
+from compute_likelihood import compute_likelihood
 from find_neighbors import find_neighbors
 from find_anchor_points import find_anchor_points
 from connect_the_dots import connect_the_dots
@@ -23,7 +23,7 @@ from test import test_fundi_hmmf
 # Extract a fundus
 #=================
 def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
-                   thr=0.5, min_sulcus_size=30, max_neighbors=15):
+                   thr=0.5, min_sulcus_size=30, max_neighbors=15, max_distance=8):
     """
     Extract a single fundus.
 
@@ -53,7 +53,8 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
 
     """
 
-    # Retain only likelihood values for the sulcus corresponding to sulcus_index
+    # Retain only likelihood values for the sulcus corresponding to
+    # sulcus_index
     L[sulci != sulcus_index] = 0
 
     # If the size of the sulcus (according to likelihood values)
@@ -81,11 +82,11 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
 
         # Find fundus points
         print('Find anchor points...')
-        anchors = find_anchor_points(vertices, L, min_directions, thr=0.5, max_distance=8)
+        anchors = find_anchor_points(vertices, L, min_directions, thr, max_distance)
         if any(anchors):
             print('Connect anchor points to construct a fundus curve for each sulcus...')
             fundus = connect_the_dots(L, L_init, faces, anchors,
-                                      sulcus_neighbors, sulcus_indices, thr=0.5)
+                                      sulcus_neighbors, sulcus_indices, thr)
         else:
             fundus = np.zeros(len(sulci))
     else:
@@ -97,7 +98,8 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2):
+def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
+                  depth_threshold=0.2, min_sulcus_size=50):
     """
     Extract all fundi.
 
@@ -133,7 +135,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, dept
         sulci = pickle.load(open("/drop/sulci.p","rb"))
         n_sulci = int(pickle.load(open("/drop/n_sulci.p","rb")))
     else:
-        sulci, n_sulci = extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50)
+        sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
+                                       min_sulcus_size)
 
     # Compute fundus likelihood values
     if load_em:
@@ -145,7 +148,18 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, dept
         L = np.zeros(n_vertices)
         for sulcus_index in range(1, n_sulci + 1):
             print('Compute fundus likelihood for sulcus ' + str(sulcus_index) + '...')
-            L += compute_likelihood(sulci, sulcus_index, depths, mean_curvatures)
+
+            # Retain only sulcus numbers for the sulcus corresponding to sulcus_index
+            is_sulcus = sulci == sulcus_index
+            sulcus = sulci[is_sulcus]
+
+            # Find sulcus depths and curvature values
+            sulcus_depths = depths[is_sulcus]
+            sulcus_curvatures = mean_curvatures[is_sulcus]
+
+            sulcus_likelihood = compute_likelihood(sulcus, sulcus_depths,
+                                                   sulcus_curvatures)
+            L[is_sulcus] += sulcus_likelihood
 
     # Extract individual fundi
     print('Extract fundi from ' + str(n_sulci) + ' sulci...')
@@ -155,7 +169,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, dept
         fundi[:, sulcus_index - 1] = \
         extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions)
 
-    # Remove empty fundi (zero columns) for sulci deemed too small in extract_fundus()
+    # Remove empty fundi for sulci deemed too small in extract_fundus()
     fundi = fundi[:, np.sum(fundi, axis = 0) > 0]
 
     return fundi
