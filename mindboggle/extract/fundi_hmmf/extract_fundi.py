@@ -61,32 +61,19 @@ def extract_fundus(L, sulci, sulcus_index, vertices, faces, min_directions,
     # is sufficiently large, continue
     if sum(L > thr) > min_sulcus_size:
 
-        # Find neighbors for each sulcus vertex and arrange as rows in an array
+        # Find neighbors for each sulcus vertex and arrange as lists within a list
         sulcus_indices = np.where(L > 0)[0]
-        len_sulcus = len(sulcus_indices)
-        sulcus_neighbors = np.zeros((len_sulcus, max_neighbors))
-        for i in range(len_sulcus):
-            neighbors = find_neighbors(faces, sulcus_indices[i])
-            len_neighbors = len(neighbors)
-            if len_neighbors > max_neighbors:
-                sulcus_neighbors[i, range(max_neighbors)] = neighbors[0 : max_neighbors]
-            else:
-                sulcus_neighbors[i, range(len_neighbors)] = neighbors
-
-        # Initialize all likelihood values within sulcus greater than 0.5
-        # and less than or equal to 1.0.
-        # This is necessary to guarantee correct topology
-        L_init = (L + 1.000001) / 2.0
-        L_init[L == 0] = 0
-        L_init[L_init > 1] = 1
+        sulcus_neighbors = []
+        for index in sulcus_indices:
+            neighbors = find_neighbors(faces, index)
+            sulcus_neighbors.append(neighbors)
 
         # Find fundus points
         print('Find anchor points...')
         anchors = find_anchor_points(vertices, L, min_directions, thr, max_distance)
         if any(anchors):
             print('Connect anchor points to construct a fundus curve for each sulcus...')
-            fundus = connect_the_dots(L, L_init, faces, anchors,
-                                      sulcus_neighbors, sulcus_indices, thr)
+            fundus = connect_the_dots(L, faces, anchors, sulcus_neighbors, sulcus_indices, thr)
         else:
             fundus = np.zeros(len(sulci))
     else:
