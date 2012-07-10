@@ -114,8 +114,9 @@ def segment_surface(faces, seeds, N, min_patch_size):
             segments[Ipatch] = n_segments
             # Display current number and size of patch
             if size_patch > 1:
-                print('Segmented patch ' + str(n_segments) + ': ' + str(size_patch) +\
-                      ' vertices.  ' + str(n_seeds) + ' seeds remaining...')
+                print('Segmented patch ' + str(n_segments) +
+                      ': ' + str(size_patch) + ' vertices.  ' +
+                      str(n_seeds) + ' seeds remaining...')
 
             # Find the maximum hole size (the background) to ignore below
             if size_patch > max_patch_size:
@@ -213,6 +214,8 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
         print('Fill holes in sulci...')
         sulci = fill_holes(faces, sulci)
 
+    # Convert sulci array to a list of lists of vertex indices
+    sulci = [np.where(sulci==i)[0].tolist() for i in range(1, n_sulci+1)]
+
     # Return sulci and the number of sulci
     return sulci, n_sulci
-
