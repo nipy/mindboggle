@@ -27,7 +27,7 @@ def print_help():
     print "  --sulciThld SulciThld"
     print "    SulciThld: the value to threshold the surface to get sulci (default = 0.2)"
     print "  Examples: "
-    print "    python vtk_extract.py --thick lh.thickness --second lh.inflated --convex lh.sulc --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk --fundi2 lh.inflated.fundi.vtk --pits2 lh.inflated.pits.vtk --sulci2 lh.inflated.sulci.vtk --sulciThld 0.15 lh.pial.vtk\n"
+    print "    python vtk_extract.py --thick lh.thickness --second lh.inflated --convex lh.sulc --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk --fundi2 lh.inflated.fundi.vtk --pits2 lh.inflated.pits.vtk --sulci2 lh.inflated.sulci.vtk --sulciThld 0.15 lh.depth.vtk\n"
 
 def check_opt(opts, args):
     '''Check whether opts and args satisfy constraints 
