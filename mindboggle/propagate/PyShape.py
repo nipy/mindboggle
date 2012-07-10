@@ -1252,6 +1252,7 @@ class Shape:
 
 		Parameters
 		==========
+		filename: string (output vtk file for visualizing realigned boundary)
 
 		Returns
 		=======
@@ -1285,10 +1286,15 @@ class Shape:
 
 		# go column by column, find those entries which meet criterion, map to tuple, select second entry
 		counter = 0
+		nodes_to_change = {}
+
+		# SOMEHOW YOU NEED ACCOUNTABILITY HERE - IF TWO DIFFERENT CLASSES ARE TRYING TO RELABEL THE SAME NODES...
+		# YOU NEED A DECISION PROCESS WHICH WILL RESOLVE THE DISPUTE!
+
 		for column in self.probabilistic_assignment.T:
-			nodes_to_change = list(np.nonzero(column > .5)[0])
-			if set.intersection(set(nodes_to_change), set(self.consensus_labels)):
-				print 'You are trying to cross consensus labels! Halt!'
+			nodes_to_change[counter] = list(np.nonzero(column > .501)[0])
+			if set.intersection(set(nodes_to_change[counter]), set(self.consensus_labels)):
+				print 'You are trying to cross consensus labels!'
 				nodes_to_change = []
 			print nodes_to_change
 			self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
@@ -1471,9 +1477,9 @@ class Shape:
 				restore_values = column[restore_indices]
 			else:
 				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
-				print restore_indices
 				restore_values = column[restore_indices]
-				print restore_values
+				# Try clamping the other label boundaries at 0...
+				restore_values[restore_values==-1] = 0
 				#pylab.plot(restore_values)
 				#pylab.show()
 
@@ -1673,82 +1679,8 @@ def test():
 
 	shape.initialize_labels(keep='label_boundary')
 	shape.find_label_boundary_segments(completed=g3)
-	shape.propagate_labels(realign=True, max_iters=5000)
+	shape.propagate_labels(realign=True, max_iters=6000)
 	shape.assign_realigned_labels()
 	shape.find_label_boundary(realigned_labels=True)
 
 test()
-
-#		if self.same_fundus:
-#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
-#
-#		elif intersection[0] == intersection[1] or -1 in intersection:
-#			# It intersects at the same place, or not at all:
-#			# We must now run the label propagation algorithm.
-#			self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
-#
-#		#################################################################
-#		# Now let us do the co-segment, which is defined by classes (b,a)
-#		#################################################################
-#
-#		if self.label_boundary_segments[(b,a)]:
-#			# partition_points = set.intersection(set(self.label_boundary_segments[(a,b)]),set(self.fundal_nodes))
-#			endpoint = [-1, -1]
-#			for node in self.label_boundary_segments[(b,a)]:
-#				ns = self.neighbors(node)
-#				boundary_ns = set.intersection(set(ns), set(self.label_boundary_segments[(b,a)]))
-#				if len(boundary_ns) == 1:
-#					if endpoint[0] == -1:
-#						endpoint[0] = node # This is an endpoint. Construct segments starting from here.
-#					else:
-#						endpoint[1] = node
-#						break
-#				intersection = [-1,-1] # This array holds the indices of the first two (maximally) intersections of label boundary with fundi
-#			for i in xrange(2):
-#				current_node = endpoint[i]
-#				avoid = {current_node}
-#				while current_node not in self.fundal_nodes:
-#					current_neighbors = set.intersection(set(self.neighbors(current_node)), set(self.label_boundary_segments[(b,a)]))
-#					try:
-#						next_node = set.difference(current_neighbors, avoid).pop()
-#					except:
-#						print 'you have reached the exception clause. The intersection should be -1'
-#						current_node = -1
-#						break
-#					avoid.add(next_node)
-#					current_node = next_node
-#				intersection[i] = current_node # It might be -1, if there are no intersections.
-#				print "The intersection points are: ", intersection
-#				self.same_fundus = False
-#			if -1 not in intersection and intersection[0] != intersection[1]:
-#				# It found 2 different intersections. We must therefore now assess whether these two intersections are
-#				# part of the same fundus.
-#					pointer = intersection[0] # This is the first intersection point.
-#				print "First pointer is: ", pointer
-#				avoid = set() # This will be an array of rows in self.Fundi to avoid
-#				rows = list(np.nonzero([pointer in row for row in self.Fundi])[0]) # This is a list of rows to explore
-#				print "And the list of rows to explore is: ", rows
-#					while rows:
-#					path_to_follow = rows[0]
-#					print "Following path! ", path_to_follow
-#					avoid.add(path_to_follow)
-#					tmp = set(list(self.Fundi[path_to_follow]))
-#					print "fundal nodes which are being analyzed are: ", tmp
-#					pointer = tmp.remove(pointer)
-#					print "pointer is now: ", pointer
-#					if pointer == intersection[1]:
-#						# Bingo!
-#						print 'Bingo! Both intersections are part of the same fundus!'
-#						self.same_fundus = True
-#						break
-#					rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Fundi])[0]),avoid))
-#					print "Rows is now: ", rows
-#				if self.same_fundus:
-#						print 'Propagating labels in the case of YES 2-fundi intersection.'
-#						self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 1)
-#				elif intersection[0] == intersection[1] or -1 in intersection:
-#					# It intersects at the same place, or not at all:
-#					# We must now run the label propagation algorithm.
-#					print 'Propagating labels in the case of NO 2-fundi intersection.'
-#					self.propagate_labels(realign=True, current_segment= self.label_boundary_segments[(a,b)], fundus_value = 0)
-#			i += 1
