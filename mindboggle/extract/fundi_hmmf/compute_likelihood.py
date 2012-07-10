@@ -14,12 +14,12 @@ Authors:
 import numpy as np
 from scipy.stats import scoreatpercentile
 
-print_debug = 1
+print_debug = 0
 
 #=================================
 # Compute fundus likelihood values
 #=================================
-def compute_likelihood(sulci, sulcus_index, depths, curvatures):
+def compute_likelihood(sulcus, sulcus_depths, sulcus_curvatures):
     """
     Compute fundus likelihood values.
 
@@ -27,10 +27,9 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
 
     Inputs:
     ------
-    curvatures: mean curvature values [#vertices x 1] numpy array
-    depths: depth values [#vertices x 1] numpy array
-    sulci: sulcus values [#vertices x 1] numpy array
-    sulcus_index: sulcus number [int]
+    sulcus: sulcus values [#sulcus vertices x 1] numpy array
+    sulcus_curvatures: mean curvature values [#sulcus vertices x 1] numpy array
+    sulcus_depths: depth values [#sulcus vertices x 1] numpy array
 
     Parameters:
     ----------
@@ -45,7 +44,7 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
 
     Output:
     ------
-    L: fundus likelihood values [#vertices x 1] numpy array
+    sulcus_likelihood: fundus likelihood values [#sulcus vertices x 1] numpy array
 
     """
     # Parameters for adaptive thresholding
@@ -61,18 +60,13 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
     slope_factor = np.log((1. / high_map_value) - 1)
 
     # Take the opposite of the curvature values
-    curvatures = -curvatures
-
-    # Retain only sulcus numbers for the sulcus corresponding to sulcus_index
-    sulcus_bool = sulci == sulcus_index
+    sulcus_curvatures = -sulcus_curvatures
 
     # Find sulcus depths and curvature values
-    len_sulcus = np.float(sum(sulcus_bool))
-    sulcus_depths = depths[sulcus_bool]
-    sulcus_curvatures = curvatures[sulcus_bool]
+    len_sulcus = np.float(len(sulcus))
 
     """
-    # Find depth value where less than depth_threshold1 of sulcus vertices are deeper
+    # Alternative to resetting the threshold values below?
     depth_found = scoreatpercentile(sulcus_depths, depth_threshold2)
     slope_depth = -slope_factor / (search - depth_found)
     # Map depth values with sigmoidal function to range [0,1]
@@ -95,11 +89,11 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
         search += depth_increment
         mass_left = sum(sulcus_depths > search) / len_sulcus
     if search == depth_found:
-        st_depths = np.zeros(len(curvatures))
+        st_depths = np.zeros(len_sulcus)
     else:
         slope_depth = -slope_factor / (search - depth_found)
         # Map depth values with sigmoidal function to range [0,1]
-        st_depths = 1 / (1 + np.exp(-slope_depth * (depths - depth_found)))
+        st_depths = 1 / (1 + np.exp(-slope_depth * (sulcus_depths - depth_found)))
     if print_debug:
         print(str(depth_threshold2) +
               ' of sulcus vertices are deeper than ' + str(search))
@@ -118,13 +112,12 @@ def compute_likelihood(sulci, sulcus_index, depths, curvatures):
     if slope_curvature > 1000:
         if print_debug:
             print('(high slope curvature: ' + str(slope_curvature) + ')')
-        curvatures[curvatures < 0] = np.Inf
-        curvatures[curvatures > 0] = 0
+        sulcus_curvatures[sulcus_curvatures < 0] = np.Inf
+        sulcus_curvatures[sulcus_curvatures > 0] = 0
     # Map curvature values with sigmoidal function to range [0,1]
-    st_curvatures = 1 / (1 + np.exp(-slope_curvature * curvatures))
+    st_curvatures = 1 / (1 + np.exp(-slope_curvature * sulcus_curvatures))
 
     # Assign likelihood values to sulcus vertices
-    L = st_depths * st_curvatures  # element-wise multiplication
-    L[~sulcus_bool] = 0
+    sulcus_likelihood = st_depths * st_curvatures  # element-wise multiplication
 
-    return L
+    return sulcus_likelihood
