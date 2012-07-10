@@ -1,7 +1,9 @@
 #!/usr/bin/python
 """
-Connect surface mesh vertices ("dots") according to Hidden Markov Measure Field
-(HMMF) probability values.
+Connect surface mesh vertices ("anchors").
+
+Connect vertices according to Hidden Markov Measure Field (HMMF)
+probability values.
 
 Authors:
 Yrjo Hame  .  yrjo.hame@gmail.com
@@ -47,19 +49,19 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
 #-----------------------
 # Test for simple points
 #-----------------------
-def simple_point_test(faces, index, values, thr, max_neighbors=20):
+def simple_point_test(faces, index, values, thr, max_neighbors):
     """
     Test to see if vertex is a "simple point".
 
     A simple point is a vertex that when removed from or added to an object
-    (such as a curve) on a surface mesh does not alter the topology of the object.
+    (e.g., a curve) on a surface mesh does not alter the topology of the object.
 
     Inputs:
     ------
     faces: [#faces x 3] numpy array
     index: index of vertex
-    values: likelihood values: [#vertices x 1] numpy array
-    thr: likelihood threshold
+    values: values: [#vertices x 1] numpy array
+    thr: threshold
     max_neighbors: maximum number of neighbors considered for a given vertex
 
     Output:
@@ -154,25 +156,22 @@ def simple_point_test(faces, index, values, thr, max_neighbors=20):
 
     return sp
 
-#=================
-# Connect the dots
-#=================
-def connect_the_dots(L, faces, dots, neighbors, indices, thr):
+#========================
+# Connect anchor vertices
+#========================
+def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
     """
-    Connect dots (sulcus vertices in a surface mesh) to create a (fundus) curve.
+    Connect anchor vertices in a surface mesh to create a curve.
 
     ????[Explain HMMF approach]
 
     Inputs:
     ------
-    L: likelihood values for a subset of vertices (zero for the rest):
-       [#vertices x 1] numpy array
-    faces: [#faces x 3] numpy array
-    dots: [#vertices x 1] numpy array
-    neighbors: indices of neighbors to each vertex in vertices_subset:
-               list of #vertices_subset lists
-    indices: indices of subset of vertices: [#vertices_subset x 1] numpy array
+    anchors: list of indices of vertices to connect
+    faces: indices of triangular mesh vertices: [#faces x 3] numpy array
+    L: likelihood values
     thr: likelihood threshold
+    max_neighbors: maximum number of neighbors considered for a given vertex
 
     Parameters:
     ----------
@@ -183,12 +182,12 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
       step_size
       mult_init
     Loop parameters:
-      n_tries_no_change: number of times the loop can continue even without any change
-      max_count: maximum number of iterations
+      n_tries_no_change: #times the loop can continue even without any change
+      max_count: maximum #iterations
     Parameters to speed up optimization:
       diff_threshold
       mult_incr
-      C_threshold: a minimum HMMF value to fix probabilities at very low values
+      C_threshold: minimum HMMF value to fix probabilities at very low values
 
     Output:
     ------
@@ -196,6 +195,7 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
 
     Calls:
     -----
+    find_neighbors()
     prob()
     simple_point_test()
 
@@ -203,7 +203,7 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
 
     #-----------
     # Parameters
-    #-------------------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # prob() parameters
     wt_likelihood = 1.1  # weight influence of likelihood on probability
     wt_neighbors = 0.4  # weight influence of neighbors on probability
@@ -213,14 +213,14 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
     mult_init = 0.02
 
     # Loop parameters
-    n_tries_no_change = 3  # number of times the loop can continue even without any change
+    n_tries_no_change = 3  # #times loop can continue even without any change
     max_count = 350  # maximum number of iterations
 
     # Parameters to speed up optimization
     diff_threshold = 0.0001
     mult_incr = 0.001
-    C_threshold = 0.01  # a minimum HMMF value to fix probabilities at very low values
-    #-------------------------------------------------------------------------------------
+    C_threshold = 0.01  # minimum HMMF value to fix probabilities at low values
+    #-------------------------------------------------------------------------
 
     # Initialize all likelihood values within sulcus greater than 0.5
     # and less than or equal to 1.0.
@@ -229,26 +229,30 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
     L_init[L == 0] = 0
     L_init[L_init > 1] = 1
 
-    # Initialize array of connected dots,
+    # Initialize array of connected vertices,
     # containing likelihood values greater than thr,
-    # and 1 for dots greater than thr
-    n_vertices = len(L)
-    C = np.zeros(n_vertices)
+    # and 1 for vertices greater than thr
+    V = np.unique(faces)
+    nV = len(V)
+    C = np.zeros(nV)
     C[L_init > thr] = L_init[L_init > thr]
-    C[dots > thr] = 1
+    C[anchors > thr] = 1
 
-    # Continue if there are at least two candidate dots
+    # Continue if there are at least two candidate vertices
     if sum(C > 0) >= 2:
         print(str(sum(C > 0)) + ' initial candidate vertices')
 
         # Initialize new arrays of connected points and probability values
         Cnew = C.copy()
-        probs = np.zeros(n_vertices)
-        n_indices = len(indices)
+        probs = np.zeros(nV)
+
+        # Find neighbors for each vertex
+        print('Find neighbors for each vertex...')
+        N = [find_neighbors(faces, i).tolist() for i in V]
 
         # Assign probability values to each neighboring vertex
-        for i in indices:
-            probs[i] = prob(wt_likelihood, L[i], wt_neighbors, C[i], C[neighbors[i]])
+        probs = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
+                 for i in V]
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
@@ -262,66 +266,73 @@ def connect_the_dots(L, faces, dots, neighbors, indices, thr):
             mult = mult_init + count * mult_incr
 
             # Loop through vertices with positive likelihood values
-            # and assign each a locally optimal HMMF value (C[i]) 
-            for i in indices:
+            # and assign each a locally optimal HMMF value (C[i])
+            for i in V:
+
                 # Continue if HMMF value is greater than C_threshold
                 # (to fix at very low values, to make the optimization faster)
                 if C[i] > C_threshold:
 
-                    # Compute the (negative) probability gradient for the HMMF value
+                    # Compute the (negative) probability gradient
+                    # for the HMMF value
                     q = max([C[i] - step_size, 0])
-                    prob_decr = prob(wt_likelihood, L[i], wt_neighbors, q, C[neighbors[i]])
+                    prob_decr = prob(wt_likelihood, L[i], wt_neighbors, q,
+                                     C[N[i]])
                     decr = mult * (prob_decr - probs[i]) / step_size
 
-                    # Test to update the HMMF value for positive and negative decrements:
+                    # Test to update the HMMF value for positive decrements:
                     if decr > 0:
-                        # Update the HMMF value if it is close enough to the threshold
+                        # Update the HMMF value if so close to the threshold
                         # that the decrement makes it cross the threshold,
-                        # the dot value is below the threshold,
+                        # the likelihood value is below the threshold,
                         # and the vertex is a "simple point"
                         if C[i] > thr >= C[i] - decr:
-                            if dots[i] > thr:
+                            if anchors[i] > thr:
                                 update = 0
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
-                                update = simple_point_test(faces, i, Cnew_copy, thr)
-                        # Or update the HMMF value if it is far from the threshold
+                                update = simple_point_test(faces, i, Cnew_copy,
+                                                           thr, max_neighbors)
+                        # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
                         # Update the HMMF and probability values
                         if update:
                             Cnew[i] = max([C[i] - decr, 0])
                             probs[i] = prob(wt_likelihood, L[i], wt_neighbors,
-                                            Cnew[i], C[neighbors[i]])
+                                            Cnew[i], C[N[i]])
+
+                    # Test to update the HMMF value for negative decrements:
                     else:
                         # Or if the decrement is negative,
-                        # update the HMMF value if it is close enough to the threshold
+                        # update the HMMF value if so close to the threshold
                         # that the decrement makes it cross the threshold,
                         # and the vertex is a "simple point"
-                        if C[i] - decr > thr and C[i] <= thr:
+                        if C[i] - decr > thr >= C[i]:
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
-                            update = simple_point_test(faces, i, Cnew_copy, thr)
-                        # Or update the HMMF value if it is far from the threshold
+                            update = simple_point_test(faces, i, Cnew_copy,
+                                                       thr, max_neighbors)
+                        # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
                         # Update the HMMF and probability values
                         if update:
                             Cnew[i] = min([C[i] - decr, 1])
                             probs[i] = prob(wt_likelihood, L[i], wt_neighbors,
-                                            Cnew[i], C[neighbors[i]])
+                                            Cnew[i], C[N[i]])
 
             # Tally the number of vertices assigned probability values
             # and the number of HMMF values with probability > thr.
             # After iteration 1, compare current and previous values.
             # If the values are similar, increment end_flag.
-            n_probs = sum(probs[indices])
+            n_probs = sum(probs > 0)
             n_points = sum(C > thr)
             if count > 0:
                 if n_points == n_points_previous:
-                    diff_probs = (n_probs - n_probs_previous) / n_indices
+                    diff_probs = (n_probs - n_probs_previous) / nV
                     if diff_probs < diff_threshold:
                         end_flag += 1
 
