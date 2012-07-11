@@ -222,12 +222,10 @@ def connect_anchors(anchors, faces, L, thr):
     # and 1 for vertices greater than thr
     V = np.unique(faces)
     nV = len(V)
-    C = np.zeros(nV)
-    print(len(L_init))
-    print(len(C))
-    print(max(L_init>thr))
+    C = np.zeros(len(L))
     C[L_init > thr] = L_init[L_init > thr]
-    C[anchors > thr] = 1
+    anchors_thr = [x for x in anchors if x > thr]
+    C[anchors_thr] = 1
 
     # Continue if there are at least two candidate vertices
     if sum(C > 0) >= 2:
@@ -256,8 +254,7 @@ def connect_anchors(anchors, faces, L, thr):
             # increase the time-step size toward the end of the optimization
             mult = mult_init + count * mult_incr
 
-            # Loop through vertices with positive likelihood values
-            # and assign each a locally optimal HMMF value (C[i])
+            # Assign each vertex a locally optimal HMMF value (C[i])
             for i in V:
 
                 # Continue if HMMF value is greater than C_threshold
@@ -283,7 +280,7 @@ def connect_anchors(anchors, faces, L, thr):
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
-                                update = simple_test(faces, i, Cnew_copy, thr)
+                                update = 1 ####simple_test(faces, i, Cnew_copy, thr)
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -303,7 +300,7 @@ def connect_anchors(anchors, faces, L, thr):
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
-                            update = simple_test(faces, i, Cnew_copy, thr)
+                            update = 1 ####simple_test(faces, i, Cnew_copy, thr)
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -333,4 +330,4 @@ def connect_anchors(anchors, faces, L, thr):
             count += 1
             print(str(n_points) + ' vertices...')
     
-        return C
+        return C.tolist()
