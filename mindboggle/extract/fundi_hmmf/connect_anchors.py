@@ -43,7 +43,7 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
 
     """
     p = -hmmf * np.sqrt(wt_likelihood - likelihood)**2 - \
-        wt_neighbors * sum(hmmf - hmmf_neighbors)**2
+         wt_neighbors * sum(hmmf - hmmf_neighbors)**2
     return p
 
 #-----------------------
@@ -104,10 +104,10 @@ def simple_test(faces, index, values, thr):
         # then store these neighbors' values in a "sets" list
         set_labels = range(1, n_sets + 1)
         sets = []
-        for i in range(n_sets):
-            current_neighs = find_neighbors(faces, neighs_inside[i])
+        for i_set in range(n_sets):
+            current_neighs = find_neighbors(faces, neighs_inside[i_set])
             current_neighs = current_neighs[values[current_neighs] > thr]
-            sets.append(current_neighs, neighs_inside[i])
+            sets.append(current_neighs, neighs_inside[i_set])
 
         # Consolidate labels of connected vertices:
         # Loop through neighbors (rows of the "sets" array),
