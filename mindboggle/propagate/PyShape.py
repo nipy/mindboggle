@@ -1300,13 +1300,36 @@ class Shape:
 			self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
 			counter += 1
 
+		nodes_to_change = self.resolve_overlaps(nodes_to_change)
+
+
 		self.RLabels_file = filename
 
 		vo.write_all(self.RLabels_file, self.Nodes, self.Mesh, self.RLabels)
 
 		return self.RLabels, self.RLabels_file
 
+	def resolve_overlaps(self, dict_of_nodes):
+		""" Prevents multiple label boundaries from realigning to same fundus. Resolves ambiguity.
 
+		Parameters
+		==========
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class wants to redefine)
+
+		Returns
+		=======
+		non_overlapping_dict: dict (key - class (counter), value - list of nodes which the class should redefine)
+
+		Explanation
+		===========
+		We need to account for the fact that multiple label boundaries will try to propagate their label to the fundi.
+		We need a decision procedure to determine which class should "win" the nodes.
+
+		"""
+
+		# First we need an efficient procedure to identify the overlaps.
+
+		return
 
 	"""
 #########################################
