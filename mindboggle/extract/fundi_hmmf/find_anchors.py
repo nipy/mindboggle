@@ -56,7 +56,6 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
     # remove this value, and loop through the remaining high likelihoods
     anchors = [IL.pop(0)]
     for imax in IL:
-        print(imax)
 
         # Find anchor points close to vertex with maximum likelihood value
         i = 0
