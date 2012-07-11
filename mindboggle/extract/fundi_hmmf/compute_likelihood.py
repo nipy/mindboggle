@@ -14,7 +14,7 @@ Authors:
 import numpy as np
 from scipy.stats import scoreatpercentile
 
-print_debug = 0
+print_debug = 1
 
 #=================================
 # Compute fundus likelihood values
@@ -53,8 +53,10 @@ def compute_likelihood(depths, curvatures):
     high_map_value = 0.9
 
     # Increments to reduce computation time
-    depth_increment = 0.01
-    curvature_increment = 0.0001
+#    depth_increment = 0.01
+#    curvature_increment = 0.0001
+    depth_increment = 0.1
+    curvature_increment = 0.01
 
     slope_factor = np.log((1. / high_map_value) - 1)
 
@@ -117,6 +119,6 @@ def compute_likelihood(depths, curvatures):
     st_curvatures = 1 / (1 + np.exp(-slope_curvature * curvatures))
 
     # Assign likelihood values to vertices
-    likelihoods = st_depths * st_curvatures  # element-wise multiplication
+    likelihoods = st_depths* st_curvatures  # element-wise multiplication
 
     return likelihoods

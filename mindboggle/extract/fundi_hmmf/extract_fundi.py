@@ -71,11 +71,12 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     load_em = 1
     if load_em:
         import pickle
+        load_path = "/drop/yrjo_code_io_data/"
 
     # Extract sulci (vertex indices for each sulcus)
     if load_em:
-        sulci = pickle.load(open("/drop/sulci.p","rb"))
-        n_sulci = int(pickle.load(open("/drop/n_sulci.p","rb")))
+        sulci = pickle.load(open(load_path + "sulci.p","rb"))
+        n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
     else:
         sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
                                        min_sulcus_size)
@@ -83,24 +84,37 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     # For each sulcus...
     print('Extract fundi from ' + str(n_sulci) + ' sulci...')
     fundi = []
-    for i, sulcus in enumerate(sulci):
+    for i_sulcus, sulcus in enumerate(sulci):
 
         # Compute fundus likelihood values
-        print('Compute fundus likelihood for sulcus ' + str(i + 1) + '...')
+        print('Compute fundus likelihood for sulcus ' + str(i_sulcus + 1) + '...')
+        """
+        if load_em:
+            sulcus_likelihoods = pickle.load(open(load_path + "L.p","rb"))
+        else:
+        """
         sulcus_likelihoods = compute_likelihood(depths[sulcus],
                                                 mean_curvatures[sulcus])
 
         # If the size of the sulcus (according to likelihood values)
         # is sufficiently large, continue
         if sum(sulcus_likelihoods > thr) > min_sulcus_size:
-            I = sulcus[sulcus_likelihoods > 0]
+            """
+            if load_em:
+
+                L = pickle.load(open(load_path + "L.p","rb"))
+                I = pickle.load(open(load_path + "I.p","rb"))
+            else:
+            """
+            I = [i for i,x in enumerate(sulcus) if sulcus_likelihoods[i] > 0]
             L = sulcus_likelihoods[sulcus_likelihoods > 0]
+                #np.array([x for x in sulcus_likelihoods if x > 0])
 
             # Find fundus points
-            print('Find fundus points for sulcus ' + str(i + 1) + '...')
+            print('Find fundus points for sulcus ' + str(i_sulcus + 1) + '...')
             anchors = find_anchors(vertices[I], L, min_directions[I],
                                    thr, min_distance, max_distance)
-            if any(anchors):
+            if len(anchors) > 0:
 
                 # Remove faces that contain a non-sulcus vertex
                 print('Remove faces that contain a non-sulcus vertex...')
@@ -111,15 +125,16 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
                 # Replace mesh indices with sulcus indices
                 print('Replace mesh indices with sulcus indices')
-                V = np.unique(faces)
+                V = np.unique(faces_sulcus)
                 anchors2 = anchors.copy()
                 faces_sulcus2 = faces_sulcus.copy()
                 for index_new, index_old in enumerate(V):
-                    anchors2[I == index_old] = index_new
-                    faces_sulcus2[I == index_old] = index_new
-
-                # Extract fundus
-                print('Connect fundus points for sulcus ' + str(i + 1) + '...')
+                    anchors2[anchors == index_old] = index_new
+                    faces_sulcus2[faces_sulcus == index_old] = index_new
+                print(faces_sulcus)
+                print(faces_sulcus2)
+                # Connect fundus points and extract fundus
+                print('Connect fundus points for sulcus ' + str(i_sulcus + 1) + '...')
                 fundi.append(
                       connect_anchors(anchors2, faces_sulcus2, L, thr))
             else:
@@ -129,9 +144,20 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     return fundi
 
-mean_curvatures, depths, vertices, faces, min_directions = test_fundi_hmmf()
-#mean_curvatures, depths, vertices, faces, min_directions, output_sulci, \
-#output_anchor_points, output_L, output_fundi = test_fundi_hmmf()
+load_em = 1
+if load_em:
+    import pickle
+    load_path = "/drop/yrjo_code_io_data/"
+    min_directions = pickle.load(open(load_path + "min_directions.p","rb"))
+    mean_curvatures = pickle.load(open(load_path + "mean_curvatures.p","rb"))
+    depths = pickle.load(open(load_path + "depths.p","rb"))
+    vertices = pickle.load(open(load_path + "vertices.p","rb"))
+    faces = pickle.load(open(load_path + "faces.p","rb"))
+else:
+    mean_curvatures, depths, vertices, faces, min_directions = test_fundi_hmmf()
+    #mean_curvatures, depths, vertices, faces, min_directions, output_sulci, \
+    #output_anchor_points, output_L, output_fundi = test_fundi_hmmf()
+
 #sulci, n_sulci = extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50)
 
 fundi = extract_fundi(vertices, faces, depths, mean_curvatures, min_directions, depth_threshold=0.2)
