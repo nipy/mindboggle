@@ -223,6 +223,9 @@ def connect_anchors(anchors, faces, L, thr):
     V = np.unique(faces)
     nV = len(V)
     C = np.zeros(nV)
+    print(len(L_init))
+    print(len(C))
+    print(max(L_init>thr))
     C[L_init > thr] = L_init[L_init > thr]
     C[anchors > thr] = 1
 
