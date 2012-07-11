@@ -32,9 +32,9 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
 
     Inputs:
     ------
-    vertices: [#sulcus vertices x 3] numpy array
-    L: fundus likelihood values [#sulcus vertices x 1] numpy array
-    min_directions: [#sulcus vertices x 1] numpy array
+    vertices: [#vertices x 3] numpy array
+    L: fundus likelihood values: [#vertices x 1] numpy array
+    min_directions: [#vertices x 1] numpy array
     thr: likelihood threshold
     min_distance: minimum distance
     max_distance: maximum distance
@@ -47,11 +47,10 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
 
     # Find maximum likelihood value
     maxL = max(L)
-    imax = np.where(L == maxL)[0]
+    imax = np.where(L == maxL)[0][0]  #[i for i,x in enumerate(L) if x == maxL]
 
-    # Initialize anchor point array and reset maximum likelihood value
-    P = np.zeros(len(L))
-    P[imax] = 1
+    # Initialize anchor point list and reset maximum likelihood value
+    anchors = [imax]
     L[imax] = -1
 
     # Loop through high-likelihood vertices
@@ -59,39 +58,34 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
 
         # Find and reset maximum likelihood value
         maxL = max(L)
-        imax = np.where(L == maxL)[0]
+        imax = np.where(L == maxL)[0][0]  #[i for i,x in enumerate(L) if x == maxL]
         L[imax] = -1
-
-        # Anchor points and distance values
-        IP = P > 0
-        lenP = sum(IP)
-        P_vertices = vertices[IP,:]
-        P_directions = min_directions[IP]
 
         # Find anchor points close to vertex with maximum likelihood value
         i = 0
         found = 0
-        while i < lenP and found == 0:
+        while i < len(anchors) and found == 0:
 
             # Compute Euclidean distance between points
-            D = np.linalg.norm(P_vertices[i,:] - vertices[imax,:])
-
-            # Compute directional distance between points if they are close
-            if max_distance > D >= min_distance:
-                dirV = np.dot(P_vertices[i,:] - vertices[imax,:], P_directions[i])
-                D = np.linalg.norm(dirV)
+            D = np.linalg.norm(vertices[anchors[i], :] - vertices[imax, :])
 
             # If distance less than threshold, consider the point found
             if D < min_distance:
                 found = 1
+            # Compute directional distance between points if they are close
+            elif max_distance > D >= min_distance:
+                dirV = np.dot(vertices[anchors[i], :] - vertices[imax, :],
+                              min_directions[anchors[i], :])
+                D = np.linalg.norm(dirV)
+                # If distance less than threshold, consider the point found
+                if D < min_distance:
+                    found = 1
 
             i += 1
 
         # If there are no nearby anchor points,
         # assign the maximum likelihood vertex as an anchor point
         if not found:
-            P[imax] = 1
-
-    anchors = np.where(P)[0].tolist()
+            anchors.append(imax)
 
     return anchors
