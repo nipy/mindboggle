@@ -110,7 +110,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                 print('Connect fundus points for sulcus ' +
                       str(i_sulcus + 1) + '...')
                 fundi.append(
-                      connect_anchors(anchors2, faces_sulcus2, L, thr))
+                      connect_anchors(anchors2, faces_sulcus2,
+                                      sulcus_likelihoods, thr))
             else:
                 fundi.append([])
         else:
