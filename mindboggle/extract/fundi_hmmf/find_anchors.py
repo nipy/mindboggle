@@ -13,6 +13,7 @@ Authors:
 """
 
 import numpy as np
+from operator import itemgetter
 
 #===================
 # Find anchor points
@@ -45,21 +46,17 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
 
     """
 
-    # Find maximum likelihood value
-    maxL = max(L)
-    imax = np.where(L == maxL)[0][0]  #[i for i,x in enumerate(L) if x == maxL]
+    # Sort likelihood values and find the threshold (thr)
+    L_table = [[i,x] for i,x in enumerate(L)]
+    L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+          if x > thr]
 
-    # Initialize anchor point list and reset maximum likelihood value
-    anchors = [imax]
-    L[imax] = -1
-
-    # Loop through high-likelihood vertices
-    while maxL > thr:
-
-        # Find and reset maximum likelihood value
-        maxL = max(L)
-        imax = np.where(L == maxL)[0][0]  #[i for i,x in enumerate(L) if x == maxL]
-        L[imax] = -1
+    # Initialize anchors list with the index of the maximum likelihood value,
+    # remove this value, and loop through the remaining high likelihoods
+    anchors = [IL.pop(0)]
+    for imax in IL:
+        print(imax)
 
         # Find anchor points close to vertex with maximum likelihood value
         i = 0
