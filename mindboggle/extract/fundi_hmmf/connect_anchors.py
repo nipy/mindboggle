@@ -49,7 +49,7 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
 #-----------------------
 # Test for simple points
 #-----------------------
-def simple_point_test(faces, index, values, thr, max_neighbors):
+def simple_test(faces, index, values, thr):
     """
     Test to see if vertex is a "simple point".
 
@@ -62,7 +62,6 @@ def simple_point_test(faces, index, values, thr, max_neighbors):
     index: index of vertex
     values: values: [#vertices x 1] numpy array
     thr: threshold
-    max_neighbors: maximum number of neighbors considered for a given vertex
 
     Output:
     ------
@@ -95,28 +94,20 @@ def simple_point_test(faces, index, values, thr, max_neighbors):
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
-        #neighvals_list = [n for n in neighvals > thr]
         neighs_inside = neighs[neighvals_thr]
-
-        # Initialize "sets" numpy array [#neighbors>thr x max_neighbors]
-        sets = np.zeros((n_sets, max_neighbors))
-        set_labels = range(1, n_sets + 1)
 
         # Reset vertex value????
         values[index] = -1
 
         # For each neighbor exceeding the threshold,
         # find its neighbors that also exceed the threshold,
-        # then store these neighbors' values in a row of the "sets" array
+        # then store these neighbors' values in a "sets" list
+        set_labels = range(1, n_sets + 1)
+        sets = []
         for i in range(n_sets):
             current_neighs = find_neighbors(faces, neighs_inside[i])
             current_neighs = current_neighs[values[current_neighs] > thr]
-            len_current = len(current_neighs)
-            if len_current > max_neighbors - 1:
-                len_current = max_neighbors - 1
-                current_neighs = current_neighs[range(len_current)]
-            sets[i, range(len_current)] = current_neighs
-            sets[i, len_current] = neighs_inside[i]
+            sets.append(current_neighs, neighs_inside[i])
 
         # Consolidate labels of connected vertices:
         # Loop through neighbors (rows of the "sets" array),
@@ -132,17 +123,15 @@ def simple_point_test(faces, index, values, thr, max_neighbors):
                 for j in range(i + 1, n_sets):
                     if set_labels[i] != set_labels[j]:
 
-                        # See if the two rows share a (non-zero) vertex
-                        unique_i = np.unique(sets[i, :])
-                        unique_j = np.unique(sets[j, :])
-                        unique_i = unique_i[unique_i > 0]
-                        unique_j = unique_j[unique_j > 0]
+                        # See if the two rows share a vertex
+                        unique_i = np.unique(sets[i])
+                        unique_j = np.unique(sets[j])
                         len_union = len(np.union1d(unique_i, unique_j))
 
-                        # Assign the two rows the same label
+                        # Assign the two subsets the same label
                         # if they share at least one vertex,
                         # and continue looping
-                        if len_union < sum(unique_i > 0) + sum(unique_j > 0):
+                        if len_union < len(unique_i) + len(unique_j):
                             set_labels[i] = set_labels[j]
                             change = 1
 
@@ -159,7 +148,7 @@ def simple_point_test(faces, index, values, thr, max_neighbors):
 #========================
 # Connect anchor vertices
 #========================
-def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
+def connect_anchors(anchors, faces, L, thr):
     """
     Connect anchor vertices in a surface mesh to create a curve.
 
@@ -171,7 +160,6 @@ def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
     faces: indices of triangular mesh vertices: [#faces x 3] numpy array
     L: likelihood values
     thr: likelihood threshold
-    max_neighbors: maximum number of neighbors considered for a given vertex
 
     Parameters:
     ----------
@@ -197,7 +185,7 @@ def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
     -----
     find_neighbors()
     prob()
-    simple_point_test()
+    simple_test()
 
     """
 
@@ -292,8 +280,7 @@ def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
-                                update = simple_point_test(faces, i, Cnew_copy,
-                                                           thr, max_neighbors)
+                                update = simple_test(faces, i, Cnew_copy, thr)
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -313,8 +300,7 @@ def connect_anchors(anchors, faces, L, thr, max_neighbors=20):
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
-                            update = simple_point_test(faces, i, Cnew_copy,
-                                                       thr, max_neighbors)
+                            update = simple_test(faces, i, Cnew_copy, thr)
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
