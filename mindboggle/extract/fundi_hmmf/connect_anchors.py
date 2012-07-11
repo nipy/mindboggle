@@ -272,10 +272,11 @@ def connect_anchors(anchors, faces, L, thr):
                     if decr > 0:
                         # Update the HMMF value if so close to the threshold
                         # that the decrement makes it cross the threshold,
-                        # the likelihood value is below the threshold,
-                        # and the vertex is a "simple point"
+                        # the likelihood value is above the threshold,
+                        # and the vertex is not an anchor point
+                        # but is a "simple point"
                         if C[i] > thr >= C[i] - decr:
-                            if anchors[i] > thr:
+                            if i in anchors_thr:
                                 update = 0
                             else:
                                 Cnew_copy = Cnew.copy()
