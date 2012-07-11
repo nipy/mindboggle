@@ -111,17 +111,17 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
                 # Replace mesh indices with sulcus indices
                 print('Replace mesh indices with sulcus indices')
-                Iset = np.unique(faces)
+                V = np.unique(faces)
                 anchors2 = anchors.copy()
                 faces_sulcus2 = faces_sulcus.copy()
-                for index_new, index_old in enumerate(Iset):
+                for index_new, index_old in enumerate(V):
                     anchors2[I == index_old] = index_new
                     faces_sulcus2[I == index_old] = index_new
 
                 # Extract fundus
                 print('Connect fundus points for sulcus ' + str(i + 1) + '...')
                 fundi.append(
-                      connect_anchors(anchors2, I2, faces_sulcus2, L, thr))
+                      connect_anchors(anchors2, faces_sulcus2, L, thr))
             else:
                 fundi.append([])
         else:
