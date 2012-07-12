@@ -53,10 +53,8 @@ def compute_likelihood(depths, curvatures):
     high_map_value = 0.9
 
     # Increments to reduce computation time
-#    depth_increment = 0.01
-#    curvature_increment = 0.0001
-    depth_increment = 0.1
-    curvature_increment = 0.01
+    depth_increment = 0.01
+    curvature_increment = 0.0001
 
     slope_factor = np.log((1. / high_map_value) - 1)
 
