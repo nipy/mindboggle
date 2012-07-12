@@ -280,7 +280,7 @@ def connect_anchors(anchors, faces, L, thr):
                                 Cnew_copy[i] = C[i] - decr
                                 t1 = time()
                                 update = simple_test(faces, i, Cnew_copy, thr)
-                                print(str(time() - t1) + 'seconds: simple test 2')
+                                print(str(time() - t1) + ' seconds: simple test 2')
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -302,7 +302,7 @@ def connect_anchors(anchors, faces, L, thr):
                             Cnew_copy = 1 - Cnew_copy
                             t1 = time()
                             update = simple_test(faces, i, Cnew_copy, thr)
-                            print(str(time() - t1) + 'seconds: simple test 2')
+                            print(str(time() - t1) + ' seconds: simple test 2')
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1

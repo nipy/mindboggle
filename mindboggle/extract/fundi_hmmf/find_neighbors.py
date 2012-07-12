@@ -27,14 +27,16 @@ def find_neighbors(faces, index):
 
     Output:
     ------
-    I: [#neighbors x 1] numpy array
+    N: list of indices of neighboring vertices
 
     """
     # Create list of vertex indices sharing the same faces as "index"
-    I = np.concatenate([x for x in faces if index in x])
+    I = [faces[np.where(faces[:,i] == index)[0], :] for i in (0,1,2)]
+
+    # Create single list from nested lists
+    I = [int(x) for sublist in I for subsublist in sublist for x in subsublist]
 
     # Find unique indices not equal to "index"
-    N = []
-    [N.append(x) for x in I if x not in N if x != index]
+    N = []; [N.append(x) for x in I if x not in N if x != index]
 
     return N
