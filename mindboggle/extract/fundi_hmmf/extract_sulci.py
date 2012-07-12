@@ -83,14 +83,17 @@ def segment_surface(faces, seeds, N, min_patch_size):
             loop = 0
             TEMP[I] = 1
             Inew = []
+
             # Find neighbors for each selected seed vertex
             for index in I:
                 neighbors = find_neighbors(faces_seeds, index)
+
                 # Select neighbors that have not been previously selected
                 if len(neighbors) > 0:
                     neighbors = [x for x in neighbors if TEMP[x] == 0]
                     TEMP[neighbors] = 2
                     Inew.extend(neighbors)
+
                     # Continue looping
                     loop = 1
             I = Inew
