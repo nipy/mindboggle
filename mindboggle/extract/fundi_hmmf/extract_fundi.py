@@ -16,6 +16,7 @@ from extract_sulci import extract_sulci
 from compute_likelihood import compute_likelihood
 from find_anchors import find_anchors
 from connect_anchors import connect_anchors
+from time import time
 
 #==================
 # Extract all fundi
@@ -49,13 +50,13 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     -----
     extract_sulci()
     compute_likelihood()
-    find_neighbors()
     find_anchors()
     connect_anchors()
 
     """
 
-    load_em = 1
+    load_em = 0
+    save_em = 1
     if load_em:
         import pickle
         load_path = "/drop/yrjo_code_io_data/"
@@ -65,8 +66,13 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         sulci = pickle.load(open(load_path + "sulci.p","rb"))
         n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
     else:
+        t0 = time()
         sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
                                        min_sulcus_size)
+        print(str(time() - t0) + 'seconds')
+        if save_em:
+            pickle.dump(sulci, open(load_path + "sulci.p","wb"))
+            pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
 
     # For each sulcus...
     print('Extract fundi from ' + str(n_sulci) + ' sulci...')
@@ -76,8 +82,12 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         # Compute fundus likelihood values
         print('Compute fundus likelihood for sulcus ' +
               str(i_sulcus + 1) + '...')
+        t0 = time()
         sulcus_likelihoods = compute_likelihood(depths[sulcus],
                                                 mean_curvatures[sulcus])
+        print(str(time() - t0) + 'seconds: likelihood')
+        if save_em:
+            pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
 
         # If the sulcus has enough high-likelihood vertices, continue
         if sum(sulcus_likelihoods > thr) > min_sulcus_size:
@@ -85,77 +95,56 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             # Find fundus points
             print('Find fundus points for sulcus ' +
                   str(i_sulcus + 1) + '...')
+            t0 = time()
             anchors = find_anchors(vertices[sulcus, :], sulcus_likelihoods,
                                    min_directions[sulcus],
                                    thr, min_distance, max_distance)
+            print(str(time() - t0) + 'seconds: anchors')
             if len(anchors) > 0:
+
+                if save_em:
+                    pickle.dump(anchors, open(load_path + "anchors"+str(i_sulcus)+".p","wb"))
 
                 # Remove faces that have a non-sulcus vertex (output: 1-D array)
                 fs = frozenset(sulcus)
                 faces_sulcus1 = np.ravel([lst for lst in faces
                                           if len(fs.intersection(lst))==3])
+                if save_em:
+                    pickle.dump(faces_sulcus1, open(load_path + "faces_sulcus1_"+str(i_sulcus)+".p","wb"))
 
                 # Replace mesh indices with sulcus indices
-                print('Replace mesh indices with sulcus indices')
-
-
+                print('Replace mesh indices with sulcus indices...')
+                t0 = time()
+                # anchor vertices
                 V = np.unique(faces_sulcus1)
                 anchors = np.array(anchors)
                 anchors2 = anchors.copy()
-
-                import time
-
-                print(anchors)
-                print('test1')
-                t0 = time.time()
                 for index_new, index_old in enumerate(V):
                     anchors2[anchors == index_old] = index_new
-                print time.time() - t0, "seconds"
-                print(anchors2)
-
-                print('test2')
-                t0 = time.time()
-                I2 = [[np.where(anchors == x)[0]] for x in V]
-                for i, x in enumerate(I2):
-                    anchors2[x] = i
-                print time.time() - t0, "seconds"
-                print(anchors2)
-
-                print('test3')
-                t0 = time.time()
-                Ia = [i for i,x in enumerate(anchors) for v in V if x==v]
-                for i, x in enumerate(Ia):
-                    anchors2[x] = i
-                print time.time() - t0, "seconds"
-                print(anchors2)
-
-                print('test4')
-                t0 = time.time()
+                # faces vertices
                 faces_table = np.transpose([[i,x] for i,x in enumerate(V)])
                 faces_sulcus2 = [faces_table[0, faces_table[1, :] == x]
                                  for x in faces_sulcus1]
-                print time.time() - t0, "seconds"
-
-                print('test5')
-                t0 = time.time()
-                I2 = [[np.where(faces_sulcus1 == x)[0]] for x in V]
-                faces_sulcus2 = faces_sulcus1.copy()
-                for i, x in enumerate(I2):
-                    faces_sulcus2[x] = i
-                faces_sulcus2 = np.reshape(faces_sulcus2, (-1, 3))
-                print time.time() - t0, "seconds"
+                faces_sulcus2 = np.reshape(np.ravel(faces_sulcus2), (-1, 3))
+                print(str(time() - t0) + 'seconds: reindexing')
+                if save_em:
+                    pickle.dump(faces_sulcus2, open(load_path + "faces_sulcus2_"+str(i_sulcus)+".p","wb"))
 
                 # Connect fundus points and extract fundus
                 print('Connect fundus points for sulcus ' +
                       str(i_sulcus + 1) + '...')
+                t0 = time()
                 fundi.append(
                       connect_anchors(anchors2, faces_sulcus2,
                                       sulcus_likelihoods, thr))
+                print(str(time() - t0) + 'seconds: connect')
             else:
                 fundi.append([])
         else:
             fundi.append([])
 
+    if save_em:
+        pickle.dump(fundi, open(load_path + "fundi.p","wb"))
     return fundi
 
 load_em = 1
@@ -178,3 +167,7 @@ else:
 fundi = extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     depth_threshold=0.2, thr=0.5, min_sulcus_size=50,
     min_distance=5, max_distance=8)
+
+# import time
+# t0 = time.time()
+# print time.time() - t0, "seconds"

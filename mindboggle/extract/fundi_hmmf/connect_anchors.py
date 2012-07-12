@@ -78,9 +78,9 @@ def simple_test(faces, index, values, thr):
     # Count the number of "inside" and "outside" neighbors
     neighs = find_neighbors(faces, index)
     neighvals = values[neighs]
-    neighvals_thr = neighvals > thr
-    n_sets = sum(neighvals_thr)
-    n_outside = sum(neighvals <= thr)
+    I_neighvals_thr = [i for i,x in enumerate(neighvals) if x > thr]
+    n_sets = len(I_neighvals_thr)
+    n_outside = len([x for x in neighvals if x <= thr])
 
     # If the number of inside or outside neighbors is zero,
     # than the vertex IS NOT a simple point
@@ -93,7 +93,7 @@ def simple_test(faces, index, values, thr):
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
-        neighs_inside = neighs[neighvals_thr]
+        neighs_inside = neighs[I_neighvals_thr]
 
         # Reset vertex value????
         values[index] = -1
@@ -105,7 +105,7 @@ def simple_test(faces, index, values, thr):
         sets = []
         for i_set in range(n_sets):
             current_neighs = find_neighbors(faces, neighs_inside[i_set])
-            current_neighs = current_neighs[values[current_neighs] > thr]
+            current_neighs = [x for x in current_neighs if values[x] > thr]
             sets.append(current_neighs, neighs_inside[i_set])
 
         # Consolidate labels of connected vertices:
@@ -123,8 +123,10 @@ def simple_test(faces, index, values, thr):
                     if set_labels[i] != set_labels[j]:
 
                         # See if the two rows share a vertex
-                        unique_i = np.unique(sets[i])
-                        unique_j = np.unique(sets[j])
+                        unique_i = []
+                        unique_j = []
+                        [unique_i.append(x) for x in sets[i] if x not in unique_i]
+                        [unique_j.append(x) for x in sets[j] if x not in unique_j]
                         len_union = len(np.union1d(unique_i, unique_j))
 
                         # Assign the two subsets the same label
@@ -232,7 +234,7 @@ def connect_anchors(anchors, faces, L, thr):
 
         # Find neighbors for each vertex
         print('Find neighbors for each vertex...')
-        N = [find_neighbors(faces, i).tolist() for i in indices]
+        N = [find_neighbors(faces, i) for i in indices]
 
         # Assign probability values to each vertex
         print('Assign probability value to each vertex...')
@@ -276,7 +278,9 @@ def connect_anchors(anchors, faces, L, thr):
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
-                                update = 1 ####simple_test(faces, i, Cnew_copy, thr)
+                                t1 = time()
+                                update = simple_test(faces, i, Cnew_copy, thr)
+                                print(str(time() - t1) + 'seconds: simple test 2')
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -296,7 +300,9 @@ def connect_anchors(anchors, faces, L, thr):
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
-                            update = 1 ####simple_test(faces, i, Cnew_copy, thr)
+                            t1 = time()
+                            update = simple_test(faces, i, Cnew_copy, thr)
+                            print(str(time() - t1) + 'seconds: simple test 2')
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
