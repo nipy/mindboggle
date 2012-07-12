@@ -69,7 +69,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         t0 = time()
         sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
                                        min_sulcus_size)
-        print(str(time() - t0) + 'seconds')
+        print(str(time() - t0) + ' seconds')
         if save_em:
             pickle.dump(sulci, open(load_path + "sulci.p","wb"))
             pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
@@ -85,7 +85,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         t0 = time()
         sulcus_likelihoods = compute_likelihood(depths[sulcus],
                                                 mean_curvatures[sulcus])
-        print(str(time() - t0) + 'seconds: likelihood')
+        print(str(time() - t0) + ' seconds: likelihood')
         if save_em:
             pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
 
@@ -99,7 +99,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             anchors = find_anchors(vertices[sulcus, :], sulcus_likelihoods,
                                    min_directions[sulcus],
                                    thr, min_distance, max_distance)
-            print(str(time() - t0) + 'seconds: anchors')
+            print(str(time() - t0) + ' seconds: anchors')
             if len(anchors) > 0:
 
                 if save_em:
@@ -126,7 +126,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                 faces_sulcus2 = [faces_table[0, faces_table[1, :] == x]
                                  for x in faces_sulcus1]
                 faces_sulcus2 = np.reshape(np.ravel(faces_sulcus2), (-1, 3))
-                print(str(time() - t0) + 'seconds: reindexing')
+                print(str(time() - t0) + ' seconds: reindexing')
                 if save_em:
                     pickle.dump(faces_sulcus2, open(load_path + "faces_sulcus2_"+str(i_sulcus)+".p","wb"))
 
@@ -137,7 +137,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                 fundi.append(
                       connect_anchors(anchors2, faces_sulcus2,
                                       sulcus_likelihoods, thr))
-                print(str(time() - t0) + 'seconds: connect')
+                print(str(time() - t0) + ' seconds: connect')
             else:
                 fundi.append([])
         else:
