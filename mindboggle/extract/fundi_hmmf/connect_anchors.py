@@ -23,8 +23,8 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     """
     Compute Hidden Markov Measure Field (HMMF) probability for a given vertex.
 
-    p = -hmmf * np.sqrt(wt_likelihood - likelihood)**2
-        - wt_neighbors * sum(hmmf - hmmf_neighbors)**2
+    p = -hmmf * np.sqrt((wt_likelihood - likelihood)**2)
+        - wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
@@ -42,9 +42,8 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     p: probability
 
     """
-    p = -hmmf * np.sqrt(wt_likelihood - likelihood)**2 - \
-         wt_neighbors * sum(hmmf - hmmf_neighbors)**2
-    return p
+    return -hmmf * abs(wt_likelihood - likelihood) - \
+            wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
 
 #-----------------------
 # Test for simple points
@@ -217,37 +216,35 @@ def connect_anchors(anchors, faces, L, thr):
     L_init[L == 0] = 0
     L_init[L_init > 1] = 1
 
-    # Initialize array of connected vertices,
-    # containing likelihood values greater than thr,
-    # and 1 for vertices greater than thr
-    V = np.unique(faces)
-    nV = len(V)
-    C = np.zeros(len(L))
+    # Initialize array of connected vertices C
+    # with likelihood values greater than thr and a 1 for each anchor vertex
+    n_vertices = len(L)
+    C = np.zeros(n_vertices)
     C[L_init > thr] = L_init[L_init > thr]
-    anchors_thr = [x for x in anchors if x > thr]
-    C[anchors_thr] = 1
+    C[anchors] = 1
 
     # Continue if there are at least two candidate vertices
     if sum(C > 0) >= 2:
         print(str(sum(C > 0)) + ' initial candidate vertices')
 
-        # Initialize new arrays of connected points and probability values
-        Cnew = C.copy()
-        probs = np.zeros(nV)
+        # Initialize vertex indices
+        indices = np.unique(faces)
 
         # Find neighbors for each vertex
         print('Find neighbors for each vertex...')
-        N = [find_neighbors(faces, i).tolist() for i in V]
+        N = [find_neighbors(faces, i).tolist() for i in indices]
 
-        # Assign probability values to each neighboring vertex
+        # Assign probability values to each vertex
+        print('Assign probability value to each vertex...')
         probs = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
-                 for i in V]
+                 for i in indices]
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
         #  no change for n_tries_no_change times)
         count = 0
         end_flag = 0
+        Cnew = C.copy()
         while end_flag < n_tries_no_change and count < max_count:
 
             # Define a factor to multiply the probability gradient that will
@@ -255,28 +252,26 @@ def connect_anchors(anchors, faces, L, thr):
             mult = mult_init + count * mult_incr
 
             # Assign each vertex a locally optimal HMMF value (C[i])
-            for i in V:
+            for i in indices:
 
                 # Continue if HMMF value is greater than C_threshold
-                # (to fix at very low values, to make the optimization faster)
+                # (to fix when at very low values, to speed up optimization)
                 if C[i] > C_threshold:
 
                     # Compute the (negative) probability gradient
                     # for the HMMF value
                     q = max([C[i] - step_size, 0])
-                    prob_decr = prob(wt_likelihood, L[i], wt_neighbors, q,
-                                     C[N[i]])
+                    prob_decr = prob(wt_likelihood, L[i],
+                                     wt_neighbors, q, C[N[i]])
                     decr = mult * (prob_decr - probs[i]) / step_size
 
                     # Test to update the HMMF value for positive decrements:
                     if decr > 0:
-                        # Update the HMMF value if so close to the threshold
-                        # that the decrement makes it cross the threshold,
-                        # the likelihood value is above the threshold,
-                        # and the vertex is not an anchor point
-                        # but is a "simple point"
+                        # Update the HMMF value if just above the threshold
+                        # such that the decrement makes it cross the threshold,
+                        # and the vertex is not an anchor but is a "simple point"
                         if C[i] > thr >= C[i] - decr:
-                            if i in anchors_thr:
+                            if i in anchors:
                                 update = 0
                             else:
                                 Cnew_copy = Cnew.copy()
@@ -288,8 +283,8 @@ def connect_anchors(anchors, faces, L, thr):
                         # Update the HMMF and probability values
                         if update:
                             Cnew[i] = max([C[i] - decr, 0])
-                            probs[i] = prob(wt_likelihood, L[i], wt_neighbors,
-                                            Cnew[i], C[N[i]])
+                            probs[i] = prob(wt_likelihood, L[i],
+                                            wt_neighbors, Cnew[i], C[N[i]])
 
                     # Test to update the HMMF value for negative decrements:
                     else:
@@ -308,23 +303,22 @@ def connect_anchors(anchors, faces, L, thr):
                         # Update the HMMF and probability values
                         if update:
                             Cnew[i] = min([C[i] - decr, 1])
-                            probs[i] = prob(wt_likelihood, L[i], wt_neighbors,
-                                            Cnew[i], C[N[i]])
+                            probs[i] = prob(wt_likelihood, L[i],
+                                            wt_neighbors, Cnew[i], C[N[i]])
 
-            # Tally the number of vertices assigned probability values
-            # and the number of HMMF values with probability > thr.
+            # Sum the probability values across all vertices
+            # and tally the number of HMMF values with probability > thr.
             # After iteration 1, compare current and previous values.
             # If the values are similar, increment end_flag.
-            n_probs = sum(probs > 0)
+            sum_probs = sum(probs)
             n_points = sum(C > thr)
             if count > 0:
                 if n_points == n_points_previous:
-                    diff_probs = (n_probs - n_probs_previous) / nV
-                    if diff_probs < diff_threshold:
+                    if diff_threshold > (sum_probs - sum_probs_previous) / n_vertices:
                         end_flag += 1
 
             # Reset for next iteration
-            n_probs_previous = n_probs
+            sum_probs_previous = sum_probs
             n_points_previous = n_points
             C = Cnew
 
