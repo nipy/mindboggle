@@ -90,21 +90,60 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                                    thr, min_distance, max_distance)
             if len(anchors) > 0:
 
-                # Remove faces that contain a non-sulcus vertex
+                # Remove faces that have a non-sulcus vertex (output: 1-D array)
                 fs = frozenset(sulcus)
-                faces_sulcus = [lst for lst in faces
-                                if len(fs.intersection(lst))==3]
-                faces_sulcus = np.reshape(np.ravel(faces_sulcus), (-1, 3))
+                faces_sulcus1 = np.ravel([lst for lst in faces
+                                          if len(fs.intersection(lst))==3])
 
                 # Replace mesh indices with sulcus indices
                 print('Replace mesh indices with sulcus indices')
-                V = np.unique(faces_sulcus)
+
+
+                V = np.unique(faces_sulcus1)
                 anchors = np.array(anchors)
                 anchors2 = anchors.copy()
-                faces_sulcus2 = faces_sulcus.copy()
+
+                import time
+
+                print(anchors)
+                print('test1')
+                t0 = time.time()
                 for index_new, index_old in enumerate(V):
                     anchors2[anchors == index_old] = index_new
-                    faces_sulcus2[faces_sulcus == index_old] = index_new
+                print time.time() - t0, "seconds"
+                print(anchors2)
+
+                print('test2')
+                t0 = time.time()
+                I2 = [[np.where(anchors == x)[0]] for x in V]
+                for i, x in enumerate(I2):
+                    anchors2[x] = i
+                print time.time() - t0, "seconds"
+                print(anchors2)
+
+                print('test3')
+                t0 = time.time()
+                Ia = [i for i,x in enumerate(anchors) for v in V if x==v]
+                for i, x in enumerate(Ia):
+                    anchors2[x] = i
+                print time.time() - t0, "seconds"
+                print(anchors2)
+
+                print('test4')
+                t0 = time.time()
+                faces_table = np.transpose([[i,x] for i,x in enumerate(V)])
+                faces_sulcus2 = [faces_table[0, faces_table[1, :] == x]
+                                 for x in faces_sulcus1]
+                print time.time() - t0, "seconds"
+
+                print('test5')
+                t0 = time.time()
+                I2 = [[np.where(faces_sulcus1 == x)[0]] for x in V]
+                faces_sulcus2 = faces_sulcus1.copy()
+                for i, x in enumerate(I2):
+                    faces_sulcus2[x] = i
+                faces_sulcus2 = np.reshape(faces_sulcus2, (-1, 3))
+                print time.time() - t0, "seconds"
 
                 # Connect fundus points and extract fundus
                 print('Connect fundus points for sulcus ' +
