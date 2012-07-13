@@ -75,69 +75,57 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
 
     # For each sulcus...
-    print('Extract fundi from ' + str(n_sulci) + ' sulci...')
+    print("Extract a fundus from each of {} sulci...".format(n_sulci))
     fundi = []
+    Z = np.zeros(len(depths))
     for i_sulcus, sulcus in enumerate(sulci):
 
         # Compute fundus likelihood values
-        print('Compute fundus likelihood for sulcus ' +
-              str(i_sulcus + 1) + '...')
-        t0 = time()
-        sulcus_likelihoods = compute_likelihood(depths[sulcus],
-                                                mean_curvatures[sulcus])
-        print(str(time() - t0) + ' seconds: likelihood')
-        if save_em:
-            pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
+        print('  Compute fundus likelihood values for sulcus {}...'.
+              format(i_sulcus + 1))
+        if load_em:
+            sulcus_likelihoods = pickle.load(open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","rb"))
+        else:
+            t0 = time()
+            sulcus_likelihoods = compute_likelihood(depths[sulcus],
+                                                    mean_curvatures[sulcus])
+            print('    ...completed in {0:.2f} seconds'.
+                  format(time() - t0))
+            if save_em:
+                pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
 
         # If the sulcus has enough high-likelihood vertices, continue
         if sum(sulcus_likelihoods > thr) > min_sulcus_size:
 
             # Find fundus points
-            print('Find fundus points for sulcus ' +
-                  str(i_sulcus + 1) + '...')
+            print('  Find fundus points for sulcus {}...'.format(i_sulcus + 1))
             t0 = time()
             anchors = find_anchors(vertices[sulcus, :], sulcus_likelihoods,
                                    min_directions[sulcus],
                                    thr, min_distance, max_distance)
-            print(str(time() - t0) + ' seconds: anchors')
+            print('    ...completed in {0:.2f} seconds'.format(time() - t0))
             if len(anchors) > 0:
 
-                if save_em:
-                    pickle.dump(anchors, open(load_path + "anchors"+str(i_sulcus)+".p","wb"))
+#                if save_em:
+#                    pickle.dump(anchors, open(load_path + "anchors"+str(i_sulcus)+".p","wb"))
 
                 # Remove faces that have a non-sulcus vertex (output: 1-D array)
                 fs = frozenset(sulcus)
-                faces_sulcus1 = np.ravel([lst for lst in faces
-                                          if len(fs.intersection(lst))==3])
-                if save_em:
-                    pickle.dump(faces_sulcus1, open(load_path + "faces_sulcus1_"+str(i_sulcus)+".p","wb"))
-
-                # Replace mesh indices with sulcus indices
-                print('Replace mesh indices with sulcus indices...')
-                t0 = time()
-                # anchor vertices
-                V = np.unique(faces_sulcus1)
-                anchors = np.array(anchors)
-                anchors2 = anchors.copy()
-                for index_new, index_old in enumerate(V):
-                    anchors2[anchors == index_old] = index_new
-                # faces vertices
-                faces_table = np.transpose([[i,x] for i,x in enumerate(V)])
-                faces_sulcus2 = [faces_table[0, faces_table[1, :] == x]
-                                 for x in faces_sulcus1]
-                faces_sulcus2 = np.reshape(np.ravel(faces_sulcus2), (-1, 3))
-                print(str(time() - t0) + ' seconds: reindexing')
-                if save_em:
-                    pickle.dump(faces_sulcus2, open(load_path + "faces_sulcus2_"+str(i_sulcus)+".p","wb"))
+                faces_sulcus = [lst for lst in faces
+                                if len(fs.intersection(lst))==3]
+                faces_sulcus = np.reshape(np.ravel(faces_sulcus), (-1, 3))
 
                 # Connect fundus points and extract fundus
-                print('Connect fundus points for sulcus ' +
-                      str(i_sulcus + 1) + '...')
+                print('  Connect fundus points for sulcus {}...'.
+                      format(i_sulcus + 1))
                 t0 = time()
+                likelihoods = Z.copy()
+                likelihoods[sulcus] = sulcus_likelihoods
                 fundi.append(
-                      connect_anchors(anchors2, faces_sulcus2,
-                                      sulcus_likelihoods, thr))
-                print(str(time() - t0) + ' seconds: connect')
+                      connect_anchors(anchors, faces_sulcus, sulcus,
+                                      likelihoods, thr))
+                print('    ...completed in {0:.2f} seconds'.
+                      format(time() - t0))
             else:
                 fundi.append([])
         else:

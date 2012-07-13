@@ -80,7 +80,7 @@ def compute_likelihood(depths, curvatures):
         mass_left = sum(depths > search) / len_object
     depth_found = search
     if print_debug:
-        print(str(depth_threshold1) +
+        print('    ' + str(depth_threshold1) +
               ' of vertices are deeper than ' + str(search))
 
     # Find depth value where less than depth_threshold2 of sulcus vertices are deeper
@@ -94,7 +94,7 @@ def compute_likelihood(depths, curvatures):
         # Map depth values with sigmoidal function to range [0,1]
         st_depths = 1 / (1 + np.exp(-slope_depth * (depths - depth_found)))
     if print_debug:
-        print(str(depth_threshold2) +
+        print('    ' + str(depth_threshold2) +
               ' of vertices are deeper than ' + str(search))
 
     # Find slope for curvature values
@@ -104,13 +104,13 @@ def compute_likelihood(depths, curvatures):
         search += curvature_increment
         mass_left = sum(curvatures > search) / len_object
     if print_debug:
-        print(str(curvature_threshold) +
+        print('    ' + str(curvature_threshold) +
               ' of vertices have greater curvature than ' + str(search))
     slope_curvature = -slope_factor / search
     # Prevent precsion errors
     if slope_curvature > 1000:
         if print_debug:
-            print('(high slope curvature: ' + str(slope_curvature) + ')')
+            print('    (high slope curvature: ' + str(slope_curvature) + ')')
         curvatures[curvatures < 0] = np.Inf
         curvatures[curvatures > 0] = 0
     # Map curvature values with sigmoidal function to range [0,1]
