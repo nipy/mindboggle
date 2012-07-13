@@ -18,6 +18,7 @@ from find_anchors import find_anchors
 from connect_anchors import connect_anchors
 from time import time
 
+
 #==================
 # Extract all fundi
 #==================
