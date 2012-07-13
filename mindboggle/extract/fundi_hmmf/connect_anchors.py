@@ -233,8 +233,12 @@ def connect_anchors(anchors, faces, indices, L, thr):
     n_vertices = len(indices)
     Z = np.zeros(len(L))
     C = Z.copy()
-    C[L_init > thr] = L_init[L_init > thr]
+#    C[L_init > thr] = L_init[L_init > thr]
+    C[L > 0] = L[L> 0]
+    print(sum(C>0))
     C[anchors] = 1
+    print(sum(C>0))
+    print(n_vertices)
     n_candidates = sum(C > 0)
 
     # Continue if there are at least two candidate vertices
