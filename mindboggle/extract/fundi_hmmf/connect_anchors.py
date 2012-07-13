@@ -90,10 +90,6 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
     n_inside = len(inside)
     n_outside = len(I_neighbors) - n_inside
 
-    print('n')
-    print(n_inside)
-    print(n_outside)
-
     # If the number of inside or outside neighbors is zero,
     # than the vertex IS NOT a simple point
     if n_outside * n_inside == 0:
@@ -119,7 +115,8 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
             else:
                 new_neighbors = find_neighbors(faces, inside[i_in])
             new_neighbors = [x for x in new_neighbors if values[x] > thr]
-            N.append(new_neighbors.extend([inside[i_in]]))
+            new_neighbors.extend([inside[i_in]])
+            N.append(new_neighbors)
 
         # Consolidate labels of connected vertices:
         # Loop through neighbors (lists within "N"),
