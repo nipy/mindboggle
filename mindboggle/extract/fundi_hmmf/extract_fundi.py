@@ -104,7 +104,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             anchors = find_anchors(vertices[sulcus, :], sulcus_likelihoods,
                                    min_directions[sulcus],
                                    thr, min_distance, max_distance)
-            print('    ...completed in {0:.2f} seconds'.format(time() - t0))
+            anchors = [sulcus[x] for x in anchors]
             if len(anchors) > 0:
 
 #                if save_em:
