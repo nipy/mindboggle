@@ -90,7 +90,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
     n_inside = len(inside)
     n_outside = len(I_neighbors) - n_inside
 
-    print('yeah!')
+    print('n')
     print(n_inside)
     print(n_outside)
 
@@ -119,11 +119,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
             else:
                 new_neighbors = find_neighbors(faces, inside[i_in])
             new_neighbors = [x for x in new_neighbors if values[x] > thr]
-            print(type(i_in))
-            print(type(inside[i_in]))
-            print(type(new_neighbors))
-            print(new_neighbors.extend(inside[i_in]))
-            N.append(new_neighbors.extend(inside[i_in]))
+            N.append(new_neighbors.extend([inside[i_in]]))
 
         # Consolidate labels of connected vertices:
         # Loop through neighbors (lists within "N"),
