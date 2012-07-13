@@ -15,6 +15,8 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 import numpy as np
 from find_neighbors import find_neighbors
+from itertools import combinations as combos
+from time import time
 
 #--------------------
 # Compute probability
@@ -48,7 +50,7 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
 #-----------------------
 # Test for simple points
 #-----------------------
-def simple_test(faces, index, values, thr):
+def simple_test(faces, index, values, thr, neighbors, nlist):
     """
     Test to see if vertex is a "simple point".
 
@@ -61,6 +63,9 @@ def simple_test(faces, index, values, thr):
     index: index of vertex
     values: values: [#vertices x 1] numpy array
     thr: threshold
+    neighbors: list of indices of neighboring vertices
+    nlist: 1 or 0 to indicate whether or not "neighbors"
+           is a list of lists of neighbors for all vertices
 
     Output:
     ------
@@ -76,70 +81,77 @@ def simple_test(faces, index, values, thr):
     # into those greater than the likelihood threshold, thr,
     # and those less than or equal to thr ("inside" and "outside").
     # Count the number of "inside" and "outside" neighbors
-    neighs = find_neighbors(faces, index)
-    neighvals = values[neighs]
-    I_neighvals_thr = [i for i,x in enumerate(neighvals) if x > thr]
-    n_sets = len(I_neighvals_thr)
-    n_outside = len([x for x in neighvals if x <= thr])
+    if nlist:
+        I_neighbors = neighbors[index]
+    else:
+        I_neighbors = neighbors
+    neighbor_values = values[I_neighbors]
+    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > thr]
+    n_inside = len(inside)
+    n_outside = len(I_neighbors) - n_inside
+
+    print('yeah!')
+    print(n_inside)
+    print(n_outside)
 
     # If the number of inside or outside neighbors is zero,
     # than the vertex IS NOT a simple point
-    if n_outside * n_sets == 0:
+    if n_outside * n_inside == 0:
         sp = 0
     # Or if either the number of inside or outside neighbors is one,
     # than the vertex IS a simple point
-    elif n_outside == 1 or n_sets == 1:
+    elif n_outside == 1 or n_inside == 1:
         sp = 1
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
-        neighs_inside = neighs[I_neighvals_thr]
-
-        # Reset vertex value????
+        # Reset vertex value
         values[index] = -1
 
         # For each neighbor exceeding the threshold,
         # find its neighbors that also exceed the threshold,
-        # then store these neighbors' values in a "sets" list
-        set_labels = range(1, n_sets + 1)
-        sets = []
-        for i_set in range(n_sets):
-            current_neighs = find_neighbors(faces, neighs_inside[i_set])
-            current_neighs = [x for x in current_neighs if values[x] > thr]
-            sets.append(current_neighs, neighs_inside[i_set])
+        # then store these neighbors' indices in a sublist of "N"
+        labels = range(1, n_inside + 1)
+        N = []
+        for i_in in range(n_inside):
+            if nlist:
+                new_neighbors = neighbors[inside[i_in]]
+            else:
+                new_neighbors = find_neighbors(faces, inside[i_in])
+            new_neighbors = [x for x in new_neighbors if values[x] > thr]
+            print(type(i_in))
+            print(type(inside[i_in]))
+            print(type(new_neighbors))
+            print(new_neighbors.extend(inside[i_in]))
+            N.append(new_neighbors.extend(inside[i_in]))
 
         # Consolidate labels of connected vertices:
-        # Loop through neighbors (rows of the "sets" array),
-        # reassigning the labels for the rows until each label's
-        # row(s) has a unique set of vertices
+        # Loop through neighbors (lists within "N"),
+        # reassigning the labels for the lists until each label's
+        # list(s) has a unique set of vertices
         change = 1
         while change > 0:
             change = 0
 
-            # Loop through pairs of rows of the "set" array
+            # Loop through pairs of inside neighbors
             # and continue if their two labels are different
-            for i in range(n_sets - 1):
-                for j in range(i + 1, n_sets):
-                    if set_labels[i] != set_labels[j]:
-
-                        # See if the two rows share a vertex
-                        unique_i = []
-                        unique_j = []
-                        [unique_i.append(x) for x in sets[i] if x not in unique_i]
-                        [unique_j.append(x) for x in sets[j] if x not in unique_j]
-                        len_union = len(np.union1d(unique_i, unique_j))
-
-                        # Assign the two subsets the same label
-                        # if they share at least one vertex,
-                        # and continue looping
-                        if len_union < len(unique_i) + len(unique_j):
-                            set_labels[i] = set_labels[j]
-                            change = 1
+            #for i in range(n_inside - 1):
+            #    for j in range(i + 1, n_inside):
+            #        if labels[i] != labels[j]:
+            Ipairs = [x for x in list(combos(range(n_inside), 2))
+                      if labels[x[0]] != labels[x[1]]]
+            for i, j in Ipairs:
+                # Assign the two subsets the same label
+                # if they share at least one vertex,
+                # and continue looping
+                if len([x for x in N[i] if x in N[j]]) > 0:
+                    labels[i] = labels[j]
+                    change = 1
 
         # The vertex is a simple point if all of its neighbors
-        # (if any) share neighbors with each other
-        n_separate_sets = len(np.unique(set_labels))
-        if n_separate_sets == 1:
+        # (if any) share neighbors with each other (one unique label)
+        D = []
+        if len([D.append(x) for x in labels if x not in D]) == 1:
             sp = 1
         else:
             sp = 0
@@ -149,7 +161,7 @@ def simple_test(faces, index, values, thr):
 #========================
 # Connect anchor vertices
 #========================
-def connect_anchors(anchors, faces, L, thr):
+def connect_anchors(anchors, faces, indices, L, thr):
     """
     Connect anchor vertices in a surface mesh to create a curve.
 
@@ -159,7 +171,8 @@ def connect_anchors(anchors, faces, L, thr):
     ------
     anchors: list of indices of vertices to connect
     faces: indices of triangular mesh vertices: [#faces x 3] numpy array
-    L: likelihood values
+    indices: list of indices of vertices
+    L: likelihood values: [#vertices in mesh x 1] numpy array
     thr: likelihood threshold
 
     Parameters:
@@ -206,12 +219,14 @@ def connect_anchors(anchors, faces, L, thr):
     max_count = 350  # maximum number of iterations
 
     # Parameters to speed up optimization
-    diff_threshold = 0.0001
+    diff_thr = 0.0001
     mult_incr = 0.001
-    C_threshold = 0.01  # minimum HMMF value to fix probabilities at low values
+#    diff_thr = 0.001
+#    mult_incr = 0.01
+    C_thr = 0.01  # minimum HMMF value to fix probabilities at low values
     #-------------------------------------------------------------------------
 
-    # Initialize all likelihood values within sulcus greater than 0.5
+    # Initialize all likelihood values within sulcus as greater than 0.5
     # and less than or equal to 1.0.
     # This is necessary to guarantee correct topology
     L_init = (L + 1.000001) / 2.0
@@ -220,26 +235,38 @@ def connect_anchors(anchors, faces, L, thr):
 
     # Initialize array of connected vertices C
     # with likelihood values greater than thr and a 1 for each anchor vertex
-    n_vertices = len(L)
-    C = np.zeros(n_vertices)
+    n_vertices = len(indices)
+    Z = np.zeros(len(L))
+    C = Z.copy()
     C[L_init > thr] = L_init[L_init > thr]
     C[anchors] = 1
 
     # Continue if there are at least two candidate vertices
     if sum(C > 0) >= 2:
-        print(str(sum(C > 0)) + ' initial candidate vertices')
-
-        # Initialize vertex indices
-        indices = np.unique(faces)
+        print('    {} initial candidate vertices'.format(sum(C > 0)))
 
         # Find neighbors for each vertex
-        print('Find neighbors for each vertex...')
-        N = [find_neighbors(faces, i) for i in indices]
+        load_em = 1
+        if load_em:
+            import pickle
+            load_path = "/drop/yrjo_code_io_data/"
+            #pickle.dump(N, open(load_path + "N.p","wb"))
+            N = pickle.load(open(load_path + "N.p","rb"))
+        else:
+            print('    Find neighbors for each vertex...')
+            t0 = time()
+            N = [[] for x in L]
+            for i in indices:
+                N[i] = find_neighbors(faces, i)
+            print('      ...completed in {0:.2f} seconds'.format(time() - t0))
 
         # Assign probability values to each vertex
-        print('Assign probability value to each vertex...')
-        probs = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
-                 for i in indices]
+        print('    Assign a probability value to each vertex...')
+        t0 = time()
+        probs = Z.copy()
+        probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
+                          for i in indices]
+        print('      ...completed in {0:.2f} seconds'.format(time() - t0))
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
@@ -258,7 +285,7 @@ def connect_anchors(anchors, faces, L, thr):
 
                 # Continue if HMMF value is greater than C_threshold
                 # (to fix when at very low values, to speed up optimization)
-                if C[i] > C_threshold:
+                if C[i] > C_thr:
 
                     # Compute the (negative) probability gradient
                     # for the HMMF value
@@ -271,22 +298,42 @@ def connect_anchors(anchors, faces, L, thr):
                     if decr > 0:
                         # Update the HMMF value if just above the threshold
                         # such that the decrement makes it cross the threshold,
-                        # and the vertex is not an anchor but is a "simple point"
+                        # and the vertex is not an anchor but a "simple point"
                         if C[i] > thr >= C[i] - decr:
                             if i in anchors:
                                 update = 0
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
-                                update = simple_test(faces, i, Cnew_copy, thr)
+                                update = simple_test(faces, i, Cnew_copy, thr,
+                                                     N, nlist=1)
+#                            print('{}: {} - {} = {}'.format(update, C[i],decr,C[i]-decr))
                         # Or update the HMMF value if far from the threshold
                         else:
+#                            print('UPDATE1')
                             update = 1
                         # Update the HMMF and probability values
                         if update:
+                            """
+                            print('Cnew[i]')
+                            print(Cnew[i])
+                            """
+                            decr = 0.10
                             Cnew[i] = max([C[i] - decr, 0])
+
+                            """
+                            print(Cnew[i])
+                            Cthr = sum(Cnew>thr)
+                            C0 = sum(Cnew>0)
+                            Cavg = np.mean(Cnew[Cnew>0])
+                            print('    {} Cthr {} C0 {} Cavg'.
+                                  format(Cthr,C0,Cavg))
+            #                            print('probs[i]')
+#                            print(probs[i])
+                            """
                             probs[i] = prob(wt_likelihood, L[i],
                                             wt_neighbors, Cnew[i], C[N[i]])
+#                            print(probs[i])
 
                     # Test to update the HMMF value for negative decrements:
                     else:
@@ -298,9 +345,12 @@ def connect_anchors(anchors, faces, L, thr):
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
-                            update = simple_test(faces, i, Cnew_copy, thr)
+                            update = simple_test(faces, i, Cnew_copy, thr,
+                                                 N, nlist=1)
+#                            print('NEG {}: {} - {} = {}'.format(update, C[i],decr,C[i]-decr))
                         # Or update the HMMF value if far from the threshold
                         else:
+#                            print('UPDATE2')
                             update = 1
                         # Update the HMMF and probability values
                         if update:
@@ -316,8 +366,14 @@ def connect_anchors(anchors, faces, L, thr):
             n_points = sum(C > thr)
             if count > 0:
                 if n_points == n_points_previous:
-                    if diff_threshold > (sum_probs - sum_probs_previous) / n_vertices:
+                    diff_prob = (sum_probs - sum_probs_previous) / n_vertices
+                    if diff_prob < diff_thr:
                         end_flag += 1
+                        print('    diff_prob: {}, flag: {}, count: {}'.
+                              format(diff_prob, end_flag, count))
+
+            Cmin = min(Cnew[Cnew>0])
+            print('    {} Cmin with {} vertices...'.format(Cmin, n_points))
 
             # Reset for next iteration
             sum_probs_previous = sum_probs
@@ -325,6 +381,5 @@ def connect_anchors(anchors, faces, L, thr):
             C = Cnew
 
             count += 1
-            print(str(n_points) + ' vertices...')
-    
+
         return C.tolist()
