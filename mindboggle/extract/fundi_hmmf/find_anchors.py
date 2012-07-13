@@ -42,7 +42,7 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
 
     Output:
     ------
-    anchors: list of anchors (subset of surface mesh vertex indices)
+    anchors: list of subset of surface mesh vertex indices
 
     """
 
