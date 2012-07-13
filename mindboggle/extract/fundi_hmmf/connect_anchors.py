@@ -18,6 +18,8 @@ from find_neighbors import find_neighbors
 from itertools import combinations as combos
 from time import time
 
+verbose = 1
+
 #--------------------
 # Compute probability
 #--------------------
@@ -233,10 +235,11 @@ def connect_anchors(anchors, faces, indices, L, thr):
     C = Z.copy()
     C[L_init > thr] = L_init[L_init > thr]
     C[anchors] = 1
+    n_candidates = sum(C > 0)
 
     # Continue if there are at least two candidate vertices
-    if sum(C > 0) >= 2:
-        print('    {} initial candidate vertices'.format(sum(C > 0)))
+    if n_candidates >= 2:
+        print('    {} initial candidate vertices'.format(n_candidates))
 
         # Find neighbors for each vertex
         load_em = 1
@@ -290,8 +293,8 @@ def connect_anchors(anchors, faces, indices, L, thr):
                     # Test to update the HMMF value for positive decrements:
                     if decr > 0:
                         # Update the HMMF value if just above the threshold
-                        # such that the decrement makes it cross the threshold,
-                        # and the vertex is not an anchor but a "simple point"
+                        # such that the decrement makes it cross the threshold
+                        # and the vertex is a "simple point"
                         if C[i] > thr >= C[i] - decr:
                             if i in anchors:
                                 update = 0
@@ -300,33 +303,14 @@ def connect_anchors(anchors, faces, indices, L, thr):
                                 Cnew_copy[i] = C[i] - decr
                                 update = simple_test(faces, i, Cnew_copy, thr,
                                                      N, nlist=1)
-#                            print('{}: {} - {} = {}'.format(update, C[i],decr,C[i]-decr))
                         # Or update the HMMF value if far from the threshold
                         else:
-#                            print('UPDATE1')
                             update = 1
                         # Update the HMMF and probability values
                         if update:
-                            """
-                            print('Cnew[i]')
-                            print(Cnew[i])
-                            """
-                            decr = 0.10
                             Cnew[i] = max([C[i] - decr, 0])
-
-                            """
-                            print(Cnew[i])
-                            Cthr = sum(Cnew>thr)
-                            C0 = sum(Cnew>0)
-                            Cavg = np.mean(Cnew[Cnew>0])
-                            print('    {} Cthr {} C0 {} Cavg'.
-                                  format(Cthr,C0,Cavg))
-            #                            print('probs[i]')
-#                            print(probs[i])
-                            """
                             probs[i] = prob(wt_likelihood, L[i],
                                             wt_neighbors, Cnew[i], C[N[i]])
-#                            print(probs[i])
 
                     # Test to update the HMMF value for negative decrements:
                     else:
@@ -340,16 +324,17 @@ def connect_anchors(anchors, faces, indices, L, thr):
                             Cnew_copy = 1 - Cnew_copy
                             update = simple_test(faces, i, Cnew_copy, thr,
                                                  N, nlist=1)
-#                            print('NEG {}: {} - {} = {}'.format(update, C[i],decr,C[i]-decr))
                         # Or update the HMMF value if far from the threshold
                         else:
-#                            print('UPDATE2')
                             update = 1
-                        # Update the HMMF and probability values
+                            # Update the HMMF and probability values
                         if update:
                             Cnew[i] = min([C[i] - decr, 1])
                             probs[i] = prob(wt_likelihood, L[i],
                                             wt_neighbors, Cnew[i], C[N[i]])
+                    if update and verbose:
+                        print('      Update HMMF: {0:.4f} - {1:.4f}: {2} removed'.
+                        format(C[i], decr, n_candidates - sum(Cnew > thr)))
 
             # Sum the probability values across all vertices
             # and tally the number of HMMF values with probability > thr.
@@ -362,11 +347,11 @@ def connect_anchors(anchors, faces, indices, L, thr):
                     diff_prob = (sum_probs - sum_probs_previous) / n_vertices
                     if diff_prob < diff_thr:
                         end_flag += 1
-                        print('    diff_prob: {}, flag: {}, count: {}'.
+                        print('      diff_prob: {}, flag: {}, count: {}'.
                               format(diff_prob, end_flag, count))
-
-            Cmin = min(Cnew[Cnew>0])
-            print('    {} Cmin with {} vertices...'.format(Cmin, n_points))
+            if verbose:
+                print('      min HMMF value: {} for {} vertices...'.
+                      format(min(Cnew[Cnew>0]), n_points))
 
             # Reset for next iteration
             sum_probs_previous = sum_probs
