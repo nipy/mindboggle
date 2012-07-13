@@ -1,12 +1,24 @@
-# This is a bunch of Python library to read FreeSurfer format files
-# including surface file, curvature and convexity fiels.  
-# The function readSurf reads in surface files, while readCurv reads in
-# both curvature (.curv) and convexity (.sulc) files  
+#!/usr/bin/python
+"""
+This Python library reads FreeSurfer format files
+including surface, curvature, and convexity files.  
+The function readSurf reads in surface files, 
+while the function readCurv reads in both 
+curvature (.curv) and convexity (.sulc) files.
+
+Authors:  Forrest Sheng Bao http://fsbao.net
+Version:  0.2, last update on 2012-06-29
+
+(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+
+"""
 
 import struct, os
 
+
 def readSurf(filename):
-    '''Read in a FreeSurfer Triangle Surface in Binary Format. 
+    """
+    Read in a FreeSurfer Triangle Surface in Binary Format.
     
     Parameters
     ===========
@@ -36,11 +48,11 @@ def readSurf(filename):
     >>> Face[10]
     [2, 39, 3]
     
-    '''
+    """
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
     
-    s = f.read(50)   # the second field is string of creation information of variable length
+    s = f.read(50)   # the second field is a string of variable length
     End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
     
     f.seek(3+End2+2)  # jump to immediate Byte after the creating information  
@@ -72,7 +84,8 @@ def readSurf(filename):
     return Vertex, Face
     
 def readCurv(filename):
-    '''Read in a FreeSurfer curvature (per-vertex) files.
+    """
+    Read in a FreeSurfer curvature (per-vertex) files.
     
     Parameters
     ==========
@@ -97,7 +110,7 @@ def readCurv(filename):
     >>> Curv[10]
     -0.37290969491004944
     
-    '''
+    """
     f = open(filename, "rb")
     
     f.seek(3) # skip the first 3 Bytes "Magic" number
@@ -140,22 +153,24 @@ def readCurv(filename):
     return Curvature
 
 def writeList(File, List):
-    '''Write a list in to a file, each line of which is a list element
-    '''
+    """
+    Write a list in to a file, each line of which is a list element
+    """
     Fp = open(File,'w')
     for Element in List:
         Fp.write(str(Element) + '\n')
     Fp.close()
 
 def loadVrtxNbrLst(Filename):
-    '''Load neighbor list of vertexes from a file
+    """
+    Load neighbor list of vertexes from a file
 
     Input
     ======
         Filename: string
             the file from which neighbor list will be loaded
 
-    '''
+    """
     NbrLst = []
     Fp = open(Filename, 'r')
     lines = Fp.readlines()
@@ -165,14 +180,14 @@ def loadVrtxNbrLst(Filename):
     return NbrLst
 
 def loadFcNbrLst(Filename):
-    '''Load neighbor list of faces from a file
+    """Load neighbor list of faces from a file
 
     Input
     ======
         Filename: string
             the file from which neighbor list will be loaded
 
-    '''
+    """
     NbrLst = []
     Fp = open(Filename, 'r')
     lines = Fp.readlines()
@@ -185,8 +200,10 @@ def loadFcNbrLst(Filename):
 
 
 def writeFundiSeg(Filename, Paths):
-    '''Write fundi as curve segments, each line contains segments consisting the path from a fundus vertex to the nearest the other fundus vertex. 
-    '''
+    """
+    Write fundi as curve segments, each line contains segments
+    consisting of the path from a fundus vertex to the nearest fundus vertex.
+    """
     Fp = open(Filename, 'w')
     for Path in Paths:
         if len(Path)>1:
@@ -195,8 +212,9 @@ def writeFundiSeg(Filename, Paths):
     Fp.close()
     
 def writeDTMap(Filename, Maps):
-    '''Write distance transform map into file, each line for a connected component 
-    '''
+    """
+    Write distance transform map into file, each line for a connected component
+    """
     
     Fp = open(Filename, 'w')
     for Map in Maps:
@@ -205,7 +223,9 @@ def writeDTMap(Filename, Maps):
     Fp.close()
     
 def wrtLists(Filename, Lists):
-    '''Output list of lists, each line in the file contains one element (also a list) of the top-level list
+    """
+    Output list of lists, each line in the file contains one element
+    (also a list) of the top-level list
     
     Parameters
     ==========
@@ -216,9 +236,9 @@ def wrtLists(Filename, Lists):
     Notes 
     ======
     
-    2-D lists are seperated by a delimiter which is 4 dashes now, i.e., \n----\n 
+    2-D lists are seperated by a delimiter which is 4 dashes now: \n----\n
     
-    '''
+    """
     
     Fp = open(Filename, 'w')
     for List in Lists:
@@ -230,11 +250,11 @@ def wrtLists(Filename, Lists):
     Fp.close()
     
 def readLists(Filename):
-    '''The reversing function of wrtLists
+    """The reversing function of wrtLists
     
-    Assume all data are supposed to be integers.  --- Change if floats are needed. 
+    Assume all data are supposed to be integers. Change if floats are needed.
     
-    '''
+    """
     Fp = open(Filename, 'r')
     Lists = [[]]  # initially, there is one list in lists
     while True:
@@ -253,9 +273,9 @@ def readLists(Filename):
     return Lists[:-1] # because last one is an empty list
 
 def readFltLsts(Filename):
-    '''Read in float type lists 
+    """Read in float type lists 
     
-    '''
+    """
     Fp = open(Filename, 'r')
     Lists = [[]]  # initially, there is one list in lists
     while True:
@@ -274,7 +294,8 @@ def readFltLsts(Filename):
     return Lists[:-1] # because last one is an empty list
 
 def load_min_curv_direction(Filename):
-    """Loads the minimal curvature directions computated by Joachim's CurvatureMain.cpp
+    """
+    Load minimal curvature directions computed by Joachim's CurvatureMain.cpp
     
     Parameters
     ===========
@@ -286,7 +307,8 @@ def load_min_curv_direction(Filename):
     =========
     
         Min_Curv_Dir: 2D numpy array of 3-by-#Vertex floats
-            Each element is a 3-tuple of floats, representing the direction of minimal curvature at a vertex on surface mesh
+            Each element is a 3-tuple of floats,
+            representing the direction of minimal curvature at a vertex
     """
     
     import numpy
