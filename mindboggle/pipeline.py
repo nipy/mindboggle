@@ -78,7 +78,8 @@ if not path.isdir(temp_path):  makedirs(temp_path)
 # Paths within mindboggle base directory
 templates_path = path.join(basepath, 'data', 'templates')
 atlases_path = path.join(basepath, 'data', 'atlases')
-label_string = 'labels.DKT26'
+#label_string = 'labels.DKT26'
+label_string = 'labels.DKT32'
 atlas_string = label_string + '.manual'
 
 ##############################################################################
