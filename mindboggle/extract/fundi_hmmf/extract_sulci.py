@@ -23,6 +23,7 @@ Authors:
 
 import numpy as np
 from find_neighbors import find_neighbors
+from time import time
 
 #========================
 # Segment surface patches
@@ -58,11 +59,11 @@ def segment_surface(faces, seeds, N, min_patch_size):
     fs = frozenset(seeds)
     faces_seeds = [lst for lst in faces if fs.intersection(lst)]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('  Reduced ' + str(len(faces)) + ' to ' +\
-          str(len(faces_seeds)) + ' faces.')
+    print('  Reduced {} to {} faces.'.format(len(faces),
+                                             len(faces_seeds)))
 
     # Loop until all seed vertices segmented
-    print('  Grow ' + str(n_seeds) + ' seed vertices...')
+    print('  Grow {} seed vertices...'.format(n_seeds))
     max_patch_size = 0
     max_patch_label = 1
     n_segments = 0
@@ -74,6 +75,8 @@ def segment_surface(faces, seeds, N, min_patch_size):
         # Select a seed vertex (selection does not affect result)
         #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
         I = [seeds[0]]
+        # Region grown from seed
+        Ipatch = I[:]
 
         # Grow region about the seed vertex until
         # there are no more connected seed vertices available.
@@ -97,9 +100,7 @@ def segment_surface(faces, seeds, N, min_patch_size):
                     # Continue looping
                     loop = 1
             I = Inew
-
-        # Find region grown from seed
-        Ipatch = np.where(TEMP > 0)[0]
+            Ipatch.extend(Inew)
 
         # Disregard vertices already visited
         seeds = list(frozenset(seeds).difference(Ipatch))
@@ -114,9 +115,8 @@ def segment_surface(faces, seeds, N, min_patch_size):
             segments[Ipatch] = n_segments
             # Display current number and size of patch
             if size_patch > 1:
-                print('  Segmented patch ' + str(n_segments) +
-                      ': ' + str(size_patch) + ' vertices.  ' +
-                      str(n_seeds) + ' seeds remaining...')
+                print('  Segmented patch {}: {} vertices. {} seeds remaining...'.
+                      format(n_segments, size_patch, n_seeds))
 
             # Find the maximum hole size (the background) to ignore below
             if size_patch > max_patch_size:
@@ -149,7 +149,7 @@ def fill_holes(faces, sulci):
 
     # Segment non-sulcus surface
     seeds = np.where(sulci == 0)[0]
-    print('Segment holes...')
+    print('  Segment holes...')
     holes, n_holes, max_hole = segment_surface(faces, seeds, N=len(sulci),
                                                min_patch_size=0)
 
@@ -159,7 +159,7 @@ def fill_holes(faces, sulci):
     # Look for vertices that have a sulcus label and are
     # connected to any of the vertices in the current hole,
     # and assign the hole the maximum label number
-    print('Assign labels to holes...')
+    print('  Assign labels to holes...')
     for i in range(1, n_holes + 1):
         found = 0
         hole_indices = np.where(holes == i)[0]
@@ -205,14 +205,18 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
     # Segment sulcus surface
     print("Extract sulci from surface mesh...")
+    t0 = time()
     seeds = np.where(depths > depth_threshold)[0]
     sulci, n_sulci, max_sulcus = segment_surface(faces, seeds, N=len(depths),
                                                  min_patch_size=min_sulcus_size)
+    print('  ...completed in {0:.2f} seconds'.format(time() - t0))
 
     # Fill sulcus holes to preserve topology
     if n_sulci > 0:
         print('Fill holes in sulci...')
+        t0 = time()
         sulci = fill_holes(faces, sulci)
+        print('  ...completed in {0:.2f} seconds'.format(time() - t0))
 
     # Convert sulci array to a list of lists of vertex indices
     sulci = [np.where(sulci==i)[0].tolist() for i in range(1, n_sulci+1)]
