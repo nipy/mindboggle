@@ -65,20 +65,27 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     save_em = 1
 
     # Extract sulci (vertex indices for each sulcus)
-    if load_em:
+    if load_em == 0:
         sulci = pickle.load(open(load_path + "sulci.p","rb"))
         n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
     else:
         t0 = time()
         sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
                                        min_sulcus_size)
-        print(str(time() - t0) + ' seconds')
         if save_em:
             pickle.dump(sulci, open(load_path + "sulci.p","wb"))
             pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
-            isulci = np.ravel(sulci)
-            io_vtk.writeSulci(load_path + 'sulci.vtk', vertices[isulci, :],
-                              range(len(isulci)), faces)
+
+            isulci = [x for lst in sulci for x in lst]
+            # Remove faces that do not contain three sulcus vertices
+            fs = frozenset(isulci)
+            faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+            faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
+            print('  Reduced {} to {} faces.'.format(len(faces),
+                                     len(faces_sulci)))
+            # Save vtk files
+            io_vtk.writeSulci(load_path + 'sulci.vtk', vertices, isulci, faces_sulci,
+                      LUTs=sulci, LUTNames=['sulcus'+str(i+1) for i in range(n_sulci)])
 
     # For each sulcus...
     print("Extract a fundus from each of {} sulci...".format(n_sulci))
@@ -150,7 +157,7 @@ else:
     vertices, faces, mean_curvatures = io_vtk.load_VTK_Map(curv_file)
     vertices = np.array(vertices)
     faces = np.array(faces)
-    depths = np.array(depths)
+    depths = np.array([x/max(depths) for x in depths])
     mean_curvatures = np.array(mean_curvatures)
     min_directions = np.loadtxt(dir_file)
     if save_em:
@@ -173,5 +180,9 @@ ax = fig.add_subplot(111, projection='3d')
 
 x, y, z = np.transpose(np.reshape([x for lst in p for x in lst], (-1, 3)))
 ax.scatter(x, y, z)
+
+v = np.transpose(np.reshape([x for lst in vertices for x in lst], (-1, 3)))
+ax.scatter(v[0], v[1], v[2])
+
 plt.show()
 """
