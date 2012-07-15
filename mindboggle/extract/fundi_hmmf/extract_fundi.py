@@ -61,11 +61,11 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     import pickle
     load_path = "/drop/input/"
-    load_em = 0
+    load_em = 1
     save_em = 1
 
     # Extract sulci (vertex indices for each sulcus)
-    if load_em == 0:
+    if load_em:
         sulci = pickle.load(open(load_path + "sulci.p","rb"))
         n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
     else:
@@ -94,11 +94,11 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     for i_sulcus, sulcus in enumerate(sulci):
 
         # Compute fundus likelihood values
-        print('  Compute fundus likelihood values for sulcus {}...'.
-              format(i_sulcus + 1))
         if load_em:
             sulcus_likelihoods = pickle.load(open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","rb"))
         else:
+            print('  Compute fundus likelihood values for sulcus {}...'.
+                  format(i_sulcus + 1))
             t0 = time()
             sulcus_likelihoods = compute_likelihood(depths[sulcus],
                                                     mean_curvatures[sulcus])
@@ -117,6 +117,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                                    min_directions[sulcus],
                                    thr, min_distance, max_distance)
             anchors = [sulcus[x] for x in anchors]
+            print('    ...completed in {0:.2f} seconds'.format(time() - t0))
             if len(anchors) > 0:
 
                 # Connect fundus points and extract fundus
