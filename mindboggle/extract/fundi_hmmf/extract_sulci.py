@@ -58,11 +58,11 @@ def segment_surface(faces, seeds, N, min_patch_size):
     fs = frozenset(seeds)
     faces_seeds = [lst for lst in faces if fs.intersection(lst)]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('Reduced ' + str(len(faces)) + ' to ' +\
+    print('  Reduced ' + str(len(faces)) + ' to ' +\
           str(len(faces_seeds)) + ' faces.')
 
     # Loop until all seed vertices segmented
-    print('Grow ' + str(n_seeds) + ' seed vertices...')
+    print('  Grow ' + str(n_seeds) + ' seed vertices...')
     max_patch_size = 0
     max_patch_label = 1
     n_segments = 0
@@ -114,7 +114,7 @@ def segment_surface(faces, seeds, N, min_patch_size):
             segments[Ipatch] = n_segments
             # Display current number and size of patch
             if size_patch > 1:
-                print('Segmented patch ' + str(n_segments) +
+                print('  Segmented patch ' + str(n_segments) +
                       ': ' + str(size_patch) + ' vertices.  ' +
                       str(n_seeds) + ' seeds remaining...')
 
