@@ -233,17 +233,19 @@ def connect_anchors(anchors, faces, indices, L, thr):
     n_vertices = len(indices)
     Z = np.zeros(len(L))
     C = Z.copy()
-#    C[L_init > thr] = L_init[L_init > thr]
-    C[L > 0] = L[L> 0]
-    print(sum(C>0))
+    C[L_init > thr] = L_init[L_init > thr]
     C[anchors] = 1
-    print(sum(C>0))
-    print(n_vertices)
     n_candidates = sum(C > 0)
 
     # Continue if there are at least two candidate vertices
     if n_candidates >= 2:
         print('    {} initial candidate vertices'.format(n_candidates))
+
+        # Remove faces that have a non-sulcus vertex (output: 1-D array)
+        #fs = frozenset(indices)
+        #faces = [lst for lst in faces
+        #         if len(fs.intersection(lst))==3]
+        #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
         load_em = 1
@@ -259,6 +261,9 @@ def connect_anchors(anchors, faces, indices, L, thr):
             for i in indices:
                 N[i] = find_neighbors(faces, i)
             print('      ...completed in {0:.2f} seconds'.format(time() - t0))
+#            import pickle
+#            load_path = "/drop/yrjo_code_io_data/"
+#            pickle.dump(N, open(load_path + "N.p","wb"))
 
         # Assign probability values to each vertex
         print('    Assign a probability value to each vertex...')
