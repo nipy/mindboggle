@@ -15,7 +15,7 @@ def test_fundi_hmmf(debug = 0):
     import re
     import numpy as np
 
-    test_data_path = '/home/arno/Dropbox/yrjo_code_io_data'
+    test_data_path = '/Users/arno/Dropbox/yrjo_code_io_data'
     inputs = ['mean_curvatures', 'depths', 'vertices', 'faces', 'min_directions']
     #inputs = ['mean_curvatures', 'depths', 'vertices', 'faces', 'min_directions',
     #          'output_sulci', 'output_anchor_points', 'output_L',

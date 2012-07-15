@@ -111,6 +111,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
         # then store these neighbors' indices in a sublist of "N"
         labels = range(1, n_inside + 1)
         N = []
+        t0 = time()
         for i_in in range(n_inside):
             if nlist:
                 new_neighbors = neighbors[inside[i_in]]
@@ -119,12 +120,14 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
             new_neighbors = [x for x in new_neighbors if values[x] > thr]
             new_neighbors.extend([inside[i_in]])
             N.append(new_neighbors)
+        print('new_neighbor for loop in {0:.2f} seconds'.format(time()-t0))
 
         # Consolidate labels of connected vertices:
         # Loop through neighbors (lists within "N"),
         # reassigning the labels for the lists until each label's
         # list(s) has a unique set of vertices
         change = 1
+        t0 = time()
         while change > 0:
             change = 0
 
@@ -142,14 +145,17 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
                 if len([x for x in N[i] if x in N[j]]) > 0:
                     labels[i] = labels[j]
                     change = 1
+        print('Ipairs while loop in {0:.2f} seconds'.format(time()-t0))
 
         # The vertex is a simple point if all of its neighbors
         # (if any) share neighbors with each other (one unique label)
         D = []
+        t0 = time()
         if len([D.append(x) for x in labels if x not in D]) == 1:
             sp = 1
         else:
             sp = 0
+        print('D if statement in {0:.2f} seconds'.format(time()-t0))
 
     return sp
 
@@ -216,8 +222,6 @@ def connect_anchors(anchors, faces, indices, L, thr):
     # Parameters to speed up optimization
     diff_thr = 0.0001
     mult_incr = 0.001
-#    diff_thr = 0.001
-#    mult_incr = 0.01
     C_thr = 0.01  # minimum HMMF value to fix probabilities at low values
     #-------------------------------------------------------------------------
 
@@ -251,7 +255,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
         load_em = 1
         if load_em:
             import pickle
-            load_path = "/drop/yrjo_code_io_data/"
+            load_path = "/drop/input/"
             #pickle.dump(N, open(load_path + "N.p","wb"))
             N = pickle.load(open(load_path + "N.p","rb"))
         else:
@@ -261,9 +265,9 @@ def connect_anchors(anchors, faces, indices, L, thr):
             for i in indices:
                 N[i] = find_neighbors(faces, i)
             print('      ...completed in {0:.2f} seconds'.format(time() - t0))
-#            import pickle
-#            load_path = "/drop/yrjo_code_io_data/"
-#            pickle.dump(N, open(load_path + "N.p","wb"))
+            import pickle
+            load_path = "/drop/input/"
+            pickle.dump(N, open(load_path + "N.p","wb"))
 
         # Assign probability values to each vertex
         print('    Assign a probability value to each vertex...')
@@ -279,6 +283,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
         count = 0
         end_flag = 0
         Cnew = C.copy()
+        print('    Update HMMF values...')
         while end_flag < n_tries_no_change and count < max_count:
 
             # Define a factor to multiply the probability gradient that will
@@ -310,8 +315,11 @@ def connect_anchors(anchors, faces, indices, L, thr):
                             else:
                                 Cnew_copy = Cnew.copy()
                                 Cnew_copy[i] = C[i] - decr
+                                t0 = time()
                                 update = simple_test(faces, i, Cnew_copy, thr,
                                                      N, nlist=1)
+                                print('test in {0:.2f} seconds'.format(time() - t0))
+
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
@@ -331,8 +339,10 @@ def connect_anchors(anchors, faces, indices, L, thr):
                             Cnew_copy = Cnew.copy()
                             Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
+                            t0 = time()
                             update = simple_test(faces, i, Cnew_copy, thr,
                                                  N, nlist=1)
+                            print('test in {0:.2f} seconds'.format(time() - t0))
                         # Or update the HMMF value if far from the threshold
                         else:
                             update = 1
