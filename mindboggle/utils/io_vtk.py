@@ -435,23 +435,23 @@ def load_VTK_Map(Filename):
     Reader = vtk.vtkDataSetReader()
     Reader.SetFileName(Filename)
     Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
-    Reader.Update() 
-    
+    Reader.Update()
+
     Data = Reader.GetOutput()
     Points = [list(Data.GetPoint(PointID))
               for PointID in xrange(0, Data.GetNumberOfPoints())]
 
     CellArray = Data.GetPolys()
     Polygons = CellArray.GetData()
-    Faces = [[Polygons.GetValue(j) for j in xrange(i*3+1, i*3+4)]
+    Faces = [[Polygons.GetValue(j) for j in xrange(i*4+1, i*4+4)]
              for i in xrange(0,  CellArray.GetNumberOfCells()) ]
-    
+
     PointData = Data.GetPointData()
     print "There are", Reader.GetNumberOfScalarsInFile(), \
           "scalars in file", Filename
     print "Loading the scalar", Reader.GetScalarsNameInFile(0)
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())] 
+    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
 
     return Points, Faces, Scalars
 
