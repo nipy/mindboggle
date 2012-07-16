@@ -61,7 +61,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     import pickle
     load_path = "/drop/input/"
-    load_em = 1
+    load_em = 0
     save_em = 1
 
     # Extract sulci (vertex indices for each sulcus)
@@ -94,18 +94,18 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     for i_sulcus, sulcus in enumerate(sulci):
 
         # Compute fundus likelihood values
-        if load_em:
-            sulcus_likelihoods = pickle.load(open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","rb"))
-        else:
-            print('  Compute fundus likelihood values for sulcus {}...'.
-                  format(i_sulcus + 1))
-            t0 = time()
-            sulcus_likelihoods = compute_likelihood(depths[sulcus],
-                                                    mean_curvatures[sulcus])
-            print('    ...completed in {0:.2f} seconds'.
-                  format(time() - t0))
-            if save_em:
-                pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
+#        if load_em:
+#            sulcus_likelihoods = pickle.load(open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","rb"))
+#        else:
+        print('  Compute fundus likelihood values for sulcus {}...'.
+              format(i_sulcus + 1))
+        t0 = time()
+        sulcus_likelihoods = compute_likelihood(depths[sulcus],
+                                                mean_curvatures[sulcus])
+        print('    ...completed in {0:.2f} seconds'.
+              format(time() - t0))
+        if save_em:
+            pickle.dump(sulcus_likelihoods, open(load_path + "sulcus_likelihoods"+str(i_sulcus)+".p","wb"))
 
         # If the sulcus has enough high-likelihood vertices, continue
         if sum(sulcus_likelihoods > thr) > min_sulcus_size:
@@ -138,6 +138,20 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     if save_em:
         pickle.dump(fundi, open(load_path + "fundi.p","wb"))
+        fundi_list = np.zeros(len(fundi[0]))
+        for x in fundi:
+            if len(x) > 0:
+                fundi_list += x
+        if not load_em:
+            isulci = [x for lst in sulci for x in lst]
+            # Remove faces that do not contain three sulcus vertices
+            fs = frozenset(isulci)
+            faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+            faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
+        io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
+                          isulci, faces_sulci,
+                          LUTs=[fundi_list], LUTNames=['fundi'])
+
     return fundi
 
 import pickle
