@@ -338,9 +338,9 @@ def connect_anchors(anchors, faces, indices, L, thr):
                             Cnew[i] = min([C[i] - decr, 1])
                             probs[i] = prob(wt_likelihood, L[i],
                                             wt_neighbors, Cnew[i], C[N[i]])
-                    if update and verbose:
-                        print('      Update HMMF: {0:.4f} - {1:.4f}: {2} removed'.
-                        format(C[i], decr, n_candidates - sum(Cnew > thr)))
+#                    if update and verbose:
+#                        print('      Update HMMF: {0:.4f} - {1:.4f}: {2} removed'.
+#                        format(C[i], decr, n_candidates - sum(Cnew > thr)))
 
             # Sum the probability values across all vertices
             # and tally the number of HMMF values with probability > thr.
