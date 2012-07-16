@@ -15,7 +15,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 import numpy as np
 from find_neighbors import find_neighbors
-from itertools import combinations as combos
 from time import time
 
 verbose = 1
@@ -133,18 +132,15 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
 
             # Loop through pairs of inside neighbors
             # and continue if their two labels are different
-            #for i in range(n_inside - 1):
-            #    for j in range(i + 1, n_inside):
-            #        if labels[i] != labels[j]:
-            Ipairs = [x for x in list(combos(range(n_inside), 2))
-                      if labels[x[0]] != labels[x[1]]]
-            for i, j in Ipairs:
-                # Assign the two subsets the same label
-                # if they share at least one vertex,
-                # and continue looping
-                if len([x for x in N[i] if x in N[j]]) > 0:
-                    labels[i] = labels[j]
-                    change = 1
+            for i in range(n_inside - 1):
+                for j in range(i + 1, n_inside):
+                    if labels[i] != labels[j]:
+                        # Assign the two subsets the same label
+                        # if they share at least one vertex,
+                        # and continue looping
+                        if len(frozenset(N[i]).intersection(N[j])) > 0:
+                            labels[i] = labels[j]
+                            change = 1
         print('Ipairs while loop in {0:.2f} seconds'.format(time()-t0))
 
         # The vertex is a simple point if all of its neighbors
