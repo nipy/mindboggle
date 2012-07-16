@@ -17,7 +17,7 @@ import numpy as np
 from find_neighbors import find_neighbors
 from time import time
 
-verbose = 1
+verbose = 0
 
 #--------------------
 # Compute probability
@@ -243,7 +243,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
         #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
-        load_em = 1
+        load_em = 0
         if load_em:
             import pickle
             load_path = "/drop/input/"
@@ -338,26 +338,21 @@ def connect_anchors(anchors, faces, indices, L, thr):
                             Cnew[i] = min([C[i] - decr, 1])
                             probs[i] = prob(wt_likelihood, L[i],
                                             wt_neighbors, Cnew[i], C[N[i]])
-#                    if update and verbose:
-#                        print('      Update HMMF: {0:.4f} - {1:.4f}: {2} removed'.
-#                        format(C[i], decr, n_candidates - sum(Cnew > thr)))
 
             # Sum the probability values across all vertices
             # and tally the number of HMMF values with probability > thr.
             # After iteration 1, compare current and previous values.
             # If the values are similar, increment end_flag.
             sum_probs = sum(probs)
-            n_points = sum(C > thr)
+            n_points = sum([1 for x in C if x > 0])
+            if verbose:
+                print('      {} vertices...'.format(n_points))
+
             if count > 0:
                 if n_points == n_points_previous:
                     diff_prob = (sum_probs - sum_probs_previous) / n_vertices
                     if diff_prob < diff_thr:
                         end_flag += 1
-                        print('      diff_prob: {}, flag: {}, count: {}'.
-                              format(diff_prob, end_flag, count))
-            if verbose:
-                print('      min HMMF value: {} for {} vertices...'.
-                      format(min(Cnew[Cnew>0]), n_points))
 
             # Reset for next iteration
             sum_probs_previous = sum_probs
