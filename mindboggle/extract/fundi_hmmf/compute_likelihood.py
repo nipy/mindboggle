@@ -71,6 +71,10 @@ def compute_likelihood(depths, curvatures):
     ------
     likelihoods: likelihood values [#sulcus vertices x 1] numpy array
 
+    Calls:
+    -----
+    percentile()
+
     """
     # Parameters
     depth_percentile1 = 0.4
@@ -95,8 +99,14 @@ def compute_likelihood(depths, curvatures):
 
     # Find slope for depth and curvature values
     slope_factor = np.log((1. / high_map_value) - 1)
-    slope_depth = -slope_factor / (depth2 - depth1)
-    slope_curvature = -slope_factor / curvature
+    if depth2 == depth1:
+        slope_depth = np.Inf
+    else:
+        slope_depth = -slope_factor / (depth2 - depth1)
+    if curvature > 0:
+        slope_curvature = -slope_factor / curvature
+    else:
+        slope_curvature = np.Inf
 
     # Prevent precision errors
     if slope_curvature > 1000:
