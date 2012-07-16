@@ -46,8 +46,8 @@ from subprocess import Popen, PIPE, STDOUT
 from scipy.sparse import csr_matrix, lil_matrix
 import pylab
 import os
-import atlas_functions
-import create_unittest_files
+# import atlas_functions
+# import create_unittest_files
 
 import vtk_operations as vo
 import compute_weights as cw
@@ -933,7 +933,7 @@ class Shape:
 
 		return self.label_boundary_segments
 
-	def realign_boundary(self, skip_file = '/home/eli/label_boundary_segments_PyShape Object.pkl'):
+	def realign_boundary(self, skip_file = ''):
 		""" Realign the label boundary to coincide with fundi.
 
 			Runs functions: find_label_boundary_segments()
@@ -1010,7 +1010,7 @@ class Shape:
 		# a,b,c,self.consensus_labels = atlas_functions.majority_vote_label(surface_file, annot_files)
 
 		# For now, and to test it out...
-		self.consensus_labels = create_unittest_files.__consensus__()
+		self.consensus_labels = set([0])
 
 		return self.consensus_labels
 
@@ -1247,7 +1247,7 @@ class Shape:
 
 		return self.max_prob_label, self.max_prob_file
 
-	def assign_realigned_labels(self, filename = '/home/eli/Desktop/max_prob_visualization_realignment.vtk'):
+	def assign_realigned_labels(self, filename, threshold = 0.5):
 		""" Determines which nodes should be reassigned a new label from realignment propagation; visualizes results.
 
 		Parameters
@@ -1292,22 +1292,81 @@ class Shape:
 		# YOU NEED A DECISION PROCESS WHICH WILL RESOLVE THE DISPUTE!
 
 		for column in self.probabilistic_assignment.T:
-			nodes_to_change[counter] = list(np.nonzero(column > .501)[0])
+			nodes_to_change[counter] = list(np.nonzero(column > threshold)[0])
 			if set.intersection(set(nodes_to_change[counter]), set(self.consensus_labels)):
 				print 'You are trying to cross consensus labels!'
-				nodes_to_change = []
+				nodes_to_change[counter] = []
 			print nodes_to_change
-			self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
+			# self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
 			counter += 1
 
+		# Check relevance
+		nodes_to_change = self.check_relevance(nodes_to_change)
+
+		# Resolve ambiguities
 		nodes_to_change = self.resolve_overlaps(nodes_to_change)
 
+		# Resolve two-directional changes...
+		nodes_to_change = self.resolve_directionality(nodes_to_change)
+
+		for key, value in nodes_to_change.items():
+			self.RLabels[value] = self.realignment_mapping[key][1]
 
 		self.RLabels_file = filename
 
 		vo.write_all(self.RLabels_file, self.Nodes, self.Mesh, self.RLabels)
 
 		return self.RLabels, self.RLabels_file
+
+	def check_relevance(self, dict_of_nodes, threshold = 20):
+		""" Checks whether label reassignment contains sufficient number of nodes which border fundi.
+
+		Parameters
+		==========
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class wants to redefine)
+		threshold: int (minimum number of nodes which must also be part of the fundi boundary)
+
+		Returns
+		=======
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class should redefine)
+
+		Explanation
+		===========
+		If the proposed label reassignment does not want to change any fundal nodes, then this is probably
+		not a good bunch of nodes to change!
+
+		"""
+
+		self.find_fundi_border()
+
+		for key, value in dict_of_nodes.items():
+			if len(np.intersect1d(value,self.fundi_border_nodes)) < threshold:
+				dict_of_nodes.pop(key)
+
+		return dict_of_nodes
+
+	def find_fundi_border(self):
+		""" Finds the set of nodes which border the fundi.
+
+		Parameters
+		==========
+
+		Returns
+		=======
+		self.fundi_border_nodes: np array (of indices of nodes which border but are not part of the fundi)
+
+		"""
+
+		self.fundi_border_nodes = np.zeros(self.Labels.shape)
+
+		for triangles in self.Mesh:
+			node0, node1, node2 = triangles[0], triangles[1], triangles[2]
+			num_nodes_in_fundi = (node0 in self.fundal_nodes) + (node1 in self.fundal_nodes) + (node2 in self.fundal_nodes)
+			if num_nodes_in_fundi > 0:
+				self.preserved_labels[triangles] = 1
+		self.fundi_border_nodes[self.fundal_nodes] = 0
+
+		return self.fundi_border_nodes
 
 	def resolve_overlaps(self, dict_of_nodes):
 		""" Prevents multiple label boundaries from realigning to same fundus. Resolves ambiguity.
@@ -1318,7 +1377,7 @@ class Shape:
 
 		Returns
 		=======
-		non_overlapping_dict: dict (key - class (counter), value - list of nodes which the class should redefine)
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class should redefine)
 
 		Explanation
 		===========
@@ -1328,8 +1387,89 @@ class Shape:
 		"""
 
 		# First we need an efficient procedure to identify the overlaps.
+		# Create a num_keys x num_keys matrix indicating whether there is overlap,
+		# and if so, which array is larger.
 
-		return
+		# As a proxy for whether a fundus runs along a label boundary, we could simply see which label boundary segment
+		# relabels more nodes: the larger one presumably runs parallel to the fundus.
+
+		print 'We made it here! So far so good.'
+
+		num_keys = len(dict_of_nodes)
+		overlap = np.zeros((num_keys, num_keys))
+
+		for key1, value1 in dict_of_nodes.items():
+			for key2, value2, in dict_of_nodes.items():
+				if key1 != key2:
+					overlap_problem = np.intersect1d(value1,value2).any()
+					if overlap_problem:
+						print "The keys are: ", key1, key2
+						# 1 indicates value1 is larger, 2 if value2 is larger.
+						overlap[key1,key2] = (len(value2) > len(value1)) + 1
+						print "The value of overlap is: ", overlap[key1,key2]
+
+						# For NOW, let us disregard the matrix overlap and simply resolve the issue right here.
+						# In the future, this matrix may be desirable.
+
+						if overlap[key1, key2] == 1:
+							try:
+								dict_of_nodes.pop(key2)
+							except:
+								pass
+						else:
+							try:
+								dict_of_nodes.pop(key1)
+							except:
+								pass
+
+		return dict_of_nodes
+
+	def resolve_directionality(self, dict_of_nodes):
+		""" Compares realignment of co-segments (inverses) to prevent both from propagating.
+
+		Parameters
+		==========
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class wants to redefine)
+
+		Returns
+		=======
+		dict_of_nodes: dict (key - class (counter), value - list of nodes which the class wants to redefine)
+
+		Explanation
+		===========
+		For any segment s defined by classes (a,b), there is a co-segment s' which is defined by (b,a).
+		We want to prevent the case when both a segment and cosegment propagate their labels.
+
+		The approach we will take is to try to identify whether one side stopped because it reached a fundus. If so,
+		that will be the segment we want to keep. We will count the number of nodes which it's trying to convert
+		which are adjacent to fundal nodes! The higher one wins out.
+
+		And, as an aside, we should institute this check in general. If the nodes you are trying to convert
+		do not border fundi - discard the changes!
+
+		"""
+
+		for key1, value1 in dict_of_nodes.items():
+			for key2, value2 in dict_of_nodes.items():
+				if key1 != key2:
+					# If thay are co-segments...
+					if len(np.intersect1d(self.realignment_mapping[key1], self.realignment_mapping[key2])) == 2:
+						print 'Found co-segments.'
+						# Find which array contains more fundi border nodes...
+						border1 = len(np.intersect1d(value1,self.fundi_border_nodes))
+						border2 = len(np.intersect1d(value2,self.fundi_border_nodes))
+						if border1 > border2:
+							try:
+								dict_of_nodes.pop(key2)
+							except:
+								pass
+						else:
+							try:
+								dict_of_nodes.pop(key1)
+							except:
+								pass
+
+		return dict_of_nodes
 
 	"""
 #########################################
@@ -1502,7 +1642,9 @@ class Shape:
 				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
 				restore_values = column[restore_indices]
 				# Try clamping the other label boundaries at 0...
-				restore_values[restore_values==-1] = 0
+				# restore_values[restore_values==-1] = 0
+				# Try clamping the fundi to 1:
+				# restore_values[restore_values == 0] = 1
 				#pylab.plot(restore_values)
 				#pylab.show()
 
@@ -1580,7 +1722,6 @@ class Shape:
 		So, to obtain a sort of probability distribution which preserves order, we will add 1 to each number,
 		and then divide by 2. Thus -1 --> 0, 1 --> 1 and everything else keeps its order."""
 
-		""" Uncomment this section when fixed!!"""
 		self.probabilistic_assignment += 1
 		self.probabilistic_assignment /= 2
 
@@ -1696,14 +1837,23 @@ g3 = ''
 def test():
 	""" This test is for the realignment task."""
 	t0 = time()
-	shape.import_vtk(g1)
-	shape.import_fundi(g2)
+	shape.import_vtk(f1)
+	shape.import_fundi(f2)
 	print 'Imported Data in: ', time() - t0
 
 	shape.initialize_labels(keep='label_boundary')
-	shape.find_label_boundary_segments(completed=g3)
-	shape.propagate_labels(realign=True, max_iters=6000)
-	shape.assign_realigned_labels()
+	shape.find_label_boundary_segments(completed=f3)
+	shape.propagate_labels(realign=True, max_iters=50)
+	shape.assign_realigned_labels(filename = '/home/eli/Desktop/max_prob_visualization_realignment.vtk')
 	shape.find_label_boundary(realigned_labels=True)
 
 test()
+
+"""
+Tasks to complete:
+------------------
+
+1) Resolve ambiguity when multiple label boundary segments want to relabel a node.
+2)
+
+"""
