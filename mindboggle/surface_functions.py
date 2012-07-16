@@ -58,11 +58,11 @@ def compute_curvature(command, surface_file):
         error("Check format of " + surface_file)
 
     file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
-    mean_curvature_file = file_stem + '.curvature.mean.vtk'
-    gauss_curvature_file = file_stem + '.curvature.gauss.vtk'
-    max_curvature_file = file_stem + '.curvature.max.vtk'
-    min_curvature_file = file_stem + '.curvature.min.vtk'
-    min_curvature_vector_file = file_stem + '.curvature.min.direction.txt'
+    mean_curvature_file = file_stem + '.curv.avg.vtk'
+    gauss_curvature_file = file_stem + '.curv.gauss.vtk'
+    max_curvature_file = file_stem + '.curv.max.vtk'
+    min_curvature_file = file_stem + '.curv.min.vtk'
+    min_curvature_vector_file = file_stem + '.curv.min.dir.txt'
     args = [surface_file,
             mean_curvature_file, gauss_curvature_file,
             max_curvature_file, min_curvature_file]
