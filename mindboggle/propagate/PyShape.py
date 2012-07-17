@@ -1293,21 +1293,31 @@ class Shape:
 
 		for column in self.probabilistic_assignment.T:
 			nodes_to_change[counter] = list(np.nonzero(column > threshold)[0])
-			if set.intersection(set(nodes_to_change[counter]), set(self.consensus_labels)):
-				print 'You are trying to cross consensus labels!'
-				nodes_to_change[counter] = []
-			print nodes_to_change
+			#if set.intersection(set(nodes_to_change[counter]), set(self.consensus_labels)):
+			#	print 'You are trying to cross consensus labels!'
+			#	nodes_to_change[counter] = []
 			# self.RLabels[nodes_to_change] = self.realignment_mapping[counter][1]
 			counter += 1
+
+		print 'Currently there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
 
 		# Check relevance
 		nodes_to_change = self.check_relevance(nodes_to_change)
 
+		print 'After checking relevance, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
+
 		# Resolve ambiguities
 		nodes_to_change = self.resolve_overlaps(nodes_to_change)
 
+		print 'After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
+
 		# Resolve two-directional changes...
 		nodes_to_change = self.resolve_directionality(nodes_to_change)
+
+		print 'After resolving bidirectionality, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
+
+		for key, value in nodes_to_change.items():
+			print "For key {0}, the following nodes will be changed: {1}".format(self.realignment_mapping[key],value)
 
 		for key, value in nodes_to_change.items():
 			self.RLabels[value] = self.realignment_mapping[key][1]
@@ -1318,7 +1328,7 @@ class Shape:
 
 		return self.RLabels, self.RLabels_file
 
-	def check_relevance(self, dict_of_nodes, threshold = 20):
+	def check_relevance(self, dict_of_nodes, threshold = 15):
 		""" Checks whether label reassignment contains sufficient number of nodes which border fundi.
 
 		Parameters
@@ -1338,6 +1348,8 @@ class Shape:
 		"""
 
 		self.find_fundi_border()
+
+		print self.fundi_border_nodes
 
 		for key, value in dict_of_nodes.items():
 			if len(np.intersect1d(value,self.fundi_border_nodes)) < threshold:
@@ -1363,8 +1375,10 @@ class Shape:
 			node0, node1, node2 = triangles[0], triangles[1], triangles[2]
 			num_nodes_in_fundi = (node0 in self.fundal_nodes) + (node1 in self.fundal_nodes) + (node2 in self.fundal_nodes)
 			if num_nodes_in_fundi > 0:
-				self.preserved_labels[triangles] = 1
+				self.fundi_border_nodes[triangles] = 1
 		self.fundi_border_nodes[self.fundal_nodes] = 0
+
+		self.fundi_border_nodes = np.nonzero(self.fundi_border_nodes)[0]
 
 		return self.fundi_border_nodes
 
