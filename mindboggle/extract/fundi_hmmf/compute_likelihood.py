@@ -91,10 +91,10 @@ def compute_likelihood(depths, curvatures):
     depth2 = percentile(sort_depths, depth_percentile2, key=lambda x:x)
     curvature = percentile(sort_curvatures, curvature_percentile, key=lambda x:x)
     if print_debug:
-        print('    {0:.2f}, {1:.2f} of vertices deeper than {2:.2f}, {3:.2f} depths'.
-              format(depth_percentile1, depth_percentile2, depth1, depth2))
-        print('    {0:.2f} of vertices have greater curvature than {1:.2f}'.
-              format(curvature_percentile, curvature))
+        print('    {0:.2f}, {1:.2f} depths greater than {2:.2f}, {3:.2f} of vertices'.
+              format(depth1, depth2, depth_percentile1, depth_percentile2))
+        print('    {0:.2f} curvature greater than {1:.2f} of vertices'.
+              format(curvature, curvature_percentile))
 
     # Find slope for depth and curvature values
     slope_factor = np.log((1. / high_map_value) - 1)
