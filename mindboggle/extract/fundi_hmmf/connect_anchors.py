@@ -243,22 +243,12 @@ def connect_anchors(anchors, faces, indices, L, thr):
         #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
-        load_em = 0
-        if load_em:
-            import pickle
-            load_path = "/drop/input/"
-            #pickle.dump(N, open(load_path + "N.p","wb"))
-            N = pickle.load(open(load_path + "N.p","rb"))
-        else:
-            print('    Find neighbors for each vertex...')
-            t0 = time()
-            N = [[] for x in L]
-            for i in indices:
-                N[i] = find_neighbors(faces, i)
-            print('      ...completed in {0:.2f} seconds'.format(time() - t0))
-            import pickle
-            load_path = "/drop/input/"
-            pickle.dump(N, open(load_path + "N.p","wb"))
+        print('    Find neighbors for each vertex...')
+        t0 = time()
+        N = [[] for x in L]
+        for i in indices:
+            N[i] = find_neighbors(faces, i)
+        print('      ...completed in {0:.2f} seconds'.format(time() - t0))
 
         # Assign probability values to each vertex
         print('    Assign a probability value to each vertex...')
