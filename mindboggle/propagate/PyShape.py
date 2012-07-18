@@ -46,18 +46,37 @@ from subprocess import Popen, PIPE, STDOUT
 from scipy.sparse import csr_matrix, lil_matrix
 import pylab
 import os
-# import atlas_functions
-# import create_unittest_files
 
 import vtk_operations as vo
 import compute_weights as cw
 import graph_operations as go
 import pickle
 
+# import atlas_functions
+# import create_unittest_files
+
 # np.set_printoptions(threshold='nan')
 
 ###################################
 # Base Class:
+
+############################################
+# NOTES:
+# 1) Use of pyvtk vs. native vtk fun.
+# 2) Threshold is 0.5 for fundi.
+# 3) Use list of numbered sulcal folds to identify whether vertices belong to same fundus.
+# ---- (-1) Where not a fold. (# value) to identify unique folds.
+# ---- (probability of being a fundus) for each vertex.
+# ---- save computational time if don't need to iterate.
+# 4) %timeit a.--()
+# 5) np.unique() for clarity
+# 6) aff_mat rename to affinity matrix.
+# 7) get_labeled_segment_matrix renaming it.
+
+
+############################################
+## Include list of steps for each project.##
+############################################
 
 class Shape:
 	"""
@@ -445,7 +464,9 @@ class Shape:
 						 'fundi' for nodes which are part of fundi.
 						 'both' for both the fundi and the borders.
 						 'label_boundary' for the nodes which comprise the label boundary.
-						 'random' for preserving a <fraction> of random nodes."""
+						 'random' for preserving a <fraction> of random nodes.
+
+		"""
 
 		if not self.has_labels:
 			print 'The object does not have any labels. Please add them.'
@@ -555,12 +576,11 @@ class Shape:
 			self.label_boundary: numpy array (of indices of nodes which comprise the label boundary)
 			self.label_boundary_file: string (VTK file name containing highlighted label boundary)
 			--OR--
-			self.Rlabel_boundar: numpy array (of indices of nodes which comprise the realigned label boundary)
+			self.Rlabel_boundary: numpy array (of indices of nodes which comprise the realigned label boundary)
 			self.Rlabel_boundary_file: string (VTK file name containing highlighted realigned label boundary)
 
 			Explanation:
 			============
-
 			I will define a label boundary as the set of all nodes
 			whose neighbors are not all from the same class.
 			Thus, any node which is connected to two (or more) nodes from different classes
@@ -845,7 +865,6 @@ class Shape:
 		The mapping of "keys" to new labels will be stored in a dictionary
 
 		Now, we can simply run through the dictionary, and assign to each node which is part of a segment a label.
-
 		"""
 
 		# Step 0. Find num segments
@@ -1153,7 +1172,7 @@ class Shape:
 		"""
 
 		# Step 1. Construct Affinity Matrix - compute edge weights:
-		self.aff_mat = cw.compute_weights(self.Nodes,self.Mesh,kernel=kernel,sigma=sigma, add_to_graph=False)
+		self.aff_mat = cw.compute_weights(self.Nodes,self.Mesh,kernel=kernel,sigma=sigma,add_to_graph=False)
 
 		# Step 2. Transform column of labels into L x C Matrix, one column per class
 		if not realign:
