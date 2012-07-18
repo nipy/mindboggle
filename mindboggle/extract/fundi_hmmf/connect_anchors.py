@@ -244,19 +244,19 @@ def connect_anchors(anchors, faces, indices, L, thr):
 
         # Find neighbors for each vertex
         print('    Find neighbors for each vertex...')
-        t0 = time()
+        t1 = time()
         N = [[] for x in L]
         for i in indices:
             N[i] = find_neighbors(faces, i)
-        print('      ...completed in {0:.2f} seconds'.format(time() - t0))
+        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
 
         # Assign probability values to each vertex
         print('    Assign a probability value to each vertex...')
-        t0 = time()
+        t1 = time()
         probs = Z.copy()
         probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
                           for i in indices]
-        print('      ...completed in {0:.2f} seconds'.format(time() - t0))
+        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
@@ -265,6 +265,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
         end_flag = 0
         Cnew = C.copy()
         print('    Update HMMF values...')
+        t1 = time()
         while end_flag < n_tries_no_change and count < max_count:
 
             # Define a factor to multiply the probability gradient that will
@@ -334,7 +335,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
             # After iteration 1, compare current and previous values.
             # If the values are similar, increment end_flag.
             sum_probs = sum(probs)
-            n_points = sum([1 for x in C if x > 0])
+            n_points = sum([1 for x in C if x > thr])
             if verbose:
                 print('      {} vertices...'.format(n_points))
 
@@ -350,5 +351,6 @@ def connect_anchors(anchors, faces, indices, L, thr):
             C = Cnew
 
             count += 1
+        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
 
         return C.tolist()
