@@ -1,16 +1,17 @@
 #!/usr/bin/python
 """
-Use depth to extract sulci from a triangular surface mesh and fill their holes.
+Use depth to extract folds from a triangular surface mesh and fill holes
+resulting from shallower areas within a fold.
 
 Inputs:
     faces: triangular surface mesh vertex indices [#faces x 3]
     depths: depth values [#vertices x 1]
-    depth_threshold: depth threshold for defining sulci
-    min_sulcus_size: minimum sulcus size
+    depth_threshold: depth threshold for defining folds
+    min_fold_size: minimum fold size
 
 Output:
-    sulci: label indices for sulci: [#vertices x 1] numpy array
-    n_sulci:  #sulci [int]
+    folds: label indices for folds: [#vertices x 1] numpy array
+    n_folds:  #folds [int]
 
 
 Authors:
@@ -28,7 +29,7 @@ from time import time
 #========================
 # Segment surface patches
 #========================
-def segment_surface(faces, seeds, N, min_patch_size):
+def segment_surface(faces, seeds, n_vertices, min_patch_size):
     """
     Segment a surface into contiguous patches (seed region growing).
 
@@ -36,7 +37,7 @@ def segment_surface(faces, seeds, N, min_patch_size):
     ------
     faces: surface mesh vertex indices [#faces x 3]
     seeds: mesh vertex indices for vertices to be segmented [#seeds x 1]
-    N: #vertices total (seeds are a subset)
+    n_vertices: #vertices total (seeds are a subset)
     min_patch_size: minimum size of segmented set of vertices
 
     Output:
@@ -52,7 +53,7 @@ def segment_surface(faces, seeds, N, min_patch_size):
     """
 
     # Initialize segments and seeds (indices of deep vertices)
-    segments = np.zeros(N)
+    segments = np.zeros(n_vertices)
     n_seeds = len(seeds)
 
     # Remove faces that do not contain seeds to speed up computation
@@ -68,7 +69,7 @@ def segment_surface(faces, seeds, N, min_patch_size):
     max_patch_label = 1
     n_segments = 0
     counter = 0
-    TEMP0 = np.zeros(N)
+    TEMP0 = np.zeros(n_vertices)
     while n_seeds > min_patch_size:
         TEMP = np.copy(TEMP0)
 
@@ -128,20 +129,20 @@ def segment_surface(faces, seeds, N, min_patch_size):
 #-----------
 # Fill holes
 #-----------
-def fill_holes(faces, sulci, holes, n_holes):
+def fill_holes(faces, folds, holes, n_holes):
     """
     Fill holes in surface mesh patches.
 
     Inputs:
     ------
     faces: surface mesh vertex indices [#faces x 3] numpy array
-    sulci: [#vertices x 1] numpy array
+    folds: [#vertices x 1] numpy array
     holes: [#vertices x 1] numpy array
     n_holes: [#vertices x 1] numpy array
 
     Output:
     ------
-    sulci: [#vertices x 1] numpy array
+    folds: [#vertices x 1] numpy array
 
     Calls:
     -----
@@ -149,7 +150,7 @@ def fill_holes(faces, sulci, holes, n_holes):
 
     """
 
-    # Look for vertices that have a sulcus label and are
+    # Look for vertices that have a fold label and are
     # connected to any of the vertices in the current hole,
     # and assign the hole the maximum label number
     for i in range(1, n_holes + 1):
@@ -162,32 +163,32 @@ def fill_holes(faces, sulci, holes, n_holes):
             # If there are any neighboring labels,
             # assign the hole the maximum label
             # of its neighbors and end the while loop
-            for sulci_neighbor in sulci[neighbors]:
-                if sulci_neighbor > 0:
-                    sulci[hole_indices] = sulci_neighbor
+            for folds_neighbor in folds[neighbors]:
+                if folds_neighbor > 0:
+                    folds[hole_indices] = folds_neighbor
                     break
 
-    return sulci
+    return folds
 
 #==============
-# Extract sulci
+# Extract folds
 #==============
-def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
+def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     """
-    Extract sulci.
+    Extract folds.
 
     Inputs:
     ------
     faces: triangular surface mesh vertex indices [#faces x 3]
     depths: depth values [#vertices x 1]
-    depth_threshold: depth threshold for defining sulci
-    min_sulcus_size: minimum sulcus size
+    depth_threshold: depth threshold for defining folds
+    min_fold_size: minimum fold size
 
     Output:
     ------
-    sulci: label indices for sulci: [#vertices x 1] numpy array
-    n_sulci:  #sulci [int]
-    sulci_index_lists:  list of #sulci lists of vertex indices
+    folds: label indices for folds: [#vertices x 1] numpy array
+    n_folds:  #folds [int]
+    folds_index_lists:  list of #folds lists of vertex indices
 
     Calls:
     -----
@@ -196,23 +197,24 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
     """
 
-    # Segment sulcus surface
+    n_vertices = len(depths)
+
+    # Segment folds of a surface mesh
     print("  Segment deep portions of surface mesh into separate folds...")
     t0 = time()
     seeds = np.where(depths > depth_threshold)[0]
-    sulci, n_sulci, max_sulcus = segment_surface(faces, seeds, N=len(depths),
-                                                 min_patch_size=min_sulcus_size)
+    folds, n_folds, max_fold = segment_surface(faces, seeds, n_vertices,
+                                               min_fold_size)
     print('    ...completed in {0:.2f} seconds'.format(time() - t0))
 
-    # If there are any sulci
-    if n_sulci > 0:
+    # If there are any folds
+    if n_folds > 0:
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
         t0 = time()
-        seeds = np.where(sulci == 0)[0]
-        holes, n_holes, max_hole = segment_surface(faces, seeds, N=len(sulci),
-                                                   min_patch_size=0)
+        seeds = np.where(folds == 0)[0]
+        holes, n_holes, max_hole = segment_surface(faces, seeds, n_vertices, 0)
         # If there are any holes
         if n_holes > 0:
         
@@ -225,11 +227,11 @@ def extract_sulci(faces, depths, depth_threshold=0.2, min_sulcus_size=50):
 
             print('  Fill holes...')
             t0 = time()
-            sulci = fill_holes(faces, sulci, holes, n_holes)
+            folds = fill_holes(faces, folds, holes, n_holes)
             print('    ...completed in {0:.2f} seconds'.format(time() - t0))
 
-    # Convert sulci array to a list of lists of vertex indices
-    sulci_index_lists = [np.where(sulci==i)[0].tolist() for i in range(1, n_sulci+1)]
+    # Convert folds array to a list of lists of vertex indices
+    folds_index_lists = [np.where(folds==i)[0].tolist() for i in range(1, n_folds+1)]
 
-    # Return sulci, the number of sulci, and index lists
-    return sulci, n_sulci, sulci_index_lists
+    # Return folds, the number of folds, and index lists
+    return folds, n_folds, folds_index_lists
