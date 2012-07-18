@@ -29,7 +29,7 @@ from time import time
 #========================
 # Segment surface patches
 #========================
-def segment_surface(faces, seeds, n_vertices, min_patch_size):
+def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     """
     Segment a surface into contiguous patches (seed region growing).
 
@@ -38,6 +38,7 @@ def segment_surface(faces, seeds, n_vertices, min_patch_size):
     faces: surface mesh vertex indices [#faces x 3]
     seeds: mesh vertex indices for vertices to be segmented [#seeds x 1]
     n_vertices: #vertices total (seeds are a subset)
+    min_seeds: minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size: minimum size of segmented set of vertices
 
     Output:
@@ -56,9 +57,10 @@ def segment_surface(faces, seeds, n_vertices, min_patch_size):
     segments = np.zeros(n_vertices)
     n_seeds = len(seeds)
 
-    # Remove faces that do not contain seeds to speed up computation
+    # Remove faces with fewer than min_seeds seeds to speed up computation
     fs = frozenset(seeds)
-    faces_seeds = [lst for lst in faces if fs.intersection(lst)]
+    faces_seeds = [lst for lst in faces 
+                   if len(fs.intersection(lst)) >= min_seeds]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
     print('    Reduced {} to {} faces.'.format(len(faces),
                                              len(faces_seeds)))
@@ -114,6 +116,7 @@ def segment_surface(faces, seeds, n_vertices, min_patch_size):
             counter += 1
             n_segments = counter
             segments[Ipatch] = n_segments
+
             # Display current number and size of patch
             if size_patch > 1:
                 print('    Segmented patch {}: {} vertices. {} seeds remaining...'.
@@ -204,7 +207,7 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     t0 = time()
     seeds = np.where(depths > depth_threshold)[0]
     folds, n_folds, max_fold = segment_surface(faces, seeds, n_vertices,
-                                               min_fold_size)
+                                               3, min_fold_size)
     print('    ...completed in {0:.2f} seconds'.format(time() - t0))
 
     # If there are any folds
@@ -214,7 +217,8 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
         print('  Segment holes in the folds...')
         t0 = time()
         seeds = np.where(folds == 0)[0]
-        holes, n_holes, max_hole = segment_surface(faces, seeds, n_vertices, 0)
+        holes, n_holes, max_hole = segment_surface(faces, seeds, 
+                                                   n_vertices, 1, 0)
         # If there are any holes
         if n_holes > 0:
         
@@ -231,7 +235,8 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
             print('    ...completed in {0:.2f} seconds'.format(time() - t0))
 
     # Convert folds array to a list of lists of vertex indices
-    folds_index_lists = [np.where(folds==i)[0].tolist() for i in range(1, n_folds+1)]
+    index_lists_folds = [np.where(folds == i)[0].tolist() 
+                         for i in range(1, n_folds+1)]
 
-    # Return folds, the number of folds, and index lists
-    return folds, n_folds, folds_index_lists
+    # Return folds, the number of folds, and lists of indices for each fold
+    return folds, n_folds, index_lists_folds
