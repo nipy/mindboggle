@@ -61,7 +61,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     import pickle
     load_path = "/drop/input/"
-    load_em = 0
+    load_em = 1
     save_em = 1
 
     # Extract folds (vertex indices for each fold)
@@ -111,6 +111,10 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         print('    ...completed in {0:.2f} seconds'.
               format(time() - t0))
 
+        print(depths[depths>0.5])
+        print(sum(depths>0.5))
+        print(fold_likelihoods[fold_likelihoods>0.5])
+        print(sum(fold_likelihoods > thr))
         ## If the fold has enough high-likelihood vertices, continue
         #if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
 
