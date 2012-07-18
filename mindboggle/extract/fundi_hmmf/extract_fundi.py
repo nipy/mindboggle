@@ -111,9 +111,9 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         print('    ...completed in {0:.2f} seconds'.
               format(time() - t0))
 
-        print(sum(fold_likelihoods > thr))
-        # If the fold has enough high-likelihood vertices, continue
-        #if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
+#       # If the fold has enough high-likelihood vertices, continue
+#       print(sum(fold_likelihoods > thr))
+#       if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
 
         # Find fundus points
         print('  Find fundus points for fold {}...'.format(i_fold + 1))
