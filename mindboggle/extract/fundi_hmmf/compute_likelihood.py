@@ -61,11 +61,10 @@ def compute_likelihood(depths, curvatures):
 
     Parameters:
     ----------
-    Adaptive thresholding:
-      depth_percentile1: ????
-      depth_percentile2: ????
-      curvature_percentile: ????
-      high_map_value: ????
+    depth_percentile1: ????
+    depth_percentile2: ????
+    curvature_percentile: ????
+    high_map_value: ????
 
     Output:
     ------
