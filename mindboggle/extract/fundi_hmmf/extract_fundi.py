@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Extract fundus curves from surface mesh patches (sulci).
+Extract fundus curves from surface mesh patches (folds).
 
 Authors:
 Yrjo Hame  .  yrjo.hame@gmail.com
@@ -12,7 +12,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 import numpy as np
 
-from extract_sulci import extract_sulci
+from extract_folds import extract_folds
 from compute_likelihood import compute_likelihood
 from find_anchors import find_anchors
 from connect_anchors import connect_anchors
@@ -26,7 +26,7 @@ import io_vtk
 # Extract all fundi
 #==================
 def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
-                  depth_threshold=0.2, thr=0.5, min_sulcus_size=50,
+                  depth_threshold=0.2, thr=0.5, min_fold_size=50,
                   min_distance=5, max_distance=8):
     """
     Extract all fundi.
@@ -40,19 +40,19 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     depths: depth values [#vertices x 1] numpy array
     mean_curvatures: mean curvature values [#vertices x 1] numpy array
     min_directions: directions of minimum curvature [3 x #vertices] numpy array
-    depth_threshold: depth threshold for defining sulci
+    depth_threshold: depth threshold for defining folds
     thr: likelihood threshold
-    min_sulcus_size: minimum sulcus size from which to find a fundus
+    min_fold_size: minimum fold size from which to find a fundus
     min_distance: minimum distance
     max_distance: maximum distance
 
     Output:
     ------
-    fundi: list of #sulci lists of vertex indices.
+    fundi: list of #folds lists of vertex indices.
 
     Calls:
     -----
-    extract_sulci()
+    extract_folds()
     compute_likelihood()
     find_anchors()
     connect_anchors()
@@ -64,73 +64,74 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     load_em = 0
     save_em = 1
 
-    # Extract sulci (vertex indices for each sulcus)
+    # Extract folds (vertex indices for each fold)
     if load_em:
-        sulci = pickle.load(open(load_path + "sulci.p","rb"))
-        n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
-        sulci_index_lists = pickle.load(open(load_path + "sulci_index_lists.p","rb"))
+        folds = pickle.load(open(load_path + "folds.p","rb"))
+        n_folds = int(pickle.load(open(load_path + "n_folds.p","rb")))
+        folds_index_lists = pickle.load(open(load_path + "folds_index_lists.p","rb"))
     else:
-        print("Extract sulci from surface mesh...")
+        print("Extract folds from surface mesh...")
         t0 = time()
-        sulci, n_sulci, sulci_index_lists = extract_sulci(faces, 
-               depths, depth_threshold, min_sulcus_size)
+        folds, n_folds, folds_index_lists = extract_folds(faces, 
+               depths, depth_threshold, min_fold_size)
         if save_em:
-            pickle.dump(sulci, open(load_path + "sulci.p","wb"))
-            pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
-            pickle.dump(sulci_index_lists, open(load_path + "sulci_index_lists.p","wb"))
+            pickle.dump(folds, open(load_path + "folds.p","wb"))
+            pickle.dump(n_folds, open(load_path + "n_folds.p","wb"))
+            pickle.dump(folds_index_lists, open(load_path + "folds_index_lists.p","wb"))
 
-            sulci_indices = [x for lst in sulci_index_lists for x in lst]
-            # Remove faces that do not contain three sulcus vertices
-            fs = frozenset(sulci_indices)
-            faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-            faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
+            folds_indices = [x for lst in folds_index_lists for x in lst]
+            # Remove faces that do not contain three fold vertices
+            fs = frozenset(folds_indices)
+            faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+            faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
             print('  Reduced {} to {} faces.'.format(len(faces),
-                                                     len(faces_sulci)))
+                                                     len(faces_folds)))
             # Save vtk file
-            sulci_for_vtk = sulci.copy()
-            sulci_for_vtk[sulci == 0] = -1
-            LUTs = [[int(x) for x in sulci_for_vtk]]
-            LUT_names = ['sulcus'+str(i+1) for i in range(n_sulci)]
-            io_vtk.writeSulci(load_path + 'sulci.vtk', vertices, sulci_indices,
-                              faces_sulci, LUTs=LUTs, LUTNames=LUT_names)
+            folds_for_vtk = folds.copy()
+            folds_for_vtk[folds == 0] = -1
+            LUTs = [[int(x) for x in folds_for_vtk]]
+            LUT_names = ['fold'+str(i+1) for i in range(n_folds)]
+            io_vtk.writeSulci(load_path + 'folds.vtk', vertices, folds_indices,
+                              faces_folds, LUTs=LUTs, LUTNames=LUT_names)
 
-    # For each sulcus...
-    print("Extract a fundus from each of {} sulci...".format(n_sulci))
+    # For each fold...
+    print("Extract a fundus from each of {} folds...".format(n_folds))
     fundi = []
-    Z = np.zeros(len(depths))
-    for i_sulcus, sulcus in enumerate(sulci_index_lists):
+    n_vertices = len(depths)
+    Z = np.zeros(n_vertices)
+    for i_fold, fold in enumerate(folds_index_lists):
 
         # Compute fundus likelihood values
-        print('  Compute fundus likelihood values for sulcus {}...'.
-              format(i_sulcus + 1))
+        print('  Compute fundus likelihood values for fold {}...'.
+              format(i_fold + 1))
         t0 = time()
-        sulcus_likelihoods = compute_likelihood(depths[sulcus],
-                                                mean_curvatures[sulcus])
+        fold_likelihoods = compute_likelihood(depths[fold],
+                                                mean_curvatures[fold])
         print('    ...completed in {0:.2f} seconds'.
               format(time() - t0))
 
-        # If the sulcus has enough high-likelihood vertices, continue
-        print('{} {}'.format(sum(sulcus_likelihoods > thr),sum(sulcus_likelihoods > thr) > min_sulcus_size))
-        if sum(sulcus_likelihoods > thr) > min_sulcus_size:
+        # If the fold has enough high-likelihood vertices, continue
+        print('{} {}'.format(sum(fold_likelihoods > thr),sum(fold_likelihoods > thr) > min_fold_size))
+        if sum(fold_likelihoods > thr) > min_fold_size:
 
             # Find fundus points
-            print('  Find fundus points for sulcus {}...'.format(i_sulcus + 1))
+            print('  Find fundus points for fold {}...'.format(i_fold + 1))
             t0 = time()
-            anchors = find_anchors(vertices[sulcus, :], sulcus_likelihoods,
-                                   min_directions[sulcus],
+            anchors = find_anchors(vertices[fold, :], fold_likelihoods,
+                                   min_directions[fold],
                                    thr, min_distance, max_distance)
-            anchors = [sulcus[x] for x in anchors]
+            anchors = [fold[x] for x in anchors]
             print('    ...completed in {0:.2f} seconds'.format(time() - t0))
             if len(anchors) > 0:
 
                 # Connect fundus points and extract fundus
-                print('  Connect fundus points for sulcus {}...'.
-                      format(i_sulcus + 1))
+                print('  Connect fundus points for fold {}...'.
+                      format(i_fold + 1))
                 t0 = time()
                 likelihoods = Z.copy()
-                likelihoods[sulcus] = sulcus_likelihoods
+                likelihoods[fold] = fold_likelihoods
                 fundi.append(
-                      connect_anchors(anchors, faces, sulcus,
+                      connect_anchors(anchors, faces, fold,
                                       likelihoods, thr))
                 print('    ...completed in {0:.2f} seconds'.
                       format(time() - t0))
@@ -143,26 +144,27 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
         pickle.dump(fundi, open(load_path + "fundi.p","wb"))
 
-        # Remove faces that do not contain three sulcus vertices
-        sulci_indices = [x for lst in sulci_index_lists for x in lst]
-        fs = frozenset(sulci_indices)
-        faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-        faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
+        # Remove faces that do not contain three fold vertices
+        folds_indices = [x for lst in folds_index_lists for x in lst]
+        fs = frozenset(folds_indices)
+        faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+        faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
 
-        # Save sulcus likelihoods
-        likelihoods_for_vtk = -np.ones(len(depth))
-        likelihoods_for_vtk[sulci_indices] = likelihoods[sulci_indices]
+        # Save fold likelihoods
+        likelihoods_for_vtk = -np.ones(n_vertices)
+        likelihoods_for_vtk[folds_indices] = likelihoods[folds_indices]
         io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
-                          sulci_indices, faces_sulci,
-                          LUTs=[likelihoods_for_vtk], LUTNames=['sulcus likelihoods'])
+                          folds_indices, faces_folds,
+                          LUTs=[likelihoods_for_vtk],
+                          LUTNames=['fold likelihoods'])
 
         # Save fundi
-        fundi_for_vtk = -np.ones(len(depths))
+        fundi_for_vtk = -np.ones(n_vertices)
         for fundus in fundi:
             if len(fundus) > 0:
                 fundi_for_vtk += fundus
         io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
-                          sulci_indices, faces_sulci,
+                          folds_indices, faces_folds,
                           LUTs=[fundi_for_vtk], LUTNames=['fundi'])
 
     return fundi
@@ -196,7 +198,7 @@ else:
         pickle.dump(min_directions, open(load_path + "min_directions.p","wb"))
 
 fundi = extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
-    depth_threshold=0.2, thr=0.5, min_sulcus_size=50,
+    depth_threshold=0.2, thr=0.5, min_fold_size=50,
     min_distance=5, max_distance=8)
 
 """
