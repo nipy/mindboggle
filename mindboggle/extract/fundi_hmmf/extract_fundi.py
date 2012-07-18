@@ -61,37 +61,44 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     import pickle
     load_path = "/drop/input/"
-    load_em = 1
+    load_em = 0
     save_em = 1
 
     # Extract sulci (vertex indices for each sulcus)
     if load_em:
         sulci = pickle.load(open(load_path + "sulci.p","rb"))
         n_sulci = int(pickle.load(open(load_path + "n_sulci.p","rb")))
+        sulci_index_lists = pickle.load(open(load_path + "sulci_index_lists.p","rb"))
     else:
+        print("Extract sulci from surface mesh...")
         t0 = time()
-        sulci, n_sulci = extract_sulci(faces, depths, depth_threshold,
-                                       min_sulcus_size)
+        sulci, n_sulci, sulci_index_lists = extract_sulci(faces, 
+               depths, depth_threshold, min_sulcus_size)
         if save_em:
             pickle.dump(sulci, open(load_path + "sulci.p","wb"))
             pickle.dump(n_sulci, open(load_path + "n_sulci.p","wb"))
+            pickle.dump(sulci_index_lists, open(load_path + "sulci_index_lists.p","wb"))
 
-            isulci = [x for lst in sulci for x in lst]
+            sulci_indices = [x for lst in sulci_index_lists for x in lst]
             # Remove faces that do not contain three sulcus vertices
-            fs = frozenset(isulci)
+            fs = frozenset(sulci_indices)
             faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
             faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
             print('  Reduced {} to {} faces.'.format(len(faces),
-                                     len(faces_sulci)))
-            # Save vtk files
-            io_vtk.writeSulci(load_path + 'sulci.vtk', vertices, isulci, faces_sulci,
-                      LUTs=sulci, LUTNames=['sulcus'+str(i+1) for i in range(n_sulci)])
+                                                     len(faces_sulci)))
+            # Save vtk file
+            sulci_for_vtk = sulci.copy()
+            sulci_for_vtk[sulci == 0] = -1
+            LUTs = [[int(x) for x in sulci_for_vtk]]
+            LUT_names = ['sulcus'+str(i+1) for i in range(n_sulci)]
+            io_vtk.writeSulci(load_path + 'sulci.vtk', vertices, sulci_indices,
+                              faces_sulci, LUTs=LUTs, LUTNames=LUT_names)
 
     # For each sulcus...
     print("Extract a fundus from each of {} sulci...".format(n_sulci))
     fundi = []
     Z = np.zeros(len(depths))
-    for i_sulcus, sulcus in enumerate(sulci):
+    for i_sulcus, sulcus in enumerate(sulci_index_lists):
 
         # Compute fundus likelihood values
         print('  Compute fundus likelihood values for sulcus {}...'.
@@ -103,6 +110,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
               format(time() - t0))
 
         # If the sulcus has enough high-likelihood vertices, continue
+        print('{} {}'.format(sum(sulcus_likelihoods > thr),sum(sulcus_likelihoods > thr) > min_sulcus_size))
         if sum(sulcus_likelihoods > thr) > min_sulcus_size:
 
             # Find fundus points
@@ -132,25 +140,30 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             fundi.append([])
 
     if save_em:
-        isulci = [x for lst in sulci for x in lst]
+        pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
+        pickle.dump(fundi, open(load_path + "fundi.p","wb"))
+
         # Remove faces that do not contain three sulcus vertices
-        fs = frozenset(isulci)
+        sulci_indices = [x for lst in sulci_index_lists for x in lst]
+        fs = frozenset(sulci_indices)
         faces_sulci = [lst for lst in faces if len(fs.intersection(lst)) == 3]
         faces_sulci = np.reshape(np.ravel(faces_sulci), (-1, 3))
 
-        pickle.dump(likelihoods, open(load_path + "sulcus_likelihoods.p","wb"))
+        # Save sulcus likelihoods
+        likelihoods_for_vtk = -np.ones(len(depth))
+        likelihoods_for_vtk[sulci_indices] = likelihoods[sulci_indices]
         io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
-                          isulci, faces_sulci,
-                          LUTs=[likelihoods], LUTNames=['sulcus likelihoods'])
+                          sulci_indices, faces_sulci,
+                          LUTs=[likelihoods_for_vtk], LUTNames=['sulcus likelihoods'])
 
-        pickle.dump(fundi, open(load_path + "fundi.p","wb"))
-        fundi_list = np.zeros(len(fundi[0]))
-        for x in fundi:
-            if len(x) > 0:
-                fundi_list += x
+        # Save fundi
+        fundi_for_vtk = -np.ones(len(depths))
+        for fundus in fundi:
+            if len(fundus) > 0:
+                fundi_for_vtk += fundus
         io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
-                          isulci, faces_sulci,
-                          LUTs=[fundi_list], LUTNames=['fundi'])
+                          sulci_indices, faces_sulci,
+                          LUTs=[fundi_for_vtk], LUTNames=['fundi'])
 
     return fundi
 
