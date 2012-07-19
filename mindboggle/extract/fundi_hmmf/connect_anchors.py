@@ -17,7 +17,7 @@ import numpy as np
 from find_neighbors import find_neighbors
 from time import time
 
-verbose = 0
+verbose = 1
 
 #--------------------
 # Compute probability
@@ -243,20 +243,20 @@ def connect_anchors(anchors, faces, indices, L, thr):
         #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
-        print('    Find neighbors for each vertex...')
         t1 = time()
         N = [[] for x in L]
         for i in indices:
             N[i] = find_neighbors(faces, i)
-        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
+        print('    Found neighbors for each vertex ({0:.2f} seconds)'.
+              format(time() - t1))
 
         # Assign probability values to each vertex
-        print('    Assign a probability value to each vertex...')
         t1 = time()
         probs = Z.copy()
         probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
                           for i in indices]
-        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
+        print('    Assigned a probability value to each vertex ({0:.2f} seconds)'.
+              format(time() - t1))
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
@@ -264,7 +264,6 @@ def connect_anchors(anchors, faces, indices, L, thr):
         count = 0
         end_flag = 0
         Cnew = C.copy()
-        print('    Update HMMF values...')
         t1 = time()
         while end_flag < n_tries_no_change and count < max_count:
 
@@ -336,7 +335,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
             # If the values are similar, increment end_flag.
             sum_probs = sum(probs)
             n_points = sum([1 for x in C if x > thr])
-            if verbose:
+            if verbose == 2:
                 print('      {} vertices...'.format(n_points))
 
             if count > 0:
@@ -351,6 +350,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
             C = Cnew
 
             count += 1
-        print('      ...completed in {0:.2f} seconds'.format(time() - t1))
+        print('    Updated HMMF values ({0:.2f} seconds)'.
+              format(time() - t1))
 
         return C.tolist()

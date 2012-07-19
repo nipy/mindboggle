@@ -208,7 +208,7 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     seeds = np.where(depths > depth_threshold)[0]
     folds, n_folds, max_fold = segment_surface(faces, seeds, n_vertices,
                                                3, min_fold_size)
-    print('    ...completed in {0:.2f} seconds'.format(time() - t0))
+    print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t0))
 
     # If there are any folds
     if n_folds > 0:
@@ -227,12 +227,14 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
             n_holes -= 1
-            print('    ...completed in {0:.2f} seconds'.format(time() - t0))
+            print('    ...Holes segmented ({:.2f} seconds)'.
+                  format(time() - t0))
 
             print('  Fill holes...')
             t0 = time()
             folds = fill_holes(faces, folds, holes, n_holes)
-            print('    ...completed in {0:.2f} seconds'.format(time() - t0))
+            print('    ...Holes filled ({:.2f} seconds)'.
+                  format(time() - t0))
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist() 
