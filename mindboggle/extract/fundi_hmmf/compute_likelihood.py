@@ -61,13 +61,11 @@ def compute_likelihood(depths, curvatures):
 
     Parameters:
     ----------
-    # Find depth and curvature values greater than
-    # the values of some portion of the vertices
-    depth_percentile1: percentile of depth values for computing "depth1"
-    depth_percentile2: percentile of depth values for computing "depth2"
+    depth_percentile_low: percentile of depth values for computing "depth_percentile_low"
+    depth_percentile_high: percentile of depth values for computing "depth_percentile_high"
     curvature_percentile: percentile of curvature values for computing "curvature"
     high_map_value: used for computing the depth and curvature slope factors
-    precision_limit: a large number used to prevent precision errors
+    precision_limit: a large number in place of infinity to prevent precision errors
 
     Output:
     ------
@@ -79,64 +77,71 @@ def compute_likelihood(depths, curvatures):
 
     """
     # Parameters
-    depth_percentile1 = 0.4
-    depth_percentile2 = 0.95
-    curvature_percentile = 0.7
+    depth_fraction_low = 0.4
+    depth_fraction_high = 0.95
+    curvature_fraction = 0.7
     high_map_value = 0.9
-    precision_limit = 1000
+    precision_limit = 100
 
     # Take the opposite of the curvature values
     curvatures = -curvatures
 
+#   # Normalize curvatures so that the max abs value = 1
+#   curvatures = curvatures/max(np.abs(curvatures))
+
     # Find depth and curvature values greater than
-    # the values of some portion of the vertices
+    # the values of a fraction of the vertices
     sort_depths = np.sort(depths)
     sort_curvatures = np.sort(curvatures)
-    depth1 = percentile(sort_depths, depth_percentile1, key=lambda x:x)
-    depth2 = percentile(sort_depths, depth_percentile2, key=lambda x:x)
-    curvature = percentile(sort_curvatures, curvature_percentile, key=lambda x:x)
+    depth_percentile_low = percentile(sort_depths, depth_fraction_low, key=lambda x:x)
+    depth_percentile_high = percentile(sort_depths, depth_fraction_high, key=lambda x:x)
+    curvature_percentile = percentile(sort_curvatures, curvature_fraction, key=lambda x:x)
     if verbose == 2:
-        print('    {0:.2f}, {1:.2f} depths greater than {2:.2f}, {3:.2f} of vertices'.
-              format(depth1, depth2, depth_percentile1, depth_percentile2))
-        print('    {0:.2f} curvature greater than {1:.2f} of vertices'.
-              format(curvature, curvature_percentile))
+        print('    depth values {0:.2f}, {1:.2f} greater than {2:.0f}%, {3:.0f}% of vertices'.
+              format(depth_percentile_low, depth_percentile_high,
+                     100 * depth_fraction_low, 100 * depth_fraction_high))
+        print('    curvature value {0:.2f} greater than {1:.0f}% of vertices'.
+              format(curvature_percentile, 100 * curvature_fraction))
+        #print(sum([1. for x in depths if x < depth_percentile_low]) / sum(depths > 0))
+        #print(sum([1. for x in depths if x < depth_percentile_high]) / sum(depths > 0))
+        #print(sum([1. for x in curvatures if x < curvature_percentile]) / sum(depths > 0))
 
     # Find slope for depth and curvature values
     # (while preventing precision errors for large slope values)
     slope_factor = np.log((1. / high_map_value) - 1)
-    if depth2 == depth1:
+    if depth_percentile_high == depth_percentile_low:
         slope_depth = -precision_limit
         if verbose == 1:
-            print('    (note: infinite slope depth)')
+            print('    (Warning: infinite slope depth)')
     else:
-        slope_depth = -slope_factor / (depth2 - depth1)
+        slope_depth = slope_factor / (depth_percentile_high - depth_percentile_low)
         if slope_depth > precision_limit:
             slope_depth = precision_limit
             if verbose == 1:
-                print('    (note: high +slope depth: ' + str(slope_depth) + ')')
+                print('    (Warning: high +slope depth: ' + str(slope_depth) + ')')
         elif slope_depth < -precision_limit:
             slope_depth = -precision_limit
             if verbose == 1:
-                print('    (note: high -slope depth: ' + str(slope_depth) + ')')
+                print('    (Warning: high -slope depth: ' + str(slope_depth) + ')')
 
-    if curvature == 0:
+    if curvature_percentile == 0:
         slope_curvature = -precision_limit
         if verbose == 1:
-            print('    (note: infinite slope curvature)')
+            print('    (Warning: infinite slope curvature)')
     else:
-        slope_curvature = -slope_factor / curvature
+        slope_curvature = slope_factor / curvature_percentile
         if slope_curvature > precision_limit:
             slope_curvature = precision_limit
             if verbose == 1:
-                print('    (note: high +slope curvature: ' + str(slope_curvature) + ')')
+                print('    (Warning: high +slope curvature: ' + str(slope_curvature) + ')')
         elif slope_curvature < -precision_limit:
             slope_curvature = -precision_limit
             if verbose == 1:
-                print('    (note: high -slope curvature: ' + str(slope_curvature) + ')')
+                print('    (Warning: high -slope curvature: ' + str(slope_curvature) + ')')
 
     # Map values with sigmoidal function to range [0,1]
-    st_depths = 1 / (1 + np.exp(-slope_depth * (depths - depth2)))
-    st_curvatures = 1 / (1 + np.exp(-slope_curvature * curvatures))
+    st_depths = 1.0 / (1.0 + np.exp(slope_depth * (depths - depth_percentile_low)))
+    st_curvatures = 1.0 / (1.0 + np.exp(slope_curvature * curvatures))
 
     # Assign likelihood values to vertices
     likelihoods = st_depths * st_curvatures  # element-wise multiplication
