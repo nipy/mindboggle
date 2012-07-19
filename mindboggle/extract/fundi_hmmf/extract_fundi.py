@@ -74,6 +74,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         t0 = time()
         folds, n_folds, index_lists_folds = extract_folds(faces, 
                depths, depth_threshold, min_fold_size)
+        print('  ...Extracted folds in {:.2f} seconds'.
+              format(time() - t0))
         if save_em:
             pickle.dump(folds, open(load_path + "folds.p","wb"))
             pickle.dump(n_folds, open(load_path + "n_folds.p","wb"))
@@ -103,40 +105,37 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     for i_fold, indices_fold in enumerate(index_lists_folds):
 
         # Compute fundus likelihood values
-        print('  Compute fundus likelihood values for fold {}...'.
-              format(i_fold + 1))
         t0 = time()
         fold_likelihoods = compute_likelihood(depths[indices_fold],
                                               mean_curvatures[indices_fold])
-        print('    ...completed in {0:.2f} seconds'.
-              format(time() - t0))
+        likelihoods[indices_fold] = fold_likelihoods
+        print('  Computed fundus likelihood values for fold {} ({:.2f} seconds)'.
+              format(i_fold + 1, time() - t0))
 
 #       # If the fold has enough high-likelihood vertices, continue
-#       print(sum(fold_likelihoods > thr))
+        print('  {} likelihood values > threshold'.format(sum(fold_likelihoods > thr)))
 #       if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
 
         # Find fundus points
-        print('  Find fundus points for fold {}...'.format(i_fold + 1))
         t0 = time()
-        fold_indices_anchors = find_anchors(vertices[indices_fold, :], fold_likelihoods,
+        fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+                                            fold_likelihoods,
                                             min_directions[indices_fold],
                                             thr, min_distance, max_distance)
         indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-        print('    ...completed in {0:.2f} seconds'.format(time() - t0))
+        print('  Found fundus points for fold {} ({:.2f} seconds)'.
+              format(i_fold + 1, time() - t0))
         if len(indices_anchors) > 0:
 
             # Connect fundus points and extract fundus
-            print('  Connect fundus points for fold {}...'.
-                  format(i_fold + 1))
             t0 = time()
             likelihoods_fold = Z.copy()
             likelihoods_fold[indices_fold] = fold_likelihoods
-            likelihoods[indices_fold] = fold_likelihoods
             fundi.append(
                   connect_anchors(indices_anchors, faces, indices_fold,
                                   likelihoods_fold, thr))
-            print('    ...completed in {0:.2f} seconds'.
-                  format(time() - t0))
+            print('  Connected fundus points for fold {} ({:.2f} seconds)'.
+                  format(i_fold + 1, time() - t0))
         else:
             fundi.append([])
 
@@ -151,12 +150,10 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
 
         # Save fold likelihoods
-        likelihoods_for_vtk = -np.ones(n_vertices)
-        likelihoods_for_vtk[indices_folds] = likelihoods[indices_folds]
         io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
                           indices_folds, faces_folds,
-                          LUTs=[likelihoods_for_vtk],
-                          LUTNames=['fold likelihoods'])
+                          LUTs=[likelihoods],
+                          LUTNames=['likelihoods'])
 
         # Save fundi
         fundi_for_vtk = -np.ones(n_vertices)
