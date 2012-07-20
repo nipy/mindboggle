@@ -49,8 +49,8 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
     # Sort likelihood values and find indices for values above the threshold
     L_table = [[i,x] for i,x in enumerate(L)]
     L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
-    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])] 
-#         if x > thr]
+    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+          if x > thr]
 
     # Initialize anchors list with the index of the maximum likelihood value,
     # remove this value, and loop through the remaining high likelihoods
