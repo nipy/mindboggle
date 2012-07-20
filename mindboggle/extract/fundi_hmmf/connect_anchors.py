@@ -219,9 +219,9 @@ def connect_anchors(anchors, faces, indices, L, thr):
     # Initialize all likelihood values within sulcus as greater than 0.5
     # and less than or equal to 1.0.
     # This is necessary to guarantee correct topology
-    L_init = (L + 1.000001) / 2.0
-    L_init[L == 0] = 0
-    L_init[L_init > 1] = 1
+    L_init = L.copy() + thr + 0.000001
+    L_init[L == 0.0] = 0
+    L_init[L_init > 1.0] = 1
 
     # Initialize array of connected vertices C
     # with likelihood values greater than thr and a 1 for each anchor vertex
@@ -243,20 +243,18 @@ def connect_anchors(anchors, faces, indices, L, thr):
         #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
-        t1 = time()
         N = [[] for x in L]
         for i in indices:
             N[i] = find_neighbors(faces, i)
-        print('    Found neighbors for each vertex ({0:.2f} seconds)'.
-              format(time() - t1))
+        print('    Found neighbors for each of {} vertices'.
+              format(n_vertices))
 
         # Assign probability values to each vertex
-        t1 = time()
         probs = Z.copy()
         probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
                           for i in indices]
-        print('    Assigned a probability value to each vertex ({0:.2f} seconds)'.
-              format(time() - t1))
+        print('    Assigned a probability value to each of {} vertices'.
+              format(n_vertices))
 
         # Loop until count reaches max_count or until end_flag equals zero
         # (end_flag is used to allow the loop to continue even if there is
@@ -264,7 +262,6 @@ def connect_anchors(anchors, faces, indices, L, thr):
         count = 0
         end_flag = 0
         Cnew = C.copy()
-        t1 = time()
         while end_flag < n_tries_no_change and count < max_count:
 
             # Define a factor to multiply the probability gradient that will
@@ -350,7 +347,6 @@ def connect_anchors(anchors, faces, indices, L, thr):
             C = Cnew
 
             count += 1
-        print('    Updated HMMF values ({0:.2f} seconds)'.
-              format(time() - t1))
+        print('    Updated HMMF values')
 
         return C.tolist()
