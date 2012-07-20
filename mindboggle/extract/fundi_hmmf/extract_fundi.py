@@ -21,6 +21,7 @@ from time import time
 import sys
 sys.path.append('/projects/mindboggle/mindboggle/mindboggle/utils/')
 import io_vtk
+save_anchors = 1
 
 #==================
 # Extract all fundi
@@ -102,6 +103,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     n_vertices = len(depths)
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
+    if save_anchors:
+        anchors = Z.copy()
     for i_fold, indices_fold in enumerate(index_lists_folds):
 
         # Compute fundus likelihood values
@@ -112,9 +115,10 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         print('  Computed fundus likelihood values for fold {} ({:.2f} seconds)'.
               format(i_fold + 1, time() - t0))
 
-#       # If the fold has enough high-likelihood vertices, continue
-        print('  {} likelihood values > threshold'.format(sum(fold_likelihoods > thr)))
-#       if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
+        ## If the fold has enough high-likelihood vertices, continue
+        #if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
+        print('    ({} likelihood values > threshold)'.
+              format(sum(fold_likelihoods > thr)))
 
         # Find fundus points
         t0 = time()
@@ -123,25 +127,36 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                                             min_directions[indices_fold],
                                             thr, min_distance, max_distance)
         indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-        print('  Found fundus points for fold {} ({:.2f} seconds)'.
-              format(i_fold + 1, time() - t0))
-        if len(indices_anchors) > 0:
+        n_anchors = len(indices_anchors)
+        if n_anchors > 1:
+            n_str = 's'
+        else:
+            n_str = ''
+        if save_anchors:
+            anchors[indices_anchors] = 1
+        print('  Found {} fundus point{} for fold {} ({:.2f} seconds)'.
+              format(n_anchors, n_str, i_fold + 1, time() - t0))
+        if n_anchors > 0:
 
             # Connect fundus points and extract fundus
+            print('  Connect {} fundus point{} for fold {}...'.
+                  format(n_anchors, n_str, i_fold + 1))
             t0 = time()
             likelihoods_fold = Z.copy()
             likelihoods_fold[indices_fold] = fold_likelihoods
             fundi.append(
                   connect_anchors(indices_anchors, faces, indices_fold,
                                   likelihoods_fold, thr))
-            print('  Connected fundus points for fold {} ({:.2f} seconds)'.
-                  format(i_fold + 1, time() - t0))
+            print('    ...Connected {} fundus point{} for fold {} ({:.2f} seconds)'.
+                  format(n_anchors, n_str, i_fold + 1, time() - t0))
         else:
             fundi.append([])
 
     if save_em:
         pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
         pickle.dump(fundi, open(load_path + "fundi.p","wb"))
+        if save_anchors:
+            pickle.dump(anchors, open(load_path + "anchors.p","wb"))
 
         # Remove faces that do not contain three fold vertices
         indices_folds = [x for lst in index_lists_folds for x in lst]
