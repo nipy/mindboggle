@@ -86,9 +86,6 @@ def compute_likelihood(depths, curvatures):
     # Take the opposite of the curvature values
     curvatures = -curvatures
 
-#   # Normalize curvatures so that the max abs value = 1
-#   curvatures = curvatures/max(np.abs(curvatures))
-
     # Find depth and curvature values greater than
     # the values of a fraction of the vertices
     sort_depths = np.sort(depths)
@@ -97,10 +94,10 @@ def compute_likelihood(depths, curvatures):
     depth_percentile_high = percentile(sort_depths, depth_fraction_high, key=lambda x:x)
     curvature_percentile = percentile(sort_curvatures, curvature_fraction, key=lambda x:x)
     if verbose == 2:
-        print('    depth values {0:.2f}, {1:.2f} greater than {2:.0f}%, {3:.0f}% of vertices'.
+        print('    depth values {:.2f}, {:.2f} greater than {:.0f}%, {:.0f}% of vertices'.
               format(depth_percentile_low, depth_percentile_high,
                      100 * depth_fraction_low, 100 * depth_fraction_high))
-        print('    curvature value {0:.2f} greater than {1:.0f}% of vertices'.
+        print('    curvature value {:.2f} greater than {:.0f}% of vertices'.
               format(curvature_percentile, 100 * curvature_fraction))
         #print(sum([1. for x in depths if x < depth_percentile_low]) / sum(depths > 0))
         #print(sum([1. for x in depths if x < depth_percentile_high]) / sum(depths > 0))
@@ -118,11 +115,11 @@ def compute_likelihood(depths, curvatures):
         if slope_depth > precision_limit:
             slope_depth = precision_limit
             if verbose == 1:
-                print('    (Warning: high +slope depth: ' + str(slope_depth) + ')')
+                print('    (Warning: high +slope depth)')
         elif slope_depth < -precision_limit:
             slope_depth = -precision_limit
             if verbose == 1:
-                print('    (Warning: high -slope depth: ' + str(slope_depth) + ')')
+                print('    (Warning: high -slope depth)')
 
     if curvature_percentile == 0:
         slope_curvature = -precision_limit
@@ -133,11 +130,11 @@ def compute_likelihood(depths, curvatures):
         if slope_curvature > precision_limit:
             slope_curvature = precision_limit
             if verbose == 1:
-                print('    (Warning: high +slope curvature: ' + str(slope_curvature) + ')')
+                print('    (Warning: high +slope curvature)')
         elif slope_curvature < -precision_limit:
             slope_curvature = -precision_limit
             if verbose == 1:
-                print('    (Warning: high -slope curvature: ' + str(slope_curvature) + ')')
+                print('    (Warning: high -slope curvature)')
 
     # Map values with sigmoidal function to range [0,1]
     st_depths = 1.0 / (1.0 + np.exp(slope_depth * (depths - depth_percentile_low)))
