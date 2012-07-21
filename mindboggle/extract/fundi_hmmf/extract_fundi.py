@@ -121,7 +121,6 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
               format(sum(fold_likelihoods > thr)))
 
         # Find fundus points
-        t0 = time()
         fold_indices_anchors = find_anchors(vertices[indices_fold, :],
                                             fold_likelihoods,
                                             min_directions[indices_fold],
@@ -134,8 +133,6 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             n_str = ''
         if save_anchors:
             anchors[indices_anchors] = 1
-        print('  Found {} fundus point{} for fold {} ({:.2f} seconds)'.
-              format(n_anchors, n_str, i_fold + 1, time() - t0))
         if n_anchors > 0:
 
             # Connect fundus points and extract fundus
