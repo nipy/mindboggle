@@ -141,6 +141,7 @@ def compute_likelihood(depths, curvatures):
     st_curvatures = 1.0 / (1.0 + np.exp(slope_curvature * curvatures))
 
     # Assign likelihood values to vertices
+    # 1 minus likelihoods?
     likelihoods = 1 - st_depths * st_curvatures  # element-wise multiplication
 
     return likelihoods
