@@ -62,7 +62,7 @@ import pickle
 
 ############################################
 # NOTES:
-# 1) Use of pyvtk vs. native vtk fun.
+# 1) Use of pyvtk vs. vtk wrapper func.
 # 2) Threshold is 0.5 for fundi.
 # 3) Use list of numbered sulcal folds to identify whether vertices belong to same fundus.
 # ---- (-1) Where not a fold. (# value) to identify unique folds.
@@ -72,6 +72,23 @@ import pickle
 # 5) np.unique() for clarity
 # 6) aff_mat rename to affinity matrix.
 # 7) get_labeled_segment_matrix renaming it.
+# 8) Jacobi iteration method - label spreading.
+# 9) find_label_boundary_segment() should be renamed segment_label_boundary()
+# 10) Name function by what it does, or by the ouput?
+# 11) Word "realign" is problematic.
+# 12) Rename assign_realigned_labels() to label_fusion() or assign_labels()
+# ------- think about there being multiple initial labels, and fusing the label.
+# +++++++ How can we assign probabilities, or a measure, to the confidence that we have the right labels??
+# =======  FIND distance TO FUNDI!!
+#           CHECK TO SEE IF A FILL OPERATION IS APPROPRIATE
+#           CHECK TO SEE IF FUNDI ARE PARALLEL. CHECK TO SEE IF ITS CLOSER TO LABEL BOUNDARY SEGMENT OR NOT.
+#           FIND A MEASURE TO DETERMINE THE RELATIONSHIP BETWEEN LABEL BOUNDARY SEGMENT AND FUNDUS!!!!
+#           Need to see if you can avoid branches.
+#           for each fundus node, find nearest label boundary segment node.
+#           Is it a lot closer than other label boundary segments? and is it close enough??
+#           Is it close enough?? - will you have to traverse a good fraction of the region?
+#           for each fundus node, find nearest label boundary node. if multiple fundus nodes are closest to same point,
+#           then it's orthogonal to it.
 
 
 ############################################
@@ -883,8 +900,56 @@ class Shape:
 
 		print "Mapping is: ", self.realignment_mapping
 
+		# NOW COMES THE ALL IMPORTANT STEP OF PRUNING THIS MATRIX,
+		# ELIMINATING THE LABEL SEGMENTS WHICH SHOULD NOT BE PROPAGATING THEIR LABELS!
+
+		self.prune_realignment_matrix()
 
 		return self.realignment_matrix, self.realignment_mapping
+
+	def prune_realignment_matrix(self, proportion = 2, dist_threshold = .05):
+		""" Determines which label boundary segments should propagate their labels.
+
+		Parameters
+		==========
+		proportion: float (threshold of acceptable ratio of differences between fundi-to-boundary distances)
+		dist_threshold: float (threshold of absolute distance between fundi and boundary, above which propagation is prohibited)
+
+		Returns
+		=======
+		self.realignment_matrix: np array (n x some_segments matrix of initial labels, used in propagation)
+
+		Explanation
+		===========
+		In this method, we will prune the realignment matrix which was just constructed from the label boundary segments.
+		The pruning will follow the principles that we want the fundi to be not too far from a given label boundary segment,
+		and that it should be significantly closer to one than another.
+
+		We should also preserve the shape of the label boundary.
+		And the fundi should run somewhat parallel to the label boundary.
+		"""
+
+		# Step 0. Construct num_fundi_nodes x num_label_boundary_nodes np array of distances:
+
+		distance_matrix = np.asarray([np.linalg.norm(self.Nodes[x1] - self.Nodes[x2]) for x1 in self.fundal_nodes for x2 in self.label_boundary[self.label_boundary.nonzero()]]).reshape((self.fundal_nodes.size, -1))
+
+		# Step 1. For each fundus node, find closest and second closest label boundary node
+
+		sorted_distances = np.argsort(distance_matrix)
+		closest_label_boundary = sorted_distances[:,0]
+		closest_distances = np.amin(distance_matrix, 1)
+		second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]] for i in xrange(num_nodes)])
+
+		pylab.plot(closest_distances)
+		pylab.show()
+
+		# Step 2. Determine which obey proper proportions and distances, using parameters
+		within_distance = closest_distances < dist_threshold
+		within_proportion = closest_distances / second_closest_distances > proportion or second_closest_distances / closest_distances > proportion
+
+		satisfy_distances = np.bitwise_and(within_distance, within_proportion)
+
+		return distance_matrix
 
 	def analyze_label_fundi_intersections(self, completed=''):
 		""" Find fundal nodes which intersect label boundary, and determine whether they belong to the same fundus curve.
@@ -1886,7 +1951,6 @@ test()
 Tasks to complete:
 ------------------
 
-1) Resolve ambiguity when multiple label boundary segments want to relabel a node.
-2)
+1)
 
 """
