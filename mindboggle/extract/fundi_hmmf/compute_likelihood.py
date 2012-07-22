@@ -80,14 +80,23 @@ def compute_likelihood(depths, curvatures):
     depth_fraction_low = 0.4
     depth_fraction_high = 0.95
     curvature_fraction = 0.7
-    high_map_value = 0.9
     precision_limit = 100
+    #high_map_value = 0.9  # inserted below to reduce computation of the slope_gain_factor
 
+    #=======================
+    # Reset curvature values
+    #=======================
     # Take the opposite of the curvature values
     curvatures = -curvatures
 
+    # Normalize curvatures to the interval [0,1]
+    curvatures -= min(curvatures)
+    curvatures /= max(curvatures)
+
+    #=============================================
     # Find depth and curvature values greater than
     # the values of a fraction of the vertices
+    #=============================================
     sort_depths = np.sort(depths)
     sort_curvatures = np.sort(curvatures)
     depth_percentile_low = percentile(sort_depths, depth_fraction_low, key=lambda x:x)
@@ -103,45 +112,67 @@ def compute_likelihood(depths, curvatures):
         #print(sum([1. for x in depths if x < depth_percentile_high]) / sum(depths > 0))
         #print(sum([1. for x in curvatures if x < curvature_percentile]) / sum(depths > 0))
 
+    #==========================================
     # Find slope for depth and curvature values
-    # (while preventing precision errors for large slope values)
-    slope_factor = np.log((1. / high_map_value) - 1)
-    if depth_percentile_high == depth_percentile_low:
-        slope_depth = -precision_limit
-        if verbose == 1:
-            print('    (Warning: infinite slope depth)')
-    else:
-        slope_depth = slope_factor / (depth_percentile_high - depth_percentile_low)
-        if slope_depth > precision_limit:
-            slope_depth = precision_limit
+    #==========================================
+    # Slope factor for "gain" or "sharpness" of the sigmoidal function below
+    slope_factor = -2.1972245773362191  #np.log((1. / high_map_value) - 1)
+
+    # If the slope denominator would not equal zero, compute slope
+    if depth_percentile_high != depth_percentile_low:
+
+        #----------------------------
+        # Find slope for depth values
+        #----------------------------
+        slope_gain_depth = slope_factor / (depth_percentile_high - depth_percentile_low)
+
+        # Prevent precision errors for large slope values
+        if slope_gain_depth > precision_limit:
+            slope_gain_depth = precision_limit
             if verbose == 1:
                 print('    (Warning: high +slope depth)')
-        elif slope_depth < -precision_limit:
-            slope_depth = -precision_limit
+        elif slope_gain_depth < -precision_limit:
+            slope_gain_depth = -precision_limit
             if verbose == 1:
                 print('    (Warning: high -slope depth)')
-
-    if curvature_percentile == 0:
-        slope_curvature = -precision_limit
-        if verbose == 1:
-            print('    (Warning: infinite slope curvature)')
+    # If the denominator is equal to zero, set slope
     else:
-        slope_curvature = slope_factor / curvature_percentile
-        if slope_curvature > precision_limit:
-            slope_curvature = precision_limit
+        slope_gain_depth = -precision_limit
+        if verbose == 1:
+            print('    (Warning: infinite slope depth)')
+
+    # If the slope denominator would not equal zero, compute slope
+    if curvature_percentile != 0:
+
+        #--------------------------------
+        # Find slope for curvature values
+        #--------------------------------
+        slope_gain_curvature = slope_factor / curvature_percentile
+
+        # Prevent precision errors for large slope values
+        if slope_gain_curvature > precision_limit:
+            slope_gain_curvature = precision_limit
             if verbose == 1:
                 print('    (Warning: high +slope curvature)')
-        elif slope_curvature < -precision_limit:
-            slope_curvature = -precision_limit
+        elif slope_gain_curvature < -precision_limit:
+            slope_gain_curvature = -precision_limit
             if verbose == 1:
                 print('    (Warning: high -slope curvature)')
+    # If the denominator is equal to zero, set slope
+    else:
+        slope_gain_curvature = -precision_limit
+        if verbose == 1:
+            print('    (Warning: infinite slope curvature)')
 
+    #==========================
+    # Compute likelihood values
+    #==========================
     # Map values with sigmoidal function to range [0,1]
-    st_depths = 1.0 / (1.0 + np.exp(slope_depth * (depths - depth_percentile_low)))
-    st_curvatures = 1.0 / (1.0 + np.exp(slope_curvature * curvatures))
+    # Y(t) = 1/(1 + e(k*(X - thr)), where k is the gain factor, and thr is the slider term
+    sigmoidal_depths = 1 / (1.0 + np.exp(slope_gain_depth * (depths - depth_percentile_low)))
+    sigmoidal_curvatures = 1 / (1.0 + np.exp(slope_gain_curvature * curvatures))
 
     # Assign likelihood values to vertices
-    # 1 minus likelihoods?
-    likelihoods = 1 - st_depths * st_curvatures  # element-wise multiplication
+    likelihoods = sigmoidal_depths * sigmoidal_curvatures  # element-wise multiplication
 
     return likelihoods
