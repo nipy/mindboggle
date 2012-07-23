@@ -86,8 +86,14 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     #=============================================
     sort_depth = np.sort(depths)
     sort_curve = np.sort(curvatures)
+    fraction_below = 0.5
+    fraction_below2 = 0.95
     p_depth = percentile(sort_depth, fraction_below, key=lambda x:x)
     p_curve = percentile(sort_curve, fraction_below, key=lambda x:x)
+    p_depth2 = percentile(sort_depth, fraction_below2, key=lambda x:x)
+    p_curve2 = percentile(sort_curve, fraction_below2, key=lambda x:x)
+    p_depth_diff = p_depth2 - p_depth
+    p_curve_diff = p_curve2 - p_curve
 
     #==========================================
     # Find slope for depth and curvature values
@@ -95,8 +101,8 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
     # high_map_value = 0.95
     # slope_factor = abs(np.log((1. / high_map_value) - 1))  # 2.9444389
-    gain_depth = slope_factor / p_depth
-    gain_curve = slope_factor / p_curve
+    gain_depth = slope_factor / p_depth_diff
+    gain_curve = slope_factor / p_curve_diff
 
     #==========================
     # Compute likelihood values
