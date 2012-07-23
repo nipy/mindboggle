@@ -45,7 +45,6 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     thr: likelihood threshold
     min_fold_size: minimum fold size from which to find a fundus
     min_distance: minimum distance
-    max_distance: maximum distance
 
     Output:
     ------
@@ -126,7 +125,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
             fold_indices_anchors = find_anchors(vertices[indices_fold, :],
                                                 fold_likelihoods,
                                                 min_directions[indices_fold],
-                                                thr, min_distance, max_distance)
+                                                thr, min_distance)
             indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
             n_anchors = len(indices_anchors)
             if n_anchors > 1:
