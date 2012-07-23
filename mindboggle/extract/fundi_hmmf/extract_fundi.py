@@ -28,7 +28,7 @@ save_anchors = 1
 #==================
 def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
                   depth_threshold=0.2, thr=0.5, min_fold_size=50,
-                  min_distance=5, max_distance=8):
+                  fraction_below=0.25, slope_factor=3, min_distance=5):
     """
     Extract all fundi.
 
@@ -113,8 +113,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
         # Compute fundus likelihood values
         fold_likelihoods = compute_likelihood(depths_norm[indices_fold],
                                               mean_curvatures_norm[indices_fold],
-                                              fraction_below=0.3,
-                                              slope_factor=3)
+                                              fraction_below, slope_factor)
         likelihoods[indices_fold] = fold_likelihoods
 
         # If the fold has enough high-likelihood vertices, continue
@@ -220,7 +219,7 @@ else:
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
     depth_threshold=0.2, thr=0.5, min_fold_size=50,
-    min_distance=5, max_distance=8)
+    fraction_below=0.25, slope_factor=3, min_distance=5)
 
 """
 import numpy as np
