@@ -208,7 +208,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
 
     # Loop parameters
     n_tries_no_change = 3  # #times loop can continue even without any change
-    max_count = 350  # maximum number of iterations
+    max_count = 100  # maximum number of iterations
 
     # Parameters to speed up optimization
     diff_thr = 0.0001
@@ -234,26 +234,19 @@ def connect_anchors(anchors, faces, indices, L, thr):
 
     # Continue if there are at least two candidate vertices
     if n_candidates >= 2:
-        print('    {} initial candidate vertices'.format(n_candidates))
-
-        # Remove faces that have a non-sulcus vertex (output: 1-D array)
-        #fs = frozenset(indices)
-        #faces = [lst for lst in faces
-        #         if len(fs.intersection(lst))==3]
-        #faces = np.reshape(np.ravel(faces), (-1, 3))
 
         # Find neighbors for each vertex
         N = [[] for x in L]
         for i in indices:
             N[i] = find_neighbors(faces, i)
-        print('    Found neighbors for each of {} vertices'.
+        print('      Found neighbors for each of {} vertices'.
               format(n_vertices))
 
         # Assign probability values to each vertex
         probs = Z.copy()
         probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
                           for i in indices]
-        print('    Assigned a probability value to each of {} vertices'.
+        print('      Assigned a probability value to each of {} vertices'.
               format(n_vertices))
 
         # Loop until count reaches max_count or until end_flag equals zero
@@ -333,7 +326,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
             sum_probs = sum(probs)
             n_points = sum([1 for x in C if x > thr])
             if verbose == 2:
-                print('      {} vertices...'.format(n_points))
+                print('        {} vertices...'.format(n_points))
 
             if count > 0:
                 if n_points == n_points_previous:
@@ -347,6 +340,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
             C = Cnew
 
             count += 1
-        print('    Updated HMMF values')
+
+        print('      Updated HMMF values')
 
         return C.tolist()

@@ -26,7 +26,7 @@ save_anchors = 1
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
+def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
                   depth_threshold=0.2, thr=0.5, min_fold_size=50,
                   min_distance=5, max_distance=8):
     """
@@ -38,8 +38,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     ------
     vertices: [#vertices x 3] numpy array
     faces: vertices for polygons [#faces x 3] numpy array
-    depths: depth values [#vertices x 1] numpy array
-    mean_curvatures: mean curvature values [#vertices x 1] numpy array
+    depths_norm: 0 to 1 depth values [#vertices x 1] numpy array
+    mean_curvatures_norm: 0 to 1 mean curvature values [#vertices x 1] numpy array
     min_directions: directions of minimum curvature [3 x #vertices] numpy array
     depth_threshold: depth threshold for defining folds
     thr: likelihood threshold
@@ -74,7 +74,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         print("Extract folds from surface mesh...")
         t0 = time()
         folds, n_folds, index_lists_folds = extract_folds(faces, 
-               depths, depth_threshold, min_fold_size)
+               depths_norm, depth_threshold, min_fold_size)
         print('  ...Extracted folds in {:.2f} seconds'.
               format(time() - t0))
         if save_em:
@@ -99,55 +99,60 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     # For each fold...
     print("Extract a fundus from each of {} folds...".format(n_folds))
+    t1 = time()
     fundi = []
-    n_vertices = len(depths)
+    n_vertices = len(depths_norm)
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
     if save_anchors:
         anchors = Z.copy()
     for i_fold, indices_fold in enumerate(index_lists_folds):
 
+        print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
+
         # Compute fundus likelihood values
-        t0 = time()
-        fold_likelihoods = compute_likelihood(depths[indices_fold],
-                                              mean_curvatures[indices_fold])
+        fold_likelihoods = compute_likelihood(depths_norm[indices_fold],
+                                              mean_curvatures_norm[indices_fold],
+                                              fraction_below=0.3,
+                                              slope_factor=3)
         likelihoods[indices_fold] = fold_likelihoods
-        print('  Computed fundus likelihood values for fold {} ({:.2f} seconds)'.
-              format(i_fold + 1, time() - t0))
 
-        ## If the fold has enough high-likelihood vertices, continue
-        #if sum(fold_likelihoods > thr) > min_fold_size: ... else: fundi.append([])
-        print('    ({} likelihood values > threshold)'.
-              format(sum(fold_likelihoods > thr)))
+        # If the fold has enough high-likelihood vertices, continue
+        likelihoods_thr = sum(fold_likelihoods > thr)
+        print('    Computed fundus likelihood values: {} > {} (minimum: {})'.
+              format(likelihoods_thr, thr, min_fold_size))
+        if likelihoods_thr > min_fold_size:
 
-        # Find fundus points
-        fold_indices_anchors = find_anchors(vertices[indices_fold, :],
-                                            fold_likelihoods,
-                                            min_directions[indices_fold],
-                                            thr, min_distance, max_distance)
-        indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-        n_anchors = len(indices_anchors)
-        if n_anchors > 1:
-            n_str = 's'
-        else:
-            n_str = ''
-        if save_anchors:
-            anchors[indices_anchors] = 1
-        if n_anchors > 0:
+            # Find fundus points
+            fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+                                                fold_likelihoods,
+                                                min_directions[indices_fold],
+                                                thr, min_distance, max_distance)
+            indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+            n_anchors = len(indices_anchors)
+            if n_anchors > 1:
+                n_str = 's'
+            else:
+                n_str = ''
+            if save_anchors:
+                anchors[indices_anchors] = 1
+            if n_anchors > 0:
 
-            # Connect fundus points and extract fundus
-            print('  Connect {} fundus point{} for fold {}...'.
-                  format(n_anchors, n_str, i_fold + 1))
-            t0 = time()
-            likelihoods_fold = Z.copy()
-            likelihoods_fold[indices_fold] = fold_likelihoods
-            fundi.append(
-                  connect_anchors(indices_anchors, faces, indices_fold,
-                                  likelihoods_fold, thr))
-            print('    ...Connected {} fundus point{} for fold {} ({:.2f} seconds)'.
-                  format(n_anchors, n_str, i_fold + 1, time() - t0))
-        else:
-            fundi.append([])
+                # Connect fundus points and extract fundus
+                print('    Connect {} fundus point{}...'.
+                      format(n_anchors, n_str))
+                t2 = time()
+                likelihoods_fold = Z.copy()
+                likelihoods_fold[indices_fold] = fold_likelihoods
+                fundi.append(
+                      connect_anchors(indices_anchors, faces, indices_fold,
+                                      likelihoods_fold, thr))
+                print('      ...Connected {} fundus point{} ({:.2f} seconds)'.
+                      format(n_anchors, n_str, time() - t2))
+            else:
+                fundi.append([])
+        else: fundi.append([])
+    print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
     if save_em:
         pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
@@ -186,7 +191,9 @@ if load_em:
     vertices = pickle.load(open(load_path + "vertices.p","rb"))
     faces = pickle.load(open(load_path + "faces.p","rb"))
     depths = pickle.load(open(load_path + "depths.p","rb"))
+    depths_norm = pickle.load(open(load_path + "depths_norm.p","rb"))
     mean_curvatures = pickle.load(open(load_path + "mean_curvatures.p","rb"))
+    mean_curvatures_norm = pickle.load(open(load_path + "mean_curvatures_norm.p","rb"))
     min_directions = pickle.load(open(load_path + "min_directions.p","rb"))
 else:
     depth_file = load_path + 'lh.pial.depth.vtk'
@@ -196,17 +203,22 @@ else:
     vertices, faces, mean_curvatures = io_vtk.load_VTK_Map(curv_file)
     vertices = np.array(vertices)
     faces = np.array(faces)
-    depths = np.array([x/max(depths) for x in depths])
+    depths = np.array(depths)
+    depths_norm = depths / max(depths)
     mean_curvatures = np.array(mean_curvatures)
+    mean_curvatures_norm = mean_curvatures - min(mean_curvatures)
+    mean_curvatures_norm /= max(mean_curvatures_norm)
     min_directions = np.loadtxt(dir_file)
     if save_em:
         pickle.dump(vertices, open(load_path + "vertices.p","wb"))
         pickle.dump(faces, open(load_path + "faces.p","wb"))
         pickle.dump(depths, open(load_path + "depths.p","wb"))
+        pickle.dump(depths_norm, open(load_path + "depths_norm.p","wb"))
         pickle.dump(mean_curvatures, open(load_path + "mean_curvatures.p","wb"))
+        pickle.dump(mean_curvatures_norm, open(load_path + "mean_curvatures_norm.p","wb"))
         pickle.dump(min_directions, open(load_path + "min_directions.p","wb"))
 
-fundi = extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
+fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
     depth_threshold=0.2, thr=0.5, min_fold_size=50,
     min_distance=5, max_distance=8)
 

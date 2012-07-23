@@ -27,11 +27,16 @@ def percentile(N, percent, key=lambda x:x):
     """
     Find the percentile of a list of values.
 
-    @parameter N - is a list of values. Note N MUST BE already sorted.
-    @parameter percent - a float value from 0.0 to 1.0.
-    @parameter key - optional key function to compute value from each element of N.
+    Inputs:
+    ------
+    N: list of values. Note N MUST BE already sorted
+    percent: float value from 0.0 to 1.0
+    key: optional key function to compute value from each element of N
 
-    @return - the percentile of the values
+    Output:
+    ------
+    percentile of the values
+
     """
     if len(N) == 0:
         return None
@@ -50,7 +55,7 @@ def percentile(N, percent, key=lambda x:x):
 #=================================
 # Compute fundus likelihood values
 #=================================
-def compute_likelihood(depths, curvatures):
+def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     """
     Compute fundus likelihood values.
 
@@ -58,14 +63,12 @@ def compute_likelihood(depths, curvatures):
     ------
     curvatures: mean curvature values [#sulcus vertices x 1] numpy array
     depths: depth values [#sulcus vertices x 1] numpy array
+    fraction_below: fraction of values from which to compute the percentile
+    slope_factor: used to compute the "gain" of the slope of sigmoidal values
 
     Parameters:
     ----------
-    depth_percentile_low: percentile of depth values for computing "depth_percentile_low"
-    depth_percentile_high: percentile of depth values for computing "depth_percentile_high"
-    curvature_percentile: percentile of curvature values for computing "curvature"
     high_map_value: used for computing the depth and curvature slope factors
-    precision_limit: a large number in place of infinity to prevent precision errors
 
     Output:
     ------
@@ -76,103 +79,35 @@ def compute_likelihood(depths, curvatures):
     percentile()
 
     """
-    # Parameters
-    depth_fraction_low = 0.4
-    depth_fraction_high = 0.95
-    curvature_fraction = 0.7
-    precision_limit = 100
-    #high_map_value = 0.9  # inserted below to reduce computation of the slope_gain_factor
-
-    #=======================
-    # Reset curvature values
-    #=======================
-    # Take the opposite of the curvature values
-    curvatures = -curvatures
-
-    # Normalize curvatures to the interval [0,1]
-    curvatures -= min(curvatures)
-    curvatures /= max(curvatures)
 
     #=============================================
     # Find depth and curvature values greater than
     # the values of a fraction of the vertices
     #=============================================
-    sort_depths = np.sort(depths)
-    sort_curvatures = np.sort(curvatures)
-    depth_percentile_low = percentile(sort_depths, depth_fraction_low, key=lambda x:x)
-    depth_percentile_high = percentile(sort_depths, depth_fraction_high, key=lambda x:x)
-    curvature_percentile = percentile(sort_curvatures, curvature_fraction, key=lambda x:x)
-    if verbose == 2:
-        print('    depth values {:.2f}, {:.2f} greater than {:.0f}%, {:.0f}% of vertices'.
-              format(depth_percentile_low, depth_percentile_high,
-                     100 * depth_fraction_low, 100 * depth_fraction_high))
-        print('    curvature value {:.2f} greater than {:.0f}% of vertices'.
-              format(curvature_percentile, 100 * curvature_fraction))
-        #print(sum([1. for x in depths if x < depth_percentile_low]) / sum(depths > 0))
-        #print(sum([1. for x in depths if x < depth_percentile_high]) / sum(depths > 0))
-        #print(sum([1. for x in curvatures if x < curvature_percentile]) / sum(depths > 0))
+    sort_depth = np.sort(depths)
+    sort_curve = np.sort(curvatures)
+    p_depth = percentile(sort_depth, fraction_below, key=lambda x:x)
+    p_curve = percentile(sort_curve, fraction_below, key=lambda x:x)
 
     #==========================================
     # Find slope for depth and curvature values
     #==========================================
-    # Slope factor for "gain" or "sharpness" of the sigmoidal function below
-    slope_factor = -2.1972245773362191  #np.log((1. / high_map_value) - 1)
-
-    # If the slope denominator would not equal zero, compute slope
-    if depth_percentile_high != depth_percentile_low:
-
-        #----------------------------
-        # Find slope for depth values
-        #----------------------------
-        slope_gain_depth = slope_factor / (depth_percentile_high - depth_percentile_low)
-
-        # Prevent precision errors for large slope values
-        if slope_gain_depth > precision_limit:
-            slope_gain_depth = precision_limit
-            if verbose == 1:
-                print('    (Warning: high +slope depth)')
-        elif slope_gain_depth < -precision_limit:
-            slope_gain_depth = -precision_limit
-            if verbose == 1:
-                print('    (Warning: high -slope depth)')
-    # If the denominator is equal to zero, set slope
-    else:
-        slope_gain_depth = -precision_limit
-        if verbose == 1:
-            print('    (Warning: infinite slope depth)')
-
-    # If the slope denominator would not equal zero, compute slope
-    if curvature_percentile != 0:
-
-        #--------------------------------
-        # Find slope for curvature values
-        #--------------------------------
-        slope_gain_curvature = slope_factor / curvature_percentile
-
-        # Prevent precision errors for large slope values
-        if slope_gain_curvature > precision_limit:
-            slope_gain_curvature = precision_limit
-            if verbose == 1:
-                print('    (Warning: high +slope curvature)')
-        elif slope_gain_curvature < -precision_limit:
-            slope_gain_curvature = -precision_limit
-            if verbose == 1:
-                print('    (Warning: high -slope curvature)')
-    # If the denominator is equal to zero, set slope
-    else:
-        slope_gain_curvature = -precision_limit
-        if verbose == 1:
-            print('    (Warning: infinite slope curvature)')
+    # Factor influencing "gain" or "sharpness" of the sigmoidal function below
+    # high_map_value = 0.9
+    # slope_factor = abs(np.log((1. / high_map_value) - 1))  # = 2.1972246
+    gain_depth = slope_factor / p_depth
+    gain_curve = slope_factor / p_curve
 
     #==========================
     # Compute likelihood values
     #==========================
     # Map values with sigmoidal function to range [0,1]
-    # Y(t) = 1/(1 + e(k*(X - thr)), where k is the gain factor, and thr is the slider term
-    sigmoidal_depths = 1 / (1.0 + np.exp(slope_gain_depth * (depths - depth_percentile_low)))
-    sigmoidal_curvatures = 1 / (1.0 + np.exp(slope_gain_curvature * curvatures))
+    # Y(t) = 1/(1 + e(-k*(X - thr)),
+    # where k is the gain factor, and thr is the slider term
+    depth_values = 1 / (1.0 + np.exp(-gain_depth * (depths - p_depth)))
+    curve_values = 1 / (1.0 + np.exp(-gain_curve * (curvatures - p_curve)))
 
     # Assign likelihood values to vertices
-    likelihoods = sigmoidal_depths * sigmoidal_curvatures  # element-wise multiplication
+    likelihoods = depth_values * curve_values
 
     return likelihoods
