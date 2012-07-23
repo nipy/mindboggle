@@ -900,14 +900,11 @@ class Shape:
 
 		print "Mapping is: ", self.realignment_mapping
 
-		# NOW COMES THE ALL IMPORTANT STEP OF PRUNING THIS MATRIX,
-		# ELIMINATING THE LABEL SEGMENTS WHICH SHOULD NOT BE PROPAGATING THEIR LABELS!
-
-		self.prune_realignment_matrix()
+		self.determine_appropriate_segments()
 
 		return self.realignment_matrix, self.realignment_mapping
 
-	def prune_realignment_matrix(self, proportion = 2, dist_threshold = .05):
+	def determine_appropriate_segments(self, proportion = 1.2, dist_threshold = .05, ratio_of_good_nodes = .33):
 		""" Determines which label boundary segments should propagate their labels.
 
 		Parameters
@@ -917,7 +914,7 @@ class Shape:
 
 		Returns
 		=======
-		self.realignment_matrix: np array (n x some_segments matrix of initial labels, used in propagation)
+		self.realignment_matrix: np array (n x num_segments matrix of labels, with zeros in unusable columns)
 
 		Explanation
 		===========
@@ -947,9 +944,18 @@ class Shape:
 		within_distance = closest_distances < dist_threshold
 		within_proportion = closest_distances / second_closest_distances > proportion or second_closest_distances / closest_distances > proportion
 
-		satisfy_distances = np.bitwise_and(within_distance, within_proportion)
+		# The following matrix stores the indices of the label boundary nodes which satisfy the above properties.
+		satisfy_distances = np.nonzero(np.bitwise_and(within_distance, within_proportion))[0]
 
-		return distance_matrix
+		# Now we will see how many nodes from each label boundary segment satisfy the properties.
+		# If a segment only contains a few nodes, then we won't bother propagating labels from it.
+
+		for key, value in self.label_boundary_segments.items():
+			num_intersections = np.intersect1d(satisfy_distances, value).size
+			if num_intersections / value.size < ratio_of_good_nodes:
+				self.realignment_matrix[:,key] = 0
+
+		return self.realignment_matrix
 
 	def analyze_label_fundi_intersections(self, completed=''):
 		""" Find fundal nodes which intersect label boundary, and determine whether they belong to the same fundus curve.
@@ -1245,7 +1251,7 @@ class Shape:
 		else:
 			self.get_realignment_matrix()
 
-		# Step 3. Propagate Labels!
+        # Step 3. Propagate Labels!
 		if method == "weighted_average":
 			print 'Performing Weighted Average Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
 			self.weighted_average(realign, max_iters, tol, vis=vis)
@@ -1396,9 +1402,9 @@ class Shape:
 		print 'After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
 
 		# Resolve two-directional changes...
-		nodes_to_change = self.resolve_directionality(nodes_to_change)
+		# nodes_to_change = self.resolve_directionality(nodes_to_change)
 
-		print 'After resolving bidirectionality, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
+		# print 'After resolving bidirectionality, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
 
 		for key, value in nodes_to_change.items():
 			print "For key {0}, the following nodes will be changed: {1}".format(self.realignment_mapping[key],value)
