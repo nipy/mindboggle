@@ -61,8 +61,8 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
 
     Inputs:
     ------
-    curvatures: mean curvature values [#sulcus vertices x 1] numpy array
-    depths: depth values [#sulcus vertices x 1] numpy array
+    curvatures: normalized [0,1] mean curvature values [#sulcus vertices x 1] array
+    depths: normalized [0,1] depth values [#sulcus vertices x 1] numpy array
     fraction_below: fraction of values from which to compute the percentile
     slope_factor: used to compute the "gain" of the slope of sigmoidal values
 
@@ -93,8 +93,8 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     # Find slope for depth and curvature values
     #==========================================
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
-    # high_map_value = 0.9
-    # slope_factor = abs(np.log((1. / high_map_value) - 1))  # = 2.1972246
+    # high_map_value = 0.95
+    # slope_factor = abs(np.log((1. / high_map_value) - 1))  # 2.9444389
     gain_depth = slope_factor / p_depth
     gain_curve = slope_factor / p_curve
 
