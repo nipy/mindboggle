@@ -74,7 +74,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
 
     Calls:
     -----
-    find_neighbors()
+    find_neighbors()  (optional)
 
     """
 
@@ -153,7 +153,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
 #========================
 # Connect anchor vertices
 #========================
-def connect_anchors(anchors, faces, indices, L, thr):
+def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     """
     Connect anchor vertices in a surface mesh to create a curve.
 
@@ -166,6 +166,7 @@ def connect_anchors(anchors, faces, indices, L, thr):
     indices: list of indices of vertices
     L: likelihood values: [#vertices in mesh x 1] numpy array
     thr: likelihood threshold
+    neighbor_lists: lists of lists of neighboring vertices (optional: empty list)
 
     Parameters:
     ----------
@@ -236,11 +237,14 @@ def connect_anchors(anchors, faces, indices, L, thr):
     if n_candidates >= 2:
 
         # Find neighbors for each vertex
-        N = [[] for x in L]
-        for i in indices:
-            N[i] = find_neighbors(faces, i)
-        print('      Found neighbors for each of {} vertices'.
-              format(n_vertices))
+        # (extract_folds() should have found most, if not all, neighbors)
+        if len(neighbor_lists) > 0:
+            N = neighbor_lists
+        else:
+            N = [[] for x in range(len(L))]
+        for index in indices:
+            if not len(N[index]):
+                N[index] = find_neighbors(faces, index)
 
         # Assign probability values to each vertex
         probs = Z.copy()
