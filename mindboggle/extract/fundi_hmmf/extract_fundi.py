@@ -218,7 +218,7 @@ else:
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
     depth_threshold=0.2, thr=0.5, min_fold_size=50,
-    fraction_below=0.25, slope_factor=3, min_distance=5)
+    fraction_below=0.05, slope_factor=3, min_distance=5)
 
 """
 import numpy as np
