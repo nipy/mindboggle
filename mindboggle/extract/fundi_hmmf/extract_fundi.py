@@ -28,7 +28,7 @@ save_anchors = 1
 #==================
 def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
                   depth_threshold=0.2, thr=0.5, min_fold_size=50,
-                  fraction_below=0.25, slope_factor=3, min_distance=5):
+                  fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5):
     """
     Extract all fundi.
 
@@ -69,17 +69,19 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
         folds = pickle.load(open(load_path + "folds.p","rb"))
         n_folds = int(pickle.load(open(load_path + "n_folds.p","rb")))
         index_lists_folds = pickle.load(open(load_path + "index_lists_folds.p","rb"))
+        neighbor_lists = pickle.load(open(load_path + "neighbor_lists.p","rb"))
     else:
         print("Extract folds from surface mesh...")
         t0 = time()
-        folds, n_folds, index_lists_folds = extract_folds(faces, 
-               depths_norm, depth_threshold, min_fold_size)
+        folds, n_folds, index_lists_folds, neighbor_lists = extract_folds(
+            faces, depths_norm, depth_threshold, min_fold_size)
         print('  ...Extracted folds in {:.2f} seconds'.
               format(time() - t0))
         if save_em:
             pickle.dump(folds, open(load_path + "folds.p","wb"))
             pickle.dump(n_folds, open(load_path + "n_folds.p","wb"))
             pickle.dump(index_lists_folds, open(load_path + "index_lists_folds.p","wb"))
+            pickle.dump(neighbor_lists, open(load_path + "neighbor_lists.p","wb"))
 
             indices_folds = [x for lst in index_lists_folds for x in lst]
             # Remove faces that do not contain three fold vertices
@@ -112,7 +114,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
         # Compute fundus likelihood values
         fold_likelihoods = compute_likelihood(depths_norm[indices_fold],
                                               mean_curvatures_norm[indices_fold],
-                                              fraction_below, slope_factor)
+                                              fraction_lo, fraction_hi, slope_factor)
         likelihoods[indices_fold] = fold_likelihoods
 
         # If the fold has enough high-likelihood vertices, continue
@@ -144,7 +146,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
                 likelihoods_fold[indices_fold] = fold_likelihoods
                 fundi.append(
                       connect_anchors(indices_anchors, faces, indices_fold,
-                                      likelihoods_fold, thr))
+                                      likelihoods_fold, thr, neighbor_lists))
                 print('      ...Connected {} fundus point{} ({:.2f} seconds)'.
                       format(n_anchors, n_str, time() - t2))
             else:
@@ -218,7 +220,7 @@ else:
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
     depth_threshold=0.2, thr=0.5, min_fold_size=50,
-    fraction_below=0.05, slope_factor=3, min_distance=5)
+    fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5)
 
 """
 import numpy as np
