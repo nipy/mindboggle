@@ -55,7 +55,7 @@ def percentile(N, percent, key=lambda x:x):
 #=================================
 # Compute fundus likelihood values
 #=================================
-def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
+def compute_likelihood(depths, curvatures, fraction_lo, fraction_hi, slope_factor):
     """
     Compute fundus likelihood values.
 
@@ -86,14 +86,12 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     #=============================================
     sort_depth = np.sort(depths)
     sort_curve = np.sort(curvatures)
-    fraction_below = 0.5
-    fraction_below2 = 0.95
-    p_depth = percentile(sort_depth, fraction_below, key=lambda x:x)
-    p_curve = percentile(sort_curve, fraction_below, key=lambda x:x)
-    p_depth2 = percentile(sort_depth, fraction_below2, key=lambda x:x)
-    p_curve2 = percentile(sort_curve, fraction_below2, key=lambda x:x)
-    p_depth_diff = p_depth2 - p_depth
-    p_curve_diff = p_curve2 - p_curve
+    depth_lo = percentile(sort_depth, fraction_lo, key=lambda x:x)
+    depth_hi = percentile(sort_depth, fraction_hi, key=lambda x:x)
+    curve_lo = percentile(sort_curve, fraction_lo, key=lambda x:x)
+    curve_hi = percentile(sort_curve, fraction_hi, key=lambda x:x)
+    depth_diff = depth_hi - depth_lo
+    curve_diff = curve_hi - curve_lo
 
     #==========================================
     # Find slope for depth and curvature values
@@ -101,8 +99,8 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
     # high_map_value = 0.95
     # slope_factor = abs(np.log((1. / high_map_value) - 1))  # 2.9444389
-    gain_depth = slope_factor / p_depth_diff
-    gain_curve = slope_factor / p_curve_diff
+    gain_depth = slope_factor / depth_diff
+    gain_curve = slope_factor / curve_diff
 
     #==========================
     # Compute likelihood values
@@ -110,8 +108,8 @@ def compute_likelihood(depths, curvatures, fraction_below, slope_factor):
     # Map values with sigmoidal function to range [0,1]
     # Y(t) = 1/(1 + e(-k*(X - thr)),
     # where k is the gain factor, and thr is the slider term
-    depth_values = 1 / (1.0 + np.exp(-gain_depth * (depths - p_depth)))
-    curve_values = 1 / (1.0 + np.exp(-gain_curve * (curvatures - p_curve)))
+    depth_values = 1 / (1.0 + np.exp(-gain_depth * (depths - depth_lo)))
+    curve_values = 1 / (1.0 + np.exp(-gain_curve * (curvatures - curve_lo)))
 
     # Assign likelihood values to vertices
     likelihoods = depth_values * curve_values

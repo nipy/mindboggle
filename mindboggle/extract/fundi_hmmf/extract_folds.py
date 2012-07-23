@@ -72,7 +72,8 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     n_segments = 0
     counter = 0
     TEMP0 = np.zeros(n_vertices)
-    while n_seeds > min_patch_size:
+    neighbor_lists = [[] for i in range(n_vertices)]
+    while n_seeds >= min_patch_size:
         TEMP = np.copy(TEMP0)
 
         # Select a seed vertex (selection does not affect result)
@@ -93,6 +94,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
             # Find neighbors for each selected seed vertex
             for index in I:
                 neighbors = find_neighbors(faces_seeds, index)
+                neighbor_lists[index] = neighbors
 
                 # Select neighbors that have not been previously selected
                 if len(neighbors) > 0:
@@ -112,7 +114,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
         # Assign counter number to segmented patch
         # if patch size is greater than min_patch_size
         size_patch = len(Ipatch)
-        if size_patch > min_patch_size:
+        if size_patch >= min_patch_size:
             counter += 1
             n_segments = counter
             segments[Ipatch] = n_segments
@@ -127,7 +129,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
                 max_patch_size = size_patch
                 max_patch_label = counter
 
-    return segments, n_segments, max_patch_label
+    return segments, n_segments, max_patch_label, neighbor_lists
 
 #-----------
 # Fill holes
@@ -206,8 +208,8 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     print("  Segment deep portions of surface mesh into separate folds...")
     t0 = time()
     seeds = np.where(depths > depth_threshold)[0]
-    folds, n_folds, max_fold = segment_surface(faces, seeds, n_vertices,
-                                               3, min_fold_size)
+    folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(faces, seeds, n_vertices,
+                                                             3, min_fold_size)
     print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t0))
 
     # If there are any folds
@@ -217,28 +219,33 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
         print('  Segment holes in the folds...')
         t0 = time()
         seeds = np.where(folds == 0)[0]
-        holes, n_holes, max_hole = segment_surface(faces, seeds, 
-                                                   n_vertices, 1, 0)
+        holes, n_holes, max_hole, neighbor_lists_holes = segment_surface(faces, seeds,
+                                                                 n_vertices, 1, 1)
         # If there are any holes
         if n_holes > 0:
-        
+
+            # Combine neighbor lists
+            neighbor_lists = [[] for x in range(n_vertices)]
+            for index, neighbor_list in enumerate(neighbor_lists_folds):
+                if len(neighbor_list) > 0:
+                    neighbor_lists[index] = neighbor_list
+                else:
+                    neighbor_lists[index] = neighbor_lists_holes[index]
+
             # Ignore the largest hole (the background) and renumber holes
             holes[holes == max_hole] = 0
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
             n_holes -= 1
-            print('    ...Holes segmented ({:.2f} seconds)'.
-                  format(time() - t0))
+            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t0))
 
-            print('  Fill holes...')
             t0 = time()
             folds = fill_holes(faces, folds, holes, n_holes)
-            print('    ...Holes filled ({:.2f} seconds)'.
-                  format(time() - t0))
+            print('  Filled holes ({:.2f} seconds)'.format(time() - t0))
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist() 
                          for i in range(1, n_folds+1)]
 
     # Return folds, the number of folds, and lists of indices for each fold
-    return folds, n_folds, index_lists_folds
+    return folds, n_folds, index_lists_folds, neighbor_lists
