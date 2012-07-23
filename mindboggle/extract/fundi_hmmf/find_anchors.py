@@ -18,7 +18,7 @@ from operator import itemgetter
 #===================
 # Find anchor points
 #===================
-def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
+def find_anchors(vertices, L, min_directions, thr, min_distance):
     """
     Find anchor points.
 
@@ -38,6 +38,9 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
     min_directions: [#vertices x 1] numpy array
     thr: likelihood threshold
     min_distance: minimum distance
+
+    Parameters:
+    ----------
     max_distance: maximum distance
 
     Output:
@@ -45,6 +48,8 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
     anchors: list of subset of surface mesh vertex indices
 
     """
+
+    max_distance = 2 * min_distance
 
     # Sort likelihood values and find indices for values above the threshold
     L_table = [[i,x] for i,x in enumerate(L)]
@@ -69,12 +74,11 @@ def find_anchors(vertices, L, min_directions, thr, min_distance, max_distance):
             if D < min_distance:
                 found = 1
             # Compute directional distance between points if they are close
-            elif max_distance > D >= min_distance:
+            elif D < max_distance:
                 dirV = np.dot(vertices[anchors[i], :] - vertices[imax, :],
                               min_directions[anchors[i], :])
-                D = np.linalg.norm(dirV)
                 # If distance less than threshold, consider the point found
-                if D < min_distance:
+                if np.linalg.norm(dirV) < min_distance:
                     found = 1
 
             i += 1
