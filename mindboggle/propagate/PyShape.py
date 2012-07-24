@@ -1,40 +1,14 @@
-""" Python Module for the Spectral Analysis of Shapes:
-###################################################
+""" Python Module for the Spectral Analysis of Shapes and the Propagation of Labels:
+####################################################################################
 
-Overview of Functions:
-#######################
+Instructions:
+------------
+1) For realigning the label boundary...
+- Call self.realign_label_boundary(). See doc string for parameters.
 
-(A) Initialize Object **
+2) For computing spectral analysis of the shape of a brain surface...
+- Call self.compute_spectral_analysis(). See doc string for parameters. ## Create method to call all necessary subroutines.
 
-(B) Import Data
-  1- add_nodes **
-  2- add_mesh **
-  3- add_labels **
-  4- import_vtk **
-  5- import_fundi **
-  6- set_id **
-
-(C) Pre-Processing of Data
-  1- compute_mesh_measure **
-  2- compute_angles **
-  3- compute_smallest_angles **
-  4- remove_isolated **
-  5- refine_mesh **
-  6- fix_triangles **
-  7- initialize_labels (Done, check!)
-  8- check_well_formed **
-  9- create_vtk **
-  10- pre_process **
-
-(D) Processing of Data
-  1- compute_lbo
-  2- propagate_labels
-
-(E) Post-Processing of Data
-
-(F) Analysis of Data
-
-(G) Visualization of Data
 """
 
 ###########################
@@ -59,8 +33,6 @@ import pickle
 
 ###################################
 # Base Class:
-
-############################################
 
 class Shape:
 	"""
@@ -442,7 +414,7 @@ class Shape:
 		return sorted(self.low_quality_triangles)
 
 	# Works. Just update doc strings.
-	def initialize_labels(self, keep='fundi', fraction=.05):
+	def initialize_labels(self, keep='fundi', fraction=.05, output_filename=''):
 		"""Initialize a set of labels to serve as the seeds for label propagation.
 		Options include: 'border' for nodes connected to fundi.
 						 'fundi' for nodes which are part of fundi.
@@ -479,7 +451,7 @@ class Shape:
 		# To preserve the nodes which comprise the label boundary, call find_label_boundary()
 		if keep == 'label_boundary':
 			print 'Preserving nodes of the label boundary'
-			self.find_label_boundary()
+			self.find_label_boundary(output_filename=output_filename)
 			self.preserved_labels[self.label_boundary] = 1
 
 		# To preserve a fraction of random nodes, keep every 1/fraction'th label.
@@ -548,12 +520,13 @@ class Shape:
 
 		return self.label_matrix, self.label_mapping
 
-	def find_label_boundary(self, realigned_labels = False):
+	def find_label_boundary(self, output_filename, realigned_labels = False):
 		""" Find the set of nodes which comprise the label boundary.
 
 			Parameters:
 			===========
 			realigned_labels: boolean (choice of using realigned labels, as opposed to manual labels)
+			output_filename: string (vtk file containing highlighted label boundaries)
 
 			Returns:
 			=======
@@ -582,8 +555,10 @@ class Shape:
 			Method seems highly redundant and inelegant. Find better way to incorporate realignment protocol into this method.
 
 		"""
-
-		self.label_boundary = self.Rlabel_boundary = np.zeros(self.num_nodes)
+		if not realigned_labels:
+			self.label_boundary = np.zeros(self.num_nodes)
+		else:
+			self.Rlabel_boundary = np.zeros(self.num_nodes)
 
 		""" Now, let us go triangle by triangle. Set the node's index in label_boundary to 1
 		if and only if it is satisfies the definition.
@@ -607,19 +582,19 @@ class Shape:
 
 		# We can now output a file to show the boundary.
 		if not realigned_labels:
-			filename = '/home/eliezer/Desktop/label_boundaries_'+self.id+'.vtk'
-			vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
-			self.label_boundary_file = filename
+			vo.write_all(output_filename,self.Nodes,self.Mesh,self.label_boundary)
+			self.label_boundary_file = output_filename
 		else:
-			filename = '/home/eliezer/Desktop/realigned_label_boundaries_'+self.id+'.vtk'
-			vo.write_all(filename,self.Nodes,self.Mesh,self.Rlabel_boundary)
-			self.Rlabel_boundary_file = filename
+			vo.write_all(output_filename,self.Nodes,self.Mesh,self.Rlabel_boundary)
+			self.Rlabel_boundary_file = output_filename
 
 		# Reformat label_boundary to include only the indices of those nodes in the boundary.
 		if not realigned_labels:
 			self.label_boundary = np.nonzero(self.label_boundary==1)[0]
 		else:
 			self.Rlabel_boundary = np.nonzero(self.Rlabel_boundary==1)[0]
+
+		print "The label boundary array is: ", self.label_boundary
 
 		if not realigned_labels:
 			return self.label_boundary, self.label_boundary_file
@@ -711,7 +686,7 @@ class Shape:
 				print "For classes: ", key, "  ", self.label_boundary_segments[key]
 
 			# Dump pickled results into a file
-			self.segment_file = open('/home/eliezer/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
+			self.segment_file = open('/home/eli/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
 			pickle.dump(self.label_boundary_segments, self.segment_file)
 			self.segment_file.close()
 
@@ -725,7 +700,7 @@ class Shape:
 					self.label_boundary_segments.pop(key)
 
 		# Output the results to a VTK file
-		self.highlighted_segment_file = '/home/eliezer/Desktop/highlighted_segments' + self.id + '.vtk'
+		self.highlighted_segment_file = '/home/eli/Desktop/highlighted_segments' + self.id + '.vtk'
 		color = 1
 		colored_segments = np.zeros(self.Labels.shape)
 		for value in self.label_boundary_segments.values():
@@ -821,7 +796,7 @@ class Shape:
 			labels = np.zeros(self.Labels.shape)
 			labels[segment] = 100
 			labels[endpoint] = 200
-			vo.write_all('/home/eliezer/Desktop/debug_intersections.vtk',self.Nodes, self.Mesh, labels)
+			vo.write_all('/home/eli/Desktop/debug_intersections.vtk',self.Nodes, self.Mesh, labels)
 			raw_input("Check this out...")
 
 		return intersection
@@ -871,14 +846,15 @@ class Shape:
 
 		return self.realignment_matrix, self.realignment_mapping
 
-	def determine_appropriate_segments(self, proportion = 1.2, dist_threshold = .05, ratio_of_good_nodes = .33):
+	def determine_appropriate_segments(self, proportion = 1.1, dist_threshold = 8, num_good_nodes = 6, eps=1E-7, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
 		""" Determines which label boundary segments should propagate their labels.
 
 		Parameters
 		==========
 		proportion: float (threshold of acceptable ratio of differences between fundi-to-boundary distances)
 		dist_threshold: float (threshold of absolute distance between fundi and boundary, above which propagation is prohibited)
-		ratio_of_good_nodes: float (threshold above which a label boundary segment will be preserved)
+		num_good_nodes: int (threshold above which a label boundary segment will be preserved)
+		eps: float (numerical stability - avoid division by zero)
 
 		Returns
 		=======
@@ -895,33 +871,79 @@ class Shape:
 		"""
 
 		# Step 0. Construct num_fundi_nodes x num_label_boundary_nodes np array of distances:
+		print 'Beginning determine_appropriate_segments()...'
+		t0 = time()
 
-		distance_matrix = np.asarray([np.linalg.norm(self.Nodes[x1] - self.Nodes[x2]) for x1 in self.fundal_nodes for x2 in self.label_boundary[self.label_boundary.nonzero()]]).reshape((self.fundal_nodes.size, -1))
+		if pickled_filename:
+			tmp = open(pickled_filename, 'rb')
+			distance_matrix = pickle.load(tmp)
+		else:
+			distance_matrix = np.asarray([np.linalg.norm(self.Nodes[x1] - self.Nodes[x2]) for x1 in self.fundal_nodes for x2 in self.label_boundary]).reshape((self.fundal_nodes.size, -1))
+			tmp = open('/home/eli/Desktop/pickled_distance_matrix.pkl', 'wb')
+			pickle.dump(distance_matrix,tmp)
+			tmp.close()
 
-		# Step 1. For each fundus node, find closest and second closest label boundary node
+		print 'Distance Matrix has been constructed in {0}. Shape is {1}.'.format(time() - t0, distance_matrix.shape)
+
+		# Step 1. For each fundus node, find the closest and second closest label boundary nodes,
 
 		sorted_distances = np.argsort(distance_matrix)
-		closest_label_boundary = sorted_distances[:,0]
-		closest_distances = np.amin(distance_matrix, 1)
-		second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]] for i in xrange(num_nodes)])
+		print 'Got sorted distances. Shape is {0}'.format(sorted_distances.shape)
 
-		pylab.plot(closest_distances)
-		pylab.show()
+		closest_label_boundary = sorted_distances[:,0]
+		print 'Got closest label boundary. Shape is {0}. First few values are {1}'.format(closest_label_boundary.shape, closest_label_boundary[:10])
+
+		close_nodes = np.zeros(self.Labels.shape)
+		close_nodes[self.label_boundary[closest_label_boundary]] = 1
+		vo.write_all('/home/eli/Desktop/close_nodes.vtk',self.Nodes,self.Mesh,close_nodes)
+
+		closest_distances = np.amin(distance_matrix, 1)
+		print 'Got closest_distances. Shape is {0}. First few values are {1}'.format(closest_distances.shape, closest_distances[:10])
+
+		second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]] for i in xrange(self.fundal_nodes.size)])
+		print 'Got second closest distances. Shape is {0}. First few values are {1}'.format(second_closest_distances.shape, second_closest_distances[:10])
 
 		# Step 2. Determine which obey proper proportions and distances, using parameters
-		within_distance = closest_distances < dist_threshold
-		within_proportion = closest_distances / second_closest_distances > proportion or second_closest_distances / closest_distances > proportion
+		within_distance = (closest_distances < dist_threshold)
+		print 'Got within distance. Num satisfy is {0}. First few are {1}'.format(within_distance.nonzero()[0].size, within_distance[:10])
+
+		dist_nodes = np.zeros(self.Labels.shape)
+		dist_nodes[self.label_boundary[closest_label_boundary[within_distance==1]]] = 1
+		vo.write_all('/home/eli/Desktop/close_distance.vtk',self.Nodes,self.Mesh,dist_nodes)
+
+		within_proportion = np.bitwise_or((closest_distances / second_closest_distances > proportion), (second_closest_distances / (closest_distances+eps) > proportion))
+		print 'Got within proportion. Num satisfy is {0}. First few are {1}'.format(within_proportion.nonzero()[0].size, within_proportion[:10])
+
+		prop_nodes = np.zeros(self.Labels.shape)
+		prop_nodes[self.label_boundary[closest_label_boundary[within_proportion==1]]] = 1
+		vo.write_all('/home/eli/Desktop/good_proportion.vtk',self.Nodes,self.Mesh,prop_nodes)
 
 		# The following matrix stores the indices of the label boundary nodes which satisfy the above properties.
-		satisfy_distances = np.nonzero(np.bitwise_and(within_distance, within_proportion))[0]
+		satisfy_distances = self.label_boundary[closest_label_boundary[np.nonzero(np.bitwise_and(within_distance, within_proportion))]]
+		print 'Got satisfy distances. Shape is {0}. They are {1}'.format(satisfy_distances.shape, satisfy_distances)
+
+		satisfy_nodes = np.zeros(self.Labels.shape)
+		satisfy_nodes[satisfy_distances] = 1
+		vo.write_all('/home/eli/Desktop/satisfy_distance.vtk',self.Nodes,self.Mesh,satisfy_nodes)
 
 		# Now we will see how many nodes from each label boundary segment satisfy the properties.
 		# If a segment only contains a few nodes, then we won't bother propagating labels from it.
 
+		reverse_mapping = dict((v,k) for k, v in self.realignment_mapping.iteritems())
+
+		# Let's include some information as to which label boundaries will propagate their labels...
+		nodes_to_highlight = np.zeros(self.Labels.shape)
+
 		for key, value in self.label_boundary_segments.items():
-			num_intersections = np.intersect1d(satisfy_distances, value).size
-			if num_intersections / value.size < ratio_of_good_nodes:
-				self.realignment_matrix[:,key] = 0
+			num_intersections = np.intersect1d(satisfy_distances, value).size + np.intersect1d(satisfy_distances, self.label_boundary_segments[key[::-1]]).size
+			print 'Number of intersections is:', num_intersections
+			if (num_intersections < num_good_nodes):
+				self.realignment_matrix[:,reverse_mapping[key]] = 0
+			else:
+				nodes_to_highlight[value] = 1
+				print '______________Preserving Label Boundary Segment_____________'
+
+		vo.write_all('/home/eli/Desktop/propagating_regions.vtk',self.Nodes,self.Mesh,nodes_to_highlight)
 
 		return self.realignment_matrix
 
@@ -990,41 +1012,6 @@ class Shape:
 				self.label_boundary_segments[key] = np.append(segment,int(self.same_fundus))
 
 		return self.label_boundary_segments
-
-	def realign_boundary(self, skip_file = ''):
-		""" Realign the label boundary to coincide with fundi.
-
-			Runs functions: find_label_boundary_segments()
-
-	        Parameters
-		    ==========
-		    skip_file: string (name of pickled file containing dict of label_segments to save time)
-
-	        Returns
-		    =======
-		    output_files: vtk file depicting initial (manual) label boundaries
-		            vtk file of fundi
-		            vtk file of NEW realigned boundaries
-		            vtk file highlighting changed regions
-
-        """
-
-		# Step 1. Find Manual Label Boundary Segments, Construct VTK File for Output
-		# The VTK file is stored in self.label_boundary_file
-		self.find_label_boundary()
-
-		# Step 2. Construct VTK File of Fundi for Output
-		# This has already been obtained, as self.fundi_file
-
-		# Step 3. Find Label Boundary Segments
-		self.find_label_boundary_segments(completed=skip_file)
-
-		# Step 4. Propagate Labels from Label Boundary Segments, With Desired Conditions In Place
-		self.propagate_labels(realign=True)
-
-		# Step 5.
-
-		return self.label_boundary_file, self.fundi_file
 
 	def neighbors(self, node):
 		""" This method will accomplish the simple task of taking a node as input and returning
@@ -1125,7 +1112,7 @@ class Shape:
 #########################################
 	"""
 
-	def compute_lbo(self, num=500, check=0, fname='/home/eliezer/Neuroscience-Research/Analysis_Hemispheres/Testing.vtk'):
+	def compute_lbo(self, num=500, check=0, fname='/home/eli/Neuroscience-Research/Analysis_Hemispheres/Testing.vtk'):
 		"""Computation of the LBO using ShapeDNA_Tria software."""
 		# Check that everything has been done properly
 		# Create vtk file
@@ -1149,7 +1136,7 @@ class Shape:
 		# Run Reuter's code:
 		outfile = fname[:-4]+'_outfile'
 		execute = str('./shapeDNA-tria/shapeDNA-tria --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile ' + outfile + ' --ignorelq')
-		params = ' --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile /home/eliezer/Desktop/outfile_' + self.id
+		params = ' --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile /home/eli/Desktop/outfile_' + self.id
 
 		process = Popen(execute, shell=True, stdout = PIPE, stderr = STDOUT)
 		# print repr(process.communicate()[0])
@@ -1219,7 +1206,7 @@ class Shape:
 		else:
 			self.get_realignment_matrix()
 
-        # Step 3. Propagate Labels!
+		# Step 3. Propagate Labels!
 		if method == "weighted_average":
 			print 'Performing Weighted Average Algorithm! Parameters: max_iters={0}'.format(str(max_iters))
 			self.weighted_average(realign, max_iters, tol, vis=vis)
@@ -1245,6 +1232,47 @@ class Shape:
 			return
 
 		return self.probabilistic_assignment
+
+	"""
+#########################################
+# ---------------------------------------
+#           'Master Methods'
+# ---------------------------------------
+#########################################
+	"""
+
+	def realign_label_boundaries(self, surface_file, fundi_file, pickled_segments_file, label_boundary_filename,
+	                             output_file_regions, output_file_boundaries, max_iters):
+		""" Complete method to realign the label boundaries. Calls all necessary subroutines.
+
+		Parameters
+		==========
+		surface_file: string (vtk file containing the nodes, meshing and manual labels of brain surface)
+		fundi_file: string (vtk file containing fundi as polylines)
+		pickled_segments_file: string (pickled file containing the dictionary of label boundary segments)
+		label_boundary_filename: string (vtk file to contain initial (manual) label boundaries)
+		output_file_regions: string (vtk file to contain new labels reflecting results of realignment)
+		max_iters: int (maximum number of iterations of label propagation algorithm, in the event of non-convergence)
+
+		Returns
+		=======
+		output_file_regions: string (vtk file containing new labels reflecting results of realignment)
+		output_file_boundaries: string (vtk file containing highlighted label boundaries)
+
+		"""
+
+		t0 = time()
+		shape.import_vtk(surface_file)
+		shape.import_fundi(fundi_file)
+		print 'Imported Data in: ', time() - t0
+
+		shape.initialize_labels(keep='label_boundary', output_filename = label_boundary_filename)
+		shape.find_label_boundary_segments(completed=pickled_segments_file)
+		shape.propagate_labels(realign=True, max_iters=max_iters)
+		shape.assign_realigned_labels(filename = output_file_regions)
+		shape.find_label_boundary(realigned_labels=True, output_filename = output_file_boundaries)
+
+		return output_file_regions, output_file_boundaries
 
 	"""
 #########################################
@@ -1299,7 +1327,7 @@ class Shape:
 
 		""" self.max_prob_label is now complete. Let us now visualize..."""
 
-		self.max_prob_file = '/home/eliezer/Desktop/max_prob_visualization.vtk'
+		self.max_prob_file = '/home/eli/Desktop/max_prob_visualization.vtk'
 
 		vo.write_all(self.max_prob_file, self.Nodes, self.Mesh, self.max_prob_label)
 
@@ -1346,9 +1374,6 @@ class Shape:
 		counter = 0
 		nodes_to_change = {}
 
-		# SOMEHOW YOU NEED ACCOUNTABILITY HERE - IF TWO DIFFERENT CLASSES ARE TRYING TO RELABEL THE SAME NODES...
-		# YOU NEED A DECISION PROCESS WHICH WILL RESOLVE THE DISPUTE!
-
 		for column in self.probabilistic_assignment.T:
 			nodes_to_change[counter] = list(np.nonzero(column > threshold)[0])
 			#if set.intersection(set(nodes_to_change[counter]), set(self.consensus_labels)):
@@ -1365,9 +1390,9 @@ class Shape:
 		print 'After checking relevance, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
 
 		# Resolve ambiguities
-		nodes_to_change = self.resolve_overlaps(nodes_to_change)
+		# nodes_to_change = self.resolve_overlaps(nodes_to_change)
 
-		print 'After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
+		# print 'After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(nodes_to_change))
 
 		# Resolve two-directional changes...
 		# nodes_to_change = self.resolve_directionality(nodes_to_change)
@@ -1607,7 +1632,7 @@ class Shape:
 
 		""" That's it. Now we just write the file."""
 
-		filename = '/home/eliezer/Desktop/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
+		filename = '/home/eli/Desktop/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
 
 		vo.write_all(filename, self.Nodes, self.Mesh, indices)
 
@@ -1713,12 +1738,6 @@ class Shape:
 			else:
 				restore_indices = np.hstack((self.label_boundary,self.fundal_nodes))
 				restore_values = column[restore_indices]
-				# Try clamping the other label boundaries at 0...
-				# restore_values[restore_values==-1] = 0
-				# Try clamping the fundi to 1:
-				# restore_values[restore_values == 0] = 1
-				#pylab.plot(restore_values)
-				#pylab.show()
 
 			Y_hat_now = csr_matrix(column).transpose()
 			converged = False
@@ -1752,7 +1771,7 @@ class Shape:
 					""" Let's define a file for output.
 					We have the nodes and meshing, and we have the labels which are found in column.todense().flatten()."""
 
-					filename = '/home/eliezer/Desktop/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
+					filename = '/home/eli/Desktop/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
 
 					if not np.mod(counter,1000):
 						LABELS = np.zeros(self.num_nodes)
@@ -1889,6 +1908,7 @@ class Shape:
 
 		return self.probabilistic_assignment
 
+
 	"""
 #########################################
 # ---------------------------------------
@@ -1898,33 +1918,21 @@ class Shape:
 	"""
 
 shape = Shape()
-f1 = '/home/eliezer/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
-f2 = '/home/eliezer/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
-f3 = '/home/eliezer/Desktop/label_boundary_segments_PyShape Object.pkl'
+f1 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
+f2 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
+f3 = '/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl'
+f4 = '/home/eli/Desktop/label_boundary.vtk'
+f5 = '/home/eli/Desktop/max_prob_visualization_realignment.vtk'
+f6 = '/home/eli/Desktop/realigned_label_boundary_segments.vtk'
 
-g1 = '/home/eliezer/Desktop/testing1.vtk'
-g2 = '/home/eliezer/Desktop/testing1_fundi.vtk'
+g1 = '/home/eli/Desktop/testing1.vtk'
+g2 = '/home/eli/Desktop/testing1_fundi.vtk'
 g3 = ''
 
 def test():
 	""" This test is for the realignment task."""
-	t0 = time()
-	shape.import_vtk(f1)
-	shape.import_fundi(f2)
-	print 'Imported Data in: ', time() - t0
+	shape.realign_label_boundaries(f1, f2, f3, f4, f5, f6, 250)
 
-	shape.initialize_labels(keep='label_boundary')
-	shape.find_label_boundary_segments(completed=g3)
-	shape.propagate_labels(realign=True, max_iters=50)
-	shape.assign_realigned_labels(filename = '/home/eliezer/Desktop/max_prob_visualization_realignment.vtk')
-	shape.find_label_boundary(realigned_labels=True)
+	return 0
 
 test()
-
-"""
-Tasks to complete:
-------------------
-
-1)
-
-"""
