@@ -27,7 +27,7 @@ save_anchors = 1
 # Extract all fundi
 #==================
 def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-                  depth_threshold=0.2, thr=0.5, min_fold_size=50,
+                  depth_threshold=0.2, thr=0.5, min_fold_size=50, min_depth_holes=0.01,
                   fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5):
     """
     Extract all fundi.
@@ -66,7 +66,6 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
 
     # Extract folds (vertex indices for each fold)
     if load_em:
-        folds = pickle.load(open(load_path + "folds.p","rb"))
         n_folds = int(pickle.load(open(load_path + "n_folds.p","rb")))
         index_lists_folds = pickle.load(open(load_path + "index_lists_folds.p","rb"))
         neighbor_lists = pickle.load(open(load_path + "neighbor_lists.p","rb"))
@@ -74,7 +73,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
         print("Extract folds from surface mesh...")
         t0 = time()
         folds, n_folds, index_lists_folds, neighbor_lists = extract_folds(
-            faces, depths_norm, depth_threshold, min_fold_size)
+            faces, depths_norm, depth_threshold, min_fold_size, min_depth_holes)
         print('  ...Extracted folds in {:.2f} seconds'.
               format(time() - t0))
         if save_em:
@@ -131,24 +130,19 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
             indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
             n_anchors = len(indices_anchors)
             if n_anchors > 1:
-                n_str = 's'
-            else:
-                n_str = ''
-            if save_anchors:
-                anchors[indices_anchors] = 1
-            if n_anchors > 0:
+                if save_anchors:
+                    anchors[indices_anchors] = 1
 
                 # Connect fundus points and extract fundus
-                print('    Connect {} fundus point{}...'.
-                      format(n_anchors, n_str))
+                print('    Connect {} fundus points...'.format(n_anchors))
                 t2 = time()
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
                 fundi.append(
                       connect_anchors(indices_anchors, faces, indices_fold,
                                       likelihoods_fold, thr, neighbor_lists))
-                print('      ...Connected {} fundus point{} ({:.2f} seconds)'.
-                      format(n_anchors, n_str, time() - t2))
+                print('      ...Connected {} fundus points ({:.2f} seconds)'.
+                      format(n_anchors, time() - t2))
             else:
                 fundi.append([])
         else: fundi.append([])
@@ -219,7 +213,7 @@ else:
         pickle.dump(min_directions, open(load_path + "min_directions.p","wb"))
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-    depth_threshold=0.2, thr=0.5, min_fold_size=50,
+    depth_threshold=0.2, thr=0.5, min_fold_size=50, min_depth_holes=0.01,
     fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5)
 
 """
