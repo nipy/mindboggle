@@ -27,7 +27,7 @@ save_anchors = 1
 # Extract all fundi
 #==================
 def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-                  depth_threshold=0.2, thr=0.5, min_fold_size=50, min_depth_holes=0.01,
+                  min_depth=0.2, min_depth_hole=0.1, min_fold_size=50, thr=0.5,
                   fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5):
     """
     Extract all fundi.
@@ -41,7 +41,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     depths_norm: 0 to 1 depth values [#vertices x 1] numpy array
     mean_curvatures_norm: 0 to 1 mean curvature values [#vertices x 1] numpy array
     min_directions: directions of minimum curvature [3 x #vertices] numpy array
-    depth_threshold: depth threshold for defining folds
+    min_depth: depth threshold for defining folds
     thr: likelihood threshold
     min_fold_size: minimum fold size from which to find a fundus
     min_distance: minimum distance
@@ -73,7 +73,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
         print("Extract folds from surface mesh...")
         t0 = time()
         folds, n_folds, index_lists_folds, neighbor_lists = extract_folds(
-            faces, depths_norm, depth_threshold, min_fold_size, min_depth_holes)
+            faces, depths_norm, min_depth, min_depth_hole, min_fold_size)
         print('  ...Extracted folds in {:.2f} seconds'.
               format(time() - t0))
         if save_em:
@@ -213,7 +213,7 @@ else:
         pickle.dump(min_directions, open(load_path + "min_directions.p","wb"))
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-    depth_threshold=0.2, thr=0.5, min_fold_size=50, min_depth_holes=0.01,
+    min_depth=0.2, min_depth_hole=0.1, min_fold_size=50, thr=0.5,
     fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5)
 
 """
