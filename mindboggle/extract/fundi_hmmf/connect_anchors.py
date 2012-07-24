@@ -36,7 +36,7 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     ------
     wt_likelihood: influence of likelihood on probability (term 1): float > 1
     wt_neighbors: weight influence of neighbors on probability (term 2)
-    likelihood: likelihood value
+    likelihood: likelihood value in interval [0,1]
     hmmf: HMMF value
     hmmf_neighbors: HMMF values of neighboring vertices
 
@@ -309,8 +309,8 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                     # and the vertex is a "simple point"
                     if C[i] - decr > thr >= C[i]:
                         test_value = 1 - (C[i] - decr)
-                        update = simple_test(faces, i, 1 - Cnew,
-                                             test_value, thr, N, nlist=1)
+                        update = simple_test(faces, i, 1 - Cnew, test_value,
+                                             thr, N, nlist=1)
                     # Or update the HMMF value if far from the threshold
                     else:
                         update = 1
