@@ -175,9 +175,9 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
             # If there are any neighboring labels,
             # assign the hole the maximum label
             # of its neighbors and end the while loop
-            for folds_neighbor in folds[neighbors]:
-                if folds_neighbor > 0:
-                    folds[indices_holes] = folds_neighbor
+            for fold_neighbor in folds[neighbors]:
+                if fold_neighbor > 0:
+                    folds[indices_holes] = fold_neighbor
                     break
 
     return folds
@@ -195,7 +195,7 @@ def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
     depths: depth values [#vertices x 1]
     min_depth: depth threshold for defining folds
     min_fold_size: minimum fold size
-    min_depth_holes: minimum depth for decreasing segmentation time of holes
+    min_depth_hole: minimum depth for decreasing segmentation time of holes
 
     Output:
     ------
