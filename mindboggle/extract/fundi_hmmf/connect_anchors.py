@@ -211,14 +211,14 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     step_size = 0.05
     mult_init = 0.02
 
-    # Loop parameters
-    n_tries_no_change = 3  # #times loop can continue even without any change
-    max_count = 100  # maximum number of iterations
-
     # Parameters to speed up optimization
     diff_thr = 0.0001
     mult_incr = 0.001
     C_thr = 0.01  # minimum HMMF value to fix probabilities at low values
+
+    # Termination parameters
+    n_tries_no_change = 3  # #times loop can continue even without any change
+    max_count = 100  # maximum number of iterations
     #-------------------------------------------------------------------------
 
     # Initialize all likelihood values within sulcus as greater than 0.5
