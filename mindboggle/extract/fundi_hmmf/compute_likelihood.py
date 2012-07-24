@@ -13,8 +13,6 @@ Authors:
 
 import numpy as np
 
-verbose = 1  # 2 for debugging
-
 #============================
 # Compute score at percentile
 #============================
@@ -38,7 +36,7 @@ def percentile(N, percent, key=lambda x:x):
     percentile of the values
 
     """
-    if len(N) == 0:
+    if not len(N):
         return None
 
     k = (len(N)-1) * percent
