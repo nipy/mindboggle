@@ -61,39 +61,6 @@ import pickle
 # Base Class:
 
 ############################################
-# NOTES:
-# 1) Use of pyvtk vs. vtk wrapper func.
-# 2) Threshold is 0.5 for fundi.
-# 3) Use list of numbered sulcal folds to identify whether vertices belong to same fundus.
-# ---- (-1) Where not a fold. (# value) to identify unique folds.
-# ---- (probability of being a fundus) for each vertex.
-# ---- save computational time if don't need to iterate.
-# 4) %timeit a.--()
-# 5) np.unique() for clarity
-# 6) aff_mat rename to affinity matrix.
-# 7) get_labeled_segment_matrix renaming it.
-# 8) Jacobi iteration method - label spreading.
-# 9) find_label_boundary_segment() should be renamed segment_label_boundary()
-# 10) Name function by what it does, or by the ouput?
-# 11) Word "realign" is problematic.
-# 12) Rename assign_realigned_labels() to label_fusion() or assign_labels()
-# ------- think about there being multiple initial labels, and fusing the label.
-# +++++++ How can we assign probabilities, or a measure, to the confidence that we have the right labels??
-# =======  FIND distance TO FUNDI!!
-#           CHECK TO SEE IF A FILL OPERATION IS APPROPRIATE
-#           CHECK TO SEE IF FUNDI ARE PARALLEL. CHECK TO SEE IF ITS CLOSER TO LABEL BOUNDARY SEGMENT OR NOT.
-#           FIND A MEASURE TO DETERMINE THE RELATIONSHIP BETWEEN LABEL BOUNDARY SEGMENT AND FUNDUS!!!!
-#           Need to see if you can avoid branches.
-#           for each fundus node, find nearest label boundary segment node.
-#           Is it a lot closer than other label boundary segments? and is it close enough??
-#           Is it close enough?? - will you have to traverse a good fraction of the region?
-#           for each fundus node, find nearest label boundary node. if multiple fundus nodes are closest to same point,
-#           then it's orthogonal to it.
-
-
-############################################
-## Include list of steps for each project.##
-############################################
 
 class Shape:
 	"""
@@ -640,11 +607,11 @@ class Shape:
 
 		# We can now output a file to show the boundary.
 		if not realigned_labels:
-			filename = '/home/eli/Desktop/label_boundaries_'+self.id+'.vtk'
+			filename = '/home/eliezer/Desktop/label_boundaries_'+self.id+'.vtk'
 			vo.write_all(filename,self.Nodes,self.Mesh,self.label_boundary)
 			self.label_boundary_file = filename
 		else:
-			filename = '/home/eli/Desktop/realigned_label_boundaries_'+self.id+'.vtk'
+			filename = '/home/eliezer/Desktop/realigned_label_boundaries_'+self.id+'.vtk'
 			vo.write_all(filename,self.Nodes,self.Mesh,self.Rlabel_boundary)
 			self.Rlabel_boundary_file = filename
 
@@ -744,7 +711,7 @@ class Shape:
 				print "For classes: ", key, "  ", self.label_boundary_segments[key]
 
 			# Dump pickled results into a file
-			self.segment_file = open('/home/eli/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
+			self.segment_file = open('/home/eliezer/Desktop/label_boundary_segments_' + self.id + '.pkl', 'wb')
 			pickle.dump(self.label_boundary_segments, self.segment_file)
 			self.segment_file.close()
 
@@ -758,7 +725,7 @@ class Shape:
 					self.label_boundary_segments.pop(key)
 
 		# Output the results to a VTK file
-		self.highlighted_segment_file = '/home/eli/Desktop/highlighted_segments' + self.id + '.vtk'
+		self.highlighted_segment_file = '/home/eliezer/Desktop/highlighted_segments' + self.id + '.vtk'
 		color = 1
 		colored_segments = np.zeros(self.Labels.shape)
 		for value in self.label_boundary_segments.values():
@@ -854,7 +821,7 @@ class Shape:
 			labels = np.zeros(self.Labels.shape)
 			labels[segment] = 100
 			labels[endpoint] = 200
-			vo.write_all('/home/eli/Desktop/debug_intersections.vtk',self.Nodes, self.Mesh, labels)
+			vo.write_all('/home/eliezer/Desktop/debug_intersections.vtk',self.Nodes, self.Mesh, labels)
 			raw_input("Check this out...")
 
 		return intersection
@@ -911,6 +878,7 @@ class Shape:
 		==========
 		proportion: float (threshold of acceptable ratio of differences between fundi-to-boundary distances)
 		dist_threshold: float (threshold of absolute distance between fundi and boundary, above which propagation is prohibited)
+		ratio_of_good_nodes: float (threshold above which a label boundary segment will be preserved)
 
 		Returns
 		=======
@@ -1157,7 +1125,7 @@ class Shape:
 #########################################
 	"""
 
-	def compute_lbo(self, num=500, check=0, fname='/home/eli/Neuroscience-Research/Analysis_Hemispheres/Testing.vtk'):
+	def compute_lbo(self, num=500, check=0, fname='/home/eliezer/Neuroscience-Research/Analysis_Hemispheres/Testing.vtk'):
 		"""Computation of the LBO using ShapeDNA_Tria software."""
 		# Check that everything has been done properly
 		# Create vtk file
@@ -1181,7 +1149,7 @@ class Shape:
 		# Run Reuter's code:
 		outfile = fname[:-4]+'_outfile'
 		execute = str('./shapeDNA-tria/shapeDNA-tria --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile ' + outfile + ' --ignorelq')
-		params = ' --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile /home/eli/Desktop/outfile_' + self.id
+		params = ' --mesh ' + self.vtk.name + ' --num ' + str(num) + ' --outfile /home/eliezer/Desktop/outfile_' + self.id
 
 		process = Popen(execute, shell=True, stdout = PIPE, stderr = STDOUT)
 		# print repr(process.communicate()[0])
@@ -1331,7 +1299,7 @@ class Shape:
 
 		""" self.max_prob_label is now complete. Let us now visualize..."""
 
-		self.max_prob_file = '/home/eli/Desktop/max_prob_visualization.vtk'
+		self.max_prob_file = '/home/eliezer/Desktop/max_prob_visualization.vtk'
 
 		vo.write_all(self.max_prob_file, self.Nodes, self.Mesh, self.max_prob_label)
 
@@ -1639,7 +1607,7 @@ class Shape:
 
 		""" That's it. Now we just write the file."""
 
-		filename = '/home/eli/Desktop/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
+		filename = '/home/eliezer/Desktop/highlighted_'+self.id+'_'+str(class_label)+'.vtk'
 
 		vo.write_all(filename, self.Nodes, self.Mesh, indices)
 
@@ -1784,7 +1752,7 @@ class Shape:
 					""" Let's define a file for output.
 					We have the nodes and meshing, and we have the labels which are found in column.todense().flatten()."""
 
-					filename = '/home/eli/Desktop/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
+					filename = '/home/eliezer/Desktop/'+self.id+'_'+str(label)+'_'+str(counter)+'.vtk'
 
 					if not np.mod(counter,1000):
 						LABELS = np.zeros(self.num_nodes)
@@ -1930,12 +1898,12 @@ class Shape:
 	"""
 
 shape = Shape()
-f1 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
-f2 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
-f3 = '/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl'
+f1 = '/home/eliezer/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
+f2 = '/home/eliezer/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
+f3 = '/home/eliezer/Desktop/label_boundary_segments_PyShape Object.pkl'
 
-g1 = '/home/eli/Desktop/testing1.vtk'
-g2 = '/home/eli/Desktop/testing1_fundi.vtk'
+g1 = '/home/eliezer/Desktop/testing1.vtk'
+g2 = '/home/eliezer/Desktop/testing1_fundi.vtk'
 g3 = ''
 
 def test():
@@ -1946,9 +1914,9 @@ def test():
 	print 'Imported Data in: ', time() - t0
 
 	shape.initialize_labels(keep='label_boundary')
-	shape.find_label_boundary_segments(completed=f3)
+	shape.find_label_boundary_segments(completed=g3)
 	shape.propagate_labels(realign=True, max_iters=50)
-	shape.assign_realigned_labels(filename = '/home/eli/Desktop/max_prob_visualization_realignment.vtk')
+	shape.assign_realigned_labels(filename = '/home/eliezer/Desktop/max_prob_visualization_realignment.vtk')
 	shape.find_label_boundary(realigned_labels=True)
 
 test()
