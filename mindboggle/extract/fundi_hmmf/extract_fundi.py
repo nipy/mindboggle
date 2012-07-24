@@ -19,7 +19,7 @@ from connect_anchors import connect_anchors
 from time import time
 
 import sys
-sys.path.append('/projects/mindboggle/mindboggle/mindboggle/utils/')
+sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
 import io_vtk
 save_anchors = 1
 
@@ -149,6 +149,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
     if save_em:
+        # Save pickled data
         pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
         pickle.dump(fundi, open(load_path + "fundi.p","wb"))
         if save_anchors:
@@ -165,6 +166,13 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
                           indices_folds, faces_folds,
                           LUTs=[likelihoods],
                           LUTNames=['likelihoods'])
+
+        # Save anchors
+        if save_anchors:
+            io_vtk.writeSulci(load_path + 'anchors.vtk', vertices,
+                indices_folds, faces_folds,
+                LUTs=[anchors],
+                LUTNames=['anchors'])
 
         # Save fundi
         fundi_for_vtk = -np.ones(n_vertices)
