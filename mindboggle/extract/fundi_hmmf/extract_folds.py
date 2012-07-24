@@ -36,7 +36,8 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     Inputs:
     ------
     faces: surface mesh vertex indices [#faces x 3]
-    seeds: mesh vertex indices for vertices to be segmented [#seeds x 1]
+    seeds: mesh vertex indices for vertices to be segmented
+           list or [#seeds x 1] numpy array
     n_vertices: #vertices total (seeds are a subset)
     min_seeds: minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size: minimum size of segmented set of vertices
@@ -46,6 +47,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     segments: label indices for patches: [#seeds x 1] numpy array
     n_segments: #labels
     max_patch_label: index for largest segmented set of vertices
+    neighbor_lists: lists of lists of neighboring vertex indices
 
     Calls:
     -----
@@ -72,7 +74,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     n_segments = 0
     counter = 0
     TEMP0 = np.zeros(n_vertices)
-    neighbor_lists = [[] for i in range(n_vertices)]
+    neighbor_lists = [[] for x in range(n_vertices)]
     while n_seeds >= min_patch_size:
         TEMP = np.copy(TEMP0)
 
@@ -134,7 +136,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
 #-----------
 # Fill holes
 #-----------
-def fill_holes(faces, folds, holes, n_holes):
+def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
     """
     Fill holes in surface mesh patches.
 
@@ -144,6 +146,7 @@ def fill_holes(faces, folds, holes, n_holes):
     folds: [#vertices x 1] numpy array
     holes: [#vertices x 1] numpy array
     n_holes: [#vertices x 1] numpy array
+    neighbor_lists: lists of lists of neighboring vertex indices
 
     Output:
     ------
@@ -159,18 +162,22 @@ def fill_holes(faces, folds, holes, n_holes):
     # connected to any of the vertices in the current hole,
     # and assign the hole the maximum label number
     for i in range(1, n_holes + 1):
-        found = 0
-        hole_indices = np.where(holes == i)[0]
+        indices_holes = np.where(holes == i)[0]
         # Loop until a labeled neighbor is found
-        for hole_index in hole_indices:
+        for index in indices_holes:
             # Find neighboring vertices to the hole
-            neighbors = find_neighbors(faces, hole_index)
+            if len(neighbor_lists) > 0:
+                neighbors = neighbor_lists[index]
+                if not len(neighbors):
+                    neighbors = find_neighbors(faces, index)
+            else:
+                neighbors = find_neighbors(faces, index)
             # If there are any neighboring labels,
             # assign the hole the maximum label
             # of its neighbors and end the while loop
             for folds_neighbor in folds[neighbors]:
                 if folds_neighbor > 0:
-                    folds[hole_indices] = folds_neighbor
+                    folds[indices_holes] = folds_neighbor
                     break
 
     return folds
@@ -178,7 +185,7 @@ def fill_holes(faces, folds, holes, n_holes):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
+def extract_folds(faces, depths, depth_threshold, min_fold_size, min_depth_holes):
     """
     Extract folds.
 
@@ -188,6 +195,7 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     depths: depth values [#vertices x 1]
     depth_threshold: depth threshold for defining folds
     min_fold_size: minimum fold size
+    min_depth_holes: minimum depth for decreasing segmentation time of holes
 
     Output:
     ------
@@ -208,19 +216,24 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
     print("  Segment deep portions of surface mesh into separate folds...")
     t0 = time()
     seeds = np.where(depths > depth_threshold)[0]
-    folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(faces, seeds, n_vertices,
-                                                             3, min_fold_size)
+    folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(
+        faces, seeds, n_vertices, 3, min_fold_size)
     print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t0))
 
     # If there are any folds
     if n_folds > 0:
 
+        # Find fold vertices that have not yet been segmented
+        # (because they weren't sufficiently deep) and have some minimum depth
+        t0 = time()
+        seeds = [i for i,x in enumerate(folds)
+                 if x==0 and depths[i] > min_depth_holes]
+
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        t0 = time()
-        seeds = np.where(folds == 0)[0]
-        holes, n_holes, max_hole, neighbor_lists_holes = segment_surface(faces, seeds,
-                                                                 n_vertices, 1, 1)
+        holes, n_holes, max_hole, neighbor_lists_holes = segment_surface(
+            faces, seeds, n_vertices, 1, 1)
+
         # If there are any holes
         if n_holes > 0:
 
@@ -229,10 +242,13 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
             for index, neighbor_list in enumerate(neighbor_lists_folds):
                 if len(neighbor_list) > 0:
                     neighbor_lists[index] = neighbor_list
-                else:
-                    neighbor_lists[index] = neighbor_lists_holes[index]
+                if len(neighbor_lists_holes) > 0:
+                    if len(neighbor_lists_holes[index]) > 0:
+                        [neighbor_lists[index].extend([x])
+                         for x in neighbor_lists_holes[index]
+                         if x not in neighbor_lists[index]]
 
-            # Ignore the largest hole (the background) and renumber holes
+                    # Ignore the largest hole (the background) and renumber holes
             holes[holes == max_hole] = 0
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
@@ -240,7 +256,7 @@ def extract_folds(faces, depths, depth_threshold=0.2, min_fold_size=50):
             print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t0))
 
             t0 = time()
-            folds = fill_holes(faces, folds, holes, n_holes)
+            folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
             print('  Filled holes ({:.2f} seconds)'.format(time() - t0))
 
     # Convert folds array to a list of lists of vertex indices
