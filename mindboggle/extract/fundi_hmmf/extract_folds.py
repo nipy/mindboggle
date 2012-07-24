@@ -6,7 +6,7 @@ resulting from shallower areas within a fold.
 Inputs:
     faces: triangular surface mesh vertex indices [#faces x 3]
     depths: depth values [#vertices x 1]
-    depth_threshold: depth threshold for defining folds
+    min_depth: depth threshold for defining folds
     min_fold_size: minimum fold size
 
 Output:
@@ -185,7 +185,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, depth_threshold, min_fold_size, min_depth_holes):
+def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
     """
     Extract folds.
 
@@ -193,7 +193,7 @@ def extract_folds(faces, depths, depth_threshold, min_fold_size, min_depth_holes
     ------
     faces: triangular surface mesh vertex indices [#faces x 3]
     depths: depth values [#vertices x 1]
-    depth_threshold: depth threshold for defining folds
+    min_depth: depth threshold for defining folds
     min_fold_size: minimum fold size
     min_depth_holes: minimum depth for decreasing segmentation time of holes
 
@@ -215,7 +215,7 @@ def extract_folds(faces, depths, depth_threshold, min_fold_size, min_depth_holes
     # Segment folds of a surface mesh
     print("  Segment deep portions of surface mesh into separate folds...")
     t0 = time()
-    seeds = np.where(depths > depth_threshold)[0]
+    seeds = np.where(depths > min_depth)[0]
     folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(
         faces, seeds, n_vertices, 3, min_fold_size)
     print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t0))
@@ -227,7 +227,7 @@ def extract_folds(faces, depths, depth_threshold, min_fold_size, min_depth_holes
         # (because they weren't sufficiently deep) and have some minimum depth
         t0 = time()
         seeds = [i for i,x in enumerate(folds)
-                 if x==0 and depths[i] > min_depth_holes]
+                 if x==0 and depths[i] > min_depth_hole]
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
