@@ -166,16 +166,15 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
     Parameters:
     ----------
-    prob() parameters and probability gradient parameters:
+    Parameters for computing the probabilities and probability gradients:
       wt_likelihood: weight influence of likelihood on probability
       wt_neighbors: weight influence of neighbors on probability
-      decrement
-    Loop parameters:
+      decrement: the amount that the HMMF values are decremented
+    Parameters to speed up optimization and terminate the algorithm:
+      min_C: minimum value to fix probabilities at very low values
+      min_change: minimum change in the sum of probabilities
       n_tries_no_change: #times the loop can continue even without any change
       max_count: maximum #iterations
-    Parameters to speed up optimization:
-      diff_threshold
-      C_threshold: minimum HMMF value to fix probabilities at very low values
 
     Output:
     ------
@@ -195,11 +194,11 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     # prob() and probability gradient parameters
     wt_likelihood = 1.1  # float > 1: affects likelihood's influence on probability
     wt_neighbors = 0.4  # weight influence of neighbors on probability
-    decrement = 0.05
+    decrement = 0.05  # the amount that the HMMF values are decremented
 
     # Parameters to speed up optimization and for termination of the algorithm
-    diff_thr = 0.0001
-    C_thr = 0.01  # minimum HMMF value to fix probabilities at low values
+    min_C = 0.01  # minimum value to fix probabilities at low values
+    min_change = 0.0001  # minimum change in the sum of probabilities
     n_tries_no_change = 3  # #times loop can continue even without any change
     max_count = 100  # maximum number of iterations
     #-------------------------------------------------------------------------
@@ -254,23 +253,19 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
             # Continue if HMMF value is greater than C_threshold
             # (to fix when at very low values, to speed up optimization)
-            if C[i] > C_thr:
+            if C[i] > min_C:
 
                 # Compute the probability gradient for the HMMF value
                 q = max([C[i] - decrement, 0])
                 prob_decr = prob(wt_likelihood, L[i],
                                  wt_neighbors, q, C[N[i]])
-                # Define a factor to multiply the probability gradient that will
-                # increase the time-step size toward the end of the optimization
-                #mult = mult_init + count * mult_incr
-                #test_value = C[i] - (mult * (probs[i]-prob_decr)/decrement)
                 test_value = C[i] - (probs[i] - prob_decr)
 
                 # Update the HMMF value if just above the threshold
                 # such that the decrement makes it cross the threshold
                 # and the vertex is a "simple point"
-                # Note: Do not decrement Cnew[i], since simple_test()
-                #       only considers the neighbors to i
+                # (Cnew[i] is not changed yet since simple_test()
+                #  only considers its neighbors)
                 if C[i] >= thr >= test_value:
                     update = simple_test(faces, i, Cnew, thr, N)
                 elif C[i] <= thr <= test_value:
@@ -300,8 +295,7 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
         if count > 0:
             if n_points == n_points_previous:
-                diff_prob = (sum_probs_previous - sum_probs) / n_vertices
-                if diff_prob < diff_thr:
+                if (sum_probs_previous - sum_probs) / n_vertices < min_change:
                     end_flag += 1
 
         # Reset for next iteration
