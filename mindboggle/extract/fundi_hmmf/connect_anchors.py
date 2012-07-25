@@ -181,13 +181,13 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
     Parameters:
     ----------
-    Parameters for computing the probabilities and probability gradients:
-      wL: weight influence of likelihood on probability
-      wN: weight influence of neighbors on probability
+    Parameters for computing the cost and cost gradients:
+      wL: weight influence of likelihood on the cost function
+      wN: weight influence of neighbors on the cost function
       decrement: the amount that the HMMF values are decremented
     Parameters to speed up optimization and terminate the algorithm:
-      min_H: minimum value to fix probabilities at very low values
-      min_change: minimum change in the sum of probabilities
+      min_H: minimum HMMF value to fix very low values
+      min_change: minimum change in the sum of costs
       n_tries_no_change: #times the loop can continue even without any change
       max_count: maximum #iterations
 
@@ -206,14 +206,14 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     #-----------
     # Parameters
     #-------------------------------------------------------------------------
-    # cost() and probability gradient parameters
-    wL = 1.1  # weight influence of likelihood on probability
-    wN = 0.4  # weight influence of neighbors on probability
+    # cost() and cost gradient parameters
+    wL = 1.1  # weight influence of likelihood on cost function
+    wN = 0.4  # weight influence of neighbors on cost function
     decrement = 0.05  # the amount that values are decremented
 
     # Parameters to speed up optimization and for termination of the algorithm
-    min_H = 0.01  # minimum HMMF value to fix probabilities at low values
-    min_change = 0.0001  # minimum change in the sum of probabilities
+    min_H = 0.01  # minimum HMMF value to fix at low values
+    min_change = 0.0001  # minimum change in the sum of costs
     n_tries_no_change = 3  # #times loop can continue even without any change
     max_count = 100  # maximum number of iterations
     #-------------------------------------------------------------------------
@@ -223,8 +223,8 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     # (to guarantee correct topology) and take those values that are greater
     # than the likelihood threshold.  Assign a 1 for each anchor point.
     n_vertices = len(indices)
-    P = np.zeros(len(L))
-    H = P.copy()
+    C = np.zeros(len(L))
+    H = C.copy()
     H_init = (L + 1.000001) / 2
     H_init[L == 0.0] = 0
     H_init[H_init > 1.0] = 1
@@ -243,9 +243,8 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
         for index in indices:
             N[index] = find_neighbors(faces, index)
 
-    # Assign probability values to each vertex
-    P[indices] = [cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
-    print('      Assigned probabilies to {} vertices'.format(n_vertices))
+    # Assign cost values to each vertex
+    C[indices] = [cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
@@ -258,17 +257,17 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
         # For each index
         for i in indices:
 
-          # Do not update anchor point probabilities
+          # Do not update anchor point costs
           if i not in anchors:
 
             # Continue if the HMMF value is greater than a threshold value
             # (to fix when at very low values, to speed up optimization)
             if H[i] > min_H:
 
-                # Compute the probability gradient for the HMMF value
+                # Compute the cost gradient for the HMMF value
                 q = max([H[i] - decrement, 0])
-                prob_decr = cost(wL, L[i], wN, q, H[N[i]])
-                test_value = H[i] - (P[i] - prob_decr)
+                cost_decr = cost(wL, L[i], wN, q, H[N[i]])
+                test_value = H[i] - (C[i] - cost_decr)
 
                 # Update the HMMF value if near the threshold
                 # such that a decrement makes it cross the threshold,
@@ -284,29 +283,29 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                 else:
                     update = 1
 
-                # Update the HMMF and probability values
+                # Update the HMMF and cost values
                 if update:
                     if test_value < 0:
                         test_value = 0.0
                     elif test_value > 1:
                         test_value = 1.0
                     H_new[i] = test_value
-                    P[i] = cost(wL, L[i], wN, H_new[i], H[N[i]])
+                    C[i] = cost(wL, L[i], wN, H_new[i], H[N[i]])
 
-        # Sum the probability values across all vertices
-        # and tally the number of HMMF values with probability the threshold.
+        # Sum the cost values across all vertices and tally the number
+        # of HMMF values greater than the threshold.
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag.
-        sum_P = sum(P)
+        sum_C = sum(C)
         n_points = sum([1 for x in H if x > thr])
 
         if count > 0:
             if n_points == n_points_previous:
-                if (sum_P_previous - sum_P) / n_vertices < min_change:
+                if (sum_C_previous - sum_C) / n_vertices < min_change:
                     end_flag += 1
 
         # Reset for next iteration
-        sum_P_previous = sum_P
+        sum_C_previous = sum_C
         n_points_previous = n_points
         H = H_new
 
