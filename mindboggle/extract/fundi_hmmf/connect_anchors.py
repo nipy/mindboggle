@@ -2,8 +2,9 @@
 """
 Connect surface mesh vertices ("anchors").
 
-Connect vertices according to Hidden Markov Measure Field (HMMF)
-probability values.
+Connect vertices according to a cost function that penalizes vertices
+that do not have high likelihood values and have Hidden Markov Measure Field
+(HMMF) values different than their neighbors.
 
 Authors:
 Yrjo Hame  .  yrjo.hame@gmail.com
@@ -29,15 +30,19 @@ def cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     values and have Hidden Markov Measure Field (HMMF) values different than
     their neighbors.
 
-    p = hmmf * np.sqrt((wL - likelihood)**2) +
-        wN * sum((hmmf - hmmf_neighbors)**2)
+    cost = wL * hmmf * (1 - likelihood) +
+           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+
+    formerly:
+    cost = hmmf * np.sqrt((wL - likelihood)**2) +
+           wN * sum((hmmf - hmmf_neighbors)**2)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
 
     Inputs:
     ------
-    wL: influence of likelihood on cost (term 1): float >= 1
+    wL: influence of likelihood on cost (term 1)
     wN: weight influence of neighbors on cost (term 2)
     likelihood: likelihood value in interval [0,1]
     hmmf: HMMF value
@@ -48,10 +53,11 @@ def cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     cost
 
     """
-    return hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
+    #return hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
+    #return wL * hmmf * (1 - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
 
-    #return wL * hmmf * likelihood + \
-    #       wN * sum(hmmf - hmmf_neighbors)/len(hmmf_neighbors)
+    return wL * hmmf * (1 - likelihood) +\
+           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
 #-----------------------
 # Test for simple points
