@@ -18,34 +18,40 @@ from find_neighbors import find_neighbors
 
 verbose = 1
 
-#--------------------
-# Compute probability
-#--------------------
-def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
+#--------------
+# Cost function
+#--------------
+def cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     """
-    Compute Hidden Markov Measure Field (HMMF) probability for a given vertex.
+    Cost function for penalizing unlikely vertices.
 
-    p = hmmf * np.sqrt((wt_likelihood - likelihood)**2)
-        + wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
+    This cost function penalizes vertices that do not have high likelihood
+    values and have Hidden Markov Measure Field (HMMF) values different than
+    their neighbors.
+
+    p = hmmf * np.sqrt((wL - likelihood)**2) +
+        wN * sum((hmmf - hmmf_neighbors)**2)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
 
     Inputs:
     ------
-    wt_likelihood: influence of likelihood on probability (term 1): float > 1
-    wt_neighbors: weight influence of neighbors on probability (term 2)
+    wL: influence of likelihood on cost (term 1): float >= 1
+    wN: weight influence of neighbors on cost (term 2)
     likelihood: likelihood value in interval [0,1]
     hmmf: HMMF value
     hmmf_neighbors: HMMF values of neighboring vertices
 
     Output:
     ------
-    probability
+    cost
 
     """
-    return hmmf * (wt_likelihood - likelihood) + \
-           wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
+    return hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
+
+    #return wL * hmmf * likelihood + \
+    #       wN * sum(hmmf - hmmf_neighbors)/len(hmmf_neighbors)
 
 #-----------------------
 # Test for simple points
@@ -54,8 +60,8 @@ def simple_test(faces, index, values, thr, neighbors):
     """
     Test to see if vertex is a "simple point".
 
-    A simple point is a vertex that when removed from or added to an object
-    (e.g., a curve) on a surface mesh does not alter the topology of the object.
+    A simple point is a vertex that when added to or removed from an object
+    (e.g., a curve) on a surface mesh does not alter the object's topology.
 
     Inputs:
     ------
@@ -153,7 +159,16 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     """
     Connect anchor vertices in a surface mesh to create a curve.
 
-    ????[Explain HMMF approach]
+    The goal of this algorithm is to assign each vertex a locally optimal
+    Hidden Markov Measure Field (HMMF) value.
+
+    We initialize the HMMF values with likelihood values normalized to the
+    interval (0.5, 1.0] (to guarantee correct topology) and take those values
+    that are greater than the likelihood threshold (1 for each anchor point).
+
+    We iteratively update each HMMF value if it is near the likelihood
+    threshold such that a decrement makes it cross the threshold,
+    and the vertex is a "simple point" (its addition/removal alters topology).
 
     Inputs:
     ------
@@ -167,11 +182,11 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     Parameters:
     ----------
     Parameters for computing the probabilities and probability gradients:
-      wt_likelihood: weight influence of likelihood on probability
-      wt_neighbors: weight influence of neighbors on probability
+      wL: weight influence of likelihood on probability
+      wN: weight influence of neighbors on probability
       decrement: the amount that the HMMF values are decremented
     Parameters to speed up optimization and terminate the algorithm:
-      min_C: minimum value to fix probabilities at very low values
+      min_H: minimum value to fix probabilities at very low values
       min_change: minimum change in the sum of probabilities
       n_tries_no_change: #times the loop can continue even without any change
       max_count: maximum #iterations
@@ -183,7 +198,7 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     Calls:
     -----
     find_neighbors()
-    prob()
+    cost()
     simple_test()
 
     """
@@ -191,32 +206,30 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     #-----------
     # Parameters
     #-------------------------------------------------------------------------
-    # prob() and probability gradient parameters
-    wt_likelihood = 1.1  # float > 1: affects likelihood's influence on probability
-    wt_neighbors = 0.4  # weight influence of neighbors on probability
-    decrement = 0.05  # the amount that the HMMF values are decremented
+    # cost() and probability gradient parameters
+    wL = 1.1  # weight influence of likelihood on probability
+    wN = 0.4  # weight influence of neighbors on probability
+    decrement = 0.05  # the amount that values are decremented
 
     # Parameters to speed up optimization and for termination of the algorithm
-    min_C = 0.01  # minimum value to fix probabilities at low values
+    min_H = 0.01  # minimum HMMF value to fix probabilities at low values
     min_change = 0.0001  # minimum change in the sum of probabilities
     n_tries_no_change = 3  # #times loop can continue even without any change
     max_count = 100  # maximum number of iterations
     #-------------------------------------------------------------------------
 
-    # Initialize all likelihood values within sulcus as greater than 0.5
-    # and less than or equal to 1.0.
-    # This is necessary to guarantee correct topology
-    L_init = L.copy() + thr + 0.000001
-    L_init[L == 0.0] = 0
-    L_init[L_init > 1.0] = 1
-
-    # Initialize array of connected vertices C
-    # with likelihood values greater than thr and a 1 for each anchor vertex
+    # Initialize all Hidden Markov Measure Field (HMMF) values with
+    # likelihood values (except 0) normalized to the interval (0.5, 1.0]
+    # (to guarantee correct topology) and take those values that are greater
+    # than the likelihood threshold.  Assign a 1 for each anchor point.
     n_vertices = len(indices)
-    Z = np.zeros(len(L))
-    C = Z.copy()
-    C[L_init > thr] = L_init[L_init > thr]
-    C[anchors] = 1
+    P = np.zeros(len(L))
+    H = P.copy()
+    H_init = (L + 1.000001) / 2
+    H_init[L == 0.0] = 0
+    H_init[H_init > 1.0] = 1
+    H[H_init > thr] = H_init[H_init > thr]
+    H[anchors] = 1
 
     # Find neighbors for each vertex
     # (extract_folds() should have found most, if not all, neighbors)
@@ -231,45 +244,42 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
             N[index] = find_neighbors(faces, index)
 
     # Assign probability values to each vertex
-    probs = Z.copy()
-    probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
-                      for i in indices]
-    print('      Assigned probability values to {} vertices'.
-          format(n_vertices))
+    P[indices] = [cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
+    print('      Assigned probabilies to {} vertices'.format(n_vertices))
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
     #  no change for n_tries_no_change times)
     count = 0
     end_flag = 0
-    Cnew = C.copy()
+    H_new = H.copy()
     while end_flag < n_tries_no_change and count < max_count:
 
-        # Assign each vertex a locally optimal HMMF value (C[i])
+        # For each index
         for i in indices:
 
           # Do not update anchor point probabilities
           if i not in anchors:
 
-            # Continue if HMMF value is greater than C_threshold
+            # Continue if the HMMF value is greater than a threshold value
             # (to fix when at very low values, to speed up optimization)
-            if C[i] > min_C:
+            if H[i] > min_H:
 
                 # Compute the probability gradient for the HMMF value
-                q = max([C[i] - decrement, 0])
-                prob_decr = prob(wt_likelihood, L[i],
-                                 wt_neighbors, q, C[N[i]])
-                test_value = C[i] - (probs[i] - prob_decr)
+                q = max([H[i] - decrement, 0])
+                prob_decr = cost(wL, L[i], wN, q, H[N[i]])
+                test_value = H[i] - (P[i] - prob_decr)
 
-                # Update the HMMF value if just above the threshold
-                # such that the decrement makes it cross the threshold
+                # Update the HMMF value if near the threshold
+                # such that a decrement makes it cross the threshold,
                 # and the vertex is a "simple point"
-                # (Cnew[i] is not changed yet since simple_test()
-                #  only considers its neighbors)
-                if C[i] >= thr >= test_value:
-                    update = simple_test(faces, i, Cnew, thr, N)
-                elif C[i] <= thr <= test_value:
-                    update = simple_test(faces, i, 1 - Cnew, thr, N)
+                # Note: H_new[i] is not changed yet since simple_test()
+                #       only considers its neighbors
+                if H[i] >= thr >= test_value:
+                    update = simple_test(faces, i, H_new, thr, N)
+                elif H[i] <= thr <= test_value:
+                    update = simple_test(faces, i, 1 - H_new, thr, N)
+
                 # Update the HMMF value if far from the threshold
                 else:
                     update = 1
@@ -280,31 +290,30 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                         test_value = 0.0
                     elif test_value > 1:
                         test_value = 1.0
-                    Cnew[i] = test_value
-                    probs[i] = prob(wt_likelihood, L[i],
-                                    wt_neighbors, Cnew[i], C[N[i]])
+                    H_new[i] = test_value
+                    P[i] = cost(wL, L[i], wN, H_new[i], H[N[i]])
 
         # Sum the probability values across all vertices
-        # and tally the number of HMMF values with probability > thr.
+        # and tally the number of HMMF values with probability the threshold.
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag.
-        sum_probs = sum(probs)
-        n_points = sum([1 for x in C if x > thr])
-        if verbose == 2:
-            print('        {} vertices...'.format(n_points))
+        sum_P = sum(P)
+        n_points = sum([1 for x in H if x > thr])
 
         if count > 0:
             if n_points == n_points_previous:
-                if (sum_probs_previous - sum_probs) / n_vertices < min_change:
+                if (sum_P_previous - sum_P) / n_vertices < min_change:
                     end_flag += 1
 
         # Reset for next iteration
-        sum_probs_previous = sum_probs
+        sum_P_previous = sum_P
         n_points_previous = n_points
-        C = Cnew
+        H = H_new
 
         count += 1
 
-    print('      Updated HMMF values')
+    print('      Updated hidden Markov measure field (HMMF) values')
 
-    return C.tolist()
+    H_binary = H.copy()
+
+    return H.tolist(), H_binary.tolist()
