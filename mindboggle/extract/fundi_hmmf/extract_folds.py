@@ -185,7 +185,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
+def extract_folds(faces, depths, min_depth, min_fold_size):
     """
     Extract folds.
 
@@ -195,7 +195,6 @@ def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
     depths: depth values [#vertices x 1]
     min_depth: depth threshold for defining folds
     min_fold_size: minimum fold size
-    min_depth_hole: minimum depth for decreasing segmentation time of holes
 
     Output:
     ------
@@ -213,7 +212,8 @@ def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
     n_vertices = len(depths)
 
     # Segment folds of a surface mesh
-    print("  Segment deep portions of surface mesh into separate folds...")
+    print("  Segment surface mesh into separate folds deeper than {:.2f}...".
+          format(min_depth))
     t0 = time()
     seeds = np.where(depths > min_depth)[0]
     folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(
@@ -225,9 +225,8 @@ def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
 
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep) and have some minimum depth
-        t0 = time()
-        seeds = [i for i,x in enumerate(folds)
-                 if x==0 and depths[i] > min_depth_hole]
+        t1 = time()
+        seeds = [i for i,x in enumerate(folds) if x==0]  # and depths[i] > md]
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
@@ -248,12 +247,12 @@ def extract_folds(faces, depths, min_depth, min_depth_hole, min_fold_size):
                          for x in neighbor_lists_holes[index]
                          if x not in neighbor_lists[index]]
 
-                    # Ignore the largest hole (the background) and renumber holes
+            # Ignore the largest hole (the background) and renumber holes
             holes[holes == max_hole] = 0
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
             n_holes -= 1
-            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t0))
+            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t1))
 
             t0 = time()
             folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
