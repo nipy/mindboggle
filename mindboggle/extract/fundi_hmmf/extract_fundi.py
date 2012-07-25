@@ -13,7 +13,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 import numpy as np
 
 from extract_folds import extract_folds
-from compute_likelihood import compute_likelihood
+from compute_likelihood import compute_likelihood, percentile
 from find_anchors import find_anchors
 from connect_anchors import connect_anchors
 from time import time
@@ -27,7 +27,7 @@ save_anchors = 1
 # Extract all fundi
 #==================
 def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-                  min_depth=0.2, min_depth_hole=0.1, min_fold_size=50, thr=0.5,
+                  fraction_folds=0.5, min_fold_size=50, thr=0.5,
                   fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5):
     """
     Extract all fundi.
@@ -41,7 +41,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     depths_norm: 0 to 1 depth values [#vertices x 1] numpy array
     mean_curvatures_norm: 0 to 1 mean curvature values [#vertices x 1] numpy array
     min_directions: directions of minimum curvature [3 x #vertices] numpy array
-    min_depth: depth threshold for defining folds
+    fraction_folds: fraction of vertices considered to be folds
     thr: likelihood threshold
     min_fold_size: minimum fold size from which to find a fundus
     min_distance: minimum distance
@@ -72,10 +72,19 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     else:
         print("Extract folds from surface mesh...")
         t0 = time()
+
+        # Compute the minimum depth threshold for defining folds by determining the
+        # percentile of depth values for the fraction of vertices that are not folds.
+        # For example, if we consider the shallowest one-third of vertices not to be
+        # folds, we compute the depth percentile, and two-thirds of vertices would
+        # have at least this depth value and would be considered folds.
+        min_depth = percentile(np.sort(depths_norm), 1 - fraction_folds,
+                               key=lambda x:x)
+
         folds, n_folds, index_lists_folds, neighbor_lists = extract_folds(
-            faces, depths_norm, min_depth, min_depth_hole, min_fold_size)
-        print('  ...Extracted folds in {:.2f} seconds'.
-              format(time() - t0))
+            faces, depths_norm, min_depth, min_fold_size)
+        print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
+              format(min_depth, time() - t0))
         if save_em:
             pickle.dump(folds, open(load_path + "folds.p","wb"))
             pickle.dump(n_folds, open(load_path + "n_folds.p","wb"))
@@ -221,8 +230,8 @@ else:
         pickle.dump(min_directions, open(load_path + "min_directions.p","wb"))
 
 fundi = extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_directions,
-    min_depth=0.2, min_depth_hole=0.1, min_fold_size=50, thr=0.5,
-    fraction_lo=0.25, fraction_hi=0.95, slope_factor=3, min_distance=5)
+    fraction_folds=0.5, min_fold_size=50, thr=0.5,
+    fraction_lo=0.5, fraction_hi=0.95, slope_factor=3, min_distance=5)
 
 """
 import numpy as np

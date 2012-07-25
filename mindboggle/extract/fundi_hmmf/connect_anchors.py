@@ -238,22 +238,16 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
         # Find neighbors for each vertex
         # (extract_folds() should have found most, if not all, neighbors)
-        N = [[] for x in L]
-        for i in indices:
-            N[i] = find_neighbors(faces, i)
-            print(find_neighbors(faces, i))
-            print(neighbor_lists[i])
-        """
-        if len(neighbor_lists) > 0:
+        if len(neighbor_lists) == 0:
             N = neighbor_lists
-            for index in indices:
-                if not len(N[index]):
-                    N[index] = find_neighbors(faces, index)
+            #for index in indices:
+            #    if not len(N[index]):
+            #        N[index] = find_neighbors(faces, index)
         else:
             N = [[] for x in L]
             for index in indices:
                 N[index] = find_neighbors(faces, index)
-        """
+
         # Assign probability values to each vertex
         probs = Z.copy()
         probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
@@ -322,12 +316,12 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                         # Update the HMMF value if just above the threshold
                         # such that the decrement makes it cross the threshold
                         # and the vertex is a "simple point"
-                        if C[i] > thr >= C[i] - decr:
+                        if C[i] >= thr >= C[i] - decr:
                             if i in anchors:
                                 update = 0
                             else:
                                 Cnew_copy = Cnew.copy()
-                                Cnew_copy[i] = C[i] - decr
+                                #Cnew_copy[i] = C[i] - decr
                                 update = simple_test(faces, i, Cnew_copy, thr,
                                                      N, nlist=1)
 
@@ -346,9 +340,9 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                         # update the HMMF value if so close to the threshold
                         # that the decrement makes it cross the threshold,
                         # and the vertex is a "simple point"
-                        if C[i] - decr > thr >= C[i]:
+                        if C[i] - decr >= thr >= C[i]:
                             Cnew_copy = Cnew.copy()
-                            Cnew_copy[i] = C[i] - decr
+                            #Cnew_copy[i] = C[i] - decr
                             Cnew_copy = 1 - Cnew_copy
                             update = simple_test(faces, i, Cnew_copy, thr,
                                                  N, nlist=1)
