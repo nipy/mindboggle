@@ -15,7 +15,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 import numpy as np
 from find_neighbors import find_neighbors
-from time import time
 
 verbose = 1
 
@@ -26,8 +25,8 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     """
     Compute Hidden Markov Measure Field (HMMF) probability for a given vertex.
 
-    p = -hmmf * np.sqrt((wt_likelihood - likelihood)**2)
-        - wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
+    p = hmmf * np.sqrt((wt_likelihood - likelihood)**2)
+        + wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
@@ -45,13 +44,13 @@ def prob(wt_likelihood, likelihood, wt_neighbors, hmmf, hmmf_neighbors):
     probability
 
     """
-    return -hmmf * abs(wt_likelihood - likelihood) - \
-            wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
+    return hmmf * (wt_likelihood - likelihood) + \
+           wt_neighbors * sum((hmmf - hmmf_neighbors)**2)
 
 #-----------------------
 # Test for simple points
 #-----------------------
-def simple_test(faces, index, values, thr, neighbors, nlist):
+def simple_test(faces, index, values, thr, neighbors):
     """
     Test to see if vertex is a "simple point".
 
@@ -64,9 +63,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
     index: index of vertex
     values: values: [#vertices x 1] numpy array
     thr: threshold
-    neighbors: list of indices of neighboring vertices
-    nlist: 1 or 0 to indicate whether or not "neighbors"
-           is a list of lists of neighbors for all vertices
+    neighbors: list of lists of indices of neighboring vertices
 
     Output:
     ------
@@ -82,6 +79,7 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
     # into those greater than the likelihood threshold, thr,
     # and those less than or equal to thr ("inside" and "outside").
     # Count the number of "inside" and "outside" neighbors
+    nlist = 1
     if nlist:
         I_neighbors = neighbors[index]
     else:
@@ -102,9 +100,6 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
-        # Reset vertex value
-        values[index] = -1
-
         # For each neighbor exceeding the threshold,
         # find its neighbors that also exceed the threshold,
         # then store these neighbors' indices in a sublist of "N"
@@ -115,7 +110,8 @@ def simple_test(faces, index, values, thr, neighbors, nlist):
                 new_neighbors = neighbors[inside[i_in]]
             else:
                 new_neighbors = find_neighbors(faces, inside[i_in])
-            new_neighbors = [x for x in new_neighbors if values[x] > thr]
+            new_neighbors = [x for x in new_neighbors
+                             if values[x] > thr if x != index]
             new_neighbors.extend([inside[i_in]])
             N.append(new_neighbors)
 
@@ -170,18 +166,15 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
     Parameters:
     ----------
-    prob() parameters:
+    prob() parameters and probability gradient parameters:
       wt_likelihood: weight influence of likelihood on probability
       wt_neighbors: weight influence of neighbors on probability
-    Probability gradient parameters:
-      step_size
-      mult_init
+      decrement
     Loop parameters:
       n_tries_no_change: #times the loop can continue even without any change
       max_count: maximum #iterations
     Parameters to speed up optimization:
       diff_threshold
-      mult_incr
       C_threshold: minimum HMMF value to fix probabilities at very low values
 
     Output:
@@ -199,20 +192,14 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     #-----------
     # Parameters
     #-------------------------------------------------------------------------
-    # prob() parameters
+    # prob() and probability gradient parameters
     wt_likelihood = 1.1  # float > 1: affects likelihood's influence on probability
     wt_neighbors = 0.4  # weight influence of neighbors on probability
+    decrement = 0.05
 
-    # Probability gradient parameters
-    step_size = 0.05
-    mult_init = 0.02
-
-    # Parameters to speed up optimization
+    # Parameters to speed up optimization and for termination of the algorithm
     diff_thr = 0.0001
-    mult_incr = 0.001
     C_thr = 0.01  # minimum HMMF value to fix probabilities at low values
-
-    # Termination parameters
     n_tries_no_change = 3  # #times loop can continue even without any change
     max_count = 100  # maximum number of iterations
     #-------------------------------------------------------------------------
@@ -231,152 +218,99 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     C = Z.copy()
     C[L_init > thr] = L_init[L_init > thr]
     C[anchors] = 1
-    n_candidates = sum(C > 0)
 
-    # Continue if there are at least two candidate vertices
-    if n_candidates >= 2:
+    # Find neighbors for each vertex
+    # (extract_folds() should have found most, if not all, neighbors)
+    if len(neighbor_lists) > 0:
+        N = neighbor_lists
+        #for index in indices:
+        #    if not len(N[index]):
+        #        N[index] = find_neighbors(faces, index)
+    else:
+        N = [[] for x in L]
+        for index in indices:
+            N[index] = find_neighbors(faces, index)
 
-        # Find neighbors for each vertex
-        # (extract_folds() should have found most, if not all, neighbors)
-        if len(neighbor_lists) == 0:
-            N = neighbor_lists
-            #for index in indices:
-            #    if not len(N[index]):
-            #        N[index] = find_neighbors(faces, index)
-        else:
-            N = [[] for x in L]
-            for index in indices:
-                N[index] = find_neighbors(faces, index)
+    # Assign probability values to each vertex
+    probs = Z.copy()
+    probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
+                      for i in indices]
+    print('      Assigned probability values to {} vertices'.
+          format(n_vertices))
 
-        # Assign probability values to each vertex
-        probs = Z.copy()
-        probs[indices] = [prob(wt_likelihood, L[i], wt_neighbors, C[i], C[N[i]])
-                          for i in indices]
-        print('      Assigned probability values to {} vertices'.
-              format(n_vertices))
+    # Loop until count reaches max_count or until end_flag equals zero
+    # (end_flag is used to allow the loop to continue even if there is
+    #  no change for n_tries_no_change times)
+    count = 0
+    end_flag = 0
+    Cnew = C.copy()
+    while end_flag < n_tries_no_change and count < max_count:
 
-        # Loop until count reaches max_count or until end_flag equals zero
-        # (end_flag is used to allow the loop to continue even if there is
-        #  no change for n_tries_no_change times)
-        count = 0
-        end_flag = 0
-        Cnew = C.copy()
-        while end_flag < n_tries_no_change and count < max_count:
+        # Assign each vertex a locally optimal HMMF value (C[i])
+        for i in indices:
 
-            # Define a factor to multiply the probability gradient that will
-            # increase the time-step size toward the end of the optimization
-            mult = mult_init + count * mult_incr
+          # Do not update anchor point probabilities
+          if i not in anchors:
 
-            # Assign each vertex a locally optimal HMMF value (C[i])
-            for i in indices:
+            # Continue if HMMF value is greater than C_threshold
+            # (to fix when at very low values, to speed up optimization)
+            if C[i] > C_thr:
 
-              # Do not update anchor points
-              if i not in anchors:
+                # Compute the probability gradient for the HMMF value
+                q = max([C[i] - decrement, 0])
+                prob_decr = prob(wt_likelihood, L[i],
+                                 wt_neighbors, q, C[N[i]])
+                # Define a factor to multiply the probability gradient that will
+                # increase the time-step size toward the end of the optimization
+                #mult = mult_init + count * mult_incr
+                #test_value = C[i] - (mult * (probs[i]-prob_decr)/decrement)
+                test_value = C[i] - (probs[i] - prob_decr)
 
-                # Continue if HMMF value is greater than C_threshold
-                # (to fix when at very low values, to speed up optimization)
-                if C[i] > C_thr:
-
-                    # Compute the (negative) probability gradient
-                    # for the HMMF value
-                    q = max([C[i] - step_size, 0])
-                    prob_decr = prob(wt_likelihood, L[i],
-                                     wt_neighbors, q, C[N[i]])
-                    decr = mult * (prob_decr - probs[i]) / step_size
-                    """
-                    test_value = C[i] - decr
-
-                    # Update the HMMF value if far from the threshold
-                    #if C[i] > thr and test_value > thr or \
-                    #   C[i] < thr and test_value < thr:
+                # Update the HMMF value if just above the threshold
+                # such that the decrement makes it cross the threshold
+                # and the vertex is a "simple point"
+                # Note: Do not decrement Cnew[i], since simple_test()
+                #       only considers the neighbors to i
+                if C[i] >= thr >= test_value:
+                    update = simple_test(faces, i, Cnew, thr, N)
+                elif C[i] <= thr <= test_value:
+                    update = simple_test(faces, i, 1 - Cnew, thr, N)
+                # Update the HMMF value if far from the threshold
+                else:
                     update = 1
 
-                    # Otherwise, update the HMMF value if just above the threshold
-                    # such that the decrement makes it cross the threshold
-                    # and the vertex is a "simple point"
-                    # (Do not decrement Cnew[i], since simple_test()
-                    #  only considers the neighbors to i)
-                    if C[i] >= thr >= test_value:
-                        update = simple_test(faces, i, Cnew, thr, N, nlist=1)
-                    elif C[i] <= thr <= test_value:
-                        update = simple_test(faces, i, 1 - Cnew, thr, N, nlist=1)
+                # Update the HMMF and probability values
+                if update:
+                    if test_value < 0:
+                        test_value = 0.0
+                    elif test_value > 1:
+                        test_value = 1.0
+                    Cnew[i] = test_value
+                    probs[i] = prob(wt_likelihood, L[i],
+                                    wt_neighbors, Cnew[i], C[N[i]])
 
-                    # Update the HMMF and probability values
-                    if update:
-                        if test_value < 0:
-                            test_value = 0
-                        elif test_value > 1:
-                            test_value = 1
-                        Cnew[i] = test_value
-                        probs[i] = prob(wt_likelihood, L[i],
-                                        wt_neighbors, Cnew[i], C[N[i]])
-                    """
-                    # Test to update the HMMF value for positive decrements:
-                    if decr > 0:
-                        # Update the HMMF value if just above the threshold
-                        # such that the decrement makes it cross the threshold
-                        # and the vertex is a "simple point"
-                        if C[i] >= thr >= C[i] - decr:
-                            if i in anchors:
-                                update = 0
-                            else:
-                                Cnew_copy = Cnew.copy()
-                                #Cnew_copy[i] = C[i] - decr
-                                update = simple_test(faces, i, Cnew_copy, thr,
-                                                     N, nlist=1)
+        # Sum the probability values across all vertices
+        # and tally the number of HMMF values with probability > thr.
+        # After iteration 1, compare current and previous values.
+        # If the values are similar, increment end_flag.
+        sum_probs = sum(probs)
+        n_points = sum([1 for x in C if x > thr])
+        if verbose == 2:
+            print('        {} vertices...'.format(n_points))
 
-                        # Or update the HMMF value if far from the threshold
-                        else:
-                            update = 1
-                        # Update the HMMF and probability values
-                        if update:
-                            Cnew[i] = max([C[i] - decr, 0])
-                            probs[i] = prob(wt_likelihood, L[i],
-                                            wt_neighbors, Cnew[i], C[N[i]])
+        if count > 0:
+            if n_points == n_points_previous:
+                diff_prob = (sum_probs_previous - sum_probs) / n_vertices
+                if diff_prob < diff_thr:
+                    end_flag += 1
 
-                    # Test to update the HMMF value for negative decrements:
-                    else:
-                        # Or if the decrement is negative,
-                        # update the HMMF value if so close to the threshold
-                        # that the decrement makes it cross the threshold,
-                        # and the vertex is a "simple point"
-                        if C[i] - decr >= thr >= C[i]:
-                            Cnew_copy = Cnew.copy()
-                            #Cnew_copy[i] = C[i] - decr
-                            Cnew_copy = 1 - Cnew_copy
-                            update = simple_test(faces, i, Cnew_copy, thr,
-                                                 N, nlist=1)
-                        # Or update the HMMF value if far from the threshold
-                        else:
-                            update = 1
-                            # Update the HMMF and probability values
-                        if update:
-                            Cnew[i] = min([C[i] - decr, 1])
-                            probs[i] = prob(wt_likelihood, L[i],
-                                            wt_neighbors, Cnew[i], C[N[i]])
+        # Reset for next iteration
+        sum_probs_previous = sum_probs
+        n_points_previous = n_points
+        C = Cnew
 
-            # Sum the probability values across all vertices
-            # and tally the number of HMMF values with probability > thr.
-            # After iteration 1, compare current and previous values.
-            # If the values are similar, increment end_flag.
-            sum_probs = sum(probs)
-            n_points = sum([1 for x in C if x > thr])
-            if verbose == 2:
-                print('        {} vertices...'.format(n_points))
+        count += 1
 
-            if count > 0:
-                if n_points == n_points_previous:
-                    diff_prob = (sum_probs - sum_probs_previous) / n_vertices
-                    if diff_prob < diff_thr:
-                        end_flag += 1
-
-            # Reset for next iteration
-            sum_probs_previous = sum_probs
-            n_points_previous = n_points
-            C = Cnew
-
-            count += 1
-
-        print('      Updated HMMF values')
+    print('      Updated HMMF values')
 
     return C.tolist()
