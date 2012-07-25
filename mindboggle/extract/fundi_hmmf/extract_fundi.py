@@ -109,6 +109,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     # For each fold...
     print("Extract a fundus from each of {} folds...".format(n_folds))
     t1 = time()
+    fundi_hmmf = []
     fundi = []
     n_vertices = len(depths_norm)
     Z = np.zeros(n_vertices)
@@ -116,7 +117,7 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
     if save_anchors:
         anchors = Z.copy()
     for i_fold, indices_fold in enumerate(index_lists_folds):
-#      if i_fold < 12:
+#      if i_fold < 5:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
@@ -147,14 +148,18 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
                 t2 = time()
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
-                fundi.append(
-                      connect_anchors(indices_anchors, faces, indices_fold,
-                                      likelihoods_fold, thr, neighbor_lists))
+                C, Cbin = connect_anchors(indices_anchors, faces, indices_fold,
+                                          likelihoods_fold, thr, neighbor_lists)
+                fundi.append(Cbin)
+                fundi_hmmf.append(C)
                 print('      ...Connected {} fundus points ({:.2f} seconds)'.
                       format(n_anchors, time() - t2))
             else:
                 fundi.append([])
-        else: fundi.append([])
+                fundi_hmmf.append([])
+        else:
+            fundi.append([])
+            fundi_hmmf.append([])
     print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
     if save_em:
@@ -183,14 +188,23 @@ def extract_fundi(vertices, faces, depths_norm, mean_curvatures_norm, min_direct
                 LUTs=[anchors],
                 LUTNames=['anchors'])
 
+        # Save fundus HMMF values
+        fundi_for_vtk = -np.ones(n_vertices)
+        for fundus in fundi_hmmf:
+            if len(fundus) > 0:
+                fundi_for_vtk += fundus
+        io_vtk.writeSulci(load_path + 'fundi_hmmf.vtk', vertices,
+            indices_folds, faces_folds,
+            LUTs=[fundi_for_vtk], LUTNames=['fundi HMMF values'])
+
         # Save fundi
         fundi_for_vtk = -np.ones(n_vertices)
         for fundus in fundi:
             if len(fundus) > 0:
                 fundi_for_vtk += fundus
         io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
-                          indices_folds, faces_folds,
-                          LUTs=[fundi_for_vtk], LUTNames=['fundi'])
+            indices_folds, faces_folds,
+            LUTs=[fundi_for_vtk], LUTNames=['fundi'])
 
     return fundi
 
