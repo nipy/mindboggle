@@ -846,7 +846,7 @@ class Shape:
 
 		return self.realignment_matrix, self.realignment_mapping
 
-	def determine_appropriate_segments(self, proportion = 1.1, dist_threshold = 8, num_good_nodes = 6, eps=1E-7, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
+	def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8, num_good_nodes = 6, eps=1E-7, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
 		""" Determines which label boundary segments should propagate their labels.
 
 		Parameters
@@ -896,6 +896,17 @@ class Shape:
 		close_nodes = np.zeros(self.Labels.shape)
 		close_nodes[self.label_boundary[closest_label_boundary]] = 1
 		vo.write_all('/home/eli/Desktop/close_nodes.vtk',self.Nodes,self.Mesh,close_nodes)
+
+		closest_fundi = np.argsort(distance_matrix, 0)[0,:]
+
+		# Let's try using a dictionary to express the mapping relationship.
+		# We will have one which maps fundi nodes to nearest label boundary nodes.
+		# And we'll have one which maps lb nodes to nearest fundi nodes.
+
+		fundi_lb = dict((self.fundal_nodes[i], self.label_boundary[closest_label_boundary[i]]) for i in xrange(self.fundal_nodes.size))
+		lb_fundi = dict((self.label_boundary[i], self.fundal_nodes[closest_fundi[i]]) for i in xrange(self.label_boundary.size))
+
+
 
 		closest_distances = np.amin(distance_matrix, 1)
 		print 'Got closest_distances. Shape is {0}. First few values are {1}'.format(closest_distances.shape, closest_distances[:10])
