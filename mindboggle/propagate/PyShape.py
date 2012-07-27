@@ -846,7 +846,27 @@ class Shape:
 
 		return self.realignment_matrix, self.realignment_mapping
 
-	def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8, num_good_nodes = 6, eps=1E-7, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
+	def same_boundary(self, node1, node2):
+		""" Determines whether two label boundary nodes belong to the same label boundary.
+
+		Parameters
+		==========
+		node1, node2: int (index of label boundary node)
+
+		Returns
+		=======
+		same: bool (true if belong to same boundary, false otherwise)
+
+		"""
+		same = False
+
+		for value in self.label_boundary_segments.values():
+			if node1 in value and node2 in value:
+				same = True
+
+		return same
+
+	def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8, lb_fundus_threshold = 16, num_good_nodes = 5, eps=1E-7, spread_tol = 6, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
 		""" Determines which label boundary segments should propagate their labels.
 
 		Parameters
@@ -893,20 +913,9 @@ class Shape:
 		closest_label_boundary = sorted_distances[:,0]
 		print 'Got closest label boundary. Shape is {0}. First few values are {1}'.format(closest_label_boundary.shape, closest_label_boundary[:10])
 
-		close_nodes = np.zeros(self.Labels.shape)
-		close_nodes[self.label_boundary[closest_label_boundary]] = 1
-		vo.write_all('/home/eli/Desktop/close_nodes.vtk',self.Nodes,self.Mesh,close_nodes)
+		self.show_me_these_nodes(self.label_boundary[closest_label_boundary], '/home/eli/Desktop/close_nodes.vtk')
 
 		closest_fundi = np.argsort(distance_matrix, 0)[0,:]
-
-		# Let's try using a dictionary to express the mapping relationship.
-		# We will have one which maps fundi nodes to nearest label boundary nodes.
-		# And we'll have one which maps lb nodes to nearest fundi nodes.
-
-		fundi_lb = dict((self.fundal_nodes[i], self.label_boundary[closest_label_boundary[i]]) for i in xrange(self.fundal_nodes.size))
-		lb_fundi = dict((self.label_boundary[i], self.fundal_nodes[closest_fundi[i]]) for i in xrange(self.label_boundary.size))
-
-
 
 		closest_distances = np.amin(distance_matrix, 1)
 		print 'Got closest_distances. Shape is {0}. First few values are {1}'.format(closest_distances.shape, closest_distances[:10])
@@ -914,28 +923,76 @@ class Shape:
 		second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]] for i in xrange(self.fundal_nodes.size)])
 		print 'Got second closest distances. Shape is {0}. First few values are {1}'.format(second_closest_distances.shape, second_closest_distances[:10])
 
+		# Let's try using a dictionary to express the mapping relationship.
+		# We will have one which maps fundi nodes to nearest label boundary nodes.
+		# And we'll have one which maps lb nodes to nearest fundi nodes.
+
+		fundi_lb = dict((self.fundal_nodes[i], (self.label_boundary[closest_label_boundary[i]], distance_matrix[i,closest_label_boundary[i]])) for i in xrange(self.fundal_nodes.size))
+		lb_fundi = dict((self.label_boundary[i], (self.fundal_nodes[closest_fundi[i]], distance_matrix[closest_fundi[i],i])) for i in xrange(self.label_boundary.size))
+
+		print 'The fundi to label boundary mapping is:', fundi_lb
+		print 'The label boundary to fundi mapping is:', lb_fundi
+
 		# Step 2. Determine which obey proper proportions and distances, using parameters
 		within_distance = (closest_distances < dist_threshold)
 		print 'Got within distance. Num satisfy is {0}. First few are {1}'.format(within_distance.nonzero()[0].size, within_distance[:10])
 
-		dist_nodes = np.zeros(self.Labels.shape)
-		dist_nodes[self.label_boundary[closest_label_boundary[within_distance==1]]] = 1
-		vo.write_all('/home/eli/Desktop/close_distance.vtk',self.Nodes,self.Mesh,dist_nodes)
+		self.show_me_these_nodes(self.label_boundary[closest_label_boundary[within_distance==1]], '/home/eli/Desktop/close_distance.vtk')
 
 		within_proportion = np.bitwise_or((closest_distances / second_closest_distances > proportion), (second_closest_distances / (closest_distances+eps) > proportion))
 		print 'Got within proportion. Num satisfy is {0}. First few are {1}'.format(within_proportion.nonzero()[0].size, within_proportion[:10])
 
-		prop_nodes = np.zeros(self.Labels.shape)
-		prop_nodes[self.label_boundary[closest_label_boundary[within_proportion==1]]] = 1
-		vo.write_all('/home/eli/Desktop/good_proportion.vtk',self.Nodes,self.Mesh,prop_nodes)
+		self.show_me_these_nodes([self.label_boundary[closest_label_boundary[within_proportion==1]]], '/home/eli/Desktop/good_proportion.vtk')
 
-		# The following matrix stores the indices of the label boundary nodes which satisfy the above properties.
+		# The following array stores the indices of the label boundary nodes which satisfy the above properties.
 		satisfy_distances = self.label_boundary[closest_label_boundary[np.nonzero(np.bitwise_and(within_distance, within_proportion))]]
 		print 'Got satisfy distances. Shape is {0}. They are {1}'.format(satisfy_distances.shape, satisfy_distances)
 
-		satisfy_nodes = np.zeros(self.Labels.shape)
-		satisfy_nodes[satisfy_distances] = 1
-		vo.write_all('/home/eli/Desktop/satisfy_distance.vtk',self.Nodes,self.Mesh,satisfy_nodes)
+		self.show_me_these_nodes(satisfy_distances, '/home/eli/Desktop/satisfy_distance.vtk')
+
+		print 'Currently, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
+
+		# Ok, now here comes the critical step.
+		# We have the array satisfy_distances. It stores the indices of the elite nodes, those which satisfy the first two properties.
+		# Now, we want to prune the array, and then augment the pruned version.
+		# For pruning, we will eliminate any lb node whose closest fundus node has a large spread among the lb nodes.
+		# For augmenting, we will add any node which maps to a fundus which maps to a qualified lb node on the same label boundary.
+
+		# Pruning...
+		for lbnode in satisfy_distances:
+			fundus_node = lb_fundi[lbnode][0]
+			fundus_index = np.nonzero(self.fundal_nodes == fundus_node)[0]
+			top_five_indices = sorted_distances[fundus_index,:5].flatten()
+			top_five_lbnodes = self.label_boundary[top_five_indices]
+			spread_matrix = np.zeros((top_five_lbnodes.size,top_five_lbnodes.size))
+			for i in xrange(top_five_lbnodes.size):
+				for j in xrange(top_five_lbnodes.size):
+					v1 = top_five_lbnodes[i]
+					v2 = top_five_lbnodes[j]
+					spread_matrix[i,j] = np.linalg.norm(self.Nodes[v1] - self.Nodes[v2])
+
+			spread = np.max(spread_matrix)
+			if spread > spread_tol:
+				satisfy_distances = np.delete(satisfy_distances,np.nonzero(satisfy_distances == lbnode))
+				print 'deleted node: ', lbnode
+
+				#### AH! I'm changing that over which I'm iterating! Fix.
+
+		self.show_me_these_nodes(satisfy_distances, '/home/eli/Desktop/satisfy_distance_pruned.vtk')
+
+		print 'After pruning, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
+
+		# Augmenting...
+		for lbnode in self.label_boundary:
+			fundus_node, distance = lb_fundi[lbnode]
+			if distance < lb_fundus_threshold:
+				mapped_lbnode = fundi_lb[fundus_node][0]
+				if mapped_lbnode in satisfy_distances and self.same_boundary(mapped_lbnode,lbnode):
+					satisfy_distances = np.append(satisfy_distances,lbnode)
+					print 'added node: ', lbnode
+
+		self.show_me_these_nodes(satisfy_distances,'/home/eli/Desktop/satisfy_distance_pruned_augmented.vtk')
+		print 'After augmenting, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
 
 		# Now we will see how many nodes from each label boundary segment satisfy the properties.
 		# If a segment only contains a few nodes, then we won't bother propagating labels from it.
@@ -946,7 +1003,8 @@ class Shape:
 		nodes_to_highlight = np.zeros(self.Labels.shape)
 
 		for key, value in self.label_boundary_segments.items():
-			num_intersections = np.intersect1d(satisfy_distances, value).size + np.intersect1d(satisfy_distances, self.label_boundary_segments[key[::-1]]).size
+			# num_intersections = np.intersect1d(satisfy_distances, value).size + np.intersect1d(satisfy_distances, self.label_boundary_segments[key[::-1]]).size
+			num_intersections = np.intersect1d(satisfy_distances, value).size
 			print 'Number of intersections is:', num_intersections
 			if (num_intersections < num_good_nodes):
 				self.realignment_matrix[:,reverse_mapping[key]] = 0
@@ -1631,6 +1689,32 @@ class Shape:
 #########################################
 	"""
 
+	def show_me_these_nodes(self, index_list, filename, complete_list=False):
+		""" Creates VTK file highlighting the desired nodes.
+
+		Parameters
+		==========
+		index_list: np array or list (of indixes of nodes)
+		filename: string (for VTK file)
+		complete_list: bool (True if a full self.num_nodes list is given, not indices)
+
+		Returns
+		=======
+		filename: string (for VTK file)
+
+		"""
+
+		if not complete_list:
+			labels = np.zeros(self.Labels.shape)
+			labels[index_list] = 1
+		else:
+			labels = index_list
+			labels[labels>0] = 1
+
+		vo.write_all(filename,self.Nodes,self.Mesh,labels)
+
+		return filename
+
 	def highlight(self, class_label):
 		"""
 		This method highlights a set of nodes which belong to the specified class.
@@ -1942,7 +2026,7 @@ g3 = ''
 
 def test():
 	""" This test is for the realignment task."""
-	shape.realign_label_boundaries(f1, f2, f3, f4, f5, f6, 250)
+	shape.realign_label_boundaries(f1, f2, f3, f4, f5, f6, 150)
 
 	return 0
 
