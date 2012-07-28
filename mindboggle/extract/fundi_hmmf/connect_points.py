@@ -15,49 +15,11 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 import numpy as np
-from find_neighbors import find_neighbors
+from compute_values import compute_cost
 
-verbose = 1
+# Optional in simple_test() and in connect_points():
+# from find_points import find_neighbors
 
-#--------------
-# Cost function
-#--------------
-def cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
-    """
-    Cost function for penalizing unlikely vertices.
-
-    This cost function penalizes vertices that do not have high likelihood
-    values and have Hidden Markov Measure Field (HMMF) values different than
-    their neighbors.
-
-    cost = wL * hmmf * (1 - likelihood) +
-           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
-
-    formerly:
-    cost = hmmf * np.sqrt((wL - likelihood)**2) +
-           wN * sum((hmmf - hmmf_neighbors)**2)
-
-    term 1 promotes high likelihood values
-    term 2 promotes smoothness of the HMMF values
-
-    Inputs:
-    ------
-    wL: influence of likelihood on cost (term 1)
-    wN: weight influence of neighbors on cost (term 2)
-    likelihood: likelihood value in interval [0,1]
-    hmmf: HMMF value
-    hmmf_neighbors: HMMF values of neighboring vertices
-
-    Output:
-    ------
-    cost
-
-    """
-    #return hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
-    #return wL * hmmf * (1 - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
-
-    return wL * hmmf * (1 - likelihood) +\
-           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
 #-----------------------
 # Test for simple points
@@ -79,7 +41,7 @@ def simple_test(faces, index, values, thr, neighbors):
 
     Output:
     ------
-    sp: simple point or not? (1 or 0)
+    sp: simple point or not?: Boolean
 
     Calls:
     -----
@@ -87,11 +49,14 @@ def simple_test(faces, index, values, thr, neighbors):
 
     """
 
+    nlist = True
+    if not nlist:
+        from find_points import find_neighbors
+
     # Find neighbors to the input vertex, and binarize them
     # into those greater than the likelihood threshold, thr,
     # and those less than or equal to thr ("inside" and "outside").
     # Count the number of "inside" and "outside" neighbors
-    nlist = 1
     if nlist:
         I_neighbors = neighbors[index]
     else:
@@ -104,11 +69,11 @@ def simple_test(faces, index, values, thr, neighbors):
     # If the number of inside or outside neighbors is zero,
     # than the vertex IS NOT a simple point
     if n_outside * n_inside == 0:
-        sp = 0
+        sp = False
     # Or if either the number of inside or outside neighbors is one,
     # than the vertex IS a simple point
     elif n_outside == 1 or n_inside == 1:
-        sp = 1
+        sp = True
     # Otherwise, test to see if all of the inside neighbors share neighbors
     # with each other, in which case the vertex IS a simple point
     else:
@@ -152,18 +117,19 @@ def simple_test(faces, index, values, thr, neighbors):
         # (if any) share neighbors with each other (one unique label)
         D = []
         if len([D.append(x) for x in labels if x not in D]) == 1:
-            sp = 1
+            sp = True
         else:
-            sp = 0
+            sp = False
 
     return sp
 
-#========================
-# Connect anchor vertices
-#========================
-def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
+
+#===============
+# Connect points
+#===============
+def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     """
-    Connect anchor vertices in a surface mesh to create a curve.
+    Connect vertices in a surface mesh to create a curve.
 
     The goal of this algorithm is to assign each vertex a locally optimal
     Hidden Markov Measure Field (HMMF) value.
@@ -203,16 +169,19 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
 
     Calls:
     -----
-    find_neighbors()
-    cost()
+    find_neighbors() (optional)
+    compute_cost()
     simple_test()
 
     """
 
+    if len(neighbor_lists) == 0:
+        from find_points import find_neighbors
+
     #-----------
     # Parameters
     #-------------------------------------------------------------------------
-    # cost() and cost gradient parameters
+    # compute_cost() and cost gradient parameters
     wL = 1.1  # weight influence of likelihood on cost function
     wN = 0.4  # weight influence of neighbors on cost function
     decrement = 0.05  # the amount that values are decremented
@@ -250,7 +219,7 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
             N[index] = find_neighbors(faces, index)
 
     # Assign cost values to each vertex
-    C[indices] = [cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
+    C[indices] = [compute_cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
@@ -261,33 +230,33 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
     while end_flag < n_tries_no_change and count < max_count:
 
         # For each index
-        for i in indices:
+        for index in indices:
 
           # Do not update anchor point costs
-          if i not in anchors:
+          if index not in anchors:
 
             # Continue if the HMMF value is greater than a threshold value
             # (to fix when at very low values, to speed up optimization)
-            if H[i] > min_H:
+            if H[index] > min_H:
 
                 # Compute the cost gradient for the HMMF value
-                q = max([H[i] - decrement, 0])
-                cost_decr = cost(wL, L[i], wN, q, H[N[i]])
-                test_value = H[i] - (C[i] - cost_decr)
+                q = max([H[index] - decrement, 0])
+                cost_decr = compute_cost(wL, L[index], wN, q, H[N[index]])
+                test_value = H[index] - (C[index] - cost_decr)
 
                 # Update the HMMF value if near the threshold
                 # such that a decrement makes it cross the threshold,
                 # and the vertex is a "simple point"
-                # Note: H_new[i] is not changed yet since simple_test()
+                # Note: H_new[index] is not changed yet since simple_test()
                 #       only considers its neighbors
-                if H[i] >= thr >= test_value:
-                    update = simple_test(faces, i, H_new, thr, N)
-                elif H[i] <= thr <= test_value:
-                    update = simple_test(faces, i, 1 - H_new, thr, N)
+                if H[index] >= thr >= test_value:
+                    update = simple_test(faces, index, H_new, thr, N)
+                elif H[index] <= thr <= test_value:
+                    update = simple_test(faces, index, 1 - H_new, thr, N)
 
                 # Update the HMMF value if far from the threshold
                 else:
-                    update = 1
+                    update = True
 
                 # Update the HMMF and cost values
                 if update:
@@ -295,8 +264,9 @@ def connect_anchors(anchors, faces, indices, L, thr, neighbor_lists):
                         test_value = 0.0
                     elif test_value > 1:
                         test_value = 1.0
-                    H_new[i] = test_value
-                    C[i] = cost(wL, L[i], wN, H_new[i], H[N[i]])
+                    H_new[index] = test_value
+                    C[index] = compute_cost(wL, L[index], wN,
+                                            H_new[index], H[N[index]])
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
