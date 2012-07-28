@@ -23,8 +23,9 @@ Authors:
 """
 
 import numpy as np
-from find_neighbors import find_neighbors
+from find_points import find_neighbors
 from time import time
+
 
 #========================
 # Segment surface patches
@@ -61,7 +62,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
 
     # Remove faces with fewer than min_seeds seeds to speed up computation
     fs = frozenset(seeds)
-    faces_seeds = [lst for lst in faces 
+    faces_seeds = [lst for lst in faces
                    if len(fs.intersection(lst)) >= min_seeds]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
     print('    Reduced {} to {} faces.'.format(len(faces),
@@ -133,6 +134,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
 
     return segments, n_segments, max_patch_label, neighbor_lists
 
+
 #-----------
 # Fill holes
 #-----------
@@ -181,6 +183,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
                     break
 
     return folds
+
 
 #==============
 # Extract folds
@@ -259,7 +262,7 @@ def extract_folds(faces, depths, min_depth, min_fold_size):
             print('  Filled holes ({:.2f} seconds)'.format(time() - t0))
 
     # Convert folds array to a list of lists of vertex indices
-    index_lists_folds = [np.where(folds == i)[0].tolist() 
+    index_lists_folds = [np.where(folds == i)[0].tolist()
                          for i in range(1, n_folds+1)]
 
     # Return folds, the number of folds, and lists of indices for each fold

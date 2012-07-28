@@ -1,43 +1,71 @@
 #!/usr/bin/python
 """
-Assign maximum likelihood vertices as "anchor points".
-
-Anchor points are used to construct fundus curves.
+Find neighbors to a surface mesh vertex.
 
 Authors:
-    Yrjo Hame  .  yrjo.hame@gmail.com
-    Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
 
-import numpy as np
-from operator import itemgetter
+#---------------
+# Find neighbors
+#---------------
+def find_neighbors(faces, index):
+    """
+    Find neighbors to a surface mesh vertex.
+
+    For a set of surface mesh faces and the index of a surface vertex,
+    find unique indices for neighboring vertices.
+
+    Inputs:
+    ------
+    faces: surface mesh vertex indices [#faces x 3] numpy array
+    index: index of surface vertex
+
+    Output:
+    ------
+    N: list of indices of neighboring vertices
+
+    """
+
+    import numpy as np
+
+    # Create list of vertex indices sharing the same faces as "index"
+    I = [faces[np.where(faces[:,i] == index)[0], :] for i in (0,1,2)]
+
+    # Create single list from nested lists
+    I = [int(x) for lst in I for sublst in lst for x in sublst]
+
+    # Find unique indices not equal to "index"
+    N = []; [N.append(x) for x in I if x not in N if x != index]
+
+    return N
+
 
 #===================
 # Find anchor points
 #===================
-def find_anchors(vertices, L, min_directions, thr, min_distance):
+def find_anchors(vertices, L, min_directions, min_distance, thr):
     """
     Find anchor points.
 
     Assign maximum likelihood vertices as "anchor points"
-    for use in constructing fundus curves.
-    Ensure that the anchor points are not close to one another.
+    while ensuring that the anchor points are not close to one another.
+    Anchor points are used to construct curves.
 
-    ????
-    Should perhaps change this code because of instability.
-    Only the sulcus end points are necessary,
-    so that the fundus doesn't shrink.
+    Note: only the sulcus end points are strictly necessary
+          (so that the fundus doesn't shrink)
 
     Inputs:
     ------
     vertices: [#vertices x 3] numpy array
     L: fundus likelihood values: [#vertices x 1] numpy array
     min_directions: [#vertices x 1] numpy array
-    thr: likelihood threshold
     min_distance: minimum distance
+    thr: likelihood threshold
 
     Parameters:
     ----------
@@ -48,6 +76,9 @@ def find_anchors(vertices, L, min_directions, thr, min_distance):
     anchors: list of subset of surface mesh vertex indices
 
     """
+
+    import numpy as np
+    from operator import itemgetter
 
     max_distance = 2 * min_distance
 
