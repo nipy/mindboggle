@@ -181,13 +181,13 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     #-----------
     # Parameters
     #-------------------------------------------------------------------------
-    # compute_cost() and cost gradient parameters
-    wL = 1.1  # weight of likelihood on cost function
-    wN = 0.4  # initial weight of neighbors on cost function
+    # Cost and cost gradient parameters
+    wL = 1 #1.1 # 1.1  # weight of likelihood on cost function
+    wN = 0.5 # 0.4 # 0.4  # initial weight of neighbors on cost function
     step_down = 0.05 # the amount that HMMF values are stepped down
 
     # Parameters to speed up optimization and for termination of the algorithm
-    gradient_init = 0.01  # initialize gradient factor
+    gradient_init = 0.1  # initialize gradient factor
     gradient_step = 0.001  # step gradient factor up each iteration
     min_cost_change = 0.000001  # minimum change in the sum of costs
     n_tries_no_change = 3  # sequential loops without sufficient change
@@ -220,7 +220,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             N[index] = find_neighbors(faces, index)
 
     # Assign cost values to each vertex
-    C[indices] = [compute_cost(wL, L[i], wN, H[i], H[N[i]]) for i in indices]
+    C[indices] = [compute_cost(wL, wN, L[i], H[i], H[N[i]])[0] for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
@@ -230,9 +230,11 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     H_new = H.copy()
     while end_flag < n_tries_no_change and count < max_count:
 
-        # At ech iteration, step up gradient factor
-#        gradient_factor = (gradient_init + gradient_step * count) / step_down
+        # At each iteration, step up gradient factor
         gradient_factor = gradient_init + gradient_step * count
+
+        # At each iteration, de-weight neighborhood influence of cost function
+#        wN = wN_init - wN_step * count
 
         # For each index
         for index in indices:
@@ -246,7 +248,11 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - step_down, 0])
-                    cost_down = compute_cost(wL, L[index], wN, H_down, H[N[index]])
+
+                    cost_down,cw,cn = compute_cost(wL, wN, L[index], H_down, H[N[index]])
+
+                    #print(cost_down, cw, cn)
+
                     H_test = H[index] - gradient_factor * (C[index] - cost_down)
 
                     # Update the HMMF value if near the threshold
@@ -270,8 +276,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
                         elif H_test > 1:
                             H_test = 1.0
                         H_new[index] = H_test
-                        C[index] = compute_cost(wL, L[index], wN,
-                                                H_new[index], H[N[index]])
+                        C[index] = compute_cost(wL, wN, L[index],
+                                                H_new[index], H[N[index]])[0]
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
@@ -282,8 +288,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
-            print('      {}: factor={:.3f}; d-points={}; d-cost={:.8f}'.
-                  format(count, gradient_factor, n_points - n_points_previous,
+            print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}'.
+                  format(count, gradient_factor, n_points_previous - n_points,
                          (sum_C_previous - sum_C) / n_vertices))
             if n_points == n_points_previous:
                 if (sum_C_previous - sum_C) / n_vertices < min_cost_change:
