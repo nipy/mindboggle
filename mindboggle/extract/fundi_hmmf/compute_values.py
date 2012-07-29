@@ -105,13 +105,16 @@ def compute_cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
 
     """
     cost = hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
-    #return wL * hmmf * (1 - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
+    cw = hmmf * (wL - likelihood)
+    cn = wN * sum((hmmf - hmmf_neighbors)**2)
 
-#    wL = 1
-#    wN = 1
-#    return wL * hmmf * (1 - likelihood) +\
+#    cost = wL * hmmf * (1 - likelihood) +\
 #           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
-    return cost
+#    cw = 1 * hmmf * (1 - likelihood)
+#    cn = 1 * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+
+    return cost, cw, cn
+
 
 #==========================
 # Median absolute deviation
