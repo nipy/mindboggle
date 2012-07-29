@@ -73,7 +73,7 @@ def compute_likelihood(depths, curvatures):
 #--------------
 # Cost function
 #--------------
-def compute_cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
+def compute_cost(wN, likelihood, hmmf, hmmf_neighbors):
     """
     Cost function for penalizing unlikely curve (fundus) vertices.
 
@@ -81,19 +81,14 @@ def compute_cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     values and have Hidden Markov Measure Field (HMMF) values different than
     their neighbors.
 
-    cost = wL * hmmf * (1 - likelihood) +
+    cost = hmmf * (1 - likelihood) +
            wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
-
-    formerly:
-    cost = hmmf * np.sqrt((wL - likelihood)**2) +
-           wN * sum((hmmf - hmmf_neighbors)**2)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
 
     Inputs:
     ------
-    wL: influence of likelihood on cost (term 1)
     wN: weight influence of neighbors on cost (term 2)
     likelihood: likelihood value in interval [0,1]
     hmmf: HMMF value
@@ -104,16 +99,19 @@ def compute_cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     cost
 
     """
-    cost = hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
-    cw = hmmf * (wL - likelihood)
-    cn = wN * sum((hmmf - hmmf_neighbors)**2)
+    # original cost function, sensitive to the number of neighbors:
+    # cost = hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
 
-#    cost = wL * hmmf * (1 - likelihood) +\
-#           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
-#    cw = 1 * hmmf * (1 - likelihood)
-#    cn = 1 * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+    cost = hmmf * (1 - likelihood) +\
+           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
-    return cost, cw, cn
+    if cost < 0:
+        cw = hmmf * (1 - likelihood)
+        cn = wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+        print('{} = {} + {}, HMMF = {}, L = {}'.
+              format(cost, cw, cn, hmmf, likelihood))
+
+    return cost
 
 
 #==========================
