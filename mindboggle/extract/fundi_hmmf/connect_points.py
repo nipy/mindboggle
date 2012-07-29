@@ -182,8 +182,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Parameters
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters
-    wL = 1 #1.1 # 1.1  # weight of likelihood on cost function
-    wN = 0.5 # 0.4 # 0.4  # initial weight of neighbors on cost function
+    wN = 0.5 # initial weight of neighbors on cost function
     step_down = 0.05 # the amount that HMMF values are stepped down
 
     # Parameters to speed up optimization and for termination of the algorithm
@@ -220,7 +219,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             N[index] = find_neighbors(faces, index)
 
     # Assign cost values to each vertex
-    C[indices] = [compute_cost(wL, wN, L[i], H[i], H[N[i]])[0] for i in indices]
+    C[indices] = [compute_cost(wN, L[i], H[i], H[N[i]]) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
@@ -248,11 +247,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - step_down, 0])
-
-                    cost_down,cw,cn = compute_cost(wL, wN, L[index], H_down, H[N[index]])
-
-                    #print(cost_down, cw, cn)
-
+                    cost_down = compute_cost(wN, L[index], H_down, H[N[index]])
                     H_test = H[index] - gradient_factor * (C[index] - cost_down)
 
                     # Update the HMMF value if near the threshold
@@ -276,8 +271,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
                         elif H_test > 1:
                             H_test = 1.0
                         H_new[index] = H_test
-                        C[index] = compute_cost(wL, wN, L[index],
-                                                H_new[index], H[N[index]])[0]
+                        C[index] = compute_cost(wN, L[index],
+                                                H_new[index], H[N[index]])
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
