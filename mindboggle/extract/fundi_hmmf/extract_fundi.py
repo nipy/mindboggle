@@ -23,7 +23,7 @@ sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
 import io_vtk
 from percentile import percentile
 
-save_fundi = 0
+save_fundi = 1
 save_pickles = 0
 
 #==================
@@ -63,11 +63,13 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
     import pickle
     load_path = "/drop/input/"
-    load_em = 1
-    save_em = 1
+    load_folds = True
+    save_folds = True
+    save_likelihoods = True #False
+    save_fundi = True
 
     # Extract folds (vertex indices for each fold)
-    if load_em:
+    if load_folds:
         n_folds = int(pickle.load(open(load_path + "n_folds.p","rb")))
         index_lists_folds = pickle.load(open(load_path + "index_lists_folds.p","rb"))
         neighbor_lists = pickle.load(open(load_path + "neighbor_lists.p","rb"))
@@ -87,7 +89,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
             faces, depths, min_depth, min_fold_size)
         print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
               format(min_depth, time() - t0))
-        if save_em:
+
+        if save_folds:
             pickle.dump(folds, open(load_path + "folds.p","wb"))
             pickle.dump(n_folds, open(load_path + "n_folds.p","wb"))
             pickle.dump(index_lists_folds, open(load_path + "index_lists_folds.p","wb"))
@@ -118,7 +121,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     likelihoods = Z.copy()
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
-#      if i_fold < 5:
+      if i_fold == 17:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
@@ -167,10 +170,9 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         # Save pickled data
         pickle.dump(likelihoods, open(load_path + "likelihoods.p","wb"))
         pickle.dump(fundi, open(load_path + "fundi.p","wb"))
-        if save_anchors:
-            pickle.dump(anchors, open(load_path + "anchors.p","wb"))
 
-    if save_em:
+    if save_likelihoods or save_fundi:
+
         # Remove faces that do not contain three fold vertices
         indices_folds = [x for lst in index_lists_folds for x in lst]
         fs = frozenset(indices_folds)
@@ -178,11 +180,13 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
 
         # Save fold likelihoods
-        io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
-                          indices_folds, faces_folds,
-                          LUTs=[likelihoods],
-                          LUTNames=['likelihoods'])
+        if save_likelihoods:
+            io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
+                              indices_folds, faces_folds,
+                              LUTs=[likelihoods],
+                              LUTNames=['likelihoods'])
 
+        # Save fundi
         if save_fundi:
 
             # Save fundus HMMF values
