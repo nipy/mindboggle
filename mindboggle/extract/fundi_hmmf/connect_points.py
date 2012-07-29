@@ -182,17 +182,16 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Parameters
     #-------------------------------------------------------------------------
     # compute_cost() and cost gradient parameters
-    wL = 1.1  # weight influence of likelihood on cost function
-    wN = 0.4  # weight influence of neighbors on cost function
-    step_down = 0.05 # 0.05  # the amount that HMMF values are stepped down
+    wL = 1.1  # weight of likelihood on cost function
+    wN = 0.4  # initial weight of neighbors on cost function
+    step_down = 0.05 # the amount that HMMF values are stepped down
 
     # Parameters to speed up optimization and for termination of the algorithm
-    gradient_init = 0.01  # .02 # initialize gradient factor
-    gradient_step = 0.001  # .001 # step gradient factor up each iteration
-    min_H = 0.01  # minimum HMMF value (to fix at low values)
-    min_cost_change = 0.00001  # .0001 # minimum change in the sum of costs
-    n_tries_no_change = 3  # times in a row without sufficient change
-    max_count = 1000  # maximum number of iterations
+    gradient_init = 0.01  # initialize gradient factor
+    gradient_step = 0.001  # step gradient factor up each iteration
+    min_cost_change = 0.000001  # minimum change in the sum of costs
+    n_tries_no_change = 3  # sequential loops without sufficient change
+    max_count = 1000  # maximum number of iterations (in case no convergence)
     #-------------------------------------------------------------------------
 
     # Initialize all Hidden Markov Measure Field (HMMF) values with
@@ -241,9 +240,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             # Do not update anchor point costs
             if index not in anchors:
 
-                # Continue if the HMMF value is greater than a threshold value
+                # Continue if the HMMF value is greater than the gradient step
                 # (to fix when at very low values, to speed up optimization)
-                if H[index] > min_H:
+                if H[index] > gradient_step:
 
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - step_down, 0])
@@ -281,8 +280,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
         sum_C = sum(C)
         n_points = sum([1 for x in H if x > thr])
 
+        # Terminate the loop if there are insufficient changes
         if count > 0:
-            print('      {}: factor={:.3f}; d-points={}; d-cost={:.5f}'.
+            print('      {}: factor={:.3f}; d-points={}; d-cost={:.8f}'.
                   format(count, gradient_factor, n_points - n_points_previous,
                          (sum_C_previous - sum_C) / n_vertices))
             if n_points == n_points_previous:
