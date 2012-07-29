@@ -45,22 +45,22 @@ def simple_test(faces, index, values, thr, neighbors):
 
     Calls:
     -----
-    find_neighbors()  (optional)
+    find_neighbors()  [optional]
 
     """
 
-    nlist = True
-    if not nlist:
+    run_find_neighbors = False
+    if run_find_neighbors:
         from find_points import find_neighbors
 
     # Find neighbors to the input vertex, and binarize them
     # into those greater than the likelihood threshold, thr,
     # and those less than or equal to thr ("inside" and "outside").
     # Count the number of "inside" and "outside" neighbors
-    if nlist:
-        I_neighbors = neighbors[index]
-    else:
+    if run_find_neighbors:
         I_neighbors = neighbors
+    else:
+        I_neighbors = neighbors[index]
     neighbor_values = values[I_neighbors]
     inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > thr]
     n_inside = len(inside)
@@ -83,10 +83,10 @@ def simple_test(faces, index, values, thr, neighbors):
         labels = range(1, n_inside + 1)
         N = []
         for i_in in range(n_inside):
-            if nlist:
-                new_neighbors = neighbors[inside[i_in]]
-            else:
+            if run_find_neighbors:
                 new_neighbors = find_neighbors(faces, inside[i_in])
+            else:
+                new_neighbors = neighbors[inside[i_in]]
             new_neighbors = [x for x in new_neighbors
                              if values[x] > thr if x != index]
             new_neighbors.extend([inside[i_in]])
@@ -169,7 +169,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     Calls:
     -----
-    find_neighbors() (optional)
+    find_neighbors() [optional]
     compute_cost()
     simple_test()
 
@@ -240,9 +240,14 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             if H[index] > min_H:
 
                 # Compute the cost gradient for the HMMF value
-                q = max([H[index] - decrement, 0])
-                cost_decr = compute_cost(wL, L[index], wN, q, H[N[index]])
-                test_value = H[index] - (C[index] - cost_decr)
+                H_lower = max([H[index] - decrement, 0])
+                cost = compute_cost(wL, L[index], wN, H_lower, H[N[index]])
+                test_value = H[index] - (C[index] - cost)
+                #print('L={:.2f}, HN={}'.format(L[index],H[N[index]]))
+                #print('H={:.2f}, C:{:.2f} - cost:{:.2f} = {:.2f}, test={:.2f}'.
+                #      format(H[index],C[index],cost,C[index]-cost,test_value))
+                #if test_value < 0: #H[index]:
+                #    print('test < 0')
 
                 # Update the HMMF value if near the threshold
                 # such that a decrement makes it cross the threshold,
