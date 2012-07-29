@@ -121,6 +121,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     likelihoods = Z.copy()
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
+      print('Only computing fold 17')
       if i_fold == 17:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
@@ -151,10 +152,10 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                     t2 = time()
                     likelihoods_fold = Z.copy()
                     likelihoods_fold[indices_fold] = fold_likelihoods
-                    C, Cbin = connect_points(indices_anchors, faces, indices_fold,
-                                              likelihoods_fold, thr, neighbor_lists)
-                    fundi.append(Cbin)
-                    fundi_hmmf.append(C)
+                    H, H_binary = connect_points(indices_anchors, faces, indices_fold,
+                                                 likelihoods_fold, thr, neighbor_lists)
+                    fundi.append(H_binary)
+                    fundi_hmmf.append(H)
                     print('      ...Connected {} fundus points ({:.2f} seconds)'.
                           format(n_anchors, time() - t2))
                 else:
@@ -190,7 +191,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         if save_fundi:
 
             # Save fundus HMMF values
-            fundi_for_vtk = -np.ones(n_vertices)
+            fundi_for_vtk = np.ones(n_vertices)
             for fundus in fundi_hmmf:
                 if len(fundus) > 0:
                     fundi_for_vtk += fundus
@@ -199,7 +200,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                 LUTs=[fundi_for_vtk], LUTNames=['fundi HMMF values'])
 
             # Save fundi
-            fundi_for_vtk = -np.ones(n_vertices)
+            fundi_for_vtk = np.ones(n_vertices)
             for fundus in fundi:
                 if len(fundus) > 0:
                     fundi_for_vtk += fundus
