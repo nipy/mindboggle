@@ -139,7 +139,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     that are greater than the likelihood threshold (1 for each anchor point).
 
     We iteratively update each HMMF value if it is near the likelihood
-    threshold such that a decrement makes it cross the threshold,
+    threshold such that a step_down makes it cross the threshold,
     and the vertex is a "simple point" (its addition/removal alters topology).
 
     Inputs:
@@ -156,7 +156,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     Parameters for computing the cost and cost gradients:
       wL: weight influence of likelihood on the cost function
       wN: weight influence of neighbors on the cost function
-      decrement: the amount that the HMMF values are decremented
+      step_down: the amount that the HMMF values are step_downed
     Parameters to speed up optimization and terminate the algorithm:
       min_H: minimum HMMF value to fix very low values
       min_change: minimum change in the sum of costs
@@ -184,13 +184,15 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # compute_cost() and cost gradient parameters
     wL = 1.1  # weight influence of likelihood on cost function
     wN = 0.4  # weight influence of neighbors on cost function
-    decrement = 0.05  # the amount that values are decremented
+    step_down = 0.05 # 0.05  # the amount that HMMF values are stepped down
 
     # Parameters to speed up optimization and for termination of the algorithm
-    min_H = 0.01  # minimum HMMF value to fix at low values
-    min_change = 0.0001  # minimum change in the sum of costs
-    n_tries_no_change = 3  # #times loop can continue even without any change
-    max_count = 100  # maximum number of iterations
+    gradient_init = 0.01  # .02 # initialize gradient factor
+    gradient_step = 0.001  # .001 # step gradient factor up each iteration
+    min_H = 0.01  # minimum HMMF value (to fix at low values)
+    min_cost_change = 0.00001  # .0001 # minimum change in the sum of costs
+    n_tries_no_change = 3  # times in a row without sufficient change
+    max_count = 1000  # maximum number of iterations
     #-------------------------------------------------------------------------
 
     # Initialize all Hidden Markov Measure Field (HMMF) values with
@@ -229,49 +231,48 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     H_new = H.copy()
     while end_flag < n_tries_no_change and count < max_count:
 
+        # At ech iteration, step up gradient factor
+#        gradient_factor = (gradient_init + gradient_step * count) / step_down
+        gradient_factor = gradient_init + gradient_step * count
+
         # For each index
         for index in indices:
 
-          # Do not update anchor point costs
-          if index not in anchors:
+            # Do not update anchor point costs
+            if index not in anchors:
 
-            # Continue if the HMMF value is greater than a threshold value
-            # (to fix when at very low values, to speed up optimization)
-            if H[index] > min_H:
+                # Continue if the HMMF value is greater than a threshold value
+                # (to fix when at very low values, to speed up optimization)
+                if H[index] > min_H:
 
-                # Compute the cost gradient for the HMMF value
-                H_lower = max([H[index] - decrement, 0])
-                cost = compute_cost(wL, L[index], wN, H_lower, H[N[index]])
-                test_value = H[index] - (C[index] - cost)
-                #print('L={:.2f}, HN={}'.format(L[index],H[N[index]]))
-                #print('H={:.2f}, C:{:.2f} - cost:{:.2f} = {:.2f}, test={:.2f}'.
-                #      format(H[index],C[index],cost,C[index]-cost,test_value))
-                #if test_value < 0: #H[index]:
-                #    print('test < 0')
+                    # Compute the cost gradient for the HMMF value
+                    H_down = max([H[index] - step_down, 0])
+                    cost_down = compute_cost(wL, L[index], wN, H_down, H[N[index]])
+                    H_test = H[index] - gradient_factor * (C[index] - cost_down)
 
-                # Update the HMMF value if near the threshold
-                # such that a decrement makes it cross the threshold,
-                # and the vertex is a "simple point"
-                # Note: H_new[index] is not changed yet since simple_test()
-                #       only considers its neighbors
-                if H[index] >= thr >= test_value:
-                    update = simple_test(faces, index, H_new, thr, N)
-                elif H[index] <= thr <= test_value:
-                    update = simple_test(faces, index, 1 - H_new, thr, N)
+                    # Update the HMMF value if near the threshold
+                    # such that a step_down makes it cross the threshold,
+                    # and the vertex is a "simple point"
+                    # Note: H_new[index] is not changed yet since simple_test()
+                    #       only considers its neighbors
+                    if H[index] >= thr >= H_test:
+                        update = simple_test(faces, index, H_new, thr, N)
+                    elif H[index] <= thr <= H_test:
+                        update = simple_test(faces, index, 1 - H_new, thr, N)
 
-                # Update the HMMF value if far from the threshold
-                else:
-                    update = True
+                    # Update the HMMF value if far from the threshold
+                    else:
+                        update = True
 
-                # Update the HMMF and cost values
-                if update:
-                    if test_value < 0:
-                        test_value = 0.0
-                    elif test_value > 1:
-                        test_value = 1.0
-                    H_new[index] = test_value
-                    C[index] = compute_cost(wL, L[index], wN,
-                                            H_new[index], H[N[index]])
+                    # Update the HMMF and cost values
+                    if update:
+                        if H_test < 0:
+                            H_test = 0.0
+                        elif H_test > 1:
+                            H_test = 1.0
+                        H_new[index] = H_test
+                        C[index] = compute_cost(wL, L[index], wN,
+                                                H_new[index], H[N[index]])
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
@@ -281,9 +282,14 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
         n_points = sum([1 for x in H if x > thr])
 
         if count > 0:
+            print('      {}: factor={:.3f}; d-points={}; d-cost={:.5f}'.
+                  format(count, gradient_factor, n_points - n_points_previous,
+                         (sum_C_previous - sum_C) / n_vertices))
             if n_points == n_points_previous:
-                if (sum_C_previous - sum_C) / n_vertices < min_change:
+                if (sum_C_previous - sum_C) / n_vertices < min_cost_change:
                     end_flag += 1
+            else:
+                end_flag = 0
 
         # Reset for next iteration
         sum_C_previous = sum_C
