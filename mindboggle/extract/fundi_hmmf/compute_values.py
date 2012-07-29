@@ -38,27 +38,31 @@ def compute_likelihood(depths, curvatures):
 
    #==========================================
     # Normalize depth values to interval [0,1]
+    # Curvature values retain their values
     # Compute the median absolute deviations
     #=========================================
     depths_norm = depths / max(depths)
-    depths_stat = np.std(depths_norm)
-    curves_stat = np.std(abs(curvatures))
+    depth_avg = np.mean(depths_norm)
+    depth_std = np.std(depths_norm)
+    curve_std = np.std(curvatures) / 2  # divide by 2 because of [-1,1] interval
 
     #==========================================
     # Find slope for depth and curvature values
     #==========================================
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
     # slope_factor = abs(np.log((1. / x) - 1))  # 2.197224577 for x = 0.9
-    slope_factor = 2.197224577
-    gain_depth = slope_factor / (4 * depths_stat)
-    gain_curve = slope_factor / (4 * curves_stat)
+    #slope_factor = 2.197224577
+    #gain_depth = slope_factor / (2 * depth_std)
+    #gain_curve = slope_factor / (2 * curve_std)
+    gain_depth = 1 / depth_std
+    gain_curve = 1 / curve_std
 
     #==========================
     # Compute likelihood values
     #==========================
     # Map values with sigmoidal function to range [0,1]
-    # Y(t) = 1/(1 + exp(-gain*(X - shift))
-    depth_sigmoid = 1 / (1.0 + np.exp(-gain_depth * (depths - depths_stat)))
+    # Y(t) = 1/(1 + exp(-gain*(X - shift)), where shift lowers the values
+    depth_sigmoid = 1 / (1.0 + np.exp(-gain_depth * (depths_norm - depth_avg)))
     curve_sigmoid = 1 / (1.0 + np.exp(-gain_curve * curvatures))
 
     likelihoods = depth_sigmoid * curve_sigmoid
@@ -100,12 +104,14 @@ def compute_cost(wL, wN, likelihood, hmmf, hmmf_neighbors):
     cost
 
     """
-    #return hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
+    cost = hmmf * (wL - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
     #return wL * hmmf * (1 - likelihood) + wN * sum((hmmf - hmmf_neighbors)**2)
 
-    return wL * hmmf * (1 - likelihood) +\
-           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
-
+#    wL = 1
+#    wN = 1
+#    return wL * hmmf * (1 - likelihood) +\
+#           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+    return cost
 
 #==========================
 # Median absolute deviation
