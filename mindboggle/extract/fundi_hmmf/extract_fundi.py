@@ -23,7 +23,6 @@ sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
 import io_vtk
 from percentile import percentile
 
-save_fundi = 1
 save_pickles = 0
 
 #==================
@@ -66,7 +65,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     load_folds = True
     save_folds = True
     save_likelihoods = True #False
-    save_fundi = True
+    save_fundi = 1 #True
 
     # Extract folds (vertex indices for each fold)
     if load_folds:
@@ -120,8 +119,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     likelihoods = Z.copy()
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
-#      print('Only computing fold 17')
-#      if i_fold == 17:
+      print('Only computing fold 17')
+      if i_fold == 17:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
@@ -151,6 +150,7 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                     t2 = time()
                     likelihoods_fold = Z.copy()
                     likelihoods_fold[indices_fold] = fold_likelihoods
+
                     H = connect_points(indices_anchors, faces, indices_fold,
                                        likelihoods_fold, thr, neighbor_lists)
                     fundi.append(H.tolist())
