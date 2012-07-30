@@ -365,9 +365,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
-            print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}; wN={:.2f}'.
-                  format(count, gradient_factor, n_points_previous - n_points,
-                         (sum_C_previous - sum_C) / n_vertices, wN))
+            #print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}; wN={:.2f}'.
+            #      format(count, gradient_factor, n_points_previous - n_points,
+            #             (sum_C_previous - sum_C) / n_vertices, wN))
 
             if n_points == n_points_previous:
 
