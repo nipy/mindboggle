@@ -13,7 +13,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 import numpy as np
 
 from extract_folds import extract_folds
-from compute_values import compute_likelihood
+from compute_likelihood import compute_likelihood
 from find_points import find_anchors
 from connect_points import connect_points
 from time import time
@@ -114,15 +114,14 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     # For each fold...
     print("Extract a fundus from each of {} folds...".format(n_folds))
     t1 = time()
-    fundi_hmmf = []
     fundi = []
     n_vertices = len(depths)
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
-      print('Only computing fold 17')
-      if i_fold == 17:
+#      print('Only computing fold 17')
+#      if i_fold == 17:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
@@ -152,18 +151,15 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
                     t2 = time()
                     likelihoods_fold = Z.copy()
                     likelihoods_fold[indices_fold] = fold_likelihoods
-                    H, H_binary = connect_points(indices_anchors, faces, indices_fold,
-                                                 likelihoods_fold, thr, neighbor_lists)
-                    fundi.append(H_binary)
-                    fundi_hmmf.append(H)
+                    H = connect_points(indices_anchors, faces, indices_fold,
+                                       likelihoods_fold, thr, neighbor_lists)
+                    fundi.append(H.tolist())
                     print('      ...Connected {} fundus points ({:.2f} seconds)'.
                           format(n_anchors, time() - t2))
                 else:
                     fundi.append([])
-                    fundi_hmmf.append([])
             else:
                 fundi.append([])
-                fundi_hmmf.append([])
 
     print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
@@ -189,17 +185,6 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
 
         # Save fundi
         if save_fundi:
-
-            # Save fundus HMMF values
-            fundi_for_vtk = np.ones(n_vertices)
-            for fundus in fundi_hmmf:
-                if len(fundus) > 0:
-                    fundi_for_vtk += fundus
-            io_vtk.writeSulci(load_path + 'fundi_hmmf.vtk', vertices,
-                indices_folds, faces_folds,
-                LUTs=[fundi_for_vtk], LUTNames=['fundi HMMF values'])
-
-            # Save fundi
             fundi_for_vtk = np.ones(n_vertices)
             for fundus in fundi:
                 if len(fundus) > 0:
