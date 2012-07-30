@@ -13,6 +13,17 @@ Authors:
 
 import numpy as np
 
+#=================
+# Sigmoid function
+#=================
+def sigmoid(values, gain, shift):
+    """
+    Map values with sigmoid function to range [0,1].
+
+    Y(t) = 1/(1 + exp(-gain*(values - shift))
+    """
+    return 1.0 / (1.0 + np.exp(-gain * (values - shift)))
+
 
 #====================
 # Likelihood function
@@ -34,6 +45,10 @@ def compute_likelihood(depths, curvatures):
     ------
     likelihoods: likelihood values [#sulcus vertices x 1] numpy array
 
+    Calls:
+    -----
+    sigmoid()
+
     """
 
    #==========================================
@@ -44,7 +59,7 @@ def compute_likelihood(depths, curvatures):
     depths_norm = depths / max(depths)
     depth_avg = np.mean(depths_norm)
     depth_std = np.std(depths_norm)
-    curve_std = np.std(curvatures) / 2  # divide by 2 because of [-1,1] interval
+    curve_std = np.std(curvatures)
 
     #==========================================
     # Find slope for depth and curvature values
@@ -56,15 +71,31 @@ def compute_likelihood(depths, curvatures):
     #gain_curve = slope_factor / (2 * curve_std)
     gain_depth = 1 / depth_std
     gain_curve = 1 / curve_std
+    shift_depth = depth_avg + depth_std
+    shift_curve = 0
 
     #==========================
     # Compute likelihood values
     #==========================
-    # Map values with sigmoidal function to range [0,1]
-    # Y(t) = 1/(1 + exp(-gain*(X - shift)), where shift lowers the values
-    depth_sigmoid = 1 / (1.0 + np.exp(-gain_depth * (depths_norm - depth_avg)))
-    curve_sigmoid = 1 / (1.0 + np.exp(-gain_curve * curvatures))
+    # Map values with sigmoid function to range [0,1]
+    depth_sigmoid = sigmoid(depths_norm, gain_depth, shift_depth)
+    curve_sigmoid = sigmoid(curvatures, gain_curve, shift_curve)
 
     likelihoods = depth_sigmoid * curve_sigmoid
+
+    plot_result = False
+    if plot_result:
+        from matplotlib import pyplot
+        xdepth = np.sort(depths_norm)
+        xcurve = np.sort(curvatures)
+        depth_sigmoid_sort = sigmoid(xdepth, gain_depth, shift_depth)
+        curve_sigmoid_sort = sigmoid(xcurve, gain_curve, shift_curve)
+        sigmoids = depth_sigmoid_sort * curve_sigmoid_sort
+        pyplot.plot(xdepth, depth_sigmoid_sort, 'k')
+        pyplot.plot(xcurve, curve_sigmoid_sort, 'b')
+        pyplot.plot(xdepth, sigmoids, 'r')
+        pyplot.title('Depths, curvatures (gains = {:.3f}, {:.3f}; shift={:.3f})'.
+               format(gain_depth, gain_curve, shift_depth))
+        pyplot.show()
 
     return likelihoods

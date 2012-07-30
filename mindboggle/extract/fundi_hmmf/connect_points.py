@@ -203,6 +203,12 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
                 if update and n_in > 1:
                     B[index] = 0
 
+
+
+                    print('removed point')
+
+
+
                     exist_simple = True
 
     return B
@@ -267,15 +273,16 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters
     wN = 0.5  # initial weight of neighbors on cost function
-    wN_step = 0.01  # step neighborhood weight down toward end
+    wN_step = 0 #.01  # step neighborhood weight down toward end
     H_step = 0.05  # step down HMMF value
 
     # Parameters to speed up optimization and for termination of the algorithm
     gradient_init = 0.1  # initialize gradient factor
     gradient_step = 0.001  # step up gradient factor each iteration
     min_cost_change = 0.0001  # minimum change in the sum of costs
-    n_tries_no_change = 3  # sequential loops without sufficient change
+    n_tries_no_change = 3  # number of loops without sufficient change
     max_count = 1000  # maximum number of iterations (in case no convergence)
+    H_min = 0.01  # minimum H value that is processed
     #-------------------------------------------------------------------------
 
     # Initialize all Hidden Markov Measure Field (HMMF) values with
@@ -315,7 +322,10 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     while end_flag < n_tries_no_change and count < max_count:
 
         # At each iteration, step up gradient factor
-        gradient_factor = gradient_init + gradient_step * count
+        gradient_factor = min([gradient_init + gradient_step * count, 1])
+
+        # De-weight neighborhood influence of cost function
+        wN = max([wN - wN_step, 0])
 
         # For each index
         for index in indices:
@@ -323,9 +333,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             # Do not update anchor point costs
             if index not in anchors:
 
-                # Continue if the HMMF value is greater than the gradient step
+                # Continue if the HMMF value is greater than a minimum value
                 # (to fix when at very low values, to speed up optimization)
-                if H[index] > gradient_step:
+                if H[index] > H_min:
 
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - H_step, 0])
@@ -365,19 +375,14 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
-            #print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}; wN={:.2f}'.
-            #      format(count, gradient_factor, n_points_previous - n_points,
-            #             (sum_C_previous - sum_C) / n_vertices, wN))
-
+            print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}; wN={:.2f}'.
+                  format(count, gradient_factor, n_points_previous - n_points,
+                         (sum_C_previous - sum_C) / n_vertices, wN))
             if n_points == n_points_previous:
-
-                # De-weight neighborhood influence of cost function
-                wN = max([wN - wN_step, 0])
-
                 if (sum_C_previous - sum_C) / n_vertices < min_cost_change:
                     end_flag += 1
-            else:
-                end_flag = 0
+#            else:
+#                end_flag = 0
 
         # Reset for next iteration
         sum_C_previous = sum_C
@@ -388,9 +393,11 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     print('      Updated hidden Markov measure field (HMMF) values')
 
-    # Threshold the resulting array and return one corresponding to a binary skeleton
+    # Threshold the resulting array
     H[H > thr] = 1
     H[H <= thr] = 0
+
+    # Skeletonize
     skeleton = skeletonize(H, anchors, faces, N)
     print('      Removed {} points to create one-vertex-thin skeletons'.
           format(sum(H) - sum(skeleton)))
