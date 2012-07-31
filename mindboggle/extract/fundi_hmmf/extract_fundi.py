@@ -23,7 +23,8 @@ sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
 import io_vtk
 from percentile import percentile
 
-save_pickles = 0
+save_fundi = 1
+save_pickles = 1
 
 #==================
 # Extract all fundi
