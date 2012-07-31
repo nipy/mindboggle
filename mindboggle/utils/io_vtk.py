@@ -2,11 +2,12 @@
 """
 Functions related to reading and writing VTK format files.
 
-This is not the official vtk module. One reason that we do not use VTK's
-python binding is the lack of documentation.
+This is not part of the official vtk module.
+We found that VTK's Python binding has limited documentation.
 
-Authors:  Forrest Sheng Bao http://fsbao.net
-Version:  0.2, last update on 2012-06-29
+Authors:
+Forrest Sheng Bao  .  http://fsbao.net
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -321,7 +322,7 @@ def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTnam
 
 
 #=============================================================================
-# LEVEL 3: Functions for loading and writing called by Level 2 functions above
+# LEVEL 3: Functions for loading and writing called by LEVEL 2 functions above
 #=============================================================================
 
 def write_line_segments(Fp, index_pair_list):
@@ -419,14 +420,14 @@ def load_scalar(filename):
 
     Outputs
     =========
-    vertices : list of lists of floats
+    Points : list of lists of floats
         Each element is a list of 3-D coordinates of a vertex on a surface mesh
 
-    faces : list of lists of integers
+    Faces : list of lists of integers
         Each element is a 3-tuple, the IDs of vertices that form a face
         on a surface mesh
 
-    scalars : list of floats
+    Scalars : list of floats
         Each element is a scalar value corresponding to a vertex
 
     """
@@ -438,7 +439,7 @@ def load_scalar(filename):
 
     Data = Reader.GetOutput()
     Points = [list(Data.GetPoint(PointID))
-                for point_id in xrange(0, Data.GetNumberOfPoints())]
+              for point_id in xrange(0, Data.GetNumberOfPoints())]
 
     Polys = Data.GetPolys()
     CellArray = Polys.GetData()

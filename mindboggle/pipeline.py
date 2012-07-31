@@ -43,7 +43,7 @@ subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 basepath = '/projects/Mindboggle/mindboggle'  # mindboggle directory
 mbpath = path.join(basepath, 'mindboggle')
 utils_path = path.join(mbpath, 'utils')
-results_path = '/projects/mindboggle/results'  # Where to save output
+results_path = '/projects/Mindboggle/results'  # Where to save output
 fundus_path = path.join(mbpath, 'extract/fundi_hmmf')
 temp_path = path.join(results_path, 'workingdir')  # Where to save temp files
 sys.path.append(mbpath)
@@ -53,7 +53,7 @@ sys.path.append(fundus_path)
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from freesurfer2vtk import freesurfer2vtk
-from io_vtk import load_scalar, write_scalar
+from io_vtk import load_scalar, write_scalars
 from atlas_functions import register_template, transform_atlas_labels,\
     majority_vote_label
 from volume_functions import write_label_file, label_to_annot_file,\
@@ -423,16 +423,16 @@ mbflow.connect([(featureflow, datasink,
 #-----------------------------------------------------------------------------
 # Load depth file
 #-----------------------------------------------------------------------------
-depth_load = node(name='Load_depth',
+load_depth = node(name='Load_depth',
                   interface = fn(function = load_scalar,
                                  input_names = ['filename'],
-                                 output_names = ['vertices, faces, scalars']))
-#featureflow.add_nodes([depth_load])
-featureflow.connect([(depth, depth_load, [('depth_file','filename')])])
+                                 output_names = ['Points',
+                                                 'Faces',
+                                                 'Scalars']))
+featureflow.connect([(depth, load_depth, [('depth_file','filename')])])
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
-"""
 folds = node(name='Extract_folds',
              interface = fn(function = extract_folds,
                             input_names = ['faces',
@@ -441,48 +441,36 @@ folds = node(name='Extract_folds',
                                            'min_fold_size'],
                             output_names = ['folds',
                                             'n_folds',
+                                            'indices_folds',
                                             'index_lists_folds',
-                                            'neighbor_lists']))
+                                            'neighbor_lists',
+                                            'faces_folds',
+                                            'LUTs',
+                                            'LUT_names']))
 folds.inputs.fraction_folds = 0.5
 folds.inputs.min_fold_size = 50
-featureflow.add_nodes([folds])
-featureflow.connect([(depth_load, folds, [('faces','faces'),
-                                          ('scalars','depths')])])
-"""
+featureflow.connect([(load_depth, folds, [('Faces','faces'),
+                                          ('Scalars','depths')])])
 #-----------------------------------------------------------------------------
-# Save folds
+# Write folds to VTK file
 #-----------------------------------------------------------------------------
+save_folds = node(name='Save_folds',
+                  interface = fn(function = write_scalars,
+                                 input_names = ['vtk_file',
+                                                'Points',
+                                                'Vertices',
+                                                'Faces',
+                                                'LUTs',
+                                                'LUT_names'],
+                                 output_names = ['']))
+save_folds.inputs.vtk_file = 'folds.vtk'
+featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
+featureflow.connect([(folds, save_folds, [('indices_folds','Vertices')])])
+featureflow.connect([(folds, save_folds, [('faces_folds','Faces')])])
+featureflow.connect([(folds, save_folds, [('LUTs','LUTs')])])
+featureflow.connect([(folds, save_folds, [('LUT_names','LUT_names')])])
+
 """
-folds_save = node(name='Load_features',
-                  interface = fn(function = write_scalar,
-                                 input_names = ['depth_file'],
-                                 output_names = ['vertices, faces, depths']))
-featureflow.connect([(depth, depth_load, [('depth_file','depth_file')])])
-
-
-
-indices_folds = [x for lst in index_lists_folds for x in lst]
-# Remove faces that do not contain three fold vertices
-fs = frozenset(indices_folds)
-faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
-print('  Reduced {} to {} faces.'.format(len(faces),
-                                         len(faces_folds)))
-# Save vtk file
-folds_for_vtk = folds.copy()
-folds_for_vtk[folds == 0] = -1
-LUTs = [[int(x) for x in folds_for_vtk]]
-LUT_names = ['fold'+str(i+1) for i in range(n_folds)]
-io_vtk.writeSulci(load_path + 'folds.vtk', vertices, indices_folds,
-                  faces_folds, LUTs=LUTs, LUTNames=LUT_names)
-
-
-# Remove faces that do not contain three fold vertices
-indices_folds = [x for lst in index_lists_folds for x in lst]
-fs = frozenset(indices_folds)
-faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
-
     # Save fold likelihoods
         io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
                           indices_folds, faces_folds,
@@ -496,8 +484,6 @@ faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
         io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
             indices_folds, faces_folds,
             LUTs=[fundi_for_vtk], LUTNames=['fundi'])
-"""
-"""
 #-----------------------------------------------------------------------------
 # Load curvature file
 #-----------------------------------------------------------------------------
