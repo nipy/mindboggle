@@ -40,22 +40,26 @@ do_create_graph = 1
 #-----------------------------------------------------------------------------
 subjects = ['MMRR-21-1']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-basepath = '/projects/mindboggle/mindboggle'  # mindboggle directory
+basepath = '/projects/Mindboggle/mindboggle'  # mindboggle directory
 mbpath = path.join(basepath, 'mindboggle')
 utils_path = path.join(mbpath, 'utils')
 results_path = '/projects/mindboggle/results'  # Where to save output
+fundus_path = path.join(mbpath, 'extract/fundi_hmmf')
 temp_path = path.join(results_path, 'workingdir')  # Where to save temp files
 sys.path.append(mbpath)
 sys.path.append(utils_path)
-from freesurfer2vtk import freesurfer2vtk
+sys.path.append(fundus_path)
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
+from freesurfer2vtk import freesurfer2vtk
+from io_vtk import load_vtk_map #, write_vtk_map
 from atlas_functions import register_template, transform_atlas_labels,\
     majority_vote_label
 from volume_functions import write_label_file, label_to_annot_file,\
     fill_label_volume, measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
+from extract_folds import extract_folds
 #-----------------------------------------------------------------------------
 # Commands (must be compiled)
 #-----------------------------------------------------------------------------
@@ -390,10 +394,10 @@ if use_freesurfer:
                    [('out_file', 'Compute_curvature.surface_file')])])
 else:
     # Connect input to surface depth and curvature nodes
-    mbflow.connect([(atlasflow, featureflow, 
+    mbflow.connect([(atlasflow, featureflow,
                      [('Surfaces.surface_files',
                        'Compute_depth.surface_file')])])
-    mbflow.connect([(atlasflow, featureflow, 
+    mbflow.connect([(atlasflow, featureflow,
                      [('Surfaces.surface_files',
                        'Compute_curvature.surface_file')])])
 #-----------------------------------------------------------------------------
@@ -402,11 +406,11 @@ else:
 mbflow.connect([(featureflow, datasink,
                  [('Compute_depth.depth_file', 'surfaces.@depth')])])
 mbflow.connect([(featureflow, datasink,
-                 [('Compute_curvature.mean_curvature_file', 
+                 [('Compute_curvature.mean_curvature_file',
                    'surfaces.@mean_curvature'),
-                  ('Compute_curvature.gauss_curvature_file', 
+                  ('Compute_curvature.gauss_curvature_file',
                    'surfaces.@gauss_curvature'),
-                  ('Compute_curvature.max_curvature_file', 
+                  ('Compute_curvature.max_curvature_file',
                    'surfaces.@max_curvature'),
                   ('Compute_curvature.min_curvature_file',
                    'surfaces.@min_curvature'),
@@ -417,25 +421,112 @@ mbflow.connect([(featureflow, datasink,
 #   Feature extraction
 ##############################################################################
 #-----------------------------------------------------------------------------
-# Extract features
+# Load depth file
+#-----------------------------------------------------------------------------
+depth_load = node(name='Load_depth',
+                  interface = fn(function = load_vtk_map,
+                                 input_names = ['filename'],
+                                 output_names = ['vertices, faces, scalars']))
+#featureflow.add_nodes([depth_load])
+featureflow.connect([(depth, depth_load, [('depth_file','filename')])])
+#-----------------------------------------------------------------------------
+# Extract folds
+#-----------------------------------------------------------------------------
+folds = node(name='Extract_folds',
+             interface = fn(function = extract_folds,
+                            input_names = ['faces',
+                                           'depths',
+                                           'fraction_folds',
+                                           'min_fold_size'],
+                            output_names = ['folds',
+                                            'n_folds',
+                                            'index_lists_folds',
+                                            'neighbor_lists']))
+folds.inputs.fraction_folds = 0.5
+folds.inputs.min_fold_size = 50
+featureflow.add_nodes([folds])
+featureflow.connect([(depth_load, folds, [('faces','faces'),
+                                          ('scalars','depths')])])
+#-----------------------------------------------------------------------------
+# Save folds
 #-----------------------------------------------------------------------------
 """
+folds_save = node(name='Load_features',
+                  interface = fn(function = write_Sulci,
+                                 input_names = ['depth_file'],
+                                 output_names = ['vertices, faces, depths']))
+featureflow.connect([(depth, depth_load, [('depth_file','depth_file')])])
+
+
+
+indices_folds = [x for lst in index_lists_folds for x in lst]
+# Remove faces that do not contain three fold vertices
+fs = frozenset(indices_folds)
+faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
+print('  Reduced {} to {} faces.'.format(len(faces),
+                                         len(faces_folds)))
+# Save vtk file
+folds_for_vtk = folds.copy()
+folds_for_vtk[folds == 0] = -1
+LUTs = [[int(x) for x in folds_for_vtk]]
+LUT_names = ['fold'+str(i+1) for i in range(n_folds)]
+io_vtk.writeSulci(load_path + 'folds.vtk', vertices, indices_folds,
+                  faces_folds, LUTs=LUTs, LUTNames=LUT_names)
+
+
+# Remove faces that do not contain three fold vertices
+indices_folds = [x for lst in index_lists_folds for x in lst]
+fs = frozenset(indices_folds)
+faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
+
+    # Save fold likelihoods
+        io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
+                          indices_folds, faces_folds,
+                          LUTs=[likelihoods],
+                          LUTNames=['likelihoods'])
+    # Save fundi
+        fundi_for_vtk = np.ones(n_vertices)
+        for fundus in fundi:
+            if len(fundus) > 0:
+                fundi_for_vtk += fundus
+        io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
+            indices_folds, faces_folds,
+            LUTs=[fundi_for_vtk], LUTNames=['fundi'])
+"""
+"""
+#-----------------------------------------------------------------------------
+# Load curvature file
+#-----------------------------------------------------------------------------
+depth_load = node(name='Load_features',
+                interface = fn(function = load_VTK_Map,
+                            input_names = ['depth_file'],
+                            output_names = ['vertices, faces, depths']))
+featureflow.connect([(depth, depth_load, [('depth_file','depth_file')])])
+#-----------------------------------------------------------------------------
+# Extract fundi (curves at the bottoms of folds
+#-----------------------------------------------------------------------------
+curv_file = load_path + 'lh.pial.curv.avg.vtk'
+dir_file = load_path + 'lh.pial.curv.min.dir.csv'
+vertices, faces, mean_curvatures = io_vtk.load_VTK_Map(curv_file)
+vertices = np.array(vertices)
+mean_curvatures = np.array(mean_curvatures)
+min_directions = np.loadtxt(dir_file)
+
 fundi = node(name='Extract_fundi',
              interface = fn(function = extract_fundi,
-                            input_names = ['command',
-                                           'depth_file'],
+                            input_names = [index_lists_folds, n_folds, neighbor_lists,
+                                              vertices, faces, depths, mean_curvatures, min_directions,
+                                              min_fold_size, thr, min_distance]
                             output_names = ['fundi']))
 fundi.inputs.command = extract_fundi_command
-"""
-"""
-sulci = node(name='Extract_sulci',
-                interface = fn(
-                                 function = extract_sulci,
-                                 input_names = ['depth_file',
-                                                'mean_curv_file',
-                                                'gauss_curv_file'],
-                                 output_names = ['sulci']))
 
+"""
+"""
+#-----------------------------------------------------------------------------
+# Extract medial surfaces
+#-----------------------------------------------------------------------------
 medial = node(name='Extract_medial',
                  interface = fn(
                                   function = extract_midaxis,
@@ -443,20 +534,21 @@ medial = node(name='Extract_medial',
                                                  'mean_curv_file',
                                                  'gauss_curv_file'],
                                   output_names = ['midaxis']))
-
+"""
+"""
 #-----------------------------------------------------------------------------
 # Connect surface depth to feature extraction nodes
 #-----------------------------------------------------------------------------
 featureflow.connect([(depth, fundi,
                [('depth_file', 'depth_file')])])
-featureflow.connect([(fundi, datasink, 
+featureflow.connect([(fundi, datasink,
                [('fundi', 'fundi')])])
 
-featureflow.connect([(surfaces, sulcus_extraction, 
+featureflow.connect([(surfaces, sulcus_extraction,
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
-featureflow.connect([(surfaces, midaxis_extraction, 
+featureflow.connect([(surfaces, midaxis_extraction,
                [('depth_file', 'depth_file'),
                 ('mean_curv_file', 'mean_curv_file'),
                 ('gauss_curv_file', 'gauss_curv_file')])])
@@ -542,7 +634,7 @@ featureflow.connect([(extract_sulci, segment_sulci, [('sulci','sulci')]),
 featureflow.connect([(propagate, segment_sulci, [('labels','labels')]),
               (propagate, segment_fundi, [('labels','labels')]),
               (segment_sulci, segment_medial, [('segmented_sulci','labels')])])
-              
+
 ##############################################################################
 #   Shape measurement
 ##############################################################################
@@ -551,45 +643,45 @@ featureflow.connect([(propagate, segment_sulci, [('labels','labels')]),
 #-----------------------------------------------------------------------------
 positions = node(interface = fn(input_names = ['segmented_sulci',
                                                  'segmented_fundi',
-                                                 'segmented_midaxis', 
-                                                 'pits', 
-                                                 'patches', 
+                                                 'segmented_midaxis',
+                                                 'pits',
+                                                 'patches',
                                                  'regions'],
-                                  output_names=['positions_sulci', 
+                                  output_names=['positions_sulci',
                                                 'positions_fundi',
-                                                'positions_midaxis', 
-                                                'positions_pits', 
-                                                'positions_patches', 
+                                                'positions_midaxis',
+                                                'positions_pits',
+                                                'positions_patches',
                                                 'positions_regions'],
                                   function = measure_positions),
                     name='Measure_positions')
 
 extents = node(interface = fn(input_names = ['segmented_sulci',
                                                'segmented_fundi',
-                                               'segmented_midaxis', 
-                                               'pits', 
-                                               'patches', 
+                                               'segmented_midaxis',
+                                               'pits',
+                                               'patches',
                                                'regions'],
-                                output_names=['extents_sulci', 
+                                output_names=['extents_sulci',
                                               'extents_fundi',
-                                              'extents_midaxis', 
+                                              'extents_midaxis',
                                               'extents_pits',
-                                              'extents_patches', 
+                                              'extents_patches',
                                               'extents_regions'],
                                 function = measure_extents),
                     name='Measure_extents')
 
 curvatures = node(interface = fn(input_names = ['segmented_sulci',
                                                   'segmented_fundi',
-                                                  'segmented_midaxis', 
-                                                  'pits', 
-                                                  'patches', 
+                                                  'segmented_midaxis',
+                                                  'pits',
+                                                  'patches',
                                                   'regions'],
-                                   output_names=['curvatures_sulci', 
+                                   output_names=['curvatures_sulci',
                                                  'curvatures_fundi',
-                                                 'curvatures_midaxis', 
+                                                 'curvatures_midaxis',
                                                  'curvatures_pits',
-                                                 'curvatures_patches', 
+                                                 'curvatures_patches',
                                                  'curvatures_regions'],
                                    function = measure_curvatures),
                     name='Measure_curvatures')
@@ -597,14 +689,14 @@ curvatures = node(interface = fn(input_names = ['segmented_sulci',
 depths = node(interface = fn(input_names = ['segmented_sulci',
                                               'segmented_fundi',
                                               'segmented_midaxis',
-                                              'pits', 
-                                              'patches', 
+                                              'pits',
+                                              'patches',
                                               'regions'],
-                               output_names=['depths_sulci', 
+                               output_names=['depths_sulci',
                                              'depths_fundi',
                                              'depths_midaxis',
                                              'depths_pits',
-                                             'depths_patches', 
+                                             'depths_patches',
                                              'depths_regions'],
                                function = measure_depths),
                  name='Measure_depths')
@@ -612,14 +704,14 @@ depths = node(interface = fn(input_names = ['segmented_sulci',
 spectra = node(interface = fn(input_names = ['segmented_sulci',
                                                'segmented_fundi',
                                                'segmented_midaxis',
-                                               'pits', 
-                                               'patches', 
+                                               'pits',
+                                               'patches',
                                                'regions'],
                                 output_names=['spectra_sulci',
                                               'spectra_fundi',
                                               'spectra_midaxis',
                                               'spectra_pits',
-                                              'spectra_patches', 
+                                              'spectra_patches',
                                               'spectra_regions'],
                                 function = measure_spectra),
                   name='Measure_spectra')
@@ -733,7 +825,7 @@ featureflow.connect([(surfaces, maps_database, [('depth_file','depth_file'),
 featureflow.connect([(sulcus_segmentation, features_database, [('segmented_sulci', 'segmented_sulci')]),
               (fundus_segmentation, features_database, [('segmented_fundi', 'segmented_fundi')]),
               (pit_extraction, features_database, [('pits', 'pits')]),
-              (midaxis_segmentation, features_database, 
+              (midaxis_segmentation, features_database,
                           [('segmented_midaxis', 'segmented_midaxis')])])
 
 # Connect feature measures to database nodes
