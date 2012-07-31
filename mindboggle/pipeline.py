@@ -22,7 +22,7 @@ from re import findall
 #import numpy as np
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
-from nipype.pipeline.engine import MapNode as node
+from nipype.pipeline.engine import MapNode as mapnode
 from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
