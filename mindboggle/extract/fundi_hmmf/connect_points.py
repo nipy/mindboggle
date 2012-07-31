@@ -368,8 +368,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             if delta_points == 0:
                 if delta_cost < min_cost_change:
                     end_flag += 1
-#            else:
-#                end_flag = 0
+            else:
+                end_flag = 0
 
             # Display information every n_mod iterations
             if not np.mod(count, 20):
