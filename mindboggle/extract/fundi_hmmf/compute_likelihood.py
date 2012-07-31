@@ -54,11 +54,12 @@ def compute_likelihood(depths, curvatures):
    #==========================================
     # Normalize depth values to interval [0,1]
     # Curvature values retain their values
-    # Compute the median absolute deviations
+    # Compute the means and std. deviations
     #=========================================
     depths_norm = depths / max(depths)
     depth_avg = np.mean(depths_norm)
     depth_std = np.std(depths_norm)
+    curve_avg = np.mean(curvatures)
     curve_std = np.std(curvatures)
 
     #==========================================
@@ -66,13 +67,11 @@ def compute_likelihood(depths, curvatures):
     #==========================================
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
     # slope_factor = abs(np.log((1. / x) - 1))  # 2.197224577 for x = 0.9
-    #slope_factor = 2.197224577
-    #gain_depth = slope_factor / (2 * depth_std)
-    #gain_curve = slope_factor / (2 * curve_std)
+    # gain_depth = slope_factor / (2 * depth_std)
     gain_depth = 1 / depth_std
     gain_curve = 1 / curve_std
-    shift_depth = depth_avg + depth_std
-    shift_curve = 0
+    shift_depth = depth_avg - depth_std
+    shift_curve = curve_avg
 
     #==========================
     # Compute likelihood values
@@ -83,6 +82,7 @@ def compute_likelihood(depths, curvatures):
 
     likelihoods = depth_sigmoid * curve_sigmoid
 
+    # Plot the sigmoid curves (does not include value distributions)
     plot_result = False
     if plot_result:
         from matplotlib import pyplot
@@ -94,8 +94,8 @@ def compute_likelihood(depths, curvatures):
         pyplot.plot(xdepth, depth_sigmoid_sort, 'k')
         pyplot.plot(xcurve, curve_sigmoid_sort, 'b')
         pyplot.plot(xdepth, sigmoids, 'r')
-        pyplot.title('Depths, curvatures (gains = {:.3f}, {:.3f}; shift={:.3f})'.
-               format(gain_depth, gain_curve, shift_depth))
+        pyplot.title('Depths, curves: (gains={:.2f},{:.2f}; shifts={:.2f},{:.2f})'.
+               format(gain_depth, gain_curve, shift_depth, shift_curve))
         pyplot.show()
 
     return likelihoods
