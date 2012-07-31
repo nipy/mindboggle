@@ -167,12 +167,17 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     write_vertices(Fp, Vertices)
     write_faces(Fp, Faces)
     if len(LUTs) > 0:
+        # Make sure that LUTs is a list of lists
+        if type(LUTs[0]) != list:
+            LUTs = [LUTs]
         for i, LUT in enumerate(LUTs):
             if i == 0:
                 write_vertex_LUT(Fp, LUT, LUT_names[i])
             else:
                 write_vertex_LUT(Fp, LUT, LUT_names[i], at_LUT_begin=False)
     Fp.close()
+
+    return vtk_file
 
 def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     """
