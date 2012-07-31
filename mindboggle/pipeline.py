@@ -22,7 +22,7 @@ from re import findall
 #import numpy as np
 from nipype.pipeline.engine import Workflow as workflow
 from nipype.pipeline.engine import Node as node
-from nipype.pipeline.engine import MapNode as mapnode
+from nipype.pipeline.engine import MapNode as node
 from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
@@ -60,6 +60,7 @@ from volume_functions import write_label_file, label_to_annot_file,\
     fill_label_volume, measure_volume_overlap
 from surface_functions import compute_depth, compute_curvature
 from extract_folds import extract_folds
+from extract_fundi import extract_fundi
 #-----------------------------------------------------------------------------
 # Commands (must be compiled)
 #-----------------------------------------------------------------------------
@@ -421,7 +422,7 @@ mbflow.connect([(featureflow, datasink,
 #   Feature extraction
 ##############################################################################
 #-----------------------------------------------------------------------------
-# Load depth file
+# Load depth and curvature files
 #-----------------------------------------------------------------------------
 load_depth = node(name='Load_depth',
                   interface = fn(function = load_scalar,
@@ -430,6 +431,22 @@ load_depth = node(name='Load_depth',
                                                  'Faces',
                                                  'Scalars']))
 featureflow.connect([(depth, load_depth, [('depth_file','filename')])])
+
+load_curvature = node(name='Load_curvature',
+                      interface = fn(function = load_scalar,
+                                     input_names = ['filename'],
+                                     output_names = ['Points',
+                                                     'Faces',
+                                                     'Scalars']))
+featureflow.connect([(curvature, load_curvature, [('mean_curvature_file','filename')])])
+
+load_directions = node(name='Load_directions',
+                       interface = fn(function = load_scalar,
+                                      input_names = ['filename'],
+                                      output_names = ['Points',
+                                                      'Faces',
+                                                      'Scalars']))
+featureflow.connect([(curvature, load_directions, [('min_curvature_vector_file','filename')])])
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
@@ -447,12 +464,57 @@ folds = node(name='Extract_folds',
                                             'faces_folds',
                                             'LUTs',
                                             'LUT_names']))
-folds.inputs.fraction_folds = 0.5
-folds.inputs.min_fold_size = 50
+fraction_folds = 0.5
+min_fold_size = 50
+folds.inputs.fraction_folds = fraction_folds
+folds.inputs.min_fold_size = min_fold_size
 featureflow.connect([(load_depth, folds, [('Faces','faces'),
                                           ('Scalars','depths')])])
 #-----------------------------------------------------------------------------
-# Write folds to VTK file
+# Extract fundi (curves at the bottoms of folds)
+#-----------------------------------------------------------------------------
+fundi = node(name='Extract_fundi',
+             interface = fn(function = extract_fundi,
+                            input_names = ['index_lists_folds',
+                                           'n_folds',
+                                           'neighbor_lists',
+                                           'vertices',
+                                           'faces',
+                                           'depths',
+                                           'mean_curvatures',
+                                           'min_directions',
+                                           'min_fold_size',
+                                           'thr',
+                                           'min_distance'],
+                            output_names = ['fundi',
+                                            'fundus_lists',
+                                            'likelihoods']))
+thr = 0.5
+min_distance = 5.0
+fundi.inputs.thr = thr
+fundi.inputs.min_fold_size = min_fold_size
+fundi.inputs.min_distance = min_distance
+featureflow.connect([(folds, fundi, [('index_lists_folds','index_lists_folds'),
+                                     ('n_folds','n_folds'),
+                                     ('neighbor_lists','neighbor_lists'),
+                                     ('faces_folds','faces')]),
+                     (load_depth, fundi, [('Points','vertices'),
+                                          ('Scalars','depths')]),
+                     (load_curvature, fundi, [('Scalars','mean_curvatures')]),
+                     (load_directions, fundi, [('Scalars','min_directions')])])
+"""
+#-----------------------------------------------------------------------------
+# Extract medial surfaces
+#-----------------------------------------------------------------------------
+medial = node(name='Extract_medial',
+                 interface = fn(function = extract_midaxis,
+                                input_names = ['depth_file',
+                                               'mean_curv_file',
+                                               'gauss_curv_file'],
+                                output_names = ['midaxis']))
+"""
+#-----------------------------------------------------------------------------
+# Write folds, likelihoods, and fundi to VTK files
 #-----------------------------------------------------------------------------
 save_folds = node(name='Save_folds',
                   interface = fn(function = write_scalars,
@@ -462,85 +524,53 @@ save_folds = node(name='Save_folds',
                                                 'Faces',
                                                 'LUTs',
                                                 'LUT_names'],
-                                 output_names = ['']))
-save_folds.inputs.vtk_file = 'folds.vtk'
+                                 output_names = ['vtk_file']))
+save_folds.inputs.vtk_file = path.join(getcwd(), 'folds.vtk')
 featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
-featureflow.connect([(folds, save_folds, [('indices_folds','Vertices')])])
-featureflow.connect([(folds, save_folds, [('faces_folds','Faces')])])
-featureflow.connect([(folds, save_folds, [('LUTs','LUTs')])])
-featureflow.connect([(folds, save_folds, [('LUT_names','LUT_names')])])
+featureflow.connect([(folds, save_folds, [('indices_folds','Vertices'),
+                                          ('faces_folds','Faces'),
+                                          ('LUTs','LUTs'),
+                                          ('LUT_names','LUT_names')])])
+
+save_likelihoods = node(name='Save_likelihoods',
+                        interface = fn(function = write_scalars,
+                                       input_names = ['vtk_file',
+                                                      'Points',
+                                                      'Vertices',
+                                                      'Faces',
+                                                      'LUTs',
+                                                      'LUT_names'],
+                                       output_names = ['vtk_file']))
+save_fundi.inputs.vtk_file = path.join(getcwd(), 'likelihoods.vtk')
+save_fundi.inputs.LUT_names = ['likelihoods']
+featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
+featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
+                                          ('faces_folds','Faces')])])
+featureflow.connect([(fundi, save_likelihoods, [('LUTs','likelihoods')])])
+
+save_fundi = node(name='Save_fundi',
+                  interface = fn(function = write_scalars,
+                                 input_names = ['vtk_file',
+                                                'Points',
+                                                'Vertices',
+                                                'Faces',
+                                                'LUTs',
+                                                'LUT_names'],
+                                 output_names = ['vtk_file']))
+save_fundi.inputs.vtk_file = path.join(getcwd(), 'fundi.vtk')
+save_fundi.inputs.LUT_names = ['fundi']
+featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
+featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
+                                          ('faces_folds','Faces')])])
+featureflow.connect([(fundi, save_fundi, [('LUTs','fundi')])])
+
+mbflow.connect([(featureflow, datasink,
+                 [('Save_folds.vtk_file','folds'),
+                  ('Save_likelihoods.vtk_file','likelihoods'),
+                  ('Save_fundi.vtk_file','fundi')])])
+
 
 """
-    # Save fold likelihoods
-        io_vtk.writeSulci(load_path + 'likelihoods.vtk', vertices,
-                          indices_folds, faces_folds,
-                          LUTs=[likelihoods],
-                          LUTNames=['likelihoods'])
-    # Save fundi
-        fundi_for_vtk = np.ones(n_vertices)
-        for fundus in fundi:
-            if len(fundus) > 0:
-                fundi_for_vtk += fundus
-        io_vtk.writeSulci(load_path + 'fundi.vtk', vertices,
-            indices_folds, faces_folds,
-            LUTs=[fundi_for_vtk], LUTNames=['fundi'])
-#-----------------------------------------------------------------------------
-# Load curvature file
-#-----------------------------------------------------------------------------
-depth_load = node(name='Load_features',
-                interface = fn(function = load_VTK_Map,
-                            input_names = ['depth_file'],
-                            output_names = ['vertices, faces, depths']))
-featureflow.connect([(depth, depth_load, [('depth_file','depth_file')])])
-#-----------------------------------------------------------------------------
-# Extract fundi (curves at the bottoms of folds
-#-----------------------------------------------------------------------------
-curv_file = load_path + 'lh.pial.curv.avg.vtk'
-dir_file = load_path + 'lh.pial.curv.min.dir.csv'
-vertices, faces, mean_curvatures = io_vtk.load_VTK_Map(curv_file)
-vertices = np.array(vertices)
-mean_curvatures = np.array(mean_curvatures)
-min_directions = np.loadtxt(dir_file)
-
-fundi = node(name='Extract_fundi',
-             interface = fn(function = extract_fundi,
-                            input_names = [index_lists_folds, n_folds, neighbor_lists,
-                                              vertices, faces, depths, mean_curvatures, min_directions,
-                                              min_fold_size, thr, min_distance]
-                            output_names = ['fundi']))
-fundi.inputs.command = extract_fundi_command
-
-"""
-"""
-#-----------------------------------------------------------------------------
-# Extract medial surfaces
-#-----------------------------------------------------------------------------
-medial = node(name='Extract_medial',
-                 interface = fn(
-                                  function = extract_midaxis,
-                                  input_names = ['depth_file',
-                                                 'mean_curv_file',
-                                                 'gauss_curv_file'],
-                                  output_names = ['midaxis']))
-"""
-"""
-#-----------------------------------------------------------------------------
-# Connect surface depth to feature extraction nodes
-#-----------------------------------------------------------------------------
-featureflow.connect([(depth, fundi,
-               [('depth_file', 'depth_file')])])
-featureflow.connect([(fundi, datasink,
-               [('fundi', 'fundi')])])
-
-featureflow.connect([(surfaces, sulcus_extraction,
-               [('depth_file', 'depth_file'),
-                ('mean_curv_file', 'mean_curv_file'),
-                ('gauss_curv_file', 'gauss_curv_file')])])
-featureflow.connect([(surfaces, midaxis_extraction,
-               [('depth_file', 'depth_file'),
-                ('mean_curv_file', 'mean_curv_file'),
-                ('gauss_curv_file', 'gauss_curv_file')])])
-
 ##############################################################################
 #   Label propagation
 ##############################################################################
