@@ -373,12 +373,15 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
             # Display information every n_mod iterations
             if not np.mod(count, 20):
-                print('      {}: grad={:.3f}; wN={:.2f}; -cost={:.6f}; -points={}'.
-                      format(count, gradient_factor, wN, delta_cost, delta_points))
+                print('      {}: mean cost decrease, ' \
+                      'points crossing threshold: {:.6f}   {}'.
+                      format(count, delta_cost, delta_points))
+                #print('      {}: grad={:.3f}; wN={:.2f}'.
+                #      format(count, gradient_factor, wN))
 
             # Increment next gradient factor and decrement next neighborhood
             # weight as a function of net number of points crossing threshold
-            n_change = max([abs(delta_points), 1])
+            n_change = max([abs(delta_points), 20])
             gradient_factor = grad_min + (grad_max - grad_min) / n_change
             wN = wN_max - (wN_max - wN_min) / n_change
 
