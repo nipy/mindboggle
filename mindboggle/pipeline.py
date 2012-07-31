@@ -53,7 +53,7 @@ sys.path.append(fundus_path)
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from freesurfer2vtk import freesurfer2vtk
-from io_vtk import load_vtk_map #, write_vtk_map
+from io_vtk import load_scalar, write_scalar
 from atlas_functions import register_template, transform_atlas_labels,\
     majority_vote_label
 from volume_functions import write_label_file, label_to_annot_file,\
@@ -424,7 +424,7 @@ mbflow.connect([(featureflow, datasink,
 # Load depth file
 #-----------------------------------------------------------------------------
 depth_load = node(name='Load_depth',
-                  interface = fn(function = load_vtk_map,
+                  interface = fn(function = load_scalar,
                                  input_names = ['filename'],
                                  output_names = ['vertices, faces, scalars']))
 #featureflow.add_nodes([depth_load])
@@ -432,6 +432,7 @@ featureflow.connect([(depth, depth_load, [('depth_file','filename')])])
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
+"""
 folds = node(name='Extract_folds',
              interface = fn(function = extract_folds,
                             input_names = ['faces',
@@ -447,12 +448,13 @@ folds.inputs.min_fold_size = 50
 featureflow.add_nodes([folds])
 featureflow.connect([(depth_load, folds, [('faces','faces'),
                                           ('scalars','depths')])])
+"""
 #-----------------------------------------------------------------------------
 # Save folds
 #-----------------------------------------------------------------------------
 """
 folds_save = node(name='Load_features',
-                  interface = fn(function = write_Sulci,
+                  interface = fn(function = write_scalar,
                                  input_names = ['depth_file'],
                                  output_names = ['vertices, faces, depths']))
 featureflow.connect([(depth, depth_load, [('depth_file','depth_file')])])
