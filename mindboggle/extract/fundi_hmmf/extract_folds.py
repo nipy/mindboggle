@@ -205,7 +205,11 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size):
     ------
     folds: label indices for folds: [#vertices x 1] numpy array
     n_folds:  #folds [int]
-    folds_index_lists:  list of #folds lists of vertex indices
+    indices_folds:  list of fold vertex indices
+    index_lists_folds:  list of #folds lists of fold vertex indices
+    faces_folds:  faces that whose vertices are all in folds
+    LUTs:  lookup lists of values
+    LUT_names:  lookup list names
 
     Calls:
     -----
@@ -277,9 +281,23 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size):
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
                          for i in range(1, n_folds+1)]
+    indices_folds = [x for lst in index_lists_folds for x in lst]
+
+    # Remove faces that do not contain three fold vertices
+    fs = frozenset(indices_folds)
+    faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+    faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
+    print('  Reduced {} to {} triangular faces within folds.'.
+          format(len(faces), len(faces_folds)))
+
+    # Lookup lists for saving to VTK format files
+    LUTs = [[int(x) for x in folds]]
+    LUT_names = ['fold'+str(i+1) for i in range(n_folds)]
 
     print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
           format(min_depth, time() - t0))
 
-    # Return folds, the number of folds, and lists of indices for each fold
-    return folds, n_folds, index_lists_folds, neighbor_lists
+    # Return folds, number of folds, indices & lists of indices for each fold,
+    # fold faces, and lookup lists
+    return folds, n_folds, indices_folds, index_lists_folds, neighbor_lists,\
+           faces_folds, LUTs, LUT_names
