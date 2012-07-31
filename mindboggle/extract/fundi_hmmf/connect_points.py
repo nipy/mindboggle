@@ -49,7 +49,6 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     cost
 
     """
-
     cost = hmmf * (1 - likelihood) +\
            wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
