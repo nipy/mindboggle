@@ -74,21 +74,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
         index_lists_folds = pickle.load(open(load_path + "index_lists_folds.p","rb"))
         neighbor_lists = pickle.load(open(load_path + "neighbor_lists.p","rb"))
     else:
-        print("Extract folds from surface mesh...")
-        t0 = time()
-
-        # Compute the minimum depth threshold for defining folds by determining the
-        # percentile of depth values for the fraction of vertices that are not folds.
-        # For example, if we consider the shallowest one-third of vertices not to be
-        # folds, we compute the depth percentile, and two-thirds of vertices would
-        # have at least this depth value and would be considered folds.
-        min_depth = percentile(np.sort(depths), 1 - fraction_folds,
-                               key=lambda x:x)
-
         folds, n_folds, index_lists_folds, neighbor_lists = extract_folds(
-            faces, depths, min_depth, min_fold_size)
-        print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
-              format(min_depth, time() - t0))
+            faces, depths, fraction_folds, min_fold_size)
 
         if save_folds:
             pickle.dump(folds, open(load_path + "folds.p","wb"))
