@@ -212,23 +212,34 @@ def extract_folds(faces, depths, min_depth, min_fold_size):
 
     """
 
+    print("Extract folds from surface mesh...")
+    t0 = time()
+
+    # Compute the minimum depth threshold for defining folds by determining the
+    # percentile of depth values for the fraction of vertices that are not folds.
+    # For example, if we consider the shallowest one-third of vertices not to be
+    # folds, we compute the depth percentile, and two-thirds of vertices would
+    # have at least this depth value and would be considered folds.
+    min_depth = percentile(np.sort(depths), 1 - fraction_folds,
+                           key=lambda x:x)
+
     n_vertices = len(depths)
 
     # Segment folds of a surface mesh
     print("  Segment surface mesh into separate folds deeper than {:.2f}...".
           format(min_depth))
-    t0 = time()
+    t1 = time()
     seeds = np.where(depths > min_depth)[0]
     folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(
         faces, seeds, n_vertices, 3, min_fold_size)
-    print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t0))
+    print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t1))
 
     # If there are any folds
     if n_folds > 0:
 
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep) and have some minimum depth
-        t1 = time()
+        t2 = time()
         seeds = [i for i,x in enumerate(folds) if x==0]  # and depths[i] > md]
 
         # Segment holes in the folds
@@ -255,15 +266,18 @@ def extract_folds(faces, depths, min_depth, min_fold_size):
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
             n_holes -= 1
-            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t1))
+            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t2))
 
-            t0 = time()
+            t3 = time()
             folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
-            print('  Filled holes ({:.2f} seconds)'.format(time() - t0))
+            print('  Filled holes ({:.2f} seconds)'.format(time() - t3))
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
                          for i in range(1, n_folds+1)]
+
+    print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
+          format(min_depth, time() - t0))
 
     # Return folds, the number of folds, and lists of indices for each fold
     return folds, n_folds, index_lists_folds, neighbor_lists
