@@ -202,13 +202,6 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
                 # If a simple point, remove and run again
                 if update and n_in > 1:
                     B[index] = 0
-
-
-
-                    print('removed point')
-
-
-
                     exist_simple = True
 
     return B
@@ -272,23 +265,22 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Parameters
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters
-    wN = 0.5  # initial weight of neighbors on cost function
-    wN_step = 0 #.01  # step neighborhood weight down toward end
-    H_step = 0.05  # step down HMMF value
+    wN_max = 0.5  # maximum neighborhood weight
+    wN_min = 0.1  # minimum neighborhood weight
+    H_step = 0.1  # step down HMMF value
+    H_min = thr - H_step  # minimum HMMF value to be processed
 
     # Parameters to speed up optimization and for termination of the algorithm
-    gradient_init = 0.1  # initialize gradient factor
-    gradient_step = 0.001  # step up gradient factor each iteration
+    grad_min = 0.1  # minimum gradient factor
+    grad_max = 0.2  # maximum gradient factor
     min_cost_change = 0.0001  # minimum change in the sum of costs
     n_tries_no_change = 3  # number of loops without sufficient change
     max_count = 1000  # maximum number of iterations (in case no convergence)
-    H_min = 0.01  # minimum H value that is processed
     #-------------------------------------------------------------------------
 
     # Initialize all Hidden Markov Measure Field (HMMF) values with
     # likelihood values (except 0) normalized to the interval (0.5, 1.0]
-    # (to guarantee correct topology) and take those values that are greater
-    # than the likelihood threshold.  Assign a 1 for each anchor point.
+    # (to guarantee correct topology). Assign a 1 for each anchor point.
     n_vertices = len(indices)
     C = np.zeros(len(L))
     H = C.copy()
@@ -311,7 +303,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
             N[index] = find_neighbors(faces, index)
 
     # Assign cost values to each vertex
-    C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN) for i in indices]
+    C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN_max) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
@@ -319,13 +311,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     count = 0
     end_flag = 0
     H_new = H.copy()
+    wN = wN_max
+    gradient_factor = grad_max
     while end_flag < n_tries_no_change and count < max_count:
-
-        # At each iteration, step up gradient factor
-        gradient_factor = min([gradient_init + gradient_step * count, 1])
-
-        # De-weight neighborhood influence of cost function
-        wN = max([wN - wN_step, 0])
 
         # For each index
         for index in indices:
@@ -344,7 +332,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
                     # Update the HMMF value if near the threshold
                     # such that a step makes it cross the threshold,
-                    # and the vertex is a "simple point" and can be updated
+                    # and the vertex is a "simple point"
                     # Note: H_new[index] is not changed yet since
                     #       simple_test() only considers its neighbors
                     if H[index] >= thr >= H_test:
@@ -370,22 +358,32 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
         # of HMMF values greater than the threshold.
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag.
-        sum_C = sum(C)
+        costs = sum(C)
         n_points = sum([1 for x in H if x > thr])
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
-            print('      {}: factor={:.3f}; -points={}; delta cost={:.8f}; wN={:.2f}'.
-                  format(count, gradient_factor, n_points_previous - n_points,
-                         (sum_C_previous - sum_C) / n_vertices, wN))
-            if n_points == n_points_previous:
-                if (sum_C_previous - sum_C) / n_vertices < min_cost_change:
+            delta_cost = (costs_previous - costs) / n_vertices
+            delta_points = n_points_previous - n_points
+            if delta_points == 0:
+                if delta_cost < min_cost_change:
                     end_flag += 1
 #            else:
 #                end_flag = 0
 
+            # Display information every n_mod iterations
+            if not np.mod(count, 20):
+                print('      {}: grad={:.3f}; wN={:.2f}; -cost={:.6f}; -points={}'.
+                      format(count, gradient_factor, wN, delta_cost, delta_points))
+
+            # Increment next gradient factor and decrement next neighborhood
+            # weight as a function of net number of points crossing threshold
+            n_change = max([abs(delta_points), 1])
+            gradient_factor = grad_min + (grad_max - grad_min) / n_change
+            wN = wN_max - (wN_max - wN_min) / n_change
+
         # Reset for next iteration
-        sum_C_previous = sum_C
+        costs_previous = costs
         n_points_previous = n_points
         H = H_new
 
@@ -396,10 +394,11 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Threshold the resulting array
     H[H > thr] = 1
     H[H <= thr] = 0
+    n_points = sum(H)
 
     # Skeletonize
     skeleton = skeletonize(H, anchors, faces, N)
     print('      Removed {} points to create one-vertex-thin skeletons'.
-          format(sum(H) - sum(skeleton)))
+          format(n_points - sum(skeleton)))
 
     return skeleton
