@@ -25,7 +25,9 @@ Authors:
 import numpy as np
 from find_points import find_neighbors
 from time import time
-
+import sys
+sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
+from percentile import percentile
 
 #========================
 # Segment surface patches
@@ -188,7 +190,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, min_depth, min_fold_size):
+def extract_folds(faces, depths, fraction_folds, min_fold_size):
     """
     Extract folds.
 
