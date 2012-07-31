@@ -120,8 +120,8 @@ def extract_fundi(vertices, faces, depths, mean_curvatures, min_directions,
     likelihoods = Z.copy()
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
-      print('Only computing fold 17')
-      if i_fold == 17:
+#      print('Only computing fold 17')
+#      if i_fold == 17:
         print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
