@@ -1,15 +1,16 @@
 #!/usr/bin/python
 
 """
-Convert surface mesh labels to volume labels.
+Convert surface mesh labels to volume labels and evaluate.
 
 1. Write surface mesh labels FreeSurfer's .label file.
 2. Use FreeSurfer's mris_label2annot and mri_aparc2aseg
    to convert these label files to .annot files and fill
    a gray matter volume with the labels.
+3. Measure volume overlap between the labels of two volumes.
 
-
-Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Authors:
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
