@@ -46,7 +46,7 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
 from utils.io_vtk import load_scalar, write_scalars
-from freesurfer2vtk import freesurfer2vtk
+from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
            transform_atlas_labels,  majority_vote_label
 from measure.measure_functions import compute_depth, compute_curvature
