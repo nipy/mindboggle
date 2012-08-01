@@ -1,16 +1,15 @@
 #!/usr/bin/python
 
 """
-Convert surface mesh labels to volume labels and evaluate.
+Convert surface mesh labels to volume labels.
 
 1. Write surface mesh labels FreeSurfer's .label file.
 2. Use FreeSurfer's mris_label2annot and mri_aparc2aseg
    to convert these label files to .annot files and fill
    a gray matter volume with the labels.
-3. Measure volume overlap between the labels of two volumes.
 
-Authors:
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+
+Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -140,80 +139,3 @@ def fill_label_volume(subject, annot_name):
     cli.run()
 
     return output_file
-
-def measure_volume_overlap(subject, labels, input_file, atlases_path, atlases, atlases2):
-    """
-    Measure overlap between individual label regions in a source and target image.
-
-    Input:
-    arg1, arg2:  source, target images, consisting of index-labeled pixels/voxels
-    arg3:  list of label indices
-
-    """
-
-    from os import path, getcwd, error
-    import nibabel as nb
-    import numpy as np
-    from nipype import logging
-    logger = logging.getLogger('interface')
-
-    # Input files
-    if type(input_file) == str:
-        pass
-    elif type(input_file) == list:
-        input_file = input_file[0]
-    else:
-        error("Check format of " + input_file)
-
-    # Find atlas in atlases list that corresponds to subject (in atlases2 list)
-    if subject in atlases2:
-        iatlas = atlases2.index(subject)
-        atlas = atlases[iatlas]
-        atlas_file = path.join(atlases_path, 'atlases', atlas, 'aparcNMMjt+aseg.mgz')
-    else:
-        import sys
-        sys.exit(subject + " not in list")
-    input_data = nb.load(input_file).get_data().ravel()
-    atlas_data = nb.load(atlas_file).get_data().ravel()
-
-    # Set up the output csv file
-    output_table = path.join(getcwd(), input_file.strip('.nii.gz')+'.csv')
-    try:
-        f = open(output_table,"w")
-    except IOError:
-        raise
-
-    # For each label, compute Dice and Jaccard coefficients
-    avg_dice = 0
-    avg_jacc = 0
-    f.writelines("Label, Dice, Jaccard\n")
-    for label in labels:
-        f.writelines(str(label)+", ")
-        input_indices = np.where(input_data==label)[0]
-        atlas_indices = np.where(atlas_data==label)[0]
-        input_label_sum = np.sum(input_indices)
-        atlas_label_sum = np.sum(atlas_indices)
-        intersect_label_sum = np.sum(np.intersect1d(input_indices, atlas_indices))
-        union_label_sum = np.sum(np.union1d(input_indices, atlas_indices))
-        #print(str(label), str(input_label_sum), str(atlas_label_sum),
-        #      str(intersect_label_sum), str(union_label_sum))
-
-        if intersect_label_sum > 0:
-            dice = 2 * intersect_label_sum / (input_label_sum + atlas_label_sum)
-            jacc = intersect_label_sum / union_label_sum
-            f.writelines(str(dice) + ", " + str(jacc) + "\n")
-            avg_dice += dice
-            avg_jacc += jacc
-        else:
-            f.writelines("0, 0\n")
-    avg_dice = avg_dice/len(labels)
-    avg_jacc = avg_jacc/len(labels)
-
-    f.writelines("Total, " + str(avg_dice) + ", " + str(avg_jacc) + "\n")
-    f.close()
-
-    print('Average Dice: ' + str(avg_dice))
-    print('Average Jacc: ' + str(avg_jacc))
-
-    return output_table
-
