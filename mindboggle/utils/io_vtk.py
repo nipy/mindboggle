@@ -233,7 +233,7 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     Fp.close()
 
 def surf_to_vtk(surface_file):
-    Vertex, Face = io_file.readSurf(surface_file)
+    Vertex, Face = io_file.read_surface(surface_file)
     Fp = open(surface_file + '.vtk', 'w')
     write_header(Fp, Title='vtk output from'+surface_file)
     write_points(Fp, Vertex)
@@ -249,7 +249,7 @@ def face_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]
 
     """
     Fp = open(vtk_file,'w')
-    Vertex, Face = io_file.readSurf(surface_file)
+    Vertex, Face = io_file.read_surface(surface_file)
     index_pair_list = load_fundi_list(index_pair_file)
     write_feature_to_face(Fp, Vertex, Face, index_pair_list)
 
@@ -281,7 +281,7 @@ def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=
 
     """
     Fp = open(vtk_file,'w')
-    Vertex, Face = io_file.readSurf(surface_file)
+    Vertex, Face = io_file.read_surface(surface_file)
     index_pair_list = load_fundi_list(index_pair_file)
     write_vertices_to_fundi(Fp, Vertex, index_pair_list)
     if LUT!=[]:
@@ -312,7 +312,7 @@ def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTnam
 
     """
     Fp = open(vtk_file,'w')
-    Vertex, Face = io_file.readSurf(surface_file)
+    Vertex, Face = io_file.read_surface(surface_file)
     index_pair_list = load_segmented_fundi(index_pair_file)
     write_line_segments_to_fundi(Fp, Vertex, index_pair_list)
 

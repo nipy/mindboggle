@@ -1,10 +1,15 @@
 #!/usr/bin/python
 
 """
-Save the vertices of a FreeSurfer surface mesh as an image volume.
+Convert surface mesh labels to volume labels and evaluate.
 
+1. Write surface mesh labels FreeSurfer's .label file.
+2. Use FreeSurfer's mris_label2annot and mri_aparc2aseg
+   to convert these label files to .annot files and fill
+   a gray matter volume with the labels.
+3. Measure volume overlap between the labels of two volumes.
 
-Authors:  
+Authors:
 Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
@@ -82,13 +87,14 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
     """
     Convert FreeSurfer .label files as a FreeSurfer .annot file
     using FreeSurfer's mris_label2annot.
+
     """
 
     from os import path
     from nipype.interfaces.base import CommandLine
     from nipype import logging
     logger = logging.getLogger('interface')
-    
+
     label_files = [f for f in label_files if f!=None]
     if label_files:
         annot_name = 'labels.max'
@@ -110,8 +116,9 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
 
 def fill_label_volume(subject, annot_name):
     """
-    Propagate surface labels through a gray matter volume 
+    Propagate surface labels through a gray matter volume
     using FreeSurfer's mri_aparc2aseg
+
     """
 
     from os import path, getcwd
