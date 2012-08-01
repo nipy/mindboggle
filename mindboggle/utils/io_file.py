@@ -1,13 +1,12 @@
 #!/usr/bin/python
 """
 This Python library reads FreeSurfer format files
-including surface, curvature, and convexity files.  
-The function readSurf reads in surface files, 
-while the function readCurv reads in both 
+including surface, curvature, and convexity files.
+The function readSurf reads in surface files,
+while the function read_curvature reads in both
 curvature (.curv) and convexity (.sulc) files.
 
-Authors:  Forrest Sheng Bao http://fsbao.net
-Version:  0.2, last update on 2012-06-29
+Author:  Forrest Sheng Bao http://fsbao.net
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -16,29 +15,29 @@ Version:  0.2, last update on 2012-06-29
 import struct, os
 
 
-def readSurf(filename):
+def read_surface(filename):
     """
-    Read in a FreeSurfer Triangle Surface in Binary Format.
-    
+    Read in a FreeSurfer triangle surface mesh in binary format.
+
     Parameters
     ===========
-    Filename : string
+    filename : string
         A binary FreeSurfer Triangle Surface file
-    
+
     Outputs
     =======
     Vertex : list of 3-tuples of floats
-        Each element is a 3-tuple (list) of floats, which are the X, Y and Z coordinates of a vertex, respectively. 
-        A 3-tuple's index in the list *Vertex* is the ID of a vertex. 
-    
-    Face : list of 3-tuples of integers   
+        Each element is a 3-tuple (list) of floats, which are the X, Y and Z coordinates of a vertex, respectively.
+        A 3-tuple's index in the list *Vertex* is the ID of a vertex.
+
+    Face : list of 3-tuples of integers
         Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertexes that form one face
-    
+
     Example
     ========
-    
+
     >>> import readFreeSurfer as rfs
-    >>> Vrtx, Face = rfs.readSurf('lh.pial')
+    >>> Vrtx, Face = rfs.read_surface('lh.pial')
     >>> len(Vrtx)
     130412
     >>> len(Face)
@@ -47,22 +46,22 @@ def readSurf(filename):
     [-7.902474880218506, -95.6839370727539, -21.856534957885742]
     >>> Face[10]
     [2, 39, 3]
-    
+
     """
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
-    
+
     s = f.read(50)   # the second field is a string of variable length
     End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
-    
-    f.seek(3+End2+2)  # jump to immediate Byte after the creating information  
-    
+
+    f.seek(3+End2+2)  # jump to immediate Byte after the creating information
+
     s = f.read(8)
     VertexCount, FaceCount = struct.unpack(">ii", s)
-#    print "This hemisphere has", VertexCount, "Vertexes and", FaceCount, "Faces"
-        
+    # print("This hemisphere has", VertexCount, "Vertexes and", FaceCount, "Faces")
+
     Vertex, Face = [], []
-    
+
     for i in xrange(0, VertexCount):
         s = f.read(8)
         R, A = struct.unpack(">ff", s)
@@ -70,126 +69,115 @@ def readSurf(filename):
         s = f.read(8)
         A, S = struct.unpack(">ff", s)
         Vertex.append([R,A,S]) # R, A, S are the coordinates of vertexes
-        #print i
-        
+
     for i in xrange(0, FaceCount):
         s = f.read(8)
         V0, V1 = struct.unpack(">ii", s)
         f.seek(-4, os.SEEK_CUR)
         s = f.read(8)
         V1, V2 = struct.unpack(">ii", s)
-        Face.append([V0, V1, V2])      
-        #print i, V0, V1, V2
+        Face.append([V0, V1, V2])
 
     return Vertex, Face
-    
-def readCurv(filename):
+
+def read_curvature(filename):
     """
-    Read in a FreeSurfer curvature (per-vertex) files.
-    
+    Read in a FreeSurfer curvature (per-vertex) file.
+
     Parameters
     ==========
-    
-    Filename : string
+
+    filename : string
         A binary FreeSurfer curvature (pre-vertex) file
-    
+
     Outputs
     ========
-    
+
     Curvature : list of floats
-        Each element is the curvature value of a FreeSurfer mesh vertex. 
-        Elements are ordered by orders of vertexes in FreeSurfer surface file. 
-    
+        Each element is the curvature value of a FreeSurfer mesh vertex.
+        Elements are ordered by orders of vertexes in FreeSurfer surface file.
+
     Example
     ========
-    
+
     >>> import readFreeSurfer as rfs
-    >>> Curv = rfs.readCurv('lh.curv')
+    >>> Curv = rfs.read_curvature('lh.curv')
     >>> len(Curv)
     130412
     >>> Curv[10]
     -0.37290969491004944
-    
+
     """
     f = open(filename, "rb")
-    
+
     f.seek(3) # skip the first 3 Bytes "Magic" number
-    
+
     s = f.read(8)  # get the VertexCount and FaceCount
     VertexCount, FaceCount = struct.unpack(">ii", s)
-#    print "# of Vertexes:", VertexCount, ", # of Faces:", FaceCount
-    
+    # print("# of Vertexes:", VertexCount, ", # of Faces:", FaceCount)
+
     Curvature = [0.0]
-    
+
     s = f.read(8)
     ValsPerVertex, Curvature[0] = struct.unpack(">if", s)
-    
+
     VertexCount -= 1  # because the first curvature value has been loaded
-    
+
     while VertexCount > 1:
         s = f.read(8)
         VertexVal1, VertexVal2  =  struct.unpack(">ff", s)
         Curvature += [VertexVal1, VertexVal2]
-        VertexCount -= 2    
-    
-    if VertexCount != 0: # number of vertexes is even (NOT ODD!!!)
-        f.seek(-4, os.SEEK_CUR)       # backward 4 Bytes from current position
+        VertexCount -= 2
+
+    if VertexCount != 0:  # number of vertexes is even (NOT ODD!!!)
+        f.seek(-4, os.SEEK_CUR)  # backward 4 Bytes from current position
         s = f.read(8)
         VertexVal1, VertexVal2 = struct.unpack(">ff", s)
         Curvature.append(VertexVal2)
-            
-#    if f.read() == '':
-#        print "Loading per-vertex file ", filename, " succeeded. Da-da!"
-#        return 0, Curvature
-#    elif f.read() != '':
-#        print "Loading per-vertex file ", filename, "does not reach the EOF. Oops!"
-#        return -1, Curvature
-#    else:
-#        print "Loading per-vertex file ", filename, " reaches an unknown error. Debug! "
-#        return -2, Curvature
 
     f.close()
 
     return Curvature
 
-def writeList(File, List):
+def write_list(filename, List):
     """
-    Write a list in to a file, each line of which is a list element
+    Write a list in to a file, each line of which is a list element.
     """
-    Fp = open(File,'w')
+    Fp = open(filename,'w')
     for Element in List:
         Fp.write(str(Element) + '\n')
     Fp.close()
 
-def loadVrtxNbrLst(Filename):
+def load_vertex_neighbor_list(filename):
     """
-    Load neighbor list of vertexes from a file
+    Load neighbor list of vertexes from a file.
 
     Input
     ======
-        Filename: string
+        filename: string
             the file from which neighbor list will be loaded
 
     """
     NbrLst = []
-    Fp = open(Filename, 'r')
+    Fp = open(filename, 'r')
     lines = Fp.readlines()
     for line in lines:
         NbrLst.append([int(i) for i in line.split()])
     Fp.close()
     return NbrLst
 
-def loadFcNbrLst(Filename):
-    """Load neighbor list of faces from a file
+def load_faces_neighbor_list(filename):
+    """
+    Load neighbor list of faces from a file.
 
     Input
     ======
-        Filename: string
+        filename: string
             the file from which neighbor list will be loaded
 
     """
     NbrLst = []
-    Fp = open(Filename, 'r')
+    Fp = open(filename, 'r')
     lines = Fp.readlines()
     for line in lines:
         six = [int(i) for i in line.split()]
@@ -199,63 +187,63 @@ def loadFcNbrLst(Filename):
 
 
 
-def writeFundiSeg(Filename, Paths):
+def write_line_segments(filename, line_paths):
     """
-    Write fundi as curve segments, each line contains segments
-    consisting of the path from a fundus vertex to the nearest fundus vertex.
+    Write a curve (e.g., fundus) as curve segments, each line contains a segment.
+    consisting of the path from one (e.g., fundus) vertex to the nearest (e.g., fundus) vertex.
     """
-    Fp = open(Filename, 'w')
-    for Path in Paths:
-        if len(Path)>1:
-            [Fp.write(str(Path[i]) + '\t' + str(Path[i+1]) + '\n') for i in xrange(0,len(Path)-1)]
-            
+    Fp = open(filename, 'w')
+    for line_path in line_paths:
+        if len(line_path) > 1:
+            [Fp.write(str(line_path[i]) + '\t' + str(line_path[i+1]) + '\n') for i in xrange(0,len(line_path)-1)]
+
     Fp.close()
-    
-def writeDTMap(Filename, Maps):
+
+def write_distance_transform(filename, DT_map):
     """
-    Write distance transform map into file, each line for a connected component
+    Write distance transform map into file, each line for a connected component.
     """
-    
-    Fp = open(Filename, 'w')
-    for Map in Maps:
-        [Fp.write(str(Dist) + '\t') for Dist in Map]
+
+    Fp = open(filename, 'w')
+    for DT_map in DT_map:
+        [Fp.write(str(dist) + '\t') for dist in DT_map]
         Fp.write('\n')
     Fp.close()
-    
-def wrtLists(Filename, Lists):
+
+def write_lists(filename, input_lists):
     """
     Output list of lists, each line in the file contains one element
-    (also a list) of the top-level list
-    
+    (also a list) of the top-level list.
+
     Parameters
     ==========
-    
-    Lists : List of lists (2-D so far)
-        Each element of Lists is a 2-D list of equal or unequal size  
-    
-    Notes 
+
+    input_lists : List of lists (2-D so far)
+        Each element of input_lists is a 2-D list of equal or unequal size
+
+    Notes
     ======
-    
+
     2-D lists are seperated by a delimiter which is 4 dashes now: \n----\n
-    
+
     """
-    
-    Fp = open(Filename, 'w')
-    for List in Lists:
-        for Row in List:
+
+    Fp = open(filename, 'w')
+    for input_list in input_lists:
+        for Row in input_list:
             for Element in Row:
                 Fp.write(str(Element) + '\t')
             Fp.write('\n')
         Fp.write('----\n')
     Fp.close()
-    
-def readLists(Filename):
-    """The reversing function of wrtLists
-    
+
+def read_lists(filename):
+    """The reversing function of write_lists
+
     Assume all data are supposed to be integers. Change if floats are needed.
-    
+
     """
-    Fp = open(Filename, 'r')
+    Fp = open(filename, 'r')
     Lists = [[]]  # initially, there is one list in lists
     while True:
         Line = Fp.readline()
@@ -269,14 +257,14 @@ def readLists(Filename):
                 Row = [int(i) for i in Line.split()]
                 Lists[-1].append(Row)
     Fp.close()
-                
+
     return Lists[:-1] # because last one is an empty list
 
-def readFltLsts(Filename):
-    """Read in float type lists 
-    
+def read_float_lists(filename):
+    """Read in float type lists
+
     """
-    Fp = open(Filename, 'r')
+    Fp = open(filename, 'r')
     Lists = [[]]  # initially, there is one list in lists
     while True:
         Line = Fp.readline()
@@ -290,29 +278,29 @@ def readFltLsts(Filename):
                 Row = [float(i) for i in Line.split()]
                 Lists[-1].append(Row)
     Fp.close()
-                
+
     return Lists[:-1] # because last one is an empty list
 
-def load_min_curv_direction(Filename):
+def load_min_curv_direction(filename):
     """
     Load minimal curvature directions computed by Joachim's CurvatureMain.cpp
-    
+
     Parameters
     ===========
-    
-        Filename: string
+
+        filename: string
             The path to the file that stores minimal curvature directions
-    
+
     Returns
     =========
-    
+
         Min_Curv_Dir: 2D numpy array of 3-by-#Vertex floats
             Each element is a 3-tuple of floats,
             representing the direction of minimal curvature at a vertex
     """
-    
+
     import numpy
-    
-    Min_Curv_Dir = numpy.loadtxt(Filename)
-    
-    return Min_Curv_Dir 
+
+    Min_Curv_Dir = numpy.loadtxt(filename)
+
+    return Min_Curv_Dir
