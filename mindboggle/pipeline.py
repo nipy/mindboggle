@@ -23,11 +23,6 @@ import sys
 from os import path, environ, makedirs, getcwd
 from re import findall
 #-----------------------------------------------------------------------------
-# Options
-#-----------------------------------------------------------------------------
-do_maxlabel_volume = True  # Fill cortical volume with majority-vote labels
-do_evaluate_labels = False  # Compute volume overlap of auto vs. manual labels
-#-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
 subjects = ['MMRR-21-1']
@@ -53,11 +48,18 @@ sys.path.append(code_path)
 from utils.io_vtk import load_scalar, write_scalars
 from label.multiatlas_labeling import register_template, \
            transform_atlas_labels,  majority_vote_label
-from label.surface_labels_to_volume import write_label_file, \
-           label_to_annot_file, fill_label_volume, measure_volume_overlap
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
+from label.surface_labels_to_volume import write_label_file, \
+           label_to_annot_file, fill_label_volume
+from label.evaluate_volume_labels import measure_volume_overlap
+#-----------------------------------------------------------------------------
+# Debugging options
+#-----------------------------------------------------------------------------
+do_maxlabel_volume = True  # Fill cortical volume with majority-vote labels
+do_evaluate_labels = False  # Compute volume overlap of auto vs. manual labels
+run_register = True  # Run registration (otherwise use saved results)
 
 ##############################################################################
 #
@@ -106,6 +108,17 @@ datasink = node(dataout(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
 if not path.isdir(results_path):  makedirs(results_path)
+#-----------------------------------------------------------------------------
+# Evaluation inputs: location and structure of atlas volumes
+#-----------------------------------------------------------------------------
+if do_evaluate_labels:
+    atlas = node(name = 'Atlas',
+               interface = datain(infields=['subject', 'hemi'],
+                                  outfields=['atlas_file']))
+    atlas.inputs.base_directory = atlases_path
+    atlas.inputs.template = 'atlases/%s/aparcNMMjt+aseg.nii.gz'
+    atlas.inputs.template_args['atlas_file'] = [['subject']]
+    mbflow.connect([(info, atlas, [('subject','subject')])])
 
 ##############################################################################
 #
@@ -121,7 +134,6 @@ atlasflow = workflow(name='Atlas_workflow')
 # Template registration
 #-----------------------------------------------------------------------------
 template = 'OASIS-TRT-20'
-run_register = True
 if run_register:
     register = node(name = 'Register_template',
                     interface = fn(function = register_template,
@@ -262,44 +274,37 @@ if do_maxlabel_volume:
     mbflow.connect([(atlasflow, datasink,
                      [('Fill_volume_maxlabels.output_file',
                        'labels.@maxvolume')])])
-    """
+
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
     if do_evaluate_labels:
         eval_maxlabels = node(name='Evaluate_volume_maxlabels',
                               interface = fn(function = measure_volume_overlap,
-                                             input_names = ['subject',
-                                                            'labels',
-                                                            'input_file',
-                                                            'atlases_path',
-                                                            'atlases',
-                                                            'atlases2'],
-                                             output_names = ['output_table']))
-        #---------------------------------------------------------------------
-        # Table with unique, non-zero labels
-        #---------------------------------------------------------------------
-        # List of labels
-        #labels_file = path.join(atlases_path, 'labels.txt')
-        #f3 = open(labels_file)
-        #lines3 = f3.readlines()
-        #label_numbers = []
-        #for line3 in lines3:
-        #    label_numbers.append(findall(r'\S+', line3)[0])
-        #f3.close()
-        eval_maxlabels.inputs.labels = label_numbers
-        eval_maxlabels.inputs.atlases_path = atlases_path
-        eval_maxlabels.inputs.atlases = atlases
-        eval_maxlabels.inputs.atlases2 = atlases
-        atlasflow.add_nodes([eval_maxlabels])
-        mbflow.connect([(info, atlasflow, [('subject',
-                                            'Evaluate_volume_maxlabels.subject')])])
-        atlasflow.connect([(fill_maxlabels, eval_maxlabels,
+                                             input_names = ['labels',
+                                                            'atlas_file',
+                                                            'input_file'],
+                                             output_names = ['overlaps']))
+        atlasflow.connect([(fillvolume, eval_maxlabels,
                             [('output_file', 'input_file')])])
-        mbflow.connect([(atlasflow, datasink,
-                         [('Evaluate_volume_maxlabels.output_table',
-                           'labels.@eval')])])
-    """
+        mbflow.connect([(info, atlasflow,
+                     [('subject', 'Fill_volume_maxlabels.subject')])])
+        mbflow.connect([(atlas, atlasflow,
+                       [('atlas_file', 'Evaluate_volume_maxlabels.atlas_file')])])
+        #------------
+        # Load labels
+        #------------
+        labels_file = path.join(atlases_path, 'labels.DKT32.txt')
+        f = open(labels_file)
+        lines = f.readlines()
+        labels = []
+        for line in lines:
+            if len(line) > 0:
+                line = findall(r'\S+', line)
+                if len(line) > 0:
+                    labels.append(line[0])
+        f.close()
+        eval_maxlabels.inputs.labels = labels
 
 ##############################################################################
 #
