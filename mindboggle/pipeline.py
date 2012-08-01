@@ -51,13 +51,13 @@ from nipype.interfaces.io import DataSink as dataout
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
 from utils.io_vtk import load_scalar, write_scalars
-from label.multiatlas_labeling import register_template,
+from label.multiatlas_labeling import register_template, \
            transform_atlas_labels,  majority_vote_label
-from label.surface_labels_to_volume import write_label_file,
+from label.surface_labels_to_volume import write_label_file, \
            label_to_annot_file, fill_label_volume, measure_volume_overlap
-from measure_functions import compute_depth, compute_curvature
-from extract_folds import extract_folds
-from extract_fundi import extract_fundi
+from measure.measure_functions import compute_depth, compute_curvature
+from extract.fundi_hmmf.extract_folds import extract_folds
+from extract.fundi_hmmf.extract_fundi import extract_fundi
 
 ##############################################################################
 #
