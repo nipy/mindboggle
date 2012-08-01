@@ -5,17 +5,17 @@ Atlas-based functions for surface registration-based labeling:
 
 1. Register to template
 Register surface to template with FreeSurfer's mris_register.
-Transform the labels from multiple atlases via a template 
+Transform the labels from multiple atlases via a template
 (using FreeSurfer's mri_surf2surf).
 
 2. Transform atlas labels
-For each brain hemisphere (left and right) in a given subject, 
-read in FreeSurfer *.annot files (multiple labelings) and output one VTK file 
+For each brain hemisphere (left and right) in a given subject,
+read in FreeSurfer *.annot files (multiple labelings) and output one VTK file
 of majority vote labels, representing a "maximum probability" labeling.
 The main function is majority_vote() and calls vote_labels().
 
 
-Authors:  
+Authors:
 Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 Forrest Bao  .  forrest.bao@gmail.com
 
@@ -44,7 +44,7 @@ def register_template(hemi, sphere_file, transform,
                                 template_file, output_file])
     logger.info(cli.cmdline)
     cli.run()
-    
+
     return transform
 
 def transform_atlas_labels(hemi, subject, transform,
@@ -94,17 +94,17 @@ def vote_labels(label_lists):
     """
     For each vertex, vote on the majority label.
 
-    Parameters 
+    Parameters
     ==========
     label_lists: list of lists of integers  (vertex labels assigned by each atlas)
     n_atlases: integer  (number of atlases / lists of labels)
     n_vertices: integer  (number of vertices / elements in each list)
-        
+
     Returns
     =======
     labels_max: list of integers  (majority labels for vertices)
     label_counts: list of integers  (number of different labels for vertices)
-    label_votes: list of integers  (number of votes for the majority labels) 
+    label_votes: list of integers  (number of votes for the majority labels)
 
     Example of Counter:
     In [1]: from collections import Counter
@@ -126,7 +126,7 @@ def vote_labels(label_lists):
     print("Begin voting...")
     n_atlases = len(label_lists)  # number of atlases used to label subject
     n_vertices = len(label_lists[0])
-    labels_max = [-1 for i in xrange(n_vertices)]  
+    labels_max = [-1 for i in xrange(n_vertices)]
     label_counts = [1 for i in xrange(n_vertices)]
     label_votes = [n_atlases for i in xrange(n_vertices)]
 
@@ -156,7 +156,7 @@ def majority_vote_label(surface_file, annot_files):
     surface_file: string  (name of VTK surface file)
     annot_files: list of strings  (names of FreeSurfer annot files)
 
-    Returns 
+    Returns
     =======
     output_files: list of files containing majority vote labels,
                   number of different label counts, and
@@ -175,7 +175,7 @@ def majority_vote_label(surface_file, annot_files):
         labels, colortable, names = nb.freesurfer.read_annot(annot_file)
         label_lists.append(labels)
     print("Annotations loaded.")
-    
+
     # Vote on labels for each vertex
     labels_max, label_votes, label_counts, \
     consensus_vertices = vote_labels(label_lists)
