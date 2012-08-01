@@ -121,6 +121,19 @@ if do_evaluate_labels:
     mbflow.connect([(info, atlas, [('subject','subject')])])
 
 ##############################################################################
+#   Surface conversion to VTK
+##############################################################################
+#-----------------------------------------------------------------------------
+# Convert FreeSurfer surfaces to VTK format
+#-----------------------------------------------------------------------------
+convertsurf = mapnode(name = 'Convert_surface',
+                      iterfield = ['in_file'],
+                      interface = fn(function = freesurfer2vtk,
+                      input_names = ['in_file'],
+                      output_names = ['out_file']))
+mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
+
+##############################################################################
 #
 #   Multi-atlas registration-based labeling workflow
 #
@@ -195,8 +208,10 @@ vote = node(name='Label_vote',
                                            'labelvotes_file',
                                            'consensus_vertices']))
 atlasflow.add_nodes([vote])
-mbflow.connect([(surf, atlasflow,
-                 [('surface_files', 'Label_vote.surface_file')])])
+mbflow.connect([(convertsurf, atlasflow,
+                 [('out_file', 'Label_vote.surface_file')])])
+#mbflow.connect([(surf, atlasflow,
+#                 [('surface_files', 'Label_vote.surface_file')])])
 atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
 mbflow.connect([(atlasflow, datasink,
                  [('Label_vote.maxlabel_file', 'labels.@max'),
@@ -346,10 +361,14 @@ curvature.inputs.command = curvature_command
 # Connect surface files to surface depth and curvature nodes
 #-----------------------------------------------------------------------------
 featureflow.add_nodes([depth, curvature])
-mbflow.connect([(surf, featureflow,
-                 [('surface_files','Compute_depth.surface_file')])])
-mbflow.connect([(surf, featureflow,
-                 [('surface_files','Compute_curvature.surface_file')])])
+mbflow.connect([(convertsurf, featureflow,
+               [('out_file', 'Compute_depth.surface_file')])])
+mbflow.connect([(convertsurf, featureflow,
+               [('out_file', 'Compute_curvature.surface_file')])])
+#mbflow.connect([(surf, featureflow,
+#                 [('surface_files','Compute_depth.surface_file')])])
+#mbflow.connect([(surf, featureflow,
+#                 [('surface_files','Compute_curvature.surface_file')])])
 #-----------------------------------------------------------------------------
 # Save depth and curvature files
 #-----------------------------------------------------------------------------
