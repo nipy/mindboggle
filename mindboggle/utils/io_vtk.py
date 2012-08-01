@@ -443,13 +443,13 @@ def load_scalar(filename):
     Reader.Update()
 
     Data = Reader.GetOutput()
-    Points = [list(Data.GetPoint(PointID))
+    Points = [list(Data.GetPoint(point_id))
               for point_id in xrange(0, Data.GetNumberOfPoints())]
 
     Polys = Data.GetPolys()
     CellArray = Polys.GetData()
     Faces = [[CellArray.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
-             for i in xrange(0,  CellArray.GetNumberOfCells()) ]
+             for i in xrange(0, CellArray.GetNumberOfCells())]
 
     PointData = Data.GetPointData()
     print("Loading {} {} scalars in file {}...".

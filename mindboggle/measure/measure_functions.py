@@ -33,9 +33,11 @@ def compute_depth(command, surface_file):
 
     depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
+#    cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
+    cli.inputs.args = ' '.join([surface_file, depth_file])
     cli.cmdline
     cli.run()
+
     return depth_file
 
 def compute_curvature(command, surface_file):
@@ -57,7 +59,8 @@ def compute_curvature(command, surface_file):
     else:
         error("Check format of " + surface_file)
 
-    file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
+#    file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
+    file_stem = path.splitext(path.basename(surface_file))[0]
     mean_curvature_file = file_stem + '.curv.avg.vtk'
     gauss_curvature_file = file_stem + '.curv.gauss.vtk'
     max_curvature_file = file_stem + '.curv.max.vtk'
@@ -70,5 +73,6 @@ def compute_curvature(command, surface_file):
     cli.inputs.args = ' '.join(args)
     cli.cmdline
     cli.run()
+
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
