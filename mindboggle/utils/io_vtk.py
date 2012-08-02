@@ -2,7 +2,7 @@
 """
 Functions related to reading and writing VTK format files.
 
-This is not part of the official vtk module.
+This is not part of the official vtk module but some functions call vtk.
 We found that VTK's Python binding has limited documentation.
 
 Authors:
@@ -240,6 +240,62 @@ def surf_to_vtk(surface_file):
     write_faces(Fp, Face)
     Fp.close()
 
+def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
+    """
+    Load a FreeSurfer .annot file and save as a VTK format file.
+
+    Inputs:
+    ======
+    surface_file: string  (name of VTK surface file)
+    annot_file: strings  (name of FreeSurfer .annot file)
+
+    Output:
+    ======
+    vtk_file: output VTK file
+
+    """
+
+    from os import path, getcwd
+    import nibabel as nb
+    import pyvtk
+
+    annot_file = path.join(subjects_path, subject, 'label',
+                           hemi + '.' + annot_name)
+
+    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        from os import error
+        error("Check format of " + surface_file)
+
+    # Save file
+#    Vertices, Faces = io_file.read_surface(surface_file)
+    VTKReader = pyvtk.VtkData(surface_file)
+    Vertices =  VTKReader.structure.points
+    Faces =     VTKReader.structure.polygons
+
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    vtk_file = output_stem + '.labels.fs.vtk'
+
+#    Fp = open(vtk_file + '.vtk', 'w')
+#    write_header(Fp, Title='vtk output from' + annot_file)
+#    write_points(Fp, Vertex)
+#    write_faces(Fp, Face)
+#???    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+#    Fp.close()
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(vtk_file,\
+                                  name='FreeSurfer labels'))).\
+          tofile(vtk_file, 'ascii')
+
+    return vtk_file
+
 def face_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
     """
     Load a face list file and a surface file to map faces onto the surface
@@ -446,9 +502,9 @@ def load_scalar(filename):
     Points = [list(Data.GetPoint(point_id))
               for point_id in xrange(0, Data.GetNumberOfPoints())]
 
-    Polys = Data.GetPolys()
-    CellArray = Polys.GetData()
-    Faces = [[CellArray.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
+    CellArray = Data.GetPolys()
+    Polygons = CellArray.GetData()
+    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
              for i in xrange(0, CellArray.GetNumberOfCells())]
 
     PointData = Data.GetPointData()

@@ -28,7 +28,7 @@ from re import findall
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
-subjects = ['MMRR-21-1']
+subjects = ['HLN-12-1'] #['MMRR-21-1']
 subjects_path = environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 base_path = '/projects/Mindboggle/mindboggle'  # mindboggle directory
 results_path = '/projects/Mindboggle/results'  # Where to save output
@@ -48,10 +48,10 @@ from nipype.interfaces.io import DataSink as dataout
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
-from utils.io_vtk import load_scalar, write_scalars
+from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk
 from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
-           transform_atlas_labels,  majority_vote_label, annot2vtk
+           transform_atlas_labels,  majority_vote_label
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
@@ -133,7 +133,7 @@ if not load_vtk_surfaces:
                           input_names = ['in_file'],
                           output_names = ['out_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
-
+"""
 ##############################################################################
 #
 #   Multi-atlas labeling workflow
@@ -146,7 +146,7 @@ atlasflow = workflow(name='Atlas_workflow')
 #=============================================================================
 if init_fs_labels:
     fslabels = node(name = 'Convert_FreeSurfer_labels',
-                    interface = fn(function = annot2vtk,
+                    interface = fn(function = annot_to_vtk,
                     input_names = ['surface_file',
                                    'hemi',
                                    'subject',
@@ -239,7 +239,7 @@ else:
                      [('Label_vote.maxlabel_file', 'labels.@max'),
                       ('Label_vote.labelcounts_file', 'labels.@counts'),
                       ('Label_vote.labelvotes_file', 'labels.@votes')])])
-
+"""
 ##############################################################################
 #
 #   Feature-based labeling workflow
@@ -261,6 +261,16 @@ depth = node(name='Compute_depth',
 depth_command = path.join(code_path,'measure', 'surface_measures',
                                     'bin', 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
+
+featureflow.add_nodes([depth])
+if load_vtk_surfaces:
+    mbflow.connect([(surf, featureflow,
+                     [('surface_files','Compute_depth.surface_file')])])
+else:
+    mbflow.connect([(convertsurf, featureflow,
+                   [('out_file', 'Compute_depth.surface_file')])])
+mbflow.connect([(featureflow, datasink,
+                 [('Compute_depth.depth_file', 'surfaces.@depth')])])
 #-----------------------------------------------------------------------------
 # Measure surface curvature
 #-----------------------------------------------------------------------------
@@ -276,25 +286,15 @@ curvature = node(name='Compute_curvature',
 curvature_command = path.join(code_path, 'measure', 'surface_measures',
                                          'bin', 'curvature', 'CurvatureMain')
 curvature.inputs.command = curvature_command
-#-----------------------------------------------------------------------------
-# Connect surface files to depth and curvature nodes
-#-----------------------------------------------------------------------------
-featureflow.add_nodes([depth, curvature])
+featureflow.add_nodes([curvature])
 if load_vtk_surfaces:
-    mbflow.connect([(surf, featureflow,
-                     [('surface_files','Compute_depth.surface_file')])])
     mbflow.connect([(surf, featureflow,
                      [('surface_files','Compute_curvature.surface_file')])])
 else:
     mbflow.connect([(convertsurf, featureflow,
-                   [('out_file', 'Compute_depth.surface_file')])])
-    mbflow.connect([(convertsurf, featureflow,
                    [('out_file', 'Compute_curvature.surface_file')])])
-#-----------------------------------------------------------------------------
-# Save depth and curvature files
-#-----------------------------------------------------------------------------
-mbflow.connect([(featureflow, datasink,
-                 [('Compute_depth.depth_file', 'surfaces.@depth')])])
+
+# Save curvature files
 mbflow.connect([(featureflow, datasink,
                  [('Compute_curvature.mean_curvature_file',
                    'surfaces.@mean_curvature'),
@@ -306,7 +306,6 @@ mbflow.connect([(featureflow, datasink,
                    'surfaces.@min_curvature'),
                   ('Compute_curvature.min_curvature_vector_file',
                    'surfaces.@min_curvature_vectors')])])
-
 #=============================================================================
 #   Feature extraction
 #=============================================================================
@@ -329,6 +328,7 @@ load_curvature = node(name='Load_curvature',
                                                      'Scalars']))
 featureflow.connect([(curvature, load_curvature,
                       [('mean_curvature_file','filename')])])
+
 """
 load_directions = node(name='Load_directions',
                        interface = fn(function = load_scalar,
@@ -338,7 +338,7 @@ load_directions = node(name='Load_directions',
                                                       'Scalars']))
 featureflow.connect([(curvature, load_directions,
                       [('min_curvature_vector_file','filename')])])
-"""
+
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
@@ -362,7 +362,6 @@ folds.inputs.fraction_folds = fraction_folds
 folds.inputs.min_fold_size = min_fold_size
 featureflow.connect([(load_depth, folds, [('Faces','faces'),
                                           ('Scalars','depths')])])
-"""
 #-----------------------------------------------------------------------------
 # Extract fundi (curves at the bottoms of folds)
 #-----------------------------------------------------------------------------
@@ -395,8 +394,7 @@ featureflow.connect([(folds, fundi, [('index_lists_folds','index_lists_folds'),
                                           ('Scalars','depths')]),
                      (load_curvature, fundi, [('Scalars','mean_curvatures')]),
                      (load_directions, fundi, [('Scalars','min_directions')])])
-"""
-"""
+
 #-----------------------------------------------------------------------------
 # Extract medial surfaces
 #-----------------------------------------------------------------------------
@@ -780,7 +778,7 @@ featureflow.connect([(positions, measures_database, [('positions_patches', 'posi
 # Connect measure to table nodes
 featureflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
 """
-
+"""
 ##############################################################################
 #
 #   Label evaluation workflow
@@ -884,7 +882,7 @@ if do_evaluate_labels:
                 labels.append(line[0])
     f.close()
     eval_labels.inputs.labels = labels
-
+"""
 ##############################################################################
 #
 #    Run workflow
@@ -892,8 +890,8 @@ if do_evaluate_labels:
 ##############################################################################
 if __name__== '__main__':
 
-    mbflow.write_graph(graph2use='flat')
-    mbflow.write_graph(graph2use='hierarchical')
+#    mbflow.write_graph(graph2use='flat')
+#    mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
 
 
