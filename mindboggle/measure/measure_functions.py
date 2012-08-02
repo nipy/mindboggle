@@ -16,9 +16,8 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 def compute_depth(command, surface_file):
     """
-    Measure
+    Measure Joachim Giard's "travel depth" for a surface mesh.
 
-    measure_()
     """
     from os import getcwd, path, error
     from nipype.interfaces.base import CommandLine
@@ -33,8 +32,7 @@ def compute_depth(command, surface_file):
 
     depth_file = path.splitext(path.basename(surface_file))[0] + '.depth.vtk'
     cli = CommandLine(command = command)
-#    cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
-    cli.inputs.args = ' '.join([surface_file, depth_file])
+    cli.inputs.args = ' '.join([surface_file, path.join(getcwd(), depth_file)])
     cli.cmdline
     cli.run()
 
@@ -42,13 +40,14 @@ def compute_depth(command, surface_file):
 
 def compute_curvature(command, surface_file):
     """
-    Measure
+    Measure curvatures for a surface mesh.
+
     CurvatureMain input MeanCurvatureOutput
                   [GaussianCurvatureOutput] [MaximalCurvatureOutput]
                   [MinimalCurvatureOutput] [MinimalCurvatureVectorOutput]
-    measure_()
     """
-    from os import getcwd, path, error
+
+    from os import path, getcwd
     from nipype.interfaces.base import CommandLine
 
     # Check type:
@@ -59,16 +58,17 @@ def compute_curvature(command, surface_file):
     else:
         error("Check format of " + surface_file)
 
-#    file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
-    file_stem = path.splitext(path.basename(surface_file))[0]
+    file_stem = path.join(getcwd(), path.splitext(path.basename(surface_file))[0])
     mean_curvature_file = file_stem + '.curv.avg.vtk'
     gauss_curvature_file = file_stem + '.curv.gauss.vtk'
     max_curvature_file = file_stem + '.curv.max.vtk'
     min_curvature_file = file_stem + '.curv.min.vtk'
     min_curvature_vector_file = file_stem + '.curv.min.dir.txt'
-    args = [surface_file,
-            mean_curvature_file, gauss_curvature_file,
-            max_curvature_file, min_curvature_file]
+    args = ['-g', gauss_curvature_file,
+            '-x', max_curvature_file,
+            '-i', min_curvature_file,
+            '-d', min_curvature_vector_file,
+            surface_file, mean_curvature_file]
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join(args)
     cli.cmdline
