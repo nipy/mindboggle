@@ -1,8 +1,9 @@
 #!/usr/bin/python
 """
-This Python library reads FreeSurfer format files
+This Python library reads and writes different file types.
+In particular, it has functions to read some FreeSurfer files,
 including surface, curvature, and convexity files.
-The function readSurf reads in surface files,
+The function read_surface reads in surface files,
 while the function read_curvature reads in both
 curvature (.curv) and convexity (.sulc) files.
 
@@ -184,8 +185,6 @@ def load_faces_neighbor_list(filename):
         NbrLst.append([six[0:3], six[3:6]])
     Fp.close()
     return NbrLst
-
-
 
 def write_line_segments(filename, line_paths):
     """
