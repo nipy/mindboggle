@@ -51,7 +51,7 @@ sys.path.append(code_path)
 from utils.io_vtk import load_scalar, write_scalars
 from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
-           transform_atlas_labels,  majority_vote_label
+           transform_atlas_labels,  majority_vote_label, annot2vtk
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
@@ -62,9 +62,8 @@ from label.evaluate_volume_labels import measure_volume_overlap
 # Debugging options
 #-----------------------------------------------------------------------------
 load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
-do_maxlabel_volume = True  # Fill cortical volume with majority-vote labels
+init_fs_labels = True  # Initialize with a FreeSurfer classifier atlas
 do_evaluate_labels = True  # Compute volume overlap of auto vs. manual labels
-run_register = True  # Run registration (otherwise use saved results)
 
 ##############################################################################
 #
@@ -72,6 +71,7 @@ run_register = True  # Run registration (otherwise use saved results)
 #   * Multi-atlas labeling workflow
 #   * Feature-based labeling workflow
 #   * Shape analysis workflow
+#   * Label evaluation workflow
 #
 ##############################################################################
 mbflow = workflow(name='Mindboggle_workflow')
@@ -117,7 +117,7 @@ if not path.isdir(results_path):  makedirs(results_path)
 #-----------------------------------------------------------------------------
 if do_evaluate_labels:
     atlas = node(name = 'Atlas',
-               interface = datain(infields=['subject', 'hemi'],
+               interface = datain(infields=['subject'],
                                   outfields=['atlas_file']))
     atlas.inputs.base_directory = atlases_path
     atlas.inputs.template = 'atlases/%s/aparcNMMjt+aseg.nii.gz'
@@ -142,13 +142,33 @@ if not load_vtk_surfaces:
 atlasflow = workflow(name='Atlas_workflow')
 
 #=============================================================================
-#   Multi-atlas registration
+#   Initialize labels with a classifier atlas
 #=============================================================================
-#-----------------------------------------------------------------------------
-# Register surfaces to average template
-#-----------------------------------------------------------------------------
-template = 'OASIS-TRT-20'
-if run_register:
+if init_fs_labels:
+    fslabels = node(name = 'Convert_FreeSurfer_labels',
+                    interface = fn(function = annot2vtk,
+                    input_names = ['surface_file',
+                                   'hemi',
+                                   'subject',
+                                   'subjects_path',
+                                   'annot_name'],
+                    output_names = ['fslabels_file']))
+    fslabels.inputs.annot_name = 'aparc+aseg.annot'
+    fslabels.inputs.subjects_path = subjects_path
+    atlasflow.add_nodes([fslabels])
+    mbflow.connect([(info, atlasflow,
+                     [('hemi', 'Convert_FreeSurfer_labels.hemi'),
+                      ('subject', 'Convert_FreeSurfer_labels.subject')])])
+    mbflow.connect([(surf, atlasflow,
+                     [('surface_files',
+                       'Convert_FreeSurfer_labels.surface_file')])])
+#=============================================================================
+#   Initialize labels using multi-atlas registration
+#=============================================================================
+else:
+    #-------------------------------------------------------------------------
+    # Register surfaces to average template
+    #-------------------------------------------------------------------------
     register = node(name = 'Register_template',
                     interface = fn(function = register_template,
                                    input_names = ['hemi',
@@ -157,170 +177,68 @@ if run_register:
                                                   'templates_path',
                                                   'template'],
                                    output_names = ['transform']))
+    template = 'OASIS-TRT-20'
     register.inputs.template = template + '.tif'
     register.inputs.transform = 'sphere_to_' + template + '_template.reg'
     register.inputs.templates_path = path.join(templates_path, 'freesurfer')
-    atlasflow.add_nodes([register])
-    mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
-                    (surf, atlasflow, [('sphere_files',
+    evalflow.add_nodes([register])
+    mbflow.connect([(info, evalflow, [('hemi', 'Register_template.hemi')]),
+                    (surf, evalflow, [('sphere_files',
                                         'Register_template.sphere_file')])])
-#-----------------------------------------------------------------------------
-# Register atlases to subject via template
-#-----------------------------------------------------------------------------
-transform = mapnode(name = 'Transform_atlas_labels',
-                    iterfield = ['atlas'],
-                    interface = fn(function = transform_atlas_labels,
-                                   input_names = ['hemi',
-                                                  'subject',
-                                                  'transform',
-                                                  'subjects_path',
-                                                  'atlas',
-                                                  'atlas_string'],
-                                   output_names = ['output_file']))
-# List of atlas subjects
-atlases_file = path.join(atlases_path, 'list_atlases.txt')
-f1 = open(atlases_file)
-lines1 = f1.readlines()
-atlases = []
-for line1 in lines1:
-    atlases.append(findall(r'\S+', line1)[0])
-f1.close()
-
-transform.inputs.atlas = atlases
-transform.inputs.subjects_path = subjects_path
-transform.inputs.atlas_string = atlas_string
-atlasflow.add_nodes([transform])
-mbflow.connect([(info, atlasflow,
-                 [('hemi', 'Transform_atlas_labels.hemi'),
-                  ('subject', 'Transform_atlas_labels.subject')])])
-if run_register:
-    atlasflow.connect([(register, transform, [('transform', 'transform')])])
-else:
-    transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
-#-----------------------------------------------------------------------------
-# Majority vote label
-#-----------------------------------------------------------------------------
-vote = node(name='Label_vote',
-            interface = fn(function = majority_vote_label,
-                           input_names = ['surface_file',
-                                          'annot_files'],
-                           output_names = ['maxlabel_file',
-                                           'labelcounts_file',
-                                           'labelvotes_file',
-                                           'consensus_vertices']))
-atlasflow.add_nodes([vote])
-if load_vtk_surfaces:
-    mbflow.connect([(surf, atlasflow,
-                     [('surface_files', 'Label_vote.surface_file')])])
-else:
-    mbflow.connect([(convertsurf, atlasflow,
-                     [('out_file', 'Label_vote.surface_file')])])
-atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
-mbflow.connect([(atlasflow, datasink,
-                 [('Label_vote.maxlabel_file', 'labels.@max'),
-                  ('Label_vote.labelcounts_file', 'labels.@counts'),
-                  ('Label_vote.labelvotes_file', 'labels.@votes')])])
-
-#=============================================================================
-#   Label propagation through a mask
-#=============================================================================
-#-----------------------------------------------------------------------------
-# Fill a volume (e.g., gray matter) mask with majority-vote labels
-#-----------------------------------------------------------------------------
-if do_maxlabel_volume:
-
     #-------------------------------------------------------------------------
-    # Write labels for surface vertices in .label and .annot files
+    # Register atlases to subject via template
     #-------------------------------------------------------------------------
-    writelabels = mapnode(name='Write_label_files',
-                          iterfield = ['label_number', 'label_name'],
-                          interface = fn(function = write_label_file,
-                                         input_names = ['hemi',
-                                                        'surface_file',
-                                                        'label_number',
-                                                        'label_name'],
-                                         output_names = ['label_file']))
-    # List of cortical labels
-    ctx_labels_file = path.join(atlases_path, label_string + '.txt')
-    f2 = open(ctx_labels_file)
-    lines2 = f2.readlines()
-    ctx_label_numbers = []
-    ctx_label_names = []
-    for line2 in lines2:
-        ctx_label_numbers.append(findall(r'\S+', line2)[0])
-        ctx_label_names.append(findall(r'\S+', line2)[1])
-    f2.close()
-    writelabels.inputs.label_number = ctx_label_numbers
-    writelabels.inputs.label_name = ctx_label_names
-    atlasflow.add_nodes([writelabels])
-    mbflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
-    atlasflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+    transform = mapnode(name = 'Transform_atlas_labels',
+                        iterfield = ['atlas'],
+                        interface = fn(function = transform_atlas_labels,
+                                       input_names = ['hemi',
+                                                      'subject',
+                                                      'transform',
+                                                      'subjects_path',
+                                                      'atlas',
+                                                      'atlas_string'],
+                                       output_names = ['output_file']))
+    # List of atlas subjects
+    atlases_file = path.join(atlases_path, 'list_atlases.txt')
+    f1 = open(atlases_file)
+    lines1 = f1.readlines()
+    atlases = []
+    for line1 in lines1:
+        atlases.append(findall(r'\S+', line1)[0])
+    f1.close()
 
-    # Write .annot file
-    writeannot = node(name='Write_annot_file',
-                      interface = fn(function = label_to_annot_file,
-                                     input_names = ['hemi',
-                                                    'subjects_path',
-                                                    'subject',
-                                                    'label_files',
-                                                    'colortable'],
-                                     output_names = ['annot_name',
-                                                     'annot_file']))
-    writeannot.inputs.subjects_path = subjects_path
-    writeannot.inputs.colortable = path.join(atlases_path, label_string + '.txt')
-    atlasflow.add_nodes([writeannot])
-    mbflow.connect([(info, atlasflow,
-                     [('hemi', 'Write_annot_file.hemi')])])
-    mbflow.connect([(info, atlasflow,
-                     [('subject', 'Write_annot_file.subject')])])
-    atlasflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
-    mbflow.connect([(atlasflow, datasink,
-                     [('Write_annot_file.annot_file', 'labels.@max_annot')])])
-
-    #-------------------------------------------------------------------------
-    # Fill volume mask with surface vertex labels
-    #-------------------------------------------------------------------------
-    fillvolume = node(name='Fill_volume_maxlabels',
-                      interface = fn(function = fill_label_volume,
-                                     input_names = ['subject', 'annot_name'],
-                                     output_names = ['output_file']))
-    atlasflow.add_nodes([fillvolume])
-    mbflow.connect([(info, atlasflow,
-                     [('subject', 'Fill_volume_maxlabels.subject')])])
-    atlasflow.connect([(writeannot, fillvolume,
-                        [('annot_name','annot_name')])])
-    mbflow.connect([(atlasflow, datasink,
-                     [('Fill_volume_maxlabels.output_file',
-                       'labels.@maxvolume')])])
-
-    #-------------------------------------------------------------------------
-    # Evaluate volume labels
-    #-------------------------------------------------------------------------
-    if do_evaluate_labels:
-        eval_maxlabels = node(name='Evaluate_volume_maxlabels',
-                              interface = fn(function = measure_volume_overlap,
-                                             input_names = ['labels',
-                                                            'atlas_file',
-                                                            'input_file'],
-                                             output_names = ['overlaps']))
-        atlasflow.connect([(fillvolume, eval_maxlabels,
-                            [('output_file', 'input_file')])])
-        mbflow.connect([(atlas, atlasflow,
-                       [('atlas_file', 'Evaluate_volume_maxlabels.atlas_file')])])
-        #------------
-        # Load labels
-        #------------
-        labels_file = path.join(atlases_path, 'labels.DKT32.txt')
-        f = open(labels_file)
-        lines = f.readlines()
-        labels = []
-        for line in lines:
-            if len(line) > 0:
-                line = findall(r'\S+', line)
-                if len(line) > 0:
-                    labels.append(line[0])
-        f.close()
-        eval_maxlabels.inputs.labels = labels
+    transform.inputs.atlas = atlases
+    transform.inputs.subjects_path = subjects_path
+    transform.inputs.atlas_string = atlas_string
+    evalflow.add_nodes([transform])
+    mbflow.connect([(info, evalflow,
+                     [('hemi', 'Transform_atlas_labels.hemi'),
+                      ('subject', 'Transform_atlas_labels.subject')])])
+    evalflow.connect([(register, transform, [('transform', 'transform')])])
+    #transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
+    #-----------------------------------------------------------------------------
+    # Majority vote label
+    #-----------------------------------------------------------------------------
+    vote = node(name='Label_vote',
+                interface = fn(function = majority_vote_label,
+                               input_names = ['surface_file',
+                                              'annot_files'],
+                               output_names = ['maxlabel_file',
+                                               'labelcounts_file',
+                                               'labelvotes_file',
+                                               'consensus_vertices']))
+    evalflow.add_nodes([vote])
+    if load_vtk_surfaces:
+        mbflow.connect([(surf, evalflow,
+                         [('surface_files', 'Label_vote.surface_file')])])
+    else:
+        mbflow.connect([(convertsurf, evalflow,
+                         [('out_file', 'Label_vote.surface_file')])])
+    evalflow.connect([(transform, vote, [('output_file', 'annot_files')])])
+    mbflow.connect([(evalflow, datasink,
+                     [('Label_vote.maxlabel_file', 'labels.@max'),
+                      ('Label_vote.labelcounts_file', 'labels.@counts'),
+                      ('Label_vote.labelvotes_file', 'labels.@votes')])])
 
 ##############################################################################
 #
@@ -862,38 +780,115 @@ featureflow.connect([(positions, measures_database, [('positions_patches', 'posi
 # Connect measure to table nodes
 featureflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
 """
-"""
+
 ##############################################################################
 #
 #   Label evaluation workflow
 #
 ##############################################################################
+if do_evaluate_labels:
+    evalflow = workflow(name='Evaluation_workflow')
 
-evalflow = workflow(name='Evaluation_workflow')
+    #=============================================================================
+    #   Filling a volume (e.g., gray matter) mask with labels
+    #=============================================================================
+    #-------------------------------------------------------------------------
+    # Write labels for surface vertices in .label and .annot files
+    #-------------------------------------------------------------------------
+    writelabels = mapnode(name='Write_label_files',
+                          iterfield = ['label_number', 'label_name'],
+                          interface = fn(function = write_label_file,
+                                         input_names = ['hemi',
+                                                        'surface_file',
+                                                        'label_number',
+                                                        'label_name'],
+                                         output_names = ['label_file']))
+    # List of cortical labels
+    ctx_labels_file = path.join(atlases_path, label_string + '.txt')
+    f2 = open(ctx_labels_file)
+    lines2 = f2.readlines()
+    ctx_label_numbers = []
+    ctx_label_names = []
+    for line2 in lines2:
+        ctx_label_numbers.append(findall(r'\S+', line2)[0])
+        ctx_label_names.append(findall(r'\S+', line2)[1])
+    f2.close()
+    writelabels.inputs.label_number = ctx_label_numbers
+    writelabels.inputs.label_name = ctx_label_names
+    evalflow.add_nodes([writelabels])
+    mbflow.connect([(info, evalflow, [('hemi', 'Write_label_files.hemi')])])
+    if init_fs_labels:
+        evalflow.connect([(fslabels, writelabels, [('fslabels_file','surface_file')])])
+    else:
+        evalflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+
+    # Write .annot file
+    writeannot = node(name='Write_annot_file',
+                      interface = fn(function = label_to_annot_file,
+                                     input_names = ['hemi',
+                                                    'subjects_path',
+                                                    'subject',
+                                                    'label_files',
+                                                    'colortable'],
+                                     output_names = ['annot_name',
+                                                     'annot_file']))
+    writeannot.inputs.subjects_path = subjects_path
+    writeannot.inputs.colortable = path.join(atlases_path, label_string + '.txt')
+    evalflow.add_nodes([writeannot])
+    mbflow.connect([(info, evalflow,
+                     [('hemi', 'Write_annot_file.hemi')])])
+    mbflow.connect([(info, evalflow,
+                     [('subject', 'Write_annot_file.subject')])])
+    evalflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
+    mbflow.connect([(evalflow, datasink,
+                     [('Write_annot_file.annot_file', 'labels.@max_annot')])])
+    #-------------------------------------------------------------------------
+    # Fill volume mask with surface vertex labels
+    #-------------------------------------------------------------------------
+    fillvolume = node(name='Fill_volume_labels',
+                      interface = fn(function = fill_label_volume,
+                                     input_names = ['subject', 'annot_name'],
+                                     output_names = ['output_file']))
+    evalflow.add_nodes([fillvolume])
+    mbflow.connect([(info, evalflow,
+                     [('subject', 'Fill_volume_labels.subject')])])
+    evalflow.connect([(writeannot, fillvolume,
+                        [('annot_name','annot_name')])])
+    mbflow.connect([(evalflow, datasink,
+                     [('Fill_volume_labels.output_file',
+                       'labels.@maxvolume')])])
+    #-------------------------------------------------------------------------
+    # Evaluate volume labels
+    #-------------------------------------------------------------------------
+    eval_labels = node(name='Evaluate_volume_labels',
+                          interface = fn(function = measure_volume_overlap,
+                                         input_names = ['labels',
+                                                        'atlas_file',
+                                                        'input_file'],
+                                         output_names = ['overlaps']))
+    evalflow.connect([(fillvolume, eval_labels,
+                        [('output_file', 'input_file')])])
+    mbflow.connect([(atlas, evalflow,
+                   [('atlas_file', 'Evaluate_volume_labels.atlas_file')])])
+    #------------
+    # Load labels
+    #------------
+    labels_file = path.join(atlases_path, 'labels.DKT32.txt')
+    f = open(labels_file)
+    lines = f.readlines()
+    labels = []
+    for line in lines:
+        if len(line) > 0:
+            line = findall(r'\S+', line)
+            if len(line) > 0:
+                labels.append(line[0])
+    f.close()
+    eval_labels.inputs.labels = labels
 
 ##############################################################################
-#   Surface calculations
-##############################################################################
-
-#-----------------------------------------------------------------------------
-# Measure surface depth and curvature nodes
-#-----------------------------------------------------------------------------
-depth = node(name='Compute_depth',
-             interface = fn(function = compute_depth,
-                            input_names = ['command',
-                                           'labels'],
-                            output_names = ['overlap']))
-depth.inputs.command = depth_command
-
-mbflow.connect([(atlasflow, evalflow,
-                 [('Label_vote.output_files',
-                   'Evaluation_workflow.maxlabels')])])
-
-featureflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
-featureflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
-"""
-##############################################################################
+#
 #    Run workflow
+#
 ##############################################################################
 if __name__== '__main__':
 
