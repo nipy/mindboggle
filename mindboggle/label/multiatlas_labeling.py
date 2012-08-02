@@ -215,3 +215,51 @@ def majority_vote_label(surface_file, annot_files):
           tofile(labelvotes_file, 'ascii')
 
     return maxlabel_file, labelcounts_file, labelvotes_file, consensus_vertices
+
+def annot2vtk(surface_file, hemi, subject, subjects_path, annot_name):
+    """
+    Load a FreeSurfer .annot file and save as a VTK format file.
+
+    Inputs:
+    ======
+    surface_file: string  (name of VTK surface file)
+    annot_file: strings  (name of FreeSurfer .annot file)
+
+    Output:
+    ======
+    vtk_file: output VTK file
+
+    """
+
+    from os import path, getcwd
+    import nibabel as nb
+    import pyvtk
+
+    annot_file = path.join(subjects_path, subject, 'label',
+                           hemi + '.' + annot_name)
+
+    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        from os import error
+        error("Check format of " + surface_file)
+
+    # Save files
+    VTKReader = pyvtk.VtkData(surface_file)
+    Vertices =  VTKReader.structure.points
+    Faces =     VTKReader.structure.polygons
+
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    vtk_file = output_stem + '.labels.fs.vtk'
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(vtk_file,\
+                                  name='FreeSurfer labels'))).\
+          tofile(vtk_file, 'ascii')
+
+    return vtk_file
