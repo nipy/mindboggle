@@ -23,27 +23,19 @@ def write_label_file(hemi, surface_file, label_number, label_name):
 
     """
 
-    from os import path, getcwd, error
+    import os
     import numpy as np
     import vtk
 
     scalar_name = "Max_(majority_labels)"
 
-    # Check type:
-    if type(surface_file) == str:
-        pass
-    elif type(surface_file) == list:
-        surface_file = surface_file[0]
-    else:
-        error("Check format of " + surface_file)
-
-    # Check type:
+    # Check type to make sure it is an int
     if type(label_number) == int:
         pass
     elif type(label_number) == str:
         label_number = int(label_number)
     else:
-        error("Check format of " + label_number)
+        os.error("Check format of " + label_number)
 
     # Load surface
     reader = vtk.vtkDataSetReader()
@@ -67,10 +59,8 @@ def write_label_file(hemi, surface_file, label_number, label_name):
 
     # Save the label file
     if count > 0:
-        #label_file = path.join(getcwd(), hemi + '.ctx-' + hemi + '-' +\
-        #label_file = path.join(getcwd(), 'ctx-' + hemi + '-' +\
-        label_file = path.join(getcwd(), \
-                               hemi + '.' + label_name + '.label')
+        label_file = os.path.join(os.getcwd(), \
+                                  hemi + '.' + label_name + '.label')
         f = open(label_file, 'w')
         f.writelines('#!ascii label\n' + str(count) + '\n')
         for i in range(npoints):
@@ -90,27 +80,25 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
 
     """
 
-    from os import path
+    import os
     from nipype.interfaces.base import CommandLine
-    from nipype import logging
-    logger = logging.getLogger('interface')
 
     label_files = [f for f in label_files if f!=None]
     if label_files:
         annot_name = 'labels.max'
         annot_file = hemi + '.' + annot_name + '.annot'
-        if path.exists(path.join(subjects_path, subject, 'label', annot_file)):
+        if os.path.exists(os.path.join(subjects_path, subject, 'label', annot_file)):
             cli = CommandLine(command='rm')
-            cli.inputs.args = path.join(subjects_path, subject, \
-                                        'label', annot_file)
-            logger.info(cli.cmdline)
+            cli.inputs.args = os.path.join(subjects_path, subject, \
+                                           'label', annot_file)
+            cli.cmdline
             cli.run()
         cli = CommandLine(command='mris_label2annot')
         cli.inputs.args = ' '.join(['--h', hemi, '--s', subject, \
                                     '--l', ' --l '.join(label_files), \
                                     '--ctab', colortable, \
                                     '--a', annot_name])
-        logger.info(cli.cmdline)
+        cli.cmdline
         cli.run()
         return annot_name, annot_file
 
@@ -121,14 +109,12 @@ def fill_label_volume(subject, annot_name):
 
     """
 
-    from os import path, getcwd
+    import os
     from nipype.interfaces.base import CommandLine
-    from nipype import logging
-    logger = logging.getLogger('interface')
 
     print("Fill gray matter volume with surface labels using FreeSurfer...")
 
-    output_file = path.join(getcwd(), annot_name + '.nii.gz')
+    output_file = os.path.join(os.getcwd(), annot_name + '.nii.gz')
 
     args = ['--s', subject,
             '--annot', annot_name,
@@ -136,7 +122,7 @@ def fill_label_volume(subject, annot_name):
 
     cli = CommandLine(command='mri_aparc2aseg')
     cli.inputs.args = ' '.join(args)
-    logger.info(cli.cmdline)
+    cli.cmdline
     cli.run()
 
     return output_file
