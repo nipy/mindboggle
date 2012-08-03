@@ -9,7 +9,7 @@ _$*
 .del-* 
 *.cache*
 crash-*
-
+*.pyc
 x
 .idea
 CMakeCache.txt
