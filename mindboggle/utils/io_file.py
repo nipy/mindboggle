@@ -15,9 +15,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-import struct, os
-
-
 def read_surface(filename):
     """
     Read in a FreeSurfer triangle surface mesh in binary format.
@@ -51,6 +48,10 @@ def read_surface(filename):
     [2, 39, 3]
 
     """
+
+    import os
+    import struct
+
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
 
@@ -111,6 +112,9 @@ def read_curvature(filename):
     -0.37290969491004944
 
     """
+
+    import struct
+
     f = open(filename, "rb")
 
     f.seek(3) # skip the first 3 Bytes "Magic" number
@@ -243,14 +247,14 @@ def read_list_strings(filename):
     Read a list file.
     """
 
-    from re import findall
+    import re
 
     Fp = open(filename, 'r')
     lines = Fp.readlines()
     List = []
     for line in lines:
         if len(line) > 0:
-            List.append(findall(r'\S+', line)[0])
+            List.append(re.findall(r'\S+', line)[0])
     Fp.close()
 
     return List
@@ -260,7 +264,7 @@ def read_list_2strings(filename):
     Read a 2-column list file.
     """
 
-    from re import findall
+    import re
 
     Fp = open(filename, 'r')
     lines = Fp.readlines()
@@ -268,8 +272,8 @@ def read_list_2strings(filename):
     column2 = []
     for line in lines:
         if len(line) > 0:
-            column1.append(findall(r'\S+', line)[0])
-            column2.append(findall(r'\S+', line)[1])
+            column1.append(re.findall(r'\S+', line)[0])
+            column2.append(re.findall(r'\S+', line)[1])
     Fp.close()
 
     return column1, column2
@@ -336,8 +340,24 @@ def load_min_curv_direction(filename):
             representing the direction of minimal curvature at a vertex
     """
 
-    import numpy
+    from numpy import loadtxt
 
-    Min_Curv_Dir = numpy.loadtxt(filename)
+    Min_Curv_Dir = loadtxt(filename)
 
     return Min_Curv_Dir
+
+def string_vs_list_check(var):
+    """
+    Check type to make sure it is a string.
+
+    (if a list, return the first element)
+    """
+
+    # Check type:
+    if type(var) == str:
+        pass
+    elif type(var) == list:
+        var = var[0]
+    else:
+        import os
+        os.error("Check format of " + var)
