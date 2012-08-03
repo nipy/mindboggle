@@ -54,7 +54,8 @@ from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk
 from utils.io_file import read_list_strings, read_list_2strings
 from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
-           transform_atlas_labels,  majority_vote_label
+           transform_atlas_labels, majority_vote_label
+from label.aggregate_labels import aggregate_surface_labels
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
@@ -83,8 +84,7 @@ if not path.isdir(temp_path):  makedirs(temp_path)
 # Paths within mindboggle base directory
 templates_path = path.join(base_path, 'data', 'templates')
 atlases_path = path.join(base_path, 'data', 'atlases')
-#label_string = 'labels.DKT26'
-label_string = 'labels.DKT32'
+label_string = 'labels.DKT25'
 atlas_string = label_string + '.manual'
 
 #=============================================================================
@@ -165,6 +165,23 @@ if init_fs_labels:
     mbflow.connect([(surf, atlasflow,
                      [('surface_files',
                        'Convert_FreeSurfer_labels.surface_file')])])
+    #=============================================================================
+    #   Aggregate labels
+    #=============================================================================
+    aggregate = node(name='Aggregate_labels',
+                     interface = fn(function = aggregate_surface_labels,
+                     input_names = ['vtk_file',
+                                    'aggregate_labels_list',
+                                    'label_string'],
+                     output_names = ['aggregate_labels_vtk']))
+    aggregate.inputs.aggregate_labels = path.join(atlases_path,
+                                                  'labels.DKT31to25.txt')
+    aggregate.inputs.label_string = label_string + '.vtk'
+    atlasflow.connect([(fslabels, aggregate, [('fslabels_file', 'vtk_file')])])
+    mbflow.connect([(atlasflow, datasink,
+                     [('Aggregate_labels.aggregate_labels_vtk',
+                       'labels.@aggregateFSlabels')])])
+
 #=============================================================================
 #   Initialize labels using multi-atlas registration
 #=============================================================================
@@ -237,11 +254,7 @@ else:
                      [('Label_vote.maxlabel_file', 'labels.@max'),
                       ('Label_vote.labelcounts_file', 'labels.@counts'),
                       ('Label_vote.labelvotes_file', 'labels.@votes')])])
-#=============================================================================
-#   Aggregate labels
-#=============================================================================
-
-
+"""
 ##############################################################################
 #
 #   Feature-based labeling workflow
@@ -330,6 +343,7 @@ load_curvature = node(name='Load_curvature',
 featureflow.connect([(curvature, load_curvature,
                       [('mean_curvature_file','filename')])])
 
+"""
 """
 load_directions = node(name='Load_directions',
                        interface = fn(function = load_scalar,
