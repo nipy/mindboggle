@@ -44,11 +44,14 @@ from nipype.interfaces.utility import Function as fn
 from nipype.interfaces.utility import IdentityInterface as identity
 from nipype.interfaces.io import DataGrabber as datain
 from nipype.interfaces.io import DataSink as dataout
+from nipype import config
+config.enable_debug_mode()
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
-from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk
+from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk,\
+                         read_list_strings, read_list_2strings
 from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
            transform_atlas_labels,  majority_vote_label
@@ -198,16 +201,11 @@ else:
                                                       'atlas',
                                                       'atlas_string'],
                                        output_names = ['output_file']))
-    # List of atlas subjects
-    atlases_file = path.join(atlases_path, 'list_atlases.txt')
-    f1 = open(atlases_file)
-    lines1 = f1.readlines()
-    atlases = []
-    for line1 in lines1:
-        atlases.append(findall(r'\S+', line1)[0])
-    f1.close()
+    # Load atlas list
+    atlas_list_file = path.join(atlases_path, 'list_atlases.txt')
+    atlas_list = read_list_strings(atlas_list_file)
 
-    transform.inputs.atlas = atlases
+    transform.inputs.atlas = atlas_list
     transform.inputs.subjects_path = subjects_path
     transform.inputs.atlas_string = atlas_string
     evalflow.add_nodes([transform])
@@ -261,16 +259,6 @@ depth = node(name='Compute_depth',
 depth_command = path.join(code_path,'measure', 'surface_measures',
                                     'bin', 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
-
-featureflow.add_nodes([depth])
-if load_vtk_surfaces:
-    mbflow.connect([(surf, featureflow,
-                     [('surface_files','Compute_depth.surface_file')])])
-else:
-    mbflow.connect([(convertsurf, featureflow,
-                   [('out_file', 'Compute_depth.surface_file')])])
-mbflow.connect([(featureflow, datasink,
-                 [('Compute_depth.depth_file', 'surfaces.@depth')])])
 #-----------------------------------------------------------------------------
 # Measure surface curvature
 #-----------------------------------------------------------------------------
@@ -286,15 +274,22 @@ curvature = node(name='Compute_curvature',
 curvature_command = path.join(code_path, 'measure', 'surface_measures',
                                          'bin', 'curvature', 'CurvatureMain')
 curvature.inputs.command = curvature_command
-featureflow.add_nodes([curvature])
+#-----------------------------------------------------------------------------
+# Add and connect nodes, save output files
+#-----------------------------------------------------------------------------
+featureflow.add_nodes([depth, curvature])
 if load_vtk_surfaces:
+    mbflow.connect([(surf, featureflow,
+                     [('surface_files','Compute_depth.surface_file')])])
     mbflow.connect([(surf, featureflow,
                      [('surface_files','Compute_curvature.surface_file')])])
 else:
     mbflow.connect([(convertsurf, featureflow,
-                   [('out_file', 'Compute_curvature.surface_file')])])
-
-# Save curvature files
+                     [('out_file', 'Compute_depth.surface_file')])])
+    mbflow.connect([(convertsurf, featureflow,
+                 [('out_file', 'Compute_curvature.surface_file')])])
+mbflow.connect([(featureflow, datasink,
+                 [('Compute_depth.depth_file', 'surfaces.@depth')])])
 mbflow.connect([(featureflow, datasink,
                  [('Compute_curvature.mean_curvature_file',
                    'surfaces.@mean_curvature'),
@@ -318,7 +313,13 @@ load_depth = node(name='Load_depth',
                                  output_names = ['Points',
                                                  'Faces',
                                                  'Scalars']))
-featureflow.connect([(depth, load_depth, [('depth_file','filename')])])
+#featureflow.add_nodes([load_depth])
+#load_depth.inputs.filename='/projects/Mindboggle/results/workingdir/Mindboggle_workflow/Feature_workflow/_hemi_lh_subject_HLN-12-1/Compute_depth/lh.pial.depth.vtk'
+#featureflow.connect([(depth, load_depth, [('depth_file','filename')])])
+#mbflow.connect([(datasink, featureflow,
+#                 [('surfaces.@depth','Load_depth.filename')])])
+featureflow.connect([(depth, load_depth,
+                      [('depth_file','filename')])])
 
 load_curvature = node(name='Load_curvature',
                       interface = fn(function = load_scalar,
@@ -339,6 +340,8 @@ load_directions = node(name='Load_directions',
 featureflow.connect([(curvature, load_directions,
                       [('min_curvature_vector_file','filename')])])
 
+"""
+"""
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
@@ -362,6 +365,8 @@ folds.inputs.fraction_folds = fraction_folds
 folds.inputs.min_fold_size = min_fold_size
 featureflow.connect([(load_depth, folds, [('Faces','faces'),
                                           ('Scalars','depths')])])
+"""
+"""
 #-----------------------------------------------------------------------------
 # Extract fundi (curves at the bottoms of folds)
 #-----------------------------------------------------------------------------
@@ -791,7 +796,7 @@ if do_evaluate_labels:
     #   Filling a volume (e.g., gray matter) mask with labels
     #=============================================================================
     #-------------------------------------------------------------------------
-    # Write labels for surface vertices in .label and .annot files
+    # Write .label files for surface vertices
     #-------------------------------------------------------------------------
     writelabels = mapnode(name='Write_label_files',
                           iterfield = ['label_number', 'label_name'],
@@ -803,14 +808,8 @@ if do_evaluate_labels:
                                          output_names = ['label_file']))
     # List of cortical labels
     ctx_labels_file = path.join(atlases_path, label_string + '.txt')
-    f2 = open(ctx_labels_file)
-    lines2 = f2.readlines()
-    ctx_label_numbers = []
-    ctx_label_names = []
-    for line2 in lines2:
-        ctx_label_numbers.append(findall(r'\S+', line2)[0])
-        ctx_label_names.append(findall(r'\S+', line2)[1])
-    f2.close()
+    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
+
     writelabels.inputs.label_number = ctx_label_numbers
     writelabels.inputs.label_name = ctx_label_names
     evalflow.add_nodes([writelabels])
@@ -819,8 +818,9 @@ if do_evaluate_labels:
         evalflow.connect([(fslabels, writelabels, [('fslabels_file','surface_file')])])
     else:
         evalflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
-
-    # Write .annot file
+    #-------------------------------------------------------------------------
+    # Write .annot file from .label files
+    #-------------------------------------------------------------------------
     writeannot = node(name='Write_annot_file',
                       interface = fn(function = label_to_annot_file,
                                      input_names = ['hemi',
@@ -841,7 +841,7 @@ if do_evaluate_labels:
     mbflow.connect([(evalflow, datasink,
                      [('Write_annot_file.annot_file', 'labels.@max_annot')])])
     #-------------------------------------------------------------------------
-    # Fill volume mask with surface vertex labels
+    # Fill volume mask with surface vertex labels from .annot file
     #-------------------------------------------------------------------------
     fillvolume = node(name='Fill_volume_labels',
                       interface = fn(function = fill_label_volume,
@@ -872,15 +872,7 @@ if do_evaluate_labels:
     # Load labels
     #------------
     labels_file = path.join(atlases_path, 'labels.DKT32.txt')
-    f = open(labels_file)
-    lines = f.readlines()
-    labels = []
-    for line in lines:
-        if len(line) > 0:
-            line = findall(r'\S+', line)
-            if len(line) > 0:
-                labels.append(line[0])
-    f.close()
+    labels = read_list_strings(labels_file)
     eval_labels.inputs.labels = labels
 """
 ##############################################################################
