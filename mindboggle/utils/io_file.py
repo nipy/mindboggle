@@ -7,7 +7,9 @@ The function read_surface reads in surface files,
 while the function read_curvature reads in both
 curvature (.curv) and convexity (.sulc) files.
 
-Author:  Forrest Sheng Bao http://fsbao.net
+Authors:
+Forrest Sheng Bao  .  http://fsbao.net
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -236,8 +238,44 @@ def write_lists(filename, input_lists):
         Fp.write('----\n')
     Fp.close()
 
+def read_list_strings(filename):
+    """
+    Read a list file.
+    """
+
+    from re import findall
+
+    Fp = open(filename, 'r')
+    lines = Fp.readlines()
+    List = []
+    for line in lines:
+        if len(line) > 0:
+            List.append(findall(r'\S+', line)[0])
+    Fp.close()
+
+    return List
+
+def read_list_2strings(filename):
+    """
+    Read a 2-column list file.
+    """
+
+    from re import findall
+
+    Fp = open(filename, 'r')
+    lines = Fp.readlines()
+    column1 = []
+    column2 = []
+    for line in lines:
+        if len(line) > 0:
+            column1.append(findall(r'\S+', line)[0])
+            column2.append(findall(r'\S+', line)[1])
+    Fp.close()
+
+    return column1, column2
+
 def read_lists(filename):
-    """The reversing function of write_lists
+    """The reverse function of write_lists
 
     Assume all data are supposed to be integers. Change if floats are needed.
 
