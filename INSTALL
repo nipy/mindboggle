@@ -9,11 +9,9 @@ This page covers the necessary steps to install Mindboggle.
 Download
 --------
 
-Release 0.5.3: [`zip <http://github.com/binarybottle/mindboggle/zipball/0.5.3>`_ `tar
-<http://github.com/binarybottle/mindboggle/tarball/0.5.3>`_]
-
-Development: [`zip <http://github.com/binarybottle/mindboggle/zipball/master>`_ `tar
-<http://github.com/binarybottle/mindboggle/tarball/master>`_]
+Release 0.1:
+Release 0.1: [`zip <http://github.com/binarybottle/mindboggle/zipball/0.1>`_ `tar
+<http://github.com/binarybottle/mindboggle/tarball/0.1>`_]
 
 `Prior downloads <http://github.com/binarybottle/mindboggle/tags>`_
 
@@ -21,40 +19,17 @@ To check out the latest development version::
 
         git clone git://github.com/binarybottle/mindboggle.git
 
+
 Install
 -------
 
-The installation process is similar to other Python packages.
+Include the following four lines in your system's equivalent to a .bashrc file:
 
-If you already have a Python environment setup that has the dependencies listed
-below, you can do::
-
-	easy_install mindboggle
-
-or::
-
-	pip install mindboggle
-
-Debian and Ubuntu
-~~~~~~~~~~~~~~~~~
-
-Add the `NeuroDebian <http://neuro.debian.org>`_ repository and install
-the ``python-mindboggle`` package using ``apt-get`` or your favourite package
-manager.
-
-Mac OS X
-~~~~~~~~
-
-The easiest way to get mindboggle running on MacOSX is to install EPD_ and then add
-nibabel and mindboggle by executing::
-
-	easy_install nibabel
-	easy_install mindboggle
-
-If you are running a 64 bit version of EPD, you will need to compile
-ETS. Instructions for a 64-bit boot mode are available:
-https://gist.github.com/845545
-
+MINDBOGGLE_HOME=/projects/Mindboggle/mindboggle
+MINDBOGGLE_CODE=${MINDBOGGLE_HOME}/mindboggle
+PATH=${MINDBOGGLE_HOME}:${PATH}
+PATH=${MINDBOGGLE_CODE}:${PATH}
+export MINDBOGGLE_HOME MINDBOGGLE_CODE
 
 From source
 ~~~~~~~~~~~
@@ -67,25 +42,23 @@ like ``mindboggle-x.y.tar.gz``, then unpack the tarball, change into the
 
 **Note:** Depending on permissions you may need to use ``sudo``.
 
-
-Testing the install
--------------------
-
-The best way to test the install is to run the test suite.  If you have
-nose_ installed, then do the following::
-
-    python -c "import mindboggle; mindboggle.test()"
-
-you can also test with nosetests::
-
-    nosetests --with-doctest /software/binarybottle-repo/mastermindboggle/mindboggle
-    --exclude=external --exclude=testing
-
-All tests should pass (unless you're missing a dependency). If SUBJECTS_DIR
-variable is not set some FreeSurfer related tests will fail. If any tests
-fail, please report them on our `bug tracker
-<http://github.com/binarybottle/mindboggle/issues>`_.
-
+#Testing the install
+#-------------------
+#
+#The best way to test the install is to run the test suite.  If you have
+#nose_ installed, then do the following::
+#
+#    python -c "import mindboggle; mindboggle.test()"
+#
+#you can also test with nosetests::
+#
+#    nosetests --with-doctest /software/binarybottle-repo/mastermindboggle/mindboggle
+#    --exclude=external --exclude=testing
+#
+#All tests should pass (unless you're missing a dependency). If SUBJECTS_DIR
+#variable is not set some FreeSurfer related tests will fail. If any tests
+#fail, please report them on our `bug tracker
+#<http://github.com/binarybottle/mindboggle/issues>`_.
 
 Dependencies
 ------------
@@ -142,4 +115,3 @@ FreeSurfer_
   
 nipy_ 
   0.1.2+20110404 or later
-

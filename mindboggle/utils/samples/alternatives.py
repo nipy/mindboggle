@@ -68,22 +68,6 @@ def surface_to_volume(surface_file, volume_file, use_freesurfer):
     if use_freesurfer:
         trans = 128  # translation to middle of FreeSurfer conformed space
 
-    # Check type:
-    if type(surface_file) == str:
-        pass
-    elif type(surface_file) == list:
-        surface_file = surface_file[0]
-    else:
-        error("Check format of " + surface_file)
-
-    # Check type:
-    if type(volume_file) == str:
-        pass
-    elif type(volume_file) == list:
-        volume_file = volume_file[0]
-    else:
-        error("Check format of " + volume_file)
-
     # Load image volume
     vol = nb.load(volume_file)
     vol_shape = vol.shape
@@ -152,22 +136,6 @@ def fill_volume(command, input_file, mask_file):
     print("Fill gray matter volume with surface labels using ANTS...")
 
     output_file = path.join(getcwd(), input_file.strip('.nii.gz')+'.fill.nii.gz')
-
-    # Check type:
-    if type(mask_file) == str:
-        pass
-    elif type(mask_file) == list:
-        mask_file = mask_file[0]
-    else:
-        error("Check format of " + mask_file)
-
-    # Check type:
-    if type(input_file) == str:
-        pass
-    elif type(input_file) == list:
-        input_file = input_file[0]
-    else:
-        error("Check format of " + input_file)
 
     args = ['3',
             output_file,
