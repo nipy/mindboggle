@@ -115,13 +115,13 @@ datasink = node(dataout(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
 if not path.isdir(results_path):  makedirs(results_path)
-#-----------------------------------------------------------------------------
+
 # Evaluation inputs: location and structure of atlas volumes
 #-----------------------------------------------------------------------------
 if do_evaluate_labels:
     atlas = node(name = 'Atlas',
-               interface = datain(infields=['subject'],
-                                  outfields=['atlas_file']))
+                 interface = datain(infields=['subject'],
+                                    outfields=['atlas_file']))
     atlas.inputs.base_directory = atlases_path
     atlas.inputs.template = 'atlases/%s/aparcNMMjt+aseg.nii.gz'
     atlas.inputs.template_args['atlas_file'] = [['subject']]
@@ -133,8 +133,8 @@ if not load_vtk_surfaces:
     convertsurf = mapnode(name = 'Convert_surface',
                           iterfield = ['in_file'],
                           interface = fn(function = freesurfer2vtk,
-                          input_names = ['in_file'],
-                          output_names = ['out_file']))
+                                         input_names = ['in_file'],
+                                         output_names = ['out_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
 
 ##############################################################################
@@ -145,41 +145,46 @@ if not load_vtk_surfaces:
 atlasflow = workflow(name='Atlas_workflow')
 
 #=============================================================================
-#   Initialize labels with a classifier atlas
+#   Initialize labels with a classifier atlas (default to FreeSurfer labels)
 #=============================================================================
 if init_fs_labels:
     fslabels = node(name = 'Convert_FreeSurfer_labels',
                     interface = fn(function = annot_to_vtk,
-                    input_names = ['surface_file',
-                                   'hemi',
-                                   'subject',
-                                   'subjects_path',
-                                   'annot_name'],
-                    output_names = ['fslabels_file']))
-    fslabels.inputs.annot_name = 'aparc+aseg.annot'
+                                   input_names = ['surface_file',
+                                                  'hemi',
+                                                  'subject',
+                                                  'subjects_path',
+                                                  'annot_name'],
+                                   output_names = ['fslabels_file']))
+    fslabels.inputs.annot_name = 'aparc.annot'
     fslabels.inputs.subjects_path = subjects_path
     atlasflow.add_nodes([fslabels])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Convert_FreeSurfer_labels.hemi'),
                       ('subject', 'Convert_FreeSurfer_labels.subject')])])
-    mbflow.connect([(surf, atlasflow,
-                     [('surface_files',
-                       'Convert_FreeSurfer_labels.surface_file')])])
-    #=============================================================================
+    if load_vtk_surfaces:
+        mbflow.connect([(surf, atlasflow,
+                         [('surface_files',
+                           'Convert_FreeSurfer_labels.surface_file')])])
+    else:
+        mbflow.connect([(convertsurf, atlasflow,
+                         [('out_file',
+                           'Convert_FreeSurfer_labels.surface_file')])])
+    #-------------------------------------------------------------------------
     #   Aggregate labels
-    #=============================================================================
+    #-------------------------------------------------------------------------
     aggregate = node(name='Aggregate_labels',
                      interface = fn(function = aggregate_surface_labels,
                      input_names = ['vtk_file',
                                     'aggregate_labels_list',
                                     'label_string'],
-                     output_names = ['aggregate_labels_vtk']))
+                     output_names = ['aggregate_labels_file']))
     aggregate.inputs.aggregate_labels = path.join(atlases_path,
                                                   'labels.DKT31to25.txt')
     aggregate.inputs.label_string = label_string + '.vtk'
     atlasflow.connect([(fslabels, aggregate, [('fslabels_file', 'vtk_file')])])
     mbflow.connect([(atlasflow, datasink,
-                     [('Aggregate_labels.aggregate_labels_vtk',
+                     [('Aggregate_labels.aggregate_labels_file',
                        'labels.@aggregateFSlabels')])])
 
 #=============================================================================
@@ -578,13 +583,11 @@ shapeflow = workflow(name='Shape_workflow')
 positions = node(interface = fn(input_names = ['segmented_sulci',
                                                  'segmented_fundi',
                                                  'segmented_midaxis',
-                                                 'pits',
                                                  'patches',
                                                  'regions'],
                                   output_names=['positions_sulci',
                                                 'positions_fundi',
                                                 'positions_midaxis',
-                                                'positions_pits',
                                                 'positions_patches',
                                                 'positions_regions'],
                                   function = measure_positions),
@@ -593,13 +596,11 @@ positions = node(interface = fn(input_names = ['segmented_sulci',
 extents = node(interface = fn(input_names = ['segmented_sulci',
                                                'segmented_fundi',
                                                'segmented_midaxis',
-                                               'pits',
                                                'patches',
                                                'regions'],
                                 output_names=['extents_sulci',
                                               'extents_fundi',
                                               'extents_midaxis',
-                                              'extents_pits',
                                               'extents_patches',
                                               'extents_regions'],
                                 function = measure_extents),
@@ -608,13 +609,11 @@ extents = node(interface = fn(input_names = ['segmented_sulci',
 curvatures = node(interface = fn(input_names = ['segmented_sulci',
                                                   'segmented_fundi',
                                                   'segmented_midaxis',
-                                                  'pits',
                                                   'patches',
                                                   'regions'],
                                    output_names=['curvatures_sulci',
                                                  'curvatures_fundi',
                                                  'curvatures_midaxis',
-                                                 'curvatures_pits',
                                                  'curvatures_patches',
                                                  'curvatures_regions'],
                                    function = measure_curvatures),
@@ -623,13 +622,11 @@ curvatures = node(interface = fn(input_names = ['segmented_sulci',
 depths = node(interface = fn(input_names = ['segmented_sulci',
                                               'segmented_fundi',
                                               'segmented_midaxis',
-                                              'pits',
                                               'patches',
                                               'regions'],
                                output_names=['depths_sulci',
                                              'depths_fundi',
                                              'depths_midaxis',
-                                             'depths_pits',
                                              'depths_patches',
                                              'depths_regions'],
                                function = measure_depths),
@@ -638,13 +635,11 @@ depths = node(interface = fn(input_names = ['segmented_sulci',
 spectra = node(interface = fn(input_names = ['segmented_sulci',
                                                'segmented_fundi',
                                                'segmented_midaxis',
-                                               'pits',
                                                'patches',
                                                'regions'],
                                 output_names=['spectra_sulci',
                                               'spectra_fundi',
                                               'spectra_midaxis',
-                                              'spectra_pits',
                                               'spectra_patches',
                                               'spectra_regions'],
                                 function = measure_spectra),
@@ -669,7 +664,6 @@ featureflow.connect([(region_extraction, spectra, [('regions', 'regions')])])
 #-----------------------------------------------------------------------------
 featureflow.connect([(sulcus_segmentation, positions, [('segmented_sulci', 'segmented_sulci')])])
 featureflow.connect([(fundus_segmentation, positions, [('segmented_fundi', 'segmented_fundi')])])
-featureflow.connect([(pit_extraction, positions, [('pits', 'pits')])])
 featureflow.connect([(midaxis_segmentation, positions, [('segmented_midaxis', 'segmented_midaxis')])])
 
 featureflow.connect([(sulcus_segmentation, extents, [('segmented_sulci', 'segmented_sulci')])])
@@ -829,11 +823,12 @@ if do_evaluate_labels:
     evalflow.add_nodes([writelabels])
     mbflow.connect([(info, evalflow, [('hemi', 'Write_label_files.hemi')])])
     if init_fs_labels:
-        evalflow.connect([(fslabels, writelabels,
-                           [('fslabels_file','surface_file')])])
+        evalflow.connect([(atlasflow, writelabels,
+                           [('Aggregate_labels.aggregate_labels_file',
+                             'surface_file')])])
     else:
         evalflow.connect([(vote, writelabels,
-                           [('maxlabel_file','surface_file')])])
+                           [('Label_vote.maxlabel_file','surface_file')])])
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
     #-------------------------------------------------------------------------
