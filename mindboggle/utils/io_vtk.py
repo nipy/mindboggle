@@ -13,9 +13,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-from os import path, getcwd
-import io_file
-
 #=============================================
 # LEVEL 1: Basic VTK element writing functions
 #=============================================
@@ -235,15 +232,18 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
 
 def surf_to_vtk(surface_file):
 
+    import os
+    import io_file, io_vtk
+
     Vertex, Face = io_file.read_surface(surface_file)
 
     #vtk_file = surface_file + '.vtk'
-    vtk_file = path.join(getcwd(), path.basename(surface_file + '.vtk'))
+    vtk_file = os.path.join(os.getcwd(), os.path.basename(surface_file + '.vtk'))
     Fp = open(vtk_file, 'w')
 
-    write_header(Fp, Title='vtk output from' + surface_file)
-    write_points(Fp, Vertex)
-    write_faces(Fp, Face)
+    io_vtk.write_header(Fp, Title='vtk output from' + surface_file)
+    io_vtk.write_points(Fp, Vertex)
+    io_vtk.write_faces(Fp, Face)
     Fp.close()
 
     return vtk_file
@@ -263,38 +263,29 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     """
 
-    from os import path, getcwd
+    import os
     import nibabel as nb
-    from utils.io_vtk import load_scalar
+    import io_vtk
 
-    annot_file = path.join(subjects_path, subject, 'label',
+    annot_file = os.path.join(subjects_path, subject, 'label',
                            hemi + '.' + annot_name)
 
     labels, colortable, names = nb.freesurfer.read_annot(annot_file)
-
-    # Check type:
-    if type(surface_file) == str:
-        pass
-    elif type(surface_file) == list:
-        surface_file = surface_file[0]
-    else:
-        from os import error
-        error("Check format of " + surface_file)
 
     # Load FreeSurfer surface
     #from utils.io_file import read_surface
     #Points, Faces = read_surface(surface_file)
 
     # Load VTK surface
-    Points, Faces, Scalars = load_scalar(surface_file)
+    Points, Faces, Scalars = io_vtk.load_scalar(surface_file)
     Vertices =  range(1, len(Points) + 1)
 
-    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    output_stem = os.path.join(os.getcwd(), os.path.basename(surface_file.strip('.vtk')))
     vtk_file = output_stem + '.labels.fs.vtk'
 
     LUTs = [labels]
     LUT_names = ['Labels']
-    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+    io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -495,6 +486,7 @@ def load_scalar(filename):
 
     """
     import vtk
+
     Reader = vtk.vtkDataSetReader()
     Reader.SetFileName(filename)
     Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
