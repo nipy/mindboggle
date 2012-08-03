@@ -875,6 +875,7 @@ class Shape:
 		dist_threshold: float (threshold of absolute distance between fundi and boundary, above which propagation is prohibited)
 		num_good_nodes: int (threshold above which a label boundary segment will be preserved)
 		eps: float (numerical stability - avoid division by zero)
+		pickled_filename: str (pkl file storing the distance matrix. Saves time.)
 
 		Returns
 		=======
@@ -913,7 +914,8 @@ class Shape:
 		closest_label_boundary = sorted_distances[:,0]
 		print 'Got closest label boundary. Shape is {0}. First few values are {1}'.format(closest_label_boundary.shape, closest_label_boundary[:10])
 
-		self.show_me_these_nodes(self.label_boundary[closest_label_boundary], '/home/eli/Desktop/close_nodes.vtk')
+		dir = os.getcwd()
+		self.show_me_these_nodes(self.label_boundary[closest_label_boundary], dir + '/close_nodes.vtk')
 
 		closest_fundi = np.argsort(distance_matrix, 0)[0,:]
 
@@ -937,18 +939,18 @@ class Shape:
 		within_distance = (closest_distances < dist_threshold)
 		print 'Got within distance. Num satisfy is {0}. First few are {1}'.format(within_distance.nonzero()[0].size, within_distance[:10])
 
-		self.show_me_these_nodes(self.label_boundary[closest_label_boundary[within_distance==1]], '/home/eli/Desktop/close_distance.vtk')
+		self.show_me_these_nodes(self.label_boundary[closest_label_boundary[within_distance==1]], dir + '/close_distance.vtk')
 
 		within_proportion = np.bitwise_or((closest_distances / second_closest_distances > proportion), (second_closest_distances / (closest_distances+eps) > proportion))
 		print 'Got within proportion. Num satisfy is {0}. First few are {1}'.format(within_proportion.nonzero()[0].size, within_proportion[:10])
 
-		self.show_me_these_nodes([self.label_boundary[closest_label_boundary[within_proportion==1]]], '/home/eli/Desktop/good_proportion.vtk')
+		self.show_me_these_nodes([self.label_boundary[closest_label_boundary[within_proportion==1]]], dir + '/good_proportion.vtk')
 
 		# The following array stores the indices of the label boundary nodes which satisfy the above properties.
 		satisfy_distances = self.label_boundary[closest_label_boundary[np.nonzero(np.bitwise_and(within_distance, within_proportion))]]
 		print 'Got satisfy distances. Shape is {0}. They are {1}'.format(satisfy_distances.shape, satisfy_distances)
 
-		self.show_me_these_nodes(satisfy_distances, '/home/eli/Desktop/satisfy_distance.vtk')
+		self.show_me_these_nodes(satisfy_distances, dir + '/satisfy_distance.vtk')
 
 		print 'Currently, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
 
@@ -978,7 +980,7 @@ class Shape:
 
 				#### AH! I'm changing that over which I'm iterating! Fix.
 
-		self.show_me_these_nodes(satisfy_distances, '/home/eli/Desktop/satisfy_distance_pruned.vtk')
+		self.show_me_these_nodes(satisfy_distances, dir + '/satisfy_distance_pruned.vtk')
 
 		print 'After pruning, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
 
@@ -991,7 +993,7 @@ class Shape:
 					satisfy_distances = np.append(satisfy_distances,lbnode)
 					print 'added node: ', lbnode
 
-		self.show_me_these_nodes(satisfy_distances,'/home/eli/Desktop/satisfy_distance_pruned_augmented.vtk')
+		self.show_me_these_nodes(satisfy_distances, dir + '/satisfy_distance_pruned_augmented.vtk')
 		print 'After augmenting, {0} nodes satisfy the distance requirement'.format(satisfy_distances.size)
 
 		# Now we will see how many nodes from each label boundary segment satisfy the properties.
@@ -1012,7 +1014,7 @@ class Shape:
 				nodes_to_highlight[value] = 1
 				print '______________Preserving Label Boundary Segment_____________'
 
-		vo.write_all('/home/eli/Desktop/propagating_regions.vtk',self.Nodes,self.Mesh,nodes_to_highlight)
+		vo.write_all(dir + '/propagating_regions.vtk',self.Nodes,self.Mesh,nodes_to_highlight)
 
 		return self.realignment_matrix
 
@@ -2011,18 +2013,18 @@ class Shape:
 # ---------------------------------------
 #########################################
 	"""
-
+dir = os.getcwd()
 shape = Shape()
 f1 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
 f2 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatafundi.vtk'
-f3 = '/home/eli/Desktop/label_boundary_segments_PyShape Object.pkl'
-f4 = '/home/eli/Desktop/label_boundary.vtk'
-f5 = '/home/eli/Desktop/max_prob_visualization_realignment.vtk'
-f6 = '/home/eli/Desktop/realigned_label_boundary_segments.vtk'
+f3 = dir + '/label_boundary_segments_PyShape Object.pkl'
+f4 = dir + '/label_boundary.vtk'
+f5 = dir + '/max_prob_visualization_realignment.vtk'
+f6 = dir + '/realigned_label_boundary_segments.vtk'
 
-g1 = '/home/eli/Desktop/testing1.vtk'
-g2 = '/home/eli/Desktop/testing1_fundi.vtk'
-g3 = ''
+#g1 = '/home/eli/Desktop/testing1.vtk'
+#g2 = '/home/eli/Desktop/testing1_fundi.vtk'
+#g3 = ''
 
 def test():
 	""" This test is for the realignment task."""
