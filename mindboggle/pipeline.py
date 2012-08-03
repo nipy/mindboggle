@@ -50,9 +50,8 @@ config.enable_debug_mode()
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
-from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk
+from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, annot_to_vtk
 from utils.io_file import read_list_strings, read_list_2strings
-from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
            transform_atlas_labels, majority_vote_label
 from label.aggregate_labels import aggregate_surface_labels
@@ -132,10 +131,10 @@ if do_evaluate_labels:
 if not load_vtk_surfaces:
     convertsurf = mapnode(name = 'Convert_surface',
                           iterfield = ['in_file'],
-                          interface = fn(function = freesurfer2vtk,
-                                         input_names = ['in_file'],
-                                         output_names = ['out_file']))
-    mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
+                          interface = fn(function = surf_to_vtk,
+                                         input_names = ['surface_file'],
+                                         output_names = ['vtk_file']))
+    mbflow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
 
 ##############################################################################
 #
@@ -168,7 +167,7 @@ if init_fs_labels:
                            'Convert_FreeSurfer_labels.surface_file')])])
     else:
         mbflow.connect([(convertsurf, atlasflow,
-                         [('out_file',
+                         [('vtk_file',
                            'Convert_FreeSurfer_labels.surface_file')])])
     #-------------------------------------------------------------------------
     #   Aggregate labels
@@ -253,7 +252,7 @@ else:
                          [('surface_files', 'Label_vote.surface_file')])])
     else:
         mbflow.connect([(convertsurf, atlasflow,
-                         [('out_file', 'Label_vote.surface_file')])])
+                         [('vtk_file', 'Label_vote.surface_file')])])
     atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
     mbflow.connect([(atlasflow, datasink,
                      [('Label_vote.maxlabel_file', 'labels.@max'),
@@ -307,9 +306,9 @@ if load_vtk_surfaces:
                      [('surface_files','Compute_curvature.surface_file')])])
 else:
     mbflow.connect([(convertsurf, featureflow,
-                     [('out_file', 'Compute_depth.surface_file')])])
+                     [('vtk_file', 'Compute_depth.surface_file')])])
     mbflow.connect([(convertsurf, featureflow,
-                 [('out_file', 'Compute_curvature.surface_file')])])
+                 [('vtk_file', 'Compute_curvature.surface_file')])])
 mbflow.connect([(featureflow, datasink,
                  [('Compute_depth.depth_file', 'surfaces.@depth')])])
 mbflow.connect([(featureflow, datasink,
