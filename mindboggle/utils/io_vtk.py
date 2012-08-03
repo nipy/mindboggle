@@ -256,13 +256,13 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     """
 
     from os import path, getcwd
-    import nibabel as nb
+#    import nibabel as nb
     import pyvtk
 
     annot_file = path.join(subjects_path, subject, 'label',
                            hemi + '.' + annot_name)
 
-    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+#    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
     # Check type:
     if type(surface_file) == str:
