@@ -109,7 +109,8 @@ def freesurfer2vtk(in_file):
 
     vertices, faces = read_surface(in_file)
 
-    out_file = path.join(getcwd(), in_file + '.vtk')
+    output_stem = path.join(getcwd(), path.basename(in_file.strip('.vtk')))
+    out_file = output_stem + '.vtk'
     f = open(out_file, 'w')
 
     write_header(f)
