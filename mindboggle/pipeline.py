@@ -58,15 +58,15 @@ from label.evaluate_volume_labels import measure_volume_overlap
 # Debugging options
 #-----------------------------------------------------------------------------
 load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
-init_fs_labels = False  # Initialize with a FreeSurfer classifier atlas
+init_fs_labels = True  # Initialize with a FreeSurfer classifier atlas
 do_evaluate_labels = False  # Compute volume overlap of auto vs. manual labels
-combine_atlas_labels = True  # Combine atlas labels
+combine_atlas_labels = False  # Combine atlas labels
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
 mbflow = Workflow(name='Mindboggle_workflow')
 mbflow.base_dir = temp_path
-if not os.path.isdir(temp_path):  makedirs(temp_path)
+if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 
 #=============================================================================
 #   Inputs and outputs
@@ -136,7 +136,6 @@ if combine_atlas_labels:
     mbflow.connect([(combine_atlas, datasink,
                    [('relabeled_vtk','labels.@combine_atlas_labels')])])
 
-"""
 ##############################################################################
 #
 #   Multi-atlas labeling workflow
@@ -173,21 +172,22 @@ if init_fs_labels:
     #-------------------------------------------------------------------------
     #   Combine labels
     #-------------------------------------------------------------------------
-    combine = Node(name='Combine_labels',
-                     interface = Fn(function = combine_surface_labels,
-                     input_names = ['vtk_file',
-                                    'combine_labels_list',
-                                    'old_string',
-                                    'new_string'],
-                     output_names = ['combine_labels_file']))
-    combine.inputs.combine_labels = os.path.join(atlases_path,
-                                                  'labels.DKT31to25.txt')
-    combine.inputs.old_string = '.vtk'
-    combine.inputs.new_string = label_string + '.vtk'
-    atlasflow.connect([(fslabels, combine, [('fslabels_file', 'vtk_file')])])
-    mbflow.connect([(atlasflow, datasink,
-                     [('combine.combine_labels_file',
-                       'labels.@combineFSlabels')])])
+    if combine_atlas_labels:
+        combine = Node(name='Combine_labels',
+                         interface = Fn(function = combine_surface_labels,
+                         input_names = ['vtk_file',
+                                        'combine_labels_list',
+                                        'old_string',
+                                        'new_string'],
+                         output_names = ['combine_labels_file']))
+        combine.inputs.combine_labels = os.path.join(atlases_path,
+                                                      'labels.DKT31to25.txt')
+        combine.inputs.old_string = '.vtk'
+        combine.inputs.new_string = label_string + '.vtk'
+        atlasflow.connect([(fslabels, combine, [('fslabels_file', 'vtk_file')])])
+        mbflow.connect([(atlasflow, datasink,
+                         [('combine.combine_labels_file',
+                           'labels.@combineFSlabels')])])
 
 #=============================================================================
 #   Initialize labels using multi-atlas registration
@@ -207,7 +207,7 @@ else:
     template = 'OASIS-TRT-20'
     register.inputs.template = template + '.tif'
     register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-    register.inputs.templates_path = path.join(templates_path, 'freesurfer')
+    register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
     atlasflow.add_nodes([register])
     mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
                     (surf, atlasflow, [('sphere_files',
@@ -261,8 +261,7 @@ else:
                      [('Label_vote.maxlabel_file', 'labels.@max'),
                       ('Label_vote.labelcounts_file', 'labels.@counts'),
                       ('Label_vote.labelvotes_file', 'labels.@votes')])])
-"""
-"""
+
 ##############################################################################
 #
 #   Feature-based labeling workflow
@@ -326,6 +325,7 @@ mbflow.connect([(featureflow, datasink,
                    'surfaces.@min_curvature'),
                   ('Compute_curvature.min_curvature_vector_file',
                    'surfaces.@min_curvature_vectors')])])
+"""
 #=============================================================================
 #   Feature extraction
 #=============================================================================
@@ -826,9 +826,14 @@ if do_evaluate_labels:
     evalflow.add_nodes([writelabels])
     mbflow.connect([(info, evalflow, [('hemi', 'Write_label_files.hemi')])])
     if init_fs_labels:
-        evalflow.connect([(atlasflow, writelabels,
-                           [('combine_labels.combine_labels_file',
-                             'surface_file')])])
+        if combine_atlas_labels:
+            evalflow.connect([(atlasflow, writelabels,
+                               [('combine_labels.combine_labels_file',
+                                 'surface_file')])])
+        else:
+            evalflow.connect([(atlasflow, writelabels,
+                               [('combine_labels.fslabels_file',
+                                 'surface_file')])])
     else:
         evalflow.connect([(vote, writelabels,
                            [('Label_vote.maxlabel_file','surface_file')])])
