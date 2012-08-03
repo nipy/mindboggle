@@ -13,6 +13,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+from os import path, getcwd
 import io_file
 
 #=============================================
@@ -233,12 +234,19 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     Fp.close()
 
 def surf_to_vtk(surface_file):
+
     Vertex, Face = io_file.read_surface(surface_file)
-    Fp = open(surface_file + '.vtk', 'w')
-    write_header(Fp, Title='vtk output from'+surface_file)
+
+    #vtk_file = surface_file + '.vtk'
+    vtk_file = path.join(getcwd(), path.basename(surface_file + '.vtk'))
+    Fp = open(vtk_file, 'w')
+
+    write_header(Fp, Title='vtk output from' + surface_file)
     write_points(Fp, Vertex)
     write_faces(Fp, Face)
     Fp.close()
+
+    return vtk_file
 
 def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     """
@@ -256,13 +264,13 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     """
 
     from os import path, getcwd
-#    import nibabel as nb
-    import pyvtk
+    import nibabel as nb
+    from utils.io_vtk import load_scalar
 
     annot_file = path.join(subjects_path, subject, 'label',
                            hemi + '.' + annot_name)
 
-#    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
     # Check type:
     if type(surface_file) == str:
@@ -273,26 +281,20 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
         from os import error
         error("Check format of " + surface_file)
 
-    # Save file
-#    Vertices, Faces = io_file.read_surface(surface_file)
-    VTKReader = pyvtk.VtkData(surface_file)
-    Vertices =  VTKReader.structure.points
-    Faces =     VTKReader.structure.polygons
+    # Load FreeSurfer surface
+    #from utils.io_file import read_surface
+    #Points, Faces = read_surface(surface_file)
+
+    # Load VTK surface
+    Points, Faces, Scalars = load_scalar(surface_file)
+    Vertices =  range(1, len(Points) + 1)
 
     output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
     vtk_file = output_stem + '.labels.fs.vtk'
 
-#    Fp = open(vtk_file + '.vtk', 'w')
-#    write_header(Fp, Title='vtk output from' + annot_file)
-#    write_points(Fp, Vertex)
-#    write_faces(Fp, Face)
-#???    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
-#    Fp.close()
-
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(vtk_file,\
-                                  name='FreeSurfer labels'))).\
-          tofile(vtk_file, 'ascii')
+    LUTs = [labels]
+    LUT_names = ['Labels']
+    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -512,7 +514,10 @@ def load_scalar(filename):
           format(Reader.GetNumberOfScalarsInFile,
                  Reader.GetScalarsNameInFile(0), filename))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+    if ScalarsArray:
+        Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+    else:
+        Scalars = []
 
     return Points, Faces, Scalars
 
