@@ -50,8 +50,8 @@ config.enable_debug_mode()
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 sys.path.append(code_path)
-from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk,\
-                         read_list_strings, read_list_2strings
+from utils.io_vtk import load_scalar, write_scalars, annot_to_vtk
+from utils.io_file import read_list_strings, read_list_2strings
 from utils.freesurfer2vtk import freesurfer2vtk
 from label.multiatlas_labeling import register_template, \
            transform_atlas_labels,  majority_vote_label
@@ -136,7 +136,7 @@ if not load_vtk_surfaces:
                           input_names = ['in_file'],
                           output_names = ['out_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','in_file')])])
-"""
+
 ##############################################################################
 #
 #   Multi-atlas labeling workflow
@@ -184,9 +184,9 @@ else:
     register.inputs.template = template + '.tif'
     register.inputs.transform = 'sphere_to_' + template + '_template.reg'
     register.inputs.templates_path = path.join(templates_path, 'freesurfer')
-    evalflow.add_nodes([register])
-    mbflow.connect([(info, evalflow, [('hemi', 'Register_template.hemi')]),
-                    (surf, evalflow, [('sphere_files',
+    atlasflow.add_nodes([register])
+    mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
+                    (surf, atlasflow, [('sphere_files',
                                         'Register_template.sphere_file')])])
     #-------------------------------------------------------------------------
     # Register atlases to subject via template
@@ -202,17 +202,17 @@ else:
                                                       'atlas_string'],
                                        output_names = ['output_file']))
     # Load atlas list
-    atlas_list_file = path.join(atlases_path, 'list_atlases.txt')
+    atlas_list_file = path.join(atlases_path, 'atlases.txt')
     atlas_list = read_list_strings(atlas_list_file)
 
     transform.inputs.atlas = atlas_list
     transform.inputs.subjects_path = subjects_path
     transform.inputs.atlas_string = atlas_string
-    evalflow.add_nodes([transform])
-    mbflow.connect([(info, evalflow,
+    atlasflow.add_nodes([transform])
+    mbflow.connect([(info, atlasflow,
                      [('hemi', 'Transform_atlas_labels.hemi'),
                       ('subject', 'Transform_atlas_labels.subject')])])
-    evalflow.connect([(register, transform, [('transform', 'transform')])])
+    atlasflow.connect([(register, transform, [('transform', 'transform')])])
     #transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
     #-----------------------------------------------------------------------------
     # Majority vote label
@@ -225,19 +225,23 @@ else:
                                                'labelcounts_file',
                                                'labelvotes_file',
                                                'consensus_vertices']))
-    evalflow.add_nodes([vote])
+    atlasflow.add_nodes([vote])
     if load_vtk_surfaces:
-        mbflow.connect([(surf, evalflow,
+        mbflow.connect([(surf, atlasflow,
                          [('surface_files', 'Label_vote.surface_file')])])
     else:
-        mbflow.connect([(convertsurf, evalflow,
+        mbflow.connect([(convertsurf, atlasflow,
                          [('out_file', 'Label_vote.surface_file')])])
-    evalflow.connect([(transform, vote, [('output_file', 'annot_files')])])
-    mbflow.connect([(evalflow, datasink,
+    atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
+    mbflow.connect([(atlasflow, datasink,
                      [('Label_vote.maxlabel_file', 'labels.@max'),
                       ('Label_vote.labelcounts_file', 'labels.@counts'),
                       ('Label_vote.labelvotes_file', 'labels.@votes')])])
-"""
+#=============================================================================
+#   Aggregate labels
+#=============================================================================
+
+
 ##############################################################################
 #
 #   Feature-based labeling workflow
@@ -313,13 +317,9 @@ load_depth = node(name='Load_depth',
                                  output_names = ['Points',
                                                  'Faces',
                                                  'Scalars']))
-#featureflow.add_nodes([load_depth])
-#load_depth.inputs.filename='/projects/Mindboggle/results/workingdir/Mindboggle_workflow/Feature_workflow/_hemi_lh_subject_HLN-12-1/Compute_depth/lh.pial.depth.vtk'
-#featureflow.connect([(depth, load_depth, [('depth_file','filename')])])
-#mbflow.connect([(datasink, featureflow,
-#                 [('surfaces.@depth','Load_depth.filename')])])
-featureflow.connect([(depth, load_depth,
-                      [('depth_file','filename')])])
+load_depth.inputs.filename='/projects/Mindboggle/results/workingdir/Mindboggle_workflow/Feature_workflow/_hemi_lh_subject_HLN-12-1/Compute_depth/lh.pial.depth.vtk'
+#featureflow.connect([(depth, load_depth,
+#                      [('depth_file','filename')])])
 
 load_curvature = node(name='Load_curvature',
                       interface = fn(function = load_scalar,
@@ -815,9 +815,11 @@ if do_evaluate_labels:
     evalflow.add_nodes([writelabels])
     mbflow.connect([(info, evalflow, [('hemi', 'Write_label_files.hemi')])])
     if init_fs_labels:
-        evalflow.connect([(fslabels, writelabels, [('fslabels_file','surface_file')])])
+        evalflow.connect([(fslabels, writelabels,
+                           [('fslabels_file','surface_file')])])
     else:
-        evalflow.connect([(vote, writelabels, [('maxlabel_file','surface_file')])])
+        evalflow.connect([(vote, writelabels,
+                           [('maxlabel_file','surface_file')])])
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
     #-------------------------------------------------------------------------
@@ -882,8 +884,8 @@ if do_evaluate_labels:
 ##############################################################################
 if __name__== '__main__':
 
-#    mbflow.write_graph(graph2use='flat')
-#    mbflow.write_graph(graph2use='hierarchical')
+    mbflow.write_graph(graph2use='flat')
+    mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
 
 
