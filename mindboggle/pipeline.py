@@ -59,8 +59,8 @@ from label.evaluate_volume_labels import measure_volume_overlap
 # Debugging options
 #-----------------------------------------------------------------------------
 load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
-init_fs_labels = True  # Initialize with a FreeSurfer classifier atlas
-do_evaluate_labels = True  # Compute volume overlap of auto vs. manual labels
+init_fs_labels = 0 #False  # Initialize with a FreeSurfer classifier atlas
+do_evaluate_labels = 1 #True  # Compute volume overlap of auto vs. manual labels
 combine_atlas_labels = False  # Combine atlas labels
 #-----------------------------------------------------------------------------
 # Initialize main workflow
@@ -78,7 +78,7 @@ if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 #-----------------------------------------------------------------------------
 info = Node(name = 'Inputs',
             interface = IdentityInterface(fields=['subject', 'hemi']))
-info.iterables = ([('subject', subjects), ('hemi', ['lh'])]) #,'rh'])])
+info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
 #-----------------------------------------------------------------------------
 # Location and structure of the surface inputs
 #-----------------------------------------------------------------------------
@@ -177,17 +177,17 @@ if init_fs_labels:
         combine = Node(name='Combine_labels',
                          interface = Fn(function = relabel_surface,
                          input_names = ['vtk_file',
-                                        'combine_labels_list',
+                                        'relabel_list',
                                         'old_string',
                                         'new_string'],
                          output_names = ['combine_labels_file']))
-        combine.inputs.combine_labels = os.path.join(atlases_path,
-                                                      'labels.DKT31to25.txt')
+        combine.inputs.relabel_list = os.path.join(atlases_path,
+                                                   'labels.DKT31to25.txt')
         combine.inputs.old_string = '.vtk'
         combine.inputs.new_string = label_string + '.vtk'
         atlasflow.connect([(fslabels, combine, [('fslabels_file', 'vtk_file')])])
         mbflow.connect([(atlasflow, datasink,
-                         [('combine.combine_labels_file',
+                         [('Combine_labels.combine_labels_file',
                            'labels.@combineFSlabels')])])
 
 #=============================================================================
@@ -830,15 +830,18 @@ if do_evaluate_labels:
     if init_fs_labels:
         if combine_atlas_labels:
             evalflow.connect([(atlasflow, writelabels,
-                               [('combine_labels.combine_labels_file',
+                               [('Combine_labels.combine_labels_file',
                                  'surface_file')])])
+            label_type = label_string
         else:
             evalflow.connect([(atlasflow, writelabels,
                                [('Convert_FreeSurfer_labels.fslabels_file',
                                  'surface_file')])])
+            label_type = 'fslabels'
     else:
         evalflow.connect([(vote, writelabels,
-                           [('Label_vote.maxlabel_file','surface_file')])])
+                           [('Label_vote.maxlabels_file','surface_file')])])
+        label_type = 'maxlabels'
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
     #-------------------------------------------------------------------------
@@ -860,7 +863,7 @@ if do_evaluate_labels:
                      [('subject', 'Write_annot_file.subject')])])
     evalflow.connect([(writelabels, writeannot, [('label_file','label_files')])])
     mbflow.connect([(evalflow, datasink,
-                     [('Write_annot_file.annot_file', 'labels.@max_annot')])])
+                     [('Write_annot_file.annot_file', label_type + '.@annot')])])
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels from .annot file
     #-------------------------------------------------------------------------
@@ -875,26 +878,26 @@ if do_evaluate_labels:
                         [('annot_name','annot_name')])])
     mbflow.connect([(evalflow, datasink,
                      [('Fill_volume_labels.output_file',
-                       'labels.@maxvolume')])])
+                       label_type + '.@filled_volume')])])
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
     eval_labels = Node(name='Evaluate_volume_labels',
-                          interface = Fn(function = measure_volume_overlap,
-                                         input_names = ['labels',
-                                                        'atlas_file',
-                                                        'input_file'],
-                                         output_names = ['overlaps']))
+                       interface = Fn(function = measure_volume_overlap,
+                                      input_names = ['labels',
+                                                     'atlas_file',
+                                                     'input_file'],
+                                      output_names = ['overlaps']))
     evalflow.connect([(fillvolume, eval_labels,
                         [('output_file', 'input_file')])])
     mbflow.connect([(atlas, evalflow,
                    [('atlas_file', 'Evaluate_volume_labels.atlas_file')])])
-    #------------
-    # Load labels
-    #------------
-    labels_file = os.path.join(atlases_path, 'labels.DKT31.txt')
+    labels_file = os.path.join(atlases_path, label_string + '.txt')
     labels = read_list_strings(labels_file)
     eval_labels.inputs.labels = labels
+    mbflow.connect([(evalflow, datasink,
+                     [('Evaluate_volume_labels.overlaps',
+                       label_type + '.@overlaps')])])
 
 ##############################################################################
 #
