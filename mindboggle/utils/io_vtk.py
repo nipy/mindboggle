@@ -240,8 +240,7 @@ def surf_to_vtk(surface_file):
     #vtk_file = surface_file + '.vtk'
     vtk_file = os.path.join(os.getcwd(), os.path.basename(surface_file + '.vtk'))
     Fp = open(vtk_file, 'w')
-
-    io_vtk.write_header(Fp, Title='vtk output from' + surface_file)
+    io_vtk.write_header(Fp, Title='vtk output from ' + surface_file)
     io_vtk.write_points(Fp, Vertex)
     io_vtk.write_faces(Fp, Face)
     Fp.close()
@@ -283,11 +282,12 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     output_stem = os.path.join(os.getcwd(), os.path.basename(surface_file.strip('.vtk')))
     vtk_file = output_stem + '.labels.fs.vtk'
 
-    LUTs = [labels]
+    LUTs = [labels.tolist()]
     LUT_names = ['Labels']
     io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
+
 
 def face_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
     """
