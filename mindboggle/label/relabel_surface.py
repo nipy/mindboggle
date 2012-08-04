@@ -46,6 +46,6 @@ def relabel_surface(vtk_file, relabel_list, old_string, new_string):
                                  vtk_file.strip(old_string) + new_string)
 
     io_vtk.write_scalars(relabeled_vtk, Points, Vertices, Faces,
-                         [Scalars.tolist()], [new_string])
+                         [Scalars.tolist()], ['Labels'])
 
     return relabeled_vtk

@@ -355,9 +355,9 @@ def string_vs_list_check(var):
 
     # Check type:
     if type(var) == str:
-        pass
+        return var
     elif type(var) == list:
-        var = var[0]
+        return var[0]
     else:
         import os
         os.error("Check format of " + var)
