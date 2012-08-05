@@ -58,23 +58,23 @@ def write_label_file(hemi, surface_file, label_number, label_name):
             count += 1
 
     # Save the label file
-    if count > 0:
-        label_file = os.path.join(os.getcwd(),
-                                  hemi + '.' + label_name + '.label')
-        f = open(label_file, 'w')
-        f.writelines('#!ascii label\n' + str(count) + '\n')
-        for i in range(npoints):
-            if any(L[i,:]):
-                pr = '{0} {1} {2} {3} 0\n'.format(
-                     np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-                f.writelines(pr)
-            else:
-                break
-        f.close()
+#    if count > 0:
+    label_file = os.path.join(os.getcwd(), \
+                              hemi + '.' + label_name + '.label')
+    f = open(label_file, 'w')
+    f.writelines('#!ascii label\n' + str(count) + '\n')
+    for i in range(npoints):
+        if any(L[i,:]):
+            pr = '{0} {1} {2} {3} 0\n'.format(
+                 np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+            f.writelines(pr)
+        else:
+            break
+    f.close()
 
-        return label_file
+    return label_file
 
-def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
+def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable, annot_name):
     """
     Convert FreeSurfer .label files as a FreeSurfer .annot file
     using FreeSurfer's mris_label2annot.
@@ -86,7 +86,6 @@ def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable):
 
     label_files = [f for f in label_files if f!=None]
     if label_files:
-        annot_name = 'labels.max'
         annot_file = hemi + '.' + annot_name + '.annot'
         if os.path.exists(os.path.join(subjects_path, subject, 'label', annot_file)):
             cli = CommandLine(command='rm')
