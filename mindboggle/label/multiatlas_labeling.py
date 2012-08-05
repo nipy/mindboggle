@@ -32,15 +32,17 @@ def register_template(hemi, sphere_file, transform,
     """
     Register surface to template with FreeSurfer's mris_register
     """
-    import os
+    from os import path
     from nipype.interfaces.base import CommandLine
+    from nipype import logging
+    logger = logging.getLogger('interface')
 
-    template_file = os.path.join(templates_path, hemi + '.' + template)
+    template_file = path.join(templates_path, hemi + '.' + template)
     output_file = hemi + '.' + transform
     cli = CommandLine(command='mris_register')
     cli.inputs.args = ' '.join(['-curv', sphere_file,
                                 template_file, output_file])
-    cli.cmdline
+    logger.info(cli.cmdline)
     cli.run()
 
     return transform
@@ -58,8 +60,7 @@ def transform_atlas_labels(hemi, subject, transform,
     and they must have been processed with recon-all, unless you are transforming
     to one of the icosahedron meshes."
     """
-
-    import os
+    from os import path, getcwd
     from nipype.interfaces.freesurfer import SurfaceTransform
 
     sxfm = SurfaceTransform()
@@ -68,12 +69,12 @@ def transform_atlas_labels(hemi, subject, transform,
     sxfm.inputs.source_subject = atlas
 
     # Source file
-    sxfm.inputs.source_annot_file = os.path.join(subjects_path,
-                                                 atlas, 'label',
-                            hemi + '.' + atlas_string + '.annot')
+    sxfm.inputs.source_annot_file = path.join(subjects_path,
+                                    atlas, 'label',
+                                    hemi + '.' + atlas_string + '.annot')
     # Output annotation file
-    output_file = os.path.join(os.getcwd(), hemi + '.' + atlas + '.' + \
-                               atlas_string + '_to_' + subject + '.annot')
+    output_file = path.join(getcwd(), hemi + '.' + atlas + '.' + atlas_string + \
+                                      '_to_' + subject + '.annot')
     sxfm.inputs.out_file = output_file
 
     # Arguments: strings within registered files
@@ -162,10 +163,10 @@ def majority_vote_label(surface_file, annot_files):
                   number of votes per majority label
     """
 
-    import os
+    from os import path, getcwd
     import nibabel as nb
     import pyvtk
-    from multiatlas_labeling import vote_labels
+    from atlas_functions import vote_labels
 
     # Load multiple label sets
     print("Load annotation files...")
@@ -176,15 +177,24 @@ def majority_vote_label(surface_file, annot_files):
     print("Annotations loaded.")
 
     # Vote on labels for each vertex
-    labels_max, label_votes, label_counts,\
+    labels_max, label_votes, label_counts, \
     consensus_vertices = vote_labels(label_lists)
+
+    # Check type:
+    if type(surface_file) == str:
+        pass
+    elif type(surface_file) == list:
+        surface_file = surface_file[0]
+    else:
+        from os import error
+        error("Check format of " + surface_file)
 
     # Save files
     VTKReader = pyvtk.VtkData(surface_file)
     Vertices =  VTKReader.structure.points
     Faces =     VTKReader.structure.polygons
 
-    output_stem = os.path.join(os.getcwd(), os.path.basename(surface_file.strip('.vtk')))
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
     maxlabel_file = output_stem + '.labels.max.vtk'
     labelcounts_file = output_stem + '.labelcounts.vtk'
     labelvotes_file = output_stem + '.labelvotes.vtk'
