@@ -1,0 +1,43 @@
+# This is the root ITK CMakeLists file.
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
+IF(COMMAND CMAKE_POLICY)
+  CMAKE_POLICY(SET CMP0003 NEW)
+ENDIF(COMMAND CMAKE_POLICY)
+
+PROJECT(brain)
+
+# Find VTK.
+FIND_PACKAGE(VTK REQUIRED)
+INCLUDE(${VTK_USE_FILE})
+
+ADD_SUBDIRECTORY(
+travel_depth
+)
+
+ADD_SUBDIRECTORY(
+curvature
+)
+
+ADD_LIBRARY(
+MeshAnalyser MeshAnalyser.cpp
+)
+
+ADD_LIBRARY(
+FsSurfaceReader FsSurfaceReader.cpp
+)
+
+ADD_LIBRARY(
+VtkFileEditor VtkFileEditor.cpp
+)
+
+ADD_LIBRARY(
+TravelDepth TravelDepth.cpp
+)
+
+TARGET_LINK_LIBRARIES(
+MeshAnalyser
+)
+
+TARGET_LINK_LIBRARIES(
+TravelDepth
+)
