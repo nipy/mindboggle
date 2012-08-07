@@ -30,6 +30,14 @@ ADD_LIBRARY(
 VtkFileEditor VtkFileEditor.cpp
 )
 
+ADD_LIBRARY(
+TravelDepth TravelDepth.cpp
+)
+
 TARGET_LINK_LIBRARIES(
 MeshAnalyser
+)
+
+TARGET_LINK_LIBRARIES(
+TravelDepth
 )
