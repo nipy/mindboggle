@@ -11,8 +11,6 @@ Authors:
 
 """
 
-import numpy as np
-
 #=================
 # Sigmoid function
 #=================
@@ -22,6 +20,12 @@ def sigmoid(values, gain, shift):
 
     Y(t) = 1/(1 + exp(-gain*(values - shift))
     """
+    import numpy as np
+
+    # Make sure argument is a numpy array
+    if type(values) != np.ndarray:
+        values = np.array(values)
+
     return 1.0 / (1.0 + np.exp(-gain * (values - shift)))
 
 
@@ -51,7 +55,15 @@ def compute_likelihood(depths, curvatures):
 
     """
 
-   #==========================================
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if type(depths) != np.ndarray:
+        depths = np.array(depths)
+    if type(curvatures) != np.ndarray:
+        curvatures = np.array(curvatures)
+
+    #==========================================
     # Normalize depth values to interval [0,1]
     # Curvature values retain their values
     # Compute the means and std. deviations

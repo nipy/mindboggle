@@ -14,12 +14,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-import numpy as np
-
-# Optional in simple_test() and in connect_points():
-# from find_points import find_neighbors
-
-
 #--------------
 # Cost function
 #--------------
@@ -41,7 +35,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     ------
     likelihood: likelihood value in interval [0,1]
     hmmf: HMMF value
-    hmmf_neighbors: HMMF values of neighboring vertices
+    hmmf_neighbors: HMMF values of neighboring vertices: numpy array
     wN: weight influence of neighbors on cost (term 2)
 
     Output:
@@ -49,6 +43,12 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     cost
 
     """
+
+#    # Make sure argument is a numpy array
+#    import numpy as np
+#    if type(hmmf_neighbors) != np.ndarray:
+#        hmmf_neighbors = np.array(hmmf_neighbors)
+
     cost = hmmf * (1 - likelihood) +\
            wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
@@ -84,9 +84,20 @@ def simple_test(faces, index, values, thr, neighbors):
 
     """
 
+    import numpy as np
+
+    # Optional:
+    # from find_points import find_neighbors
+
     run_find_neighbors = False
     if run_find_neighbors:
         from find_points import find_neighbors
+
+    # Make sure arguments are numpy arrays
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+    if type(values) != np.ndarray:
+        values = np.array(values)
 
     # Find neighbors to the input vertex, and binarize them
     # into those greater than a threshold, thr,
@@ -183,6 +194,14 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
 
     """
 
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if type(B) != np.ndarray:
+        B = np.array(B)
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+
     # Loop until all vertices are not simple points
     indices = np.where(B)[0]
     exist_simple = True
@@ -230,7 +249,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     indices: list of indices of vertices
     L: likelihood values: [#vertices in mesh x 1] numpy array
     thr: likelihood threshold
-    neighbor_lists: lists of lists of neighboring vertices (optional: empty list)
+    neighbor_lists: lists of lists of neighboring vertices
+                    (optional: empty list)
 
     Parameters:
     ----------
@@ -257,8 +277,19 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     """
 
+    import numpy as np
+
+    # Optional:
+    # from find_points import find_neighbors
+
     if len(neighbor_lists) == 0:
         from find_points import find_neighbors
+
+    # Make sure arguments are numpy arrays
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+    if type(L) != np.ndarray:
+        L = np.array(L)
 
     #-----------
     # Parameters

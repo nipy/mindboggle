@@ -16,7 +16,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def write_label_file(hemi, surface_file, label_number, label_name):
+def write_label_file(hemi, surface_file, label_number, label_name, scalar_name):
     """
     Save a FreeSurfer .label file for a given label from the vertices
     of a labeled VTK surface mesh.
@@ -25,10 +25,8 @@ def write_label_file(hemi, surface_file, label_number, label_name):
 
     import os
     import numpy as np
-    import io_file
+    from utils import io_file
     import vtk
-
-    scalar_name = "Labels"
 
     # Check type to make sure the filename is a string
     # (if a list, return the first element)
@@ -58,23 +56,26 @@ def write_label_file(hemi, surface_file, label_number, label_name):
             count += 1
 
     # Save the label file
-#    if count > 0:
-    label_file = os.path.join(os.getcwd(), \
-                              hemi + '.' + label_name + '.label')
-    f = open(label_file, 'w')
-    f.writelines('#!ascii label\n' + str(count) + '\n')
-    for i in range(npoints):
-        if any(L[i,:]):
-            pr = '{0} {1} {2} {3} 0\n'.format(
-                 np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-            f.writelines(pr)
-        else:
-            break
-    f.close()
+    if count > 0:
+        label_file = os.path.join(os.getcwd(), \
+                                  hemi + '.' + label_name + '.label')
+        f = open(label_file, 'w')
+        f.writelines('#!ascii label\n' + str(count) + '\n')
+        for i in range(npoints):
+            if any(L[i,:]):
+                pr = '{0} {1} {2} {3} 0\n'.format(
+                     np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+                f.writelines(pr)
+            else:
+                break
+        f.close()
+    else:
+        label_file = None
 
     return label_file
 
-def label_to_annot_file(hemi, subjects_path, subject, label_files, colortable, annot_name):
+def label_to_annot_file(hemi, subjects_path, subject, label_files,
+                        colortable, annot_name):
     """
     Convert FreeSurfer .label files as a FreeSurfer .annot file
     using FreeSurfer's mris_label2annot.

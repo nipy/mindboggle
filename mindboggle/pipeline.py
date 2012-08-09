@@ -34,18 +34,19 @@ from settings import *
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
-import sys, os
+import os
 from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
-from nipype import config
-config.enable_debug_mode()
+#from nipype import config
+#config.enable_debug_mode()
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, annot_to_vtk
-from utils.io_file import read_list_strings, read_list_2strings, read_surface
+from utils.io_file import read_list_strings, read_list_2strings, read_surface,\
+                          np_loadtxt
 from label.multiatlas_labeling import register_template,\
     transform_atlas_labels, majority_vote_label
 from label.relabel_surface import relabel_surface
@@ -71,7 +72,7 @@ if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 #-----------------------------------------------------------------------------
 info = Node(name = 'Inputs',
             interface = IdentityInterface(fields=['subject', 'hemi']))
-info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
+info.iterables = ([('subject', subjects), ('hemi', hemis)])
 #-----------------------------------------------------------------------------
 # Location and structure of the surface inputs
 #-----------------------------------------------------------------------------
@@ -90,17 +91,6 @@ datasink = Node(DataSink(), name = 'Results')
 datasink.inputs.base_directory = results_path
 datasink.inputs.container = 'output'
 if not os.path.isdir(results_path):  os.makedirs(results_path)
-#-----------------------------------------------------------------------------
-# Evaluation inputs: location and structure of atlas volumes
-#-----------------------------------------------------------------------------
-if do_evaluate_labels:
-    atlas = Node(name = 'Atlas',
-                 interface = DataGrabber(infields=['subject'],
-                                    outfields=['atlas_file']))
-    atlas.inputs.base_directory = atlases_path
-    atlas.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
-    atlas.inputs.template_args['atlas_file'] = [['subject']]
-    mbflow.connect([(info, atlas, [('subject','subject')])])
 #-----------------------------------------------------------------------------
 #   Convert surfaces to VTK
 #-----------------------------------------------------------------------------
@@ -129,6 +119,17 @@ if do_combine_atlas_labels:
                      [('vtk_file', 'vtk_file')])])
     mbflow.connect([(combine_atlas, datasink,
                    [('relabeled_vtk','labels.@do_combine_atlas_labels')])])
+#-----------------------------------------------------------------------------
+# Evaluation inputs: location and structure of atlas volumes
+#-----------------------------------------------------------------------------
+if do_evaluate_labels:
+    atlas = Node(name = 'Atlas',
+                 interface = DataGrabber(infields=['subject'],
+                                         outfields=['atlas_file']))
+    atlas.inputs.base_directory = atlases_path
+    atlas.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
+    atlas.inputs.template_args['atlas_file'] = [['subject']]
+    mbflow.connect([(info, atlas, [('subject','subject')])])
 
 ##############################################################################
 #
@@ -261,7 +262,6 @@ else:
 #   Feature extraction workflow
 #
 ##############################################################################
-"""
 featureflow = Workflow(name='Feature_workflow')
 
 #=============================================================================
@@ -273,11 +273,13 @@ featureflow = Workflow(name='Feature_workflow')
 depth = Node(name='Compute_depth',
              interface = Fn(function = compute_depth,
                             input_names = ['command',
+                                           'depth_type',
                                            'surface_file'],
                             output_names = ['depth_file']))
 depth_command = os.path.join(code_path,'measure', 'surface_measures',
-                                    'bin', 'travel_depth', 'TravelDepthMain')
+                             'bin', 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
+depth.inputs.depth_type = '0'  # 0 = travel depth, 1 = Euclidean
 #-----------------------------------------------------------------------------
 # Measure surface curvature
 #-----------------------------------------------------------------------------
@@ -291,7 +293,7 @@ curvature = Node(name='Compute_curvature',
                                                 'min_curvature_file',
                                                 'min_curvature_vector_file']))
 curvature_command = os.path.join(code_path, 'measure', 'surface_measures',
-                                         'bin', 'curvature', 'CurvatureMain')
+                                 'bin', 'curvature', 'CurvatureMain')
 curvature.inputs.command = curvature_command
 #-----------------------------------------------------------------------------
 # Add and connect nodes, save output files
@@ -333,7 +335,6 @@ load_depth = Node(name='Load_depth',
                                  output_names = ['Points',
                                                  'Faces',
                                                  'Scalars']))
-load_depth.inputs.filename='/projects/Mindboggle/results/workingdir/Mindboggle_workflow/Feature_workflow/_hemi_lh_subject_HLN-12-1/Compute_depth/lh.pial.depth.vtk'
 featureflow.connect([(depth, load_depth,
                       [('depth_file','filename')])])
 
@@ -346,14 +347,13 @@ load_curvature = Node(name='Load_curvature',
 featureflow.connect([(curvature, load_curvature,
                       [('mean_curvature_file','filename')])])
 
-#load_directions = Node(name='Load_directions',
-#                       interface = Fn(function = load_scalar,
-#                                      input_names = ['filename'],
-#                                      output_names = ['Points',
-#                                                      'Faces',
-#                                                      'Scalars']))
-#featureflow.connect([(curvature, load_directions,
-#                      [('min_curvature_vector_file','filename')])])
+load_directions = Node(name='Load_directions',
+                       interface = Fn(function = np_loadtxt,
+                                      input_names = ['filename'],
+                                      output_names = ['output']))
+featureflow.connect([(curvature, load_directions,
+                      [('min_curvature_vector_file','filename')])])
+
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
@@ -377,8 +377,6 @@ folds.inputs.fraction_folds = fraction_folds
 folds.inputs.min_fold_size = min_fold_size
 featureflow.connect([(load_depth, folds, [('Faces','faces'),
                                           ('Scalars','depths')])])
-"""
-"""
 #-----------------------------------------------------------------------------
 # Extract fundi (curves at the bottoms of folds)
 #-----------------------------------------------------------------------------
@@ -410,7 +408,7 @@ featureflow.connect([(folds, fundi, [('index_lists_folds','index_lists_folds'),
                      (load_depth, fundi, [('Points','vertices'),
                                           ('Scalars','depths')]),
                      (load_curvature, fundi, [('Scalars','mean_curvatures')]),
-                     (load_directions, fundi, [('Scalars','min_directions')])])
+                     (load_directions, fundi, [('output','min_directions')])])
 #-----------------------------------------------------------------------------
 # Extract medial surfaces
 #-----------------------------------------------------------------------------
@@ -432,7 +430,7 @@ save_folds = Node(name='Save_folds',
                                                 'LUTs',
                                                 'LUT_names'],
                                  output_names = ['vtk_file']))
-save_folds.inputs.vtk_file = os.path.join(os.getcwd(), 'folds.vtk')
+save_folds.inputs.vtk_file = 'folds.vtk'
 featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
 featureflow.connect([(folds, save_folds, [('indices_folds','Vertices'),
                                           ('faces_folds','Faces'),
@@ -448,11 +446,11 @@ save_likelihoods = Node(name='Save_likelihoods',
                                                       'LUTs',
                                                       'LUT_names'],
                                        output_names = ['vtk_file']))
-save_likelihoods.inputs.vtk_file = os.path.join(os.getcwd(), 'likelihoods.vtk')
+save_likelihoods.inputs.vtk_file = 'likelihoods.vtk'
 save_likelihoods.inputs.LUT_names = ['likelihoods']
 featureflow.connect([(load_depth, save_likelihoods, [('Points','Points')])])
 featureflow.connect([(folds, save_likelihoods, [('indices_folds','Vertices'),
-                                          ('faces_folds','Faces')])])
+                                                ('faces_folds','Faces')])])
 featureflow.connect([(fundi, save_likelihoods, [('likelihoods','LUTs')])])
 
 save_fundi = Node(name='Save_fundi',
@@ -464,7 +462,7 @@ save_fundi = Node(name='Save_fundi',
                                                 'LUTs',
                                                 'LUT_names'],
                                  output_names = ['vtk_file']))
-save_fundi.inputs.vtk_file = os.path.join(os.getcwd(), 'fundi.vtk')
+save_fundi.inputs.vtk_file = 'fundi.vtk'
 save_fundi.inputs.LUT_names = ['fundi']
 featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
 featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
@@ -476,7 +474,6 @@ mbflow.connect([(featureflow, datasink,
                   ('Save_likelihoods.vtk_file','likelihoods'),
                   ('Save_fundi.vtk_file','fundi')])])
 
-"""
 ##############################################################################
 #
 #   Label volume workflow
@@ -498,7 +495,8 @@ if do_fill_volume_labels:
                                          input_names = ['hemi',
                                                         'surface_file',
                                                         'label_number',
-                                                        'label_name'],
+                                                        'label_name',
+                                                        'scalar_name'],
                                          output_names = ['label_file']))
     # List of cortical labels
     ctx_labels_file = os.path.join(info_path, label_string + '.txt')
@@ -508,35 +506,44 @@ if do_fill_volume_labels:
     writelabels.inputs.label_name = ctx_label_names
     volflow.add_nodes([writelabels])
     mbflow.connect([(info, volflow, [('hemi', 'Write_label_files.hemi')])])
+
     if do_init_fs_labels:
         if do_combine_atlas_labels:
+            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
             mbflow.connect([(atlasflow, volflow,
                             [('Combine_labels.combine_labels_file',
                               'Write_label_files.surface_file')])])
-            label_type = label_string
         else:
+            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
             mbflow.connect([(atlasflow, volflow,
-                               [('Convert_FreeSurfer_labels.fslabels_file',
-                                 'Write_label_files.surface_file')])])
-            label_type = 'labels.fs'
+                             [('Convert_FreeSurfer_labels.fslabels_file',
+                               'Write_label_files.surface_file')])])
     else:
+        writelabels.inputs.scalar_name = 'Max_(majority_labels)'
         mbflow.connect([(atlasflow, volflow,
-                           [('Label_vote.maxlabel_file',
-                             'Write_label_files.surface_file')])])
-        label_type = 'labels.max'
+                         [('Label_vote.maxlabel_file',
+                           'Write_label_files.surface_file')])])
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
     #-------------------------------------------------------------------------
-    writeannot = Node(name='Write_annot_file',
-                      interface = Fn(function = label_to_annot_file,
-                                     input_names = ['hemi',
-                                                    'subjects_path',
-                                                    'subject',
-                                                    'label_files',
-                                                    'colortable',
-                                                    'annot_name'],
-                                     output_names = ['annot_name',
-                                                     'annot_file']))
+    writeannot = MapNode(name='Write_annot_file',
+                         iterfield = ['hemi'],
+                         interface = Fn(function = label_to_annot_file,
+                                        input_names = ['hemi',
+                                                       'subjects_path',
+                                                       'subject',
+                                                       'label_files',
+                                                       'colortable',
+                                                       'annot_name'],
+                                        output_names = ['annot_name',
+                                                        'annot_file']))
+    if do_init_fs_labels:
+        if do_combine_atlas_labels:
+            label_type = label_string
+        else:
+            label_type = 'labels.fs'
+    else:
+        label_type = 'labels.max'
     writeannot.inputs.annot_name = label_type
     writeannot.inputs.subjects_path = subjects_path
     writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
@@ -555,12 +562,13 @@ if do_fill_volume_labels:
     #-------------------------------------------------------------------------
     fillvolume = Node(name='Fill_volume_labels',
                       interface = Fn(function = fill_label_volume,
-                                     input_names = ['subject', 'annot_name'],
+                                     input_names = ['subject',
+                                                    'annot_name'],
                                      output_names = ['output_file']))
     volflow.add_nodes([fillvolume])
     mbflow.connect([(info, volflow,
                      [('subject', 'Fill_volume_labels.subject')])])
-    volflow.connect([(writeannot, fillvolume, [('annot_name','annot_name')])])
+    fillvolume.inputs.annot_name = label_type
     mbflow.connect([(volflow, datasink,
                      [('Fill_volume_labels.output_file',
                        label_type + '.@volume')])])
@@ -571,7 +579,6 @@ if do_fill_volume_labels:
 #
 ##############################################################################
 if do_evaluate_labels:
-    """
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
@@ -581,20 +588,25 @@ if do_evaluate_labels:
                                                      'atlas_file',
                                                      'input_file'],
                                       output_names = ['overlaps']))
+    if do_init_fs_labels:
+        if do_combine_atlas_labels:
+            label_type = label_string
+        else:
+            label_type = 'labels.fs'
+    else:
+        label_type = 'labels.max'
     labels_file = os.path.join(info_path, label_string + '.txt')
     labels = read_list_strings(labels_file)
     eval_labels.inputs.labels = labels
     mbflow.connect([(volflow, eval_labels,
-                     [('Fill_volume_labels.output_file', 'input_file')])])
-    mbflow.connect([(mbflow, datasink,
-                     [('overlaps', label_type + '.@overlaps')])])
+                     [('Fill_volume_labels.output_file',
+                       'Evaluate_volume_labels.input_file')])])
+    mbflow.connect([(atlas, eval_labels,
+                     [('atlas_file','Evaluate_volume_labels.atlas_file')])])
+    mbflow.connect([(eval_labels, datasink,
+                     [('Evaluate_volume_labels.overlaps',
+                       label_type + '.@overlaps')])])
 
-    # Load atlas list
-    atlas_list_file = os.path.join(info_path, 'atlases.txt')
-    atlas_list = read_list_strings(atlas_list_file)
-    [x for x in atlas_list if x == ]
-    eval_labels.inputs.atlas_file = atlas_file
-    """
 ##############################################################################
 #
 #    Run workflow
@@ -602,321 +614,7 @@ if do_evaluate_labels:
 ##############################################################################
 if __name__== '__main__':
 
-    mbflow.write_graph(graph2use='flat')
-    mbflow.write_graph(graph2use='hierarchical')
+    if do_generate_graph:
+        mbflow.write_graph(graph2use='flat')
+        mbflow.write_graph(graph2use='hierarchical')
     mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
-
-
-"""
-##############################################################################
-#
-#   Feature-based labeling workflow
-#
-##############################################################################
-featurelabelflow = Workflow(name='Feature_labeling_workflow')
-
-#=============================================================================
-#   Label propagation
-#=============================================================================
-#-----------------------------------------------------------------------------
-# Label propagation node
-#-----------------------------------------------------------------------------
-propagate = Node(name='Propagate_labels',
-                    interface = Fn(
-                                     function = propagate_labels,
-                                     input_names=['labels', 'fundi'],
-                                     output_names=['labels']))
-
-#-----------------------------------------------------------------------------
-# Volume label propagation node
-#-----------------------------------------------------------------------------
-propagate_volume = Node(name='Propagate_volume_labels',
-                           interface = Fn(
-                                            function = propagate_volume_labels,
-                                            input_names = ['labels'],
-                                            output_names = ['volume_labels']))
-
-#-----------------------------------------------------------------------------
-# Labeled surface patch and volume extraction nodes
-#-----------------------------------------------------------------------------
-extract_patch = Node(name='Extract_patch',
-                        interface = Fn(
-                                         function = extract_patches,
-                                         input_names=['labels'],
-                                         output_names=['patches']))
-
-extract_patch = Node(name='Extract_region',
-                        interface = Fn(
-                                         function = extract_patches,
-                                         input_names=['labels'],
-                                         output_names=['patches']))
-
-#-----------------------------------------------------------------------------
-# Connect registration and extraction to label propagation nodes
-#-----------------------------------------------------------------------------
-featurelabelflow.connect([(transform, propagate, [('labels','labels')]),
-                     (extract_fundi, propagate, [('fundi','fundi')])])
-
-# Connect label propagation to labeled surface patch and volume extraction nodes
-featurelabelflow.connect([(propagate, propagate_volume, [('labels', 'labels')])])
-
-featurelabelflow.connect([(propagate_volume, extract_region, [('labels', 'labels')])])
-featurelabelflow.connect([(propagate, extract_patch, [('labels', 'labels')])])
-
-#=============================================================================
-#   Feature segmentation / identification
-#=============================================================================
-#-----------------------------------------------------------------------------
-# Feature segmentation nodes
-#-----------------------------------------------------------------------------
-segment_sulci = Node(name='Segment_sulci',
-                        interface = Fn(
-                                         function = segment_sulci,
-                                         input_names=['sulci','labels'],
-                                         output_names=['segmented_sulci']))
-
-segment_fundi = Node(name='Segment_fundi',
-                        interface = Fn(
-                                         function = segment_fundi,
-                                         input_names=['fundi','labels'],
-                                         output_names=['segmented_fundi']))
-
-segment_medial = Node(name='Segment_medial',
-                         interface = Fn(
-                                          function = segment_medial,
-                                          input_names=['medial','labels'],
-                                          output_names=['segmented_medial']))
-
-# Connect feature and feature segmentation nodes
-featurelabelflow.connect([(extract_sulci, segment_sulci, [('sulci','sulci')]),
-              (extract_fundi, segment_fundi, [('fundi','fundi')]),
-              (extract_medial, segment_medial, [('medial','medial')])])
-
-# Connect label propagation and feature segmentation nodes
-featurelabelflow.connect([(propagate, segment_sulci, [('labels','labels')]),
-              (propagate, segment_fundi, [('labels','labels')]),
-              (segment_sulci, segment_medial, [('segmented_sulci','labels')])])
-
-##############################################################################
-#
-#   Shape analysis workflow
-#
-##############################################################################
-shapeflow = Workflow(name='Shape_workflow')
-
-#-----------------------------------------------------------------------------
-# Shape measurement nodes
-#-----------------------------------------------------------------------------
-positions = Node(interface = Fn(input_names = ['segmented_sulci',
-                                                 'segmented_fundi',
-                                                 'segmented_midaxis',
-                                                 'patches',
-                                                 'regions'],
-                                  output_names=['positions_sulci',
-                                                'positions_fundi',
-                                                'positions_midaxis',
-                                                'positions_patches',
-                                                'positions_regions'],
-                                  function = measure_positions),
-                    name='Measure_positions')
-
-extents = Node(interface = Fn(input_names = ['segmented_sulci',
-                                               'segmented_fundi',
-                                               'segmented_midaxis',
-                                               'patches',
-                                               'regions'],
-                                output_names=['extents_sulci',
-                                              'extents_fundi',
-                                              'extents_midaxis',
-                                              'extents_patches',
-                                              'extents_regions'],
-                                function = measure_extents),
-                    name='Measure_extents')
-
-curvatures = Node(interface = Fn(input_names = ['segmented_sulci',
-                                                  'segmented_fundi',
-                                                  'segmented_midaxis',
-                                                  'patches',
-                                                  'regions'],
-                                   output_names=['curvatures_sulci',
-                                                 'curvatures_fundi',
-                                                 'curvatures_midaxis',
-                                                 'curvatures_patches',
-                                                 'curvatures_regions'],
-                                   function = measure_curvatures),
-                    name='Measure_curvatures')
-
-depths = Node(interface = Fn(input_names = ['segmented_sulci',
-                                              'segmented_fundi',
-                                              'segmented_midaxis',
-                                              'patches',
-                                              'regions'],
-                               output_names=['depths_sulci',
-                                             'depths_fundi',
-                                             'depths_midaxis',
-                                             'depths_patches',
-                                             'depths_regions'],
-                               function = measure_depths),
-                 name='Measure_depths')
-
-spectra = Node(interface = Fn(input_names = ['segmented_sulci',
-                                               'segmented_fundi',
-                                               'segmented_midaxis',
-                                               'patches',
-                                               'regions'],
-                                output_names=['spectra_sulci',
-                                              'spectra_fundi',
-                                              'spectra_midaxis',
-                                              'spectra_patches',
-                                              'spectra_regions'],
-                                function = measure_spectra),
-                  name='Measure_spectra')
-
-#-----------------------------------------------------------------------------
-# Connect labeled surface patches and volumes to shape measurement nodes
-#-----------------------------------------------------------------------------
-shapeflow.connect([(patch_extraction,  positions, [('patches', 'patches')])])
-shapeflow.connect([(region_extraction, positions, [('regions', 'regions')])])
-shapeflow.connect([(patch_extraction,  extents, [('patches', 'patches')])])
-shapeflow.connect([(region_extraction, extents, [('regions', 'regions')])])
-shapeflow.connect([(patch_extraction,  depths, [('patches', 'patches')])])
-shapeflow.connect([(region_extraction, depths, [('regions', 'regions')])])
-shapeflow.connect([(patch_extraction,  curvatures, [('patches', 'patches')])])
-shapeflow.connect([(region_extraction, curvatures, [('regions', 'regions')])])
-shapeflow.connect([(patch_extraction,  spectra, [('patches', 'patches')])])
-shapeflow.connect([(region_extraction, spectra, [('regions', 'regions')])])
-
-#-----------------------------------------------------------------------------
-# Connect feature to shape measurement nodes
-#-----------------------------------------------------------------------------
-shapeflow.connect([(sulcus_segmentation, positions, [('segmented_sulci', 'segmented_sulci')])])
-shapeflow.connect([(fundus_segmentation, positions, [('segmented_fundi', 'segmented_fundi')])])
-shapeflow.connect([(midaxis_segmentation, positions, [('segmented_midaxis', 'segmented_midaxis')])])
-
-shapeflow.connect([(sulcus_segmentation, extents, [('segmented_sulci', 'segmented_sulci')])])
-shapeflow.connect([(fundus_segmentation, extents, [('segmented_fundi', 'segmented_fundi')])])
-shapeflow.connect([(midaxis_segmentation, extents, [('segmented_midaxis', 'segmented_midaxis')])])
-
-shapeflow.connect([(sulcus_segmentation, curvatures, [('segmented_sulci', 'segmented_sulci')])])
-shapeflow.connect([(fundus_segmentation, curvatures, [('segmented_fundi', 'segmented_fundi')])])
-shapeflow.connect([(pit_extraction, curvatures, [('pits', 'pits')])])
-shapeflow.connect([(midaxis_segmentation, curvatures, [('segmented_midaxis', 'segmented_midaxis')])])
-
-shapeflow.connect([(sulcus_segmentation, depths, [('segmented_sulci', 'segmented_sulci')])])
-shapeflow.connect([(fundus_segmentation, depths, [('segmented_fundi', 'segmented_fundi')])])
-shapeflow.connect([(pit_extraction, depths, [('pits', 'pits')])])
-shapeflow.connect([(midaxis_segmentation, depths, [('segmented_midaxis', 'segmented_midaxis')])])
-
-shapeflow.connect([(sulcus_segmentation, spectra, [('segmented_sulci', 'segmented_sulci')])])
-shapeflow.connect([(fundus_segmentation, spectra, [('segmented_fundi', 'segmented_fundi')])])
-shapeflow.connect([(midaxis_segmentation, spectra, [('segmented_midaxis', 'segmented_midaxis')])])
-
-##############################################################################
-#    Store surface maps, features, and measures in database
-##############################################################################
-#-----------------------------------------------------------------------------
-# Database nodes
-#-----------------------------------------------------------------------------
-maps_database = Node(interface = Fn(input_names = ['depth_file',
-                                                     'mean_curv_file',
-                                                     'gauss_curv_file'],
-                                      output_names=['success'],
-                                      function = write_surfaces_to_database),
-                        name='Write_surfaces_to_database')
-
-features_database = Node(interface = Fn(input_names = ['segmented_sulci',
-                                                         'segmented_fundi',
-                                                         'pits',
-                                                         'segmented_midaxis'],
-                                          output_names=['success'],
-                                          function = write_features_to_database),
-                            name='Write_features_to_database')
-
-measures_database = Node(interface = Fn(input_names = ['positions_sulci',
-                                                         'positions_fundi',
-                                                         'positions_pits',
-                                                         'positions_midaxis',
-                                                         'positions_patches',
-                                                         'positions_regions',
-                                                         'extents_sulci',
-                                                         'extents_fundi',
-                                                         'extents_midaxis',
-                                                         'extents_patches',
-                                                         'extents_regions',
-                                                         'curvatures_sulci',
-                                                         'curvatures_fundi',
-                                                         'curvatures_pits',
-                                                         'curvatures_midaxis',
-                                                         'curvatures_patches',
-                                                         'curvatures_regions',
-                                                         'depths_sulci',
-                                                         'depths_fundi',
-                                                         'depths_pits',
-                                                         'depths_midaxis',
-                                                         'depths_patches',
-                                                         'depths_regions',
-                                                         'spectra_sulci',
-                                                         'spectra_fundi',
-                                                         'spectra_midaxis',
-                                                         'spectra_patches',
-                                                         'spectra_regions'],
-                                          output_names=['measures'],
-                                          function = write_measures_to_database),
-                            name='Write_measures_to_database')
-
-measures_table = Node(interface = Fn(input_names = ['measures'],
-                                       output_names=['success'],
-                                       function = write_measures_to_table),
-                         name='Write_measures_to_table')
-
-#-----------------------------------------------------------------------------
-# Connect surface maps to database nodes
-#-----------------------------------------------------------------------------
-dbflow.connect([(surfaces, maps_database, [('depth_file','depth_file'),
-                                ('mean_curv_file','mean_curv_file'),
-                                ('gauss_curv_file','gauss_curv_file')])])
-
-# Connect feature to database nodes
-dbflow.connect([(sulcus_segmentation, features_database, [('segmented_sulci', 'segmented_sulci')]),
-              (fundus_segmentation, features_database, [('segmented_fundi', 'segmented_fundi')]),
-              (pit_extraction, features_database, [('pits', 'pits')]),
-              (midaxis_segmentation, features_database,
-                          [('segmented_midaxis', 'segmented_midaxis')])])
-
-# Connect feature measures to database nodes
-dbflow.connect([(positions, measures_database, [('positions_sulci', 'positions_sulci'),
-                                              ('positions_fundi', 'positions_fundi'),
-                                              ('positions_pits', 'positions_pits'),
-                                              ('positions_midaxis', 'positions_midaxis')]),
-              (extents, measures_database, [('extents_sulci', 'extents_sulci'),
-                                            ('extents_fundi', 'extents_fundi'),
-                                            ('extents_midaxis', 'extents_midaxis')]),
-              (curvatures, measures_database, [('curvatures_sulci', 'curvatures_sulci'),
-                                               ('curvatures_fundi', 'curvatures_fundi'),
-                                               ('curvatures_pits', 'curvatures_pits'),
-                                               ('curvatures_midaxis', 'curvatures_midaxis')]),
-              (depths, measures_database, [('depths_sulci', 'depths_sulci'),
-                                           ('depths_fundi', 'depths_fundi'),
-                                           ('depths_pits', 'depths_pits'),
-                                           ('depths_midaxis', 'depths_midaxis')]),
-              (spectra, measures_database, [('spectra_sulci', 'spectra_sulci'),
-                                            ('spectra_fundi', 'spectra_fundi'),
-                                            ('spectra_midaxis', 'spectra_midaxis')])])
-
-# Connect label measures to database nodes
-dbflow.connect([(positions, measures_database, [('positions_patches', 'positions_patches'),
-                                              ('positions_regions', 'positions_regions')]),
-              (extents, measures_database, [('extents_patches', 'extents_patches'),
-                                            ('extents_regions', 'extents_regions')]),
-              (curvatures, measures_database, [('curvatures_patches', 'curvatures_patches'),
-                                               ('curvatures_regions', 'curvatures_regions')]),
-              (depths, measures_database, [('depths_patches', 'depths_patches'),
-                                           ('depths_regions', 'depths_regions')]),
-              (spectra, measures_database, [('spectra_patches', 'spectra_patches'),
-                                            ('spectra_regions', 'spectra_regions')])])
-
-# Connect measure to table nodes
-dbflow.connect([(measures_database, measures_table, [('measures', 'measures')])])
-"""
-
-
