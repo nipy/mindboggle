@@ -253,7 +253,7 @@ def read_list_strings(filename):
     lines = Fp.readlines()
     List = []
     for line in lines:
-        if len(line) > 0:
+        if len(re.findall(r'\S+', line)):
             List.append(re.findall(r'\S+', line)[0])
     Fp.close()
 
@@ -271,7 +271,7 @@ def read_list_2strings(filename):
     column1 = []
     column2 = []
     for line in lines:
-        if len(line) > 0:
+        if len(re.findall(r'\S+', line)):
             column1.append(re.findall(r'\S+', line)[0])
             column2.append(re.findall(r'\S+', line)[1])
     Fp.close()
@@ -322,29 +322,14 @@ def read_float_lists(filename):
 
     return Lists[:-1] # because last one is an empty list
 
-def load_min_curv_direction(filename):
+def np_loadtxt(filename):
     """
-    Load minimal curvature directions computed by Joachim's CurvatureMain.cpp
-
-    Parameters
-    ===========
-
-        filename: string
-            The path to the file that stores minimal curvature directions
-
-    Returns
-    =========
-
-        Min_Curv_Dir: 2D numpy array of 3-by-#Vertex floats
-            Each element is a 3-tuple of floats,
-            representing the direction of minimal curvature at a vertex
+    Load numpy array from text file.
     """
 
     from numpy import loadtxt
 
-    Min_Curv_Dir = loadtxt(filename)
-
-    return Min_Curv_Dir
+    return loadtxt(filename)
 
 def string_vs_list_check(var):
     """
