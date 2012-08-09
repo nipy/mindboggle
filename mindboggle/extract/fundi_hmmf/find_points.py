@@ -33,6 +33,10 @@ def find_neighbors(faces, index):
 
     import numpy as np
 
+    # Make sure argument is a numpy array
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+
     # Create list of vertex indices sharing the same faces as "index"
     I = [faces[np.where(faces[:,i] == index)[0], :] for i in (0,1,2)]
 
@@ -79,6 +83,14 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
 
     import numpy as np
     from operator import itemgetter
+
+    # Make sure arguments are numpy arrays
+    if type(vertices) != np.ndarray:
+        vertices = np.array(vertices)
+    if type(L) != np.ndarray:
+        L = np.array(L)
+    if type(min_directions) != np.ndarray:
+        min_directions = np.array(min_directions)
 
     max_distance = 2 * min_distance
 

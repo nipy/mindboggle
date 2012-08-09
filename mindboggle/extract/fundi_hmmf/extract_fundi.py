@@ -10,18 +10,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-import numpy as np
-
-from compute_likelihood import compute_likelihood
-from find_points import find_anchors
-from connect_points import connect_points
-from time import time
-
-import sys
-sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
-import io_vtk
-
-
 #==================
 # Extract all fundi
 #==================
@@ -35,7 +23,7 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
 
     Inputs:
     ------
-    vertices:  [#vertices x 3] numpy array
+    vertices:  [#vertices x 3]
     faces:  vertices for polygons [#faces x 3] numpy array
     depths:  depth values [#vertices x 1] numpy array
     mean_curvatures:  mean curvature values [#vertices x 1] numpy array
@@ -58,6 +46,25 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
     connect_points()
 
     """
+
+    import numpy as np
+    from time import time
+
+    from extract.fundi_hmmf.compute_likelihood import compute_likelihood
+    from extract.fundi_hmmf.find_points import find_anchors
+    from extract.fundi_hmmf.connect_points import connect_points
+
+    # Make sure arguments are numpy arrays
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+    if type(depths) != np.ndarray:
+        depths = np.array(depths)
+    if type(mean_curvatures) != np.ndarray:
+        mean_curvatures = np.asarray(mean_curvatures)
+    if type(min_directions) != np.ndarray:
+        min_directions = np.asarray(min_directions)
+    if type(vertices) != np.ndarray:
+        vertices = np.asarray(vertices)
 
     # For each fold...
     print("Extract a fundus from each of {} folds...".format(n_folds))
