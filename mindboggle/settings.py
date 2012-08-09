@@ -25,9 +25,10 @@ results_path = '/projects/Mindboggle/results'  # Where to save output
 #-----------------------------------------------------------------------------
 do_combine_atlas_labels = False  # Combine atlas labels
 do_load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
-do_init_fs_labels = 1 #False  # Initialize with a FreeSurfer classifier atlas
-do_fill_volume_labels = True  # Fill (gray matter) volumes with surface labels
-do_evaluate_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
+do_init_fs_labels = 0 #False  # Initialize with a FreeSurfer classifier atlas
+do_fill_volume_labels = 1 #True  # Fill (gray matter) volumes with surface labels
+do_evaluate_labels = 0 #False  # Compute volume overlap of auto vs. manual labels
+do_generate_graph = 1 # True
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -40,6 +41,7 @@ templates_path = os.path.join(base_path, 'data', 'templates')
 atlases_path = subjects_path
 label_string = 'labels.DKT31'
 #label_string = 'labels.DKT25'
+hemis = ['lh','rh']
 
 # Add to PYTHONPATH
 sys.path.append(code_path)
