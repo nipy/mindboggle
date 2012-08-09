@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by Qt Creator 2.4.0, 2012-06-12T10:54:44. -->
+<!-- Written by Qt Creator 2.4.1, 2012-08-07T10:32:17. -->
 <qtcreator>
  <data>
   <variable>ProjectExplorer.Project.ActiveTarget</variable>
@@ -54,7 +54,7 @@
    <value type="QString" key="ProjectExplorer.ProjectConfiguration.Id">CMakeProjectManager.DefaultCMakeTarget</value>
    <value type="int" key="ProjectExplorer.Target.ActiveBuildConfiguration">0</value>
    <value type="int" key="ProjectExplorer.Target.ActiveDeployConfiguration">0</value>
-   <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">1</value>
+   <value type="int" key="ProjectExplorer.Target.ActiveRunConfiguration">0</value>
    <valuemap type="QVariantMap" key="ProjectExplorer.Target.BuildConfiguration.0">
     <value type="QString" key="CMakeProjectManager.CMakeBuildConfiguration.BuildDirectory">/home/giard/work/BrainProject/surface_bin</value>
     <value type="QString" key="CMakeProjectManager.CMakeBuildConfiguration.ToolChain">ProjectExplorer.ToolChain.Gcc:/usr/bin/g++.x86-linux-generic-elf-64bit.gdb</value>
@@ -173,7 +173,7 @@
     </valuelist>
     <value type="int" key="CMakeProjectManager.BaseEnvironmentBase">2</value>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguation.Title">TravelDepthMain</value>
-    <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments"></value>
+    <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.Arguments">/home/giard/work/BrainProject/data/output/curv.vtk /home/giard/work/BrainProject/data/output/depth.vtk</value>
     <value type="bool" key="CMakeProjectManager.CMakeRunConfiguration.UseTerminal">false</value>
     <valuelist type="QVariantList" key="CMakeProjectManager.CMakeRunConfiguration.UserEnvironmentChanges"/>
     <value type="QString" key="CMakeProjectManager.CMakeRunConfiguration.UserWorkingDirectory"></value>
