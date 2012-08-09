@@ -22,13 +22,6 @@ Authors:
 
 """
 
-import numpy as np
-from find_points import find_neighbors
-from time import time
-import sys
-sys.path.append('/projects/Mindboggle/mindboggle/mindboggle/utils/')
-from percentile import percentile
-
 #========================
 # Segment surface patches
 #========================
@@ -40,7 +33,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     ------
     faces: surface mesh vertex indices [#faces x 3]
     seeds: mesh vertex indices for vertices to be segmented
-           list or [#seeds x 1] numpy array
+           list or [#seeds x 1]
     n_vertices: #vertices total (seeds are a subset)
     min_seeds: minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size: minimum size of segmented set of vertices
@@ -57,6 +50,9 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     find_neighbors()
 
     """
+
+    import numpy as np
+    from find_points import find_neighbors
 
     # Initialize segments and seeds (indices of deep vertices)
     segments = np.zeros(n_vertices)
@@ -162,6 +158,15 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 
     """
 
+    import numpy as np
+    from find_points import find_neighbors
+
+    # Make sure arguments are numpy arrays
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+    if type(folds) != np.ndarray:
+        folds = np.array(folds)
+
     # Look for vertices that have a fold label and are
     # connected to any of the vertices in the current hole,
     # and assign the hole the maximum label number
@@ -218,8 +223,19 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size):
 
     """
 
+    import numpy as np
+    from time import time
+    from utils.percentile import percentile
+    from extract.fundi_hmmf.extract_folds import segment_surface, fill_holes
+
     print("Extract folds from surface mesh...")
     t0 = time()
+
+    # Make sure arguments are numpy arrays
+    if type(faces) != np.ndarray:
+        faces = np.array(faces)
+    if type(depths) != np.ndarray:
+        depths = np.asarray(depths)
 
     # Compute the minimum depth threshold for defining folds by determining the
     # percentile of depth values for the fraction of vertices that are not folds.

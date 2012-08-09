@@ -166,7 +166,7 @@ def majority_vote_label(surface_file, annot_files):
     from os import path, getcwd
     import nibabel as nb
     import pyvtk
-    from atlas_functions import vote_labels
+    from label.multiatlas_labeling import vote_labels
 
     # Load multiple label sets
     print("Load annotation files...")
