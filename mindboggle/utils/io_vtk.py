@@ -159,20 +159,27 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
                       LUT_names=LUT_names)
 
     """
+
+    import os
+    from utils import io_vtk
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
     Fp = open(vtk_file,'w')
-    write_header(Fp)
-    write_points(Fp, Points)
-    write_vertices(Fp, Vertices)
-    write_faces(Fp, Faces)
+    io_vtk.write_header(Fp)
+    io_vtk.write_points(Fp, Points)
+    io_vtk.write_vertices(Fp, Vertices)
+    io_vtk.write_faces(Fp, Faces)
     if len(LUTs) > 0:
         # Make sure that LUTs is a list of lists
         if type(LUTs[0]) != list:
             LUTs = [LUTs]
         for i, LUT in enumerate(LUTs):
             if i == 0:
-                write_vertex_LUT(Fp, LUT, LUT_names[i])
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i])
             else:
-                write_vertex_LUT(Fp, LUT, LUT_names[i], at_LUT_begin=False)
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i],
+                                        at_LUT_begin=False)
     Fp.close()
 
     return vtk_file
@@ -215,30 +222,39 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     io_vtk.write_scalars('test.vtk',Points, Vertices, Lines, LUTs=LUTs,
                       LUT_names=LUT_names)
     """
+
+    import os
+    from utils import io_vtk
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
     Fp = open(vtk_file,'w')
-    write_header(Fp)
-    write_points(Fp, Points)
-    write_vertices(Fp, Vertices)
+    io_vtk.write_header(Fp)
+    io_vtk.write_points(Fp, Points)
+    io_vtk.write_vertices(Fp, Vertices)
     for i in xrange(0,len(Lines)):
         Lines[i] = str(Lines[i][0]) + " " + str(Lines[i][1]) + "\n"
-    write_line_segments(Fp, Lines)
+    io_vtk.write_line_segments(Fp, Lines)
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
             if i == 0:
-                write_vertex_LUT(Fp, LUT, LUT_names[i])
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i])
             else:
-                write_vertex_LUT(Fp, LUT, LUT_names[i], at_LUT_begin=False)
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i],
+                                        at_LUT_begin=False)
     Fp.close()
 
 def surf_to_vtk(surface_file):
 
     import os
-    import io_file, io_vtk
+    from utils import io_vtk
+    from utils import io_file
 
     Vertex, Face = io_file.read_surface(surface_file)
 
     #vtk_file = surface_file + '.vtk'
-    vtk_file = os.path.join(os.getcwd(), os.path.basename(surface_file + '.vtk'))
+    vtk_file = os.path.join(os.getcwd(),
+                            os.path.basename(surface_file + '.vtk'))
     Fp = open(vtk_file, 'w')
     io_vtk.write_header(Fp, Title='vtk output from ' + surface_file)
     io_vtk.write_points(Fp, Vertex)
@@ -264,10 +280,10 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     import os
     import nibabel as nb
-    import io_vtk
+    from utils import io_vtk
 
     annot_file = os.path.join(subjects_path, subject, 'label',
-                           hemi + '.' + annot_name)
+                              hemi + '.' + annot_name)
 
     labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
@@ -279,7 +295,8 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     Points, Faces, Scalars = io_vtk.load_scalar(surface_file)
     Vertices =  range(1, len(Points) + 1)
 
-    output_stem = os.path.join(os.getcwd(), os.path.basename(surface_file.strip('.vtk')))
+    output_stem = os.path.join(os.getcwd(),
+                  os.path.basename(surface_file.strip('.vtk')))
     vtk_file = output_stem + '.labels.fs.vtk'
 
     LUTs = [labels.tolist()]
@@ -289,7 +306,8 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     return vtk_file
 
 
-def face_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
+def face_list_to_vtk(vtk_file, surface_file, index_pair_file,
+                     LUT=[], LUTname=[]):
     """
     Load a face list file and a surface file to map faces onto the surface
     and save the result into VTK format.
@@ -297,21 +315,28 @@ def face_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]
     This function is called by libbasin.getBasin()
 
     """
+
+    import os
+    from utils import io_vtk, io_file
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
     Fp = open(vtk_file,'w')
     Vertex, Face = io_file.read_surface(surface_file)
-    index_pair_list = load_fundi_list(index_pair_file)
-    write_feature_to_face(Fp, Vertex, Face, index_pair_list)
+    index_pair_list = io_vtk.load_fundi_list(index_pair_file)
+    io_vtk.write_feature_to_face(Fp, Vertex, Face, index_pair_list)
 
     if LUT!=[] :
         for i in xrange(0, len(LUT)):
             if i == 0:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
             else:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i], at_LUT_begin=False)
-
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
     Fp.close()
 
-def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
+def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file,
+                       LUT=[], LUTname=[]):
     """
     Load a vertex list file and a surface file to map vertices onto the surface
     and save the result into VTK format.
@@ -329,17 +354,23 @@ def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=
         LUTname[i] is the name of the lookup table to be inserted into VTK file
 
     """
+
+    import os
+    from utils import io_vtk, io_file
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
     Fp = open(vtk_file,'w')
     Vertex, Face = io_file.read_surface(surface_file)
-    index_pair_list = load_fundi_list(index_pair_file)
-    write_vertices_to_fundi(Fp, Vertex, index_pair_list)
+    index_pair_list = io_vtk.load_fundi_list(index_pair_file)
+    io_vtk.write_vertices_to_fundi(Fp, Vertex, index_pair_list)
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
             if i == 0:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
             else:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i], at_LUT_begin=False)
-
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
     Fp.close()
 
 def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
@@ -360,17 +391,24 @@ def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTnam
         LUTname[i] is the name of the lookup table to be inserted into VTK file
 
     """
+
+    import os
+    from utils import io_vtk, io_file
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
     Fp = open(vtk_file,'w')
     Vertex, Face = io_file.read_surface(surface_file)
-    index_pair_list = load_segmented_fundi(index_pair_file)
-    write_line_segments_to_fundi(Fp, Vertex, index_pair_list)
+    index_pair_list = io_vtk.load_segmented_fundi(index_pair_file)
+    io_vtk.write_line_segments_to_fundi(Fp, Vertex, index_pair_list)
 
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
             if i == 0:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
             else:
-                write_vertex_LUT(Fp, LUT[i], LUTname[i], at_LUT_begin=False)
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
 
     Fp.close()
 
@@ -409,24 +447,30 @@ def write_feature_to_face(Fp, Vertex, Face, index_pair_list):
     Load IDs of faces (in my output format) and original surface file
     to output a face from a feature in VTK format at STDIO.
     """
-    write_header(Fp, 'write_feature_to_face() output by Forrest Bao')
-    write_points(Fp, Vertex)
+
+    from utils import io_vtk
+
+    io_vtk.write_header(Fp, 'write_feature_to_face() output by Forrest Bao')
+    io_vtk.write_points(Fp, Vertex)
 
     Fundi = []
     for i in xrange(0, len(index_pair_list)):
         Fundi.append(Face[index_pair_list[i]])
 
-    write_faces(Fp, Fundi)
+    io_vtk.write_faces(Fp, Fundi)
 
 def write_vertices_to_fundi(Fp, Vertex, index_pair_list):
     """
     Load IDs of fundus vertices (in my output format) and original surface file
     to output fundi in VTK format.
     """
-    write_header(Fp, 'write_vertices_to_fundi() output by Forrest Bao')
-    write_points(Fp, Vertex)
 
-    write_vertices(Fp, index_pair_list)
+    from utils import io_vtk
+
+    io_vtk.write_header(Fp, 'write_vertices_to_fundi() output by Forrest Bao')
+    io_vtk.write_points(Fp, Vertex)
+
+    io_vtk.write_vertices(Fp, index_pair_list)
 
 def write_line_segments_to_fundi(Fp, Vertex, index_pair_list):
     """
@@ -434,9 +478,11 @@ def write_line_segments_to_fundi(Fp, Vertex, index_pair_list):
     and original surface file to output fundi in VTK format.
     """
 
-    write_header(Fp, 'Created by Mindboggle')
-    write_points(Fp, Vertex)
-    write_line_segments(Fp, index_pair_list)
+    from utils import io_vtk
+
+    io_vtk.write_header(Fp, 'Created by Mindboggle')
+    io_vtk.write_points(Fp, Vertex)
+    io_vtk.write_line_segments(Fp, index_pair_list)
 
 def load_segmented_fundi(filename):
     """

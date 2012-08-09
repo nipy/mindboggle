@@ -10,8 +10,6 @@
 
 """
 
-import numpy as np
-
 def percentile(N, percent, key=lambda x:x):
     """
     Find the percentile of a list of values.
@@ -27,6 +25,9 @@ def percentile(N, percent, key=lambda x:x):
     percentile of the values
 
     """
+
+    import numpy as np
+
     if not len(N):
         return None
 

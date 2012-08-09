@@ -8,7 +8,7 @@ Command: python <this file name>
 
 Example: python surfaces_to_template.py
                 /usr/local/freesurfer/subjects/bert
-                ../../data/templates/templates_freesurfer/  MMRR-21
+                ../../data/templates/freesurfer/  MMRR-21
                 ("MMRR-21" above refers to "[lh,rh].MMRR-21.tif")
 Example batch:
 import os
