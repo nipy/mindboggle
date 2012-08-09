@@ -18,6 +18,7 @@ TravelDepthMain TravelDepthMain.cpp
 
 TARGET_LINK_LIBRARIES(
 TravelDepthMain
+TravelDepth
 MeshAnalyser
 vtkCommon
 vtkRendering
