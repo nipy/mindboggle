@@ -22,7 +22,10 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   * Multi-atlas labeling workflow
 #   * Feature extraction workflow
 #   * Feature-based labeling workflow
-#   * Shape analysis workflow
+#   * Shape measurement workflow
+#
+#   Mindboggle workflow 2 combining:
+#   * Label volume workflow
 #   * Label evaluation workflow
 #
 ##############################################################################
@@ -39,7 +42,10 @@ from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
-#from nipype import config
+#from nipype import config, logging
+#config.set('logging', 'interface_level', 'DEBUG')
+#config.set('logging', 'workflow_level', 'DEBUG')
+#logging.update_logging(config)
 #config.enable_debug_mode()
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
@@ -119,17 +125,6 @@ if do_combine_atlas_labels:
                      [('vtk_file', 'vtk_file')])])
     mbflow.connect([(combine_atlas, datasink,
                    [('relabeled_vtk','labels.@do_combine_atlas_labels')])])
-#-----------------------------------------------------------------------------
-# Evaluation inputs: location and structure of atlas volumes
-#-----------------------------------------------------------------------------
-if do_evaluate_labels:
-    atlas = Node(name = 'Atlas',
-                 interface = DataGrabber(infields=['subject'],
-                                         outfields=['atlas_file']))
-    atlas.inputs.base_directory = atlases_path
-    atlas.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
-    atlas.inputs.template_args['atlas_file'] = [['subject']]
-    mbflow.connect([(info, atlas, [('subject','subject')])])
 
 ##############################################################################
 #
@@ -330,6 +325,7 @@ mbflow.connect([(featureflow, datasink,
 # Load depth and curvature files
 #-----------------------------------------------------------------------------
 load_depth = Node(name='Load_depth',
+                  #overwrite=True,
                   interface = Fn(function = load_scalar,
                                  input_names = ['filename'],
                                  output_names = ['Points',
@@ -421,70 +417,72 @@ featureflow.connect([(folds, fundi, [('index_lists_folds','index_lists_folds'),
 #-----------------------------------------------------------------------------
 # Write folds, likelihoods, and fundi to VTK files
 #-----------------------------------------------------------------------------
-save_folds = Node(name='Save_folds',
-                  interface = Fn(function = write_scalars,
-                                 input_names = ['vtk_file',
-                                                'Points',
-                                                'Vertices',
-                                                'Faces',
-                                                'LUTs',
-                                                'LUT_names'],
-                                 output_names = ['vtk_file']))
-save_folds.inputs.vtk_file = 'folds.vtk'
-featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
-featureflow.connect([(folds, save_folds, [('indices_folds','Vertices'),
-                                          ('faces_folds','Faces'),
-                                          ('LUTs','LUTs'),
-                                          ('LUT_names','LUT_names')])])
-
-save_likelihoods = Node(name='Save_likelihoods',
-                        interface = Fn(function = write_scalars,
-                                       input_names = ['vtk_file',
-                                                      'Points',
-                                                      'Vertices',
-                                                      'Faces',
-                                                      'LUTs',
-                                                      'LUT_names'],
-                                       output_names = ['vtk_file']))
-save_likelihoods.inputs.vtk_file = 'likelihoods.vtk'
-save_likelihoods.inputs.LUT_names = ['likelihoods']
-featureflow.connect([(load_depth, save_likelihoods, [('Points','Points')])])
-featureflow.connect([(folds, save_likelihoods, [('indices_folds','Vertices'),
-                                                ('faces_folds','Faces')])])
-featureflow.connect([(fundi, save_likelihoods, [('likelihoods','LUTs')])])
-
-save_fundi = Node(name='Save_fundi',
-                  interface = Fn(function = write_scalars,
-                                 input_names = ['vtk_file',
-                                                'Points',
-                                                'Vertices',
-                                                'Faces',
-                                                'LUTs',
-                                                'LUT_names'],
-                                 output_names = ['vtk_file']))
-save_fundi.inputs.vtk_file = 'fundi.vtk'
-save_fundi.inputs.LUT_names = ['fundi']
-featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
-featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
-                                          ('faces_folds','Faces')])])
-featureflow.connect([(fundi, save_fundi, [('fundi','LUTs')])])
-
-mbflow.connect([(featureflow, datasink,
-                 [('Save_folds.vtk_file','folds'),
-                  ('Save_likelihoods.vtk_file','likelihoods'),
-                  ('Save_fundi.vtk_file','fundi')])])
+if do_save_folds:
+    save_folds = Node(name='Save_folds',
+                      interface = Fn(function = write_scalars,
+                                     input_names = ['vtk_file',
+                                                    'Points',
+                                                    'Vertices',
+                                                    'Faces',
+                                                    'LUTs',
+                                                    'LUT_names'],
+                                     output_names = ['vtk_file']))
+    save_folds.inputs.vtk_file = 'folds.vtk'
+    featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
+    featureflow.connect([(folds, save_folds, [('indices_folds','Vertices'),
+                                              ('faces_folds','Faces'),
+                                              ('LUTs','LUTs'),
+                                              ('LUT_names','LUT_names')])])
+    mbflow.connect([(featureflow, datasink,
+                     [('Save_folds.vtk_file','folds')])])
+if do_save_likelihoods:
+    save_likelihoods = Node(name='Save_likelihoods',
+                            interface = Fn(function = write_scalars,
+                                           input_names = ['vtk_file',
+                                                          'Points',
+                                                          'Vertices',
+                                                          'Faces',
+                                                          'LUTs',
+                                                          'LUT_names'],
+                                           output_names = ['vtk_file']))
+    save_likelihoods.inputs.vtk_file = 'likelihoods.vtk'
+    save_likelihoods.inputs.LUT_names = ['likelihoods']
+    featureflow.connect([(load_depth, save_likelihoods, [('Points','Points')])])
+    featureflow.connect([(folds, save_likelihoods, [('indices_folds','Vertices'),
+                                                    ('faces_folds','Faces')])])
+    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','LUTs')])])
+    mbflow.connect([(featureflow, datasink,
+                     [('Save_likelihoods.vtk_file','likelihoods')])])
+if do_save_fundi:
+    save_fundi = Node(name='Save_fundi',
+                      interface = Fn(function = write_scalars,
+                                     input_names = ['vtk_file',
+                                                    'Points',
+                                                    'Vertices',
+                                                    'Faces',
+                                                    'LUTs',
+                                                    'LUT_names'],
+                                     output_names = ['vtk_file']))
+    save_fundi.inputs.vtk_file = 'fundi.vtk'
+    save_fundi.inputs.LUT_names = ['fundi']
+    featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
+    featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
+                                              ('faces_folds','Faces')])])
+    featureflow.connect([(fundi, save_fundi, [('fundi','LUTs')])])
+    mbflow.connect([(featureflow, datasink,
+                     [('Save_fundi.vtk_file','fundi')])])
 
 ##############################################################################
 #
-#   Label volume workflow
+#   Convert labels workflow
 #
 ##############################################################################
 if do_fill_volume_labels:
 
-    volflow = Workflow(name='Fill_volume_workflow')
+    annotflow = Workflow(name='Convert_labels_workflow')
 
     #=============================================================================
-    #   Filling a volume (e.g., gray matter) mask with labels
+    #   Convert VTK labels to .annot format
     #=============================================================================
     #-------------------------------------------------------------------------
     # Write .label files for surface vertices
@@ -504,23 +502,23 @@ if do_fill_volume_labels:
 
     writelabels.inputs.label_number = ctx_label_numbers
     writelabels.inputs.label_name = ctx_label_names
-    volflow.add_nodes([writelabels])
-    mbflow.connect([(info, volflow, [('hemi', 'Write_label_files.hemi')])])
+    annotflow.add_nodes([writelabels])
+    mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
     if do_init_fs_labels:
         if do_combine_atlas_labels:
             writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-            mbflow.connect([(atlasflow, volflow,
+            mbflow.connect([(atlasflow, annotflow,
                             [('Combine_labels.combine_labels_file',
                               'Write_label_files.surface_file')])])
         else:
-            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-            mbflow.connect([(atlasflow, volflow,
+            writelabels.inputs.scalar_name = 'Labels'
+            mbflow.connect([(atlasflow, annotflow,
                              [('Convert_FreeSurfer_labels.fslabels_file',
                                'Write_label_files.surface_file')])])
     else:
-        writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-        mbflow.connect([(atlasflow, volflow,
+        writelabels.inputs.scalar_name = 'Labels'
+        mbflow.connect([(atlasflow, annotflow,
                          [('Label_vote.maxlabel_file',
                            'Write_label_files.surface_file')])])
     #-------------------------------------------------------------------------
@@ -537,26 +535,46 @@ if do_fill_volume_labels:
                                                        'annot_name'],
                                         output_names = ['annot_name',
                                                         'annot_file']))
-    if do_init_fs_labels:
-        if do_combine_atlas_labels:
-            label_type = label_string
-        else:
-            label_type = 'labels.fs'
-    else:
-        label_type = 'labels.max'
     writeannot.inputs.annot_name = label_type
     writeannot.inputs.subjects_path = subjects_path
     writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
-    volflow.add_nodes([writeannot])
-    mbflow.connect([(info, volflow,
+    annotflow.add_nodes([writeannot])
+    mbflow.connect([(info, annotflow,
                      [('hemi', 'Write_annot_file.hemi')])])
-    mbflow.connect([(info, volflow,
+    mbflow.connect([(info, annotflow,
                      [('subject', 'Write_annot_file.subject')])])
-    volflow.connect([(writelabels, writeannot,
+    annotflow.connect([(writelabels, writeannot,
                       [('label_file','label_files')])])
-    mbflow.connect([(volflow, datasink,
+    mbflow.connect([(annotflow, datasink,
                      [('Write_annot_file.annot_file',
                        label_type + '.@annot')])])
+
+##############################################################################
+#
+#   Mindboggle workflow 2 combining:
+#   * Label volume workflow
+#   * Label evaluation workflow
+#
+##############################################################################
+mbflow2 = Workflow(name='Mindboggle_workflow2')
+mbflow2.base_dir = temp_path
+
+#-----------------------------------------------------------------------------
+# Iterate inputs over subjects
+#-----------------------------------------------------------------------------
+info2 = info.clone('Inputs2')
+info2.iterables = ([('subject', subjects)])
+datasink2 = datasink.clone('Results2')
+
+##############################################################################
+#
+#   Label volume workflow
+#
+##############################################################################
+if do_fill_volume_labels:
+
+    volflow = Workflow(name='Fill_volume_workflow')
+
     #-------------------------------------------------------------------------
     # Fill volume mask with surface vertex labels from .annot file
     #-------------------------------------------------------------------------
@@ -566,19 +584,32 @@ if do_fill_volume_labels:
                                                     'annot_name'],
                                      output_names = ['output_file']))
     volflow.add_nodes([fillvolume])
-    mbflow.connect([(info, volflow,
+    mbflow2.connect([(info2, volflow,
                      [('subject', 'Fill_volume_labels.subject')])])
     fillvolume.inputs.annot_name = label_type
-    mbflow.connect([(volflow, datasink,
-                     [('Fill_volume_labels.output_file',
-                       label_type + '.@volume')])])
+    mbflow2.connect([(volflow, datasink2,
+                      [('Fill_volume_labels.output_file',
+                        label_type + '.@volume')])])
 
 ##############################################################################
 #
-#   Label evaluation
+#   Label evaluation workflow
 #
 ##############################################################################
 if do_evaluate_labels:
+
+    evalflow = Workflow(name='Label_evaluation_workflow')
+
+    #-----------------------------------------------------------------------------
+    # Evaluation inputs: location and structure of atlas volumes
+    #-----------------------------------------------------------------------------
+    atlas = Node(name = 'Atlas',
+                 interface = DataGrabber(infields=['subject'],
+                                         outfields=['atlas_file']))
+    atlas.inputs.base_directory = atlases_path
+    atlas.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
+    atlas.inputs.template_args['atlas_file'] = [['subject']]
+    mbflow2.connect([(info2, atlas, [('subject','subject')])])
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
@@ -587,25 +618,20 @@ if do_evaluate_labels:
                                       input_names = ['labels',
                                                      'atlas_file',
                                                      'input_file'],
-                                      output_names = ['overlaps']))
-    if do_init_fs_labels:
-        if do_combine_atlas_labels:
-            label_type = label_string
-        else:
-            label_type = 'labels.fs'
-    else:
-        label_type = 'labels.max'
+                                      output_names = ['overlaps',
+                                                      'out_file']))
     labels_file = os.path.join(info_path, label_string + '.txt')
     labels = read_list_strings(labels_file)
     eval_labels.inputs.labels = labels
-    mbflow.connect([(volflow, eval_labels,
-                     [('Fill_volume_labels.output_file',
-                       'Evaluate_volume_labels.input_file')])])
-    mbflow.connect([(atlas, eval_labels,
-                     [('atlas_file','Evaluate_volume_labels.atlas_file')])])
-    mbflow.connect([(eval_labels, datasink,
-                     [('Evaluate_volume_labels.overlaps',
-                       label_type + '.@overlaps')])])
+    evalflow.add_nodes([eval_labels])
+    mbflow2.connect([(atlas, evalflow,
+                      [('atlas_file','Evaluate_volume_labels.atlas_file')])])
+    mbflow2.connect([(volflow, evalflow,
+                      [('Fill_volume_labels.output_file',
+                        'Evaluate_volume_labels.input_file')])])
+    mbflow2.connect([(evalflow, datasink2,
+                      [('Evaluate_volume_labels.out_file',
+                        'evaluation.' + label_type)])])
 
 ##############################################################################
 #
@@ -614,7 +640,10 @@ if do_evaluate_labels:
 ##############################################################################
 if __name__== '__main__':
 
-    if do_generate_graph:
+    if do_generate_graphs:
         mbflow.write_graph(graph2use='flat')
         mbflow.write_graph(graph2use='hierarchical')
-    mbflow.run(updatehash=False)  #mbflow.run(updatehash=True)
+        mbflow2.write_graph(graph2use='flat')
+        mbflow2.write_graph(graph2use='hierarchical')
+    mbflow.run(plugin='Linear') #updatehash=False)
+    mbflow2.run(plugin='Linear') #updatehash=False)
