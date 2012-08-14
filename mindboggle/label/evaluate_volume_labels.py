@@ -27,10 +27,11 @@ def measure_volume_overlap(labels, atlas_file, input_file):
 
     """
 
+    import os
     import numpy as np
     import nibabel as nb
 
-    save_output = False
+    save_output = True
 
     # Load labeled image volumes
     input_data = nb.load(input_file).get_data().ravel()
@@ -40,11 +41,11 @@ def measure_volume_overlap(labels, atlas_file, input_file):
 
     # Initialize output
     overlaps = np.zeros((len(labels), 3))
-    overlaps[:, 0] = labels
 
     # Loop through labels
     for ilabel, label in enumerate(labels):
         label = int(label)
+        overlaps[ilabel, 0] = label
 
         # Find which voxels contain the label in each volume
         input_indices = np.where(input_data==label)[0]
@@ -55,22 +56,23 @@ def measure_volume_overlap(labels, atlas_file, input_file):
         # Determine their intersection and union
         intersect_label_sum = len(np.intersect1d(input_indices, atlas_indices))
         union_label_sum = len(np.union1d(input_indices, atlas_indices))
-        #print('{} {} {} {} {}'.format(label, input_label_sum, atlas_label_sum,
-        #                              intersect_label_sum, union_label_sum))
+        print('{} {} {} {} {}'.format(label, input_label_sum, atlas_label_sum,
+                                      intersect_label_sum, union_label_sum))
 
         # There must be at least one voxel with the label in each volume
         if input_label_sum * atlas_label_sum > 0:
 
             # Compute Dice and Jaccard coefficients
-            dice = 2.0 * intersect_label_sum / (input_label_sum + atlas_label_sum)
+            dice = np.float(2.0 * intersect_label_sum) / (input_label_sum + atlas_label_sum)
             jacc = np.float(intersect_label_sum) / union_label_sum
             overlaps[ilabel, 1:3] = [dice, jacc]
-            #print('label: {}, dice: {:.2f}, jacc: {:.2f}'.format(label, dice, jacc))
+            print('label: {}, dice: {:.2f}, jacc: {:.2f}'.format(label, dice, jacc))
 
         # NOTE:  untested:
         if save_output:
-            out_file = os.path.join(os.getcwd(),
-                'label_volume_overlaps_' + input_file + '_vs_' + atlas_file + '.csv')
-            np.savetxt(out_file, overlaps, fmt='%.4f', delimiter='    ', newline='\n')
+            input_name = os.path.splitext(os.path.basename(input_file))[0]
+            atlas_name = os.path.splitext(os.path.basename(atlas_file))[0]
+            out_file = os.path.join(os.getcwd(), input_name + '_vs_' + atlas_name + '.txt')
+            np.savetxt(out_file, overlaps, fmt='%d %.4f %.4f', delimiter='\t', newline='\n')
 
-    return overlaps
+    return overlaps, out_file
