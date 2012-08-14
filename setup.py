@@ -1,13 +1,48 @@
 #!/usr/bin/env python
 # emacs: -*- mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
-"""Mindboggle
+"""
+Mindboggle : package for automated human brain image labeling and morphometry.
 
-Mindboggle automates anatomical labeling and shape analysis of human brain
-MRI data.
+export PYTHONPATH=$PYTHONPATH:/desk/temp/lib/python2.7/site-packages/
+python setup.py install --prefix=/desk/temp
+python setup.py develop
 
 """
 
+from distribute_setup import use_setuptools
+use_setuptools()
+
+from setuptools import setup, find_packages
+
+setup(
+    name = "Mindboggle",
+    version = "0.01",
+    packages = find_packages(),
+    #scripts = ['mindboggle/pipeline.sh'],
+
+    # Project uses reStructuredText, so ensure that the docutils get
+    # installed or upgraded on the target machine
+    install_requires = ['docutils>=0.3'],
+
+    package_data = {
+        # If any package contains *.txt or *.rst files, include them:
+        '': ['*.txt', '*.rst'],
+    },
+
+    # metadata for upload to PyPI
+    author = "Arno Klein",
+    author_email = "arno@binarybottle.com",
+    description = "Automated human brain image automated anatomical labeling and shape analysis",
+    long_description = "Mindboggle is a package for automated anatomical labeling and morphometry of human brain images",
+    license = "Apache 2.0",
+    keywords = "Mindboggle human brain MRI automated labeling parcellation morphometry",
+    url = "http://mindboggle.info/",
+    download_url = "http://mindboggle.info/",
+)
+
+
+"""
 import sys
 from glob import glob
 
@@ -31,11 +66,7 @@ def configuration(parent_package='',top_path=None):
                        assume_default_configuration=True,
                        delegate_options_to_subpackages=True,
                        quiet=True)
-    # The quiet=True option will silence all of the name setting warnings:
-    # Ignoring attempt to set 'name' (from 'nipy.core' to
-    #    'nipy.core.image')
-    # Robert Kern recommends setting quiet=True on the numpy list, stating
-    # these messages are probably only used in debugging numpy distutils.
+    # The quiet=True option will silence all of the name setting warnings
     config.get_version('mindboggle/__init__.py') # sets config.version
     config.add_subpackage('mindboggle', 'mindboggle')
     return config
@@ -49,17 +80,15 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
     from setup_egg import extra_setuptools_args
 
 # extra_setuptools_args can be defined from the line above, but it can
-# also be defined here because setup.py has been exec'ed from
+# also be defined here because setup.py has been exec'd from
 # setup_egg.py.
 if not 'extra_setuptools_args' in globals():
     extra_setuptools_args = dict()
 
 # Hard and soft dependency checking
-package_check('networkx', INFO_VARS['NETWORKX_MIN_VERSION'])
 package_check('nibabel', INFO_VARS['NIBABEL_MIN_VERSION'])
 package_check('numpy', INFO_VARS['NUMPY_MIN_VERSION'])
-package_check('scipy', INFO_VARS['SCIPY_MIN_VERSION'])
-package_check('traits', INFO_VARS['TRAITS_MIN_VERSION'])
+package_check('nipype', INFO_VARS['NIPYPE_MIN_VERSION'])
 
 ################################################################################
 # Import the documentation building classes.
@@ -67,7 +96,7 @@ package_check('traits', INFO_VARS['TRAITS_MIN_VERSION'])
 try:
     from build_docs import cmdclass
 except ImportError:
-    """ Pass by the doc build gracefully if sphinx is not installed """
+    "" Pass by the doc build gracefully if sphinx is not installed ""
     print "Sphinx is not installed, docs cannot be built"
     cmdclass = {}
 
@@ -100,3 +129,4 @@ def main(**extra_args):
 
 if __name__ == "__main__":
     main(**extra_setuptools_args)
+"""
