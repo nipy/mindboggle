@@ -6,6 +6,13 @@
 #include <fstream>
 #include <stdio.h>
 
+void print_help()
+{
+    printf(
+    "Usage: Overlap InputVTKMesh1 InputVTKMesh2\n"
+        );
+}
+
 int main(int argc, char** argv)
 {
     time_t start= time(NULL);
