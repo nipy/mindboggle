@@ -24,13 +24,13 @@ results_path = '/projects/Mindboggle/results'  # Where to save output
 #-----------------------------------------------------------------------------
 do_load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
 do_combine_atlas_labels = False  # Combine atlas labels
-do_save_folds = 0 #True  # Save folds as VTK file
+do_save_folds = True  # Save folds as VTK file
 do_save_likelihoods = False  # Save likelihood values as VTK file
-do_save_fundi = 0 #True  # Save fundi as VTK file
+do_save_fundi = True  # Save fundi as VTK file
 do_init_fs_labels = False  # Initialize with a FreeSurfer classifier atlas
-do_fill_volume_labels = 0 #True  # Fill (gray matter) volumes with surface labels
+do_fill_volume_labels = True  # Fill (gray matter) volumes with surface labels
 do_evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
-do_evaluate_volume_labels = 0 #1 #False  # Compute volume overlap of auto vs. manual labels
+do_evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
 do_generate_graphs = True
 #-----------------------------------------------------------------------------
 # Paths
@@ -42,8 +42,9 @@ temp_path = os.path.join(results_path, 'workingdir')  # Where to save temp files
 info_path = os.path.join(code_path, 'info')
 templates_path = os.path.join(base_path, 'data', 'templates')
 atlases_path = subjects_path
-label_string_old = 'labels.DKT31'
-label_string = 'labels.DKT25'
+#label_string_old = 'labels.DKT31'
+#label_string = 'labels.DKT25'
+label_string = 'labels.DKT31'
 hemis = ['lh','rh']
 
 # Add to PYTHONPATH
