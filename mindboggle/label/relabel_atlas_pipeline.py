@@ -259,45 +259,44 @@ if do_writeannot:
                       [('annot_file','Write_annot_file.annot')])])
 
 ##############################################################################
-if __name__== '__main__':
+#if __name__== '__main__':
+#    flow.run()
 
-    flow.run()
+#-------------------------------------------------------------------------
+# Copy results to atlas label directories
+#-------------------------------------------------------------------------
+if copy_to_fs_atlases or copy_to_mb_atlases:
 
-    #-------------------------------------------------------------------------
-    # Copy results to atlas label directories
-    #-------------------------------------------------------------------------
-    if copy_to_fs_atlases or copy_to_mb_atlases:
+    for s in subjects:
+        for h in hemis:
 
-        for s in subjects:
-            for h in hemis:
+            srcs = []
 
-                srcs = []
+            if do_convert_atlas_annot:
+                src = os.path.join(results_path, 'output', 'atlas_labels',
+                                   '_hemi_' + h + '_subject_' + s,
+                                   h + '.' + label_string_old + '.manual.vtk')
+                srcs.append(src)
 
-                if do_convert_atlas_annot:
-                    src = os.path.join(results_path, 'output', 'atlas_labels',
-                                       '_hemi_' + h + '_subject_' + s,
-                                       h + '.' + label_string_old + '.manual.vtk')
-                    srcs.append(src)
+            if do_combine_atlas_labels:
+                src = os.path.join(results_path, 'output', 'combine_atlas_labels',
+                                   '_hemi_' + h + '_subject_' + s,
+                                   h + '.' + label_string + '.manual.vtk')
+                srcs.append(src)
 
-                if do_combine_atlas_labels:
-                    src = os.path.join(results_path, 'output', 'combine_atlas_labels',
-                                       '_hemi_' + h + '_subject_' + s,
-                                       h + '.' + label_string + '.manual.vtk')
-                    srcs.append(src)
+            if do_writeannot:
+                src = os.path.join(atlases_path, s, 'label',
+                                   h + '.' + label_string + '.manual.annot')
+                srcs.append(src)
 
-                if do_writeannot:
-                    src = os.path.join(atlases_path, s, 'label',
-                                       h + '.' + label_string + '.manual.annot')
-                    srcs.append(src)
-
-                for src in srcs:
-                    if copy_to_fs_atlases:
-                        tgt = os.path.join(atlases_path, s, 'label')
-                        cmd = ' '.join(['cp', src, tgt])
-                        print(cmd); os.system(cmd)
-                    if copy_to_mb_atlases:
-                        tgt = os.path.join(base_path, 'data', 'atlases', 
-                                           'freesurfer', s, 'label') 
-                        cmd = ' '.join(['cp', src, tgt])
-                        print(cmd); os.system(cmd)
+            for src in srcs:
+                if copy_to_fs_atlases:
+                    tgt = os.path.join(atlases_path, s, 'label')
+                    cmd = ' '.join(['cp', src, tgt])
+                    print(cmd); os.system(cmd)
+                if copy_to_mb_atlases:
+                    tgt = os.path.join(base_path, 'data', 'atlases', 
+                                       'freesurfer', s, 'label') 
+                    cmd = ' '.join(['cp', src, tgt])
+                    print(cmd); os.system(cmd)
 
