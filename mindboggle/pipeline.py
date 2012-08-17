@@ -116,6 +116,9 @@ if do_evaluate_surface_labels or do_combine_atlas_labels:
     print('NOTE: OASIS-TRT-20-11 pial images did not io_file.py read_surface()')
 
 
+    #=============================================================================
+    #   Convert VTK labels to .annot format
+    #=============================================================================
 
     # Convert atlas .annot files to vtk format
     convert_atlas_annot2vtk = 0
@@ -194,6 +197,71 @@ if do_combine_atlas_labels:
                 h + '.' + label_string + '.manual.vtk')
             tgt = os.path.join(atlases_path, s, 'label')
             os.system(' '.join(['cp', src, tgt]))
+    #-------------------------------------------------------------------------
+    # Write .label files for surface vertices
+    #-------------------------------------------------------------------------
+    writelabels = MapNode(name='Write_label_files',
+        iterfield = ['label_number', 'label_name'],
+        interface = Fn(function = write_label_file,
+            input_names = ['hemi',
+                           'surface_file',
+                           'label_number',
+                           'label_name',
+                           'scalar_name'],
+            output_names = ['label_file']))
+    # List of cortical labels
+    ctx_labels_file = os.path.join(info_path, label_string + '.txt')
+    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
+
+    writelabels.inputs.label_number = ctx_label_numbers
+    writelabels.inputs.label_name = ctx_label_names
+    annotflow.add_nodes([writelabels])
+    mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
+
+    if do_init_fs_labels:
+        if do_combine_atlas_labels:
+            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
+            mbflow.connect([(atlasflow, annotflow,
+                             [('Combine_labels.combine_labels_file',
+                               'Write_label_files.surface_file')])])
+        else:
+            writelabels.inputs.scalar_name = 'Labels'
+            mbflow.connect([(atlasflow, annotflow,
+                             [('Convert_FreeSurfer_labels.fslabels_file',
+                               'Write_label_files.surface_file')])])
+    else:
+        writelabels.inputs.scalar_name = 'Labels'
+        mbflow.connect([(atlasflow, annotflow,
+                         [('Label_vote.maxlabel_file',
+                           'Write_label_files.surface_file')])])
+    #-------------------------------------------------------------------------
+    # Write .annot file from .label files
+    #-------------------------------------------------------------------------
+    writeannot = MapNode(name='Write_annot_file',
+        iterfield = ['hemi'],
+        interface = Fn(function = label_to_annot_file,
+            input_names = ['hemi',
+                           'subjects_path',
+                           'subject',
+                           'label_files',
+                           'colortable',
+                           'annot_name'],
+            output_names = ['annot_name',
+                            'annot_file']))
+    writeannot.inputs.annot_name = label_type
+    writeannot.inputs.subjects_path = subjects_path
+    writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
+    annotflow.add_nodes([writeannot])
+    mbflow.connect([(info, annotflow,
+                     [('hemi', 'Write_annot_file.hemi')])])
+    mbflow.connect([(info, annotflow,
+                     [('subject', 'Write_annot_file.subject')])])
+    annotflow.connect([(writelabels, writeannot,
+                        [('label_file','label_files')])])
+    mbflow.connect([(annotflow, datasink,
+                     [('Write_annot_file.annot_file',
+                       label_type + '.@annot')])])
+
 
 ##############################################################################
 #
