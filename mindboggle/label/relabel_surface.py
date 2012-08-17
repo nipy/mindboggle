@@ -10,7 +10,7 @@ Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def relabel_surface(vtk_file, relabel_list, old_string, new_string):
+def relabel_surface(vtk_file, relabel_list, new_string):
     """
     Combine surface labels.
 
@@ -18,14 +18,14 @@ def relabel_surface(vtk_file, relabel_list, old_string, new_string):
     vtk_file:  input labeled VTK file
     relabel_list:  text file with two columns of label numbers --
                    all regions receive the 2nd label per row.
-    old_string:  old ending of vtk_file name (e.g., 'DKT31.vtk')
-    new_string:  new ending of vtk_file name (e.g., 'DKT25.vtk')
+    new_string:  new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
 
     """
 
     import os
     import numpy as np
-    import io_vtk, io_file
+    import utils.io_vtk as io_vtk
+    import utils.io_file as io_file
 
     # Load labeled vtk surfaces
     Points, Faces, Scalars = io_vtk.load_scalar(vtk_file)
@@ -43,8 +43,9 @@ def relabel_surface(vtk_file, relabel_list, old_string, new_string):
         Scalars[indices] = int(new_label)
 
     relabeled_vtk = os.path.join(os.getcwd(),
-                                 vtk_file.strip(old_string) + new_string)
-
+                                 os.path.basename(vtk_file).split('.')[0] + \
+                                 '.' + new_string)
+    print(relabeled_vtk)
     io_vtk.write_scalars(relabeled_vtk, Points, Vertices, Faces,
                          [Scalars.tolist()], ['Labels'])
 
