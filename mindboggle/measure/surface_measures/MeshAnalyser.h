@@ -199,7 +199,6 @@ public:
 	//Decimate this->mesh. this->simpl is filled with the result  
 	void Simplify(double factor);
 
-
         //ComputeClosedMesh
         //
         //Compute a mesh that correspond to a morphological closing
