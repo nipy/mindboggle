@@ -297,7 +297,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     output_stem = os.path.join(os.getcwd(),
                   os.path.basename(surface_file.strip('.vtk')))
-    vtk_file = output_stem + '.labels.fs.vtk'
+    vtk_file = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
