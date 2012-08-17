@@ -18,6 +18,10 @@ ADD_SUBDIRECTORY(
 curvature
 )
 
+ADD_SUBDIRECTORY(
+surface_overlap
+)
+
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
@@ -34,10 +38,18 @@ ADD_LIBRARY(
 TravelDepth TravelDepth.cpp
 )
 
+ADD_LIBRARY(
+Overlap Overlap.cpp
+)
+
 TARGET_LINK_LIBRARIES(
 MeshAnalyser
 )
 
 TARGET_LINK_LIBRARIES(
 TravelDepth
+)
+
+TARGET_LINK_LIBRARIES(
+Overlap
 )
