@@ -20,14 +20,36 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+import os, sys
+
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
 #=============================================================================
-from settings import *
-
+#-----------------------------------------------------------------------------
+# Steps to run
+#-----------------------------------------------------------------------------
+do_convert_atlas_annot = 0
+do_combine_atlas_labels = 0
+do_writelabels = 0
+do_writeannot = 0
+#-----------------------------------------------------------------------------
+# From settings.py
+#-----------------------------------------------------------------------------
+results_path = '/projects/Mindboggle/results'  # Where to save output
+subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+base_path = os.environ['MINDBOGGLE_HOME']  # Mindboggle home directory
+code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
+temp_path = os.path.join(results_path, 'workingdir')  # Where to save temp files
+info_path = os.path.join(code_path, 'info')
+atlases_path = subjects_path
 label_string_old = 'labels.DKT31'
 label_string = 'labels.DKT25'
-
+hemis = ['lh','rh']
+sys.path.append(code_path) # Add to PYTHONPATH
+# Load atlas list as subjects
+import utils.io_file as iof
+atlas_list_file = os.path.join(info_path, 'atlases101.txt')
+subjects = iof.read_list_strings(atlas_list_file)
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
@@ -78,8 +100,7 @@ atlasflow.base_dir = temp_path
 #-----------------------------------------------------------------------------
 #   Convert VTK labels to .annot format
 #-----------------------------------------------------------------------------
-convert_atlas_annot2vtk = 0
-if convert_atlas_annot2vtk:
+if do_convert_atlas_annot:
     # Input annot
     atlas_annot = Node(name = 'Atlas_annot',
                        interface = DataGrabber(infields=['subject','hemi'],
@@ -125,8 +146,7 @@ if convert_atlas_annot2vtk:
 #-------------------------------------------------------------------------
 #   Combine atlas labels
 #-------------------------------------------------------------------------
-combine_atlas_labels = 0
-if combine_atlas_labels:
+if do_combine_atlas_labels:
 
     # After converting .annot to vtk files, define the atlas_old node
     atlas_old = Node(name = 'Atlas_old',
@@ -177,56 +197,65 @@ outflow.connect([(info, atlasflow, [('subject','Atlas.subject'),
 #-------------------------------------------------------------------------
 # Write .label files for surface vertices
 #-------------------------------------------------------------------------
-writelabels = MapNode(name='Write_label_files',
-                      iterfield = ['label_number', 'label_name'],
-                      interface = Fn(function = write_label_file,
-                                     input_names = ['hemi',
-                                                    'surface_file',
-                                                    'label_number',
-                                                    'label_name',
-                                                    'scalar_name'],
-                                     output_names = ['label_file']))
+if do_writelabels:
+    writelabels = MapNode(name='Write_label_files',
+                          iterfield = ['label_number', 'label_name'],
+                          interface = Fn(function = write_label_file,
+                                         input_names = ['hemi',
+                                                        'surface_file',
+                                                        'label_number',
+                                                        'label_name',
+                                                        'scalar_name'],
+                                         output_names = ['label_file']))
 
-ctx_labels_file = os.path.join(info_path, label_string + '.txt')
-ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
+    ctx_labels_file = os.path.join(info_path, label_string + '.txt')
+    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
 
-writelabels.inputs.label_number = ctx_label_numbers
-writelabels.inputs.label_name = ctx_label_names
-atlasflow.add_nodes([writelabels])
-writelabels.inputs.scalar_name = 'Labels'
-outflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
-atlasflow.connect([(atlas, writelabels, [('atlas_file','surface_file')])])
+    writelabels.inputs.label_number = ctx_label_numbers
+    writelabels.inputs.label_name = ctx_label_names
+    atlasflow.add_nodes([writelabels])
+    writelabels.inputs.scalar_name = 'Labels'
+    outflow.connect([(info, atlasflow, [('hemi', 'Write_label_files.hemi')])])
+    atlasflow.connect([(atlas, writelabels, [('atlas_file','surface_file')])])
 
 #-------------------------------------------------------------------------
 # Write .annot file from .label files
 #-------------------------------------------------------------------------
-writeannot = MapNode(name='Write_annot_file',
-                     iterfield = ['hemi'],
-                     interface = Fn(function = label_to_annot_file,
-                                    input_names = ['hemi',
-                                                   'subjects_path',
-                                                   'subject',
-                                                   'label_files',
-                                                   'colortable',
-                                                   'annot_name'],
-                                    output_names = ['annot_name',
-                                                    'annot_file']))
-writeannot.inputs.annot_name = label_string + '.manual'
-writeannot.inputs.subjects_path = subjects_path
-writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
-atlasflow.add_nodes([writeannot])
-outflow.connect([(info, atlasflow,
-                    [('hemi', 'Write_annot_file.hemi'),
-                     ('subject', 'Write_annot_file.subject')])])
-atlasflow.connect([(writelabels, writeannot,
-                    [('label_file','label_files')])])
-outflow.connect([(writeannot, datasink,
-                  [('annot_file','Write_annot_file.annot')])])
+if do_writeannot:
+    writeannot = MapNode(name='Write_annot_file',
+                         iterfield = ['hemi'],
+                         interface = Fn(function = label_to_annot_file,
+                                        input_names = ['hemi',
+                                                       'subjects_path',
+                                                       'subject',
+                                                       'label_files',
+                                                       'colortable',
+                                                       'annot_name'],
+                                        output_names = ['annot_name',
+                                                        'annot_file']))
+    writeannot.inputs.annot_name = label_string + '.manual'
+    writeannot.inputs.subjects_path = subjects_path
+    writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
+    atlasflow.add_nodes([writeannot])
+    outflow.connect([(info, atlasflow,
+                        [('hemi', 'Write_annot_file.hemi'),
+                         ('subject', 'Write_annot_file.subject')])])
+    atlasflow.connect([(writelabels, writeannot,
+                        [('label_file','label_files')])])
+    outflow.connect([(writeannot, datasink,
+                      [('annot_file','Write_annot_file.annot')])])
+
+    # Copy results to atlases label directory
+    for s in subjects:
+        for h in hemis:
+            src = os.path.join(atlases_path, s, 'label',
+                               h + '.' + label_string + '.manual.annot')
+            #atlases_path2 = os.path.join(base_path, 'data/atlases/freesurfer/')
+            tgt = os.path.join(atlases_path, s, 'label')
+            cmd = ' '.join(['cp', src, tgt])
+            print(cmd); os.system(cmd)
 
 ##############################################################################
 if __name__== '__main__':
 
-    if do_generate_graphs:
-        outflow.write_graph(graph2use='flat')
-        outflow.write_graph(graph2use='hierarchical')
     outflow.run(plugin='Linear') #updatehash=False)
