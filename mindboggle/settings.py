@@ -26,7 +26,7 @@ do_load_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
 do_save_folds = True  # Save folds as VTK file
 do_save_likelihoods = False  # Save likelihood values as VTK file
 do_save_fundi = True  # Save fundi as VTK file
-do_init_fs_labels = False  # Initialize with a FreeSurfer classifier atlas
+do_init_fs_labels = 1 #False  # Initialize with a FreeSurfer classifier atlas
 do_fill_volume_labels = True  # Fill (gray matter) volumes with surface labels
 do_evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
 do_evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
@@ -49,10 +49,7 @@ hemis = ['lh','rh']
 sys.path.append(code_path)
 
 if do_init_fs_labels:
-    if do_combine_atlas_labels:
-        label_type = label_string
-    else:
-        label_type = 'labels.fs'
+    label_type = 'labels.fs'
 else:
     label_type = 'labels.max'
 
