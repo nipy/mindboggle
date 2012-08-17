@@ -53,9 +53,9 @@ if do_init_fs_labels:
 else:
     label_type = 'labels.max'
 
-
+"""
 # Load atlas list as subjects
 import utils.io_file as iof
 atlas_list_file = os.path.join('info/atlases101.txt')
 subjects = iof.read_list_strings(atlas_list_file)
-
+"""
