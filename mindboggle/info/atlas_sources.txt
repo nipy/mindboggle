@@ -1,7 +1,7 @@
 # KKI2009-14 and KKI2009-17 are two scans of the same subject, 
 # and subject KKI2009-17 was flipped to create a mock subject:
 # "NKI_Rockland_1197782"
-Colin27-1-1	colin27_t1_tal_lin
+Colin27-1	colin27_t1_tal_lin
 HLN-12-1	plos_CJ_700_3_1
 HLN-12-2	plos_Ding_756_3_1
 HLN-12-3	plos_Ding_1009_3_1
@@ -101,4 +101,4 @@ OASIS-TRT-20-19	OAS1_0379_MR1
 OASIS-TRT-20-20 OAS1_0395_MR1
 Twins-2-1   arno
 Twins-2-2   barrett
-Labeler-1-1 jason
+Afterthought-1	satrajit
