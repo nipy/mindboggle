@@ -776,6 +776,7 @@ if do_evaluate_volume_labels:
 ##############################################################################
 if __name__== '__main__':
 
+    do_generate_graphs = True
     if do_generate_graphs:
         mbflow.write_graph(graph2use='flat')
         mbflow.write_graph(graph2use='hierarchical')
