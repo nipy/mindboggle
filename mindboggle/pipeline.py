@@ -106,25 +106,94 @@ if not do_load_vtk_surfaces:
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
+#-----------------------------------------------------------------------------
+# Evaluation inputs: location and structure of atlas surfaces
+#-----------------------------------------------------------------------------
+if do_evaluate_surface_labels or do_combine_atlas_labels:
+
+
+
+    print('NOTE: OASIS-TRT-20-11 pial images did not io_file.py read_surface()')
+
+
+
+    # Convert atlas .annot files to vtk format
+    convert_atlas_annot2vtk = 0
+    if convert_atlas_annot2vtk:
+        # Input annot
+        atlas_annot = Node(name = 'Atlas_annot',
+                           interface = DataGrabber(infields=['subject','hemi'],
+                                                   outfields=['atlas_annot_file']))
+        atlas_annot.inputs.base_directory = atlases_path
+        atlas_annot.inputs.template = '%s/label/%s.' + label_string_old + '.manual.annot'
+        atlas_annot.inputs.template_args['atlas_annot_file'] = [['subject','hemi']]
+        mbflow.connect([(info, atlas_annot, [('subject','subject'),('hemi','hemi')])])
+        # Convert .annot to vtk function
+        atlas_vtk = Node(name = 'Convert_atlas_labels',
+                         interface = Fn(function = annot_to_vtk,
+                                        input_names = ['surface_file',
+                                                       'hemi',
+                                                       'subject',
+                                                       'subjects_path',
+                                                       'annot_name'],
+                                        output_names = ['vtk_file']))
+        atlas_vtk.inputs.annot_name = label_string_old + '.manual.annot'
+        atlas_vtk.inputs.subjects_path = subjects_path
+        mbflow.add_nodes([atlas_vtk])
+        mbflow.connect([(info, atlas_vtk,
+                         [('hemi','hemi'),('subject','subject')])])
+        if do_load_vtk_surfaces:
+            mbflow.connect([(surf, atlas_vtk,
+                             [('surface_files','surface_file')])])
+        else:
+            mbflow.connect([(convertsurf, atlas_vtk,
+                             [('vtk_file','surface_file')])])
+        mbflow.connect([(atlas_vtk, datasink,
+                         [('vtk_file','atlas_labels')])])
+        # Copy results to atlases label directory
+        for s in subjects:
+            for h in hemis:
+                src = os.path.join(results_path, 'output', 'atlas_labels',
+                                   '_hemi_' + h + '_subject_' + s,
+                                   h + '.' + label_string + '.manual.vtk')
+                tgt = os.path.join(atlases_path, s, 'label')
+                os.system(' '.join(['cp', src, tgt]))
+
+    # After converting .annot to vtk files, define the atlas node
+    atlas = Node(name = 'Atlas',
+                 interface = DataGrabber(infields=['subject','hemi'],
+                                         outfields=['atlas_file']))
+    atlas.inputs.base_directory = atlases_path
+
+    atlas.inputs.template = '%s/label/%s.' + label_string_old + '.manual.vtk'
+    atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
+
+    mbflow.connect([(info, atlas, [('subject','subject'),('hemi','hemi')])])
 #-------------------------------------------------------------------------
 #   Combine atlas labels
 #-------------------------------------------------------------------------
 if do_combine_atlas_labels:
-    combine_atlas = Node(name='do_combine_atlas_labels',
+    combine_atlas = Node(name='Combine_atlas_labels',
                          interface = Fn(function = relabel_surface,
                                         input_names = ['vtk_file',
                                                        'relabel_list',
-                                                       'old_string',
                                                        'new_string'],
                                         output_names = ['relabeled_vtk']))
-    combine_atlas.inputs.old_string = 'labels.DKT31.manual.vtk'
     combine_atlas.inputs.new_string = label_string + '.manual.vtk'
     combine_atlas.inputs.relabel_list = os.path.join(info_path,
                                                      'labels.DKT31to25.txt')
-    mbflow.connect([(convertsurf, combine_atlas,
-                     [('vtk_file', 'vtk_file')])])
+    mbflow.connect([(atlas, combine_atlas,
+                     [('atlas_file', 'vtk_file')])])
     mbflow.connect([(combine_atlas, datasink,
-                   [('relabeled_vtk','labels.@do_combine_atlas_labels')])])
+                   [('relabeled_vtk','combine_atlas_labels')])])
+    # Copy results to atlases label directory
+    for s in subjects:
+        for h in hemis:
+            src = os.path.join(results_path, 'output', 'combine_atlas_labels',
+                '_hemi_' + h + '_subject_' + s,
+                h + '.' + label_string + '.manual.vtk')
+            tgt = os.path.join(atlases_path, s, 'label')
+            os.system(' '.join(['cp', src, tgt]))
 
 ##############################################################################
 #
@@ -167,12 +236,10 @@ if do_init_fs_labels:
                          interface = Fn(function = relabel_surface,
                          input_names = ['vtk_file',
                                         'relabel_list',
-                                        'old_string',
                                         'new_string'],
                          output_names = ['combine_labels_file']))
         combine.inputs.relabel_list = os.path.join(info_path,
                                                    'labels.DKT31to25.txt')
-        combine.inputs.old_string = '.vtk'
         combine.inputs.new_string = label_string + '.vtk'
         atlasflow.connect([(fslabels, combine, [('fslabels_file', 'vtk_file')])])
         mbflow.connect([(atlasflow, datasink,
@@ -596,40 +663,41 @@ if do_fill_volume_labels:
 #   Label evaluation workflow
 #
 ##############################################################################
-if do_evaluate_labels:
+if do_evaluate_volume_labels:
 
-    evalflow = Workflow(name='Label_evaluation_workflow')
+    evalvolflow = Workflow(name='Label_volume_evaluation_workflow')
 
     #-----------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas volumes
     #-----------------------------------------------------------------------------
-    atlas = Node(name = 'Atlas',
-                 interface = DataGrabber(infields=['subject'],
-                                         outfields=['atlas_file']))
-    atlas.inputs.base_directory = atlases_path
-    atlas.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
-    atlas.inputs.template_args['atlas_file'] = [['subject']]
-    mbflow2.connect([(info2, atlas, [('subject','subject')])])
+    atlas_vol = Node(name = 'Atlas_volume',
+                     interface = DataGrabber(infields=['subject'],
+                     outfields=['atlas_vol_file']))
+    atlas_vol.inputs.base_directory = atlases_path
+    atlas_vol.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
+    atlas_vol.inputs.template_args['atlas_vol_file'] = [['subject']]
+    mbflow2.connect([(info2, atlas_vol, [('subject','subject')])])
+
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
-    eval_labels = Node(name='Evaluate_volume_labels',
-                       interface = Fn(function = measure_volume_overlap,
-                                      input_names = ['labels',
-                                                     'atlas_file',
-                                                     'input_file'],
-                                      output_names = ['overlaps',
-                                                      'out_file']))
+    eval_vol_labels = Node(name='Evaluate_volume_labels',
+                           interface = Fn(function = measure_volume_overlap,
+                                          input_names = ['labels',
+                                                         'atlas_file',
+                                                         'input_file'],
+                                          output_names = ['overlaps',
+                                                          'out_file']))
     labels_file = os.path.join(info_path, label_string + '.txt')
     labels = read_list_strings(labels_file)
-    eval_labels.inputs.labels = labels
-    evalflow.add_nodes([eval_labels])
-    mbflow2.connect([(atlas, evalflow,
-                      [('atlas_file','Evaluate_volume_labels.atlas_file')])])
-    mbflow2.connect([(volflow, evalflow,
+    eval_vol_labels.inputs.labels = labels
+    evalvolflow.add_nodes([eval_vol_labels])
+    mbflow2.connect([(atlas_vol, evalvolflow,
+                      [('atlas_vol_file','Evaluate_volume_labels.atlas_file')])])
+    mbflow2.connect([(volflow, evalvolflow,
                       [('Fill_volume_labels.output_file',
                         'Evaluate_volume_labels.input_file')])])
-    mbflow2.connect([(evalflow, datasink2,
+    mbflow2.connect([(evalvolflow, datasink2,
                       [('Evaluate_volume_labels.out_file',
                         'evaluation.' + label_type)])])
 
