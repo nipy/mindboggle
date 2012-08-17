@@ -109,159 +109,22 @@ if not do_load_vtk_surfaces:
 #-----------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-----------------------------------------------------------------------------
-if do_evaluate_surface_labels or do_combine_atlas_labels:
-
+if do_evaluate_surface_labels:
 
 
     print('NOTE: OASIS-TRT-20-11 pial images did not io_file.py read_surface()')
 
 
-    #=============================================================================
-    #   Convert VTK labels to .annot format
-    #=============================================================================
 
-    # Convert atlas .annot files to vtk format
-    convert_atlas_annot2vtk = 0
-    if convert_atlas_annot2vtk:
-        # Input annot
-        atlas_annot = Node(name = 'Atlas_annot',
-                           interface = DataGrabber(infields=['subject','hemi'],
-                                                   outfields=['atlas_annot_file']))
-        atlas_annot.inputs.base_directory = atlases_path
-        atlas_annot.inputs.template = '%s/label/%s.' + label_string_old + '.manual.annot'
-        atlas_annot.inputs.template_args['atlas_annot_file'] = [['subject','hemi']]
-        mbflow.connect([(info, atlas_annot, [('subject','subject'),('hemi','hemi')])])
-        # Convert .annot to vtk function
-        atlas_vtk = Node(name = 'Convert_atlas_labels',
-                         interface = Fn(function = annot_to_vtk,
-                                        input_names = ['surface_file',
-                                                       'hemi',
-                                                       'subject',
-                                                       'subjects_path',
-                                                       'annot_name'],
-                                        output_names = ['vtk_file']))
-        atlas_vtk.inputs.annot_name = label_string_old + '.manual.annot'
-        atlas_vtk.inputs.subjects_path = subjects_path
-        mbflow.add_nodes([atlas_vtk])
-        mbflow.connect([(info, atlas_vtk,
-                         [('hemi','hemi'),('subject','subject')])])
-        if do_load_vtk_surfaces:
-            mbflow.connect([(surf, atlas_vtk,
-                             [('surface_files','surface_file')])])
-        else:
-            mbflow.connect([(convertsurf, atlas_vtk,
-                             [('vtk_file','surface_file')])])
-        mbflow.connect([(atlas_vtk, datasink,
-                         [('vtk_file','atlas_labels')])])
-        # Copy results to atlases label directory
-        for s in subjects:
-            for h in hemis:
-                src = os.path.join(results_path, 'output', 'atlas_labels',
-                                   '_hemi_' + h + '_subject_' + s,
-                                   h + '.' + label_string + '.manual.vtk')
-                tgt = os.path.join(atlases_path, s, 'label')
-                os.system(' '.join(['cp', src, tgt]))
-
-    # After converting .annot to vtk files, define the atlas node
     atlas = Node(name = 'Atlas',
                  interface = DataGrabber(infields=['subject','hemi'],
                                          outfields=['atlas_file']))
     atlas.inputs.base_directory = atlases_path
 
-    atlas.inputs.template = '%s/label/%s.' + label_string_old + '.manual.vtk'
+    atlas.inputs.template = '%s/label/%s.' + label_string + '.manual.vtk'
     atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
 
     mbflow.connect([(info, atlas, [('subject','subject'),('hemi','hemi')])])
-#-------------------------------------------------------------------------
-#   Combine atlas labels
-#-------------------------------------------------------------------------
-if do_combine_atlas_labels:
-    combine_atlas = Node(name='Combine_atlas_labels',
-                         interface = Fn(function = relabel_surface,
-                                        input_names = ['vtk_file',
-                                                       'relabel_list',
-                                                       'new_string'],
-                                        output_names = ['relabeled_vtk']))
-    combine_atlas.inputs.new_string = label_string + '.manual.vtk'
-    combine_atlas.inputs.relabel_list = os.path.join(info_path,
-                                                     'labels.DKT31to25.txt')
-    mbflow.connect([(atlas, combine_atlas,
-                     [('atlas_file', 'vtk_file')])])
-    mbflow.connect([(combine_atlas, datasink,
-                   [('relabeled_vtk','combine_atlas_labels')])])
-    # Copy results to atlases label directory
-    for s in subjects:
-        for h in hemis:
-            src = os.path.join(results_path, 'output', 'combine_atlas_labels',
-                '_hemi_' + h + '_subject_' + s,
-                h + '.' + label_string + '.manual.vtk')
-            tgt = os.path.join(atlases_path, s, 'label')
-            os.system(' '.join(['cp', src, tgt]))
-    #-------------------------------------------------------------------------
-    # Write .label files for surface vertices
-    #-------------------------------------------------------------------------
-    writelabels = MapNode(name='Write_label_files',
-        iterfield = ['label_number', 'label_name'],
-        interface = Fn(function = write_label_file,
-            input_names = ['hemi',
-                           'surface_file',
-                           'label_number',
-                           'label_name',
-                           'scalar_name'],
-            output_names = ['label_file']))
-    # List of cortical labels
-    ctx_labels_file = os.path.join(info_path, label_string + '.txt')
-    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
-
-    writelabels.inputs.label_number = ctx_label_numbers
-    writelabels.inputs.label_name = ctx_label_names
-    annotflow.add_nodes([writelabels])
-    mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
-
-    if do_init_fs_labels:
-        if do_combine_atlas_labels:
-            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-            mbflow.connect([(atlasflow, annotflow,
-                             [('Combine_labels.combine_labels_file',
-                               'Write_label_files.surface_file')])])
-        else:
-            writelabels.inputs.scalar_name = 'Labels'
-            mbflow.connect([(atlasflow, annotflow,
-                             [('Convert_FreeSurfer_labels.fslabels_file',
-                               'Write_label_files.surface_file')])])
-    else:
-        writelabels.inputs.scalar_name = 'Labels'
-        mbflow.connect([(atlasflow, annotflow,
-                         [('Label_vote.maxlabel_file',
-                           'Write_label_files.surface_file')])])
-    #-------------------------------------------------------------------------
-    # Write .annot file from .label files
-    #-------------------------------------------------------------------------
-    writeannot = MapNode(name='Write_annot_file',
-        iterfield = ['hemi'],
-        interface = Fn(function = label_to_annot_file,
-            input_names = ['hemi',
-                           'subjects_path',
-                           'subject',
-                           'label_files',
-                           'colortable',
-                           'annot_name'],
-            output_names = ['annot_name',
-                            'annot_file']))
-    writeannot.inputs.annot_name = label_type
-    writeannot.inputs.subjects_path = subjects_path
-    writeannot.inputs.colortable = os.path.join(info_path, label_string + '.txt')
-    annotflow.add_nodes([writeannot])
-    mbflow.connect([(info, annotflow,
-                     [('hemi', 'Write_annot_file.hemi')])])
-    mbflow.connect([(info, annotflow,
-                     [('subject', 'Write_annot_file.subject')])])
-    annotflow.connect([(writelabels, writeannot,
-                        [('label_file','label_files')])])
-    mbflow.connect([(annotflow, datasink,
-                     [('Write_annot_file.annot_file',
-                       label_type + '.@annot')])])
-
 
 ##############################################################################
 #
@@ -296,23 +159,6 @@ if do_init_fs_labels:
         mbflow.connect([(convertsurf, atlasflow,
                          [('vtk_file',
                            'Convert_FreeSurfer_labels.surface_file')])])
-    #-------------------------------------------------------------------------
-    #   Combine labels
-    #-------------------------------------------------------------------------
-    if do_combine_atlas_labels:
-        combine = Node(name='Combine_labels',
-                         interface = Fn(function = relabel_surface,
-                         input_names = ['vtk_file',
-                                        'relabel_list',
-                                        'new_string'],
-                         output_names = ['combine_labels_file']))
-        combine.inputs.relabel_list = os.path.join(info_path,
-                                                   'labels.DKT31to25.txt')
-        combine.inputs.new_string = label_string + '.vtk'
-        atlasflow.connect([(fslabels, combine, [('fslabels_file', 'vtk_file')])])
-        mbflow.connect([(atlasflow, datasink,
-                         [('Combine_labels.combine_labels_file',
-                           'labels.@combineFSlabels')])])
 
 #=============================================================================
 #   Initialize labels using multi-atlas registration
@@ -641,16 +487,10 @@ if do_fill_volume_labels:
     mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
     if do_init_fs_labels:
-        if do_combine_atlas_labels:
-            writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-            mbflow.connect([(atlasflow, annotflow,
-                            [('Combine_labels.combine_labels_file',
-                              'Write_label_files.surface_file')])])
-        else:
-            writelabels.inputs.scalar_name = 'Labels'
-            mbflow.connect([(atlasflow, annotflow,
-                             [('Convert_FreeSurfer_labels.fslabels_file',
-                               'Write_label_files.surface_file')])])
+        writelabels.inputs.scalar_name = 'Labels'
+        mbflow.connect([(atlasflow, annotflow,
+                         [('Convert_FreeSurfer_labels.fslabels_file',
+                           'Write_label_files.surface_file')])])
     else:
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
