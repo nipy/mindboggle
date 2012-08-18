@@ -200,8 +200,8 @@ elif init_labels == 'max':
     transform.inputs.atlas_string = 'labels.' + protocol + '.' + label_method
     atlasflow.add_nodes([transform])
     mbflow.connect([(info, atlasflow,
-                     [('hemi', 'Transform_atlas_labels.hemi'),
-                      ('subject', 'Transform_atlas_labels.subject')])])
+                     [('hemi', 'Transform_labels.hemi'),
+                      ('subject', 'Transform_labels.subject')])])
     atlasflow.connect([(register, transform, [('transform', 'transform')])])
     #transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
     #-----------------------------------------------------------------------------
