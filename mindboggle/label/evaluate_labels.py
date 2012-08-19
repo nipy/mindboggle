@@ -1,19 +1,33 @@
 #!/usr/bin/python
 
 """
-Compute volume label overlaps.
+Compute surface and volume label overlaps.
 
 Compute the Dice and Jaccard overlap measures for each labeled region
-of two labeled image volumes, for example one that has been manually labeled
-(atlas_file) and one that has been automatically labeled (input_file).
-Perform this computation for each label in a list.
+of two labeled surfaces or image volumes, for example one that has been
+manually labeled and one that has been automatically labeled.
+
+For surface overlap, this program simply calls Joachim Giard's code.
 
 
-Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Authors:
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
+
+def measure_surface_overlap(command, labels_file1, labels_file2):
+    """
+    Measure surface overlap using Joachim Giard's code.
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join([labels_file1, labels_file2])
+    cli.cmdline
+    return cli.run()
 
 
 def measure_volume_overlap(labels, atlas_file, input_file):
@@ -56,8 +70,8 @@ def measure_volume_overlap(labels, atlas_file, input_file):
         # Determine their intersection and union
         intersect_label_sum = len(np.intersect1d(input_indices, atlas_indices))
         union_label_sum = len(np.union1d(input_indices, atlas_indices))
-        print('{} {} {} {} {}'.format(label, input_label_sum, atlas_label_sum,
-                                      intersect_label_sum, union_label_sum))
+        #print('{} {} {} {} {}'.format(label, input_label_sum, atlas_label_sum,
+        #                              intersect_label_sum, union_label_sum))
 
         # There must be at least one voxel with the label in each volume
         if input_label_sum * atlas_label_sum > 0:
@@ -76,3 +90,4 @@ def measure_volume_overlap(labels, atlas_file, input_file):
             np.savetxt(out_file, overlaps, fmt='%d %.4f %.4f', delimiter='\t', newline='\n')
 
     return overlaps, out_file
+
