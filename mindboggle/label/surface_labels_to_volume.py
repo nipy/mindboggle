@@ -16,10 +16,21 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-def write_label_file(hemi, surface_file, label_number, label_name, scalar_name):
+def write_label_files(hemi, surface_file, label_numbers, label_names, scalar_name):
     """
-    Save a FreeSurfer .label file for a given label from the vertices
-    of a labeled VTK surface mesh.
+    Save FreeSurfer .label files from the vertices of a labeled VTK surface mesh.
+
+    Inputs:
+    ------
+    hemi:  hemisphere [string]
+    surface_file:  vtk surface mesh file with labels [string]
+    label_numbers:  label numbers [list of strings]
+    label_names:  label names [list of strings]
+    scalar_name:  name of scalar values in vtk file [string]
+
+    Output:
+    ------
+    label_files:  list of .label file names (order must match label list)
 
     """
 
@@ -32,53 +43,76 @@ def write_label_file(hemi, surface_file, label_number, label_name, scalar_name):
     # (if a list, return the first element)
     surface_file = io_file.string_vs_list_check(surface_file)
 
-    # Check type to make sure the number is an int
-    label_number = int(label_number)
+    label_files = []
+    for ilabel, label_number in label_numbers:
 
-    # Load surface
-    reader = vtk.vtkDataSetReader()
-    reader.SetFileName(surface_file)
-    reader.ReadAllScalarsOn()
-    reader.Update()
-    data = reader.GetOutput()
-    d = data.GetPointData()
-    labels = d.GetArray(scalar_name)
+        # Check type to make sure the number is an int
+        label_number = int(label_number)
+        label_name = label_names[ilabel]
 
-    # Write vertex index, coordinates, and 0
-    count = 0
-    npoints = data.GetNumberOfPoints()
-    L = np.zeros((npoints,5))
-    for i in range(npoints):
-        label = labels.GetValue(i)
-        if label == label_number:
-            L[count,0] = i
-            L[count,1:4] = data.GetPoint(i)
-            count += 1
+        # Load surface
+        reader = vtk.vtkDataSetReader()
+        reader.SetFileName(surface_file)
+        reader.ReadAllScalarsOn()
+        reader.Update()
+        data = reader.GetOutput()
+        d = data.GetPointData()
+        labels = d.GetArray(scalar_name)
 
-    # Save the label file
-    if count > 0:
-        label_file = os.path.join(os.getcwd(), \
-                                  hemi + '.' + label_name + '.label')
-        f = open(label_file, 'w')
-        f.writelines('#!ascii label\n' + str(count) + '\n')
+        # Write vertex index, coordinates, and 0
+        count = 0
+        npoints = data.GetNumberOfPoints()
+        L = np.zeros((npoints,5))
         for i in range(npoints):
-            if any(L[i,:]):
-                pr = '{0} {1} {2} {3} 0\n'.format(
-                     np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-                f.writelines(pr)
-            else:
-                break
-        f.close()
-    else:
-        label_file = None
+            label = labels.GetValue(i)
+            if label == label_number:
+                L[count,0] = i
+                L[count,1:4] = data.GetPoint(i)
+                count += 1
 
-    return label_file
+        # Save the label file
+        if count > 0:
 
-def label_to_annot_file(hemi, subjects_path, subject, label_files,
+            label_file = hemi + '.' + label_name + '.label'
+            label_files.append(label_file)
+
+            f = open(os.path.join(os.getcwd(), label_file), 'w')
+            f.writelines('#!ascii label\n' + str(count) + '\n')
+            for i in range(npoints):
+                if any(L[i,:]):
+                    pr = '{0} {1} {2} {3} 0\n'.format(
+                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+                    f.writelines(pr)
+                else:
+                    break
+            f.close()
+
+    return label_files
+
+def labels_to_annot_file(hemi, subjects_path, subject, label_files,
                         colortable, annot_name):
     """
-    Convert FreeSurfer .label files as a FreeSurfer .annot file
+    Convert FreeSurfer .label files to a FreeSurfer .annot file
     using FreeSurfer's mris_label2annot.
+
+    The order of the .label files must equal the order
+    of the labels in the colortable.
+
+    NOTE:  I don't know how to overwrite .label files,
+           so in this script I delete them before running.
+
+     Inputs:
+    ------
+    hemi:  hemisphere [string]
+    subjects_path:  path to file
+    subject:  subject name
+    label_files:  .label file names [list of strings]
+    colortable:  file of label numbers & names (same order as label_files)
+    annot_name:  name of the output .annot file (without prepending hemi)
+
+    Output:
+    ------
+    annot_name, annot_file:  name of .annot file (without & with prepend)
 
     """
 
