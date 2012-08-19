@@ -8,23 +8,23 @@ Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
 import os, sys
 
-debug = 0
+debug = 1
 
 if len(sys.argv) < 6:
     if debug:
-        subject = 'MMRR-21-1'
+        subject = 'HLN-12-3'
         hemisphere = 'lh'
         surface = 'pial'
-        annotname = 'labels.max'
-        colortable = '/projects/mindboggle/mindboggle/data/atlases/labels.DKT26.txt'
+        annotname = 'labels.DKT31.manual'
+        colortable = '/projects/Mindboggle/mindboggle/mindboggle/info/labels.surface.DKT31.txt'
     else:
         sys.exit('Usage: %s subject hemisphere surface-type annotname colortable' %sys.argv[0])
 else:
-    subject = sys.argv[1]  #'MMRR-21-1'
-    hemisphere = sys.argv[2]  #'lh'
-    surface = sys.argv[3]  #'pial'
-    annotname = sys.argv[4]  #'labels.max'
-    colortable = sys.argv[5]  #'/projects/mindboggle/mindboggle/data/atlases/labels.DKT26.txt'
+    subject = sys.argv[1]
+    hemisphere = sys.argv[2]
+    surface = sys.argv[3]
+    annotname = sys.argv[4]
+    colortable = sys.argv[5]
 
 args = ['tksurfer', subject, hemisphere, surface, '-annotation', annotname,
         '-colortable', colortable]
