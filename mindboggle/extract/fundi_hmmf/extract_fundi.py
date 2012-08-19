@@ -15,7 +15,7 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #==================
 def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
                   vertices, faces, depths, mean_curvatures, min_directions,
-                  min_fold_size=50, thr=0.5, min_distance=5):
+                  min_fold_size=50, thr=0.5, min_distance=5, return_arrays=1):
     """
     Extract all fundi.
 
@@ -32,11 +32,12 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
     min_fold_size:  minimum fold size from which to find a fundus
     thr:  likelihood threshold
     min_distance:  minimum distance
+    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
 
     Output:
     ------
     fundi:  numpy array of fundi
-    fundus_lists:  list of #folds lists of vertex indices.
+    fundus_lists:  list of lists of vertex indices (see return_arrays)
     likelihoods:  numpy array of likelihood values
 
     Calls:
@@ -121,4 +122,7 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
 
     print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
-    return fundi, fundus_lists, likelihoods
+    if return_arrays:
+        return fundi, np.array(fundus_lists), likelihoods
+    else:
+        return fundi, fundus_lists, likelihoods
