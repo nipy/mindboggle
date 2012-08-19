@@ -167,6 +167,7 @@ def majority_vote_label(surface_file, annot_files):
     import nibabel as nb
     import pyvtk
     from label.multiatlas_labeling import vote_labels
+    from utils import io_file
 
     # Load multiple label sets
     print("Load annotation files...")
@@ -180,14 +181,9 @@ def majority_vote_label(surface_file, annot_files):
     labels_max, label_votes, label_counts, \
     consensus_vertices = vote_labels(label_lists)
 
-    # Check type:
-    if type(surface_file) == str:
-        pass
-    elif type(surface_file) == list:
-        surface_file = surface_file[0]
-    else:
-        from os import error
-        error("Check format of " + surface_file)
+    # Check type to make sure the filename is a string
+    # (if a list, return the first element)
+    surface_file = io_file.string_vs_list_check(surface_file)
 
     # Save files
     VTKReader = pyvtk.VtkData(surface_file)
