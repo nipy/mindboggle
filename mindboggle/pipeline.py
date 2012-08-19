@@ -508,7 +508,7 @@ if fill_volume_labels:
     mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
     # Cortical labels
-    ctx_labels_file = os.path.join(info_path, 'labels.' + protocol + '.txt')
+    ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
     ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
     writelabels.inputs.label_number = ctx_label_numbers
     writelabels.inputs.label_name = ctx_label_names
@@ -540,7 +540,7 @@ if fill_volume_labels:
     writeannot.inputs.annot_name = 'labels.' + init_labels
     writeannot.inputs.subjects_path = subjects_path
     writeannot.inputs.colortable = os.path.join(info_path,
-                                           'labels.' + protocol + '.txt')
+                                           'labels.surface.' + protocol + '.txt')
     annotflow.add_nodes([writeannot])
     mbflow.connect([(info, annotflow,
                      [('hemi', 'Write_annot_file.hemi')])])
@@ -613,7 +613,7 @@ if evaluate_volume_labels:
                                                          'input_file'],
                                           output_names = ['overlaps',
                                                           'out_file']))
-    labels_file = os.path.join(info_path, 'labels.' + protocol + '.txt')
+    labels_file = os.path.join(info_path, 'labels.volume.' + protocol + '.txt')
     labels = read_list_strings(labels_file)
     eval_vol_labels.inputs.labels = labels
     mbflow2.add_nodes([eval_vol_labels])
