@@ -43,7 +43,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     segments: label indices for patches: [#seeds x 1] numpy array
     n_segments: #labels
     max_patch_label: index for largest segmented set of vertices
-    neighbor_lists: lists of lists of neighboring vertex indices
+    neighbor_lists: list of lists of neighboring vertex indices
 
     Calls:
     -----
@@ -146,7 +146,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
     folds: [#vertices x 1] numpy array
     holes: [#vertices x 1] numpy array
     n_holes: [#vertices x 1] numpy array
-    neighbor_lists: lists of lists of neighboring vertex indices
+    neighbor_lists: list of lists of neighboring vertex indices
 
     Output:
     ------
@@ -195,7 +195,7 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, fraction_folds, min_fold_size):
+def extract_folds(faces, depths, fraction_folds, min_fold_size, return_arrays=1):
     """
     Extract folds.
 
@@ -205,14 +205,16 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size):
     depths: depth values [#vertices x 1]
     min_depth: depth threshold for defining folds
     min_fold_size: minimum fold size
+    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
 
     Output:
     ------
     folds: label indices for folds: [#vertices x 1] numpy array
     n_folds:  #folds [int]
     indices_folds:  list of fold vertex indices
-    index_lists_folds:  list of #folds lists of fold vertex indices
-    faces_folds:  faces that whose vertices are all in folds
+    index_lists_folds:  list of lists of fold vertex indices (see return_arrays)
+    neighbor_lists: list of lists of neighboring vertex indices (see return_arrays)
+    faces_folds:  faces whose vertices are all in folds
     LUTs:  lookup lists of values
     LUT_names:  lookup list names
 
@@ -315,5 +317,9 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size):
 
     # Return folds, number of folds, indices & lists of indices for each fold,
     # fold faces, and lookup lists
-    return folds, n_folds, indices_folds, index_lists_folds, neighbor_lists,\
-           faces_folds, LUTs, LUT_names
+    if return_arrays:
+        return folds, n_folds, indices_folds, np.array(index_lists_folds),\
+               np.array(neighbor_lists), faces_folds, LUTs, LUT_names
+    else:
+        return folds, n_folds, indices_folds, index_lists_folds, neighbor_lists,\
+               faces_folds, LUTs, LUT_names

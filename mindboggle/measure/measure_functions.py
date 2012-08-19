@@ -14,7 +14,7 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #   Surface calculations
 ##############################################################################
 
-def compute_depth(command, depth_type, surface_file):
+def compute_depth(command, surface_file):
     """
     Measure Joachim Giard's "travel depth" for a surface mesh.
     """
@@ -24,7 +24,7 @@ def compute_depth(command, depth_type, surface_file):
     depth_file = os.path.join(os.getcwd(),
                  os.path.splitext(os.path.basename(surface_file))[0] + '.depth.vtk')
     cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join(['-d', depth_type, surface_file, depth_file])
+    cli.inputs.args = ' '.join([surface_file, depth_file])
     cli.cmdline
     cli.run()
 
