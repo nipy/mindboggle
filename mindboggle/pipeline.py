@@ -61,7 +61,7 @@ from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
 from label.surface_labels_to_volume import write_label_file,\
     label_to_annot_file, fill_label_volume
-from label.evaluate_volume_labels import measure_volume_overlap
+from label.evaluate_labels import measure_surface_overlap, measure_volume_overlap
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -116,7 +116,7 @@ if evaluate_surface_labels:
     atlas.inputs.base_directory = atlases_path
 
     atlas.inputs.template = '%s/label/%s.labels.' +\
-                            protocol + label_method + '.vtk'
+                            protocol + '.' + label_method + '.vtk'
     atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
 
     mbflow.connect([(info, atlas, [('subject','subject'),('hemi','hemi')])])
@@ -244,13 +244,12 @@ featureflow = Workflow(name='Feature_extraction')
 depth = Node(name='Compute_depth',
              interface = Fn(function = compute_depth,
                             input_names = ['command',
-                                           'depth_type',
                                            'surface_file'],
                             output_names = ['depth_file']))
 depth_command = os.path.join(code_path,'measure', 'surface_measures',
                              'bin', 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
-depth.inputs.depth_type = '0'  # 0 = travel depth, 1 = Euclidean
+#depth.inputs.depth_type = '0'  # 0 = travel depth, 1 = Euclidean
 #-----------------------------------------------------------------------------
 # Measure surface curvature
 #-----------------------------------------------------------------------------
@@ -461,10 +460,15 @@ if evaluate_surface_labels:
     #-------------------------------------------------------------------------
     eval_surf_labels = Node(name='Evaluate_surface_labels',
                            interface = Fn(function = measure_surface_overlap,
-                                          input_names = ['labels_file1',
+                                          input_names = ['command',
+                                                         'labels_file1',
                                                          'labels_file2'],
                                           output_names = ['overlaps']))
     mbflow.add_nodes([eval_surf_labels])
+    surface_overlap_command = os.path.join(code_path,
+        'measure', 'surface_measures','bin',
+        'surface_overlap', 'SurfaceOverlapMain')
+    eval_surf_labels.inputs.command = surface_overlap_command
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
     if init_labels == 'free':
         mbflow.connect([(atlasflow, eval_surf_labels,
@@ -500,21 +504,22 @@ if fill_volume_labels:
                                                         'label_name',
                                                         'scalar_name'],
                                          output_names = ['label_file']))
-    # List of cortical labels
-    ctx_labels_file = os.path.join(info_path, 'labels.' + protocol + '.txt')
-    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
-
-    writelabels.inputs.label_number = ctx_label_numbers
-    writelabels.inputs.label_name = ctx_label_names
-    writelabels.inputs.scalar_name = 'Labels'
     annotflow.add_nodes([writelabels])
     mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
+    # Cortical labels
+    ctx_labels_file = os.path.join(info_path, 'labels.' + protocol + '.txt')
+    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
+    writelabels.inputs.label_number = ctx_label_numbers
+    writelabels.inputs.label_name = ctx_label_names
+
     if init_labels == 'free':
+        writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
                          [('Convert_labels.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
+        writelabels.inputs.scalar_name = 'Max_(majority_labels)'
         mbflow.connect([(atlasflow, annotflow,
                          [('Label_vote.maxlabel_file',
                            'Write_label_files.surface_file')])])
@@ -562,20 +567,6 @@ mbflow2.base_dir = temp_path
 info2 = info.clone('Inputs2')
 info2.iterables = ([('subject', subjects)])
 sink2 = sink.clone('Results2')
-#-----------------------------------------------------------------------------
-# Evaluation inputs: location and structure of atlas volumes
-#-----------------------------------------------------------------------------
-if evaluate_volume_labels:
-
-    atlas_vol = Node(name = 'Atlas_volume',
-                     interface = DataGrabber(infields=['subject'],
-                     outfields=['atlas_vol_file']))
-    atlas_vol.inputs.base_directory = atlases_path
-#    atlas_vol.inputs.template = 'os.path.join(%s, 'mri',
-#                                         'labels.' + protocol + '.nii.gz')
-    atlas_vol.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
-    atlas_vol.inputs.template_args['atlas_vol_file'] = [['subject']]
-    mbflow2.connect([(info2, atlas_vol, [('subject','subject')])])
 
 #-----------------------------------------------------------------------------
 # Fill volume mask with surface vertex labels from .annot file
@@ -600,6 +591,18 @@ if fill_volume_labels:
 ##############################################################################
 if evaluate_volume_labels:
 
+    #-------------------------------------------------------------------------
+    # Evaluation inputs: location and structure of atlas volumes
+    #-------------------------------------------------------------------------
+    atlas_vol = Node(name = 'Atlas_volume',
+                     interface = DataGrabber(infields=['subject'],
+                     outfields=['atlas_vol_file']))
+    atlas_vol.inputs.base_directory = atlases_path
+#    atlas_vol.inputs.template = 'os.path.join(%s, 'mri',
+#                                         'labels.' + protocol + '.nii.gz')
+    atlas_vol.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
+    atlas_vol.inputs.template_args['atlas_vol_file'] = [['subject']]
+    mbflow2.connect([(info2, atlas_vol, [('subject','subject')])])
     #-------------------------------------------------------------------------
     # Evaluate volume labels
     #-------------------------------------------------------------------------
