@@ -292,7 +292,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     #Points, Faces = read_surface(surface_file)
 
     # Load VTK surface
-    Points, Faces, Scalars = io_vtk.load_scalar(surface_file)
+    Points, Faces, Scalars = io_vtk.load_scalar(surface_file, return_arrays=0)
     Vertices =  range(1, len(Points) + 1)
 
     output_stem = os.path.join(os.getcwd(),
@@ -507,7 +507,7 @@ def load_segmented_fundi(filename):
 # Functions that use VTK's python binding to load VTK files
 #----------------------------------------------------------
 
-def load_scalar(filename):
+def load_scalar(filename, return_arrays=1):
     """
     Load a VTK-format scalar map that contains only one SCALAR segment.
 
@@ -516,22 +516,24 @@ def load_scalar(filename):
 
     filename : string
         The path/filename of a VTK format file.
-
+    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
 
     Outputs
     =========
-    Points : list of lists of floats
+    Points : list of lists of floats (see return_arrays)
         Each element is a list of 3-D coordinates of a vertex on a surface mesh
 
-    Faces : list of lists of integers
-        Each element is a 3-tuple, the IDs of vertices that form a face
+    Faces : list of lists of integers (see return_arrays)
+        Each element is list of 3 IDs of vertices that form a face
         on a surface mesh
 
-    Scalars : list of floats
+    Scalars : list of floats (see return_arrays)
         Each element is a scalar value corresponding to a vertex
 
     """
     import vtk
+    if return_arrays:
+        import numpy as np
 
     Reader = vtk.vtkDataSetReader()
     Reader.SetFileName(filename)
@@ -557,7 +559,7 @@ def load_scalar(filename):
     else:
         Scalars = []
 
-    return Points, Faces, Scalars
-
-
-
+    if return_arrays:
+        return np.array(Points), np.array(Faces), np.array(Scalars)
+    else:
+        return Points, Faces, Scalars
