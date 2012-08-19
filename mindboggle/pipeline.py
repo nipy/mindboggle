@@ -59,8 +59,8 @@ from label.multiatlas_labeling import register_template,\
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
-from label.surface_labels_to_volume import write_label_file,\
-    label_to_annot_file, fill_label_volume
+from label.surface_labels_to_volume import write_label_files,\
+    labels_to_annot_file, fill_label_volume
 from label.evaluate_labels import measure_surface_overlap, measure_volume_overlap
 #-----------------------------------------------------------------------------
 # Initialize main workflow
@@ -492,26 +492,27 @@ if fill_volume_labels:
     #=============================================================================
     #   Convert VTK labels to .annot format
     #=============================================================================
-    #-------------------------------------------------------------------------
+    #-----------------------------------------------------------------------------
     # Write .label files for surface vertices
-    #-------------------------------------------------------------------------
-    writelabels = MapNode(name='Write_label_files',
-                          iterfield = ['label_number', 'label_name'],
-                          interface = Fn(function = write_label_file,
-                                         input_names = ['hemi',
-                                                        'surface_file',
-                                                        'label_number',
-                                                        'label_name',
-                                                        'scalar_name'],
-                                         output_names = ['label_file']))
+    # NOTE: cannot use a MapNode because the order of the labels
+    #       must be preserved to write to a .annot file.
+    #-----------------------------------------------------------------------------
+    writelabels = Node(name='Write_label_files',
+                       interface = Fn(function = write_label_files,
+                                      input_names = ['hemi',
+                                                     'surface_file',
+                                                     'label_numbers',
+                                                     'label_names',
+                                                     'scalar_name'],
+                                      output_names = ['label_files']))
     annotflow.add_nodes([writelabels])
     mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
     # Cortical labels
     ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
     ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
-    writelabels.inputs.label_number = ctx_label_numbers
-    writelabels.inputs.label_name = ctx_label_names
+    writelabels.inputs.label_numbers = ctx_label_numbers
+    writelabels.inputs.label_names = ctx_label_names
 
     if init_labels == 'free':
         writelabels.inputs.scalar_name = 'Labels'
@@ -526,17 +527,16 @@ if fill_volume_labels:
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
     #-------------------------------------------------------------------------
-    writeannot = MapNode(name='Write_annot_file',
-                         iterfield = ['hemi'],
-                         interface = Fn(function = label_to_annot_file,
-                                        input_names = ['hemi',
-                                                       'subjects_path',
-                                                       'subject',
-                                                       'label_files',
-                                                       'colortable',
-                                                       'annot_name'],
-                                        output_names = ['annot_name',
-                                                        'annot_file']))
+    writeannot = Node(name='Write_annot_file',
+                      interface = Fn(function = labels_to_annot_file,
+                                     input_names = ['hemi',
+                                                    'subjects_path',
+                                                    'subject',
+                                                    'label_files',
+                                                    'colortable',
+                                                    'annot_name'],
+                                     output_names = ['annot_name',
+                                                     'annot_file']))
     writeannot.inputs.annot_name = 'labels.' + init_labels
     writeannot.inputs.subjects_path = subjects_path
     writeannot.inputs.colortable = os.path.join(info_path,
@@ -547,7 +547,7 @@ if fill_volume_labels:
     mbflow.connect([(info, annotflow,
                      [('subject', 'Write_annot_file.subject')])])
     annotflow.connect([(writelabels, writeannot,
-                      [('label_file','label_files')])])
+                      [('label_files','label_files')])])
     mbflow.connect([(annotflow, sink,
                      [('Write_annot_file.annot_file', 'labels.@annot')])])
 
