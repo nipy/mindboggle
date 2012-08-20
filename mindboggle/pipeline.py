@@ -44,20 +44,16 @@ from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
-#from nipype import config, logging
-#config.set('logging', 'interface_level', 'DEBUG')
-#config.set('logging', 'workflow_level', 'DEBUG')
-#logging.update_logging(config)
-#config.enable_debug_mode()
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, \
     annot_to_vtk, vtk_to_label_files
 from utils.io_file import read_columns, np_loadtxt
-from utils.free import labels_to_annot, labels_to_volume
+from utils.io_free import labels_to_annot, labels_to_volume
 from label.multiatlas_labeling import register_template,\
     transform_atlas_labels, majority_vote_label
+from label.relabel import relabel_volume
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
@@ -100,7 +96,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-----------------------------------------------------------------------------
 #   Convert surfaces to VTK
 #-----------------------------------------------------------------------------
-if not input_vtk_surfaces:
+if not input_vtk:
     convertsurf = Node(name = 'Convert_surfaces',
                        interface = Fn(function = surf_to_vtk,
                                       input_names = ['surface_file'],
@@ -146,7 +142,7 @@ if init_labels == 'free':
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Convert_labels.hemi'),
                       ('subject', 'Convert_labels.subject')])])
-    if input_vtk_surfaces:
+    if input_vtk:
         mbflow.connect([(surf, atlasflow,
                          [('surface_files',
                            'Convert_labels.surface_file')])])
@@ -216,7 +212,7 @@ elif init_labels == 'max':
                                                'labelvotes_file',
                                                'consensus_vertices']))
     atlasflow.add_nodes([vote])
-    if input_vtk_surfaces:
+    if input_vtk:
         mbflow.connect([(surf, atlasflow,
                          [('surface_files', 'Label_vote.surface_file')])])
     else:
@@ -269,7 +265,7 @@ curvature.inputs.command = curvature_command
 # Add and connect nodes, save output files
 #-----------------------------------------------------------------------------
 featureflow.add_nodes([depth, curvature])
-if input_vtk_surfaces:
+if input_vtk:
     mbflow.connect([(surf, featureflow,
                      [('surface_files','Compute_depth.surface_file')])])
     mbflow.connect([(surf, featureflow,
@@ -485,7 +481,7 @@ if evaluate_surface_labels:
 #   Convert labels from VTK to .annot format
 #
 ##############################################################################
-if fill_volume_labels:
+if fill_volume:
 
     annotflow = Workflow(name='Fill_volume_prep')
 
@@ -510,11 +506,11 @@ if fill_volume_labels:
 
     # Cortical labels
     ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
-    ctx_label_numbers, ctx_label_names, RGBs = read_columns(ctx_labels_file, 3)
+    ctx_label_numbers, ctx_label_names, RGBs = read_columns(
+        ctx_labels_file, n_columns=3, trail=True)
     writelabels.inputs.label_numbers = ctx_label_numbers
     writelabels.inputs.label_names = ctx_label_names
     writelabels.inputs.RGBs = RGBs
-
     if init_labels == 'free':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
@@ -539,6 +535,7 @@ if fill_volume_labels:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
+#add '.' init_labels
     writeannot.inputs.annot_name = 'temp.labels' + init_labels
     writeannot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([writeannot])
@@ -571,9 +568,9 @@ sink2 = sink.clone('Results2')
 #-----------------------------------------------------------------------------
 # Fill volume mask with surface vertex labels from .annot file
 #-----------------------------------------------------------------------------
-if fill_volume_labels:
+if fill_volume:
 
-    fillvolume = Node(name='Fill_volume_labels',
+    fillvolume = Node(name='Fill_volume',
                       interface = Fn(function = labels_to_volume,
                                      input_names = ['subject',
                                                     'annot_name'],
@@ -581,8 +578,6 @@ if fill_volume_labels:
     mbflow2.add_nodes([fillvolume])
     fillvolume.inputs.annot_name = 'labels.' + init_labels
     mbflow2.connect([(info2, fillvolume, [('subject', 'subject')])])
-    mbflow2.connect([(fillvolume, sink2,
-                      [('output_file', 'labels.@volume')])])
     #-------------------------------------------------------------------------
     # Relabel file, replacing colortable labels with real labels
     #-------------------------------------------------------------------------
@@ -592,14 +587,16 @@ if fill_volume_labels:
                                                  'old_labels',
                                                  'new_labels'],
                                   output_names = ['output_file']))
-    annotflow.add_nodes([relabel])
-    annotflow.connect([(fillvolume, relabel,
+    mbflow2.add_nodes([relabel])
+    mbflow2.connect([(fillvolume, relabel,
                           [('output_file', 'input_file')])])
     relabel_file = os.path.join(info_path,
                                 'label_volume_errors.' + protocol + '.txt')
     old_labels, new_labels = read_columns(relabel_file, 2)
     relabel.inputs.old_labels = old_labels
     relabel.inputs.new_labels = new_labels
+    mbflow2.connect([(relabel, sink2,
+                      [('output_file', 'labels.@volume')])])
 
 ##############################################################################
 #
@@ -636,7 +633,7 @@ if evaluate_volume_labels:
     mbflow2.add_nodes([eval_vol_labels])
     mbflow2.connect([(atlas_vol, eval_vol_labels,
                       [('atlas_vol_file','atlas_file')])])
-    mbflow2.connect([(fillvolume, eval_vol_labels,
+    mbflow2.connect([(relabel, eval_vol_labels,
                       [('output_file', 'input_file')])])
     mbflow2.connect([(eval_vol_labels, sink2,
                       [('out_file', 'evaluation.@volume')])])
@@ -651,13 +648,14 @@ if __name__== '__main__':
     run_flow1 = True
     run_flow2 = True
     generate_graphs = True
-    if run_flow1:
-        if generate_graphs:
+    if generate_graphs:
+        if run_flow1:
             mbflow.write_graph(graph2use='flat')
             mbflow.write_graph(graph2use='hierarchical')
-        mbflow.run()  #(plugin='Linear') #(updatehash=False)
-    if run_flow2:
-        if generate_graphs:
+        if run_flow2:
             mbflow2.write_graph(graph2use='flat')
             mbflow2.write_graph(graph2use='hierarchical')
+    if run_flow1:
+        mbflow.run()  #(plugin='Linear') #(updatehash=False)
+    if run_flow2:
         mbflow2.run()  #(plugin='Linear') #(updatehash=False)
