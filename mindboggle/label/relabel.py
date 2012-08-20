@@ -25,10 +25,10 @@ def relabel_volume(input_file, old_labels, new_labels):
     import numpy as np
     import nibabel as nb
 
-    # Load labeled image volume
+    # Load labeled image volume and extract data as 1-D array
     vol = nb.load(input_file)
     xfm = vol.get_affine()
-    data = vol.get_data() #.ravel()
+    data = vol.get_data().ravel()
 
     # Initialize output
     new_data = data.copy()
@@ -39,7 +39,11 @@ def relabel_volume(input_file, old_labels, new_labels):
         new_label = int(new_labels[ilabel])
 
         # Relabel
-        new_data[np.where(data==label)[0]] = new_label
+        if new_label != label:
+            new_data[np.where(data==label)[0]] = new_label
+
+    # Reshape to original dimensions
+    new_data.reshape(vol.shape)
 
     # Save relabeled file
     output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
@@ -82,7 +86,6 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     relabeled_vtk = os.path.join(os.getcwd(),
                                  os.path.basename(vtk_file).split('.')[0] + \
                                  '.' + new_string)
-    print(relabeled_vtk)
     io_vtk.write_scalars(relabeled_vtk, Points, Vertices, Faces,
                          [Scalars.tolist()], ['Labels'])
 
