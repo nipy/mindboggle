@@ -535,8 +535,7 @@ if fill_volume:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-#add '.' init_labels
-    writeannot.inputs.annot_name = 'temp.labels' + init_labels
+    writeannot.inputs.annot_name = 'temp.labels'
     writeannot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([writeannot])
     mbflow.connect([(info, annotflow,
