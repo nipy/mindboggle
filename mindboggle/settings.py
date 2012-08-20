@@ -53,8 +53,8 @@ sys.path.append(code_path)  # Add to PYTHONPATH
 #-----------------------------------------------------------------------------
 # Debugging options
 #-----------------------------------------------------------------------------
-input_vtk_surfaces = False  # Load VTK surfaces (not FreeSurfer surfaces)
-fill_volume_labels = True  # Fill (gray matter) volumes with surface labels
+input_vtk = False  # Load VTK surfaces (not FreeSurfer surfaces)
+fill_volume = True  # Fill (gray matter) volumes with surface labels
 evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
 evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
 
