@@ -43,7 +43,7 @@ def relabel_volume(input_file, old_labels, new_labels):
             new_data[np.where(data==label)[0]] = new_label
 
     # Reshape to original dimensions
-    new_data.reshape(vol.shape)
+    new_data = np.reshape(new_data, vol.shape)
 
     # Save relabeled file
     output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
