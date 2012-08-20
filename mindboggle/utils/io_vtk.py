@@ -674,3 +674,85 @@ def load_scalar(filename, return_arrays=1):
         return np.array(Points), np.array(Faces), np.array(Scalars)
     else:
         return Points, Faces, Scalars
+
+def load_VTK_vertex(Filename):
+    """Load VERTICES from a VTK file, along with the map
+    
+    Inputs
+    =======
+
+    Filename : string
+        The path/filename of a VTK format file. 
+
+    Outputs
+    =========
+
+    Vertexes : list of integers
+        Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file    
+        
+    Scalars : list of floats
+        Each element is a scalar value corresponding to a vertex
+        
+    Notes
+    ======
+    Vertex extraction iterates from 1 to Vrts.GetSize(), rather than 0
+    
+    
+    """
+    import vtk
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(Filename)
+    Reader.Update() 
+    
+    Data = Reader.GetOutput()
+    Vrts = Data.GetVerts()
+    Vertexes = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+    
+    PointData = Data.GetPointData()
+    print "There are", Reader.GetNumberOfScalarsInFile(), "scalars in file", Filename
+    print "Loading the scalar", Reader.GetScalarsNameInFile(0)
+    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
+    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())] 
+    
+    return Vertexes, Scalars
+
+def load_VTK_line(Filename):
+    """Load VERTICES from a VTK file, along with the map. 
+    
+    Inputs
+    =======
+
+    Filename : string
+        The path/filename of a VTK format file. 
+
+    Outputs
+    =========
+
+    Vertexes : list of integers
+        Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file
+        
+    Scalars : list of floats
+        Each element is a scalar value corresponding to a vertex        
+        
+    Notes
+    ======
+    The line that extracts vertexes from a VTK iterates from 1 to Vrts.GetSize(), rather than 0
+    """
+    
+    import vtk
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(Filename)
+    Reader.Update() 
+    
+    Data = Reader.GetOutput()
+    Lns = Data.GetLines()
+    
+    Lines  = [[Lns.GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ] for i in xrange(Data.GetNumberOfLines())]
+    
+    PointData = Data.GetPointData()
+    print "There are", Reader.GetNumberOfScalarsInFile(), "scalars in file", Filename
+    print "Loading the scalar", Reader.GetScalarsNameInFile(0)
+    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
+    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+    
+    return Lines, Scalars
