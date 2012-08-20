@@ -47,17 +47,18 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, \
-    annot_to_vtk, vtk_to_label_files
+from utils.io_vtk import load_scalar, write_scalars
 from utils.io_file import read_columns, np_loadtxt
-from utils.io_free import labels_to_annot, labels_to_volume
+from utils.io_free import labels_to_annot, labels_to_volume, \
+     surf_to_vtk, annot_to_vtk, vtk_to_label_files
 from label.multiatlas_labeling import register_template,\
-    transform_atlas_labels, majority_vote_label
+     transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
-from label.evaluate_labels import measure_surface_overlap, measure_volume_overlap
+from label.evaluate_labels import measure_surface_overlap, \
+                                  measure_volume_overlap
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
