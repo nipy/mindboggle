@@ -27,6 +27,12 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2])
     cli.cmdline
+
+#    name1 = os.path.splitext(os.path.basename(labels_file1))[0]
+#    name2 = os.path.splitext(os.path.basename(labels_file2))[0]
+#    out_file = os.path.join(os.getcwd(), 'labelvolume_dice_jacc_for_' +
+#                            name1 + '_vs_' + name2 + '.txt')
+
     return cli.run()
 
 
@@ -77,17 +83,21 @@ def measure_volume_overlap(labels, atlas_file, input_file):
         if input_label_sum * atlas_label_sum > 0:
 
             # Compute Dice and Jaccard coefficients
-            dice = np.float(2.0 * intersect_label_sum) / (input_label_sum + atlas_label_sum)
+            dice = np.float(2.0 * intersect_label_sum) /
+                   (input_label_sum + atlas_label_sum)
             jacc = np.float(intersect_label_sum) / union_label_sum
             overlaps[ilabel, 1:3] = [dice, jacc]
-            print('label: {}, dice: {:.2f}, jacc: {:.2f}'.format(label, dice, jacc))
+            print('label: {}, dice: {:.2f}, jacc: {:.2f}'.format(
+                  label, dice, jacc))
 
         # NOTE:  untested:
         if save_output:
             input_name = os.path.splitext(os.path.basename(input_file))[0]
             atlas_name = os.path.splitext(os.path.basename(atlas_file))[0]
-            out_file = os.path.join(os.getcwd(), input_name + '_vs_' + atlas_name + '.txt')
-            np.savetxt(out_file, overlaps, fmt='%d %.4f %.4f', delimiter='\t', newline='\n')
+            out_file = os.path.join(os.getcwd(), 'labelvolume_dice_jacc_' +
+                                    input_name + '_vs_' + atlas_name + '.txt')
+            np.savetxt(out_file, overlaps, fmt='%d %.4f %.4f',
+                       delimiter='\t', newline='\n')
 
     return overlaps, out_file
 
