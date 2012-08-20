@@ -52,15 +52,15 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, annot_to_vtk
-from utils.io_file import read_list_strings, read_list_3strings, np_loadtxt
+from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, \
+    annot_to_vtk, vtk_to_label_files
+from utils.io_file import read_columns, np_loadtxt
+from utils.free import labels_to_annot, labels_to_volume
 from label.multiatlas_labeling import register_template,\
     transform_atlas_labels, majority_vote_label
 from measure.measure_functions import compute_depth, compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
-from label.surface_labels_to_volume import write_label_files,\
-    labels_to_annot_file, fill_label_volume
 from label.evaluate_labels import measure_surface_overlap, measure_volume_overlap
 #-----------------------------------------------------------------------------
 # Initialize main workflow
@@ -193,7 +193,7 @@ elif init_labels == 'max':
                                        output_names = ['output_file']))
     # Load atlas list
     atlas_list_file = os.path.join(info_path, 'atlases.txt')
-    atlas_list = read_list_strings(atlas_list_file)
+    atlas_list = read_columns(atlas_list_file, 1)[0]
 
     transform.inputs.atlas = atlas_list
     transform.inputs.subjects_path = subjects_path
@@ -494,11 +494,9 @@ if fill_volume_labels:
     #=============================================================================
     #-----------------------------------------------------------------------------
     # Write .label files for surface vertices
-    # NOTE: cannot use a MapNode because the order of the labels
-    #       must be preserved to write to a .annot file.
     #-----------------------------------------------------------------------------
     writelabels = Node(name='Write_label_files',
-                       interface = Fn(function = write_label_files,
+                       interface = Fn(function = vtk_to_label_files,
                                       input_names = ['hemi',
                                                      'surface_file',
                                                      'label_numbers',
@@ -512,7 +510,7 @@ if fill_volume_labels:
 
     # Cortical labels
     ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
-    ctx_label_numbers, ctx_label_names, RGBs = read_list_3strings(ctx_labels_file)
+    ctx_label_numbers, ctx_label_names, RGBs = read_columns(ctx_labels_file, 3)
     writelabels.inputs.label_numbers = ctx_label_numbers
     writelabels.inputs.label_names = ctx_label_names
     writelabels.inputs.RGBs = RGBs
@@ -529,9 +527,10 @@ if fill_volume_labels:
                            'Write_label_files.surface_file')])])
     #-------------------------------------------------------------------------
     # Write .annot file from .label files
+    # NOTE:  incorrect labels to be corrected below!
     #-------------------------------------------------------------------------
     writeannot = Node(name='Write_annot_file',
-                      interface = Fn(function = labels_to_annot_file,
+                      interface = Fn(function = labels_to_annot,
                                      input_names = ['hemi',
                                                     'subjects_path',
                                                     'subject',
@@ -540,7 +539,7 @@ if fill_volume_labels:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-    writeannot.inputs.annot_name = 'labels.' + init_labels
+    writeannot.inputs.annot_name = 'temp.labels' + init_labels
     writeannot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([writeannot])
     mbflow.connect([(info, annotflow,
@@ -551,8 +550,6 @@ if fill_volume_labels:
                       [('label_files','label_files')])])
     annotflow.connect([(writelabels, writeannot,
                       [('colortable','colortable')])])
-    mbflow.connect([(annotflow, sink,
-                     [('Write_annot_file.annot_file', 'labels.@annot')])])
 
 ##############################################################################
 #
@@ -577,7 +574,7 @@ sink2 = sink.clone('Results2')
 if fill_volume_labels:
 
     fillvolume = Node(name='Fill_volume_labels',
-                      interface = Fn(function = fill_label_volume,
+                      interface = Fn(function = labels_to_volume,
                                      input_names = ['subject',
                                                     'annot_name'],
                                      output_names = ['output_file']))
@@ -586,6 +583,23 @@ if fill_volume_labels:
     mbflow2.connect([(info2, fillvolume, [('subject', 'subject')])])
     mbflow2.connect([(fillvolume, sink2,
                       [('output_file', 'labels.@volume')])])
+    #-------------------------------------------------------------------------
+    # Relabel file, replacing colortable labels with real labels
+    #-------------------------------------------------------------------------
+    relabel = Node(name='Correct_labels',
+                   interface = Fn(function = relabel_volume,
+                                  input_names = ['input_file',
+                                                 'old_labels',
+                                                 'new_labels'],
+                                  output_names = ['output_file']))
+    annotflow.add_nodes([relabel])
+    annotflow.connect([(fillvolume, relabel,
+                          [('output_file', 'input_file')])])
+    relabel_file = os.path.join(info_path,
+                                'label_volume_errors.' + protocol + '.txt')
+    old_labels, new_labels = read_columns(relabel_file, 2)
+    relabel.inputs.old_labels = old_labels
+    relabel.inputs.new_labels = new_labels
 
 ##############################################################################
 #
@@ -617,7 +631,7 @@ if evaluate_volume_labels:
                                           output_names = ['overlaps',
                                                           'out_file']))
     labels_file = os.path.join(info_path, 'labels.volume.' + protocol + '.txt')
-    labels = read_list_strings(labels_file)
+    labels = read_columns(labels_file, 1)[0]
     eval_vol_labels.inputs.labels = labels
     mbflow2.add_nodes([eval_vol_labels])
     mbflow2.connect([(atlas_vol, eval_vol_labels,
