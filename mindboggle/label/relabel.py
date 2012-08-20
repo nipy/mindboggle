@@ -26,10 +26,12 @@ def relabel_volume(input_file, old_labels, new_labels):
     import nibabel as nb
 
     # Load labeled image volume
-    input_data = nb.load(input_file).get_data().ravel()
+    vol = nb.load(input_file)
+    xfm = vol.get_affine()
+    data = vol.get_data() #.ravel()
 
     # Initialize output
-    new_data = input_data.copy()
+    new_data = data.copy()
 
     # Loop through labels
     for ilabel, label in enumerate(old_labels):
@@ -37,10 +39,12 @@ def relabel_volume(input_file, old_labels, new_labels):
         new_label = int(new_labels[ilabel])
 
         # Relabel
-        new_data[np.where(input_data==label)[0]] = new_label
+        new_data[np.where(data==label)[0]] = new_label
 
-        # Save relabeled file
-        output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    # Save relabeled file
+    output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
 
     return output_file
 
