@@ -106,11 +106,21 @@ def write_lists(filename, input_lists):
         Fp.write('----\n')
     Fp.close()
 
-def read_columns(filename, n_columns):
+def read_columns(filename, n_columns=1, trail=False):
     """
     Read n-column text file.
 
-    Output a list of lists, one per column.
+    Inputs:
+    ------
+    filename:  name of text file [string]
+    n_columns:  number of columns to extract [integer]
+    trail:  combine all remaining columns as a string
+            in the final list [Boolean]
+
+    Output:
+    ------
+    columns:  a list of lists of strings, one list per column of text.
+
     """
 
     import re
@@ -123,7 +133,10 @@ def read_columns(filename, n_columns):
             row = re.findall(r'\S+', line)
             if len(row) >= n_columns:
                 for icolumn in range(n_columns):
-                    columns[icolumn].append(row[icolumn])
+                    if trail and icolumn == n_columns - 1:
+                        columns[icolumn].append(' '.join(row[icolumn::]))
+                    else:
+                        columns[icolumn].append(row[icolumn])
             else:
                 import os
                 os.error('The number of columns in {} is less than {}.'.format(
