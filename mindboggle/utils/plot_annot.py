@@ -15,7 +15,8 @@ if len(sys.argv) < 6:
         subject = 'HLN-12-3'
         hemisphere = 'lh'
         surface = 'pial'
-        annotname = 'labels.DKT31.manual'
+        #annotname = 'labels.DKT31.manual'
+        annotname = 'labels.max'
         colortable = '/projects/Mindboggle/mindboggle/mindboggle/info/labels.surface.DKT31.txt'
     else:
         sys.exit('Usage: %s subject hemisphere surface-type annotname colortable' %sys.argv[0])

@@ -278,6 +278,27 @@ def read_list_2strings(filename):
 
     return column1, column2
 
+def read_list_3strings(filename):
+    """
+    Read a 3-column list file.
+    """
+
+    import re
+
+    Fp = open(filename, 'r')
+    lines = Fp.readlines()
+    column1 = []
+    column2 = []
+    column3 = []
+    for line in lines:
+        if len(re.findall(r'\S+', line)):
+            column1.append(re.findall(r'\S+', line)[0])
+            column2.append(re.findall(r'\S+', line)[1])
+            column3.append(' '.join(re.findall(r'\S+', line)[2::]))
+    Fp.close()
+
+    return column1, column2, column3
+
 def read_lists(filename):
     """The reverse function of write_lists
 
