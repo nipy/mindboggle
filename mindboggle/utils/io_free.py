@@ -1,14 +1,19 @@
 #!/usr/bin/python
 
 """
-FreeSurfer functions
+Functions related to reading and writing FreeSurfer files.
 
 This Python library reads and writes different file types.
 In particular, it has functions to read some FreeSurfer files,
 including surface, curvature, and convexity files.
-The function read_surface reads in surface files,
-while the function read_curvature reads in both
+The function read_surface() reads in surface files,
+while the function read_curvature() reads in both
 curvature (.curv) and convexity (.sulc) files.
+
+1. Functions for reading surfaces and converting between FreeSurfer formats
+2. Functions for converting to VTK format
+3. Functions specific to Mindboggle that call the read_surface() function
+
 
 Authors:
 Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
@@ -17,6 +22,10 @@ Forrest Sheng Bao  .  http://fsbao.net
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
+
+#=============================================================================
+# Functions for reading surfaces and converting between FreeSurfer formats
+#=============================================================================
 
 def read_surface(filename):
     """
@@ -229,3 +238,290 @@ def labels_to_volume(subject, annot_name):
     cli.run()
 
     return output_file
+
+#=============================================================================
+# Functions for converting to VTK format
+#=============================================================================
+
+def surf_to_vtk(surface_file):
+
+    import os
+    from utils import io_vtk
+    from utils import io_free
+
+    Vertex, Face = io_free.read_surface(surface_file)
+
+    #vtk_file = surface_file + '.vtk'
+    vtk_file = os.path.join(os.getcwd(),
+                            os.path.basename(surface_file + '.vtk'))
+    Fp = open(vtk_file, 'w')
+    io_vtk.write_header(Fp, Title='vtk output from ' + surface_file)
+    io_vtk.write_points(Fp, Vertex)
+    io_vtk.write_faces(Fp, Face)
+    Fp.close()
+
+    return vtk_file
+
+def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
+    """
+    Load a FreeSurfer .annot file and save as a VTK format file.
+
+    Inputs:
+    ======
+    surface_file: string  (name of VTK surface file)
+    annot_file: strings  (name of FreeSurfer .annot file)
+
+    Output:
+    ======
+    vtk_file: output VTK file
+
+    """
+
+    import os
+    import nibabel as nb
+    from utils import io_vtk
+
+    annot_file = os.path.join(subjects_path, subject, 'label',
+                              hemi + '.' + annot_name)
+
+    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+
+    # Load FreeSurfer surface
+    #from utils.io_file import read_surface
+    #Points, Faces = read_surface(surface_file)
+
+    # Load VTK surface
+    Points, Faces, Scalars = io_vtk.load_scalar(surface_file, return_arrays=0)
+    Vertices =  range(1, len(Points) + 1)
+
+    output_stem = os.path.join(os.getcwd(),
+                  os.path.basename(surface_file.strip('.vtk')))
+    vtk_file = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
+
+    LUTs = [labels.tolist()]
+    LUT_names = ['Labels']
+    io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+
+    return vtk_file
+
+def vtk_to_label_files(hemi, surface_file, label_numbers, label_names,
+                       RGBs, scalar_name):
+    """
+    Write FreeSurfer .label files from a labeled VTK surface mesh.
+
+    From https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles
+    A label file is a text file capturing a list of vertices belonging to a region,
+    including their spatial positions(using R,A,S coordinates). A label file
+    corresponds only to a single label, thus contains only a single list of vertices:
+    1806
+    7  -22.796  -66.405  -29.582 0.000000
+    89  -22.273  -43.118  -24.069 0.000000
+    138  -14.142  -81.495  -30.903 0.000000
+    [...]
+
+    Inputs:
+    ------
+    hemi:  hemisphere [string]
+    surface_file:  vtk surface mesh file with labels [string]
+    label_numbers:  label numbers [list of strings]
+    label_names:  label names [list of strings]
+    RGBs:  list of label RGB values for later conversion to a .annot file
+    scalar_name:  name of scalar values in vtk file [string]
+
+    Output:
+    ------
+    label_files:  list of .label file names (order must match label list)
+    colortable:  file with list of labels and RGB values
+                 NOTE: labels are identified by the colortable's RGB values
+    #relabel_file:  file containing colortable and real label indices
+    #               when they differ (for correcting labels later)
+
+    """
+
+    import os
+    import numpy as np
+    from utils import io_file
+    import vtk
+
+    # Check type to make sure the filename is a string
+    # (if a list, return the first element)
+    surface_file = io_file.string_vs_list_check(surface_file)
+
+    # Initialize list of label files and output colortable file
+    label_files = []
+    #relabel_file = os.path.join(os.getcwd(), 'relabel_annot.txt')
+    #f_relabel = open(relabel_file, 'w')
+    colortable = os.path.join(os.getcwd(), 'colortable.ctab')
+    f_rgb = open(colortable, 'w')
+
+    # Loop through labels
+    irgb = 0
+    for ilabel, label_number in enumerate(label_numbers):
+
+        # Check type to make sure the number is an int
+        label_number = int(label_number)
+        label_name = label_names[ilabel]
+
+        # Load surface
+        reader = vtk.vtkDataSetReader()
+        reader.SetFileName(surface_file)
+        reader.ReadAllScalarsOn()
+        reader.Update()
+        data = reader.GetOutput()
+        d = data.GetPointData()
+        labels = d.GetArray(scalar_name)
+
+        # Write vertex index, coordinates, and 0
+        count = 0
+        npoints = data.GetNumberOfPoints()
+        L = np.zeros((npoints,5))
+        for i in range(npoints):
+            label = labels.GetValue(i)
+            if label == label_number:
+                L[count,0] = i
+                L[count,1:4] = data.GetPoint(i)
+                count += 1
+
+        # Save the label file
+        if count > 0:
+            irgb += 1
+
+            # Write to relabel_file
+            #if irgb != label_number:
+            #    f_relabel.writelines('{} {}\n'.format(irgb, label_number))
+
+            # Write to colortable
+            f_rgb.writelines('{} {} {}\n'.format(
+                             irgb, label_name, RGBs[ilabel]))
+
+            # Store in list of .label files
+            label_file = hemi + '.' + label_name + '.label'
+            label_file = os.path.join(os.getcwd(), label_file)
+            label_files.append(label_file)
+
+            # Write to .label file
+            f = open(label_file, 'w')
+            f.writelines('#!ascii label\n' + str(count) + '\n')
+            for i in range(npoints):
+                if any(L[i,:]):
+                    pr = '{0} {1} {2} {3} 0\n'.format(
+                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
+                    f.writelines(pr)
+                else:
+                    break
+            f.close()
+    f_rgb.close()
+    #f_relabel.close()
+
+    return label_files, colortable  #relabel_file
+
+
+#=============================================================================
+# Functions specific to Mindboggle that call the read_surface() function
+#=============================================================================
+def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file,
+                       LUT=[], LUTname=[]):
+    """
+    Load a vertex list file and a surface file to map vertices onto the surface
+    and save the result into VTK format.
+
+    Parameters
+    ============
+
+    LUT    : list of LUTs
+        LUT[i] is the i-th LUT, e.g., distance transformation values,
+                                      curvature, convexity values.
+        LUT[i] is a list of float numbers
+        So more than one LUTs may be written to the final VTK file
+
+    LUTname    : list of strings
+        LUTname[i] is the name of the lookup table to be inserted into VTK file
+
+    """
+
+    import os
+    from utils import io_vtk, io_free
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
+    Fp = open(vtk_file,'w')
+    Vertex, Face = io_free.read_surface(surface_file)
+    index_pair_list = io_vtk.load_fundi_list(index_pair_file)
+    io_vtk.write_vertices_to_fundi(Fp, Vertex, index_pair_list)
+    if LUT!=[]:
+        for i in xrange(0, len(LUT)):
+            if i == 0:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+            else:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
+    Fp.close()
+
+def face_list_to_vtk(vtk_file, surface_file, index_pair_file,
+                     LUT=[], LUTname=[]):
+    """
+    Load a face list file and a surface file to map faces onto the surface
+    and save the result into VTK format.
+
+    This function is called by libbasin.getBasin()
+
+    """
+
+    import os
+    from utils import io_vtk, io_free
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
+    Fp = open(vtk_file,'w')
+    Vertex, Face = io_free.read_surface(surface_file)
+    index_pair_list = io_vtk.load_fundi_list(index_pair_file)
+    io_vtk.write_feature_to_face(Fp, Vertex, Face, index_pair_list)
+
+    if LUT!=[] :
+        for i in xrange(0, len(LUT)):
+            if i == 0:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+            else:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
+    Fp.close()
+
+def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTname=[]):
+    """
+    Load a fundus curve segment list file and a surface file
+    to map curve segments onto the surface and save the result into VTK format.
+
+    Parameters
+    ============
+
+    LUT    : list of LUTs
+        LUT[i] is the i-th LUT, e.g., distance transformation values,
+                                      curvature, convexity values.
+        LUT[i] is a list of float numbers
+        So more than one LUTs may be written to the final VTK file
+
+    LUTname    : list of strings
+        LUTname[i] is the name of the lookup table to be inserted into VTK file
+
+    """
+
+    import os
+    from utils import io_vtk, io_free
+
+    vtk_file = os.path.join(os.getcwd(), vtk_file)
+
+    Fp = open(vtk_file,'w')
+    Vertex, Face = io_free.read_surface(surface_file)
+    index_pair_list = io_vtk.load_segmented_fundi(index_pair_file)
+    io_vtk.write_line_segments_to_fundi(Fp, Vertex, index_pair_list)
+
+    if LUT!=[]:
+        for i in xrange(0, len(LUT)):
+            if i == 0:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+            else:
+                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                                        at_LUT_begin=False)
+
+    Fp.close()
+
