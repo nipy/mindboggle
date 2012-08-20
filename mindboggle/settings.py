@@ -62,5 +62,5 @@ load_all_atlases = False  # Load atlas list as subjects
 if load_all_atlases:
     import utils.io_file as iof
     atlas_list_file = os.path.join('info/atlases101.txt')
-    subjects = iof.read_list_strings(atlas_list_file)
+    subjects = iof.read_columns(atlas_list_file)
 
