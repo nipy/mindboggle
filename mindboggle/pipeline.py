@@ -53,7 +53,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
 from utils.io_vtk import surf_to_vtk, load_scalar, write_scalars, annot_to_vtk
-from utils.io_file import read_list_strings, read_list_2strings, np_loadtxt
+from utils.io_file import read_list_strings, read_list_3strings, np_loadtxt
 from label.multiatlas_labeling import register_template,\
     transform_atlas_labels, majority_vote_label
 from measure.measure_functions import compute_depth, compute_curvature
@@ -503,16 +503,19 @@ if fill_volume_labels:
                                                      'surface_file',
                                                      'label_numbers',
                                                      'label_names',
+                                                     'RGBs',
                                                      'scalar_name'],
-                                      output_names = ['label_files']))
+                                      output_names = ['label_files',
+                                                      'colortable']))
     annotflow.add_nodes([writelabels])
     mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
 
     # Cortical labels
     ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
-    ctx_label_numbers, ctx_label_names = read_list_2strings(ctx_labels_file)
+    ctx_label_numbers, ctx_label_names, RGBs = read_list_3strings(ctx_labels_file)
     writelabels.inputs.label_numbers = ctx_label_numbers
     writelabels.inputs.label_names = ctx_label_names
+    writelabels.inputs.RGBs = RGBs
 
     if init_labels == 'free':
         writelabels.inputs.scalar_name = 'Labels'
@@ -539,8 +542,6 @@ if fill_volume_labels:
                                                      'annot_file']))
     writeannot.inputs.annot_name = 'labels.' + init_labels
     writeannot.inputs.subjects_path = subjects_path
-    writeannot.inputs.colortable = os.path.join(info_path,
-                                           'labels.surface.' + protocol + '.txt')
     annotflow.add_nodes([writeannot])
     mbflow.connect([(info, annotflow,
                      [('hemi', 'Write_annot_file.hemi')])])
@@ -548,6 +549,8 @@ if fill_volume_labels:
                      [('subject', 'Write_annot_file.subject')])])
     annotflow.connect([(writelabels, writeannot,
                       [('label_files','label_files')])])
+    annotflow.connect([(writelabels, writeannot,
+                      [('colortable','colortable')])])
     mbflow.connect([(annotflow, sink,
                      [('Write_annot_file.annot_file', 'labels.@annot')])])
 

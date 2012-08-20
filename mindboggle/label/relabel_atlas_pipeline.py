@@ -6,6 +6,18 @@ It will convert surfaces from VTK to annot format,
 combine the surface labels to create a new label set,
 and convert the labels back to VTK format.
 
+NOTE:
+Alternative method to convert one .annot file to another with combined labels:
+- https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
+- mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>
+- <translation file>: text file that lists the labels (one per line)
+  you want to group, and the new label you want to create.  You have to use
+  the RGB codes; each line will provide the input and output RGB values:
+  221     220     60      223     220     60
+  221     220     160     223     220     60
+  221     220     100     223     220     60
+
+
 For more information about Mindboggle,
 see the website: http://www.mindboggle.info
 and read the README.
@@ -295,8 +307,8 @@ if copy_to_fs_atlases or copy_to_mb_atlases:
                     cmd = ' '.join(['cp', src, tgt])
                     print(cmd); os.system(cmd)
                 if copy_to_mb_atlases:
-                    tgt = os.path.join(base_path, 'data', 'atlases', 
-                                       'freesurfer', s, 'label') 
+                    tgt = os.path.join(base_path, 'data', 'atlases',
+                                       'freesurfer', s, 'label')
                     cmd = ' '.join(['cp', src, tgt])
                     print(cmd); os.system(cmd)
 
