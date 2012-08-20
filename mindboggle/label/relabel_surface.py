@@ -1,7 +1,17 @@
 #!/usr/bin/python
 
 """
-Combine surface labels.
+Combine surface labels in a VTK file.
+
+For doing the same in a .annot file:
+- https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
+- mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>
+- <translation file>: text file that lists the labels (one per line)
+  you want to group, and the new label you want to create.  You have to use
+  the RGB codes; each line will provide the input and output RGB values:
+  221     220     60      223     220     60
+  221     220     160     223     220     60
+  221     220     100     223     220     60
 
 
 Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
@@ -37,7 +47,7 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     labels_to_replace = label_lists[0]
     new_labels = label_lists[1]
     for i, new_label in enumerate(new_labels):
-            
+
         # Find which vertices have the label
         indices = np.where(Scalars == int(labels_to_replace[i]))[0]
         Scalars[indices] = int(new_label)
