@@ -515,8 +515,23 @@ mbflow.connect([(measureflow, shapeflow,
 """
 #-----------------------------------------------------------------------------
 # Segmented sulcus fold shapes
+# Nipype: Merge->MapNode->Split->Rename
+# Nipype: Merge->MapNode->Rename
 #-----------------------------------------------------------------------------
-folddepth = labeldepth.clone('Fold_depth')
+"""
+from nipype.interfaces.utility import Merge, Split, Rename
+mi = Merge(2)
+mi.inputs.in1 = shapefloq.labels
+mi.inputs.in2 = Fold_curvature.labels
+out = mi.run()
+out.outputs.out
+"""
+folddepth = Node(name='Fold_depth',
+                  interface = Fn(function = average_value_per_label,
+                                 input_names = ['values',
+                                                'labels'],
+                                 output_names = ['mean_values']))
+#folddepth = labeldepth.clone('Fold_depth')
 foldcurv = labeldepth.clone('Fold_curvature')
 foldmincurv = labeldepth.clone('Fold_min_curvature')
 foldmaxcurv = labeldepth.clone('Fold_max_curvature')
