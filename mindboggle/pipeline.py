@@ -87,6 +87,9 @@ surf.inputs.base_directory = subjects_path
 surf.inputs.template = '%s/surf/%s.%s'
 surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
 surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
+if include_free_measures:
+    surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
+    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 # Outputs
@@ -398,8 +401,12 @@ if save_fundi:
 #
 ##############################################################################
 shapeflow = Workflow(name='Shape_analysis')
-measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
-            'gauss_curvature', 'convexity', 'thickness']
+if include_free_measures:
+    measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
+                'gauss_curvature', 'thickness', 'convexity']
+else:
+    measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
+                'gauss_curvature']
 measure_file_vars = [x + '_file' for x in measures]
 
 #-----------------------------------------------------------------------------
@@ -443,14 +450,11 @@ mbflow.connect([(measureflow, shapeflow,
 mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.gauss_curvature_file',
                    'Fold_table.gauss_curvature_file')])])
-foldtable.inputs.convexity_file = None
-foldtable.inputs.thickness_file = None
-"""
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_convexities.Scalars','Fold_table.convexities')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_thicknesses.Scalars','Fold_table.thicknesses')])])
-"""
+if include_free_measures:
+    mbflow.connect([(surf, shapeflow,
+                     [('thickness_files', 'Fold_table.thickness_file')])])
+    mbflow.connect([(surf, shapeflow,
+                     [('convexity_files', 'Fold_table.convexity_file')])])
 #-----------------------------------------------------------------------------
 # Segmented fundus shapes
 #-----------------------------------------------------------------------------
@@ -473,14 +477,11 @@ mbflow.connect([(measureflow, shapeflow,
 mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.gauss_curvature_file',
                    'Fundus_table.gauss_curvature_file')])])
-foldtable.inputs.convexity_file = None
-foldtable.inputs.thickness_file = None
-"""
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_convexities.Scalars','Fundus_table.convexities')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_thicknesses.Scalars','Fundus_table.thicknesses')])])
-"""
+if include_free_measures:
+    mbflow.connect([(surf, shapeflow,
+                     [('thickness_files', 'Fundus_table.thickness_file')])])
+    mbflow.connect([(surf, shapeflow,
+                     [('convexity_files', 'Fundus_table.convexity_file')])])
 
 ##############################################################################
 #
