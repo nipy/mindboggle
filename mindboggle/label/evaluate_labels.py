@@ -83,7 +83,7 @@ def measure_volume_overlap(labels, atlas_file, input_file):
         if input_label_sum * atlas_label_sum > 0:
 
             # Compute Dice and Jaccard coefficients
-            dice = np.float(2.0 * intersect_label_sum) /
+            dice = np.float(2.0 * intersect_label_sum) / +\
                    (input_label_sum + atlas_label_sum)
             jacc = np.float(intersect_label_sum) / union_label_sum
             overlaps[ilabel, 1:3] = [dice, jacc]
