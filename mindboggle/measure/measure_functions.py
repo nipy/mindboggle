@@ -60,26 +60,28 @@ def compute_curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def average_value_per_label(values, labels):
+def mean_value_per_label(values, labels):
     """
     Compute the mean value per label.
 
     Inputs:
     ======
-    values:  list of values
+    values:  list of integer or float values
     labels:  list of integer labels (same length as values)
 
     Output:
     ======
     mean_values:  list of floats
+    label_list:  list of unique labels
 
     """
     import numpy as np
 
     label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) != 0]
     mean_values = []
     for label in label_list:
         mean_value = np.mean(values[np.where(labels == label)[0]])
         mean_values.append(mean_value)
 
-    return mean_values
+    return mean_values, label_list.tolist()

@@ -47,15 +47,15 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import load_scalar, write_scalars
-from utils.io_file import read_columns, np_loadtxt
+from utils.io_vtk import load_scalar, write_scalar_subset
+from utils.io_file import read_columns, write_table_means
 from utils.io_free import labels_to_annot, labels_to_volume, \
      surf_to_vtk, annot_to_vtk, vtk_to_label_files
 from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
 from measure.measure_functions import compute_depth, compute_curvature, \
-     average_value_per_label
+     mean_value_per_label
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
 from label.evaluate_labels import measure_surface_overlap, \
@@ -99,7 +99,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #   Convert surfaces to VTK
 #-----------------------------------------------------------------------------
 if not input_vtk:
-    convertsurf = Node(name = 'Convert_surfaces',
+    convertsurf = Node(name = 'Free_to_VTK',
                        interface = Fn(function = surf_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
@@ -136,7 +136,7 @@ atlasflow = Workflow(name='Label_initialization')
 #   Initialize labels with a classifier atlas (default to FreeSurfer labels)
 #=============================================================================
 if init_labels == 'free':
-    freelabels = Node(name = 'Convert_labels',
+    freelabels = Node(name = 'Free_to_VTK',
                     interface = Fn(function = annot_to_vtk,
                                    input_names = ['surface_file',
                                                   'hemi',
@@ -144,20 +144,20 @@ if init_labels == 'free':
                                                   'subjects_path',
                                                   'annot_name'],
                                    output_names = ['vtk_file']))
-    freelabels.inputs.annot_name = 'aparc.annot'
-    freelabels.inputs.subjects_path = subjects_path
     atlasflow.add_nodes([freelabels])
-    mbflow.connect([(info, atlasflow,
-                     [('hemi', 'Convert_labels.hemi'),
-                      ('subject', 'Convert_labels.subject')])])
     if input_vtk:
         mbflow.connect([(surf, atlasflow,
                          [('surface_files',
-                           'Convert_labels.surface_file')])])
+                           'Free_to_VTK.surface_file')])])
     else:
         mbflow.connect([(convertsurf, atlasflow,
                          [('vtk_file',
-                           'Convert_labels.surface_file')])])
+                           'Free_to_VTK.surface_file')])])
+    mbflow.connect([(info, atlasflow,
+                     [('hemi', 'Free_to_VTK.hemi'),
+                      ('subject', 'Free_to_VTK.subject')])])
+    freelabels.inputs.subjects_path = subjects_path
+    freelabels.inputs.annot_name = 'aparc.annot'
 
 #=============================================================================
 #   Initialize labels using multi-atlas registration
@@ -166,6 +166,8 @@ elif init_labels == 'max':
     #-------------------------------------------------------------------------
     # Register surfaces to average template
     #-------------------------------------------------------------------------
+    template = 'OASIS-TRT-20'
+
     register = Node(name = 'Register_template',
                     interface = Fn(function = register_template,
                                    input_names = ['hemi',
@@ -174,17 +176,20 @@ elif init_labels == 'max':
                                                   'templates_path',
                                                   'template'],
                                    output_names = ['transform']))
-    template = 'OASIS-TRT-20'
-    register.inputs.template = template + '.tif'
-    register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-    register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
     atlasflow.add_nodes([register])
     mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
                     (surf, atlasflow, [('sphere_files',
                                         'Register_template.sphere_file')])])
+    register.inputs.transform = 'sphere_to_' + template + '_template.reg'
+    register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
+    register.inputs.template = template + '.tif'
     #-------------------------------------------------------------------------
     # Register atlases to subject via template
     #-------------------------------------------------------------------------
+    # Load atlas list
+    atlas_list_file = os.path.join(info_path, 'atlases.txt')
+    atlas_list = read_columns(atlas_list_file, 1)[0]
+
     transform = MapNode(name = 'Transform_labels',
                         iterfield = ['atlas'],
                         interface = Fn(function = transform_atlas_labels,
@@ -195,19 +200,15 @@ elif init_labels == 'max':
                                                       'atlas',
                                                       'atlas_string'],
                                        output_names = ['output_file']))
-    # Load atlas list
-    atlas_list_file = os.path.join(info_path, 'atlases.txt')
-    atlas_list = read_columns(atlas_list_file, 1)[0]
-
-    transform.inputs.atlas = atlas_list
-    transform.inputs.subjects_path = subjects_path
-    transform.inputs.atlas_string = 'labels.' + protocol + '.' + label_method
     atlasflow.add_nodes([transform])
     mbflow.connect([(info, atlasflow,
                      [('hemi', 'Transform_labels.hemi'),
                       ('subject', 'Transform_labels.subject')])])
     atlasflow.connect([(register, transform, [('transform', 'transform')])])
     #transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
+    transform.inputs.subjects_path = subjects_path
+    transform.inputs.atlas = atlas_list
+    transform.inputs.atlas_string = 'labels.' + protocol + '.' + label_method
     #-----------------------------------------------------------------------------
     # Majority vote label
     #-----------------------------------------------------------------------------
@@ -245,7 +246,7 @@ measureflow = Workflow(name='Surface_measurement')
 #-----------------------------------------------------------------------------
 # Measure surface depth
 #-----------------------------------------------------------------------------
-depth = Node(name='Compute_depth',
+depth = Node(name='Depth',
              interface = Fn(function = compute_depth,
                             input_names = ['command',
                                            'surface_file'],
@@ -256,7 +257,7 @@ depth.inputs.command = depth_command
 #-----------------------------------------------------------------------------
 # Measure surface curvature
 #-----------------------------------------------------------------------------
-curvature = Node(name='Compute_curvature',
+curvature = Node(name='Curvature',
                  interface = Fn(function = compute_curvature,
                                 input_names = ['command',
                                                'surface_file'],
@@ -274,60 +275,27 @@ curvature.inputs.command = curvature_command
 measureflow.add_nodes([depth, curvature])
 if input_vtk:
     mbflow.connect([(surf, measureflow,
-                     [('surface_files','Compute_depth.surface_file')])])
+                     [('surface_files','Depth.surface_file')])])
     mbflow.connect([(surf, measureflow,
-                     [('surface_files','Compute_curvature.surface_file')])])
+                     [('surface_files','Curvature.surface_file')])])
 else:
     mbflow.connect([(convertsurf, measureflow,
-                     [('vtk_file', 'Compute_depth.surface_file')])])
+                     [('vtk_file', 'Depth.surface_file')])])
     mbflow.connect([(convertsurf, measureflow,
-                     [('vtk_file', 'Compute_curvature.surface_file')])])
+                     [('vtk_file', 'Curvature.surface_file')])])
 mbflow.connect([(measureflow, sink,
-                 [('Compute_depth.depth_file', 'measures.@depth')])])
+                 [('Depth.depth_file', 'measures.@depth')])])
 mbflow.connect([(measureflow, sink,
-                 [('Compute_curvature.mean_curvature_file',
+                 [('Curvature.mean_curvature_file',
                    'measures.@mean_curvature'),
-                  ('Compute_curvature.gauss_curvature_file',
+                  ('Curvature.gauss_curvature_file',
                    'measures.@gauss_curvature'),
-                  ('Compute_curvature.max_curvature_file',
+                  ('Curvature.max_curvature_file',
                    'measures.@max_curvature'),
-                  ('Compute_curvature.min_curvature_file',
+                  ('Curvature.min_curvature_file',
                    'measures.@min_curvature'),
-                  ('Compute_curvature.min_curvature_vector_file',
+                  ('Curvature.min_curvature_vector_file',
                    'measures.@min_curvature_vectors')])])
-#-----------------------------------------------------------------------------
-# Load depth and curvature files
-#-----------------------------------------------------------------------------
-load_depth = Node(name='Load_depth',
-                  #overwrite=True,
-                  interface = Fn(function = load_scalar,
-                                 input_names = ['filename'],
-                                 output_names = ['Points',
-                                                 'Faces',
-                                                 'Scalars']))
-load_curvature = load_depth.clone('Load_curvature')
-
-# For saving shape information
-load_min_curvature = load_depth.clone('Load_min_curvature')
-load_max_curvature = load_depth.clone('Load_max_curvature')
-load_gauss_curvature = load_depth.clone('Load_gauss_curvature')
-
-load_min_directions = Node(name='Load_directions',
-                           interface = Fn(function = np_loadtxt,
-                                          input_names = ['filename'],
-                                          output_names = ['output']))
-measureflow.connect([(depth, load_depth,
-                    [('depth_file','filename')])])
-measureflow.connect([(curvature, load_curvature,
-                    [('mean_curvature_file','filename')])])
-measureflow.connect([(curvature, load_min_curvature,
-                    [('min_curvature_file','filename')])])
-measureflow.connect([(curvature, load_max_curvature,
-                    [('max_curvature_file','filename')])])
-measureflow.connect([(curvature, load_gauss_curvature,
-                    [('gauss_curvature_file','filename')])])
-measureflow.connect([(curvature, load_min_directions,
-                    [('min_curvature_vector_file','filename')])])
 
 ##############################################################################
 #
@@ -342,133 +310,87 @@ featureflow = Workflow(name='Feature_extraction')
 #-----------------------------------------------------------------------------
 # Extract folds
 #-----------------------------------------------------------------------------
-folds = Node(name='Extract_folds',
+fraction_folds = 0.5
+min_fold_size = 50
+
+folds = Node(name='Folds',
              interface = Fn(function = extract_folds,
-                            input_names = ['faces',
-                                           'depths',
+                            input_names = ['depth_file',
                                            'fraction_folds',
                                            'min_fold_size'],
                             output_names = ['folds',
                                             'n_folds',
-                                            'indices_folds',
-                                            'index_lists_folds',
-                                            'neighbor_lists',
-                                            'faces_folds',
-                                            'LUTs',
-                                            'LUT_names']))
-fraction_folds = 0.5
-min_fold_size = 50
+                                            'neighbor_lists']))
+featureflow.add_nodes([folds])
+mbflow.connect([(measureflow, featureflow,
+                 [('Depth.depth_file','Folds.depth_file')])])
 folds.inputs.fraction_folds = fraction_folds
 folds.inputs.min_fold_size = min_fold_size
-featureflow.connect([(load_depth, folds, [('Faces','faces'),
-                                          ('Scalars','depths')])])
-mbflow.connect([(measureflow, folds,
-                 [('Load_depth.Faces','faces'),
-                  ('Load_depth.Scalars','depths')])])
 #-----------------------------------------------------------------------------
 # Extract fundi (curves at the bottoms of folds)
 #-----------------------------------------------------------------------------
-fundi = Node(name='Extract_fundi',
-             interface = Fn(function = extract_fundi,
-                            input_names = ['index_lists_folds',
-                                           'n_folds',
-                                           'neighbor_lists',
-                                           'vertices',
-                                           'faces',
-                                           'depths',
-                                           'mean_curvatures',
-                                           'min_directions',
-                                           'min_fold_size',
-                                           'thr',
-                                           'min_distance'],
-                            output_names = ['fundi',
-                                            'fundus_lists',
-                                            'likelihoods']))
 thr = 0.5
 min_distance = 5.0
-fundi.inputs.thr = thr
+
+fundi = Node(name='Fundi',
+             interface = Fn(function = extract_fundi,
+                            input_names = ['folds',
+                                           'n_folds',
+                                           'neighbor_lists',
+                                           'depth_file',
+                                           'mean_curvature_file',
+                                           'min_curvature_vector_file',
+                                           'min_fold_size',
+                                           'min_distance',
+                                           'thr'],
+                            output_names = ['fundi']))
+featureflow.connect([(folds, fundi, [('folds','folds'),
+                                     ('n_folds','n_folds'),
+                                     ('neighbor_lists','neighbor_lists')])])
+mbflow.connect([(measureflow, featureflow,
+                 [('Depth.depth_file','Fundi.depth_file'),
+                  ('Curvature.mean_curvature_file',
+                   'Fundi.mean_curvature_file'),
+                  ('Curvature.min_curvature_vector_file',
+                   'Fundi.min_curvature_vector_file')])])
 fundi.inputs.min_fold_size = min_fold_size
 fundi.inputs.min_distance = min_distance
-featureflow.connect([(folds, fundi, [('index_lists_folds','index_lists_folds'),
-                                     ('n_folds','n_folds'),
-                                     ('neighbor_lists','neighbor_lists'),
-                                     ('faces_folds','faces')])])
-mbflow.connect([(measureflow, featureflow,
-                 [('Load_depth.Points','Extract_fundi.vertices'),
-                  ('Load_depth.Scalars','Extract_fundi.depths')]),
-                (measureflow, featureflow,
-                 [('Load_curvature.Scalars','Extract_fundi.mean_curvatures')]),
-                (measureflow, featureflow,
-                 [('Load_directions.output','Extract_fundi.min_directions')])])
+fundi.inputs.thr = thr
 #-----------------------------------------------------------------------------
 # Extract medial surfaces
 #-----------------------------------------------------------------------------
-#medial = Node(name='Extract_medial',
+#medial = Node(name='Medial',
 #                 interface = Fn(function = extract_midaxis,
 #                                input_names = ['depth_file',
-#                                               'mean_curv_file',
-#                                               'gauss_curv_file'],
+#                                               'mean_curvature_file',
+#                                               'gauss_curvature_file'],
 #                                output_names = ['midaxis']))
 #-----------------------------------------------------------------------------
-# Write folds, likelihoods, and fundi to VTK files
+# Write folds and fundi to VTK files
 #-----------------------------------------------------------------------------
-save_folds = False
-save_likelihoods = False
-save_fundi = False
+save_folds = True
+save_fundi = True
 if save_folds:
     save_folds = Node(name='Save_folds',
-                      interface = Fn(function = write_scalars,
-                                     input_names = ['vtk_file',
-                                                    'Points',
-                                                    'Vertices',
-                                                    'Faces',
-                                                    'LUTs',
-                                                    'LUT_names'],
-                                     output_names = ['vtk_file']))
-    save_folds.inputs.vtk_file = 'folds.vtk'
-    featureflow.connect([(load_depth, save_folds, [('Points','Points')])])
-    featureflow.connect([(folds, save_folds, [('indices_folds','Vertices'),
-                                              ('faces_folds','Faces'),
-                                              ('LUTs','LUTs'),
-                                              ('LUT_names','LUT_names')])])
+                      interface = Fn(function = write_scalar_subset,
+                                     input_names = ['values',
+                                                    'input_vtk',
+                                                    'output_vtk'],
+                                     output_names = ['output_vtk']))
+    featureflow.connect([(folds, save_folds, [('folds','values')])])
+    mbflow.connect([(measureflow, featureflow,
+                     [('Depth.depth_file','Save_folds.input_vtk')])])
+    save_folds.inputs.output_vtk = 'folds.vtk'
     mbflow.connect([(featureflow, sink,
-                     [('Save_folds.vtk_file','features.@folds')])])
-if save_likelihoods:
-    save_likelihoods = Node(name='Save_likelihoods',
-                            interface = Fn(function = write_scalars,
-                                           input_names = ['vtk_file',
-                                                          'Points',
-                                                          'Vertices',
-                                                          'Faces',
-                                                          'LUTs',
-                                                          'LUT_names'],
-                                           output_names = ['vtk_file']))
-    save_likelihoods.inputs.vtk_file = 'likelihoods.vtk'
-    save_likelihoods.inputs.LUT_names = ['likelihoods']
-    featureflow.connect([(load_depth, save_likelihoods, [('Points','Points')])])
-    featureflow.connect([(folds, save_likelihoods, [('indices_folds','Vertices'),
-                                                    ('faces_folds','Faces')])])
-    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','LUTs')])])
-    mbflow.connect([(featureflow, sink,
-                     [('Save_likelihoods.vtk_file','measures.@likelihoods')])])
+                     [('Save_folds.output_vtk','features.@folds')])])
 if save_fundi:
-    save_fundi = Node(name='Save_fundi',
-                      interface = Fn(function = write_scalars,
-                                     input_names = ['vtk_file',
-                                                    'Points',
-                                                    'Vertices',
-                                                    'Faces',
-                                                    'LUTs',
-                                                    'LUT_names'],
-                                     output_names = ['vtk_file']))
-    save_fundi.inputs.vtk_file = 'fundi.vtk'
-    save_fundi.inputs.LUT_names = ['fundi']
-    featureflow.connect([(load_depth, save_fundi, [('Points','Points')])])
-    featureflow.connect([(folds, save_fundi, [('indices_folds','Vertices'),
-                                              ('faces_folds','Faces')])])
-    featureflow.connect([(fundi, save_fundi, [('fundi','LUTs')])])
+    save_fundi = save_folds.clone('Save_fundi')
+    featureflow.connect([(fundi, save_fundi, [('fundi','values')])])
+    mbflow.connect([(measureflow, featureflow,
+                     [('Depth.depth_file','Save_fundi.input_vtk')])])
+    save_fundi.inputs.output_vtk = 'fundi.vtk'
     mbflow.connect([(featureflow, sink,
-                     [('Save_fundi.vtk_file','features.@fundi')])])
+                     [('Save_fundi.output_vtk','features.@fundi')])])
 
 ##############################################################################
 #
@@ -476,118 +398,89 @@ if save_fundi:
 #
 ##############################################################################
 shapeflow = Workflow(name='Shape_analysis')
+measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
+            'gauss_curvature', 'convexity', 'thickness']
+measure_file_vars = [x + '_file' for x in measures]
 
 #-----------------------------------------------------------------------------
 # Labeled surface patch shapes
 #-----------------------------------------------------------------------------
-labeldepth = Node(name='Label_depth',
-                  interface = Fn(function = average_value_per_label,
-                                 input_names = ['values',
-                                                'labels'],
-                                 output_names = ['mean_values']))
-labelcurv = labeldepth.clone('Label_curvature')
-labelmincurv = labeldepth.clone('Label_min_curvature')
-labelmaxcurv = labeldepth.clone('Label_max_curvature')
-labelgausscurv = labeldepth.clone('Label_gauss_curvature')
-shapeflow.add_nodes([labeldepth,
-                     labelcurv, labelmincurv, labelmaxcurv, labelgausscurv])
+input_names = ['filename', 'column_names', 'labels']
+input_names.extend(measure_file_vars)
 """
-mbflow.connect([(measureflow, shapeflow,
-                 [('Extract_labels.labels','Label_depth.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-                 [('Extract_labels.labels','Label_curvature.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-                 [('Extract_labels.labels','Label_min_curvature.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-                 [('Extract_labels.labels','Label_max_curvature.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-                 [('Extract_labels.labels','Label_gauss_curvature.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_depth.Scalars','Label_depth.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_curvature.Scalars','Label_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_min_curvature.Scalars','Label_min_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_max_curvature.Scalars','Label_max_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_gauss_curvature.Scalars','Label_gauss_curvature.values')])])
+labeltable = Node(name='Label_table',
+                      interface = Fn(function = write_table_means,
+                                     input_names = input_names,
+                                     output_names = ['filename']))
+shapeflow.add_nodes([labeltable])
+labeltable.inputs.filename = 'label_shapes.txt'
+labeltable.inputs.column_names = measures
 """
 #-----------------------------------------------------------------------------
 # Segmented sulcus fold shapes
-# Nipype: Merge->MapNode->Split->Rename
-# Nipype: Merge->MapNode->Rename
 #-----------------------------------------------------------------------------
+foldtable = Node(name='Fold_table',
+                      interface = Fn(function = write_table_means,
+                                     input_names = input_names,
+                                     output_names = ['filename']))
+foldtable.inputs.column_names = measures
+#foldtable = labeltable.clone('Fold_table')
+shapeflow.add_nodes([foldtable])
+foldtable.inputs.filename = 'fold_shapes.txt'
+mbflow.connect([(featureflow, shapeflow,
+                 [('Folds.folds','Fold_table.labels')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Depth.depth_file','Fold_table.depth_file')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Curvature.mean_curvature_file',
+                   'Fold_table.mean_curvature_file')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Curvature.min_curvature_file',
+                   'Fold_table.min_curvature_file')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Curvature.max_curvature_file',
+                   'Fold_table.max_curvature_file')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Curvature.gauss_curvature_file',
+                   'Fold_table.gauss_curvature_file')])])
+foldtable.inputs.convexity_file = None
+foldtable.inputs.thickness_file = None
 """
-from nipype.interfaces.utility import Merge, Split, Rename
-mi = Merge(2)
-mi.inputs.in1 = shapefloq.labels
-mi.inputs.in2 = Fold_curvature.labels
-out = mi.run()
-out.outputs.out
+mbflow.connect([(measureflow, shapeflow,
+    [('Load_convexities.Scalars','Fold_table.convexities')])])
+mbflow.connect([(measureflow, shapeflow,
+    [('Load_thicknesses.Scalars','Fold_table.thicknesses')])])
 """
-folddepth = Node(name='Fold_depth',
-                  interface = Fn(function = average_value_per_label,
-                                 input_names = ['values',
-                                                'labels'],
-                                 output_names = ['mean_values']))
-#folddepth = labeldepth.clone('Fold_depth')
-foldcurv = labeldepth.clone('Fold_curvature')
-foldmincurv = labeldepth.clone('Fold_min_curvature')
-foldmaxcurv = labeldepth.clone('Fold_max_curvature')
-foldgausscurv = labeldepth.clone('Fold_gauss_curvature')
-shapeflow.add_nodes([folddepth,
-                     foldcurv, foldmincurv, foldmaxcurv, foldgausscurv])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_folds.folds','Fold_depth.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_folds.folds','Fold_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_folds.folds','Fold_min_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_folds.folds','Fold_max_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_folds.folds','Fold_gauss_curvature.labels')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_depth.Scalars','Fold_depth.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_curvature.Scalars','Fold_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_min_curvature.Scalars','Fold_min_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_max_curvature.Scalars','Fold_max_curvature.values')])])
-mbflow.connect([(measureflow, shapeflow,
-    [('Load_gauss_curvature.Scalars','Fold_gauss_curvature.values')])])
 #-----------------------------------------------------------------------------
 # Segmented fundus shapes
 #-----------------------------------------------------------------------------
-fundusdepth = labeldepth.clone('Fundi_depth')
-funduscurv = labeldepth.clone('Fundi_curvature')
-fundusmincurv = labeldepth.clone('Fundi_min_curvature')
-fundusmaxcurv = labeldepth.clone('Fundi_max_curvature')
-fundusgausscurv = labeldepth.clone('Fundi_gauss_curvature')
-shapeflow.add_nodes([fundusdepth,
-                     funduscurv, fundusmincurv, fundusmaxcurv, fundusgausscurv])
+fundustable = foldtable.clone('Fundus_table')
+shapeflow.add_nodes([fundustable])
+fundustable.inputs.filename = 'fundus_shapes.txt'
 mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_fundi.fundi','Fundi_depth.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_fundi.fundi','Fundi_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_fundi.fundi','Fundi_min_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_fundi.fundi','Fundi_max_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-                 [('Extract_fundi.fundi','Fundi_gauss_curvature.labels')])])
-mbflow.connect([(featureflow, shapeflow,
-    [('Load_depth.Scalars','Fundi_depth.values')])])
+                 [('Fundi.fundi','Fundus_table.labels')])])
 mbflow.connect([(measureflow, shapeflow,
-    [('Load_curvature.Scalars','Fundi_curvature.values')])])
+                 [('Depth.depth_file','Fundus_table.depth_file')])])
 mbflow.connect([(measureflow, shapeflow,
-    [('Load_min_curvature.Scalars','Fundi_min_curvature.values')])])
+                 [('Curvature.mean_curvature_file',
+                   'Fundus_table.mean_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-    [('Load_max_curvature.Scalars','Fundi_max_curvature.values')])])
+                 [('Curvature.min_curvature_file',
+                   'Fundus_table.min_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-    [('Load_gauss_curvature.Scalars','Fundi_gauss_curvature.values')])])
+                 [('Curvature.max_curvature_file',
+                   'Fundus_table.max_curvature_file')])])
+mbflow.connect([(measureflow, shapeflow,
+                 [('Curvature.gauss_curvature_file',
+                   'Fundus_table.gauss_curvature_file')])])
+foldtable.inputs.convexity_file = None
+foldtable.inputs.thickness_file = None
+"""
+mbflow.connect([(measureflow, shapeflow,
+    [('Load_convexities.Scalars','Fundus_table.convexities')])])
+mbflow.connect([(measureflow, shapeflow,
+    [('Load_thicknesses.Scalars','Fundus_table.thicknesses')])])
+"""
 
 ##############################################################################
 #
@@ -613,7 +506,7 @@ if evaluate_surface_labels:
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
     if init_labels == 'free':
         mbflow.connect([(atlasflow, eval_surf_labels,
-                         [('Convert_labels.vtk_file','labels_file2')])])
+                         [('Free_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'max':
         mbflow.connect([(atlasflow, eval_surf_labels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
@@ -654,7 +547,7 @@ if fill_volume:
     if init_labels == 'free':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
-                         [('Convert_labels.vtk_file',
+                         [('Free_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
         writelabels.inputs.scalar_name = 'Max_(majority_labels)'
@@ -747,7 +640,7 @@ if evaluate_volume_labels:
     #-------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas volumes
     #-------------------------------------------------------------------------
-    atlas_vol = Node(name = 'Atlas_volume',
+    atlas_vol = Node(name = 'Atlas',
                      interface = DataGrabber(infields=['subject'],
                      outfields=['atlas_vol_file']))
     atlas_vol.inputs.base_directory = atlases_path

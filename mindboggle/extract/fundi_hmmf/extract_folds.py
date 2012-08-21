@@ -195,15 +195,16 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
 #==============
 # Extract folds
 #==============
-def extract_folds(faces, depths, fraction_folds, min_fold_size, return_arrays=1):
+def extract_folds(depth_file, fraction_folds, min_fold_size, return_arrays=1):
     """
     Extract folds.
 
     Inputs:
     ------
-    faces: triangular surface mesh vertex indices [#faces x 3]
-    depths: depth values [#vertices x 1]
-    min_depth: depth threshold for defining folds
+    depth_file: surface mesh file in VTK format with faces and scalar values:
+        faces: triangular surface mesh vertex indices [#faces x 3]
+        depths: depth values [#vertices x 1]
+    fraction_folds: fraction of surface mesh considered folds
     min_fold_size: minimum fold size
     return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
 
@@ -211,12 +212,7 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size, return_arrays=1)
     ------
     folds: label indices for folds: [#vertices x 1] numpy array
     n_folds:  #folds [int]
-    indices_folds:  list of fold vertex indices
-    index_lists_folds:  list of lists of fold vertex indices (see return_arrays)
     neighbor_lists: list of lists of neighboring vertex indices (see return_arrays)
-    faces_folds:  faces whose vertices are all in folds
-    LUTs:  lookup lists of values
-    LUT_names:  lookup list names
 
     Calls:
     -----
@@ -229,15 +225,13 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size, return_arrays=1)
     from time import time
     from utils.percentile import percentile
     from extract.fundi_hmmf.extract_folds import segment_surface, fill_holes
+    from utils.io_vtk import load_scalar
 
     print("Extract folds from surface mesh...")
     t0 = time()
 
-    # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
-    if type(depths) != np.ndarray:
-        depths = np.asarray(depths)
+    # Load depth values from VTK file
+    points, faces, depths = load_scalar(depth_file, return_arrays=1)
 
     # Compute the minimum depth threshold for defining folds by determining the
     # percentile of depth values for the fraction of vertices that are not folds.
@@ -296,30 +290,12 @@ def extract_folds(faces, depths, fraction_folds, min_fold_size, return_arrays=1)
             folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
             print('  Filled holes ({:.2f} seconds)'.format(time() - t3))
 
-    # Convert folds array to a list of lists of vertex indices
-    index_lists_folds = [np.where(folds == i)[0].tolist()
-                         for i in range(1, n_folds+1)]
-    indices_folds = [x for lst in index_lists_folds for x in lst]
-
-    # Remove faces that do not contain three fold vertices
-    fs = frozenset(indices_folds)
-    faces_folds = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-    faces_folds = np.reshape(np.ravel(faces_folds), (-1, 3))
-    print('  Reduced {} to {} triangular faces within folds.'.
-          format(len(faces), len(faces_folds)))
-
-    # Lookup lists for saving to VTK format files
-    LUTs = [[int(x) for x in folds]]
-    LUT_names = ['fold'+str(i+1) for i in range(n_folds)]
-
     print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
           format(min_depth, time() - t0))
 
     # Return folds, number of folds, indices & lists of indices for each fold,
     # fold faces, and lookup lists
     if return_arrays:
-        return folds, n_folds, indices_folds, np.array(index_lists_folds),\
-               np.array(neighbor_lists), faces_folds, LUTs, LUT_names
+        return folds, n_folds, np.array(neighbor_lists)
     else:
-        return folds, n_folds, indices_folds, index_lists_folds, neighbor_lists,\
-               faces_folds, LUTs, LUT_names
+        return folds, n_folds, neighbor_lists
