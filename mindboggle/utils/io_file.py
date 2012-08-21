@@ -75,6 +75,46 @@ def string_vs_list_check(var):
         os.error("Check format of " + var)
 
 
+
+
+def write_list(filename, List, header=""):
+    """
+    Write a list to a file, each line of which is a list element.
+    """
+    Fp = open(filename,'w')
+
+    if len(header):
+        Fp.write(header + '\n')
+
+    for Element in List:
+        Fp.write(str(Element) + '\n')
+
+    Fp.close()
+
+def write_table(labels, columns, column_names, filename):
+    """
+    Write table with label column, value column, and column names.
+
+    Inputs:
+    ======
+    labels:  list (same length as values)
+    columns:  list of lists of values (each list is a column of values)
+    column_names:  names of columns [list of strings]
+
+    """
+    Fp = open(filename,'w')
+
+    if len(column_names):
+        Fp.write("\t".join(column_names) + "\n")
+
+    for irow, label in enumerate(labels):
+        row = ["{}\t".format(label)]
+        for column in columns:
+            row.append(column[irow])
+        Fp.write("\t".join(row) + "\n")
+
+    Fp.close()
+
 """
 def read_lists(filename):
     ""The reverse function of write_lists
@@ -120,15 +160,6 @@ def read_float_lists(filename):
 
     return Lists[:-1] # because last one is an empty list
 
-def write_list(filename, List):
-    ""
-    Write a list in to a file, each line of which is a list element.
-    ""
-    Fp = open(filename,'w')
-    for Element in List:
-        Fp.write(str(Element) + '\n')
-    Fp.close()
-
 def write_lists(filename, input_lists):
     ""
     Output list of lists, each line in the file contains one element
@@ -143,7 +174,7 @@ def write_lists(filename, input_lists):
     Notes
     ======
 
-    2-D lists are seperated by a delimiter which is 4 dashes now: \n----\n
+    2-D lists are separated by a delimiter which is 4 dashes now: \n----\n
 
     ""
 
