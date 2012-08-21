@@ -219,6 +219,28 @@ def load_VTK_line(Filename):
 
     return Lines, Scalars
 
+def inside_faces(faces, indices):
+    """
+    Remove surface mesh faces that do not contain three vertices in "indices"
+
+    Inputs:
+    ======
+    faces: triangular surface mesh vertex indices [#faces x 3]
+    indices: vertex indices to mesh
+
+    Return:
+    ======
+    faces: reduced array of faces
+
+    """
+    len_faces = len(faces)
+    fs = frozenset(indices)
+    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+    faces = np.reshape(np.ravel(faces), (-1, 3))
+    print('  Reduced {} to {} triangular faces.'.format(len_faces, len(faces)))
+
+    return faces
+
 def load_scalar(filename, return_arrays=1):
     """
     Load a VTK-format scalar map that contains only one SCALAR segment.
@@ -280,30 +302,24 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     """
     Save scalars into a VTK-format file.
 
-    Parameters
-    =============
-
+    Inputs:
+    ======
     vtk_file : string
         The path of the VTK file to save sulci
-
     Points :  list of 3-tuples of floats
         Each element has 3 numbers representing the coordinates of the points
-
     Vertices: list of integers
         IDs of vertices that are part of a sulcus
-
     Faces: list of 3-tuples of integers
         Each element is a face on the mesh, consisting of 3 integers
         representing the 3 vertices of the face
-
     LUTs: list of lists of integers
         Each element is a list of integers representing a scalar map for the mesh
-
     LUT_names: list of strings
         Each element is the name of a scalar map, e.g., curv, depth.
 
-    Example
-    ===========
+    Example:
+    =======
     import random
     import io_vtk
     Points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
@@ -315,7 +331,6 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
                       LUT_names=LUT_names)
 
     """
-
     import os
     from utils import io_vtk
 
@@ -340,7 +355,61 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
 
     return vtk_file
 
+def write_scalar_subset(values, input_vtk, output_vtk):
+    """
+    Load VTK format file and save a subset of (non-zero) scalars into a new file.
+
+    Inputs:
+    ======
+    values:  integer values for vertices (keep faces with non-zero values)
+    input_vtk:  input VTK file [string]
+    output_vtk:  output VTK file [string]
+
+    """
+    import os
+    import numpy as np
+    from utils import io_vtk
+
+    # Load scalar values from VTK file
+    Points, Faces, Scalars = load_scalar(input_vtk, return_arrays=1)
+
+    # Convert values array to a list of lists of vertex indices
+    n_values = len([int(x) for x in np.unique(values) if int(x) != 0])
+    u_values = np.unique(values)
+    index_lists = [np.where(values == u_value)[0].tolist()
+                   for u_value in u_values]
+    indices = [x for lst in index_lists for x in lst]
+
+    # Remove surface mesh faces that do not contain three vertices in "indices"
+    faces_indices = inside_faces(Faces, indices)
+
+    # Lookup lists for saving to VTK format files
+    LUTs = [[int(x) for x in values]]
+    LUT_names = ['label' + str(u_value) for u_value in u_values]
+
+    # Output VTK file to current working directory
+    output_vtk = os.path.join(os.getcwd(), output_vtk)
+
+    # Write VTK file
+    Fp = open(output_vtk,'w')
+    io_vtk.write_header(Fp)
+    io_vtk.write_points(Fp, Points[indices, :])
+    io_vtk.write_vertices(Fp, indices)
+    io_vtk.write_faces(Fp, faces_indices)
+    if len(LUTs) > 0:
+        for i, LUT in enumerate(LUTs):
+            if i == 0:
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i])
+            else:
+                io_vtk.write_vertex_LUT(Fp, LUT, LUT_names[i],
+                                        at_LUT_begin=False)
+    Fp.close()
+
+    return output_vtk
+
 def write_mean_scalar_table(filename):
+
+    import numpy as np
 
     Points, Faces, Scalars = load_scalar(filename, return_arrays=1)
 
@@ -351,7 +420,7 @@ def write_mean_scalar_table(filename):
     for scalar in unique_scalars:
         Index = [i for i in xrange(len(Label)) if Label[i] == GyralLabel]
         Measure_of_Row = [ [Measure[i] for i in Index ] for Measure in Measures]
-        Row = map(mean, Measure_of_Row)
+        Row = map(np.mean, Measure_of_Row)
         Row = [GyralLabel] + Row
         Table.append(Row)
 

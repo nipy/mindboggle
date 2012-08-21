@@ -49,48 +49,6 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def np_loadtxt(filename):
-    """
-    Load numpy array from text file.
-    """
-
-    from numpy import loadtxt
-
-    return loadtxt(filename)
-
-def string_vs_list_check(var):
-    """
-    Check type to make sure it is a string.
-
-    (if a list, return the first element)
-    """
-
-    # Check type:
-    if type(var) == str:
-        return var
-    elif type(var) == list:
-        return var[0]
-    else:
-        import os
-        os.error("Check format of " + var)
-
-
-
-
-def write_list(filename, List, header=""):
-    """
-    Write a list to a file, each line of which is a list element.
-    """
-    Fp = open(filename,'w')
-
-    if len(header):
-        Fp.write(header + '\n')
-
-    for Element in List:
-        Fp.write(str(Element) + '\n')
-
-    Fp.close()
-
 def write_table(labels, columns, column_names, filename):
     """
     Write table with label column, value column, and column names.
@@ -114,6 +72,66 @@ def write_table(labels, columns, column_names, filename):
         Fp.write("\t".join(row) + "\n")
 
     Fp.close()
+
+def write_table_means(filename, column_names, labels, *values):
+    """
+    Make a table of mean values per label.
+
+    Inputs:
+    ======
+    filename:  output filename (without path)
+    column_names:  names of columns [list of strings]
+    labels:  list (same length as values)
+    *values:  arbitrary number of lists, each containing a value per label
+
+    Output:
+    ======
+    table_file:  table file
+
+    """
+    import os
+    from measure.measure_functions import mean_value_per_label
+
+    columns = []
+    for value_list in values:
+        mean_values, label_list = mean_value_per_label(value_list, labels)
+        columns.append(mean_values)
+
+    filename = os.path.join(os.getcwd(), filename)
+    write_table(label_list, columns, column_names, filename)
+
+    return filename
+
+def write_list(filename, List, header=""):
+    """
+    Write a list to a file, each line of which is a list element.
+    """
+    Fp = open(filename,'w')
+
+    if len(header):
+        Fp.write(header + '\n')
+
+    for Element in List:
+        Fp.write(str(Element) + '\n')
+
+    Fp.close()
+
+def string_vs_list_check(var):
+    """
+    Check type to make sure it is a string.
+
+    (if a list, return the first element)
+    """
+
+    # Check type:
+    if type(var) == str:
+        return var
+    elif type(var) == list:
+        return var[0]
+    else:
+        import os
+        os.error("Check format of " + var)
+
 
 """
 def read_lists(filename):

@@ -13,9 +13,9 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
-                  vertices, faces, depths, mean_curvatures, min_directions,
-                  min_fold_size=50, thr=0.5, min_distance=5, return_arrays=1):
+def extract_fundi(folds, n_folds, neighbor_lists,
+                  depth_file, mean_curvature_file, min_curvature_vector_file,
+                  min_fold_size=50, min_distance=5, thr=0.5):
     """
     Extract all fundi.
 
@@ -23,22 +23,19 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
 
     Inputs:
     ------
-    vertices:  [#vertices x 3]
-    faces:  vertices for polygons [#faces x 3] numpy array
-    depths:  depth values [#vertices x 1] numpy array
-    mean_curvatures:  mean curvature values [#vertices x 1] numpy array
-    min_directions:  directions of minimum curvature [3 x #vertices] numpy array
-    fraction_folds:  fraction of vertices considered to be folds
-    min_fold_size:  minimum fold size from which to find a fundus
-    thr:  likelihood threshold
+    folds: label indices for folds: [#vertices x 1] numpy array
+    n_folds:  #folds [int]
+    neighbor_lists: list of lists of neighboring vertex indices (see return_arrays)
+    depth_file: surface mesh file in VTK format with scalar values
+    mean_curvature_file: surface mesh file in VTK format with scalar values
+    min_curvature_vector_file: surface mesh file in VTK format with scalar values
+    min_fold_size: minimum fold size
     min_distance:  minimum distance
-    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
+    thr:  likelihood threshold
 
     Output:
     ------
     fundi:  numpy array of fundi
-    fundus_lists:  list of lists of vertex indices (see return_arrays)
-    likelihoods:  numpy array of likelihood values
 
     Calls:
     -----
@@ -55,17 +52,16 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
     from extract.fundi_hmmf.find_points import find_anchors
     from extract.fundi_hmmf.connect_points import connect_points
 
-    # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
-    if type(depths) != np.ndarray:
-        depths = np.array(depths)
-    if type(mean_curvatures) != np.ndarray:
-        mean_curvatures = np.asarray(mean_curvatures)
-    if type(min_directions) != np.ndarray:
-        min_directions = np.asarray(min_directions)
-    if type(vertices) != np.ndarray:
-        vertices = np.asarray(vertices)
+    from utils.io_vtk import load_scalar
+
+    # Convert folds array to a list of lists of vertex indices
+    index_lists_folds = [np.where(folds == i)[0].tolist()
+                         for i in range(1, n_folds+1)]
+
+    # Load depth and curvature values from VTK file
+    vertices, Faces, depths = load_scalar(depth_file, return_arrays=1)
+    vertices, Faces, mean_curvatures = load_scalar(mean_curvature_file, return_arrays=1)
+    min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold...
     print("Extract a fundus from each of {} folds...".format(n_folds))
@@ -122,7 +118,5 @@ def extract_fundi(index_lists_folds, n_folds, neighbor_lists,
 
     print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
 
-    if return_arrays:
-        return fundi, np.array(fundus_lists), likelihoods
-    else:
-        return fundi, fundus_lists, likelihoods
+    return fundi #np.array(fundus_lists), likelihoods
+                 #fundus_lists, likelihoods
