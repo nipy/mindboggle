@@ -73,35 +73,6 @@ def write_table(labels, columns, column_names, filename):
 
     Fp.close()
 
-def write_table_means(filename, column_names, labels, *values):
-    """
-    Make a table of mean values per label.
-
-    Inputs:
-    ======
-    filename:  output filename (without path)
-    column_names:  names of columns [list of strings]
-    labels:  list (same length as values)
-    *values:  arbitrary number of lists, each containing a value per label
-
-    Output:
-    ======
-    table_file:  table file
-
-    """
-    import os
-    from measure.measure_functions import mean_value_per_label
-
-    columns = []
-    for value_list in values:
-        mean_values, label_list = mean_value_per_label(value_list, labels)
-        columns.append(mean_values)
-
-    filename = os.path.join(os.getcwd(), filename)
-    write_table(label_list, columns, column_names, filename)
-
-    return filename
-
 def write_list(filename, List, header=""):
     """
     Write a list to a file, each line of which is a list element.
@@ -131,6 +102,40 @@ def string_vs_list_check(var):
     else:
         import os
         os.error("Check format of " + var)
+
+
+
+
+def write_table_means(filename, column_names, labels, *values):
+    """
+    Make a table of mean values per label.
+
+    NOTE:  untested
+
+    Inputs:
+    ======
+    filename:  output filename (without path)
+    column_names:  names of columns [list of strings]
+    labels:  list (same length as values)
+    *values:  arbitrary number of lists, each containing a value per label
+
+    Output:
+    ======
+    table_file:  table file
+
+    """
+    import os
+    from measure.measure_functions import mean_value_per_label
+
+    columns = []
+    for value_list in values:
+        mean_values, label_list = mean_value_per_label(value_list, labels)
+        columns.append(mean_values)
+
+    filename = os.path.join(os.getcwd(), filename)
+    write_table(label_list, columns, column_names, filename)
+
+    return filename
 
 
 """

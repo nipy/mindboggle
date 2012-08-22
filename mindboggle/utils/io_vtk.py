@@ -221,7 +221,7 @@ def load_VTK_line(Filename):
 
 def inside_faces(faces, indices):
     """
-    Remove surface mesh faces that do not contain three vertices in "indices"
+    Remove surface mesh faces whose three vertices are not all in "indices"
 
     Inputs:
     ======
@@ -233,6 +233,8 @@ def inside_faces(faces, indices):
     faces: reduced array of faces
 
     """
+    import numpy as np
+
     len_faces = len(faces)
     fs = frozenset(indices)
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
@@ -355,37 +357,37 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
 
     return vtk_file
 
-def write_scalar_subset(values, input_vtk, output_vtk):
+def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
     Load VTK format file and save a subset of (non-zero) scalars into a new file.
 
     Inputs:
     ======
-    values:  integer values for vertices (keep faces with non-zero values)
     input_vtk:  input VTK file [string]
     output_vtk:  output VTK file [string]
+    new_scalars:  new scalar values for VTK file
+    filter_scalars:  (optional)
+                     scalar values used to filter faces (non-zero are retained)
 
     """
     import os
-    import numpy as np
     from utils import io_vtk
 
-    # Load scalar values from VTK file
-    Points, Faces, Scalars = load_scalar(input_vtk, return_arrays=1)
+    # Load VTK file
+    Points, Faces, Scalars = io_vtk.load_scalar(input_vtk, return_arrays=1)
 
-    # Convert values array to a list of lists of vertex indices
-    n_values = len([int(x) for x in np.unique(values) if int(x) != 0])
-    u_values = np.unique(values)
-    index_lists = [np.where(values == u_value)[0].tolist()
-                   for u_value in u_values]
-    indices = [x for lst in index_lists for x in lst]
-
-    # Remove surface mesh faces that do not contain three vertices in "indices"
-    faces_indices = inside_faces(Faces, indices)
+    # Find indices to nonzero values
+    indices = range(len(Scalars))
+    if len(filter_scalars) > 0:
+        indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
+    else:
+        indices_nonzero = indices
+    # Remove surface mesh faces whose three vertices are not all in indices
+    faces_indices = io_vtk.inside_faces(Faces, indices_nonzero)
 
     # Lookup lists for saving to VTK format files
-    LUTs = [[int(x) for x in values]]
-    LUT_names = ['label' + str(u_value) for u_value in u_values]
+    LUTs = [new_scalars]
+    LUT_names = ['scalars']
 
     # Output VTK file to current working directory
     output_vtk = os.path.join(os.getcwd(), output_vtk)
@@ -393,7 +395,7 @@ def write_scalar_subset(values, input_vtk, output_vtk):
     # Write VTK file
     Fp = open(output_vtk,'w')
     io_vtk.write_header(Fp)
-    io_vtk.write_points(Fp, Points[indices, :])
+    io_vtk.write_points(Fp, Points)
     io_vtk.write_vertices(Fp, indices)
     io_vtk.write_faces(Fp, faces_indices)
     if len(LUTs) > 0:
@@ -407,6 +409,44 @@ def write_scalar_subset(values, input_vtk, output_vtk):
 
     return output_vtk
 
+def write_mean_scalar_table(filename, column_names, labels, *shape_files):
+    """
+    Make a table of mean values per label per measure.
+
+    Inputs:
+    ======
+    filename:  output filename (without path)
+    column_names:  names of columns [list of strings]
+    labels:  list (same length as values)
+    *shape_files:  arbitrary number of vtk files with scalar values
+
+    Output:
+    ======
+    filename:  table file name
+
+    """
+    import os
+    from utils.io_vtk import load_scalar
+    from utils.io_file import write_table
+    from measure.measure_functions import mean_value_per_label
+
+    columns = []
+    for shape_file in shape_files:
+
+        Points, Faces, Scalars = load_scalar(shape_file, return_arrays=1)
+
+        mean_values, label_list = mean_value_per_label(Scalars, labels)
+
+        columns.append(mean_values)
+
+    filename = os.path.join(os.getcwd(), filename)
+    write_table(label_list, columns, column_names, filename)
+
+    return filename
+
+
+
+"""
 def write_mean_scalar_table(filename):
 
     import numpy as np
@@ -425,7 +465,7 @@ def write_mean_scalar_table(filename):
         Table.append(Row)
 
     return Table
-
+"""
 
 #==========================================
 # Functions specific to Mindboggle features
@@ -530,13 +570,13 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     Example
     ===========
     import random
-    import io_vtk
-    Points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
-    Vertices = [1,2,3,0]
-    Liness = [[1,2],[0,3]]
+    from utils import io_vtk
+    Points = [[random.random() for i in range(3)] for j in xrange(5)]
+    Vertices = [0,1,2,3,4]
+    Faces = [[1,2,3],[0,3,4]]
     LUT_names = ['curv','depth']
-    LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
-    io_vtk.write_scalars('test.vtk',Points, Vertices, Lines, LUTs=LUTs,
+    LUTs=[[random.random() for i in range(6)] for j in range(2)]
+    io_vtk.write_scalars('test.vtk',Points, Vertices, Faces, LUTs=LUTs,
                       LUT_names=LUT_names)
     """
 
