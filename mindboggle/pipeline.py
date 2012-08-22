@@ -47,15 +47,16 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import load_scalar, write_scalar_subset
+from utils.io_vtk import load_scalar, write_scalar_subset, \
+                         write_mean_scalar_table
 from utils.io_file import read_columns, write_table_means
-from utils.io_free import labels_to_annot, labels_to_volume, \
-     surf_to_vtk, annot_to_vtk, vtk_to_label_files
+from utils.io_free import labels_to_annot, labels_to_volume, surf_to_vtk, \
+                          annot_to_vtk, vtk_to_label_files
 from label.multiatlas_labeling import register_template,\
-     transform_atlas_labels, majority_vote_label
+                               transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
 from measure.measure_functions import compute_depth, compute_curvature, \
-     mean_value_per_label
+                                      mean_value_per_label
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
 from label.evaluate_labels import measure_surface_overlap, \
@@ -371,27 +372,32 @@ fundi.inputs.thr = thr
 #-----------------------------------------------------------------------------
 # Write folds and fundi to VTK files
 #-----------------------------------------------------------------------------
-save_folds = True
-save_fundi = True
-if save_folds:
+do_save_folds = True
+do_save_fundi = True
+if do_save_folds:
     save_folds = Node(name='Save_folds',
                       interface = Fn(function = write_scalar_subset,
-                                     input_names = ['values',
-                                                    'input_vtk',
-                                                    'output_vtk'],
+                                     input_names = ['input_vtk',
+                                                    'output_vtk',
+                                                    'new_scalars',
+                                                    'filter_scalars'],
                                      output_names = ['output_vtk']))
-    featureflow.connect([(folds, save_folds, [('folds','values')])])
+    featureflow.add_nodes([save_folds])
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Save_folds.input_vtk')])])
     save_folds.inputs.output_vtk = 'folds.vtk'
+    featureflow.connect([(folds, save_folds, [('folds','new_scalars')])])
+    featureflow.connect([(folds, save_folds, [('folds','filter_scalars')])])
     mbflow.connect([(featureflow, sink,
                      [('Save_folds.output_vtk','features.@folds')])])
-if save_fundi:
+if do_save_fundi:
     save_fundi = save_folds.clone('Save_fundi')
-    featureflow.connect([(fundi, save_fundi, [('fundi','values')])])
+    featureflow.add_nodes([save_fundi])
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Save_fundi.input_vtk')])])
     save_fundi.inputs.output_vtk = 'fundi.vtk'
+    featureflow.connect([(fundi, save_fundi, [('fundi','new_scalars')])])
+    featureflow.connect([(folds, save_fundi, [('folds','filter_scalars')])])
     mbflow.connect([(featureflow, sink,
                      [('Save_fundi.output_vtk','features.@fundi')])])
 
@@ -402,12 +408,12 @@ if save_fundi:
 ##############################################################################
 shapeflow = Workflow(name='Shape_analysis')
 if include_free_measures:
-    measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
-                'gauss_curvature', 'thickness', 'convexity']
+    column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
+                    'max_curvature', 'min_curvature', 'thickness', 'convexity']
 else:
-    measures = ['depth', 'mean_curvature', 'min_curvature', 'max_curvature',
-                'gauss_curvature']
-measure_file_vars = [x + '_file' for x in measures]
+    column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
+                    'max_curvature', 'min_curvature']
+measure_file_vars = [x + '_file' for x in column_names[1::]]
 
 #-----------------------------------------------------------------------------
 # Labeled surface patch shapes
@@ -427,10 +433,10 @@ labeltable.inputs.column_names = measures
 # Segmented sulcus fold shapes
 #-----------------------------------------------------------------------------
 foldtable = Node(name='Fold_table',
-                      interface = Fn(function = write_table_means,
+                      interface = Fn(function = write_mean_scalar_table,
                                      input_names = input_names,
                                      output_names = ['filename']))
-foldtable.inputs.column_names = measures
+foldtable.inputs.column_names = column_names
 #foldtable = labeltable.clone('Fold_table')
 shapeflow.add_nodes([foldtable])
 foldtable.inputs.filename = 'fold_shapes.txt'
@@ -442,14 +448,14 @@ mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.mean_curvature_file',
                    'Fold_table.mean_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-                 [('Curvature.min_curvature_file',
-                   'Fold_table.min_curvature_file')])])
+                 [('Curvature.gauss_curvature_file',
+                   'Fold_table.gauss_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.max_curvature_file',
                    'Fold_table.max_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-                 [('Curvature.gauss_curvature_file',
-                   'Fold_table.gauss_curvature_file')])])
+                 [('Curvature.min_curvature_file',
+                   'Fold_table.min_curvature_file')])])
 if include_free_measures:
     mbflow.connect([(surf, shapeflow,
                      [('thickness_files', 'Fold_table.thickness_file')])])
@@ -469,14 +475,14 @@ mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.mean_curvature_file',
                    'Fundus_table.mean_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-                 [('Curvature.min_curvature_file',
-                   'Fundus_table.min_curvature_file')])])
+                 [('Curvature.gauss_curvature_file',
+                   'Fundus_table.gauss_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.max_curvature_file',
                    'Fundus_table.max_curvature_file')])])
 mbflow.connect([(measureflow, shapeflow,
-                 [('Curvature.gauss_curvature_file',
-                   'Fundus_table.gauss_curvature_file')])])
+                 [('Curvature.min_curvature_file',
+                   'Fundus_table.min_curvature_file')])])
 if include_free_measures:
     mbflow.connect([(surf, shapeflow,
                      [('thickness_files', 'Fundus_table.thickness_file')])])
