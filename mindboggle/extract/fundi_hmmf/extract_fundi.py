@@ -52,15 +52,16 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     from extract.fundi_hmmf.find_points import find_anchors
     from extract.fundi_hmmf.connect_points import connect_points
 
-    from utils.io_vtk import load_scalar
+    from utils.io_vtk import load_scalar, inside_faces
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
                          for i in range(1, n_folds+1)]
 
-    # Load depth and curvature values from VTK file
+    # Load depth and curvature values from VTK and text files
     vertices, Faces, depths = load_scalar(depth_file, return_arrays=1)
-    vertices, Faces, mean_curvatures = load_scalar(mean_curvature_file, return_arrays=1)
+    vertices, Faces, mean_curvatures = load_scalar(mean_curvature_file,
+                                                   return_arrays=1)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold...
@@ -101,7 +102,11 @@ def extract_fundi(folds, n_folds, neighbor_lists,
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
 
-                H = connect_points(indices_anchors, faces, indices_fold,
+                # Remove surface mesh faces whose three vertices
+                # are not all in "indices_fold"
+                faces_folds = inside_faces(Faces, indices_fold)
+
+                H = connect_points(indices_anchors, faces_folds, indices_fold,
                                    likelihoods_fold, thr, neighbor_lists)
                 fundus_lists.append(H.tolist())
                 print('      ...Connected {} fundus points ({:.2f} seconds)'.
