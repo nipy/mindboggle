@@ -42,9 +42,9 @@ label Bounds:
         """
         Initialize attributes of object.
         """
-        self.Vertices = self.Faces = self.Labels = 0
-        self.has_vertices = self.has_faces = self.has_labels = 0
-        self.num_vertices = self.num_faces = 0
+        self.Points = self.Faces = self.Labels = 0
+        self.has_points = self.has_faces = self.has_labels = 0
+        self.num_points = self.num_faces = 0
 
         # For label propagation
         self.seed_labels = 0
@@ -59,22 +59,22 @@ label Bounds:
     # ------------------------------------------------------------------------
     ##########################################################################
 
-    def assign_vertices(self, vertices):
+    def assign_points(self, points):
         """
         Assign 3D coordinates of vertices as 2d array.
 
-        - Check to make sure that Vertices were inputted as a 2D array.
-        - Check to make sure that Vertices are of dimension <= 3
+        - Check to make sure that Points were inputted as a 2D array.
+        - Check to make sure that Points are of dimension <= 3
         """
-        vertices = np.asarray(vertices)
-        if vertices.ndim != 2:
+        points = np.asarray(points)
+        if points.ndim != 2:
             print('Please enter data as a 2D array.')
-        elif vertices.shape[1] > 3:
+        elif points.shape[1] > 3:
             print('Please provide data of dimension <= 3.')
         else:
-            self.Vertices = vertices
-            self.has_vertices = 1
-            self.num_vertices = self.Vertices.shape[0]
+            self.Points = points
+            self.has_points = 1
+            self.num_points = self.Points.shape[0]
         return 0
 
     def assign_faces(self, faces):
@@ -88,8 +88,8 @@ label Bounds:
             print('Please provide VTK polylines, triangles or tetrahedra.')
         elif not all([len(set(list(i)))==faces.shape[1] for i in faces]):
             print('Some faces reference the same vertex multiple times.')
-        elif np.amax(faces) >=  self.num_vertices:
-            print('Faces refer to non-existent vertices. Be advised.')
+        elif np.amax(faces) >=  self.num_points:
+            print('Faces refer to non-existent points. Be advised.')
         else:
             self.Faces = faces
             self.has_faces = 1
@@ -98,12 +98,12 @@ label Bounds:
 
     def assign_labels(self, labels):
         """
-        Assign labels to vertices as 1d array.
+        Assign labels to points as 1d array.
         """
         labels = np.asarray(labels)
         if labels.ndim != 1:
             print('Please enter labels as a 1D array.')
-        elif labels.shape[0] != self.num_vertices:
+        elif labels.shape[0] != self.num_points:
             print('Please provide the appropriate number of labels.')
         else:
             self.Labels = np.asarray(labels)
@@ -115,7 +115,7 @@ label Bounds:
 
         return 0
 
-    def load_surface(self, fname, check=1):
+    def load_vtk_surface(self, fname, check=1):
         """
         Load VTK surface file with labels as the first scalar type (if any scalars).
         """
@@ -123,10 +123,10 @@ label Bounds:
             print('Please enter the file name as a string.')
         else:
             Data = pyvtk.VtkData(fname)
-            self.Vertices = np.asarray(Data.structure.points)
+            self.Points = np.asarray(Data.structure.points)
             self.Faces = np.asarray(Data.structure.polygons)
-            self.has_vertices = self.has_faces = 1
-            self.num_vertices = self.Vertices.shape[0]
+            self.has_points = self.has_faces = 1
+            self.num_points = self.Points.shape[0]
             self.num_faces = self.Faces.shape[0]
 
             if Data.point_data.data != []:
@@ -136,15 +136,15 @@ label Bounds:
                 self.set_manual_labels = np.sort(np.asarray(list(set(self.Labels))))
                 self.num_manual_labels = len(self.set_manual_labels)
 
-    def load_polylines(self, fname):
+    def load_vtk_polylines(self, fname):
         """
         Load VTK polylines file.
         """
         Data = pyvtk.VtkData(fname)
 
-        new_vertices = np.asarray(Data.structure.points)
-        if new_vertices.shape != self.Vertices.shape:
-            print('Vertices in the polylines file do not match vertices in the original file!')
+        new_points = np.asarray(Data.structure.points)
+        if new_points.shape != self.Points.shape:
+            print('Points in the polylines file do not match points in the original file!')
         try:
             self.Polylines = np.asarray(Data.structure.lines)
         except:
@@ -153,8 +153,8 @@ label Bounds:
 
         self.polyline_elements = np.asarray(list(set(self.Polylines.flatten())))
 
-        if np.amax(self.Polylines) >= self.num_vertices:
-            print('The polylines reference vertices which are not in the file.')
+        if np.amax(self.Polylines) >= self.num_points:
+            print('The polylines reference points which are not in the file.')
 
         self.polylines_file = fname
 
@@ -162,14 +162,14 @@ label Bounds:
         """
         Create VTK file from data.
         """
-        if not(self.has_vertices and self.has_faces):
-            print('Please enter vertices and faces.')
+        if not(self.has_points and self.has_faces):
+            print('Please enter points and faces.')
             return
 
         if not self.has_labels:
             self.Labels = None
 
-        write_scalars(fname, self.Vertices, range(len(self.Vertices)),
+        write_scalars(fname, self.Points, range(len(self.Points)),
                          self.Faces, [self.Labels],
                          label_type=[label], msg=header)
         print('VTK file was successfully created as: {}'.format(fname))
@@ -182,37 +182,37 @@ label Bounds:
         """
         Check whether VTK data is well formed.
 
-        - Check that number of labels corresponds to number of vertices.
-        - Check that numbers in faces don't exceed number of vertices.
+        - Check that number of labels corresponds to number of points.
+        - Check that numbers in faces don't exceed number of points.
         """
-        if not self.has_vertices:
-            print('There are no vertices!')
+        if not self.has_points:
+            print('There are no points!')
         if not self.has_faces:
             print('There are no faces!')
 
-        if self.has_labels and self.has_vertices:
-            if self.Labels.size != self.num_vertices:
+        if self.has_labels and self.has_points:
+            if self.Labels.size != self.num_points:
                 print('There is a mismatch between the number of labels provided \
-                        and the number of vertices in the object.')
-                print('There are {0} vertices and {1} labels. Please fix'.format(
-                      self.Vertices.shape[0],self.Labels.size))
+                        and the number of points in the object.')
+                print('There are {0} points and {1} labels. Please fix'.format(
+                      self.Points.shape[0],self.Labels.size))
 
-        if self.has_vertices and self.has_labels:
+        if self.has_points and self.has_labels:
             max_faces_num = np.amax(self.Faces)
-            if max_faces_num >= self.num_vertices:
+            if max_faces_num >= self.num_points:
                 print('The faces contains reference to a non-existent vertex. Please fix.')
 
         return 0
 
-    def highlight_vertices(self, index_list, filename, complete_list=False):
+    def highlight_vtk_vertices(self, index_list, filename, complete_list=False):
         """
         Create VTK file highlighting the desired vertices.
 
         Input
         =====
-        index_list: np array or list (of indixes of vertices)
+        index_list: np array or list (of indices of vertices)
         filename: string (for VTK file)
-        complete_list: boolean (full self.num_vertices list given, not indices?)
+        complete_list: boolean (full self.num_points list given, not indices?)
 
         Return
         ======
@@ -226,12 +226,12 @@ label Bounds:
             labels = index_list
             labels[labels>0] = 1
 
-        write_scalars(filename, self.Vertices, range(len(self.Vertices)),
+        write_scalars(filename, self.Points, range(len(self.Points)),
                          self.Faces, [labels], label_type=['Labels'])
 
         return filename
 
-    def highlight_label(self, label):
+    def highlight_vtk_label(self, label):
         """
         Highlight a set of vertices which belong to a specified label.
 
@@ -244,7 +244,7 @@ label Bounds:
 
         filename = 'highlighted'+str(label)+'.vtk'
 
-        write_scalars(filename, self.Vertices, indices,
+        write_scalars(filename, self.Points, indices,
                          self.Faces, [self.Labels])
 
 
@@ -272,7 +272,7 @@ label Bounds:
             print('Please add labels.')
             return
 
-        self.seed_labels = np.zeros(self.num_vertices)
+        self.seed_labels = np.zeros(self.num_points)
 
         # To initialize with vertices flanking polylines,
         # find all vertices that are part of a triangle that includes
@@ -301,7 +301,7 @@ label Bounds:
                 print('Please enter a fractional number less than or equal to 1.')
                 return
             randoms = np.array([np.mod(i, int(1.0/fraction))
-                                for i in xrange(self.num_vertices)])
+                                for i in xrange(self.num_points)])
             self.seed_labels[randoms==0] = 1
 
         # Replace the 1s in self.seed_labels with the seed label values
@@ -309,13 +309,13 @@ label Bounds:
 
         # Provide some statistics for what was done
         self.num_seed_labels = len(self.seed_labels[self.seed_labels==1])
-        self.percent_seed_labels = (self.num_seed_labels+0.0) / self.num_vertices * 100
+        self.percent_seed_labels = (self.num_seed_labels+0.0) / self.num_points * 100
 
         print('Percentage of seed labels: {0}'.format(self.percent_seed_labels))
 
         return self.seed_labels
 
-    def get_label_matrix(self):
+    def build_label_matrix(self):
         """
         Construct an n x C array of vertex label assignment values.
 
@@ -379,15 +379,15 @@ label Bounds:
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        self.affinity_matrix = cw.compute_weights(self.Vertices, self.Faces,
+        self.affinity_matrix = cw.compute_weights(self.Points, self.Faces,
                                                   kernel=kernel, sigma=sigma,
                                                   add_to_graph=False)
 
         # Step 2. Transform column of labels into n x C matrix, one column per label
         if not realign:
-            self.get_label_matrix()
+            self.build_label_matrix()
         else:
-            self.get_realignment_matrix()
+            self.build_label_segment_matrix()
 
         # Step 3. Propagate Labels!
         if method == "weighted_average":
@@ -418,7 +418,7 @@ label Bounds:
 
         Return
         ======
-        self.max_prob_label: np array (size num_vertices,
+        self.max_prob_label: np array (size num_points,
                              containing the most probable label for each vertex)
         self.max_prob_file: string (vtk file containing highest probability labels)
 
@@ -436,16 +436,16 @@ label Bounds:
         max_col = np.argmax(self.probabilistic_assignment,axis=1)
 
         # Define an array called max_prob_label to store the final values
-        self.max_prob_label = np.zeros(self.num_vertices)
+        self.max_prob_label = np.zeros(self.num_points)
 
         # Use the array of unique, sorted labels to convert this matrix
         # back to the original labeling; max_col[i] is the temporary label number
-        for i in self.num_vertices:
+        for i in self.num_points:
             self.max_prob_label[i] = self.unique_labels[max_col[i]]
 
         # Visualize results by writing to a VTK file
         self.max_prob_file = 'max_prob_visualization.vtk'
-        write_scalars(self.max_prob_file, self.Vertices, self.Faces, self.max_prob_label)
+        write_scalars(self.max_prob_file, self.Points, self.Faces, self.max_prob_label)
 
         return self.max_prob_label, self.max_prob_file
 
@@ -453,7 +453,7 @@ label Bounds:
         """
         Compare the results of label propagation to the original VTK file.
         """
-        self.percent_labeled_correctly = (np.sum(self.max_prob_label == self.Labels) + 0.0) / self.num_vertices
+        self.percent_labeled_correctly = (np.sum(self.max_prob_label == self.Labels) + 0.0) / self.num_points
         return self.percent_labeled_correctly
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -586,14 +586,14 @@ label Bounds:
                     # set_of_interest = np.array([0,101,202,max_iters-2,max_iters-1])
 
                     """ Let's define a file for output.
-                    We have the vertices and facesing, and we have the labels which are found in column.todense().flatten()."""
+                    We have the vertices and faces, and we have the labels which are found in column.todense().flatten()."""
 
                     filename = str(label)+'_'+str(counter)+'.vtk'
 
                     if not np.mod(counter,1000):
-                        LABELS = np.zeros(self.num_vertices)
+                        LABELS = np.zeros(self.num_points)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
-                        write_scalars(filename, self.Vertices, self.Faces, LABELS)
+                        write_scalars(filename, self.Points, self.Faces, LABELS)
 
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
                 Y_hat_next[restore_indices, 0] = restore_values # reset
@@ -665,9 +665,9 @@ label Bounds:
 
         """
         if not realigned_labels:
-            self.label_boundary = np.zeros(self.num_vertices)
+            self.label_boundary = np.zeros(self.num_points)
         else:
-            self.Rlabel_boundary = np.zeros(self.num_vertices)
+            self.Rlabel_boundary = np.zeros(self.num_points)
 
         # Loop through triangles
         for triangle in self.Faces:
@@ -692,10 +692,10 @@ label Bounds:
 
         # We can now output a file to show the boundary.
         if not realigned_labels:
-            write_scalars(output_filename,self.Vertices,self.Faces,self.label_boundary)
+            write_scalars(output_filename,self.Points,self.Faces,self.label_boundary)
             self.label_boundary_file = output_filename
         else:
-            write_scalars(output_filename,self.Vertices,self.Faces,self.Rlabel_boundary)
+            write_scalars(output_filename,self.Points,self.Faces,self.Rlabel_boundary)
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -793,12 +793,16 @@ label Bounds:
         for value in self.label_boundary_segments.values():
             colored_segments[value] = color
             color += 1
-        write_scalars(self.highlighted_segment_file, self.Vertices,self.Faces,colored_segments)
+        write_scalars(self.highlighted_segment_file, self.Points,self.Faces,colored_segments)
 
         return self.label_boundary_segments, self.segment_file.name, self.highlighted_segment_file
 
     def find_intersections(self, segment, endpoint):
-        """ Find the terminal vertices which are at the intersection of the polylines and manual label boundary.
+        """
+        Find the terminal vertices which are at the intersection
+        of the polylines and label boundary.
+
+#        NOTE: FIX -- no endpoints
 
         Parameters
         ==========
@@ -809,11 +813,6 @@ label Bounds:
         =======
         intersection: list (two outermost vertices of the label boundary segment which intersect the polylines)
                         If there are not two intersection, return -1s in place
-
-        NOTE: WORKING?
-
-        Explanation
-        ===========
 
         """
 
@@ -846,15 +845,16 @@ label Bounds:
             labels = np.zeros(self.Labels.shape)
             labels[segment] = 100
             labels[endpoint] = 200
-            write_scalars('debug_intersections.vtk',self.Vertices, self.Faces, labels)
+            write_scalars('debug_intersections.vtk',self.Points, self.Faces, labels)
             raw_input("Check this out...")
 
         return intersection
 
-    def get_realignment_matrix(self):
-        """ Constructs a label matrix for realignment protocol.
+    def build_label_segment_matrix(self):
+        """
+        Constructs a label segment matrix.
 
-        Re: get_label_matrix()
+        NOTE:  Useful if using label propagation for realignment.
 
         Parameters
         ==========
@@ -882,7 +882,7 @@ label Bounds:
         self.num_segments = len(self.label_boundary_segments)
 
         # Step 1. Construct n x self.num_segments matrix of labels - concurrently produce label mapping dictionary
-        self.realignment_matrix = np.zeros((self.num_vertices,self.num_segments))
+        self.realignment_matrix = np.zeros((self.num_points,self.num_segments))
 
         self.realignment_mapping = {}
         label = 0
@@ -899,7 +899,8 @@ label Bounds:
         return self.realignment_matrix, self.realignment_mapping
 
     def same_boundary(self, vertex1, vertex2):
-        """ Determines whether two label boundary vertices belong to the same label boundary.
+        """
+        Determines whether two label boundary vertices belong to the same label boundary.
 
         Parameters
         ==========
@@ -918,8 +919,15 @@ label Bounds:
 
         return same
 
-    def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8, lb_fundus_threshold = 16, num_good_vertices = 5, eps=1E-7, spread_tol = 6, pickled_filename = '/home/eli/Desktop/pickled_distance_matrix.pkl'):
-        """ Determines which label boundary segments should propagate their labels.
+    def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8,
+                                       lb_fundus_threshold = 16,
+                                       num_good_vertices = 5, eps=1E-7,
+                                       spread_tol = 6,
+                                       pickled_filename = 'pickled_distance_matrix.pkl'):
+        """
+        Determine which label boundary segments should propagate their labels.
+
+#       NOTE:  Face validity but not directed to do what we need at present.
 
         Parameters
         ==========
@@ -951,7 +959,7 @@ label Bounds:
             tmp = open(pickled_filename, 'rb')
             distance_matrix = pickle.load(tmp)
         else:
-            distance_matrix = np.asarray([np.linalg.norm(self.Vertices[x1] - self.Vertices[x2])
+            distance_matrix = np.asarray([np.linalg.norm(self.Points[x1] - self.Points[x2])
                                           for x1 in self.polyline_elements
                                           for x2 in self.label_boundary]).reshape((self.polyline_elements.size, -1))
             tmp = open('/home/eli/Desktop/pickled_distance_matrix.pkl', 'wb')
@@ -970,7 +978,7 @@ label Bounds:
               closest_label_boundary.shape, closest_label_boundary[:10]))
 
         dir = os.getcwd()
-        self.highlight_vertices(self.label_boundary[closest_label_boundary], dir + '/close_vertices.vtk')
+        self.highlight_vtk_vertices(self.label_boundary[closest_label_boundary], dir + '/close_vertices.vtk')
 
         closest_polylines = np.argsort(distance_matrix, 0)[0,:]
 
@@ -1003,7 +1011,7 @@ label Bounds:
         print('Got within distance. Num satisfy is {0}. First few are {1}'.format(
               within_distance.nonzero()[0].size, within_distance[:10]))
 
-        self.highlight_vertices(self.label_boundary[closest_label_boundary[within_distance==1]],
+        self.highlight_vtk_vertices(self.label_boundary[closest_label_boundary[within_distance==1]],
                                 dir + '/close_distance.vtk')
 
         within_proportion = np.bitwise_or((closest_distances / second_closest_distances > proportion),
@@ -1011,7 +1019,7 @@ label Bounds:
         print('Got within proportion. Num satisfy is {0}. First few are {1}'.format(
               within_proportion.nonzero()[0].size, within_proportion[:10]))
 
-        self.highlight_vertices([self.label_boundary[closest_label_boundary[within_proportion==1]]],
+        self.highlight_vtk_vertices([self.label_boundary[closest_label_boundary[within_proportion==1]]],
                                 dir + '/good_proportion.vtk')
 
         # The following array stores the indices of the label boundary vertices which satisfy the above properties.
@@ -1019,7 +1027,7 @@ label Bounds:
                                                                                                  within_proportion))]]
         print('Got satisfy distances. Bounds is {0}. They are {1}'.format(satisfy_distances.shape, satisfy_distances))
 
-        self.highlight_vertices(satisfy_distances, dir + '/satisfy_distance.vtk')
+        self.highlight_vtk_vertices(satisfy_distances, dir + '/satisfy_distance.vtk')
 
         print('Currently, {0} vertices satisfy the distance requirement'.format(satisfy_distances.size))
 
@@ -1040,7 +1048,7 @@ label Bounds:
                 for j in xrange(top_five_lbvertices.size):
                     v1 = top_five_lbvertices[i]
                     v2 = top_five_lbvertices[j]
-                    spread_matrix[i,j] = np.linalg.norm(self.Vertices[v1] - self.Vertices[v2])
+                    spread_matrix[i,j] = np.linalg.norm(self.Points[v1] - self.Points[v2])
 
             spread = np.max(spread_matrix)
             if spread > spread_tol:
@@ -1049,7 +1057,7 @@ label Bounds:
 
                 #### AH! I'm changing that over which I'm iterating! Fix.
 
-        self.highlight_vertices(satisfy_distances, dir + '/satisfy_distance_pruned.vtk')
+        self.highlight_vtk_vertices(satisfy_distances, dir + '/satisfy_distance_pruned.vtk')
 
         print('After pruning, {0} vertices satisfy the distance requirement'.format(satisfy_distances.size))
 
@@ -1062,7 +1070,7 @@ label Bounds:
                     satisfy_distances = np.append(satisfy_distances,lbvertex)
                     print('added vertex: {}'.format(lbvertex))
 
-        self.highlight_vertices(satisfy_distances, dir + '/satisfy_distance_pruned_augmented.vtk')
+        self.highlight_vtk_vertices(satisfy_distances, dir + '/satisfy_distance_pruned_augmented.vtk')
         print('After augmenting, {0} vertices satisfy the distance requirement'.format(satisfy_distances.size))
 
         # Now we will see how many vertices from each label boundary segment satisfy the properties.
@@ -1083,7 +1091,7 @@ label Bounds:
                 vertices_to_highlight[value] = 1
                 print('______________Preserving Label Boundary Segment_____________')
 
-        write_scalars(dir + '/propagating_regions.vtk',self.Vertices,self.Faces,vertices_to_highlight)
+        write_scalars(dir + '/propagating_regions.vtk',self.Points,self.Faces,vertices_to_highlight)
 
         return self.realignment_matrix
 
@@ -1091,7 +1099,8 @@ label Bounds:
         """
         Find polyline vertices which intersect label boundary, and determine whether they belong to the same fundus curve.
 
-        NOTE: WORKING?
+#        NOTE:  Requires sequential vertices for fundus or label boundary
+#               WORKING?
 
         Runs functions: self.find_label_boundary_segments() - if necessary
 
@@ -1153,15 +1162,16 @@ label Bounds:
         return self.label_boundary_segments
 
     def neighbors(self, vertex):
-        """ This method will accomplish the simple task of taking a vertex as input and returning
-        an np array of the vertex's neighbors, as defined by self.Faces.
+        """
+        Take a vertex as input and return an array of the vertex's neighbors,
+        as defined by self.Faces.
         """
         # First check to see if the neighbors matrix was constructed.
         if not self.found_neighbors:
 
             print('Constructing neighborhood function.')
 
-            self.Neighbors = lil_matrix((self.num_vertices, self.num_vertices))
+            self.Neighbors = lil_matrix((self.num_points, self.num_points))
 
             for row in self.Faces:
                 self.Neighbors[row[0], row[1]] = self.Neighbors[row[1], row[0]] = 1
@@ -1179,9 +1189,13 @@ label Bounds:
     # ------------------------------------------------------------------------
     ##########################################################################
 
-    def realign_label_boundaries(self, surface_file, polylines_file, pickled_segments_file, label_boundary_filename,
-                                 output_file_regions, output_file_boundaries, max_iters):
-        """ Complete method to realign the label boundaries. Calls all necessary subroutines.
+    def realign_label_boundaries(self, surface_file, polylines_file,
+                                 pickled_segments_file, label_boundary_filename,
+                                 output_file_regions, output_file_boundaries,
+                                 max_iters):
+        """
+        Complete method to realign the label boundaries.
+        Calls all necessary subroutines.
 
         Parameters
         ==========
@@ -1200,8 +1214,8 @@ label Bounds:
         """
 
         t0 = time()
-        self.load_surface(surface_file)
-        self.load_polylines(polylines_file)
+        self.load_vtk_surface(surface_file)
+        self.load_vtk_polylines(polylines_file)
         print('Imported Data in: {}'.format(time() - t0))
 
         self.initialize_seed_labels(keep='label_boundary', output_filename = label_boundary_filename)
@@ -1220,14 +1234,18 @@ label Bounds:
 
     def assign_realigned_labels(self, filename, threshold = 0.5):
         """
-        Determines which vertices should be reassigned a new label from realignment propagation; visualizes results.
+        Determines which vertices should be reassigned a new label
+        from realignment propagation; visualizes results.
 
-        This method takes self.probabilistic_assignment and determines which vertices should be relabeled.
-        It outputs a separate array, self.RLabels, which contains one label for each vertex.
+        This method takes self.probabilistic_assignment and determines
+        which vertices should be relabeled.
+        It outputs a separate array, self.RLabels, which contains one label
+        for each vertex.
         The labels are those of the initial numbering.
         Care must be taken to only reassign labels when appropriate.
 
-        First try: reassign labels to anything which is in (0,1] to the second value in the tuple in the key of
+        First try: reassign labels to anything which is in (0,1] to the second
+        value in the tuple in the key of
         the dictionary self.label_boundary_segments.
 
         NOTE: assignment tricky -- based on label segments NOT labels
@@ -1238,7 +1256,8 @@ label Bounds:
 
         Return
         ======
-        self.RLabels: np array (of size num_vertices which contains the most likely realigned label for each vertex)
+        self.RLabels: np array (of size num_points which contains the most
+        likely realigned label for each vertex)
         self.RLabels_file: string (vtk file containing highest probability labels)
 
         """
@@ -1255,7 +1274,8 @@ label Bounds:
         # Collect consensus labels...
 #        self.get_consensus_labels(0,0)
 
-        # go column by column, find those entries which meet criterion, map to tuple, select second entry
+        # go column by column, find those entries which meet criterion,
+        # map to tuple, select second entry
         counter = 0
         vertices_to_change = {}
 
@@ -1270,17 +1290,17 @@ label Bounds:
         print('Currently there are {0} regions which are going to be relabeled.'.format(len(vertices_to_change)))
 
         # Check relevance
-        vertices_to_change = self.check_relevance(vertices_to_change)
+        vertices_to_change = self.check_for_polylines(vertices_to_change)
 
         print('There are {0} regions which are going to be relabeled.'.format(len(vertices_to_change)))
 
         # Resolve ambiguities
-        # vertices_to_change = self.resolve_overlaps(vertices_to_change)
+        # vertices_to_change = self.resolve_label_ambiguity(vertices_to_change)
 
         # print('After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(vertices_to_change))
 
         # Resolve two-directional changes...
-        # vertices_to_change = self.resolve_directionality(vertices_to_change)
+        # vertices_to_change = self.resolve_label_front(vertices_to_change)
 
         # print('After resolving bidirectionality, there are {0} regions which are going to be relabeled:'.format(len(vertices_to_change))
 
@@ -1292,25 +1312,37 @@ label Bounds:
 
         self.RLabels_file = filename
 
-        write_scalars(self.RLabels_file, self.Vertices, self.Faces, self.RLabels)
+        write_scalars(self.RLabels_file, self.Points, self.Faces, self.RLabels)
 
         return self.RLabels, self.RLabels_file
 
-    def check_relevance(self, dict_of_vertices, threshold = 15):
+    def check_for_polylines(self, dict_of_vertices, threshold = 15):
         """
-        Check whether label reassignment contains sufficient number of vertices which border polylines.
+        Check which groups of vertices contain a sufficient number that border polylines.
 
-        If the proposed label reassignment does not want to change any polyline vertices, then this is probably
-        not a good bunch of vertices to change!
-
+        Problem:  A group of vertices is considered for label reassignment
+                  but they might not be situated between a label boundary
+                  and a polyline representing a label-delimiting feature
+                  (such as a fundus in the brain cortex).
+        Solution: Here we check to see if the vertices include a sufficient
+                  number that flank polylines.  If the proposed label
+                  reassignment would not change many polyline vertices,
+                  then this is probably not a good group of vertices to change.
+                  (Remove them from the input dictionary.)
         Input
         =====
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label wants to redefine)
-        threshold: int (minimum number of vertices which must also be part of the polylines boundary)
+        dict_of_vertices: dict
+            key:  label index
+            value:  list of vertices under consideration for reassignment to label
+
+        threshold: int (minimum number of vertices that must also be part
+                        of a polylines boundary)
 
         Return
         ======
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label should redefine)
+        dict_of_vertices: dict (subset of the input dict)
+            key:  label index
+            value:  list of vertices to be reassigned to the label
 
         """
         self.find_polylines_flanks()
@@ -1337,9 +1369,9 @@ label Bounds:
 
         for triangles in self.Faces:
             vertex0, vertex1, vertex2 = triangles[0], triangles[1], triangles[2]
-            num_vertices_in_polylines = (vertex0 in self.polyline_elements) + \
+            num_points_in_polylines = (vertex0 in self.polyline_elements) + \
                                         (vertex1 in self.polyline_elements) + (vertex2 in self.polyline_elements)
-            if num_vertices_in_polylines > 0:
+            if num_points_in_polylines > 0:
                 self.polylines_flanks_indices[triangles] = 1
         self.polylines_flanks_indices[self.polyline_elements] = 0
 
@@ -1347,21 +1379,32 @@ label Bounds:
 
         return self.polylines_flanks_indices
 
-    def resolve_overlaps(self, dict_of_vertices):
-        """ Prevents multiple label boundaries from realigning to same fundus. Resolves ambiguity.
+    def resolve_label_ambiguity(self, dict_of_vertices):
+        """
+        Resolve competing labels for two groups of vertices that have some
+        vertices in common.
 
-        Parameters
-        ==========
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label wants to redefine)
+        Problem:  Two groups of vertices are considered for label reassignment,
+                  each to a different label, but they share some vertices.
+                  To which label should they be reassigned?
+        Solution: Here we simply select the larger group of vertices,
+                  and remove the other group from the input dictionary.
+                  Presumably this group runs parallel to the polyline
+                  representing a label-delimiting feature (such as a fundus).
+        Input
+        =====
+        dict_of_vertices: dict
+            key:  label index
+            value:  list of vertices under consideration for reassignment to label
 
-        Returns
-        =======
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label should redefine)
+        threshold: int (minimum number of vertices that must also be part
+                        of a polylines boundary)
 
-        Explanation
-        ===========
-        We need to account for the fact that multiple label boundaries will try to propagate their label to the polylines.
-        We need a decision procedure to determine which label should "win" the vertices.
+        Return
+        ======
+        dict_of_vertices: dict (subset of the input dict)
+            key:  label index
+            value:  list of vertices to be reassigned to the label
 
         """
 
@@ -1369,9 +1412,8 @@ label Bounds:
         # Create a num_keys x num_keys matrix indicating whether there is overlap,
         # and if so, which array is larger.
 
-        # As a proxy for whether a fundus runs along a label boundary, we could simply see which label boundary segment
-        # relabels more vertices: the larger one presumably runs parallel to the fundus.
-
+        # As a proxy for whether a fundus runs along a label boundary,
+        # we could simply see which label boundary segment relabels more vertices
         print('We made it here! So far so good.')
 
         num_keys = len(dict_of_vertices)
@@ -1403,30 +1445,44 @@ label Bounds:
 
         return dict_of_vertices
 
-    def resolve_directionality(self, dict_of_vertices):
+    def resolve_label_front(self, dict_of_vertices):
         """
-        Compare realignment of co-segments (inverses) to prevent both from propagating.
+        Resolve which group of vertices on either side of a label boundary
+        is to be relabeled.
 
-        For any segment s defined by labels (a,b), there is a co-segment s' which is defined by (b,a).
-        We want to prevent the case when both a segment and cosegment propagate their labels.
+        The label boundary consists of a set of vertices on the surface mesh
+        two thick, following from the (>=2 label neighborhood) definition,
+        so we call these "label cosegments".
 
-        The approach we will take is to try to identify whether one side stopped because it reached a fundus. If so,
-        that will be the segment we want to keep. We will count the number of vertices which it's trying to convert
-        which are adjacent to polyline vertices! The higher one wins out.
+        In the case where a label boundary corresponds to a label-delimiting
+        feature (such as a fundus) to one side of the label boundary,
+        we wish to identify which cosegment should be used to relabel vertices
+        between the label boundary and the feature.
 
-        And, as an aside, we should institute this check in general. If the vertices you are trying to convert
-        do not border polylines - discard the changes!
+#        NOTE: face validity but does what we want it to do?
 
-        NOTE: WORKING?
-        decide if boundary MOVE OR NOT?  striping can result!
-
+        Problem:  Two groups of vertices are considered for label reassignment,
+                  but they lie to either side of a label boundary.
+                  If both are relabeled, this can result in a "striping" artifact.
+                  Which of the two groups of vertices should be relabeled?
+        Solution: Here we simply select the larger group of vertices,
+                  and remove the other group from the input dictionary.
+                  Presumably this group runs parallel to the polyline
+                  representing a label-delimiting feature (such as a fundus).
         Input
         =====
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label wants to redefine)
+        dict_of_vertices: dict
+            key:  label index
+            value:  list of vertices under consideration for reassignment to label
+
+        threshold: int (minimum number of vertices that must also be part
+                        of a polylines boundary)
 
         Return
         ======
-        dict_of_vertices: dict (key - label (counter), value - list of vertices which the label wants to redefine)
+        dict_of_vertices: dict (subset of the input dict)
+            key:  label index
+            value:  list of vertices to be reassigned to the label
 
         """
 
