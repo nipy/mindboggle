@@ -5,6 +5,7 @@ Python module for adjusting label boundaries on a surface mesh.
 
 Authors:
 Eliezer Stavsky  .  eli.stavsky@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 (c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
@@ -221,7 +222,7 @@ label Bounds:
         =====
         index_list: np array or list (of indixes of vertices)
         filename: string (for VTK file)
-        complete_list: bool (True if a full self.num_vertices list is given, not indices)
+        complete_list: boolean (full self.num_vertices list given, not indices?)
 
         Return
         ======
@@ -374,10 +375,10 @@ label Bounds:
         Input
         =====
         method: string (choice of algorithm)
-        realign: boolean (use label propagation for realigning boundaries or not)
+        realign: boolean (use label propagation for realigning boundaries?)
         kernel: function (used in constructing affinity matrix)
         sigma: float (gaussian kernel parameter)
-        vis: boolean (whether to show progress of algorithm)
+        vis: boolean (show progress of algorithm?)
         max_iters: int (number of times to repeat the algorithm)
         tol: float (threshold to assess convergence of the algorithm)
 
@@ -477,11 +478,11 @@ label Bounds:
 
         Input
         =====
-        realign:    boolean (propagation is for realignment or not)
+        realign:    boolean (propagation is for realignment?)
         max_iters:  int (number of iterations)
         tol:        float (threshold for terminating algorithm)
-        vis:        boolean (save incremental VTK files to visualize
-                             progress of the algorithm or not)
+        vis:        boolean (incremental VTK files to visualize
+                             progress of the algorithm?)
         Return
         ======
         self.probabilistic_assignment: np array (n x C matrix of probabilities that vertex belongs to a given label)
@@ -661,7 +662,7 @@ label Bounds:
 
         Input
         =====
-        realigned_labels: boolean (choice of using realigned labels as opposed to manual labels)
+        realigned_labels: boolean (use realigned labels, not manual labels?)
         output_filename: string (vtk file containing highlighted label boundaries)
 
         Return
@@ -916,7 +917,7 @@ label Bounds:
 
         Returns
         =======
-        same: bool (true if belong to same boundary, false otherwise)
+        same: boolean (belong to the same boundary?)
 
         """
         same = False
