@@ -24,8 +24,7 @@ def write_header(Fp, Title='', Header='# vtk DataFile Version 2.0',
     """
     Write header information for a VTK-format file.
 
-    This part matches three things in the VTK 4.2 File Formats doc
-
+    This part matches three things in the VTK 4.2 File Formats doc:
     Part 1: Header
     Part 2: Title (256 characters maximum, terminated with newline \n character)
     Part 3: Data type, either ASCII or BINARY
@@ -36,129 +35,87 @@ def write_header(Fp, Title='', Header='# vtk DataFile Version 2.0',
         POLYDATA
         RECTILINEAR_GRID
         FIELD
-
     """
-
-    Fp.write(Header)
-    Fp.write("\n")
-    Fp.write(Title)
-    Fp.write("\n")
-    Fp.write(FileType)
-    Fp.write("\n")
-    Fp.write("DATASET ")
-    Fp.write(DataType)
-    Fp.write("\n")
+    Fp.write('{}\n{}\n{}\nDATASET {}\n'.format(Header, Title, FileType, DataType))
 
 def write_points(Fp, point_list, Type="float"):
     """
     Write coordinates of points, the POINTS section in DATASET POLYDATA section.
     """
-    Fp.write("POINTS " + str(len(point_list)) + " " + Type + "\n")
-    for i in xrange(0, len(point_list)):
-        [R, A, S] = point_list[i]
-        Fp.write(str(R) + " " + str(A) + " " + str(S) + "\n")
+    Fp.write('POINTS {} {}\n'.format(len(point_list), Type))
+
+    for point in point_list:
+        [R, A, S] = point
+        Fp.write('{} {} {}\n'.format(R, A, S))
 
 def write_faces(Fp, face_list, vertices_per_face=3):
     """
     Write vertices forming triangular meshes,
     the POLYGONS section in DATASET POLYDATA section.
     """
-    Fp.write("POLYGONS " + str(len(face_list)) + " " +
-             str( (vertices_per_face + 1) * len(face_list)  )  + '\n' )
-    for i in xrange(0, len(face_list)):
-        [V0, V1, V2] = face_list[i]
-        Fp.write( str(vertices_per_face) + " " + str(V0) + " " +
-                  str(V1) + " " + str(V2) + "\n")
+    if vertices_per_face == 3:
+        face_name = 'POLYGONS '
+    elif vertices_per_face == 2:
+        face_name = 'LINES '
+    else:
+        print('ERROR: Unrecognized number of vertices per face')
+
+    Fp.write('{} {} {}\n'.format(face_name, len(face_list),
+             len(face_list) * (vertices_per_face + 1)))
+
+    for face in face_list:
+        [V0, V1, V2] = face
+        Fp.write('{} {} {} {}\n'.format(vertices_per_face, V0, V1, V2))
 
 def write_vertices(Fp, vertex_list):
     """
     Write vertices, the VERTICES section in DATASET POLYDATA section.
     """
-    # One possible solution
-    Fp.write("VERTICES " + str(len(vertex_list)) + " " + str(len(vertex_list)+1) +
-             "\n" + str(len(vertex_list)) + " ")
-    [Fp.write(str(i)+" ") for i in vertex_list]
-    Fp.write("\n")
-
-def write_line_segments(Fp, index_pair_list):
-    """
-    Write line segments, each with two end points, into VTK format.
-
-    Parameters
-    ===========
-
-    index_pair_list: list of strings (NOT integers)
-       each element of index_pair_list is a string containing IDs of two vertices, like "1 3"
-
-    """
-    Fp.write("LINES " + str(len(index_pair_list)) + " " + str(len(index_pair_list)*3) + "\n")
-    [Fp.write("2 " + Vrtx) for Vrtx in index_pair_list]
+    Fp.write('VERTICES {} {}\n{} '.format(
+             len(vertex_list), len(vertex_list) + 1, len(vertex_list)))
+    [Fp.write('{} '.format(i)) for i in vertex_list]
+    Fp.write('\n')
 
 def write_vertex_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
     """
     Write per-VERTEX values as a scalar LUT into a VTK file.
 
-    This function is called by face_list_to_vtk
-
-    Parameters
-    ==========
-
-    LUT    : list of floats
-
-    at_LUT_begin: Boolean
-        True, if this vertex LUT is the first vertex LUT in a VTK file.
+    Input
+    =====
+    LUT:  list of floats
+    at_LUT_begin: [Boolean] True if the first vertex LUT in a VTK file
 
     """
     if at_LUT_begin:
-        Fp.write('POINT_DATA ' + str(len(LUT)) +'\n')
-    Fp.write('SCALARS '+ LUTName +' float\n')
-    Fp.write('LOOKUP_TABLE '+ LUTName +'\n')
+        Fp.write('POINT_DATA {}\n'.format(len(LUT)))
+    Fp.write('SCALARS {} float\n'.format(LUTName))
+    Fp.write('LOOKUP_TABLE {}\n'.format(LUTName))
     for Value in LUT:
-        Fp.write(str(Value) + '\n')
+        Fp.write('{}\n'.format(Value))
     Fp.write('\n')
-
-def write_line_segments(Fp, index_pair_list):
-    """
-    Write a line segment with two end points into VTK format.
-
-    Parameters
-    ===========
-
-    index_pair_list: list of strings (NOT integers)
-       each element of index_pair_list is a string containing IDs of two vertices,
-       like "1 3"
-
-    """
-    Fp.write("LINES " + str(len(index_pair_list)) + " " + str(len(index_pair_list)*3) + "\n")
-    [Fp.write("2 " + Vrtx) for Vrtx in index_pair_list]
-
 
 #============================================
 # Functions for loading and writing VTK files
 #============================================
 
 def load_VTK_vertex(Filename):
-    """Load VERTICES from a VTK file, along with the map
+    """
+    Load VERTICES from a VTK file, along with the scalar values.
 
-    Inputs
-    =======
+    Note:  vertex extraction iterates from 1 to Vrts.GetSize(), rather than 0
 
+    Input
+    =====
     Filename : string
         The path/filename of a VTK format file.
 
-    Outputs
-    =========
-
+    Output
+    ======
     Vertexes : list of integers
         Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file
 
     Scalars : list of floats
         Each element is a scalar value corresponding to a vertex
-
-    Notes
-    ======
-    Vertex extraction iterates from 1 to Vrts.GetSize(), rather than 0
-
 
     """
     import vtk
@@ -179,26 +136,22 @@ def load_VTK_vertex(Filename):
     return Vertexes, Scalars
 
 def load_VTK_line(Filename):
-    """Load VERTICES from a VTK file, along with the map.
+    """
+    Load VERTICES from a VTK file, along with the scalar values.
 
-    Inputs
-    =======
+    The line that extracts vertices from a VTK
+    iterates from 1 to Vrts.GetSize(), rather than from 0.
 
+    Input
+    =====
     Filename : string
         The path/filename of a VTK format file.
-
-    Outputs
-    =========
-
+    Output
+    ======
     Vertexes : list of integers
         Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file
-
     Scalars : list of floats
         Each element is a scalar value corresponding to a vertex
-
-    Notes
-    ======
-    The line that extracts vertexes from a VTK iterates from 1 to Vrts.GetSize(), rather than 0
     """
 
     import vtk
@@ -218,87 +171,6 @@ def load_VTK_line(Filename):
     Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
 
     return Lines, Scalars
-
-def inside_faces(faces, indices):
-    """
-    Remove surface mesh faces whose three vertices are not all in "indices"
-
-    Inputs:
-    ======
-    faces: triangular surface mesh vertex indices [#faces x 3]
-    indices: vertex indices to mesh
-
-    Return:
-    ======
-    faces: reduced array of faces
-
-    """
-    import numpy as np
-
-    len_faces = len(faces)
-    fs = frozenset(indices)
-    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-    faces = np.reshape(np.ravel(faces), (-1, 3))
-    print('  Reduced {} to {} triangular faces.'.format(len_faces, len(faces)))
-
-    return faces
-
-def load_scalar(filename, return_arrays=1):
-    """
-    Load a VTK-format scalar map that contains only one SCALAR segment.
-
-    Inputs
-    =======
-
-    filename : string
-        The path/filename of a VTK format file.
-    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
-
-    Outputs
-    =========
-    Points : list of lists of floats (see return_arrays)
-        Each element is a list of 3-D coordinates of a vertex on a surface mesh
-
-    Faces : list of lists of integers (see return_arrays)
-        Each element is list of 3 IDs of vertices that form a face
-        on a surface mesh
-
-    Scalars : list of floats (see return_arrays)
-        Each element is a scalar value corresponding to a vertex
-
-    """
-    import vtk
-    if return_arrays:
-        import numpy as np
-
-    Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(filename)
-    Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
-    Reader.Update()
-
-    Data = Reader.GetOutput()
-    Points = [list(Data.GetPoint(point_id))
-              for point_id in xrange(0, Data.GetNumberOfPoints())]
-
-    CellArray = Data.GetPolys()
-    Polygons = CellArray.GetData()
-    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
-             for i in xrange(0, CellArray.GetNumberOfCells())]
-
-    PointData = Data.GetPointData()
-    print("Loading {} {} scalars in file {}...".
-          format(Reader.GetNumberOfScalarsInFile,
-                 Reader.GetScalarsNameInFile(0), filename))
-    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    if ScalarsArray:
-        Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
-    else:
-        Scalars = []
-
-    if return_arrays:
-        return np.array(Points), np.array(Faces), np.array(Scalars)
-    else:
-        return Points, Faces, Scalars
 
 def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     """
@@ -444,6 +316,87 @@ def write_mean_scalar_table(filename, column_names, labels, *shape_files):
 
     return filename
 
+def load_scalar(filename, return_arrays=1):
+    """
+    Load a VTK-format scalar map that contains only one SCALAR segment.
+
+    Inputs
+    =======
+
+    filename : string
+        The path/filename of a VTK format file.
+    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
+
+    Outputs
+    =========
+    Points : list of lists of floats (see return_arrays)
+        Each element is a list of 3-D coordinates of a vertex on a surface mesh
+
+    Faces : list of lists of integers (see return_arrays)
+        Each element is list of 3 IDs of vertices that form a face
+        on a surface mesh
+
+    Scalars : list of floats (see return_arrays)
+        Each element is a scalar value corresponding to a vertex
+
+    """
+    import vtk
+    if return_arrays:
+        import numpy as np
+
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(filename)
+    Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
+    Reader.Update()
+
+    Data = Reader.GetOutput()
+    Points = [list(Data.GetPoint(point_id))
+              for point_id in xrange(0, Data.GetNumberOfPoints())]
+
+    CellArray = Data.GetPolys()
+    Polygons = CellArray.GetData()
+    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
+             for i in xrange(0, CellArray.GetNumberOfCells())]
+
+    PointData = Data.GetPointData()
+    print("Loading {} {} scalars in file {}...".
+          format(Reader.GetNumberOfScalarsInFile,
+                 Reader.GetScalarsNameInFile(0), filename))
+    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
+    if ScalarsArray:
+        Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+    else:
+        Scalars = []
+
+    if return_arrays:
+        return np.array(Points), np.array(Faces), np.array(Scalars)
+    else:
+        return Points, Faces, Scalars
+
+def inside_faces(faces, indices):
+    """
+    Remove surface mesh faces whose three vertices are not all in "indices"
+
+    Inputs:
+    ======
+    faces: triangular surface mesh vertex indices [#faces x 3]
+    indices: vertex indices to mesh
+
+    Return:
+    ======
+    faces: reduced array of faces
+
+    """
+    import numpy as np
+
+    len_faces = len(faces)
+    fs = frozenset(indices)
+    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+    faces = np.reshape(np.ravel(faces), (-1, 3))
+    print('  Reduced {} to {} triangular faces.'.format(len_faces, len(faces)))
+
+    return faces
+
 
 
 """
@@ -511,7 +464,7 @@ def write_line_segments_to_fundi(Fp, Vertex, index_pair_list):
 
     io_vtk.write_header(Fp, 'Created by Mindboggle')
     io_vtk.write_points(Fp, Vertex)
-    io_vtk.write_line_segments(Fp, index_pair_list)
+    io_vtk.write_faces(Fp, index_pair_list, vertices_per_face=2)
 
 def load_fundi_list(filename):
     """
@@ -591,7 +544,7 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     io_vtk.write_vertices(Fp, Vertices)
     for i in xrange(0,len(Lines)):
         Lines[i] = str(Lines[i][0]) + " " + str(Lines[i][1]) + "\n"
-    io_vtk.write_line_segments(Fp, Lines)
+    io_vtk.write_faces(Fp, Lines, vertices_per_face=2)
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
             if i == 0:
