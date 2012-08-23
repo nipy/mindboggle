@@ -11,6 +11,10 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
+import os, sys
+code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
+sys.path.append(code_path)  # Add to PYTHONPATH
+
 #-----------------------------------------------------------------------------
 # Import Python libraries
 #-----------------------------------------------------------------------------
@@ -21,15 +25,16 @@ from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
 from utils.io_vtk import write_scalars
-import graph_operations as go
+import utils.graph_operations as go
+import utils.kernels as kernels
 import pickle
 
 #-----------------------------------------------------------------------------
 # Base label
 #-----------------------------------------------------------------------------
-label Bounds:
+class Bounds:
     """
-    Bounds Class:
+    Bounds class:
     VTK I/O methods (to supplement io_vtk.py functions)
     Label propagation methods
     Label propagation:  graph-based semi-supervised learning
@@ -287,10 +292,10 @@ label Bounds:
             print('Initializing seed labels with polyline vertices...')
             self.seed_labels[self.polyline_elements] = 1
 #@
-        # To initialize with label boundaries, call find_label_boundary()
+        # To initialize with label boundaries, call find_label_boundaries()
         if keep == 'label_boundary':
             print('Initializing seed labels with vertices of the label boundary')
-            self.find_label_boundary(output_filename=output_filename)
+            self.find_label_boundaries(output_filename=output_filename)
             self.seed_labels[self.label_boundary] = 1
 
         # To initialize with a fraction of random vertices,
@@ -317,7 +322,7 @@ label Bounds:
 
     def build_label_matrix(self):
         """
-        Construct an n x C array of vertex label assignment values.
+        Construct a vertices x labels array of vertex label assignment values.
 
         Input
         =====
@@ -353,17 +358,17 @@ label Bounds:
 
         return self.label_matrix
 
-    def propagate_labels(self,method='weighted_average', realign=False,
-                         kernel=cw.rbf_kernel, sigma=10, vis=True,
+    def graph_based_learning(self,method='propagate_labels', realign=False,
+                         kernel=kernels.rbf_kernel, sigma=10, vis=True,
                          max_iters=200, tol=.001):
         """
-        Main function to propagate labels.
+        Main function to perform graph-based learning, such as label propagation.
 
-        Other methods for label propagation include "jacobi iteration,"
-        "label spreading"
+        Other methods include "jacobi iteration" and "label spreading"
 
         Input
         =====
+        - faces and points of a vtk surface mesh
         method: string (choice of algorithm)
         realign: boolean (use label propagation for realigning boundaries?)
         kernel: function (used in constructing affinity matrix)
@@ -374,12 +379,12 @@ label Bounds:
 
         Return
         ======
-        self.probabilistic_assignment: np array (n x C array of probabilities
-                                                 that vertex has a given label)
+        self.learned_matrix: np array (n x C array of probabilities
+                                       that vertex has a given label)
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        self.affinity_matrix = cw.compute_weights(self.Points, self.Faces,
+        self.affinity_matrix = go.compute_weights(self.Points, self.Faces,
                                                   kernel=kernel, sigma=sigma,
                                                   add_to_graph=False)
 
@@ -390,16 +395,13 @@ label Bounds:
             self.build_label_segment_matrix()
 
         # Step 3. Propagate Labels!
-        if method == "weighted_average":
+        if method == "propagate_labels":
             print('Performing weighted average algorithm: max_iters={}'.format(
                   str(max_iters)))
-            # Construct self.probabilistic assignment matrix within method
-            self.weighted_average(realign, max_iters, tol, vis=vis)
+            # Construct self.learned_matrix matrix within method
+            self.propagate_labels(realign, max_iters, tol, vis=vis)
         else:
             print('That algorithm is not available.')
-            return
-
-        return self.probabilistic_assignment
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #-------------------------------------------------------------------------
@@ -410,9 +412,9 @@ label Bounds:
     def assign_max_prob_label(self):
         """
         Assign hard labels to vertices by finding the highest probability label
-        of self.probabilistic_assignment. Output results to a VTK file.
+        of self.learned_matrix. Output results to a VTK file.
 
-        This method takes self.probabilistic_assignment and determines the most
+        This method takes self.learned_matrix and determines the most
         probable labeling for each vertex.  It outputs a separate array,
         max_prob_label, which contains one label for each vertex.
 
@@ -426,14 +428,14 @@ label Bounds:
 
         # First check that the label propagation algorithm has been called
         try:
-            a = self.probabilistic_assignment[0]
+            a = self.learned_matrix[0]
         except:
-            print('First call propagate_labels().')
+            print('First call graph_based_learning().')
             return
 
         # Go row by row (one vertex at a time),
         # and find the column with the maximum value
-        max_col = np.argmax(self.probabilistic_assignment,axis=1)
+        max_col = np.argmax(self.learned_matrix,axis=1)
 
         # Define an array called max_prob_label to store the final values
         self.max_prob_label = np.zeros(self.num_points)
@@ -462,7 +464,7 @@ label Bounds:
     #-------------------------------------------------------------------------
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
 
-    def weighted_average(self, realign, max_iters, tol, vis=True):
+    def propagate_labels(self, realign, max_iters, tol, vis=True):
         """
         Run iterative weighted average algorithm to propagate labels to unlabeled vertices.
 
@@ -475,9 +477,11 @@ label Bounds:
                              progress of the algorithm?)
         Return
         ======
-        self.probabilistic_assignment: np array (n x C matrix of probabilities that vertex belongs to a given label)
+        self.learned_matrix: np array
+             (n x C matrix of probabilities that vertex belongs to a given label)
 
-        Features: Hard label clamps, probabilistic solution. See: Zhu and Ghahramani, 2002.
+        Features: Hard label clamps, probabilistic solution.
+        See: Zhu and Ghahramani, 2002.
 
         """
 
@@ -527,22 +531,22 @@ label Bounds:
         We will rename self.label_matrix for this purpose."""
 
         if not realign:
-            self.probabilistic_assignment = self.label_matrix
+            self.learned_matrix = self.label_matrix
         else:
             # For realignment, we need to use a different labeling matrix,
             # one which has each segment assigned a different labels
-            self.probabilistic_assignment = self.realignment_matrix
+            self.learned_matrix = self.label_segment_matrix
 
         """ We will later change the -1s to 0s.
         As vertices get labeled, we assign a confidence measure to the labeling and store the value
         in this matrix.
         Now, let us go column by column, and run the weighted averaging algorithm.
-        For each column, you're studying one label. Therefore, when updating self.probabilistic_assignment,
+        For each column, you're studying one label. Therefore, when updating self.learned_matrix,
         you'll be working with one column at a time too.
         If a label gets vertex, keep the fractional value, do not simply round to 1 to assign membership."""
 
         i = 0 # record of label number
-        for column in self.probabilistic_assignment.T:
+        for column in self.learned_matrix.T:
 
             t0 = time()
             print('Working on label: {}'.format(i))
@@ -612,13 +616,13 @@ label Bounds:
 
             print('Done in {0} seconds'.format(str(time()-t0)))
 
-            self.probabilistic_assignment[:,i] = Y_hat_now.todense().flatten()
+            self.learned_matrix[:,i] = Y_hat_now.todense().flatten()
 
             #print('There were {0} initial seed vertices for this label'.format(str(self.count_assigned_members(i)))
             #print('The file actually had {0} vertices for this label'.format(str(self.count_real_members(self.label_mapping[i])))
             #print('Using only those vertices which crossed the threshold, there are now: '.format(str(self.count_real_members(i)))
 
-            #pylab.plot(self.probabilistic_assignment[:,i])
+            #pylab.plot(self.learned_matrix[:,i])
             #pylab.show()
 
             i += 1
@@ -629,11 +633,11 @@ label Bounds:
         So, to obtain a sort of probability distribution which preserves order, we will add 1 to each number,
         and then divide by 2. Thus -1 --> 0, 1 --> 1 and everything else keeps its order."""
 
-        self.probabilistic_assignment += 1
-        self.probabilistic_assignment /= 2
+        self.learned_matrix += 1
+        self.learned_matrix /= 2
 
-        """ self.probabilistic_assignment is now complete."""
-        return self.probabilistic_assignment
+        """ self.learned_matrix is now complete."""
+        return self.learned_matrix
 
     ##########################################################################
     # ------------------------------------------------------------------------
@@ -747,8 +751,13 @@ label Bounds:
         Break up the label boundaries into segments (corresponding to same-label pairs).
 
         This method will output a dictionary to store label boundary segments (and subsegments).
-        The key is a tuple of the label it is in and the label it is adjacent to.
+        The key is a tuple of the currently assigned label and the adjacent label.
         The value is the set of vertices which comprise the segment.
+
+        Note:  Two different keys will correspond to two cosegments:
+        The label boundary consists of a set of vertices on the surface mesh
+        two thick, following from the (>=2 label neighborhood) definition,
+        so we call these "label cosegments".
 
         Return
         ======
@@ -852,51 +861,58 @@ label Bounds:
 
     def build_label_segment_matrix(self):
         """
-        Constructs a label segment matrix.
+        Construct a vertices x label segments array of vertex label segment assignment values.
+
+        This method is analogous to build_label_matrix but contains values
+        associating vertices with label pairs rather than with labels.
+
+        Take the dictionary self.label_boundary_segments and convert
+        it into the label matrix self.label_segment_matrix for label propagation.
+        Separate segments should be assigned separate classes.
+        The graph-based learning algorithms all work on some n x C label matrix.
+        They start with a "sparsely populated" matrix, and fill it with probabilities.
 
         NOTE:  Useful if using label propagation for realignment.
 
-        Parameters
-        ==========
-        [self.label_boundary_segments: dict (contains segments with keys of label membership tuples)]
+        Input
+        =====
+        Array of n label segments.
+        self.label_boundary_segments: dict
+            key:  2-tuple containing the assigned label and the adjacent label
+            value:  list of vertices with the assigned label
 
-        Returns
-        =======
-        self.realignment_matrix: np array (n x num_segments matrix of initial labels, used in propagation)
+        Return
+        ======
+        n x C array. Row corresponds to vertex, column corresponds to label segment.
+            1:   assigned the label segment corresponding to the column
+           -1:   does not have that label
+            0:   no label assigned
+
+        self.label_segment_matrix: n x C array (initial labels used in propagation)
         self.realignment_mapping: dict (key-value pairs of new-old labels)
 
-        Explanation
-        ===========
-        Method takes the dictionary self.label_boundary_segments and converts it into the label matrix self.realignment_matrix
-        for label propagation.
-        We have separate segments which should each be assigned separate labels.
-        The label propagation algorithms all work on some n x C label matrix.
-        It starts with a "sparsely populated" matrix, and fills it out with probabilities.
-
-        The mapping of "keys" to new labels will be stored in a dictionary
-
-        Now, we can simply run through the dictionary, and assign to each vertex which is part of a segment a label.
         """
 
-        # Step 0. Find num segments
+        # Step 0. Find number of segments
         self.num_segments = len(self.label_boundary_segments)
 
-        # Step 1. Construct n x self.num_segments matrix of labels - concurrently produce label mapping dictionary
-        self.realignment_matrix = np.zeros((self.num_points,self.num_segments))
+        # Step 1. Construct n x self.num_segments matrix of labels,
+        # and produce label mapping dictionary
+        self.label_segment_matrix = np.zeros((self.num_points,self.num_segments))
 
         self.realignment_mapping = {}
         label = 0
         for key, value in self.label_boundary_segments.items():
             self.realignment_mapping[label] = key
-            self.realignment_matrix[value,:] = -1
-            self.realignment_matrix[value,label] = 1
+            self.label_segment_matrix[value,:] = -1
+            self.label_segment_matrix[value,label] = 1
             label += 1
 
         print('Mapping is: {}'.format(self.realignment_mapping))
 
         self.determine_appropriate_segments()
 
-        return self.realignment_matrix, self.realignment_mapping
+        return self.label_segment_matrix, self.realignment_mapping
 
     def same_boundary(self, vertex1, vertex2):
         """
@@ -939,7 +955,7 @@ label Bounds:
 
         Returns
         =======
-        self.realignment_matrix: np array (n x num_segments matrix of labels, with zeros in unusable columns)
+        self.label_segment_matrix: np array (n x num_segments matrix of labels, with zeros in unusable columns)
 
         Explanation
         ===========
@@ -1086,14 +1102,14 @@ label Bounds:
             num_intersections = np.intersect1d(satisfy_distances, value).size
             print('Number of intersections is: {}'.format(num_intersections))
             if (num_intersections < num_good_vertices):
-                self.realignment_matrix[:,reverse_mapping[key]] = 0
+                self.label_segment_matrix[:,reverse_mapping[key]] = 0
             else:
                 vertices_to_highlight[value] = 1
                 print('______________Preserving Label Boundary Segment_____________')
 
         write_scalars(dir + '/propagating_regions.vtk',self.Points,self.Faces,vertices_to_highlight)
 
-        return self.realignment_matrix
+        return self.label_segment_matrix
 
     def analyze_label_polylines_intersections(self):
         """
@@ -1190,39 +1206,40 @@ label Bounds:
     ##########################################################################
 
     def realign_label_boundaries(self, surface_file, polylines_file,
-                                 pickled_segments_file, label_boundary_filename,
-                                 output_file_regions, output_file_boundaries,
-                                 max_iters):
+                                 label_boundary_filename, output_file_regions,
+                                 output_file_boundaries, max_iters):
         """
         Complete method to realign the label boundaries.
         Calls all necessary subroutines.
 
-        Parameters
-        ==========
-        surface_file: string (vtk file containing the vertices, faces and manual labels of brain surface)
-        polylines_file: string (vtk file containing polylines as polylines)
-        pickled_segments_file: string (pickled file containing the dictionary of label boundary segments)
-        label_boundary_filename: string (vtk file to contain initial (manual) label boundaries)
-        output_file_regions: string (vtk file to contain new labels reflecting results of realignment)
-        max_iters: int (maximum number of iterations of label propagation algorithm, in the event of non-convergence)
+        Input
+        =====
+        surface_file: string (vtk file containing the vertices,
+                              faces and manual labels of brain surface)
+        polylines_file: string (vtk file containing polylines)
+        label_boundary_filename: string (vtk file with initial label boundaries)
+        output_file_regions: string (vtk file to contain new labels)
+        max_iters: int (maximum number of iterations)
 
-        Returns
-        =======
-        output_file_regions: string (vtk file containing new labels reflecting results of realignment)
-        output_file_boundaries: string (vtk file containing highlighted label boundaries)
+        Return
+        ======
+        output_file_regions: string (vtk file containing new labels)
+        output_file_boundaries: string (vtk file containing highlighted
+                                        label boundaries)
 
         """
-
         t0 = time()
         self.load_vtk_surface(surface_file)
         self.load_vtk_polylines(polylines_file)
         print('Imported Data in: {}'.format(time() - t0))
 
-        self.initialize_seed_labels(keep='label_boundary', output_filename = label_boundary_filename)
-        self.find_label_boundary_segments(completed=pickled_segments_file)
-        self.propagate_labels(realign=True, max_iters=max_iters)
+        self.initialize_seed_labels(keep='label_boundary',
+                                    output_filename = label_boundary_filename)
+        self.find_label_boundary_segments()
+        self.graph_based_learning(realign=True, max_iters=max_iters)
         self.assign_realigned_labels(filename = output_file_regions)
-        self.find_label_boundaries(realigned_labels=True, output_filename = output_file_boundaries)
+        self.find_label_boundaries(realigned_labels=True,
+                                   output_filename = output_file_boundaries)
 
         return output_file_regions, output_file_boundaries
 
@@ -1234,39 +1251,32 @@ label Bounds:
 
     def assign_realigned_labels(self, filename, threshold = 0.5):
         """
-        Determines which vertices should be reassigned a new label
-        from realignment propagation; visualizes results.
+        Reassign labels to vertices after realignment.
 
-        This method takes self.probabilistic_assignment and determines
-        which vertices should be relabeled.
-        It outputs a separate array, self.RLabels, which contains one label
-        for each vertex.
-        The labels are those of the initial numbering.
-        Care must be taken to only reassign labels when appropriate.
+        Take the self.learned_matrix weight matrix
+        and determine which vertices should be relabeled.
+        Output a separate array, self.RLabels,
+        that contains one label for each vertex.
 
-        First try: reassign labels to anything which is in (0,1] to the second
-        value in the tuple in the key of
-        the dictionary self.label_boundary_segments.
-
-        NOTE: assignment tricky -- based on label segments NOT labels
+#        NOTE: assignment tricky -- based on label segments NOT labels
 
         Input
         =====
-        filename: string (output vtk file for visualizing realigned boundary)
+        filename: string (output vtk file to visualize realigned label boundaries)
 
         Return
         ======
-        self.RLabels: np array (of size num_points which contains the most
-        likely realigned label for each vertex)
-        self.RLabels_file: string (vtk file containing highest probability labels)
+        self.RLabels: array (of size num_points which contains the most
+                             probable realigned label for each vertex)
+        self.RLabels_file: string (vtk file containing most probable labels)
 
         """
 
         # First check that the label propagation algorithm has been called
         try:
-            a = self.probabilistic_assignment[0]
+            a = self.learned_matrix[0]
         except:
-            print('First call propagate_labels().')
+            print('First call graph_based_learning().')
             return
 
         self.RLabels = self.Labels.copy()
@@ -1274,12 +1284,12 @@ label Bounds:
         # Collect consensus labels...
 #        self.get_consensus_labels(0,0)
 
-        # go column by column, find those entries which meet criterion,
-        # map to tuple, select second entry
+        # Go column by column, find entries (indices to vertices)
+        # which meet a criterion.  Store these indices as values in a
+        # dictionary, with the index to the column (label segment) as the key.
         counter = 0
         vertices_to_change = {}
-
-        for column in self.probabilistic_assignment.T:
+        for column in self.learned_matrix.T:
             vertices_to_change[counter] = list(np.nonzero(column > threshold)[0])
             #if set.intersection(set(vertices_to_change[counter]), set(self.consensus_labels)):
             #	print('You are trying to cross consensus labels!'
@@ -1287,31 +1297,37 @@ label Bounds:
             # self.RLabels[vertices_to_change] = self.realignment_mapping[counter][1]
             counter += 1
 
-        print('Currently there are {0} regions which are going to be relabeled.'.format(len(vertices_to_change)))
+        print('There are {} regions to be relabeled.'.format(
+              len(vertices_to_change)))
 
-        # Check relevance
+        # Run check_for_polylines
         vertices_to_change = self.check_for_polylines(vertices_to_change)
 
-        print('There are {0} regions which are going to be relabeled.'.format(len(vertices_to_change)))
+        print('After further checks, {} regions are going to be relabeled.'.format(
+              len(vertices_to_change)))
 
-        # Resolve ambiguities
+        # Resolve label ambiguities
         # vertices_to_change = self.resolve_label_ambiguity(vertices_to_change)
 
-        # print('After resolving ambiguities, there are {0} regions which are going to be relabeled:'.format(len(vertices_to_change))
+        # print('After label resolving ambiguities, \
+        # {} regions are to be relabeled:'.format(len(vertices_to_change))
 
-        # Resolve two-directional changes...
+        # Resolve label front ambiguities
         # vertices_to_change = self.resolve_label_front(vertices_to_change)
 
-        # print('After resolving bidirectionality, there are {0} regions which are going to be relabeled:'.format(len(vertices_to_change))
+        # print('After resolving label front ambiguities, \
+        # {} regions are to be relabeled:'.format(len(vertices_to_change))
 
         for key, value in vertices_to_change.items():
             print('For key {0}, the following vertices will be changed: {1}'.format(self.realignment_mapping[key],value))
 
+        # For vertices that have passed all checks and are to be relabeled,
+        # select the second (relabel) entry in the corresponding dictionary tuple
         for key, value in vertices_to_change.items():
             self.RLabels[value] = self.realignment_mapping[key][1]
 
+        # Write VTK file with the new labels
         self.RLabels_file = filename
-
         write_scalars(self.RLabels_file, self.Points, self.Faces, self.RLabels)
 
         return self.RLabels, self.RLabels_file
@@ -1514,19 +1530,19 @@ label Bounds:
 # ----------------------------------------------------------------------------
 ##############################################################################
 
+indir = '/drop/share/EliezerStavsky/realignment_test/'
 dir = os.getcwd()
 bounds = Bounds()
-f1 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatalabels.vtk'
-f2 = '/home/eli/mindboggle/mindboggle/propagate/realignment_test/testdatapolylines.vtk'
-f3 = dir + '/label_boundary_segments_Bounds Object.pkl'
-f4 = dir + '/label_boundary.vtk'
-f5 = dir + '/max_prob_visualization_realignment.vtk'
-f6 = dir + '/realigned_label_boundary_segments.vtk'
+f1 = indir + 'testdatalabels.vtk'
+f2 = indir + 'testdatafundi.vtk'
+f3 = dir + '/label_boundaries.vtk'
+f4 = dir + '/realigned_labels.vtk'
+f5 = dir + '/realigned_label_boundary_segments.vtk'
 
 def test():
-	""" This test is for the realignment task."""
-	bounds.realign_label_boundaries(f1, f2, f3, f4, f5, f6, 150)
+    """ This test is for the realignment task."""
+    bounds.realign_label_boundaries(f1, f2, f3, f4, f5, 10)
 
-	return 0
+    return 0
 
-#test()
+test()
