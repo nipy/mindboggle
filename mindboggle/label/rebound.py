@@ -12,7 +12,8 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 import os, sys
-code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
+# code_path = os.environs['MINDBOGGLE_CODE'] # Mindboggle code directory
+code_path = '/home/eliezer/mindboggle/mindboggle/mindboggle/' # Mindboggle code directory
 sys.path.append(code_path)  # Add to PYTHONPATH
 
 #-----------------------------------------------------------------------------
@@ -78,6 +79,7 @@ class Bounds:
             print('Please provide data of dimension <= 3.')
         else:
             self.Points = points
+            self.Vertices = range(len(self.Points))
             self.has_points = 1
             self.num_points = self.Points.shape[0]
         return 0
@@ -129,6 +131,7 @@ class Bounds:
         else:
             Data = pyvtk.VtkData(fname)
             self.Points = np.asarray(Data.structure.points)
+            self.Vertices = range(len(self.Points))
             self.Faces = np.asarray(Data.structure.polygons)
             self.has_points = self.has_faces = 1
             self.num_points = self.Points.shape[0]
@@ -167,6 +170,7 @@ class Bounds:
         """
         Create VTK file from data.
         """
+
         if not(self.has_points and self.has_faces):
             print('Please enter points and faces.')
             return
@@ -174,7 +178,7 @@ class Bounds:
         if not self.has_labels:
             self.Labels = None
 
-        write_scalars(fname, self.Points, range(len(self.Points)),
+        write_scalars(fname, self.Points, self.Vertices,
                          self.Faces, [self.Labels],
                          label_type=[label], msg=header)
         print('VTK file was successfully created as: {}'.format(fname))
@@ -231,8 +235,8 @@ class Bounds:
             labels = index_list
             labels[labels>0] = 1
 
-        write_scalars(filename, self.Points, range(len(self.Points)),
-                         self.Faces, [labels], label_type=['Labels'])
+        write_scalars(filename, self.Points, self.Vertices,
+                         self.Faces, [labels])
 
         return filename
 
@@ -313,10 +317,10 @@ class Bounds:
         self.seed_labels[self.seed_labels==1] = self.Labels[self.seed_labels==1]
 
         # Provide some statistics for what was done
-        self.num_seed_labels = len(self.seed_labels[self.seed_labels==1])
+        self.num_seed_labels = len(self.seed_labels[self.seed_labels>0])
         self.percent_seed_labels = (self.num_seed_labels+0.0) / self.num_points * 100
 
-        print('Percentage of seed labels: {0}'.format(self.percent_seed_labels))
+        print('Percentage of seed labels: {}'.format(self.percent_seed_labels))
 
         return self.seed_labels
 
@@ -384,7 +388,7 @@ class Bounds:
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        self.affinity_matrix = go.compute_weights(self.Points, self.Faces,
+        self.affinity_matrix = go.weight_graph(self.Points, self.Faces,
                                                   kernel=kernel, sigma=sigma,
                                                   add_to_graph=False)
 
@@ -447,7 +451,7 @@ class Bounds:
 
         # Visualize results by writing to a VTK file
         self.max_prob_file = 'max_prob_visualization.vtk'
-        write_scalars(self.max_prob_file, self.Points, self.Faces, self.max_prob_label)
+        write_scalars(self.max_prob_file, self.Points, self.Vertices, self.Faces, self.max_prob_label)
 
         return self.max_prob_label, self.max_prob_file
 
@@ -494,7 +498,7 @@ class Bounds:
         From the affinity matrix, one may construct the diagonal degree matrix,
         which is a measure of the total weight (or number of edges) which are attached to a vertex."""
 
-        self.DDM = go.compute_diagonal_degree_matrix(self.affinity_matrix, inverse=True)
+        self.DDM = go.diagonal_degree_matrix(self.affinity_matrix, inverse=True)
 
         """ Next, we must initialize a vector to represent the results of the label propagation algorithm.
         It will contain l labels and u 0's.
@@ -597,7 +601,7 @@ class Bounds:
                     if not np.mod(counter,1000):
                         LABELS = np.zeros(self.num_points)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
-                        write_scalars(filename, self.Points, self.Faces, LABELS)
+                        write_scalars(filename, self.Points, self.Vertices, self.Faces, LABELS)
 
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
                 Y_hat_next[restore_indices, 0] = restore_values # reset
@@ -696,10 +700,10 @@ class Bounds:
 
         # We can now output a file to show the boundary.
         if not realigned_labels:
-            write_scalars(output_filename,self.Points,self.Faces,self.label_boundary)
+            write_scalars(output_filename,self.Points,self.Vertices, self.Faces,self.label_boundary)
             self.label_boundary_file = output_filename
         else:
-            write_scalars(output_filename,self.Points,self.Faces,self.Rlabel_boundary)
+            write_scalars(output_filename,self.Points,self.Vertices, self.Faces,self.Rlabel_boundary)
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -726,7 +730,7 @@ class Bounds:
 
         Return
         ======
-        self.label_boundary: dict (key: int label, value: list of vertices)
+        self.label_boundary_per_label: dict (key: int label, value: list of vertices)
 
         """
 
@@ -735,16 +739,16 @@ class Bounds:
         except AttributeError:
             self.find_label_boundaries() # get the boundaries between all labels
 
-        self.label_boundary = {}
+        self.label_boundary_per_label = {}
         setA = set(self.label_boundary)
 
         for Class in self.set_manual_labels:
             setB = set(np.nonzero(self.Labels==Class)[0])
             setC = setA.intersection(setB)
 
-            self.label_boundary[Class] = list(setC)
+            self.label_boundary_per_label[Class] = list(setC)
 
-        return self.label_boundary
+        return self.label_boundary_per_label
 
     def find_label_boundary_segments(self):
         """
@@ -778,7 +782,7 @@ class Bounds:
         # Populate the dictionary with vertices
         for Class in self.set_manual_labels:
             print Class
-            for vertex in self.label_boundary[Class]:
+            for vertex in self.label_boundary_per_label[Class]:
                 neighbors = self.neighbors(vertex)
                 A = set(self.Labels[neighbors])
                 B = set(list([self.Labels[vertex]]))
@@ -802,9 +806,9 @@ class Bounds:
         for value in self.label_boundary_segments.values():
             colored_segments[value] = color
             color += 1
-        write_scalars(self.highlighted_segment_file, self.Points,self.Faces,colored_segments)
+        write_scalars(self.highlighted_segment_file, self.Points, self.Vertices, self.Faces,colored_segments)
 
-        return self.label_boundary_segments, self.segment_file.name, self.highlighted_segment_file
+        return self.label_boundary_segments, self.highlighted_segment_file
 
     def find_intersections(self, segment, endpoint):
         """
@@ -854,7 +858,7 @@ class Bounds:
             labels = np.zeros(self.Labels.shape)
             labels[segment] = 100
             labels[endpoint] = 200
-            write_scalars('debug_intersections.vtk',self.Points, self.Faces, labels)
+            write_scalars('debug_intersections.vtk',self.Points, self.Vertices, self.Faces, labels)
             raw_input("Check this out...")
 
         return intersection
@@ -938,8 +942,7 @@ class Bounds:
     def determine_appropriate_segments(self, proportion = 1, dist_threshold = 8,
                                        lb_fundus_threshold = 16,
                                        num_good_vertices = 5, eps=1E-7,
-                                       spread_tol = 6,
-                                       pickled_filename = 'pickled_distance_matrix.pkl'):
+                                       spread_tol = 6):
         """
         Determine which label boundary segments should propagate their labels.
 
@@ -971,16 +974,12 @@ class Bounds:
         print('Beginning determine_appropriate_segments()...')
         t0 = time()
 
-        if pickled_filename:
-            tmp = open(pickled_filename, 'rb')
-            distance_matrix = pickle.load(tmp)
-        else:
-            distance_matrix = np.asarray([np.linalg.norm(self.Points[x1] - self.Points[x2])
+        print self.polyline_elements.shape
+        print self.label_boundary.shape
+
+        distance_matrix = np.asarray([np.linalg.norm(self.Points[x1] - self.Points[x2])
                                           for x1 in self.polyline_elements
                                           for x2 in self.label_boundary]).reshape((self.polyline_elements.size, -1))
-            tmp = open('/home/eli/Desktop/pickled_distance_matrix.pkl', 'wb')
-            pickle.dump(distance_matrix,tmp)
-            tmp.close()
 
         print('Distance Matrix has been constructed in {0}. Bounds is {1}.'.format(time() - t0, distance_matrix.shape))
 
@@ -1107,7 +1106,7 @@ class Bounds:
                 vertices_to_highlight[value] = 1
                 print('______________Preserving Label Boundary Segment_____________')
 
-        write_scalars(dir + '/propagating_regions.vtk',self.Points,self.Faces,vertices_to_highlight)
+        write_scalars(dir + '/propagating_regions.vtk',self.Points, self.Vertices, self.Faces,vertices_to_highlight)
 
         return self.label_segment_matrix
 
@@ -1328,7 +1327,7 @@ class Bounds:
 
         # Write VTK file with the new labels
         self.RLabels_file = filename
-        write_scalars(self.RLabels_file, self.Points, self.Faces, self.RLabels)
+        write_scalars(self.RLabels_file, self.Points, self.Vertices, self.Faces, self.RLabels)
 
         return self.RLabels, self.RLabels_file
 
@@ -1530,14 +1529,19 @@ class Bounds:
 # ----------------------------------------------------------------------------
 ##############################################################################
 
-indir = '/drop/share/EliezerStavsky/realignment_test/'
+# indir = '/drop/share/EliezerStavsky/realignment_test/'
+indir = '/home/eliezer/Dropbox/share_eliezer/realignment_test/'
+
 dir = os.getcwd()
 bounds = Bounds()
 f1 = indir + 'testdatalabels.vtk'
 f2 = indir + 'testdatafundi.vtk'
-f3 = dir + '/label_boundaries.vtk'
-f4 = dir + '/realigned_labels.vtk'
-f5 = dir + '/realigned_label_boundary_segments.vtk'
+f1 = indir + 'testlabels.vtk'
+f2 = indir + 'testfundi.vtk'
+
+f3 = indir + '/label_boundaries.vtk'
+f4 = indir + '/realigned_labels.vtk'
+f5 = indir + '/realigned_label_boundary_segments.vtk'
 
 def test():
     """ This test is for the realignment task."""
