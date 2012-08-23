@@ -19,8 +19,7 @@ import pyvtk
 from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
-import vtk_operations as vo
-import compute_weights as cw
+from utils.io_vtk import write_scalars
 import graph_operations as go
 import pickle
 
@@ -65,7 +64,7 @@ label Bounds:
 
     ##########################################################################
     # ------------------------------------------------------------------------
-    #     VTK I/O methods
+    #     VTK I/O methods (to supplement io_vtk.py functions)
     # ------------------------------------------------------------------------
     ##########################################################################
 
@@ -179,7 +178,9 @@ label Bounds:
         if not self.has_labels:
             self.Labels = None
 
-        vo.write_all(fname, self.Vertices, self.Faces, self.Labels, label_type=label, msg=header)
+        write_scalars(fname, self.Vertices, range(len(self.Vertices)),
+                         self.Faces, [self.Labels],
+                         label_type=[label], msg=header)
         print('VTK file was successfully created as: {}'.format(fname))
 
         self.fname = fname
@@ -234,7 +235,8 @@ label Bounds:
             labels = index_list
             labels[labels>0] = 1
 
-        vo.write_all(filename,self.Vertices,self.Faces,labels)
+        write_scalars(filename, self.Vertices, range(len(self.Vertices)),
+                         self.Faces, [labels], label_type=['Labels'])
 
         return filename
 
@@ -251,7 +253,8 @@ label Bounds:
 
         filename = 'highlighted'+str(label)+'.vtk'
 
-        vo.write_all(filename, self.Vertices, self.Faces, indices)
+        write_scalars(filename, self.Vertices, indices,
+                         self.Faces, [self.Labels])
 
 
     ##########################################################################
@@ -451,7 +454,7 @@ label Bounds:
 
         # Visualize results by writing to a VTK file
         self.max_prob_file = 'max_prob_visualization.vtk'
-        vo.write_all(self.max_prob_file, self.Vertices, self.Faces, self.max_prob_label)
+        write_scalars(self.max_prob_file, self.Vertices, self.Faces, self.max_prob_label)
 
         return self.max_prob_label, self.max_prob_file
 
@@ -599,7 +602,7 @@ label Bounds:
                     if not np.mod(counter,1000):
                         LABELS = np.zeros(self.num_vertices)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
-                        vo.write_all(filename, self.Vertices, self.Faces, LABELS)
+                        write_scalars(filename, self.Vertices, self.Faces, LABELS)
 
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
                 Y_hat_next[restore_indices, 0] = restore_values # reset
@@ -698,10 +701,10 @@ label Bounds:
 
         # We can now output a file to show the boundary.
         if not realigned_labels:
-            vo.write_all(output_filename,self.Vertices,self.Faces,self.label_boundary)
+            write_scalars(output_filename,self.Vertices,self.Faces,self.label_boundary)
             self.label_boundary_file = output_filename
         else:
-            vo.write_all(output_filename,self.Vertices,self.Faces,self.Rlabel_boundary)
+            write_scalars(output_filename,self.Vertices,self.Faces,self.Rlabel_boundary)
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -799,7 +802,7 @@ label Bounds:
         for value in self.label_boundary_segments.values():
             colored_segments[value] = color
             color += 1
-        vo.write_all(self.highlighted_segment_file, self.Vertices,self.Faces,colored_segments)
+        write_scalars(self.highlighted_segment_file, self.Vertices,self.Faces,colored_segments)
 
         return self.label_boundary_segments, self.segment_file.name, self.highlighted_segment_file
 
@@ -852,7 +855,7 @@ label Bounds:
             labels = np.zeros(self.Labels.shape)
             labels[segment] = 100
             labels[endpoint] = 200
-            vo.write_all('debug_intersections.vtk',self.Vertices, self.Faces, labels)
+            write_scalars('debug_intersections.vtk',self.Vertices, self.Faces, labels)
             raw_input("Check this out...")
 
         return intersection
@@ -1089,7 +1092,7 @@ label Bounds:
                 vertices_to_highlight[value] = 1
                 print('______________Preserving Label Boundary Segment_____________')
 
-        vo.write_all(dir + '/propagating_regions.vtk',self.Vertices,self.Faces,vertices_to_highlight)
+        write_scalars(dir + '/propagating_regions.vtk',self.Vertices,self.Faces,vertices_to_highlight)
 
         return self.realignment_matrix
 
@@ -1298,7 +1301,7 @@ label Bounds:
 
         self.RLabels_file = filename
 
-        vo.write_all(self.RLabels_file, self.Vertices, self.Faces, self.RLabels)
+        write_scalars(self.RLabels_file, self.Vertices, self.Faces, self.RLabels)
 
         return self.RLabels, self.RLabels_file
 
