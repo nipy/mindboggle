@@ -156,33 +156,6 @@ class lbopy:
 
 		return 0
 
-		def write_vtk(self, fname, label = 'Labels', header='Shape Analysis by PyShape'):
-			"""Create vtk file from imported data.
-
-		   Parameters:
-		   ==========
-		   fname: string (name of vtk file to be created)
-		   label: string (label type)
-		   header: string (vtk file header)
-
-		   Returns:
-		   =======
-		   self.vtk.name: string (name of created vtk file)
-
-		   """
-		if not(self.has_vertices and self.has_faces):
-			print 'You have yet to enter the vertices and facesing!'
-			return
-
-		if not self.has_labels:
-			self.Labels = None
-
-		self.vtk = vo.write_all(fname, self.Vertices, self.Faces, self.Labels, label_type=label, msg=header)
-		print 'vtk file was successfully created at: ', self.vtk.name
-		self.has_vtk = 1
-
-		return self.vtk.name
-
 	def write_vtk(self, fname, label = 'Labels', header='Shape Analysis by PyShape'):
 		"""Create vtk file from imported data.
 
