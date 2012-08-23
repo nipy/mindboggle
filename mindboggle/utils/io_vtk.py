@@ -397,29 +397,6 @@ def inside_faces(faces, indices):
 
     return faces
 
-
-
-"""
-def write_mean_scalar_table(filename):
-
-    import numpy as np
-
-    Points, Faces, Scalars = load_scalar(filename, return_arrays=1)
-
-    unique_scalars = np.unique(Scalars)
-
-    Table = []
-
-    for scalar in unique_scalars:
-        Index = [i for i in xrange(len(Label)) if Label[i] == GyralLabel]
-        Measure_of_Row = [ [Measure[i] for i in Index ] for Measure in Measures]
-        Row = map(np.mean, Measure_of_Row)
-        Row = [GyralLabel] + Row
-        Table.append(Row)
-
-    return Table
-"""
-
 #==========================================
 # Functions specific to Mindboggle features
 #==========================================
