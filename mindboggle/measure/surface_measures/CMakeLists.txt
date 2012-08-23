@@ -22,6 +22,10 @@ ADD_SUBDIRECTORY(
 surface_overlap
 )
 
+ADD_SUBDIRECTORY(
+area
+)
+
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
@@ -42,6 +46,10 @@ ADD_LIBRARY(
 Overlap Overlap.cpp
 )
 
+ADD_LIBRARY(
+PointAreaComputer PointAreaComputer.cpp
+)
+
 TARGET_LINK_LIBRARIES(
 MeshAnalyser
 )
@@ -52,4 +60,5 @@ TravelDepth
 
 TARGET_LINK_LIBRARIES(
 Overlap
+PointAreaComputer
 )
