@@ -12,6 +12,8 @@
 
 #include "Overlap.h"
 
+#include "PointAreaComputer.h"
+
 #include <vtkDoubleArray.h>
 #include <vtkCellArray.h>
 #include <vtkMath.h>
@@ -46,7 +48,12 @@ Overlap::~Overlap()
 
 void Overlap::ComputeOverlap()
 {
-    ComputePointsArea();
+//    ComputePointsArea();
+
+    PointAreaComputer* areaComputer = new PointAreaComputer(m_mesh1);
+    areaComputer->ComputeArea();
+    m_pointsArea = areaComputer->GetArea();
+
 
     int maxLabel = 0;
     int cLabel1, cLabel2;
