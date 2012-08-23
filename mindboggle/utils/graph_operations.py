@@ -2,10 +2,9 @@
 """
 Graph operations:
 
-    - Kernels
     - Diagonal degree matrix
-    - Graph Laplacian
     - Matrix weights and affinity matrix
+    - Graph Laplacian
 
 Author:  Eliezer Stavsky  .  eli.stavsky@gmail.com
 
@@ -15,41 +14,7 @@ Author:  Eliezer Stavsky  .  eli.stavsky@gmail.com
 import numpy as np
 import networkx as nx
 from scipy.sparse import lil_matrix
-
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Kernels
-# -----------------------------------------------------------------------------
-###############################################################################
-
-def rbf_kernel(x1, x2, sigma):
-    return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
-
-def cotangent_kernel(Nodes, Meshes):
-    num_nodes = Nodes.shape[0]
-    W = lil_matrix((num_nodes, num_nodes))
-    print 'Constructing sparse affinity matrix...'
-    for c in Meshes:
-        # Obtain vertices which comprise face
-        v0, v1, v2 = Nodes[c[0]], Nodes[c[1]], Nodes[c[2]]
-
-        # Obtain cotangents of angles
-        cot0 = np.dot(v1-v0, v2-v0) / np.linalg.norm(np.cross(v1-v0, v2-v0))
-        cot1 = np.dot(v2-v1, v0-v1) / np.linalg.norm(np.cross(v2-v1, v0-v1))
-        cot2 = np.dot(v0-v2, v1-v2) / np.linalg.norm(np.cross(v0-v2, v1-v2))
-
-        # Update weight matrix accordingly
-        W[c[1], c[2]] += cot0
-        W[c[2], c[1]] += cot0
-        W[c[0], c[2]] += cot1
-        W[c[2], c[0]] += cot1
-        W[c[0], c[1]] += cot2
-        W[c[1], c[0]] += cot2
-
-    return W
-
-def inverse_distance(x1, x2, epsilon):
-    return 1.0/(np.linalg.norm(x1 - x2) + epsilon)
+from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -85,66 +50,6 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
         ddm.setdiag(W.sum(axis=1))
 
     return ddm.tocsr()
-
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Graph Laplacian
-# -----------------------------------------------------------------------------
-###############################################################################
-
-def graph_laplacian(W, type_of_laplacian='norm1'):
-    """
-    Compute normalized and unnormalized graph Laplacians.
-
-    Input
-    =====
-    W: N x N sparse matrix in csr format (affinity matrix)
-       "csr" stands for "compressed sparse row" matrix
-       (http://docs.scipy.org/doc/scipy/reference/sparse.html)
-    type_of_laplacian: string
-        basic - non-normalized Laplacian (Lap = D - W)
-        norm1 - normalized Laplacian (Lap = ddmi_sq * L * ddmi_sq) - recovers definition
-        norm2 - normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
-        norm3 - normalized Laplacian (Lap = inv(D) * L)
-        random_walk - random walk Laplacian (Lap = inv(D) * W)
-
-    Return
-    ======
-    Laplacian: N x N sparse matrix in csr format
-               (Graph Laplacian of affinity matrix)
-
-    """
-    if type_of_laplacian is 'basic':
-        print 'Calculating unnormalized Laplacian...'
-        Laplacian = diagonal_degree_matrix(W) - W
-        return Laplacian
-
-    elif type_of_laplacian is 'norm1':
-        print "Normalizing the Laplacian..."
-        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
-        Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
-        return Laplacian
-
-    elif type_of_laplacian is 'norm2':
-        print "Normalizing the Laplacian..."
-        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
-        Laplacian = ddmi_sq * W * ddmi_sq
-        return Laplacian
-
-    elif type_of_laplacian is 'norm3':
-        print "Normalizing the Laplacian..."
-        ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
-        Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
-        return Laplacian
-
-    elif type_of_laplacian is 'random_walk':
-        print "Computing Random Walk Laplacian..."
-        ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
-        Laplacian = ddmi * W
-
-    else:
-        print 'Option is not available'
-        return 0
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -222,3 +127,63 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
         return G, affinity_matrix.tocsr()
     else:
         return affinity_matrix.tocsr()
+
+###############################################################################
+# -----------------------------------------------------------------------------
+#     Graph Laplacian
+# -----------------------------------------------------------------------------
+###############################################################################
+
+def graph_laplacian(W, type_of_laplacian='norm1'):
+    """
+    Compute normalized and unnormalized graph Laplacians.
+
+    Input
+    =====
+    W: N x N sparse matrix in csr format (affinity matrix)
+       "csr" stands for "compressed sparse row" matrix
+       (http://docs.scipy.org/doc/scipy/reference/sparse.html)
+    type_of_laplacian: string
+        basic - non-normalized Laplacian (Lap = D - W)
+        norm1 - normalized Laplacian (Lap = ddmi_sq * L * ddmi_sq) - recovers definition
+        norm2 - normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
+        norm3 - normalized Laplacian (Lap = inv(D) * L)
+        random_walk - random walk Laplacian (Lap = inv(D) * W)
+
+    Return
+    ======
+    Laplacian: N x N sparse matrix in csr format
+               (Graph Laplacian of affinity matrix)
+
+    """
+    if type_of_laplacian is 'basic':
+        print 'Calculating unnormalized Laplacian...'
+        Laplacian = diagonal_degree_matrix(W) - W
+        return Laplacian
+
+    elif type_of_laplacian is 'norm1':
+        print "Normalizing the Laplacian..."
+        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
+        Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
+        return Laplacian
+
+    elif type_of_laplacian is 'norm2':
+        print "Normalizing the Laplacian..."
+        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
+        Laplacian = ddmi_sq * W * ddmi_sq
+        return Laplacian
+
+    elif type_of_laplacian is 'norm3':
+        print "Normalizing the Laplacian..."
+        ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
+        Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
+        return Laplacian
+
+    elif type_of_laplacian is 'random_walk':
+        print "Computing Random Walk Laplacian..."
+        ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
+        Laplacian = ddmi * W
+
+    else:
+        print 'Option is not available'
+        return 0
