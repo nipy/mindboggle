@@ -255,9 +255,9 @@ def surf_to_vtk(surface_file):
     vtk_file = os.path.join(os.getcwd(),
                             os.path.basename(surface_file + '.vtk'))
     Fp = open(vtk_file, 'w')
-    io_vtk.write_header(Fp, Title='vtk output from ' + surface_file)
-    io_vtk.write_points(Fp, Vertex)
-    io_vtk.write_faces(Fp, Face)
+    io_vtk.write_vtk_header(Fp, Title='vtk output from ' + surface_file)
+    io_vtk.write_vtk_points(Fp, Vertex)
+    io_vtk.write_vtk_faces(Fp, Face)
     Fp.close()
 
     return vtk_file
@@ -300,7 +300,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
-    io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+    io_vtk.write_vtk_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -451,9 +451,9 @@ def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file,
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
             if i == 0:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i])
             else:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i],
                                         at_LUT_begin=False)
     Fp.close()
 
@@ -480,9 +480,9 @@ def face_list_to_vtk(vtk_file, surface_file, index_pair_file,
     if LUT!=[] :
         for i in xrange(0, len(LUT)):
             if i == 0:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i])
             else:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i],
                                         at_LUT_begin=False)
     Fp.close()
 
@@ -518,9 +518,9 @@ def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTnam
     if LUT!=[]:
         for i in xrange(0, len(LUT)):
             if i == 0:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i])
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i])
             else:
-                io_vtk.write_vertex_LUT(Fp, LUT[i], LUTname[i],
+                io_vtk.write_vtk_LUT(Fp, LUT[i], LUTname[i],
                                         at_LUT_begin=False)
 
     Fp.close()

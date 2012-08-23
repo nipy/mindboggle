@@ -30,21 +30,11 @@ import pickle
 label Bounds:
     """
     Bounds Class:
-    VTK I/O methods
-    Pre-processing methods:
-    Processing methods
-    Master methods
-    Post-processing methods
-    Analysis methods
-    Visualization methods
-    Helper methods
+    VTK I/O methods (to supplement io_vtk.py functions)
+    Label propagation methods
+    Label propagation:  graph-based semi-supervised learning
+    Finding label boundaries
 
-    1) Import data into object from either a VTK file or manually.
-    2) Construct VTK if necessary.
-    3) Pre-process data if necessary.
-    4) Run LBO code.
-    5)
-    3) Pre-process data if necessary.
     """
 
     # Initialize object method
