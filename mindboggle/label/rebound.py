@@ -12,8 +12,8 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 import os, sys
-# code_path = os.environs['MINDBOGGLE_CODE'] # Mindboggle code directory
-code_path = '/home/eliezer/mindboggle/mindboggle/mindboggle/' # Mindboggle code directory
+code_path = os.environ['MINDBOGGLE_CODE'] # Mindboggle code directory
+#code_path = '/home/eliezer/mindboggle/mindboggle/mindboggle/' # Mindboggle code directory
 sys.path.append(code_path)  # Add to PYTHONPATH
 
 #-----------------------------------------------------------------------------
@@ -263,18 +263,18 @@ class Bounds:
     # ------------------------------------------------------------------------
     ##########################################################################
 
-    def initialize_seed_labels(self, keep='polylines', fraction=.05,
+    def initialize_seed_labels(self, init='lines', fraction=.05,
                                output_filename=''):
         """
         Initialize a set of seed labels for relabeling or label propagation.
 
         Options include:
-        - flanks:          vertices flanking polylines
-        - polylines:       vertices which are part of polylines
-        - both:            both the polylines and the flanks
-        - label_boundary:  label boundary vertices
-        - random:          a <fraction> of random vertices
-        - consensus:  TO DO!
+        - lines:          vertices in polylines
+        - flanks:         vertices flanking polylines
+        - lines_flanks:   both the polylines and the flanks
+        - label_boundary: label boundary vertices
+        - random:           a <fraction> of random vertices
+#@        - consensus:  TO DO!
 
         """
         if not self.has_labels:
@@ -286,25 +286,25 @@ class Bounds:
         # To initialize with vertices flanking polylines,
         # find all vertices that are part of a triangle that includes
         # at least one polyline vertex, and store a 1 in the array self.seed_labels
-        if keep in ['flanks','both']:
+        if init in ['flanks','lines_flanks']:
             print('Initializing seed labels with polyline-flanking vertices...')
             self.seed_labels[self.find_polylines_flanks()] = 1
 
         # To initialize with polylines, find all vertices that are part of a
         # polyline, and store a 1 in the array self.seed_labels
-        if keep in ['polylines','both']:
+        if init in ['lines','lines_flanks']:
             print('Initializing seed labels with polyline vertices...')
             self.seed_labels[self.polyline_elements] = 1
 #@
-        # To initialize with label boundaries, call find_label_boundaries()
-        if keep == 'label_boundary':
-            print('Initializing seed labels with vertices of the label boundary')
-            self.find_label_boundaries(output_filename=output_filename)
+        # To initialize with label boundaries, call find_label_boundary()
+        if init == 'label_boundary':
+            print('Initializing seed labels with vertices of the label boundaries')
+            self.find_label_boundary(output_filename=output_filename)
             self.seed_labels[self.label_boundary] = 1
 
         # To initialize with a fraction of random vertices,
-        # keep every 1/fraction label
-        if keep == 'random':
+        # init every 1/fraction label
+        if init == 'random':
             print('Initializing seed labels with random vertices...')
             if fraction > 1:
                 print('Please enter a fractional number less than or equal to 1.')
@@ -649,7 +649,7 @@ class Bounds:
     # ------------------------------------------------------------------------
     ##########################################################################
 
-    def find_label_boundaries(self, output_filename, realigned_labels = False):
+    def find_label_boundary(self, output_filename, realigned_labels = False):
         """
         Find the vertices for all boundaries between different labels in a mesh.
 
@@ -737,7 +737,7 @@ class Bounds:
         try:
             self.label_boundary
         except AttributeError:
-            self.find_label_boundaries() # get the boundaries between all labels
+            self.find_label_boundary() # get the boundaries between all labels
 
         self.label_boundary_per_label = {}
         setA = set(self.label_boundary)
@@ -1204,7 +1204,7 @@ class Bounds:
     # ------------------------------------------------------------------------
     ##########################################################################
 
-    def realign_label_boundaries(self, surface_file, polylines_file,
+    def realign_label_boundary(self, surface_file, polylines_file,
                                  label_boundary_filename, output_file_regions,
                                  output_file_boundaries, max_iters):
         """
@@ -1232,12 +1232,12 @@ class Bounds:
         self.load_vtk_polylines(polylines_file)
         print('Imported Data in: {}'.format(time() - t0))
 
-        self.initialize_seed_labels(keep='label_boundary',
+        self.initialize_seed_labels(init='label_boundary',
                                     output_filename = label_boundary_filename)
         self.find_label_boundary_segments()
         self.graph_based_learning(realign=True, max_iters=max_iters)
         self.assign_realigned_labels(filename = output_file_regions)
-        self.find_label_boundaries(realigned_labels=True,
+        self.find_label_boundary(realigned_labels=True,
                                    output_filename = output_file_boundaries)
 
         return output_file_regions, output_file_boundaries
@@ -1529,8 +1529,8 @@ class Bounds:
 # ----------------------------------------------------------------------------
 ##############################################################################
 
-# indir = '/drop/share/EliezerStavsky/realignment_test/'
-indir = '/home/eliezer/Dropbox/share_eliezer/realignment_test/'
+indir = '/drop/share/EliezerStavsky/realignment_test/'
+#indir = '/home/eliezer/Dropbox/share_eliezer/realignment_test/'
 
 dir = os.getcwd()
 bounds = Bounds()
@@ -1539,13 +1539,13 @@ f2 = indir + 'testdatafundi.vtk'
 f1 = indir + 'testlabels.vtk'
 f2 = indir + 'testfundi.vtk'
 
-f3 = indir + '/label_boundaries.vtk'
+f3 = indir + '/label_boundary.vtk'
 f4 = indir + '/realigned_labels.vtk'
 f5 = indir + '/realigned_label_boundary_segments.vtk'
 
 def test():
     """ This test is for the realignment task."""
-    bounds.realign_label_boundaries(f1, f2, f3, f4, f5, 10)
+    bounds.realign_label_boundary(f1, f2, f3, f4, f5, 10)
 
     return 0
 
