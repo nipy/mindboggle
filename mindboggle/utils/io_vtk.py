@@ -96,6 +96,7 @@ def write_vtk_faces(Fp, face_list, vertices_per_face=3):
 
     for face in face_list:
         [V0, V1, V2] = face
+
         Fp.write('{} {} {} {}\n'.format(vertices_per_face, V0, V1, V2))
 
 def write_vtk_vertices(Fp, vertex_list):
@@ -204,9 +205,17 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
             LUTs = [LUTs]
         for i, LUT in enumerate(LUTs):
             if i == 0:
-                io_vtk.write_vtk_LUT(Fp, LUT, LUT_names[i])
+                if len(LUT_names) == 0:
+                    LUT_name = 'Scalars'
+                else:
+                    LUT_name = LUT_names[i]
+                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name)
             else:
-                io_vtk.write_vtk_LUT(Fp, LUT, LUT_names[i],
+                if len(LUT_names) < i + 1:
+                    LUT_name = 'Scalars'
+                else:
+                    LUT_name  = LUT_names[i]
+                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name,
                                         at_LUT_begin=False)
     Fp.close()
 
