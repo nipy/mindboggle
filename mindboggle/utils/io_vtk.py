@@ -47,7 +47,7 @@ def write_vtk_header(Fp, Header='# vtk DataFile Version 2.0',
     """
     Fp.write('{}\n{}\n{}\nDATASET {}\n'.format(Header, Title, fileType, dataType))
 
-def write_vtk_points(Fp, points, dataType="float"):
+def write_vtk_points(Fp, Points, dataType="float"):
     """
     Write coordinates of points, the POINTS section in DATASET POLYDATA section.
 
@@ -65,14 +65,22 @@ def write_vtk_points(Fp, points, dataType="float"):
     ...
 
     """
+    import numpy as np
 
-    Fp.write('POINTS {} {}\n'.format(len(points), dataType))
+    Fp.write('POINTS {} {}\n'.format(len(Points), dataType))
 
-    for point in points:
-        [R, A, S] = point
-        Fp.write('{} {} {}\n'.format(R, A, S))
+    n = np.shape(Points)[1]
+    for point in Points:
+        if n == 3:
+            [R, A, S] = point
+            Fp.write('{} {} {}\n'.format(R, A, S))
+        elif n == 2:
+            [R, A] = point
+            Fp.write('{} {}\n'.format(R, A))
+        else:
+            print('ERROR: Unrecognized number of coordinates per point')
 
-def write_vtk_faces(Fp, face_list, vertices_per_face=3):
+def write_vtk_faces(Fp, Faces):
     """
     Write vertices forming triangular meshes,
     the POLYGONS section in DATASET POLYDATA section.
@@ -84,22 +92,29 @@ def write_vtk_faces(Fp, face_list, vertices_per_face=3):
     ...
 
     """
-    if vertices_per_face == 3:
+    import numpy as np
+
+    n = np.shape(Faces)[1]
+    if n == 3:
         face_name = 'POLYGONS '
-    elif vertices_per_face == 2:
+        Fp.write('{} {} {}\n'.format(face_name, len(Faces),
+                 len(Faces) * (n + 1)))
+    elif n == 2:
         face_name = 'LINES '
+        Fp.write('{} {}\n'.format(face_name, len(Faces),
+                 len(Faces) * (n + 1)))
     else:
         print('ERROR: Unrecognized number of vertices per face')
 
-    Fp.write('{} {} {}\n'.format(face_name, len(face_list),
-             len(face_list) * (vertices_per_face + 1)))
+    for face in Faces:
+        if n == 3:
+            [V0, V1, V2] = face
+            Fp.write('{} {} {} {}\n'.format(n, V0, V1, V2))
+        elif n == 2:
+            [V0, V1] = face
+            Fp.write('{} {} {}\n'.format(n, V0, V1))
 
-    for face in face_list:
-        [V0, V1, V2] = face
-
-        Fp.write('{} {} {} {}\n'.format(vertices_per_face, V0, V1, V2))
-
-def write_vtk_vertices(Fp, vertex_list):
+def write_vtk_vertices(Fp, Vertices):
     """
     Write vertices, the VERTICES section in DATASET POLYDATA section.
 
@@ -116,8 +131,8 @@ def write_vtk_vertices(Fp, vertex_list):
 
     """
     Fp.write('VERTICES {} {}\n{} '.format(
-             len(vertex_list), len(vertex_list) + 1, len(vertex_list)))
-    [Fp.write('{} '.format(i)) for i in vertex_list]
+             len(Vertices), len(Vertices) + 1, len(Vertices)))
+    [Fp.write('{} '.format(i)) for i in Vertices]
     Fp.write('\n')
 
 def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
@@ -215,8 +230,7 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
                     LUT_name = 'Scalars'
                 else:
                     LUT_name  = LUT_names[i]
-                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name,
-                                        at_LUT_begin=False)
+                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
     Fp.close()
 
     return vtk_file
@@ -237,6 +251,9 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     import os
     from utils import io_vtk
 
+    # Output VTK file to current working directory
+    output_vtk = os.path.join(os.getcwd(), output_vtk)
+
     # Load VTK file
     Points, Faces, Scalars = io_vtk.load_scalar(input_vtk, return_arrays=1)
 
@@ -251,10 +268,7 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     # Lookup lists for saving to VTK format files
     LUTs = [new_scalars]
-    LUT_names = ['scalars']
-
-    # Output VTK file to current working directory
-    output_vtk = os.path.join(os.getcwd(), output_vtk)
+    LUT_names = ['Scalars']
 
     # Write VTK file
     Fp = open(output_vtk,'w')
@@ -265,15 +279,25 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
             if i == 0:
-                io_vtk.write_vtk_LUT(Fp, LUT, LUT_names[i])
+                if len(LUT_names) == 0:
+                    LUT_name = 'Scalars'
+                else:
+                    LUT_name = LUT_names[i]
+                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name)
             else:
-                io_vtk.write_vtk_LUT(Fp, LUT, LUT_names[i],
-                                        at_LUT_begin=False)
+                if len(LUT_names) < i + 1:
+                    LUT_name = 'Scalars'
+                else:
+                    LUT_name  = LUT_names[i]
+                io_vtk.write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
     Fp.close()
 
     return output_vtk
 
-def write_mean_scalar_table(filename, column_names, labels, *shape_files):
+def write_mean_scalar_table(filename, column_names, labels,
+                            depth_file, mean_curvature_file, gauss_curvature_file,
+                            max_curvature_file, min_curvature_file,
+                            thickness_file, convexity_file): # *shape_files):
     """
     Make a table of mean values per label per measure.
 
@@ -294,6 +318,9 @@ def write_mean_scalar_table(filename, column_names, labels, *shape_files):
     from utils.io_file import write_table
     from measure.measure_functions import mean_value_per_label
 
+    shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
+                   max_curvature_file, min_curvature_file, thickness_file,
+                   convexity_file]
     columns = []
     for shape_file in shape_files:
 
@@ -507,7 +534,7 @@ def write_line_segments_to_fundi(Fp, Vertex, index_pair_list):
 
     io_vtk.write_vtk_header(Fp, 'Created by Mindboggle')
     io_vtk.write_vtk_points(Fp, Vertex)
-    io_vtk.write_vtk_faces(Fp, index_pair_list, vertices_per_face=2)
+    io_vtk.write_vtk_faces(Fp, index_pair_list)
 
 def load_fundi_list(filename):
     """
@@ -587,7 +614,7 @@ def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     io_vtk.write_vtk_vertices(Fp, Vertices)
     for i in xrange(0,len(Lines)):
         Lines[i] = str(Lines[i][0]) + " " + str(Lines[i][1]) + "\n"
-    io_vtk.write_vtk_faces(Fp, Lines, vertices_per_face=2)
+    io_vtk.write_vtk_faces(Fp, Lines)
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
             if i == 0:
