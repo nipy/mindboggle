@@ -418,7 +418,7 @@ measure_file_vars = [x + '_file' for x in column_names[1::]]
 #-----------------------------------------------------------------------------
 # Labeled surface patch shapes
 #-----------------------------------------------------------------------------
-input_names = ['filename', 'column_names', 'labels']
+input_names = ['filename', 'column_names', 'labels', 'shape_files']
 input_names.extend(measure_file_vars)
 """
 labeltable = Node(name='Label_table',
@@ -433,9 +433,9 @@ labeltable.inputs.column_names = measures
 # Segmented sulcus fold shapes
 #-----------------------------------------------------------------------------
 foldtable = Node(name='Fold_table',
-                      interface = Fn(function = write_mean_scalar_table,
-                                     input_names = input_names,
-                                     output_names = ['filename']))
+                 interface = Fn(function = write_mean_scalar_table,
+                                input_names = input_names,
+                                output_names = ['filename']))
 foldtable.inputs.column_names = column_names
 #foldtable = labeltable.clone('Fold_table')
 shapeflow.add_nodes([foldtable])
@@ -500,11 +500,11 @@ if evaluate_surface_labels:
     # Evaluate surface labels
     #-------------------------------------------------------------------------
     eval_surf_labels = Node(name='Evaluate_surface_labels',
-                           interface = Fn(function = measure_surface_overlap,
-                                          input_names = ['command',
-                                                         'labels_file1',
-                                                         'labels_file2'],
-                                          output_names = ['overlaps']))
+                            interface = Fn(function = measure_surface_overlap,
+                                           input_names = ['command',
+                                                          'labels_file1',
+                                                          'labels_file2'],
+                                           output_names = ['overlaps']))
     mbflow.add_nodes([eval_surf_labels])
     surface_overlap_command = os.path.join(code_path,
         'measure', 'surface_measures','bin',
