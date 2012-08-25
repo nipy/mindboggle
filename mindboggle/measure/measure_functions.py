@@ -84,4 +84,4 @@ def mean_value_per_label(values, labels):
         mean_value = np.mean(values[np.where(labels == label)[0]])
         mean_values.append(mean_value)
 
-    return mean_values, label_list.tolist()
+    return mean_values, label_list

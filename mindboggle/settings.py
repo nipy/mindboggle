@@ -31,7 +31,7 @@ protocol = 'DKT31'
 # <FUTURE: 'freeDKT31': a FreeSurfer-style classifier atlas trained on the DKT protocol>
 # 'max': maximum probability (majority vote) labels from multiple atlases
 #-----------------------------------------------------------------------------
-init_labels = 'max'
+init_labels = 'free'
 #-----------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
@@ -55,7 +55,7 @@ sys.path.append(code_path)  # Add to PYTHONPATH
 #-----------------------------------------------------------------------------
 input_vtk = False  # Load VTK surfaces (not FreeSurfer surfaces)
 fill_volume = True  # Fill (gray matter) volumes with surface labels
-include_free_measures = True  # Include FreeSurfer's thickness and convexity
+include_free_measures = 0#True  # Include FreeSurfer's thickness and convexity
 evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
 evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
 
