@@ -300,7 +300,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
-    io_vtk.write_vtk_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+    io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
