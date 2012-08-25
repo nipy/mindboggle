@@ -15,28 +15,6 @@ Some code distributed within the mindboggle sources was developed by other
 projects. This code is distributed under its respective licenses that are
 listed below.
 
-Sphinx autosummary extension
-----------------------------
-
-This extension has been copied from NumPy (Jul 16, 2010) as the one shipped with
-Sphinx 0.6 doesn't work properly.
-
-::
-
-  Copyright (c) 2007-2009 Stefan van der Walt and Sphinx team
-
-  Redistribution and use in source and binary forms, with or without
-  modification, are permitted provided that the following conditions are met:
-
-    a. Redistributions of source code must retain the above copyright notice,
-       this list of conditions and the following disclaimer.
-    b. Redistributions in binary form must reproduce the above copyright
-       notice, this list of conditions and the following disclaimer in the
-       documentation and/or other materials provided with the distribution.
-    c. Neither the name of the Enthought nor the names of its contributors
-       may be used to endorse or promote products derived from this software
-       without specific prior written permission.
-
 
   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
   AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
