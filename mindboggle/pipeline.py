@@ -255,7 +255,7 @@ depth = Node(name='Depth',
                             input_names = ['command',
                                            'surface_file'],
                             output_names = ['depth_file']))
-depth_command = os.path.join(code_path,'measure', 'surface_measures',
+depth_command = os.path.join(ccode_path,'measure', 'surface_measures',
                              'bin', 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
 #-----------------------------------------------------------------------------
@@ -270,7 +270,7 @@ curvature = Node(name='Curvature',
                                                 'max_curvature_file',
                                                 'min_curvature_file',
                                                 'min_curvature_vector_file']))
-curvature_command = os.path.join(code_path, 'measure', 'surface_measures',
+curvature_command = os.path.join(ccode_path, 'measure', 'surface_measures',
                                  'bin', 'curvature', 'CurvatureMain')
 curvature.inputs.command = curvature_command
 #-----------------------------------------------------------------------------
@@ -506,7 +506,7 @@ if evaluate_surface_labels:
                                                           'labels_file2'],
                                            output_names = ['overlaps']))
     mbflow.add_nodes([eval_surf_labels])
-    surface_overlap_command = os.path.join(code_path,
+    surface_overlap_command = os.path.join(ccode_path,
         'measure', 'surface_measures','bin',
         'surface_overlap', 'SurfaceOverlapMain')
     eval_surf_labels.inputs.command = surface_overlap_command
