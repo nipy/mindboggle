@@ -44,6 +44,7 @@ label_method = 'manual'
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 base_path = os.environ['MINDBOGGLE_HOME']  # Mindboggle home directory
 code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
+ccode_path = os.environ['MINDBOGGLE_CCODE']  # Mindboggle C++ code directory
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 info_path = os.path.join(code_path, 'info')
 templates_path = os.path.join(base_path, 'data', 'templates')
