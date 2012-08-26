@@ -91,9 +91,19 @@ def main(**extra_args):
           # only a workaround to get things started -- not a solution
 
           package_data = {'mindboggle':
-                          [pjoin('info', '*')]},
-          #                 pjoin('externals', 'tests', 'data', '*'),
-          #                ]},
+                          [pjoin('info', '*'),
+                           pjoin('extract', 'medial_surfaces', '*'),
+                           pjoin('extract', 'fundi_from_pits', '*'),
+                           pjoin('measure', 'surface_measures', '*.cpp'),
+                           pjoin('measure', 'surface_measures', '*.h'),
+                           pjoin('measure', 'surface_measures', '*.txt'),
+                           pjoin('measure', 'surface_measures', '*.txt.user'),
+                           pjoin('measure', 'surface_measures', 'LICENSE'),
+                           pjoin('measure', 'surface_measures', 'area', '*'),
+                           pjoin('measure', 'surface_measures', 'curvature', '*'),
+                           pjoin('measure', 'surface_measures', 'travel_depth', '*'),
+                           pjoin('measure', 'surface_measures', 'surface_overlap', '*'),
+                          ]},
           #scripts      = [pjoin('bin', 'parrec2nii'),
           #                pjoin('bin', 'nib-ls'),
           #                ],
