@@ -121,7 +121,7 @@ if do_combine_atlas_labels:
                                                         'new_annot_name',
                                                         'relabel_file'],
                                          output_names = ['new_annot_name']))
-    combine_labels.inputs.annot_name = label_string_old'
+    combine_labels.inputs.annot_name = label_string_old
     combine_labels.inputs.new_annot_name = label_string
     combine_labels.inputs.relabel_file = relabel_file
     flow.connect([(info, atlasflow, [('hemi','Combine_atlas_labels.hemi'),
