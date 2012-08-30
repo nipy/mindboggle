@@ -403,7 +403,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
             # Display information every n_mod iterations
             if not np.mod(count, 20):
-                print('      {}: points crossing threshold ({:.6f}):   {}'.
+                print('      {0}: points crossing threshold ({1:.6f}):   {2}'.
                       format(count, delta_cost, delta_points))
 
             # Increment next gradient factor and decrement next neighborhood
@@ -428,7 +428,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     # Skeletonize
     skeleton = skeletonize(H, anchors, faces, N)
-    print('      Removed {} points to create one-vertex-thin skeletons'.
+    print('      Removed {0} points to create one-vertex-thin skeletons'.
           format(n_points - sum(skeleton)))
 
     return skeleton

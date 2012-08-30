@@ -76,7 +76,7 @@ def measure_volume_overlap(labels, atlas_file, input_file):
         # Determine their intersection and union
         intersect_label_sum = len(np.intersect1d(input_indices, atlas_indices))
         union_label_sum = len(np.union1d(input_indices, atlas_indices))
-        #print('{} {} {} {} {}'.format(label, input_label_sum, atlas_label_sum,
+        #print('{0} {1} {2} {3} {4}'.format(label, input_label_sum, atlas_label_sum,
         #                              intersect_label_sum, union_label_sum))
 
         # There must be at least one voxel with the label in each volume
@@ -87,7 +87,7 @@ def measure_volume_overlap(labels, atlas_file, input_file):
                    (input_label_sum + atlas_label_sum)
             jacc = np.float(intersect_label_sum) / union_label_sum
             overlaps[ilabel, 1:3] = [dice, jacc]
-            print('label: {}, dice: {:.2f}, jacc: {:.2f}'.format(
+            print('label: {0}, dice: {1:.2f}, jacc: {2:.2f}'.format(
                   label, dice, jacc))
 
         # NOTE:  untested:

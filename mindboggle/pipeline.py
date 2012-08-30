@@ -33,13 +33,48 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 ##############################################################################
 
 #=============================================================================
-# Setup: import libraries, set file paths, and initialize main workflow
+#  User settings
 #=============================================================================
-from settings import *
+# Command line input
+#-----------------------------------------------------------------------------
+# subjects = ['HLN-12-3']
+# output_path = '/projects/Mindboggle/output'  # Where to save output
+#-----------------------------------------------------------------------------
+# Labeling protocol used by Mindboggle:
+# 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
+# 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
+#-----------------------------------------------------------------------------
+protocol = 'DKT31'
+#-----------------------------------------------------------------------------
+# Initialize labels with:
+# 'free': the standard FreeSurfer classifier atlas trained on the DK protocol
+# <FUTURE: 'freeDKT31': a FreeSurfer-style classifier atlas trained on the DKT protocol>
+# 'max': maximum probability (majority vote) labels from multiple atlases
+#-----------------------------------------------------------------------------
+init_labels = 'free'
+#-----------------------------------------------------------------------------
+# Labeling source:
+# 'manual': manual edits
+# <FUTURE: 'adjusted': manual edits that have been automatically aligned with major fundi>
+#-----------------------------------------------------------------------------
+label_method = 'manual'
+hemis = ['lh','rh']  # Prepend ('lh.') indicating left and right surfaces
+#-----------------------------------------------------------------------------
+# Debugging options
+#-----------------------------------------------------------------------------
+input_vtk = False  # Load VTK surfaces (not FreeSurfer surfaces)
+fill_volume = True  # Fill (gray matter) volumes with surface labels
+include_free_measures = 0#True  # Include FreeSurfer's thickness and convexity
+evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
+evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
+
+#=============================================================================
+#  Setup: import libraries, set file paths, and initialize main workflow
+#=============================================================================
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
-import os
+import os, sys
 from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
@@ -47,20 +82,28 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import load_scalar, write_scalar_subset, \
-                         write_mean_scalar_table
-from utils.io_file import read_columns, write_table_means
-from utils.io_free import labels_to_annot, labels_to_volume, surf_to_vtk, \
-                          annot_to_vtk, vtk_to_label_files
-from label.multiatlas_labeling import register_template,\
-                               transform_atlas_labels, majority_vote_label
-from label.relabel import relabel_volume
-from measure.measure_functions import compute_depth, compute_curvature, \
-                                      mean_value_per_label
-from extract.fundi_hmmf.extract_folds import extract_folds
-from extract.fundi_hmmf.extract_fundi import extract_fundi
-from label.evaluate_labels import measure_surface_overlap, \
-                                  measure_volume_overlap
+from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset, \
+     write_mean_scalar_table
+from mindboggle.utils.io_file import read_columns, write_table_means
+from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
+     surf_to_vtk, annot_to_vtk, vtk_to_label_files
+from mindboggle.label.multiatlas_labeling import register_template,\
+     transform_atlas_labels, majority_vote_label
+from mindboggle.label.relabel import relabel_volume
+from mindboggle.measure.measure_functions import compute_depth, \
+    compute_curvature, mean_value_per_label
+from mindboggle.extract.fundi_hmmf.extract_folds import extract_folds
+from mindboggle.extract.fundi_hmmf.extract_fundi import extract_fundi
+from mindboggle.label.evaluate_labels import measure_surface_overlap, \
+     measure_volume_overlap
+#-----------------------------------------------------------------------------
+# Paths
+#-----------------------------------------------------------------------------
+subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+atlases_path = subjects_path
+templates_path = os.path.join(subjects_path, 'Mindboggle_templates')
+temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
+#info_path = os.path.join(code_path, 'info')
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -100,7 +143,7 @@ sink.inputs.base_directory = output_path
 sink.inputs.container = 'results'
 if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-----------------------------------------------------------------------------
-#   Convert surfaces to VTK
+# Convert surfaces to VTK
 #-----------------------------------------------------------------------------
 if not input_vtk:
     convertsurf = Node(name = 'Free_to_VTK',
