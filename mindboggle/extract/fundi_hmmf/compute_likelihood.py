@@ -106,7 +106,7 @@ def compute_likelihood(depths, curvatures):
         pyplot.plot(xdepth, depth_sigmoid_sort, 'k')
         pyplot.plot(xcurve, curve_sigmoid_sort, 'b')
         pyplot.plot(xdepth, sigmoids, 'r')
-        pyplot.title('Depths, curves: (gains={:.2f},{:.2f}; shifts={:.2f},{:.2f})'.
+        pyplot.title('Depths, curves: (gains={0:.2f},{1:.2f}; shifts={2:.2f},{3:.2f})'.
                format(gain_depth, gain_curve, shift_depth, shift_curve))
         pyplot.show()
 

@@ -11,11 +11,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-import os, sys
-code_path = os.environ['MINDBOGGLE_CODE'] # Mindboggle code directory
-#code_path = '/home/eliezer/mindboggle/mindboggle/mindboggle/' # Mindboggle code directory
-sys.path.append(code_path)  # Add to PYTHONPATH
-
 #-----------------------------------------------------------------------------
 # Import Python libraries
 #-----------------------------------------------------------------------------
@@ -25,10 +20,9 @@ import pyvtk
 from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
-from utils.io_vtk import write_scalars
-import utils.graph_operations as go
-import utils.kernels as kernels
-import pickle
+from mindboggle.utils.io_vtk import write_scalars
+import mindboggle.utils.graph_operations as go
+import mindboggle.utils.kernels as kernels
 
 #-----------------------------------------------------------------------------
 # Base label
@@ -181,7 +175,7 @@ class Bounds:
         write_scalars(fname, self.Points, self.Vertices,
                          self.Faces, [self.Labels],
                          label_type=[label], msg=header)
-        print('VTK file was successfully created as: {}'.format(fname))
+        print('VTK file was successfully created as: {0}'.format(fname))
 
         self.fname = fname
 
@@ -320,7 +314,7 @@ class Bounds:
         self.num_seed_labels = len(self.seed_labels[self.seed_labels>0])
         self.percent_seed_labels = (self.num_seed_labels+0.0) / self.num_points * 100
 
-        print('Percentage of seed labels: {}'.format(self.percent_seed_labels))
+        print('Percentage of seed labels: {0}'.format(self.percent_seed_labels))
 
         return self.seed_labels
 
@@ -400,7 +394,7 @@ class Bounds:
 
         # Step 3. Propagate Labels!
         if method == "propagate_labels":
-            print('Performing weighted average algorithm: max_iters={}'.format(
+            print('Performing weighted average algorithm: max_iters={0}'.format(
                   str(max_iters)))
             # Construct self.learned_matrix matrix within method
             self.propagate_labels(realign, max_iters, tol, vis=vis)
@@ -553,8 +547,8 @@ class Bounds:
         for column in self.learned_matrix.T:
 
             t0 = time()
-            print('Working on label: {}'.format(i))
-            print('Number of members initially for this label: {}'.format(np.nonzero(column==1)[0].size))
+            print('Working on label: {0}'.format(i))
+            print('Number of members initially for this label: {0}'.format(np.nonzero(column==1)[0].size))
 
             # Set up indices and values to be clamped during propagation
             if not realign:
@@ -712,7 +706,7 @@ class Bounds:
         else:
             self.Rlabel_boundary = np.nonzero(self.Rlabel_boundary==1)[0]
 
-        print('The label boundary array is: {}'.format(self.label_boundary))
+        print('The label boundary array is: {0}'.format(self.label_boundary))
 
         if not realigned_labels:
             return self.label_boundary, self.label_boundary_file
@@ -797,7 +791,7 @@ class Bounds:
 
         # Print results
         for key in self.label_boundary_segments.keys():
-            print('For labels: {} {}'.format(key, self.label_boundary_segments[key]))
+            print('For labels: {0} {1}'.format(key, self.label_boundary_segments[key]))
 
         # Output the results to a VTK file
         self.highlighted_segment_file = 'highlighted_segments.vtk'
@@ -851,7 +845,7 @@ class Bounds:
 
             intersection[i] = pointer
 
-        print('The intersection points are: {}'.format(intersection))
+        print('The intersection points are: {0}'.format(intersection))
 
         if np.product(intersection) < 0:
             print segment
@@ -912,7 +906,7 @@ class Bounds:
             self.label_segment_matrix[value,label] = 1
             label += 1
 
-        print('Mapping is: {}'.format(self.realignment_mapping))
+        print('Mapping is: {0}'.format(self.realignment_mapping))
 
         self.determine_appropriate_segments()
 
@@ -1018,8 +1012,8 @@ class Bounds:
                              (self.polyline_elements[closest_polylines[i]],
                               distance_matrix[closest_polylines[i],i])) for i in xrange(self.label_boundary.size))
 
-        print('The polylines to label boundary mapping is: {}'.format(polylines_lb))
-        print('The label boundary to polylines mapping is: {}'.format(lb_polylines))
+        print('The polylines to label boundary mapping is: {0}'.format(polylines_lb))
+        print('The label boundary to polylines mapping is: {0}'.format(lb_polylines))
 
         # Step 2. Determine which obey proper proportions and distances, using parameters
         within_distance = (closest_distances < dist_threshold)
@@ -1068,7 +1062,7 @@ class Bounds:
             spread = np.max(spread_matrix)
             if spread > spread_tol:
                 satisfy_distances = np.delete(satisfy_distances,np.nonzero(satisfy_distances == lbvertex))
-                print('deleted vertex: {}'.format(lbvertex))
+                print('deleted vertex: {0}'.format(lbvertex))
 
                 #### AH! I'm changing that over which I'm iterating! Fix.
 
@@ -1083,7 +1077,7 @@ class Bounds:
                 mapped_lbvertex = polylines_lb[fundus_vertex][0]
                 if mapped_lbvertex in satisfy_distances and self.same_boundary(mapped_lbvertex,lbvertex):
                     satisfy_distances = np.append(satisfy_distances,lbvertex)
-                    print('added vertex: {}'.format(lbvertex))
+                    print('added vertex: {0}'.format(lbvertex))
 
         self.highlight_vtk_vertices(satisfy_distances, dir + '/satisfy_distance_pruned_augmented.vtk')
         print('After augmenting, {0} vertices satisfy the distance requirement'.format(satisfy_distances.size))
@@ -1099,7 +1093,7 @@ class Bounds:
         for key, value in self.label_boundary_segments.items():
             # num_intersections = np.intersect1d(satisfy_distances, value).size + np.intersect1d(satisfy_distances, self.label_boundary_segments[key[::-1]]).size
             num_intersections = np.intersect1d(satisfy_distances, value).size
-            print('Number of intersections is: {}'.format(num_intersections))
+            print('Number of intersections is: {0}'.format(num_intersections))
             if (num_intersections < num_good_vertices):
                 self.label_segment_matrix[:,reverse_mapping[key]] = 0
             else:
@@ -1144,24 +1138,24 @@ class Bounds:
                     # part of the same fundus.
 
                     pointer = intersection[0] # This is the first intersection point.
-                    print('First pointer is: {}'.format(pointer))
+                    print('First pointer is: {0}'.format(pointer))
                     row_avoid = [] # This will be an array of rows in self.Polylines to avoid
                     vertex_avoid = [pointer] # This will be an array of vertices to avoid
 
                     rows = list(np.nonzero([pointer in row for row in self.Polylines])[0]) # This is a list of rows to explore
-                    print('And the list of rows to explore is: {}'.format(rows))
+                    print('And the list of rows to explore is: {0}'.format(rows))
 
                     while rows:
                         path_to_follow = rows.pop(0)
 
-                        print('Following path: {}'.format(path_to_follow))
+                        print('Following path: {0}'.format(path_to_follow))
 
                         row_avoid.append(path_to_follow)
 
                         tmp = list(self.Polylines[path_to_follow])
                         pointer = set.difference(set(tmp), set(vertex_avoid)).pop()
                         vertex_avoid.append(pointer)
-                        print('pointer is now: {}'.format(pointer))
+                        print('pointer is now: {0}'.format(pointer))
 
                         if pointer == intersection[1]:
                             # Bingo!
@@ -1170,7 +1164,7 @@ class Bounds:
                             break
 
                         rows = rows + list(set.difference(set(np.nonzero([pointer in row for row in self.Polylines])[0]),set(row_avoid)))
-                        print('Rows is now: {}'.format(rows))
+                        print('Rows is now: {0}'.format(rows))
 
                 self.label_boundary_segments[key] = np.append(segment,int(self.same_fundus))
 
@@ -1230,7 +1224,7 @@ class Bounds:
         t0 = time()
         self.load_vtk_surface(surface_file)
         self.load_vtk_polylines(polylines_file)
-        print('Imported Data in: {}'.format(time() - t0))
+        print('Imported Data in: {0}'.format(time() - t0))
 
         self.initialize_seed_labels(init='label_boundary',
                                     output_filename = label_boundary_filename)
@@ -1296,13 +1290,13 @@ class Bounds:
             # self.RLabels[vertices_to_change] = self.realignment_mapping[counter][1]
             counter += 1
 
-        print('There are {} regions to be relabeled.'.format(
+        print('There are {0} regions to be relabeled.'.format(
               len(vertices_to_change)))
 
         # Run check_for_polylines
         vertices_to_change = self.check_for_polylines(vertices_to_change)
 
-        print('After further checks, {} regions are going to be relabeled.'.format(
+        print('After further checks, {0} regions are going to be relabeled.'.format(
               len(vertices_to_change)))
 
         # Resolve label ambiguities
@@ -1439,10 +1433,10 @@ class Bounds:
                 if key1 != key2:
                     overlap_problem = np.intersect1d(value1,value2).any()
                     if overlap_problem:
-                        print('The keys are: {} {}'.format(key1, key2))
+                        print('The keys are: {0} {1}'.format(key1, key2))
                         # 1 indicates value1 is larger, 2 if value2 is larger.
                         overlap[key1,key2] = (len(value2) > len(value1)) + 1
-                        print('The value of overlap is: {}'.format(overlap[key1,key2]))
+                        print('The value of overlap is: {0}'.format(overlap[key1,key2]))
 
                         # For NOW, let us disregard the matrix overlap and simply resolve the issue right here.
                         # In the future, this matrix may be desirable.

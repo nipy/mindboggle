@@ -12,10 +12,6 @@ Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 
-import os, sys
-code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
-sys.path.append(code_path)  # Add to PYTHONPATH
-
 import numpy as np
 from utils.io_vtk import write_scalars
 
@@ -36,7 +32,7 @@ for i1 in range(N):
         Points[count, 1] = i2
         count += 1
 if verbose:
-    print('Points:\n{}'.format(Points))
+    print('Points:\n{0}'.format(Points))
 
 #==========
 # Vertices
@@ -59,7 +55,7 @@ for row in range(N - 1):
         Faces[count, :] = [index, index + N, index + N + 1]
         count += 1
 if verbose:
-    print('Faces:\n{}'.format(Faces))
+    print('Faces:\n{0}'.format(Faces))
 
 #========
 # Labels
@@ -70,7 +66,7 @@ if build_labels:
     Labels[np.round((N**2)/2)::] = 2
     Labels = [int(x) for x in Labels]
     if verbose:
-        print('Labels:\n{}'.format(Labels))
+        print('Labels:\n{0}'.format(Labels))
 
     # Write VTK file
     vtk_file = 'test_labels.vtk'
@@ -107,9 +103,9 @@ if build_lines:
             Labels[index] = 4
         Labels = [int(x) for x in Labels]
         if verbose:
-            print('Lines:\n{}'.format(Lines))
+            print('Lines:\n{0}'.format(Lines))
 
         # Write VTK file
-        vtk_file = 'test_linespacing{}.vtk'.format(itest + 1)
+        vtk_file = 'test_linespacing{0}.vtk'.format(itest + 1)
         write_scalars(vtk_file, Points, Vertices, Faces,
                       LUTs=Labels, LUT_names=['Labels'])
