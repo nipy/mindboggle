@@ -805,10 +805,6 @@ if __name__ == "__main__":
     GyralLabels = range(50)
     SulcalLabels = range(50)
 
-    import os
-    code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
-    sys.path.append(code_path)  # Add to PYTHONPATH
-
     LUTs, Fundi, Sulci, OutputFiles = input_handle()
     Label_Patch_Table, Sulci_Table, Fundi_Table = generate_shape_table(LUTs,
         Fundi, Sulci, GyralLabels, SulcalLabels, OutputFiles)

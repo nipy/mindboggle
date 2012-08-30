@@ -14,7 +14,7 @@ Author:  Eliezer Stavsky  .  eli.stavsky@gmail.com
 import numpy as np
 import networkx as nx
 from scipy.sparse import lil_matrix
-from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -82,7 +82,7 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
 
     """
     if kernel is rbf_kernel or kernel is inverse_distance:
-        print('Computing weights using {} kernel with parameter = {}'.format(
+        print('Computing weights using {0} kernel with parameter = {1}'.format(
               kernel, sigma))
 
         # Construct matrix of edge lines by breaking triangle into three edges.

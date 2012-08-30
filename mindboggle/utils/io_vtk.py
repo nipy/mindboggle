@@ -45,7 +45,7 @@ def write_vtk_header(Fp, Header='# vtk DataFile Version 2.0',
     DATASET POLYDATA
 
     """
-    Fp.write('{}\n{}\n{}\nDATASET {}\n'.format(Header, Title, fileType, dataType))
+    Fp.write('{0}\n{1}\n{2}\nDATASET {3}\n'.format(Header, Title, fileType, dataType))
 
 def write_vtk_points(Fp, Points, dataType="float"):
     """
@@ -67,16 +67,16 @@ def write_vtk_points(Fp, Points, dataType="float"):
     """
     import numpy as np
 
-    Fp.write('POINTS {} {}\n'.format(len(Points), dataType))
+    Fp.write('POINTS {0} {1}\n'.format(len(Points), dataType))
 
     n = np.shape(Points)[1]
     for point in Points:
         if n == 3:
             [R, A, S] = point
-            Fp.write('{} {} {}\n'.format(R, A, S))
+            Fp.write('{0} {1} {2}\n'.format(R, A, S))
         elif n == 2:
             [R, A] = point
-            Fp.write('{} {}\n'.format(R, A))
+            Fp.write('{0} {1}\n'.format(R, A))
         else:
             print('ERROR: Unrecognized number of coordinates per point')
 
@@ -97,11 +97,11 @@ def write_vtk_faces(Fp, Faces):
     n = np.shape(Faces)[1]
     if n == 3:
         face_name = 'POLYGONS '
-        Fp.write('{} {} {}\n'.format(face_name, len(Faces),
+        Fp.write('{0} {1} {2}\n'.format(face_name, len(Faces),
                  len(Faces) * (n + 1)))
     elif n == 2:
         face_name = 'LINES '
-        Fp.write('{} {}\n'.format(face_name, len(Faces),
+        Fp.write('{0} {1}\n'.format(face_name, len(Faces),
                  len(Faces) * (n + 1)))
     else:
         print('ERROR: Unrecognized number of vertices per face')
@@ -109,10 +109,10 @@ def write_vtk_faces(Fp, Faces):
     for face in Faces:
         if n == 3:
             [V0, V1, V2] = face
-            Fp.write('{} {} {} {}\n'.format(n, V0, V1, V2))
+            Fp.write('{0} {1} {2} {3}\n'.format(n, V0, V1, V2))
         elif n == 2:
             [V0, V1] = face
-            Fp.write('{} {} {}\n'.format(n, V0, V1))
+            Fp.write('{0} {1} {2}\n'.format(n, V0, V1))
 
 def write_vtk_vertices(Fp, Vertices):
     """
@@ -130,9 +130,9 @@ def write_vtk_vertices(Fp, Vertices):
     ...
 
     """
-    Fp.write('VERTICES {} {}\n{} '.format(
+    Fp.write('VERTICES {0} {1}\n{2} '.format(
              len(Vertices), len(Vertices) + 1, len(Vertices)))
-    [Fp.write('{} '.format(i)) for i in Vertices]
+    [Fp.write('{0} '.format(i)) for i in Vertices]
     Fp.write('\n')
 
 def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
@@ -153,11 +153,11 @@ def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
 
     """
     if at_LUT_begin:
-        Fp.write('POINT_DATA {}\n'.format(len(LUT)))
-    Fp.write('SCALARS {} float\n'.format(LUTName))
-    Fp.write('LOOKUP_TABLE {}\n'.format(LUTName))
+        Fp.write('POINT_DATA {0}\n'.format(len(LUT)))
+    Fp.write('SCALARS {0} float\n'.format(LUTName))
+    Fp.write('LOOKUP_TABLE {0}\n'.format(LUTName))
     for Value in LUT:
-        Fp.write('{}\n'.format(Value))
+        Fp.write('{0}\n'.format(Value))
     Fp.write('\n')
 
 #============================================
@@ -452,7 +452,7 @@ def load_scalar(filename, return_arrays=1):
              for i in xrange(0, CellArray.GetNumberOfCells())]
 
     PointData = Data.GetPointData()
-    print("Loading {} {} scalars in file {}...".
+    print("Loading {0} {1} scalars in file {2}...".
           format(Reader.GetNumberOfScalarsInFile,
                  Reader.GetScalarsNameInFile(0), filename))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
@@ -486,7 +486,7 @@ def inside_faces(faces, indices):
     fs = frozenset(indices)
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
-    print('  Reduced {} to {} triangular faces.'.format(len_faces, len(faces)))
+    print('  Reduced {0} to {1} triangular faces.'.format(len_faces, len(faces)))
 
     return faces
 
