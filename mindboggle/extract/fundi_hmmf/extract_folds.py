@@ -63,11 +63,11 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     faces_seeds = [lst for lst in faces
                    if len(fs.intersection(lst)) >= min_seeds]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('    Reduced {} to {} faces.'.format(len(faces),
-                                             len(faces_seeds)))
+    print('    Reduced {0} to {1} faces.'.format(len(faces),
+                                                 len(faces_seeds)))
 
     # Loop until all seed vertices segmented
-    print('    Grow {} seed vertices...'.format(n_seeds))
+    print('    Grow {0} seed vertices...'.format(n_seeds))
     max_patch_size = 0
     max_patch_label = 1
     n_segments = 0
@@ -122,7 +122,7 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
 
             # Display current number and size of patch
             if size_patch > 1:
-                print('    Segmented patch {}: {} vertices. {} seeds remaining...'.
+                print('    Segmented patch {0}: {1} vertices. {2} seeds remaining...'.
                       format(n_segments, size_patch, n_seeds))
 
             # Find the maximum patch size
@@ -244,13 +244,13 @@ def extract_folds(depth_file, fraction_folds, min_fold_size, return_arrays=1):
     n_vertices = len(depths)
 
     # Segment folds of a surface mesh
-    print("  Segment surface mesh into separate folds deeper than {:.2f}...".
+    print("  Segment surface mesh into separate folds deeper than {0:.2f}...".
           format(min_depth))
     t1 = time()
     seeds = np.where(depths > min_depth)[0]
     folds, n_folds, max_fold, neighbor_lists_folds = segment_surface(
         faces, seeds, n_vertices, 3, min_fold_size)
-    print('    ...Folds segmented ({:.2f} seconds)'.format(time() - t1))
+    print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
 
     # If there are any folds
     if n_folds > 0:
@@ -284,13 +284,13 @@ def extract_folds(depth_file, fraction_folds, min_fold_size, return_arrays=1):
             if max_hole < n_holes:
                 holes[holes > max_hole] -= 1
             n_holes -= 1
-            print('    ...Holes segmented ({:.2f} seconds)'.format(time() - t2))
+            print('    ...Holes segmented ({0:.2f} seconds)'.format(time() - t2))
 
             t3 = time()
             folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
-            print('  Filled holes ({:.2f} seconds)'.format(time() - t3))
+            print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
 
-    print('  ...Extracted folds greater than {:.2f} depth in {:.2f} seconds'.
+    print('  ...Extracted folds greater than {0:.2f} depth in {1:.2f} seconds'.
           format(min_depth, time() - t0))
 
     # Return folds, number of folds, indices & lists of indices for each fold,

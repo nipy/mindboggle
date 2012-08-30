@@ -65,7 +65,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold...
-    print("Extract a fundus from each of {} folds...".format(n_folds))
+    print("Extract a fundus from each of {0} folds...".format(n_folds))
     t1 = time()
     fundus_lists = []
     n_vertices = len(depths)
@@ -74,7 +74,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     for i_fold, indices_fold in enumerate(index_lists_folds):
 
-        print('  Fold {} of {}:'.format(i_fold + 1, n_folds))
+        print('  Fold {0} of {1}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
         fold_likelihoods = compute_likelihood(depths[indices_fold],
@@ -83,7 +83,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
         # If the fold has enough high-likelihood vertices, continue
         likelihoods_thr = sum(fold_likelihoods > thr)
-        print('    Computed fundus likelihood values: {} > {} (minimum: {})'.
+        print('    Computed fundus likelihood values: {0} > {1} (minimum: {2})'.
               format(likelihoods_thr, thr, min_fold_size))
         if likelihoods_thr > min_fold_size:
 
@@ -97,7 +97,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
             if n_anchors > 1:
 
                 # Connect fundus points and extract fundus
-                print('    Connect {} fundus points...'.format(n_anchors))
+                print('    Connect {0} fundus points...'.format(n_anchors))
                 t2 = time()
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
@@ -109,7 +109,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
                 H = connect_points(indices_anchors, faces_folds, indices_fold,
                                    likelihoods_fold, thr, neighbor_lists)
                 fundus_lists.append(H.tolist())
-                print('      ...Connected {} fundus points ({:.2f} seconds)'.
+                print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
                       format(n_anchors, time() - t2))
             else:
                 fundus_lists.append([])
@@ -121,7 +121,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
         if len(fundus) > 0:
             fundi += fundus
 
-    print('  ...Extracted fundi ({:.2f} seconds)'.format(time() - t1))
+    print('  ...Extracted fundi ({0:.2f} seconds)'.format(time() - t1))
 
     return fundi #np.array(fundus_lists), likelihoods
                  #fundus_lists, likelihoods
