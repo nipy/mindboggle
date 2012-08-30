@@ -43,7 +43,7 @@ def read_columns(filename, n_columns=1, trail=False):
                         columns[icolumn].append(row[icolumn])
             else:
                 import os
-                os.error('The number of columns in {} is less than {}.'.format(
+                os.error('The number of columns in {0} is less than {1}.'.format(
                          filename, n_columns))
     Fp.close()
 
@@ -66,7 +66,7 @@ def write_table(labels, columns, column_names, filename):
         Fp.write("\t".join(column_names) + "\n")
 
     for irow, label in enumerate(labels):
-        row = ["{}\t".format(label)]
+        row = ["{0}\t".format(label)]
         for column in columns:
             row.append(column[irow])
         Fp.write("\t".join(row) + "\n")
@@ -125,7 +125,7 @@ def write_table_means(filename, column_names, labels, *values):
 
     """
     import os
-    from measure.measure_functions import mean_value_per_label
+    from mindboggle.measure.measure_functions import mean_value_per_label
 
     columns = []
     for value_list in values:

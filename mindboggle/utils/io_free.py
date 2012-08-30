@@ -246,18 +246,18 @@ def labels_to_volume(subject, annot_name):
 def surf_to_vtk(surface_file):
 
     import os
-    from utils import io_vtk
-    from utils import io_free
+    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
+        write_vtk_faces
+    from mindboggle.utils.io_free import read_surface
 
-    Vertex, Face = io_free.read_surface(surface_file)
+    Vertex, Face = read_surface(surface_file)
 
-    #vtk_file = surface_file + '.vtk'
     vtk_file = os.path.join(os.getcwd(),
                             os.path.basename(surface_file + '.vtk'))
     Fp = open(vtk_file, 'w')
-    io_vtk.write_vtk_header(Fp, Title='vtk output from ' + surface_file)
-    io_vtk.write_vtk_points(Fp, Vertex)
-    io_vtk.write_vtk_faces(Fp, Face)
+    write_vtk_header(Fp, Title='vtk output from ' + surface_file)
+    write_vtk_points(Fp, Vertex)
+    write_vtk_faces(Fp, Face)
     Fp.close()
 
     return vtk_file
@@ -279,7 +279,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     import os
     import nibabel as nb
-    from utils import io_vtk
+    from mindboggle.utils.io_vtk import load_scalar, write_scalars
 
     annot_file = os.path.join(subjects_path, subject, 'label',
                               hemi + '.' + annot_name)
@@ -291,7 +291,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     #Points, Faces = read_surface(surface_file)
 
     # Load VTK surface
-    Points, Faces, Scalars = io_vtk.load_scalar(surface_file, return_arrays=0)
+    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
     Vertices =  range(1, len(Points) + 1)
 
     output_stem = os.path.join(os.getcwd(),
@@ -300,7 +300,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
-    io_vtk.write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -388,10 +388,10 @@ def vtk_to_label_files(hemi, surface_file, label_numbers, label_names,
 
             # Write to relabel_file
             #if irgb != label_number:
-            #    f_relabel.writelines('{} {}\n'.format(irgb, label_number))
+            #    f_relabel.writelines('{0} {1}\n'.format(irgb, label_number))
 
             # Write to colortable
-            f_rgb.writelines('{} {} {}\n'.format(
+            f_rgb.writelines('{0} {1} {2}\n'.format(
                              irgb, label_name, RGBs[ilabel]))
 
             # Store in list of .label files

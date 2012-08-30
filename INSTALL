@@ -9,56 +9,54 @@ This page covers the necessary steps to install Mindboggle.
 Download
 --------
 
-Release 0.1:
-Release 0.1: [`zip <http://github.com/binarybottle/mindboggle/zipball/0.1>`_ `tar
-<http://github.com/binarybottle/mindboggle/tarball/0.1>`_]
-
-`Prior downloads <http://github.com/binarybottle/mindboggle/tags>`_
+http://mindboggle.info/download
 
 To check out the latest development version::
 
         git clone git://github.com/binarybottle/mindboggle.git
 
-
 Install
 -------
 
-Include the following four lines in your system's equivalent to a .bashrc file:
+Step 1: Install Mindboggle Python software
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-MINDBOGGLE_HOME=/projects/Mindboggle/mindboggle
-MINDBOGGLE_CODE=${MINDBOGGLE_HOME}/mindboggle
-PATH=${MINDBOGGLE_HOME}:${PATH}
-PATH=${MINDBOGGLE_CODE}:${PATH}
-export MINDBOGGLE_HOME MINDBOGGLE_CODE
-
-From source
-~~~~~~~~~~~
-
-If you downloaded the source distribution named something
-like ``mindboggle-x.y.tar.gz``, then unpack the tarball, change into the
+If you downloaded the source distribution named something like 
+``mindboggle-x.y.tar.gz``, then unpack the tarball, change into the
 ``mindboggle-x.y`` directory and install mindboggle using::
 
     python setup.py install
 
 **Note:** Depending on permissions you may need to use ``sudo``.
 
-#Testing the install
-#-------------------
-#
-#The best way to test the install is to run the test suite.  If you have
-#nose_ installed, then do the following::
-#
-#    python -c "import mindboggle; mindboggle.test()"
-#
-#you can also test with nosetests::
-#
-#    nosetests --with-doctest /software/binarybottle-repo/mastermindboggle/mindboggle
-#    --exclude=external --exclude=testing
-#
-#All tests should pass (unless you're missing a dependency). If SUBJECTS_DIR
-#variable is not set some FreeSurfer related tests will fail. If any tests
-#fail, please report them on our `bug tracker
-#<http://github.com/binarybottle/mindboggle/issues>`_.
+Step 2: Compile C++ code
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+Move the mindboggle_cpp directory to wherever you install your software
+(let's call it YOUR_SOFTWARE_PATH), then run cmake and make::
+
+>> mv mindboggle_cpp YOUR_SOFTWARE_PATH
+>> cd YOUR_SOFTWARE_PATH/mindboggle_cpp/bin/
+>> cmake ..
+>> make
+
+Step 3: Set environment variable
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+For your system to recognize the C++ code we just compiled, 
+include the following lines in your system's equivalent to a .bashrc file::
+
+MINDBOGGLE_CPP=YOUR_SOFTWARE_PATH/mindboggle_cpp/bin
+PATH=${MINDBOGGLE_CPP}:${PATH}
+export MINDBOGGLE_CPP
+
+Step 4: Move directory
+~~~~~~~~~~~~~~~~~~~~~~
+
+To take advantage of the FreeSurfer_ software, move the contents of the
+data/ directory to FreeSurfer's subjects/ directory.
+
+>> mv data/* $FREESURFER_HOME/subjects/
 
 Dependencies
 ------------
@@ -69,28 +67,38 @@ recommendations.
 Must Have
 ~~~~~~~~~
 
+Basic compilation software::
+  - cmake (http://cmake.org)
+  - C++ compiler such as gcc
+
+`Visualization Toolkit <http://vtk.org>`_
+
 Python_ 2.6 -2.7
+
+Nipype_ 1.0
+  Neuroimaging software pipeline framework
 
 Nibabel_ 1.0
   Neuroimaging file i/o library
 
-NetworkX_ 1.0 - 1.4
-  Python package for working with complex networks.
-
 NumPy_ 1.3 - 1.6
 
 SciPy_ 0.7 - 0.10
-  Numpy and Scipy are high-level, optimized scientific computing libraries.
+  Numpy and Scipy are high-level, optimized scientific computing libraries
 
-Enthought_ Traits_ 4.0.0
+NetworkX_ 1.0 - 1.4
+  Python package for working with complex networks
 
 .. note::
 
     Full distributions such as pythonxy_ or EPD_ provide the above packages,
-    except Nibabel_.
+    except Nibabel_ and Nipype_.
 
 Strong Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~
+
+FreeSurfer_
+  FreeSurfer version 4 and higher
 
 IPython_ 0.10.2 - 0.12
   Interactive python environment. This is necessary for some parallel
@@ -104,14 +112,3 @@ Sphinx_
 
 `Graphviz <http://www.graphviz.org/>`_
   Required for building the documentation
-
-Interface Dependencies
-~~~~~~~~~~~~~~~~~~~~~~
-
-These are the software packages that mindboggle.interfaces wraps:
-
-FreeSurfer_
-  FreeSurfer version 4 and higher
-  
-nipy_ 
-  0.1.2+20110404 or later

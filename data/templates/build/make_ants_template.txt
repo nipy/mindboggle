@@ -1,7 +1,0 @@
-# Create an "optimal average template" (Avants et al, 2009) using ANTs
-# 
-# Run the following command inside a directory containing the image volumes 
-# used to construct template, replacing $1 with the name (stem) of the template, 
-# and -j 6 with the number of CPUs:
-
-bash buildtemplateparallel.sh -d 3 -m 30x50x20 -t GR -s CC -c 2 -j 6 -o $1 $1*
