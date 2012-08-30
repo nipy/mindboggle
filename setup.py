@@ -4,9 +4,7 @@
 """
 Mindboggle: package for automated human brain image labeling and morphometry.
 
-<test>
-export PYTHONPATH=$PYTHONPATH:/desk/temp/lib/python2.7/site-packages/
-python setup.py install --prefix=/desk/temp
+python setup.py install #--prefix=/desk/temp
 python setup.py develop
 
 """
