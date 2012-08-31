@@ -38,7 +38,7 @@ Move the mindboggle_cpp directory to wherever you install your software
 
 >> mv mindboggle_cpp YOUR_SOFTWARE_PATH
 >> cd YOUR_SOFTWARE_PATH/mindboggle_cpp/bin/
->> cmake ..
+>> cmake ..  [OR "ccmake .." and select appropriate architecture]
 >> make
 
 Step 3: Set environment variable
@@ -55,7 +55,9 @@ Step 4: Move directory
 ~~~~~~~~~~~~~~~~~~~~~~
 
 To take advantage of the FreeSurfer_ software, move the contents of the
-data/ directory to FreeSurfer's subjects/ directory.
+data/ directory to FreeSurfer's subjects/ directory, and make sure that
+the environment variable SUBJECTS_DIR is set in your system's equivalent
+to a .bashrc file::
 
 >> mv data/* $FREESURFER_HOME/subjects/
 
