@@ -3,7 +3,7 @@
 
 import os
 
-from .dist_info import __version__, long_description as __doc__
+from .info import __version__, long_description as __doc__
 __doc__ += """
 Quickstart
 ==========
@@ -30,5 +30,5 @@ try:
 except ImportError:
     def test(*args, **kwargs): raise RuntimeError('Need numpy >= 1.2 for tests')
 
-from .dist_pkg_info import get_pkg_info as _get_pkg_info
+from .pkg_info import get_pkg_info as _get_pkg_info
 get_info = lambda : _get_pkg_info(os.path.dirname(__file__))
