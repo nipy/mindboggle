@@ -10,7 +10,7 @@ import re
 import pydoc
 from StringIO import StringIO
 from warnings import warn
-4
+
 class Reader(object):
     """A line-based string reader.
 
@@ -86,7 +86,7 @@ class Reader(object):
 
 
 class NumpyDocString(object):
-    def __init__(self,docstring):
+    def __init__(self, docstring, config={}):
         docstring = textwrap.dedent(docstring).split('\n')
 
         self._doc = Reader(docstring)
@@ -388,6 +388,8 @@ class NumpyDocString(object):
         out += self._str_see_also(func_role)
         for s in ('Notes','References','Examples'):
             out += self._str_section(s)
+        for param_list in ('Attributes', 'Methods'):
+            out += self._str_param_list(param_list)
         out += self._str_index()
         return '\n'.join(out)
 
@@ -408,7 +410,7 @@ def header(text, style='-'):
 
 
 class FunctionDoc(NumpyDocString):
-    def __init__(self, func, role='func', doc=None):
+    def __init__(self, func, role='func', doc=None, config={}):
         self._f = func
         self._role = role # e.g. "func" or "meth"
         if doc is None:
@@ -463,7 +465,8 @@ class FunctionDoc(NumpyDocString):
 
 
 class ClassDoc(NumpyDocString):
-    def __init__(self,cls,modulename='',func_doc=FunctionDoc,doc=None):
+    def __init__(self, cls, doc=None, modulename='', func_doc=FunctionDoc,
+                 config={}):
         if not inspect.isclass(cls):
             raise ValueError("Initialise using a class. Got %r" % cls)
         self._cls = cls
@@ -479,21 +482,20 @@ class ClassDoc(NumpyDocString):
 
         NumpyDocString.__init__(self, doc)
 
+        if config.get('show_class_members', True):
+            if not self['Methods']:
+                self['Methods'] = [(name, '', '')
+                                   for name in sorted(self.methods)]
+            if not self['Attributes']:
+                self['Attributes'] = [(name, '', '')
+                                      for name in sorted(self.properties)]
+
     @property
     def methods(self):
         return [name for name,func in inspect.getmembers(self._cls)
                 if not name.startswith('_') and callable(func)]
 
-    def __str__(self):
-        out = ''
-        out += super(ClassDoc, self).__str__()
-        out += "\n\n"
-
-        #for m in self.methods:
-        #    print "Parsing `%s`" % m
-        #    out += str(self._func_doc(getattr(self._cls,m), 'meth')) + '\n\n'
-        #    out += '.. index::\n   single: %s; %s\n\n' % (self._name, m)
-
-        return out
-
-
+    @property
+    def properties(self):
+        return [name for name,func in inspect.getmembers(self._cls)
+                if not name.startswith('_') and func is None]
