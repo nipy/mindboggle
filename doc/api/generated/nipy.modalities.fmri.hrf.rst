@@ -1,0 +1,20 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+modalities.fmri.hrf
+===================
+
+Module: :mod:`modalities.fmri.hrf`
+----------------------------------
+.. automodule:: nipy.modalities.fmri.hrf
+
+.. currentmodule:: nipy.modalities.fmri.hrf
+
+Functions
+---------
+
+
+.. autofunction:: nipy.modalities.fmri.hrf.gamma_expr
+
+
+.. autofunction:: nipy.modalities.fmri.hrf.gamma_params
+

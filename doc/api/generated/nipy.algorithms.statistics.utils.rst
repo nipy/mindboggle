@@ -1,0 +1,38 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+algorithms.statistics.utils
+===========================
+
+Module: :mod:`algorithms.statistics.utils`
+------------------------------------------
+.. automodule:: nipy.algorithms.statistics.utils
+
+.. currentmodule:: nipy.algorithms.statistics.utils
+
+Functions
+---------
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.combinations
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.complex
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.cube_with_strides_center
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.decompose2d
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.decompose3d
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.join_complexes
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.test_EC2
+
+
+.. autofunction:: nipy.algorithms.statistics.utils.test_EC3
+

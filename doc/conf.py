@@ -19,9 +19,9 @@ import sys, os
 # absolute, like shown here.
 sys.path.append(os.path.abspath('sphinxext'))
 
-# We load the nipy release info into a dict by explicit execution
+# We load the mindboggle release info into a dict by explicit execution
 rel = {}
-execfile('../nipy/info.py', rel)
+execfile('../mindboggle/info.py', rel)
 
 # Import support for ipython console session syntax highlighting (lives
 # in the sphinxext directory defined above)
@@ -83,9 +83,9 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General substitutions.
-project = 'nipy'
-#copyright = ':ref:`2005-2010, Neuroimaging in Python team. <nipy-software-license>`' 
-copyright = '2005-2010, Neuroimaging in Python team' 
+project = 'mindboggle'
+#copyright = ':ref:`2005-2010, Neuroimaging in Python team. <mindboggle-software-license>`' 
+copyright = '2012, Mindboggle team' 
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -136,11 +136,11 @@ html_theme = 'sphinxdoc'
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
 # given in html_static_path.
-html_style = 'nipy.css'
+html_style = 'mindboggle.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'NIPY Documentation'
+html_title = 'Mindboggle Documentation'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
@@ -200,7 +200,7 @@ htmlhelp_basename = project
 # [howto/manual]).
 
 latex_documents = [
-  ('documentation', 'nipy.tex', 'Neuroimaging in Python Documentation',
+  ('documentation', 'mindboggle.tex', 'Neuroimaging in Python Documentation',
    ur'Neuroimaging in Python team.','manual'),
   ]
 

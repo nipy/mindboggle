@@ -1,0 +1,23 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+core.image.image_spaces
+=======================
+
+Module: :mod:`core.image.image_spaces`
+--------------------------------------
+.. automodule:: nipy.core.image.image_spaces
+
+.. currentmodule:: nipy.core.image.image_spaces
+
+Functions
+---------
+
+
+.. autofunction:: nipy.core.image.image_spaces.as_xyz_affable
+
+
+.. autofunction:: nipy.core.image.image_spaces.is_xyz_affable
+
+
+.. autofunction:: nipy.core.image.image_spaces.xyz_affine
+

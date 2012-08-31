@@ -1,0 +1,103 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+core.reference.coordinate_map
+=============================
+
+Module: :mod:`core.reference.coordinate_map`
+--------------------------------------------
+Inheritance diagram for ``nipy.core.reference.coordinate_map``:
+
+.. inheritance-diagram:: nipy.core.reference.coordinate_map 
+   :parts: 3
+
+.. automodule:: nipy.core.reference.coordinate_map
+
+.. currentmodule:: nipy.core.reference.coordinate_map
+
+Classes
+-------
+
+:class:`AffineTransform`
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: AffineTransform
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
+:class:`CoordMapMaker`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CoordMapMaker
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
+:class:`CoordMapMakerError`
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CoordMapMakerError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
+:class:`CoordinateMap`
+~~~~~~~~~~~~~~~~~~~~~~
+
+
+.. autoclass:: CoordinateMap
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
+Functions
+---------
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.append_io_dim
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.compose
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.drop_io_dim
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.equivalent
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.product
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.renamed_domain
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.renamed_range
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.reordered_domain
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.reordered_range
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.shifted_domain_origin
+
+
+.. autofunction:: nipy.core.reference.coordinate_map.shifted_range_origin
+
