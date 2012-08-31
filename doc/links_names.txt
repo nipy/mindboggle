@@ -9,12 +9,10 @@
    nipy, NIPY, Nipy, etc...
 
 .. _nipy: http://nipy.org
-.. _`NIPY developer resources`: http://nipy.org/devel
+.. _`NIPY developer resources`: http://nipy.sourceforge.net/devel
+.. _`NIPY data packages`: http://nipy.sourceforge.net/data-packages
+
 .. _`Brain Imaging Center`: http://bic.berkeley.edu/
-.. _nitime: http://nipy.org/nitime/
-.. _nibabel: http://nipy.org/nibabel/
-.. _nipype: http://nipy.org/nipype/
-.. _ConnectomeViewer: http://www.connectomeviewer.org/viewer/
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -27,6 +25,13 @@
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
+.. _MIT License: http://www.opensource.org/licenses/mit-license.php
+
+.. Operating systems and distributions
+
+.. _Debian: http://www.debian.org
+.. _NeuroDebian: http://neuro.debian.net
+.. _Ubuntu: http://www.ubuntu.com
 
 .. Working process
 .. _pynifti: http://niftilib.sourceforge.net/pynifti/
@@ -34,11 +39,13 @@
 .. _nifti: http://nifti.nimh.nih.gov
 .. _`nipy sourceforge`: http://nipy.sourceforge.net/
 .. _sourceforge: http://nipy.sourceforge.net/
+.. _nipy github: http://github.com/nipy/nipy
 .. _`nipy launchpad`: https://launchpad.net/nipy
+.. _github: http://github.com
 .. _launchpad: https://launchpad.net/
-.. _`nipy trunk`: https://code.launchpad.net/~nipy-developers/nipy/trunk
+.. _`nipy trunk`: http://github.com/nipy/nipy
 .. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
-.. _`nipy bugs`: https://bugs.launchpad.net/nipy
+.. _`nipy bugs`: http://github.com/nipy/nipy/issues
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
@@ -61,6 +68,7 @@
 .. Other python projects
 .. _numpy: http://www.scipy.org/NumPy
 .. _scipy: http://www.scipy.org
+.. _cython: http://www.cython.org/
 .. _ipython: http://ipython.scipy.org
 .. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
 .. _matplotlib: http://matplotlib.sourceforge.net
@@ -72,7 +80,6 @@
 .. _networkx: http://networkx.lanl.gov/
 .. _pythonxy: http://www.pythonxy.com/
 .. _EPD: http://www.enthought.com/products/epd.php
-.. _Traits: http://code.enthought.com/projects/traits/
 
 .. Python imaging projects
 .. _PyMVPA: http://www.pymvpa.org
@@ -87,11 +94,9 @@
 .. _FSL: http://www.fmrib.ox.ac.uk/fsl
 .. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
 .. _voxbo: http://www.voxbo.org
-.. _Slicer: http://slicer.org
-.. _Camino: http://web4.cs.ucl.ac.uk/research/medic/camino/pmwiki/pmwiki.php
-.. _Camino2Trackvis: http://camino-trackvis.sourceforge.net/
-.. _MRtrix: http://www.brain.org.au/software/mrtrix/index.html
-.. _MNE: https://martinos.org/mne/index.html
+
+.. Visualization
+.. _vtk: http://www.vtk.org/
 
 .. General software
 .. _gcc: http://gcc.gnu.org
@@ -104,16 +109,23 @@
 .. _FMRIB: http://www.fmrib.ox.ac.uk
 
 .. Other organizations
-.. _enthought: http://www.enthought.com
+.. _enthought: <http://www.enthought.com>
 .. _kitware: http://www.kitware.com
 
 .. General information links
 .. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
 .. _`wikipedia PET`: http://en.wikipedia.org/wiki/Positron_emission_tomography
+.. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
+.. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
+.. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 
 .. Mathematical methods
 .. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
 .. _`wikipedia PCA`: http://en.wikipedia.org/wiki/Principal_component_analysis
 
-.. Nipype Paper
-.. _paper: http://www.frontiersin.org/Neuroinformatics/10.3389/fninf.2011.00013/abstract
+.. People
+.. _Matthew Brett: https://cirl.berkeley.edu/mb312/
+.. _Yaroslav O. Halchenko: http://www.onerussian.com
+.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
+.. _Gaël Varoquaux: http://gael-varoquaux.info/
+
