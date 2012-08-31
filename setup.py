@@ -4,9 +4,6 @@
 """
 Mindboggle: package for automated human brain image labeling and morphometry.
 
-python setup.py install #--prefix=/desk/temp
-python setup.py develop
-
 """
 
 import os
@@ -38,9 +35,7 @@ exec(open(ver_file).read())
 
 # Do dependency checking
 package_check('numpy', NUMPY_MIN_VERSION)
-custom_pydicom_messages = {'missing opt': 'Missing optional package "%s"'
-        ' provided by package "pydicom"'
-}
+
 extra_setuptools_args = {}
 if 'setuptools' in sys.modules:
     extra_setuptools_args = dict(
@@ -49,8 +44,7 @@ if 'setuptools' in sys.modules:
         zip_safe=False,
         extras_require = dict(
             doc='Sphinx>=0.3',
-            test='nose>=0.10.1',
-            nicom = 'dicom>=' + PYDICOM_MIN_VERSION)
+            test='nose>=0.10.1')
     )
 
 def main(**extra_args):
