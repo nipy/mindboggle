@@ -1,68 +1,32 @@
-.. _documentation:
+.. _documentation-main:
 
-=============
-Documentation
-=============
+====================
+ NIPY documentation
+====================
 
 .. htmlonly::
 
    :Release: |version|
    :Date: |today|
 
-Previous versions: `0.5.3 <http://nipy.org/nipype/0.5.3>`_ `0.4.1 <http://nipy.org/nipype/0.4.1>`_
+   Download `PDF <nipy.pdf>`_
 
-.. container:: doc2
+   Contents:
 
-  .. admonition:: Guides
+.. toctree::
+   :maxdepth: 2
 
-    .. hlist::
-       :columns: 2
+   users/index.rst
+   labs/index.rst
+   devel/index.rst
+   faq/index.rst
+   api/index.rst
+   publications
+   license
 
-       * User
+.. htmlonly::
 
-         .. toctree::
-            :maxdepth: 2
+  * :ref:`genindex`
+  * :ref:`modindex`
+  * :ref:`search`
 
-            users/index
-         .. toctree::
-            :maxdepth: 1
-
-            changes
-       * Developer
-
-         .. toctree::
-            :maxdepth: 2
-
-            api/index
-            devel/index
-
-
-  .. admonition:: Interfaces, Workflows and Examples
-
-    .. hlist::
-       :columns: 2
-
-       * Workflows
-
-         .. toctree::
-            :maxdepth: 1
-            :glob:
-
-            interfaces/generated/*workflows*
-       * Examples
-
-         .. toctree::
-            :maxdepth: 1
-            :glob:
-
-            users/examples/*
-       * Interfaces
-
-         .. toctree::
-            :maxdepth: 1
-            :glob:
-
-            interfaces/generated/*algorithms*
-            interfaces/generated/*interfaces*
-
-.. include:: links_names.txt
