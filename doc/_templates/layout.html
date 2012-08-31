@@ -1,54 +1,84 @@
 {% extends "!layout.html" %}
-{% set title = 'Neuroimaging in Python - Pipelines and Interfaces' %}
-{% set short_title = 'Nipype' %}
+{% set title = 'Neuroimaging in Python' %}
+
+{% block rootrellink %}
+  <li><a href="{{pathto('index')}}">NIPY home</a> |&nbsp;</li>
+{% endblock %}
+
 
 {% block extrahead %}
-{{ super() }}
-<meta name="keywords" content="nipype, neuroimaging, pipeline, workflow, parallel, python, neuroscience">
-<script type="text/javascript">
-
-  var _gaq = _gaq || [];
-  _gaq.push(['_setAccount', 'UA-339450-7']);
-  _gaq.push(['_setDomainName', 'none']);
-  _gaq.push(['_setAllowLinker', true]);
-  _gaq.push(['_trackPageview']);
-
-  (function() {
-    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-  })();
-
-</script>
+  <meta name="keywords" content="nipy, neuroimaging, python, neuroscience, time
+				 series">
 {% endblock %}
 
 {% block header %}
-<div class="header-wrapper">
-    <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
-        {%- block headertitle %}
-            <a href="{{pathto('index') }}">
-            <img src="{{ pathto("_static/nipype-banner-bg.png", 1) }}" alt="NIPY logo"  border="0" />
-        {%- endblock %}
-        <div style="margin-top: 1em;
-                border-top: 1px solid #AAA;
-                border-bottom: 1px solid #AAA;
-                border-radius: 5px;
-                padding: 3px 1em;">
-            {% include 'navbar.html' %}
-        </div>
-    </div>
+<div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
+ <a href="{{pathto('index') }}">
+  <img src="{{ pathto("_static/reggie2.png", 1) }}" alt="NIPY logo"  border="0" />
 </div>
 {% endblock %}
 
-{% block relbar1 %}{% endblock %}
-{% block relbar2 %}{% endblock %}
-{% block sidebar1 %}{{ sidebar() }}{% endblock %}
-{% block sidebar2 %}{% endblock %}
+{# This block gets put at the top of the sidebar #}
+{% block sidebarlogo %}
 
-{% block footer %}
-{{ super() }}
-<div class="footer">This page uses <a href="http://analytics.google.com/">
-Google Analytics</a> to collect statistics. You can disable it by blocking
-the JavaScript coming from www.google-analytics.com.
-</div>
+  
+<h4> Site Navigation </h4>
+  <ul>
+    <li><a href="{{pathto('documentation')}}">Documentation</a></li>
+    <li><a href="{{pathto('devel/index')}}">Development</a></li>
+  </ul>
+
+<h4> NIPY Community </h4>
+  <ul class="simple">
+    <li><a class="reference external"
+	href="http://nipy.sourceforge.net/">Community Home</a></li>
+    <li><a class="reference external"
+	href="http://nipy.sourceforge.net/software/projects/">NIPY Projects</a></li>
+    <li><a class="reference external"
+	href="http://mail.scipy.org/mailman/listinfo/nipy-devel">Mailing List</a></li>
+    <li><a class="reference external"
+	href="http://nipy.sourceforge.net/software/license/index.html">License</a></li>
+  </ul>
+
 {% endblock %}
+
+{# I had to copy the whole search block just to change the rendered text,
+   so it doesn't mention modules or classes #}
+{%- block sidebarsearch %}
+{%- if pagename != "search" %}
+
+<div id="searchbox-ml" style="display: none">
+  <h3>Search mailing list archive</h3>
+  <script type="text/javascript">
+    function mlsearch(curobj)
+    {
+    curobj.q.value="site:http://mail.scipy.org/pipermail/nipy-devel/ "+curobj.userquery.value
+    }
+  </script>
+  <form action="http://www.google.com/search" method="get" onSubmit="mlsearch(this)">
+    <input name="userquery" size="13" type="text" /> <input type="submit" value="Go" />
+    <input name="q" type="hidden" />
+  </form>
+</div>
+  
+<div id="searchbox-site" style="display: none">
+  <h3>{{ _('Search this site') }}</h3>
+    <form class="search" action="{{ pathto('search') }}" method="get">
+      <input type="text" name="q" size="13" />
+      <input type="submit" value="{{ _('Go') }}" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox-ml').show(0);</script>
+<script type="text/javascript">$('#searchbox-site').show(0);</script>
+{%- endif %}
+
+{# The sidebarsearch block is the last one available in the default sidebar()
+   macro, so the only way to add something to the bottom of the sidebar is to
+   put it here, at the end of the sidebarsearch block (before it closes).
+   #}
+
+{%- endblock %}

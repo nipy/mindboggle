@@ -1,99 +1,119 @@
 # Makefile for Sphinx documentation
 #
 
+SOURCEFORGE_USER ?= matthewbrett
+WWW=$(SOURCEFORGE_USER),nipy@web.sourceforge.net:htdocs/nipy
+
 # You can set these variables from the command line.
-SPHINXOPTS    =
+SPHINXOPTS    = #-q # suppress all output but warnings
 SPHINXBUILD   = sphinx-build
 PAPER         =
 
 # Internal variables.
 PAPEROPT_a4     = -D latex_paper_size=a4
 PAPEROPT_letter = -D latex_paper_size=letter
-ALLSPHINXOPTS   = -d _build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
+ALLSPHINXOPTS   = -d build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-.PHONY: help clean html api htmlonly latex changes linkcheck doctest
+.PHONY: help clean pdf all dist public_html web web_public htmlonly api html pickle htmlhelp latex changes linkcheck doctest
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  html      make the HTML documentation"
+	@echo "  html      	make HTML and API documents"
+	@echo "  htmlonly  	make HTML documents only"
 	@echo "  api       	make API documents only"
-	@echo "  latex     make the LaTeX, you can set PAPER=a4 or PAPER=letter"
+	@echo "  latex     	make LaTeX documents (you can set\
+					PAPER=a4 or PAPER=letter)"
+	@echo "  all		make HTML, API and PDF documents"
+	@echo "  clean		remove all generated documents"
+	@echo
+	@echo "  linkcheck 	check all external links for integrity"
+	@echo "  doctest   	run doctests in reST files"
 	@echo "  pdf		make <latex> and run the PDF generation"
-	@echo "  changes   make an overview of all changed/added/deprecated" \
-	      		"items (ChangeLog)"
-	@echo "  linkcheck check all external links for integrity"
-	@echo "  doctest   run all doctests embedded in the documentation"
-	@echo "  sf_satra copy html files to sourceforge (satra only)"
+	@echo "  dist		make <all> and put results in dist/"
+	@echo "  public_html	make <dist> and rsync with public website"
+	@echo "  gitwash-update update git workflow from source repo"
+
+# Commented these out, wasn't clear if we'd use these targets or not.
+# @echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
+# @echo "  htmlhelp  to make HTML files and a HTML help project"
+# @echo "  changes   to make an overview over all changed/added/deprecated items"
 
 clean:
-	-rm -rf _build/* *~ api/generated interfaces/generated users/examples documentation.zip
+	-rm -rf build/* dist/* *~ api/generated labs/generated
+	-rm -f manual
 
-htmlonly:
-	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) _build/html
-	@echo
-	@echo "Build finished. The HTML pages are in _build/html."
-
-api:
-	rm -rf api/generated
-	python ../tools/build_modref_templates.py
-	rm -rf interfaces/generated
-	python ../tools/build_interface_docs.py
-	@echo "Build API docs finished."
-
-html: clean examples2rst api htmlonly
-	@echo "Build HTML and API finished."
-
-examples2rst:
-	mkdir -p users/examples
-	../tools/make_examples.py --no-exec
-	@echo "examples2rst finished."
-
-latex: api
-	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) _build/latex
-	@echo
-	@echo "Build finished; the LaTeX files are in _build/latex."
-	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
-	      "run these through (pdf)latex."
 pdf: latex
-	cd _build/latex && make all-pdf
+	cd build/latex && make all-pdf
 
 all: html pdf
 
-changes:
-	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) _build/changes
-	@echo
-	@echo "The overview file is in _build/changes."
+dist: clean all
+	mkdir -p dist
+	ln build/latex/nipy*.pdf dist/
+	cp -al build/html/* dist/
+	@echo "Build finished.  Final docs are in dist/"
 
-linkcheck:
-	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) _build/linkcheck
-	@echo
-	@echo "Link check complete; look for any errors in the above output " \
-	      "or in _build/linkcheck/output.txt."
+public_html: dist
+	rsync -avH --delete dist/* $(WWW)
 
-doctest:
-	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) _build/doctest
-	@echo "Testing of doctests in the sources finished, look at the " \
-	      "results in _build/doctest/output.txt."
+htmlonly:
+	mkdir -p build/html build/doctrees
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) build/html
+	@echo
+	@echo "Build finished. The HTML pages are in build/html."
+
+api:
+	python ../tools/build_modref_templates.py
+	@echo "Build API docs finished."
+
+html: api htmlonly
+	-ln -s build manual
+	@echo "Build HTML and API finished."
 
 gitwash-update:
-	python ../tools/gitwash_dumper.py devel nipype \
-            --repo-name=nipype \
-            --github-user=nipy \
-            --project-url=http://nipy.org/nipype \
-            --project-ml-url=http://mail.scipy.org/mailman/listinfo/nipy-devel
-	@echo "gitwash updated"
+	python ../tools/gitwash_dumper.py devel/guidelines nipy
 
-# Sourceforge doesn't appear to have a way of copying the files
-# without specifying a username.  So we'll probably have one target
-# for each project admin
-sf_satra_nightly: html
-	@echo "Copying html files to sourceforge..."
-	scp -r _build/html/* satra,nipy@web.sourceforge.net:htdocs/nipype-nightly/
+pickle:
+	mkdir -p build/pickle build/doctrees
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) build/pickle
+	@echo
+	@echo "Build finished; now you can process the pickle files or run"
+	@echo "  sphinx-web build/pickle"
+	@echo "to start the sphinx-web server."
 
-sf_satra: html
-	@echo "Copying html files to sourceforge..."
-	rsync -auv _build/html/. satra,nipy@web.sourceforge.net:htdocs/nipype/.
+htmlhelp:
+	mkdir -p build/htmlhelp build/doctrees
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) build/htmlhelp
+	@echo
+	@echo "Build finished; now you can run HTML Help Workshop with the" \
+	      ".hhp project file in build/htmlhelp."
 
-sf_filo: html
-	@echo "Copying html files to sourceforge..."
-	rsync -auv _build/html/. gorgolewski,nipy@web.sourceforge.net:htdocs/nipype/.
+latex: api
+	mkdir -p build/latex build/doctrees
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
+	# Clear bug for longtable column output in sphinx
+	python ../tools/fix_longtable.py build/latex/nipy.tex
+	@echo
+	@echo "Build finished; the LaTeX files are in build/latex."
+	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
+	      "run these through (pdf)latex."
+
+changes:
+	mkdir -p build/changes build/doctrees
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) build/changes
+	@echo
+	@echo "The overview file is in build/changes."
+
+linkcheck:
+	mkdir -p build/linkcheck build/doctrees
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) build/linkcheck
+	@echo
+	@echo "Link check complete; look for any errors in the above output " \
+	      "or in build/linkcheck/output.txt."
+
+doctest:
+	mkdir -p build/doctest build/doctrees
+	$(SPHINXBUILD) -b doctest $(ALLSPHINXOPTS) build/doctest
+	@echo
+	@echo "The overview file is in build/doctest."
+
