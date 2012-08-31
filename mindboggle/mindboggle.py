@@ -90,6 +90,19 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
+"""
+from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset,\
+    write_mean_scalar_table
+from utils import io_vtk
+from utils import io_file
+from utils import io_free
+from label import multiatlas_labeling
+from label import relabel
+from measure import measure_functions
+from extract.fundi_hmmf import extract_folds
+from extract.fundi_hmmf import extract_fundi
+from label import evaluate_labels
+"""
 from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset, \
      write_mean_scalar_table
 from mindboggle.utils.io_file import read_columns, write_table_means
@@ -99,12 +112,11 @@ from mindboggle.label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from mindboggle.label.relabel import relabel_volume
 from mindboggle.measure.measure_functions import compute_depth, \
-    compute_curvature, mean_value_per_label
+     compute_curvature, mean_value_per_label
 from mindboggle.extract.fundi_hmmf.extract_folds import extract_folds
 from mindboggle.extract.fundi_hmmf.extract_fundi import extract_fundi
 from mindboggle.label.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
-import mindboggle
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
