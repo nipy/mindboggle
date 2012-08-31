@@ -71,6 +71,8 @@ Must Have
 ~~~~~~~~~
 
 Basic compilation software::
+  - easy_install
+    ????sudo easy_install --always-unzip --upgrade setuptools
   - cmake (http://cmake.org)
   - C++ compiler such as gcc
 
