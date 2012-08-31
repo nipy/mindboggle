@@ -2,6 +2,18 @@
 """
 This is Mindboggle's Nipype pipeline!
 
+Command::
+python mindboggle.py <output path> <1 or more subject names>
+
+Example::
+python mindboggle.py output HLN-12-1 HLN-12-2
+
+Note::
+Mindboggle assumes a file tree like FreeSurfer's,
+and for label initialization, assumes that subjects have been processed
+by FreeSurfer (autorecon -all), so subject names correspond to directory
+names in FreeSurfer's subjects directory.
+
 For more information about Mindboggle,
 see the website: http://www.mindboggle.info
 and read the README.
@@ -35,10 +47,6 @@ Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #=============================================================================
 #  User settings
 #=============================================================================
-# Command line input
-#-----------------------------------------------------------------------------
-# subjects = ['HLN-12-3']
-# output_path = '/projects/Mindboggle/output'  # Where to save output
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -96,6 +104,7 @@ from mindboggle.extract.fundi_hmmf.extract_folds import extract_folds
 from mindboggle.extract.fundi_hmmf.extract_fundi import extract_fundi
 from mindboggle.label.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
+import mindboggle
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -103,7 +112,7 @@ subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 atlases_path = subjects_path
 templates_path = os.path.join(subjects_path, 'Mindboggle_templates')
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-#info_path = os.path.join(code_path, 'info')
+info_path = os.path.join(mindboggle.get_info()['pkg_path'], 'info')
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -727,6 +736,18 @@ if evaluate_volume_labels:
 ##############################################################################
 if __name__== '__main__':
 
+    args = sys.argv[:]
+    if len(args) < 4:
+        print("\n\t Please provide the names of the output directory \
+                    and one or more subject names corresponding to the names \
+                    of directories within FreeSurfer's subjects directory.")
+        print("\t Example: python " + args[0] + \
+              " output HLN-12-1 HLN-12-2")
+        sys.exit()
+    else:
+        output_path = str(args[1])
+        subjects = str(args[2::])
+
     run_flow1 = True
     run_flow2 = True
     generate_graphs = True
@@ -738,6 +759,6 @@ if __name__== '__main__':
             mbflow2.write_graph(graph2use='flat')
             mbflow2.write_graph(graph2use='hierarchical')
     if run_flow1:
-        mbflow.run()  #(plugin='Linear') #(updatehash=False)
+        mbflow.run()
     if run_flow2:
-        mbflow2.run()  #(plugin='Linear') #(updatehash=False)
+        mbflow2.run()
