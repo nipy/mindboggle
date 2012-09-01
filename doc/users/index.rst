@@ -1,6 +1,6 @@
 .. _users-guide-index:
 
-.. This is the source doc for the nipy users guide. The users guide
+.. This is the source doc for the Mindboggle users guide. The users guide
    includes the FAQ (a directory below), and glossary.
 
 ============
@@ -17,7 +17,6 @@
 
    introduction
    installation
-   tutorial.rst
    ../glossary
 
 .. htmlonly::
