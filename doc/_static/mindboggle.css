@@ -1,6 +1,7 @@
 /**
  * Alternate Sphinx design
- * Originally created by Armin Ronacher for Werkzeug, adapted by Georg Brandl.
+ * Originally created by Armin Ronacher for Werkzeug, adapted by Georg Brandl,
+ * and later by Arno Klein.
  */
 
 body {
@@ -9,8 +10,7 @@ body {
     letter-spacing: -0.01em;
     line-height: 150%;
     text-align: center;
-    /*background-color: #AFC1C4; */
-    background-color: #BFD1D4;
+    background-color: #CA7900;
     color: black;
     padding: 0;
     border: 1px solid #aaa;
@@ -34,7 +34,7 @@ pre {
     letter-spacing: 0.015em;
     padding: 0.5em;
     border: 1px solid #ccc;
-    background-color: #f8f8f8;
+    background-color: #CA7900;
 }
 
 td.linenos pre {

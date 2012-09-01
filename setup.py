@@ -29,8 +29,8 @@ from nisext.py3builder import build_py
 from nisext.sexts import get_comrec_build, package_check
 cmdclass = {'build_py': get_comrec_build('mindboggle', build_py)}
 
-# Get version and release info, which is all stored in mindboggle/dist_info.py
-ver_file = os.path.join('mindboggle', 'dist_info.py')
+# Get version and release info, which is all stored in mindboggle/info.py
+ver_file = os.path.join('mindboggle', 'info.py')
 exec(open(ver_file).read())
 
 # Do dependency checking
