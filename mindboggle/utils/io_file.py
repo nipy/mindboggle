@@ -3,10 +3,10 @@
 This Python library reads and writes different file types.
 
 Authors:
-Forrest Sheng Bao  .  http://fsbao.net
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -14,16 +14,16 @@ def read_columns(filename, n_columns=1, trail=False):
     """
     Read n-column text file.
 
-    Inputs:
-    ------
-    filename:  name of text file [string]
-    n_columns:  number of columns to extract [integer]
-    trail:  combine all remaining columns as a string
+    Parameters
+    ----------
+    filename :  name of text file [string]
+    n_columns :  number of columns to extract [integer]
+    trail :  combine all remaining columns as a string
             in the final list [Boolean]
 
-    Output:
-    ------
-    columns:  a list of lists of strings, one list per column of text.
+    Returns
+    -------
+    columns :  a list of lists of strings, one list per column of text.
 
     """
 
@@ -53,11 +53,11 @@ def write_table(labels, columns, column_names, filename):
     """
     Write table with label column, value column, and column names.
 
-    Inputs:
-    ======
-    labels:  list (same length as values)
-    columns:  list of lists of values (each list is a column of values)
-    column_names:  names of columns [list of strings]
+    Parameters
+    ----------
+    labels :  list (same length as values)
+    columns :  list of lists of values (each list is a column of values)
+    column_names :  names of columns [list of strings]
 
     """
     Fp = open(filename,'w')
@@ -112,16 +112,16 @@ def write_table_means(filename, column_names, labels, *values):
 
     NOTE:  untested
 
-    Inputs:
-    ======
-    filename:  output filename (without path)
-    column_names:  names of columns [list of strings]
-    labels:  list (same length as values)
-    *values:  arbitrary number of lists, each containing a value per label
+    Parameters
+    ----------
+    filename :  output filename (without path)
+    column_names :  names of columns [list of strings]
+    labels :  list (same length as values)
+    *values :  arbitrary number of lists, each containing a value per label
 
-    Output:
-    ======
-    table_file:  table file
+    Returns
+    -------
+    table_file :  table file
 
     """
     import os
@@ -188,16 +188,12 @@ def write_lists(filename, input_lists):
     Output list of lists, each line in the file contains one element
     (also a list) of the top-level list.
 
-    Parameters
-    ==========
+    Notes: 2-D lists are separated by a delimiter which is 4 dashes now: \n----\n
 
+    Parameters
+    ----------
     input_lists : List of lists (2-D so far)
         Each element of input_lists is a 2-D list of equal or unequal size
-
-    Notes
-    ======
-
-    2-D lists are separated by a delimiter which is 4 dashes now: \n----\n
 
     ""
 
@@ -227,8 +223,8 @@ def load_vertex_neighbor_list(filename):
     Load neighbor list of vertexes from a file.
 
     Input
-    ======
-        filename: string
+    -----=
+        filename : string
             the file from which neighbor list will be loaded
 
     ""
@@ -256,8 +252,8 @@ def load_faces_neighbor_list(filename):
     Load neighbor list of faces from a file.
 
     Input
-    ======
-        filename: string
+    ------
+        filename : string
             the file from which neighbor list will be loaded
 
     ""

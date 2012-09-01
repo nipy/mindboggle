@@ -1,31 +1,10 @@
-.. _why-faq:
+.. _python-faq:
 
-=========
- Why ...
-=========
-
-.. _why-mindboggle:
-
-Why Mindboggle?
----------------
-
-There is a strong tendency for brain imagers, who are not developers,
-to assume that questions of "preprocessing", including registration
-and labeling, have been satisfactorily resolved.  We strongly believe
-that conventional methods do not establish reasonable correspondences
-across brain images and threaten to undermine the credibility of
-scientists who use them in the service of answering the neuroscientific
-and clinical questions that interest them.
-
-The purpose of Mindboggle is to improve the accuracy, precision, and
-consistency of labeling and morphometry of brain imaging data,
-and to promote open science by making all data, software, and documentation
-freely and openly available.
+=============
+ Why Python?
+=============
 
 .. _why-python:
-
-Why Python?
------------
 
 From Nipy's documentation::
 
