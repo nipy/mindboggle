@@ -9,5 +9,3 @@ Our user guide....
 .. toctree::
    :maxdepth: 2
    
-   ../mission
-   ../history

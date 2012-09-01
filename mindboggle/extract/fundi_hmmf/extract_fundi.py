@@ -6,7 +6,7 @@ Authors:
 Yrjo Hame  .  yrjo.hame@gmail.com
 Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -21,27 +21,21 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     A fundus is a connected set of high-likelihood vertices in a surface mesh.
 
-    Inputs:
-    ------
-    folds: label indices for folds: [#vertices x 1] numpy array
-    n_folds:  #folds [int]
-    neighbor_lists: list of lists of neighboring vertex indices (see return_arrays)
-    depth_file: surface mesh file in VTK format with scalar values
-    mean_curvature_file: surface mesh file in VTK format with scalar values
-    min_curvature_vector_file: surface mesh file in VTK format with scalar values
-    min_fold_size: minimum fold size
-    min_distance:  minimum distance
-    thr:  likelihood threshold
+    Parameters
+    ----------
+    folds : label indices for folds: [#vertices x 1] numpy array
+    n_folds :  #folds [int]
+    neighbor_lists : list of lists of neighboring vertex indices (see return_arrays)
+    depth_file : surface mesh file in VTK format with scalar values
+    mean_curvature_file : surface mesh file in VTK format with scalar values
+    min_curvature_vector_file : surface mesh file in VTK format with scalar values
+    min_fold_size : minimum fold size
+    min_distance :  minimum distance
+    thr :  likelihood threshold
 
-    Output:
-    ------
-    fundi:  numpy array of fundi
-
-    Calls:
-    -----
-    compute_likelihood()
-    find_anchors()
-    connect_points()
+    Returns
+    -------
+    fundi :  numpy array of fundi
 
     """
 

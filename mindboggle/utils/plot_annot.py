@@ -3,7 +3,7 @@
 """
 Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 import os, sys
