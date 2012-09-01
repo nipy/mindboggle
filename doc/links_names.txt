@@ -3,18 +3,13 @@
    therefore it should only contain link targets and name
    substitutions.  Try grepping for "^\.\. _" to find plausible
    candidates for this list.  
+   (This file was adapted from nipy_'s documentation.)
 
 .. NOTE: reST targets are
    __not_case_sensitive__, so only one target definition is needed for
-   nipy, NIPY, Nipy, etc...
+   mindboggle, MINDBOGGLE, Mindboggle, etc...
 
 .. _mindboggle: http://mindboggle.info
-
-.. _nipy: http://nipy.org
-.. _`NIPY developer resources`: http://nipy.sourceforge.net/devel
-.. _`NIPY data packages`: http://nipy.sourceforge.net/data-packages
-
-.. _`Brain Imaging Center`: http://bic.berkeley.edu/
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -24,6 +19,7 @@
 .. _docutils: http://docutils.sourceforge.net
 
 .. Licenses
+.. _Apache: http://www.opensource.org/licenses/Apache-2.0
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
@@ -36,18 +32,11 @@
 .. _Ubuntu: http://www.ubuntu.com
 
 .. Working process
-.. _pynifti: http://niftilib.sourceforge.net/pynifti/
-.. _nifticlibs: http://nifti.nimh.nih.gov
 .. _nifti: http://nifti.nimh.nih.gov
-.. _`nipy sourceforge`: http://nipy.sourceforge.net/
-.. _sourceforge: http://nipy.sourceforge.net/
-.. _nipy github: http://github.com/nipy/nipy
-.. _`nipy launchpad`: https://launchpad.net/nipy
 .. _github: http://github.com
-.. _launchpad: https://launchpad.net/
-.. _`nipy trunk`: http://github.com/nipy/nipy
-.. _`nipy mailing list`: http://projects.scipy.org/mailman/listinfo/nipy-devel
-.. _`nipy bugs`: http://github.com/nipy/nipy/issues
+.. _mindboggle github: http://github.com/binarybottle/mindboggle
+.. _`mindboggle trunk`: http://github.com/binarybottle/mindboggle
+.. _`mindboggle bugs`: http://github.com/binarybottle/mindboggle/issues
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
@@ -62,40 +51,27 @@
 .. _ECB: http://ecb.sourceforge.net/
 .. _emacs_python_mode: http://www.emacswiki.org/cgi-bin/wiki/PythonMode
 .. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
-.. _bazaar: http://bazaar-vcs.org/
-.. _subversion: http://subversion.tigris.org/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
 
 .. Other python projects
+.. _nipy: http://nipy.org
 .. _numpy: http://www.scipy.org/NumPy
 .. _scipy: http://www.scipy.org
 .. _cython: http://www.cython.org/
 .. _ipython: http://ipython.scipy.org
 .. _`ipython manual`: http://ipython.scipy.org/doc/manual/html
 .. _matplotlib: http://matplotlib.sourceforge.net
-.. _ETS: http://code.enthought.com/projects/tool-suite.php
 .. _`Enthought Tool Suite`: http://code.enthought.com/projects/tool-suite.php
 .. _python: http://www.python.org
 .. _mayavi: http://mayavi.sourceforge.net/
-.. _sympy: http://code.google.com/p/sympy/
 .. _networkx: http://networkx.lanl.gov/
 .. _pythonxy: http://www.pythonxy.com/
 .. _EPD: http://www.enthought.com/products/epd.php
 
-.. Python imaging projects
-.. _PyMVPA: http://www.pymvpa.org
-.. _BrainVISA: http://brainvisa.info
-.. _anatomist: http://brainvisa.info
-
-.. Not so python imaging projects
-.. _matlab: http://www.mathworks.com
-.. _spm: http://www.fil.ion.ucl.ac.uk/spm
-.. _eeglab: http://sccn.ucsd.edu/eeglab
-.. _AFNI: http://afni.nimh.nih.gov/afni
+.. Non-python brain imaging software
 .. _FSL: http://www.fmrib.ox.ac.uk/fsl
 .. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
-.. _voxbo: http://www.voxbo.org
 
 .. Visualization
 .. _vtk: http://www.vtk.org/
@@ -106,28 +82,16 @@
 .. _mingw: http://www.mingw.org
 .. _macports: http://www.macports.org/
 
-.. Functional imaging labs
-.. _`functional imaging laboratory`: http://www.fil.ion.ucl.ac.uk
-.. _FMRIB: http://www.fmrib.ox.ac.uk
-
 .. Other organizations
 .. _enthought: <http://www.enthought.com>
 .. _kitware: http://www.kitware.com
 
 .. General information links
-.. _`wikipedia FMRI`: http://en.wikipedia.org/wiki/Functional_magnetic_resonance_imaging
-.. _`wikipedia PET`: http://en.wikipedia.org/wiki/Positron_emission_tomography
 .. _ANALYZE: http://www.grahamwideman.com/gw/brain/analyze/formatdoc.htm
 .. _NIfTI1: http://nifti.nimh.nih.gov/nifti-1/
 .. _MINC: http://wiki.bic.mni.mcgill.ca/index.php/MINC
 
-.. Mathematical methods
-.. _`wikipedia ICA`: http://en.wikipedia.org/wiki/Independent_component_analysis
-.. _`wikipedia PCA`: http://en.wikipedia.org/wiki/Principal_component_analysis
-
 .. People
-.. _Matthew Brett: https://cirl.berkeley.edu/mb312/
-.. _Yaroslav O. Halchenko: http://www.onerussian.com
-.. _Michael Hanke: http://apsy.gse.uni-magdeburg.de/hanke
-.. _Gaël Varoquaux: http://gael-varoquaux.info/
+.. _Arno Klein: http://binarybottle.com
+.. _Satrajit Ghosh: http://mit.edu/~satra
 

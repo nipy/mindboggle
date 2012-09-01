@@ -1,8 +1,7 @@
 # emacs: -*- coding: utf-8; mode: python; py-indent-offset: 4; indent-tabs-mode: nil -*-
 # vi: set ft=python sts=4 ts=4 sw=4 et:
 #
-# sampledoc documentation build configuration file, created by
-# sphinx-quickstart on Tue Jun  3 12:40:24 2008.
+# sampledoc documentation build configuration file, created by sphinx-quickstart
 #
 # This file is execfile()d with the current directory set to its containing dir.
 #
@@ -19,12 +18,12 @@ import sys, os
 # absolute, like shown here.
 sys.path.append(os.path.abspath('sphinxext'))
 
-# We load the mindboggle release info into a dict by explicit execution
+# We load the Mindboggle release info into a dict by explicit execution
 rel = {}
 execfile('../mindboggle/info.py', rel)
 
-# Import support for ipython console session syntax highlighting (lives
-# in the sphinxext directory defined above)
+# Import support for ipython console session syntax highlighting 
+# (lives in the sphinxext directory defined above)
 import ipython_console_highlighting
 
 # General configuration
@@ -53,26 +52,6 @@ else: # probably sphinx >= 1.0
     extensions.append('numpy_ext.numpydoc')
     autosummary_generate=True
 
-# Matplotlib sphinx extensions
-# ----------------------------
-
-# Currently we depend on some matplotlib extentions that are only in
-# the trunk, so we've added copies of these files to fall back on,
-# since most people install releases.  Once theses extensions have
-# been released for a while we should remove this hack.  I'm assuming
-# any modifications to these extensions will be done upstream in
-# matplotlib!  The matplotlib trunk will have more bug fixes and
-# feature updates so we'll try to use that one first.
-try:
-    import matplotlib.sphinxext
-    extensions.append('matplotlib.sphinxext.mathmpl')
-    extensions.append('matplotlib.sphinxext.only_directives')
-    extensions.append('matplotlib.sphinxext.plot_directive')
-except ImportError:
-    extensions.append('mathmpl')
-    extensions.append('only_directives')
-    extensions.append('plot_directive')
-
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -84,7 +63,6 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'mindboggle'
-#copyright = ':ref:`2005-2010, Neuroimaging in Python team. <mindboggle-software-license>`' 
 copyright = '2012, Mindboggle team' 
 
 # The default replacements for |version| and |release|, also used in various
@@ -157,7 +135,7 @@ html_last_updated_fmt = '%b %d, %Y'
 
 # If true, SmartyPants will be used to convert quotes and dashes to
 # typographically correct entities.
-#html_use_smartypants = True
+html_use_smartypants = True
 
 # Content template for the index page.
 html_index = 'index.html'
@@ -165,8 +143,8 @@ html_index = 'index.html'
 # Custom sidebar templates, maps document names to template names.
 # html_sidebars = {'index': 'indexsidebar.html'}
 
-# Additional templates that should be rendered to pages, maps page names to
-# template names.
+# Additional templates that should be rendered to pages, 
+# maps page names to template names.
 #html_additional_pages = {}
 
 # If false, no module index is generated.

@@ -1,2 +1,4 @@
-The purpose of Mindboggle is to make it easier to do better brain imaging
-research...
+The purpose of Mindboggle is to improve the accuracy, precision, and
+consistency of labeling and morphometry of brain imaging data,
+and to promote open science by making all data, software, and documentation
+freely and openly available.
