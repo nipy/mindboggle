@@ -6,9 +6,10 @@ Graph operations:
     - Matrix weights and affinity matrix
     - Graph Laplacian
 
-Author:  Eliezer Stavsky  .  eli.stavsky@gmail.com
+Authors:
+    - Eliezer Stavsky (eli.stavsky@gmail.com)
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 import numpy as np
@@ -26,15 +27,15 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
     """
     Compute diagonal degree matrix.
 
-    Input
-    =====
-    W: N x N sparse matrix in csr format (affinity matrix)
-    inverse: boolean (compute inverse of diagonal degree matrix?)
-    square_root: boolean (compute square root of diagonal degree matrix?)
+    Parameters
+    ----------
+    W : N x N sparse matrix in csr format (affinity matrix)
+    inverse : boolean (compute inverse of diagonal degree matrix?)
+    square_root : boolean (compute square root of diagonal degree matrix?)
 
-    Return
-    ======
-    ddm: N x N sparse matrix in csr format (diagonal matrix)
+    Returns
+    -------
+    ddm : N x N sparse matrix in csr format (diagonal matrix)
          "csr" stands for "compressed sparse row" matrix
          (http://docs.scipy.org/doc/scipy/reference/sparse.html)
     """
@@ -62,23 +63,23 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
     """
     Construct weighted edges of a graph and compute an affinity matrix.
 
-    Input
-    =====
-    Nodes: numpy array
-    Meshes: numpy array
-    kernel: function which determines weights of edges
-        rbf_kernel       - Gaussian kernel, with parameter sigma
-        cotangent_kernel - weight calculation for Laplace_Beltrami_Operator
-        inverse_distance - additional kernel where the weight is the inverse
-                           of the distance between two nodes
-    add_to_graph:  boolean (add to graph?)
-    G:  networkx graph
-    sigma:  float (parameter for rbf_kernel)
+    Parameters
+    ----------
+    Nodes : numpy array
+    Meshes : numpy array
+    kernel : function which determines weights of edges
+        - rbf_kernel: Gaussian kernel, with parameter sigma
+        - cotangent_kernel: weight calculation for Laplace_Beltrami_Operator
+        - inverse_distance: additional kernel where the weight is the inverse
+          of the distance between two nodes
+    add_to_graph :  boolean (add to graph?)
+    G :  networkx graph
+    sigma :  float (parameter for rbf_kernel)
 
-    Output
-    ======
-    G:  networkx graph
-    affinity_matrix:  numpy array (sparse affinity matrix)
+    Returns
+    -------
+    G :  networkx graph
+    affinity_matrix :  numpy array (sparse affinity matrix)
 
     """
     if kernel is rbf_kernel or kernel is inverse_distance:
@@ -138,21 +139,21 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
     """
     Compute normalized and unnormalized graph Laplacians.
 
-    Input
-    =====
-    W: N x N sparse matrix in csr format (affinity matrix)
+    Parameters
+    ----------
+    W : N x N sparse matrix in csr format (affinity matrix)
        "csr" stands for "compressed sparse row" matrix
        (http://docs.scipy.org/doc/scipy/reference/sparse.html)
-    type_of_laplacian: string
-        basic - non-normalized Laplacian (Lap = D - W)
-        norm1 - normalized Laplacian (Lap = ddmi_sq * L * ddmi_sq) - recovers definition
-        norm2 - normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
-        norm3 - normalized Laplacian (Lap = inv(D) * L)
-        random_walk - random walk Laplacian (Lap = inv(D) * W)
+    type_of_laplacian : string
+        - basic: non-normalized Laplacian (Lap = D - W)
+        - norm1: normalized Laplacian (Lap = ddmi_sq * L * ddmi_sq) - recovers definition
+        - norm2: normalized Laplacian (Lap = ddmi_sq * W * ddmi_sq)
+        - norm3: normalized Laplacian (Lap = inv(D) * L)
+        - random_walk: random walk Laplacian (Lap = inv(D) * W)
 
-    Return
-    ======
-    Laplacian: N x N sparse matrix in csr format
+    Returns
+    -------
+    Laplacian : N x N sparse matrix in csr format
                (Graph Laplacian of affinity matrix)
 
     """

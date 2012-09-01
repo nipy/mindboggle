@@ -2,9 +2,10 @@
 """
 Kernels.
 
-Author:  Eliezer Stavsky  .  eli.stavsky@gmail.com
+Authors:
+    - Eliezer Stavsky  (eli.stavsky@gmail.com)
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 import numpy as np

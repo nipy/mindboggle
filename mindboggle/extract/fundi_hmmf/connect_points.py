@@ -7,10 +7,10 @@ that do not have high likelihood values and have Hidden Markov Measure Field
 (HMMF) values different than their neighbors.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Yrjo Hame  (yrjo.hame@gmail.com)
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -31,16 +31,16 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
 
-    Inputs:
-    ------
-    likelihood: likelihood value in interval [0,1]
-    hmmf: HMMF value
-    hmmf_neighbors: HMMF values of neighboring vertices: numpy array
-    wN: weight influence of neighbors on cost (term 2)
+    Parameters
+    ----------
+    likelihood : likelihood value in interval [0,1]
+    hmmf : HMMF value
+    hmmf_neighbors : HMMF values of neighboring vertices: numpy array
+    wN : weight influence of neighbors on cost (term 2)
 
-    Output:
-    ------
-    cost
+    Returns
+    -------
+    cost : ``float``
 
     """
 
@@ -65,22 +65,18 @@ def simple_test(faces, index, values, thr, neighbors):
     A simple point is a vertex that when added to or removed from an object
     (e.g., a curve) on a surface mesh does not alter the object's topology.
 
-    Inputs:
-    ------
-    faces: [#faces x 3] numpy array
-    index: index of vertex
-    values: values: [#vertices x 1] numpy array
-    thr: threshold
-    neighbors: list of lists of indices of neighboring vertices
+    Parameters
+    ----------
+    faces : [#faces x 3] numpy array
+    index : index of vertex
+    values : values: [#vertices x 1] numpy array
+    thr : threshold
+    neighbors : list of lists of indices of neighboring vertices
 
-    Output:
-    ------
-    sp: simple point or not?: Boolean
-    n_inside: number of neighboring vertices greater than threshold
-
-    Calls:
-    -----
-    find_neighbors()  [optional]
+    Returns
+    -------
+    sp : simple point or not?: Boolean
+    n_inside : number of neighboring vertices greater than threshold
 
     """
 
@@ -177,20 +173,16 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
 
-    Inputs:
-    ------
-    B: binary [#vertices x 1] numpy array
-    indices_to_keep: indices to retain
-    faces: indices of triangular mesh vertices: [#faces x 3] numpy array
-    neighbor_lists: lists of lists of neighboring vertices
+    Parameters
+    ----------
+    B : binary [#vertices x 1] numpy array
+    indices_to_keep : indices to retain
+    faces : indices of triangular mesh vertices: [#faces x 3] numpy array
+    neighbor_lists : lists of lists of neighboring vertices
 
-    Output:
-    ------
-    B: binary skeleton: numpy array
-
-    Calls:
-    -----
-    simple_test()
+    Returns
+    -------
+    B : binary skeleton: numpy array
 
     """
 
@@ -242,38 +234,37 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     threshold such that a H_step makes it cross the threshold,
     and the vertex is a "simple point" (its addition/removal alters topology).
 
-    Inputs:
-    ------
-    anchors: list of indices of vertices to connect (should contain >=2)
-    faces: indices of triangular mesh vertices: [#faces x 3] numpy array
-    indices: list of indices of vertices
-    L: likelihood values: [#vertices in mesh x 1] numpy array
-    thr: likelihood threshold
-    neighbor_lists: lists of lists of neighboring vertices
+    Parameters for computing the cost and cost gradients:
+
+        ``wL``: weight influence of likelihood on the cost function
+
+        ``wN``: weight influence of neighbors on the cost function
+
+        ``H_step``: the amount that the HMMF values are H_steped
+
+    Parameters to speed up optimization and terminate the algorithm:
+
+        ``min_H``: minimum HMMF value to fix very low values
+
+        ``min_change``: minimum change in the sum of costs
+
+        ``n_tries_no_change``: #times the loop can continue even without any change
+
+        ``max_count``: maximum #iterations
+
+    Parameters
+    ----------
+    anchors : list of indices of vertices to connect (should contain >=2)
+    faces : indices of triangular mesh vertices: [#faces x 3] numpy array
+    indices : list of indices of vertices
+    L : likelihood values: [#vertices in mesh x 1] numpy array
+    thr : likelihood threshold
+    neighbor_lists : lists of lists of neighboring vertices
                     (optional: empty list)
 
-    Parameters:
-    ----------
-    Parameters for computing the cost and cost gradients:
-      wL: weight influence of likelihood on the cost function
-      wN: weight influence of neighbors on the cost function
-      H_step: the amount that the HMMF values are H_steped
-    Parameters to speed up optimization and terminate the algorithm:
-      min_H: minimum HMMF value to fix very low values
-      min_change: minimum change in the sum of costs
-      n_tries_no_change: #times the loop can continue even without any change
-      max_count: maximum #iterations
-
-    Output:
-    ------
-    fundus: [#vertices x 1] numpy array
-
-    Calls:
-    -----
-    find_neighbors() [optional]
-    compute_cost()
-    simple_test()
-    skeletonize()
+    Returns
+    -------
+    fundus : [#vertices x 1] numpy array
 
     """
 

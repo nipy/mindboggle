@@ -2,12 +2,11 @@
 """
 Compute likelihood and cost values for curves on a surface mesh.
 
-
 Authors:
-    Yrjo Hame  .  yrjo.hame@gmail.com
-    Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Yrjo Hame  (yrjo.hame@gmail.com)
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -36,22 +35,16 @@ def compute_likelihood(depths, curvatures):
     """
     Compute (fundus) curve likelihood values on a surface mesh.
 
-    Inputs:
-    ------
-    depths: depth values in [0,1]: [#sulcus vertices x 1] numpy array
-    curvatures: mean curvature values in [-1,1] [#sulcus vertices x 1] array
+    The *slope_factor* is used to compute the "gain" of the slope of sigmoidal values.
 
-    Parameters:
+    Parameters
     ----------
-    slope_factor: used to compute the "gain" of the slope of sigmoidal values
+    depths : depth values in [0,1]: [#sulcus vertices x 1] numpy array
+    curvatures : mean curvature values in [-1,1] [#sulcus vertices x 1] array
 
-    Output:
-    ------
-    likelihoods: likelihood values [#sulcus vertices x 1] numpy array
-
-    Calls:
-    -----
-    sigmoid()
+    Returns
+    -------
+    likelihoods : likelihood values [#sulcus vertices x 1] numpy array
 
     """
 

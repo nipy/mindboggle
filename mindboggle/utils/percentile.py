@@ -14,15 +14,15 @@ def percentile(N, percent, key=lambda x:x):
     """
     Find the percentile of a list of values.
 
-    Inputs:
-    ------
-    N: list of values. Note N MUST BE already sorted
-    percent: float value from 0.0 to 1.0
-    key: optional key function to compute value from each element of N
+    Parameters
+    ----------
+    N : list of values. Note N MUST BE already sorted
+    percent : float value from 0.0 to 1.0
+    key : optional key function to compute value from each element of N
 
-    Output:
-    ------
-    percentile of the values
+    Returns
+    -------
+    percentile : percentile of the values
 
     """
 
@@ -39,4 +39,6 @@ def percentile(N, percent, key=lambda x:x):
     d0 = key(N[int(f)]) * (c-k)
     d1 = key(N[int(c)]) * (k-f)
 
-    return d0 + d1
+    percentile = d0 + d1
+
+    return percentile

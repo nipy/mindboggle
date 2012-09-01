@@ -11,15 +11,22 @@ For surface overlap, this program simply calls Joachim Giard's code.
 
 
 Authors:
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
 def measure_surface_overlap(command, labels_file1, labels_file2):
     """
     Measure surface overlap using Joachim Giard's code.
+
+    Parameters
+    ----------
+    command : surface overlap C++ executable command
+    labels_file1 : ``vtk file`` with index labels for scalar values
+    labels_file2 : ``vtk file`` with index labels for scalar values
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -41,9 +48,11 @@ def measure_volume_overlap(labels, atlas_file, input_file):
     Measure overlap between individual label regions
     in source and target nifti (nii.gz) images.
 
-    Input:
-    arg1:  list of label indices
-    arg2, arg3:  source, target images, consisting of index-labeled pixels/voxels
+    Parameters
+    ----------
+    labels : list of label indices
+    atlas_file : source image, consisting of index-labeled pixels/voxels
+    input_file : target image, consisting of index-labeled pixels/voxels
 
     """
 

@@ -2,7 +2,11 @@
 {% set title = 'Mindboggle' %}
 
 {% block rootrellink %}
-  <li><a href="{{pathto('index')}}">Mindboggle home</a> |&nbsp;</li>
+  <li>Mindboggle <a href="{{pathto('index')}}">Software</a> |&nbsp;</li>
+  <li><a href="http://mindboggle.info/data/">Data</a> |&nbsp;</li>
+  <li><a href="http://mindboggle.info/papers/">Publications</a> |&nbsp;</li>
+  <li><a href="http://mindboggle.info/lectures/">Lectures</a> |&nbsp;</li>
+  <li><a href="http://mindboggle.info/people/">People</a></li>
 {% endblock %}
 
 
@@ -25,6 +29,38 @@
   <ul>
     <li><a href="{{pathto('documentation')}}">Documentation</a></li>
   </ul>
+
+<h4> Github repo </h4>
+  <ul class="simple">
+    <li><a class="reference external"
+        href="http://github.com/binarybottle/minboggle/">Mindboggle Github</a></li>
+  </ul>
+
+{%- endblock %}
+
+{# I had to copy the whole search block just to change the rendered text,
+   so it doesn't mention modules or classes #}
+{%- block sidebarsearch %}
+{%- if pagename != "search" %}
+
+<div id="searchbox-site" style="display: none">
+  <h3>{{ _('Search this site') }}</h3>
+    <form class="search" action="{{ pathto('search') }}" method="get">
+      <input type="text" name="q" size="13" />
+      <input type="submit" value="{{ _('Go') }}" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox-site').show(0);</script>
+{%- endif %}
+
+{# The sidebarsearch block is the last one available in the default sidebar()
+   macro, so the only way to add something to the bottom of the sidebar is to
+   put it here, at the end of the sidebarsearch block (before it closes).
+   #}
 
 {% endblock %}
 
