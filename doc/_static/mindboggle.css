@@ -1,7 +1,19 @@
-/**
+/*
  * Alternate Sphinx design
  * Originally created by Armin Ronacher for Werkzeug, adapted by Georg Brandl,
- * and later by Arno Klein.
+ * and later modified by Arno Klein.
+ *
+ * Colors:
+ * mindboggle logo foreground and background: #FFBE22; #FCFCC8;
+ * color: #e0a91b;  # strong mustard
+ * color: #e0bb58;  # dull mustard 
+ * color: #8f6f17;   #a67f15;  #c89718;  # hyperlinks
+ * color: #724d42;  # header
+ * background-color: #e0bb58;  # box background
+ *
+ * Misc. colors:
+ * color: #b07613;  # brown
+ * color: #91590e;  # dark brown
  */
 
 body {
@@ -10,7 +22,8 @@ body {
     letter-spacing: -0.01em;
     line-height: 150%;
     text-align: center;
-    background-color: #CA7900;
+    text-decoration: none;
+    background-color: #e0bb58;  # dull mustard
     color: black;
     padding: 0;
     border: 1px solid #aaa;
@@ -20,12 +33,12 @@ body {
 }
 
 a {
-    color: #CA7900;
+    color: #8f6f17;  # hyperlinks
     text-decoration: none;
 }
 
 a:hover {
-    color: #2491CF;
+    color: #e0a91b;  # strong mustard
 }
 
 pre {
@@ -34,7 +47,7 @@ pre {
     letter-spacing: 0.015em;
     padding: 0.5em;
     border: 1px solid #ccc;
-    background-color: #CA7900;
+    background-color: #fcfcc8;  # example boxes (snake background)
 }
 
 td.linenos pre {
@@ -91,11 +104,11 @@ a tt {
     background-color: transparent;
     font-weight: bold;
     border: 0;
-    color: #CA7900;
+    color: #8f6f17;  # hyperlinks
 }
 
 a tt:hover {
-    color: #2491CF;
+    color: #e0a91b;  # strong mustard
 }
 
 dl {
@@ -122,7 +135,7 @@ dd {
 
 dt:target,
 .highlight {
-    background-color: #fbe54e;
+    background-color: #fbe54e;  # light yellow
 }
 
 dl.class, dl.function {
@@ -144,7 +157,7 @@ pre {
 
 pre a {
     color: inherit;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .first {
@@ -154,6 +167,7 @@ pre a {
 div.document {
     background-color: white;
     text-align: left;
+    text-decoration: none;
     background-image: url(contents.png);
     background-repeat: repeat-x;
 }
@@ -198,11 +212,11 @@ div.related ul li a {
     margin: 0;
     padding: 0 5px 0 5px;
     line-height: 1.75em;
-    color: #EE9816;
+    color: #8f6f17;  # hyperlinks
 }
 
 div.related ul li a:hover {
-    color: #3CA8E7;
+    color: #e0a91b;  # strong mustard
 }
 
 div.body {
@@ -216,7 +230,7 @@ div.bodywrapper {
 }
 
 div.body a {
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 div.sphinxsidebar {
@@ -225,6 +239,7 @@ div.sphinxsidebar {
     width: 210px;
     float: right;
     text-align: left;
+    text-decoration: none;
 /*    margin-left: -100%; */
 }
 
@@ -234,7 +249,8 @@ div.sphinxsidebar h4, div.sphinxsidebar h3 {
     padding: 0.1em 0 0.1em 0.5em;
     color: white;
     border: 1px solid #86989B;
-    background-color: #AFC1C4;
+    background-color: #e0a91b;  # strong mustard
+#    background-color: #e0bb58;  # box background
 }
 
 div.sphinxsidebar ul {
@@ -262,7 +278,7 @@ h1 {
     margin: 0;
     padding: 0.7em 0 0.3em 0;
     font-size: 1.5em;
-    color: #11557C;
+    color: black;
 }
 
 h2 {
@@ -308,17 +324,18 @@ table td, table th {
 }
 
 div.footer {
-    background-color: #E3EFF1;
+    background-color: #fcfcc8;  # snake background
     color: #86989B;
     padding: 3px 8px 3px 0;
     clear: both;
     font-size: 0.8em;
     text-align: right;
+    text-decoration: none;
 }
 
 div.footer a {
-    color: #86989B;
-    text-decoration: underline;
+    color: #8f6f17;  # Sphinx hyperlink
+    text-decoration: none; #underline;
 }
 
 div.pagination {
@@ -326,6 +343,7 @@ div.pagination {
     padding-top: 0.5em;
     border-top: 1px solid black;
     text-align: center;
+    text-decoration: none;
 }
 
 div.sphinxsidebar ul.toc {
@@ -377,7 +395,7 @@ div.warning p.admonition-title {
     color: white;
     border-bottom: 1px solid #86989B;
     font-weight: bold;
-    background-color: #AFC1C4;
+    background-color: #e0bb58;  # box background
 }
 
 div.warning {
@@ -398,7 +416,8 @@ div.warning ul, div.warning ol {
 div.versioninfo {
     margin: 1em 0 0 0;
     border: 1px solid #ccc;
-    background-color: #DDEAF0;
+#    background-color: #fcfcc8;  # snake background
+    background-color: #e0bb58;  # box background
     padding: 8px;
     line-height: 1.3em;
     font-size: 0.9em;
@@ -410,7 +429,8 @@ a.headerlink {
     font-size: 1em;
     margin-left: 6px;
     padding: 0 4px 0 4px;
-    text-decoration: none!important;
+    #text-decoration: none!important;
+    text-decoration: none;
     visibility: hidden;
 }
 
@@ -432,6 +452,7 @@ a.headerlink:hover {
 table.indextable td {
     text-align: left;
     vertical-align: top;
+    text-decoration: none;
 }
 
 table.indextable dl, table.indextable dd {
@@ -500,6 +521,7 @@ ul.search li div.context {
     color: #888;
     margin: 2px 0 0 30px;
     text-align: left;
+    text-decoration: none;
 }
 
 ul.keywordmatches li.goodmatch a {

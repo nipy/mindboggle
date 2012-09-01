@@ -3,22 +3,11 @@
 Use depth to extract folds from a triangular surface mesh and fill holes
 resulting from shallower areas within a fold.
 
-Inputs:
-    faces: triangular surface mesh vertex indices [#faces x 3]
-    depths: depth values [#vertices x 1]
-    min_depth: depth threshold for defining folds
-    min_fold_size: minimum fold size
-
-Output:
-    folds: label indices for folds: [#vertices x 1] numpy array
-    n_folds:  #folds [int]
-
-
 Authors:
-    Yrjo Hame  .  yrjo.hame@gmail.com
-    Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Yrjo Hame  (yrjo.hame@gmail.com)
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -29,25 +18,21 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     """
     Segment a surface into contiguous patches (seed region growing).
 
-    Inputs:
-    ------
-    faces: surface mesh vertex indices [#faces x 3]
-    seeds: mesh vertex indices for vertices to be segmented
+    Parameters
+    ----------
+    faces : surface mesh vertex indices [#faces x 3]
+    seeds : mesh vertex indices for vertices to be segmented
            list or [#seeds x 1]
-    n_vertices: #vertices total (seeds are a subset)
-    min_seeds: minimum number of seeds (vertices) per triangle for inclusion
-    min_patch_size: minimum size of segmented set of vertices
+    n_vertices : #vertices total (seeds are a subset)
+    min_seeds : minimum number of seeds (vertices) per triangle for inclusion
+    min_patch_size : minimum size of segmented set of vertices
 
-    Output:
-    ------
-    segments: label indices for patches: [#seeds x 1] numpy array
-    n_segments: #labels
-    max_patch_label: index for largest segmented set of vertices
-    neighbor_lists: list of lists of neighboring vertex indices
-
-    Calls:
-    -----
-    find_neighbors()
+    Returns
+    -------
+    segments : label indices for patches: [#seeds x 1] numpy array
+    n_segments : #labels
+    max_patch_label : index for largest segmented set of vertices
+    neighbor_lists : list of lists of neighboring vertex indices
 
     """
 
@@ -140,21 +125,17 @@ def fill_holes(faces, folds, holes, n_holes, neighbor_lists):
     """
     Fill holes in surface mesh patches.
 
-    Inputs:
-    ------
-    faces: surface mesh vertex indices [#faces x 3] numpy array
-    folds: [#vertices x 1] numpy array
-    holes: [#vertices x 1] numpy array
-    n_holes: [#vertices x 1] numpy array
-    neighbor_lists: list of lists of neighboring vertex indices
+    Parameters
+    ----------
+    faces : surface mesh vertex indices [#faces x 3] numpy array
+    folds : [#vertices x 1] numpy array
+    holes : [#vertices x 1] numpy array
+    n_holes : [#vertices x 1] numpy array
+    neighbor_lists : list of lists of neighboring vertex indices
 
-    Output:
-    ------
-    folds: [#vertices x 1] numpy array
-
-    Calls:
-    -----
-    find_neighbors()
+    Returns
+    -------
+    folds : [#vertices x 1] numpy array
 
     """
 
@@ -199,25 +180,18 @@ def extract_folds(depth_file, fraction_folds, min_fold_size, return_arrays=1):
     """
     Extract folds.
 
-    Inputs:
-    ------
-    depth_file: surface mesh file in VTK format with faces and scalar values:
-        faces: triangular surface mesh vertex indices [#faces x 3]
-        depths: depth values [#vertices x 1]
-    fraction_folds: fraction of surface mesh considered folds
-    min_fold_size: minimum fold size
-    return_arrays: return numpy arrays instead of lists of lists below (1=yes, 0=no)
+    Parameters
+    ----------
+    depth_file : surface mesh file in VTK format with faces and scalar values
+    fraction_folds : fraction of surface mesh considered folds
+    min_fold_size : minimum fold size
+    return_arrays : return numpy arrays instead of lists of lists below (1=yes, 0=no)
 
-    Output:
-    ------
-    folds: label indices for folds: [#vertices x 1] numpy array
-    n_folds:  #folds [int]
-    neighbor_lists: list of lists of neighboring vertex indices (see return_arrays)
-
-    Calls:
-    -----
-    segment_surface()
-    fill_holes()
+    Returns
+    -------
+    folds : label indices for folds: [#vertices x 1] numpy array
+    n_folds :  #folds [int]
+    neighbor_lists : list of lists of neighboring vertex indices (see return_arrays)
 
     """
 
