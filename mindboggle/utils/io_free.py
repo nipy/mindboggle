@@ -16,10 +16,10 @@ curvature (.curv) and convexity (.sulc) files.
 
 
 Authors:
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
-Forrest Sheng Bao  .  http://fsbao.net
+    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -32,12 +32,12 @@ def read_surface(filename):
     Read in a FreeSurfer triangle surface mesh in binary format.
 
     Parameters
-    ===========
+    ----------
     filename : string
         A binary FreeSurfer Triangle Surface file
 
-    Outputs
-    =======
+    Returns
+    -------
     Vertex : list of 3-tuples of floats
         Each element is a 3-tuple (list) of floats, which are the X, Y and Z coordinates of a vertex, respectively.
         A 3-tuple's index in the list *Vertex* is the ID of a vertex.
@@ -46,8 +46,7 @@ def read_surface(filename):
         Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertexes that form one face
 
     Example
-    ========
-
+    -------
     >>> import readFreeSurfer as rfs
     >>> Vrtx, Face = rfs.read_surface('lh.pial')
     >>> len(Vrtx)
@@ -101,21 +100,18 @@ def read_curvature(filename):
     Read in a FreeSurfer curvature (per-vertex) file.
 
     Parameters
-    ==========
-
+    ----------
     filename : string
         A binary FreeSurfer curvature (pre-vertex) file
 
-    Outputs
-    ========
-
+    Returns
+    -------
     Curvature : list of floats
         Each element is the curvature value of a FreeSurfer mesh vertex.
         Elements are ordered by orders of vertexes in FreeSurfer surface file.
 
     Example
-    ========
-
+    -------
     >>> import readFreeSurfer as rfs
     >>> Curv = rfs.read_curvature('lh.curv')
     >>> len(Curv)
@@ -177,18 +173,19 @@ def labels_to_annot(hemi, subjects_path, subject, label_files,
     NOTE:  You cannot overwrite a .annot file of the same name,
            so in this script I delete it before running.
 
-    Inputs:
-    ------
-    hemi:  hemisphere [string]
-    subjects_path:  path to file
-    subject:  subject name
-    label_files:  .label file names [list of strings]
-    colortable:  file of label numbers & names (same order as label_files)
-    annot_name:  name of the output .annot file (without prepending hemi)
+    Parameters
+    ----------
+    hemi :  hemisphere [string]
+    subjects_path :  path to file
+    subject :  subject name
+    label_files :  .label file names [list of strings]
+    colortable :  file of label numbers & names (same order as label_files)
+    annot_name :  name of the output .annot file (without prepending hemi)
 
-    Output:
-    ------
-    annot_name, annot_file:  name of .annot file (without & with prepend)
+    Returns
+    -------
+    annot_name :  name of .annot file (without prepend)
+    annot_file :  name of .annot file (with prepend)
 
     """
 
@@ -217,7 +214,7 @@ def labels_to_annot(hemi, subjects_path, subject, label_files,
 def labels_to_volume(subject, annot_name):
     """
     Propagate surface labels through a gray matter volume
-    using FreeSurfer's mri_aparc2aseg
+    using FreeSurfer's mri_aparc2aseg.
 
     """
 
@@ -266,14 +263,14 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
-    Inputs:
-    ======
-    surface_file: string  (name of VTK surface file)
-    annot_file: strings  (name of FreeSurfer .annot file)
+    Parameters
+    ----------
+    surface_file : string  (name of VTK surface file)
+    annot_file : strings  (name of FreeSurfer .annot file)
 
-    Output:
-    ======
-    vtk_file: output VTK file
+    Returns
+    -------
+    vtk_file : output VTK file
 
     """
 
@@ -309,32 +306,32 @@ def vtk_to_label_files(hemi, surface_file, label_numbers, label_names,
     """
     Write FreeSurfer .label files from a labeled VTK surface mesh.
 
-    From https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles
-    A label file is a text file capturing a list of vertices belonging to a region,
-    including their spatial positions(using R,A,S coordinates). A label file
-    corresponds only to a single label, thus contains only a single list of vertices:
-    1806
-    7  -22.796  -66.405  -29.582 0.000000
-    89  -22.273  -43.118  -24.069 0.000000
-    138  -14.142  -81.495  -30.903 0.000000
-    [...]
+    From https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles:
 
-    Inputs:
-    ------
-    hemi:  hemisphere [string]
-    surface_file:  vtk surface mesh file with labels [string]
-    label_numbers:  label numbers [list of strings]
-    label_names:  label names [list of strings]
-    RGBs:  list of label RGB values for later conversion to a .annot file
-    scalar_name:  name of scalar values in vtk file [string]
+        "A label file is a text file capturing a list of vertices belonging to a region,
+        including their spatial positions(using R,A,S coordinates). A label file
+        corresponds only to a single label, thus contains only a single list of vertices"::
 
-    Output:
-    ------
-    label_files:  list of .label file names (order must match label list)
-    colortable:  file with list of labels and RGB values
+            1806
+            7  -22.796  -66.405  -29.582 0.000000
+            89  -22.273  -43.118  -24.069 0.000000
+            138  -14.142  -81.495  -30.903 0.000000
+            [...]
+
+    Parameters
+    ----------
+    hemi :  hemisphere [string]
+    surface_file :  vtk surface mesh file with labels [string]
+    label_numbers :  label numbers [list of strings]
+    label_names :  label names [list of strings]
+    RGBs :  list of label RGB values for later conversion to a .annot file
+    scalar_name :  name of scalar values in vtk file [string]
+
+    Returns
+    -------
+    label_files :  list of .label file names (order must match label list)
+    colortable :  file with list of labels and RGB values
                  NOTE: labels are identified by the colortable's RGB values
-    #relabel_file:  file containing colortable and real label indices
-    #               when they differ (for correcting labels later)
 
     """
 
@@ -426,15 +423,13 @@ def vertex_list_to_vtk(vtk_file, surface_file, index_pair_file,
     and save the result into VTK format.
 
     Parameters
-    ============
+    ----------
+    LUT : list of LUTs
+        LUT[i] is the i-th LUT, and consists of a list of float numbers,
+        representing for example distance transformation values, curvature, depth, etc.
+        More than one LUT may be written to the final VTK file
 
-    LUT    : list of LUTs
-        LUT[i] is the i-th LUT, e.g., distance transformation values,
-                                      curvature, convexity values.
-        LUT[i] is a list of float numbers
-        So more than one LUTs may be written to the final VTK file
-
-    LUTname    : list of strings
+    LUTname : list of strings
         LUTname[i] is the name of the lookup table to be inserted into VTK file
 
     """
@@ -492,15 +487,14 @@ def line_segments_to_vtk(vtk_file, surface_file, index_pair_file, LUT=[], LUTnam
     to map curve segments onto the surface and save the result into VTK format.
 
     Parameters
-    ============
-
-    LUT    : list of LUTs
+    ----------
+    LUT : list of LUTs
         LUT[i] is the i-th LUT, e.g., distance transformation values,
                                       curvature, convexity values.
         LUT[i] is a list of float numbers
         So more than one LUTs may be written to the final VTK file
 
-    LUTname    : list of strings
+    LUTname : list of strings
         LUTname[i] is the name of the lookup table to be inserted into VTK file
 
     """

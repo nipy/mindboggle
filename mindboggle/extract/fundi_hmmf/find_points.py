@@ -3,10 +3,10 @@
 Find neighbors to a surface mesh vertex.
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+    - Yrjo Hame  (yrjo.hame@gmail.com)
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -20,14 +20,14 @@ def find_neighbors(faces, index):
     For a set of surface mesh faces and the index of a surface vertex,
     find unique indices for neighboring vertices.
 
-    Inputs:
-    ------
-    faces: surface mesh vertex indices [#faces x 3] numpy array
-    index: index of surface vertex
+    Parameters
+    ----------
+    faces : surface mesh vertex indices [#faces x 3] numpy array
+    index : index of surface vertex
 
-    Output:
-    ------
-    N: list of indices of neighboring vertices
+    Returns
+    -------
+    N : list of indices of neighboring vertices
 
     """
 
@@ -63,21 +63,17 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     Note: only the sulcus end points are strictly necessary
           (so that the fundus doesn't shrink)
 
-    Inputs:
-    ------
-    vertices: [#vertices x 3] numpy array
-    L: fundus likelihood values: [#vertices x 1] numpy array
-    min_directions: [#vertices x 1] numpy array
-    min_distance: minimum distance
-    thr: likelihood threshold
-
-    Parameters:
+    Parameters
     ----------
-    max_distance: maximum distance
+    vertices : [#vertices x 3] numpy array
+    L : fundus likelihood values: [#vertices x 1] numpy array
+    min_directions : [#vertices x 1] numpy array
+    min_distance : minimum distance
+    thr : likelihood threshold
 
-    Output:
-    ------
-    anchors: list of subset of surface mesh vertex indices
+    Returns
+    -------
+    anchors : list of subset of surface mesh vertex indices
 
     """
 

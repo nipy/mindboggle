@@ -14,6 +14,7 @@
 .. toctree::
    :maxdepth: 2
 
-   why
-   licensing   
+   why_mindboggle
+   why_license
+   why_python
 

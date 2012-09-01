@@ -19,7 +19,6 @@
    users/index.rst
    faq/index.rst
    api/index.rst
-   publications
    license
 
 .. htmlonly::

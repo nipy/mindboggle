@@ -22,9 +22,10 @@ For information on Nipype: http://www.nipy.org/nipype/
 http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 
-Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Authors:
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
