@@ -7,14 +7,13 @@
 
 
 {% block extrahead %}
-  <meta name="keywords" content="mindboggle, neuroimaging, python, neuroscience, time
-				 series">
+  <meta name="keywords" content="mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis">
 {% endblock %}
 
 {% block header %}
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
  <a href="{{pathto('index') }}">
-  <img src="{{ pathto("_static/reggie2.png", 1) }}" alt="mindboggle logo"  border="0" />
+  <img src="{{ pathto("_static/mindboggle_logo_small.jpg", 1) }}" alt="small mindboggle logo"  border="0" />
 </div>
 {% endblock %}
 
@@ -25,7 +24,6 @@
 <h4> Site Navigation </h4>
   <ul>
     <li><a href="{{pathto('documentation')}}">Documentation</a></li>
-    <li><a href="{{pathto('devel/index')}}">Development</a></li>
   </ul>
 
 {% endblock %}
