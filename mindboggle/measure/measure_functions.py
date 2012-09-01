@@ -1,14 +1,13 @@
 #!/usr/bin/python
 
 """
-Shape calculations
+Shape calculations.
 
 
 Authors:
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
-Forrest Sheng Bao  .  http://fsbao.net
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -19,6 +18,12 @@ Forrest Sheng Bao  .  http://fsbao.net
 def compute_depth(command, surface_file):
     """
     Measure Joachim Giard's "travel depth" for a surface mesh.
+
+    Parameters
+    ----------
+    command : travel depth C++ executable command
+    surface_file : ``vtk file``
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -35,6 +40,10 @@ def compute_depth(command, surface_file):
 def compute_curvature(command, surface_file):
     """
     Measure curvatures for a surface mesh.
+
+    command : curvature C++ executable command
+    surface_file : ``vtk file``
+
     """
 
     import os
@@ -64,15 +73,15 @@ def mean_value_per_label(values, labels):
     """
     Compute the mean value per label.
 
-    Inputs:
-    ======
-    values:  list of integer or float values
-    labels:  list of integer labels (same length as values)
+    Parameters
+    ----------
+    values : list of integer or float values
+    labels : list of integer labels (same length as values)
 
-    Output:
-    ======
-    mean_values:  list of floats
-    label_list:  list of unique labels
+    Returns
+    -------
+    mean_values : list of floats
+    label_list : list of unique labels
 
     """
     import numpy as np

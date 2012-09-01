@@ -5,19 +5,23 @@ This is a Nipype pipeline for combining brain surface atlas labels.
 It will combine the surface labels in .annot format,
 and convert the labels to VTK format.
 
-- https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
-- mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>
-- <translation file>: text file that lists the labels (one per line)
-  you want to group, and the new label you want to create.  You have to use
-  the RGB codes; each line will provide the input and output RGB values:
-  221     220     60      223     220     60
-  221     220     160     223     220     60
-  221     220     100     223     220     60
+https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
+      
+`mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
+      
+``translation file``: text file that lists the labels (one per line)
+you want to group, and the new label you want to create.  You have to use
+the RGB codes; each line will provide the input and output RGB values::
+
+    221     220     60      223     220     60
+    221     220     160     223     220     60
+    221     220     100     223     220     60
 
 
-Authors:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Authors:
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 

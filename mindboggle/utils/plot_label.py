@@ -5,7 +5,7 @@ Visualize .label labeled surface mesh data.
 Comment out the top line (below the header) of the .label file
 containing the number of rows, to load an appropriately sized numpy array.
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 import sys

@@ -1,7 +1,6 @@
 .. _users-guide-index:
 
-.. This is the source doc for the Mindboggle users guide. The users guide
-   includes the FAQ (a directory below), and glossary.
+.. This is the source doc for the Mindboggle users guide.
 
 ============
  User Guide

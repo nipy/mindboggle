@@ -4,9 +4,10 @@
 Relabel surface or volume or annot files.
 
 
-Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Authors:
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -14,10 +15,11 @@ def relabel_volume(input_file, old_labels, new_labels):
     """
     Relabel volume labels in a nifti file.
 
-    Inputs:
-    ------
-    input_file:  labeled nibabel-readable (e.g., nifti) file
-    [old, new]_labels:  lists of old and new labels
+    Parameters
+    ----------
+    input_file : labeled nibabel-readable (e.g., nifti) file
+    old_labels : lists of old labels
+    new_labels : lists of new labels
 
     """
 
@@ -56,12 +58,12 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     """
     Relabel surface in a VTK file.
 
-    Inputs:
-    ------
-    vtk_file:  input labeled VTK file
-    relabel_list:  text file with two columns of label numbers --
+    Parameters
+    ----------
+    vtk_file : input labeled VTK file
+    relabel_list : text file with two columns of label numbers --
                    all regions receive the 2nd label per row.
-    new_string:  new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
+    new_string : new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
 
     """
 
@@ -95,22 +97,25 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     """
     Combine surface labels in a .annot file.
 
-    - https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
-    - mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>
-    - <translation file>: text file that lists the labels (one per line)
+    https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
+      
+     `mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
+      
+      ``translation file``: text file that lists the labels (one per line)
       you want to group, and the new label you want to create.  You have to use
-      the RGB codes; each line will provide the input and output RGB values:
-      221     220     60      223     220     60
-      221     220     160     223     220     60
-      221     220     100     223     220     60
+      the RGB codes; each line will provide the input and output RGB values::
 
-    Inputs:
-    ------
-    hemi:  hemisphere [string]
-    subject:  subject name
-    annot_name:  name of .annot file (without pre- or post-pends)
-    relabel_file:  text file with old and new RGB values
-    new_annot_name:  new .annot name
+            221     220     60      223     220     60
+            221     220     160     223     220     60
+            221     220     100     223     220     60
+
+    Parameters
+    ----------
+    hemi : hemisphere [string]
+    subject : subject name
+    annot_name : name of .annot file (without pre- or post-pends)
+    relabel_file : text file with old and new RGB values
+    new_annot_name : new .annot name
 
     """
 
