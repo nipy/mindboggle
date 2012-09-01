@@ -16,6 +16,7 @@
 .. toctree::
    :maxdepth: 2
 
+   users/index.rst
    faq/index.rst
    api/index.rst
    publications

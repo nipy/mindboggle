@@ -2,10 +2,10 @@
  Sphinx Extensions
 ===================
 
-These are a few sphinx extensions we are using to build the mindboggle
+These are a few sphinx extensions we are using to build the Mindboggle
 documentation::
 
-* From matploltlib:
+* From matplotlib:
   * inheritance_diagram.py
   * ipython_console_highlighting.py
   * mathmpl.py
