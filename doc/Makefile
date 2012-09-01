@@ -1,9 +1,6 @@
 # Makefile for Sphinx documentation
 #
 
-SOURCEFORGE_USER ?= matthewbrett
-WWW=$(SOURCEFORGE_USER),nipy@web.sourceforge.net:htdocs/nipy
-
 # You can set these variables from the command line.
 SPHINXOPTS    = #-q # suppress all output but warnings
 SPHINXBUILD   = sphinx-build
@@ -33,13 +30,8 @@ help:
 	@echo "  public_html	make <dist> and rsync with public website"
 	@echo "  gitwash-update update git workflow from source repo"
 
-# Commented these out, wasn't clear if we'd use these targets or not.
-# @echo "  pickle    to make pickle files (usable by e.g. sphinx-web)"
-# @echo "  htmlhelp  to make HTML files and a HTML help project"
-# @echo "  changes   to make an overview over all changed/added/deprecated items"
-
 clean:
-	-rm -rf build/* dist/* *~ api/generated labs/generated
+	-rm -rf build/* dist/* *~ api/generated
 	-rm -f manual
 
 pdf: latex
@@ -49,7 +41,7 @@ all: html pdf
 
 dist: clean all
 	mkdir -p dist
-	ln build/latex/nipy*.pdf dist/
+	ln build/latex/mindboggle*.pdf dist/
 	cp -al build/html/* dist/
 	@echo "Build finished.  Final docs are in dist/"
 
@@ -63,7 +55,7 @@ htmlonly:
 	@echo "Build finished. The HTML pages are in build/html."
 
 api:
-	python ../tools/build_modref_templates.py
+	python tools/build_modref_templates.py
 	@echo "Build API docs finished."
 
 html: api htmlonly
@@ -71,7 +63,7 @@ html: api htmlonly
 	@echo "Build HTML and API finished."
 
 gitwash-update:
-	python ../tools/gitwash_dumper.py devel/guidelines nipy
+	python tools/gitwash_dumper.py devel/guidelines mindboggle
 
 pickle:
 	mkdir -p build/pickle build/doctrees
@@ -92,7 +84,7 @@ latex: api
 	mkdir -p build/latex build/doctrees
 	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) build/latex
 	# Clear bug for longtable column output in sphinx
-	python ../tools/fix_longtable.py build/latex/nipy.tex
+	python tools/fix_longtable.py build/latex/mindboggle.tex
 	@echo
 	@echo "Build finished; the LaTeX files are in build/latex."
 	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
