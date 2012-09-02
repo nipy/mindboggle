@@ -4,46 +4,59 @@
 
 .. glossary::
 
-   DTI
-      Diffusion tensor imaging.  DTI is rather poorly named, because
-      it is a model of the diffusion signal, and an analysis method,
-      rather than an imaging method.  The simplest and most common
-      diffusion tensor model assumes that diffusion direction and
-      velocity at every voxel can be modeled by a single tensor - that
-      is, by an ellipse of regular shape, fully described by the length
-      and orientation of its three orthogonal axes.  This model can
-      easily fail in fairly common situations, such as white-matter
-      fiber track crossings.
+    atlas
+        Manual annotations of an individual’s brain. (See "label")
 
-   DWI
-      Diffusion-weighted imaging.  DWI is the general term for MRI
-      imaging designed to image diffusion processes.  Sometimes
-      reseachers use :term:`DTI` to have the same meaning, but
-      :term:`DTI` is a common DWI signal model and analysis method.
+    cortical surface
+        The outer surface of the cerebrum, sometimes referred to as
+        the "pial surface" or "cerebral exterior".
 
-   FMRI
-      Functional magnetic resonance imaging!  It refers to MRI image
-      acquisitions and analysis designed to look at brain function
-      rather than structure.  Most people use FMRI to refer to
-      :term:`BOLD` imaging in particular.  See the `wikipedia FMRI`_
-      article for more detail.
+    fundus (pl: *fundi*)
+        A curve traversing the bottom of folds of the cortical surface.
 
-   PET 
-      Positron emission tomography is a nethod of detecting the
-      spatial distributions of certain radiolabeled compounds -
-      usually in the brain.  The scanner detectors pick up the spatial
-      distribution of emitted radiation from within the body.  From
-      this pattern, it is possible to reconstruct the distribution of
-      radiactivity in the body, using techniques such as filtered back
-      projection.  PET was the first mainstream technique used for
-      detecting regional changes in blood-flow as an index of which
-      brain areas were active when the subject is doing various tasks,
-      or at rest. These studies nearly all used :term:`water
-      activation PET`. See the `wikipedia PET`_ entry.
+    gyrus (pl: *gyri*; adj.: *gyral*)
+        Exterior portion of a fold of the cortical surface.
+        The outermost protrusions are sometimes referred to as a
+        "gyral crest" or "gyral crown".
 
-   voxel
-      Voxels are volumetric pixels - that is, they are values in a
-      regular grid in three dimensional space - see
-      http://en.wikipedia.org/wiki/Voxel
+    label
+        An annotation of a region of the brain, such as when delineating
+        the anatomical boundaries of a gyrus or sulcus.  This process is often
+        called "parcellation" when labeling a surface such as the cortical surface.
+        Labeling is distinct from "segmentation", which usually refers to
+        breaking up dissimilar or clustering similar, contiguous points,
+        for example tissue class segmentation into gray matter, *etc.*
+ 
+    medial surface
+        A surface running midway between two structures.  For example, 
+        the medial surface for a sulcus fold lies between the banks of the 
+        sulcus without intersecting the cortical surface.
+
+    pit
+        Local, deep, pit-like intrusion in a sulcus fold.
+
+    optimal average template
+        Aggregate image constructed by the iterative alignment of a set 
+        of brain images.
+
+    probabilistic atlas, n. 
+        The probabilistic assignment of labels to a template, resulting 
+        from the registration of a set of atlases to the template 
+        (Example: a maximum probability atlas, optionally accompanied by an 
+        image volume of probability values).
+
+    sulcus (pl.: *sulci*; adj.: *sulcal*)
+        *Syn.*: Crease, infolding, fissure, crevice, or intrusion of the brain
+        surface.  Sometimes we loosely refer to a sulcus as a "fold".
+
+    template
+        An unlabeled reference, canonical, or average brain image 
+        often used as a target for registration.
+
+    voxel
+        Voxels are volumetric pixels - that is, they are values in a
+        regular grid in three dimensional space (see http://en.wikipedia.org/wiki/Voxel).
+
+
 
 .. include:: links_names.txt
