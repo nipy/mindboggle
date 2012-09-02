@@ -16,6 +16,7 @@ if __name__ == '__main__':
     docwriter = ApiDocWriter(package)
     docwriter.package_skip_patterns += [r'\.fixes$',
                                         r'\.externals$',
+                                        r'\.pgk_info$',
                                         ]
     # XXX: Avoid mindboggle.label.rebound while developing
     docwriter.module_skip_patterns += [r'\.label\.rebound',
