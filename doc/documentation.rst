@@ -1,8 +1,8 @@
 .. _documentation-main:
 
-=========================
- Mindboggle documentation
-=========================
+=============
+Documentation
+=============
 
 .. htmlonly::
 
