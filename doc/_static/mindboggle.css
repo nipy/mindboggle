@@ -7,10 +7,10 @@
  * mindboggle logo foreground and background: #FFBE22; #FCFCC8;
  * color: #e0a91b;  # strong mustard
  * color: #e0bb58;  # dull mustard 
- * color: #8f6f17;   #a67f15;  #c89718;  # hyperlinks
- * color: #724d42;  # header
+ * color: #a06005;  #8f6f17;   #a67f15;  #c89718;  # hyperlinks
  * background-color: #e0bb58;  # box background
- *
+ * color: #836e35;  # footer text
+ * 
  * Misc. colors:
  * color: #b07613;  # brown
  * color: #91590e;  # dark brown
@@ -23,17 +23,16 @@ body {
     line-height: 150%;
     text-align: center;
     text-decoration: none;
-    background-color: #e0bb58;  # dull mustard
     color: black;
     padding: 0;
-    border: 1px solid #aaa;
-
+#    background-color: #e0bb58;  # dull mustard
+#    border: 1px solid #aaa;
     margin: 0px 80px 0px 80px;
     min-width: 740px;
 }
 
 a {
-    color: #8f6f17;  # hyperlinks
+    color: #a06005;  # hyperlinks
     text-decoration: none;
 }
 
@@ -48,6 +47,7 @@ pre {
     padding: 0.5em;
     border: 1px solid #ccc;
     background-color: #fcfcc8;  # example boxes (snake background)
+    text-decoration: none;
 }
 
 td.linenos pre {
@@ -55,6 +55,7 @@ td.linenos pre {
     border: 0;
     background-color: transparent;
     color: #aaa;
+    text-decoration: none;
 }
 
 table.highlighttable {
@@ -69,6 +70,7 @@ cite, code, tt {
     font-family: 'Consolas', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
     font-size: 0.95em;
     letter-spacing: 0.01em;
+    text-decoration: none;
 }
 
 hr {
@@ -80,6 +82,7 @@ tt {
     background-color: #f2f2f2;
     border-bottom: 1px solid #ddd;
     color: #333;
+    text-decoration: none;
 }
 
 tt.descname {
@@ -87,6 +90,7 @@ tt.descname {
     font-weight: bold;
     font-size: 1.2em;
     border: 0;
+    text-decoration: none;
 }
 
 tt.descclassname {
@@ -98,13 +102,15 @@ tt.xref {
     background-color: transparent;
     font-weight: bold;
     border: 0;
+    text-decoration: none;
 }
 
 a tt {
     background-color: transparent;
     font-weight: bold;
     border: 0;
-    color: #8f6f17;  # hyperlinks
+    color: #a06005;  # hyperlinks
+    text-decoration: none;
 }
 
 a tt:hover {
@@ -153,6 +159,7 @@ dl.glossary dt {
 
 pre {
     line-height: 120%;
+    text-decoration: none;
 }
 
 pre a {
@@ -184,6 +191,7 @@ div.clearer {
 
 div.related h3 {
     display: none;
+    text-decoration: none;
 }
 
 div.related ul {
@@ -194,6 +202,7 @@ div.related ul {
     border-bottom: 1px solid #ddd;
     margin: 0;
     padding-left: 10px;
+    text-decoration: none;
 }
 
 div.related ul li {
@@ -212,7 +221,7 @@ div.related ul li a {
     margin: 0;
     padding: 0 5px 0 5px;
     line-height: 1.75em;
-    color: #8f6f17;  # hyperlinks
+    color: #a06005;  # hyperlinks
 }
 
 div.related ul li a:hover {
@@ -317,15 +326,17 @@ h5 a.anchor:hover, h6 a.anchor:hover {
 table {
     border-collapse: collapse;
     margin: 0 -0.5em 0 -0.5em;
+    border: 0;
+    width: 80%;
 }
 
 table td, table th {
     padding: 0.2em 0.5em 0.2em 0.5em;
+    border: 0;
 }
 
 div.footer {
-    background-color: #fcfcc8;  # snake background
-    color: #86989B;
+    color: #836e35;  # footer text  #86989B;
     padding: 3px 8px 3px 0;
     clear: both;
     font-size: 0.8em;
@@ -334,7 +345,7 @@ div.footer {
 }
 
 div.footer a {
-    color: #8f6f17;  # Sphinx hyperlink
+    color: #a06005;  # Sphinx hyperlink
     text-decoration: none; #underline;
 }
 
@@ -429,8 +440,7 @@ a.headerlink {
     font-size: 1em;
     margin-left: 6px;
     padding: 0 4px 0 4px;
-    #text-decoration: none!important;
-    text-decoration: none;
+    text-decoration: none!important;
     visibility: hidden;
 }
 
