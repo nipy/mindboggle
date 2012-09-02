@@ -2,13 +2,7 @@
 {% set title = 'Mindboggle' %}
 
 {% block rootrellink %}
-  <li>Mindboggle <a href="{{pathto('index')}}">Software</a> |&nbsp;</li>
-  <li><a href="http://mindboggle.info/data/">Data</a> |&nbsp;</li>
-  <li><a href="http://mindboggle.info/papers/">Publications</a> |&nbsp;</li>
-  <li><a href="http://mindboggle.info/lectures/">Lectures</a> |&nbsp;</li>
-  <li><a href="http://mindboggle.info/people/">People</a></li>
 {% endblock %}
-
 
 {% block extrahead %}
   <meta name="keywords" content="mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis">
@@ -16,10 +10,48 @@
 
 {% block header %}
 <div style="background-color: white; text-align: left; padding: 10px 10px 15px 15px">
- <a href="{{pathto('index') }}">
-  <img src="{{ pathto("_static/mindboggle_logo_small.jpg", 1) }}" alt="small mindboggle logo"  border="0" />
+ <table>
+  <tr>
+   <td>
+
+ <a href="http://mindboggle.info">
+  <img src="{{ pathto("_static/mindboggle_logo_small.jpg", 1) }}" alt="small mindboggle logo"  border="0" width="160"/></a>
+
+   </td>
+   <td>
+    <table>
+     <tr>
+ <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
+  href="http://mindboggle.info">Mindboggle</a>
+     </tr>
+     <tr> <td height="18"></td>
+     </tr>
+     <tr>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://mindboggle.info/software/documentation.html">Software</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://mindboggle.info/data.html">Data</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://mindboggle.info/papers.html">Papers</a>
+      </td>
+      <td>
+  <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
+   href="http://mindboggle.info/people.html">People</a>
+      </td>
+     </tr>
+    </table>
+   </td>
+  </tr>
+ </table>
 </div>
 {% endblock %}
+
+
 
 {# This block gets put at the top of the sidebar #}
 {% block sidebarlogo %}
@@ -63,4 +95,3 @@
    #}
 
 {% endblock %}
-
