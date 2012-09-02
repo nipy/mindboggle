@@ -109,7 +109,12 @@ pygments_style = 'sphinx'
 #
 # The theme to use for HTML and HTML Help pages.  Major themes that come with
 # Sphinx are currently 'default' and 'sphinxdoc'.
-html_theme = 'sphinxdoc'
+# http://sphinx.pocoo.org/theming.html
+html_theme = 'default'
+html_theme_options = {
+    "nosidebar": "true",
+    "relbarbgcolor": "white",
+}
 
 # The style sheet to use for HTML and HTML Help pages. A file of that name
 # must exist either in Sphinx' static/ path, or in one of the custom paths
@@ -118,7 +123,7 @@ html_style = 'mindboggle.css'
 
 # The name for this set of Sphinx documents.  If None, it defaults to
 # "<project> v<release> documentation".
-html_title = 'Mindboggle Documentation'
+html_title = 'Mindboggle'
 
 # The name of an image file (within the static path) to place at the top of
 # the sidebar.
