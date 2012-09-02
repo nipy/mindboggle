@@ -1,8 +1,8 @@
+.. _glossary::
+
 ==========
  Glossary
 ==========
-
-.. glossary::
 
     atlas
         Manual annotations of an individual’s brain. (See "label")
