@@ -49,10 +49,6 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 import sys, os
 
-#sys.path.append('/projects/Mindboggle/mindboggle/mindboggle')
-#from pprint import pprint as pp
-#pp(sys.path)
-
 args = sys.argv[:]
 if len(args) < 3:
     print("\n\t Please provide the names of an output directory\n" +
@@ -62,16 +58,7 @@ if len(args) < 3:
     sys.exit()
 else:
     output_path = str(args[1])
-    subjects = str(args[2::])
-
-
-
-
-output_path = 'output'
-subjects = 'HLN-12-2'
-
-
-
+    subjects = list(args[2::])
 
 #=============================================================================
 #  User settings
@@ -174,11 +161,6 @@ if include_free_measures:
     surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
     surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
-
-
-print(surf.inputs)
-#sys.exit()
-
 #-----------------------------------------------------------------------------
 # Outputs
 #-----------------------------------------------------------------------------
