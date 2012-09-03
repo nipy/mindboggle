@@ -125,7 +125,7 @@ def write_table_means(filename, column_names, labels, *values):
 
     """
     import os
-    from mindboggle.measure.measure_functions import mean_value_per_label
+    from measure.measure_functions import mean_value_per_label
 
     columns = []
     for value_list in values:
