@@ -1,24 +1,23 @@
 #!/usr/bin/python
 """
-This is Mindboggle's Nipype pipeline!
+This is Mindboggle's nipype software pipeline!
 
-Command::
+Examples
+--------
 python mindboggle.py <output path> <1 or more subject names>
-
-Example::
 python mindboggle.py output HLN-12-1 HLN-12-2
 
-Note::
-Mindboggle assumes a file tree like FreeSurfer's,
-and for label initialization, assumes that subjects have been processed
-by FreeSurfer (autorecon -all), so subject names correspond to directory
-names in FreeSurfer's subjects directory.
+.. note::
+  Mindboggle assumes a file tree like FreeSurfer's,
+  and for label initialization, assumes that subjects have been processed
+  by FreeSurfer (autorecon -all), so subject names correspond to directory
+  names in FreeSurfer's subjects directory.
 
 For more information about Mindboggle,
-see the website: http://www.mindboggle.info
-and read the README.
+see the website: http://www.mindboggle.info and
+read the documentation: http://mindboggle.info/software/documentation.html
 
-For information on Nipype: http://www.nipy.org/nipype/
+For information on Nipype (http://www.nipy.org/nipype/):
 http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 
