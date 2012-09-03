@@ -45,6 +45,35 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 ##############################################################################
 
 #=============================================================================
+#  Command line arguments
+#=============================================================================
+import sys, os
+
+#sys.path.append('/projects/Mindboggle/mindboggle/mindboggle')
+#from pprint import pprint as pp
+#pp(sys.path)
+
+args = sys.argv[:]
+if len(args) < 3:
+    print("\n\t Please provide the names of an output directory\n" +
+          " \t and one or more subjects corresponding to the names\n" +
+          " \t of directories within FreeSurfer's subjects directory.\n")
+    print("\t Example: python " + args[0] + " output HLN-12-1 HLN-12-2\n")
+    sys.exit()
+else:
+    output_path = str(args[1])
+    subjects = str(args[2::])
+
+
+
+
+output_path = 'output'
+subjects = 'HLN-12-2'
+
+
+
+
+#=============================================================================
 #  User settings
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -82,7 +111,6 @@ evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual l
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
-import os, sys
 from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
@@ -90,34 +118,21 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-"""
-from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset,\
-    write_mean_scalar_table
-from utils import io_vtk
-from utils import io_file
-from utils import io_free
-from label import multiatlas_labeling
-from label import relabel
-from measure import measure_functions
-from extract.fundi_hmmf import extract_folds
-from extract.fundi_hmmf import extract_fundi
-from label import evaluate_labels
-"""
-import mindboggle as mb
-from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset, \
+from utils.io_vtk import load_scalar, write_scalar_subset, \
      write_mean_scalar_table
-from mindboggle.utils.io_file import read_columns, write_table_means
-from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
+from utils.io_file import read_columns, write_table_means
+from utils.io_free import labels_to_annot, labels_to_volume, \
      surf_to_vtk, annot_to_vtk, vtk_to_label_files
-from mindboggle.label.multiatlas_labeling import register_template,\
+from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
-from mindboggle.label.relabel import relabel_volume
-from mindboggle.measure.measure_functions import compute_depth, \
+from label.relabel import relabel_volume
+from measure.measure_functions import compute_depth, \
      compute_curvature, mean_value_per_label
-from mindboggle.extract.fundi_hmmf.extract_folds import extract_folds
-from mindboggle.extract.fundi_hmmf.extract_fundi import extract_fundi
-from mindboggle.label.evaluate_labels import measure_surface_overlap, \
+from extract.fundi_hmmf.extract_folds import extract_folds
+from extract.fundi_hmmf.extract_fundi import extract_fundi
+from label.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
+#from mindboggle import get_info
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -125,7 +140,9 @@ subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 atlases_path = subjects_path
 templates_path = os.path.join(subjects_path, 'Mindboggle_templates')
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-info_path = os.path.join(mindboggle.get_info()['pkg_path'], 'info')
+ccode_path = os.environ['MINDBOGGLE_CPP']
+#info_path = os.path.join(get_info()['pkg_path'], 'info')
+info_path = os.path.join(os.environ['MINDBOGGLE'], 'info')
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -157,6 +174,11 @@ if include_free_measures:
     surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
     surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
+
+
+print(surf.inputs)
+#sys.exit()
+
 #-----------------------------------------------------------------------------
 # Outputs
 #-----------------------------------------------------------------------------
@@ -320,8 +342,7 @@ depth = Node(name='Depth',
                             input_names = ['command',
                                            'surface_file'],
                             output_names = ['depth_file']))
-depth_command = os.path.join(ccode_path,'measure', 'surface_measures',
-                             'bin', 'travel_depth', 'TravelDepthMain')
+depth_command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
 depth.inputs.command = depth_command
 #-----------------------------------------------------------------------------
 # Measure surface curvature
@@ -335,8 +356,7 @@ curvature = Node(name='Curvature',
                                                 'max_curvature_file',
                                                 'min_curvature_file',
                                                 'min_curvature_vector_file']))
-curvature_command = os.path.join(ccode_path, 'measure', 'surface_measures',
-                                 'bin', 'curvature', 'CurvatureMain')
+curvature_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain')
 curvature.inputs.command = curvature_command
 #-----------------------------------------------------------------------------
 # Add and connect nodes, save output files
@@ -572,7 +592,6 @@ if evaluate_surface_labels:
                                            output_names = ['overlaps']))
     mbflow.add_nodes([eval_surf_labels])
     surface_overlap_command = os.path.join(ccode_path,
-        'measure', 'surface_measures','bin',
         'surface_overlap', 'SurfaceOverlapMain')
     eval_surf_labels.inputs.command = surface_overlap_command
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
@@ -748,18 +767,6 @@ if evaluate_volume_labels:
 #
 ##############################################################################
 if __name__== '__main__':
-
-    args = sys.argv[:]
-    if len(args) < 4:
-        print("\n\t Please provide the names of the output directory \
-                    and one or more subject names corresponding to the names \
-                    of directories within FreeSurfer's subjects directory.")
-        print("\t Example: python " + args[0] + \
-              " output HLN-12-1 HLN-12-2")
-        sys.exit()
-    else:
-        output_path = str(args[1])
-        subjects = str(args[2::])
 
     run_flow1 = True
     run_flow2 = True
