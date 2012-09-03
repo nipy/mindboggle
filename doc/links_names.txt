@@ -55,7 +55,8 @@
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
 
 .. Other python projects
-.. _nipype http://nipy.sourceforge.net/nipype/
+.. _nipype http://nipy.org/nipype/
+.. _nibabel http://nipy.org/nibabel
 .. _nipy: http://nipy.org
 .. _numpy: http://www.scipy.org/NumPy
 .. _scipy: http://www.scipy.org
