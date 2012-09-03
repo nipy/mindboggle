@@ -243,9 +243,9 @@ def labels_to_volume(subject, annot_name):
 def surf_to_vtk(surface_file):
 
     import os
-    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
+    from utils.io_vtk import write_vtk_header, write_vtk_points, \
         write_vtk_faces
-    from mindboggle.utils.io_free import read_surface
+    from utils.io_free import read_surface
 
     Vertex, Face = read_surface(surface_file)
 
@@ -276,7 +276,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     import os
     import nibabel as nb
-    from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    from utils.io_vtk import load_scalar, write_scalars
 
     annot_file = os.path.join(subjects_path, subject, 'label',
                               hemi + '.' + annot_name)
