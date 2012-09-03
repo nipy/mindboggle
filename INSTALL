@@ -32,7 +32,9 @@ If you downloaded the source distribution named something like
 
     python setup.py install
 
-**Note:** Depending on permissions you may need to use ``sudo``.
+.. note::
+
+    Depending on permissions you may need to use ``sudo``.
 
 Step 2: Compile C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~
