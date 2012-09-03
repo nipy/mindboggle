@@ -112,7 +112,7 @@ NetworkX_ 1.0 - 1.4
 .. note::
 
     Full distributions such as pythonxy_ or EPD_ provide the above packages,
-    except Nibabel_ and Nipype_.
+    except nibabel_ and nipype_.
 
 Strong Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~
