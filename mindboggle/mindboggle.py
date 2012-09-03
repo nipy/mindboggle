@@ -103,6 +103,7 @@ from extract.fundi_hmmf import extract_folds
 from extract.fundi_hmmf import extract_fundi
 from label import evaluate_labels
 """
+import mindboggle as mb
 from mindboggle.utils.io_vtk import load_scalar, write_scalar_subset, \
      write_mean_scalar_table
 from mindboggle.utils.io_file import read_columns, write_table_means
