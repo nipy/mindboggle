@@ -9,11 +9,15 @@ This page covers the necessary steps to install Mindboggle.
 Download
 --------
 
-http://mindboggle.info/download
+The project will be going public soon,
+at which point we will provide a download link
+and open up the github repository...
 
-To check out the latest development version::
+.. http://mindboggle.info/download
 
-        git clone git://github.com/binarybottle/mindboggle.git
+   To check out the latest development version::
+
+       git clone git://github.com/binarybottle/mindboggle.git
 
 Install
 -------
@@ -36,10 +40,21 @@ Step 2: Compile C++ code
 Move the mindboggle_cpp directory to wherever you install your software
 (let's call it YOUR_SOFTWARE_PATH), then run cmake and make::
 
->> mv mindboggle_cpp YOUR_SOFTWARE_PATH
->> cd YOUR_SOFTWARE_PATH/mindboggle_cpp/bin/
->> cmake ..  [OR "ccmake .." and select appropriate architecture]
->> make
+    mv mindboggle_cpp YOUR_SOFTWARE_PATH
+    cd YOUR_SOFTWARE_PATH/mindboggle_cpp/bin/
+    cmake ..
+    make
+
+Alternatively, instead of `>> cmake ..`, it may be better to run::
+
+    ccmake ..
+
+and select the appropriate architecture.  For example, on a Mac
+you might not be able to compile x86_64 (particularly if using
+the free academic version of the Enthought Python Distribution),
+so in ccmake one would set::
+
+    CMAKE_OSX_ARCHITECTURES=i386
 
 Step 3: Set environment variable
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -47,9 +62,9 @@ Step 3: Set environment variable
 For your system to recognize the C++ code we just compiled,
 include the following lines in your system's equivalent to a .bashrc file::
 
-MINDBOGGLE_CPP=YOUR_SOFTWARE_PATH/mindboggle_cpp/bin
-PATH=${MINDBOGGLE_CPP}:${PATH}
-export MINDBOGGLE_CPP
+    MINDBOGGLE_CPP=YOUR_SOFTWARE_PATH/mindboggle_cpp/bin
+
+    export PATH=$PATH:$MINDBOGGLE_CPP
 
 Step 4: Move directory
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -59,7 +74,7 @@ data/ directory to FreeSurfer's subjects/ directory, and make sure that
 the environment variable SUBJECTS_DIR is set in your system's equivalent
 to a .bashrc file::
 
->> mv data/* $FREESURFER_HOME/subjects/
+    mv data/* $FREESURFER_HOME/subjects/
 
 Dependencies
 ------------
