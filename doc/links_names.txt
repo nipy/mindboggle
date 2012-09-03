@@ -10,6 +10,10 @@
    mindboggle, MINDBOGGLE, Mindboggle, etc...
 
 .. _mindboggle: http://mindboggle.info
+.. _documentation: http://mindboggle.info/software/documentation.html
+.. _Github repository: http://github.com/binarybottle/mindboggle
+.. _available releases: http://github.com/binarybottle/mindboggle/downloads
+.. _bugs: http://github.com/binarybottle/mindboggle/issues
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
@@ -19,11 +23,12 @@
 .. _docutils: http://docutils.sourceforge.net
 
 .. Licenses
-.. _Apache: http://www.opensource.org/licenses/Apache-2.0
+.. _Apache v2.0: http://www.opensource.org/licenses/Apache-2.0
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
+.. _`Creative Commons Attribution 3.0 License`: http://http://creativecommons.org/licenses/by/3.0/
 
 .. Operating systems and distributions
 
@@ -34,9 +39,6 @@
 .. Working process
 .. _nifti: http://nifti.nimh.nih.gov
 .. _github: http://github.com
-.. _mindboggle github: http://github.com/binarybottle/mindboggle
-.. _`mindboggle trunk`: http://github.com/binarybottle/mindboggle
-.. _`mindboggle bugs`: http://github.com/binarybottle/mindboggle/issues
 
 .. Code support stuff
 .. _pychecker: http://pychecker.sourceforge.net/
