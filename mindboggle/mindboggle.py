@@ -72,8 +72,9 @@ protocol = 'DKT31'
 #-----------------------------------------------------------------------------
 # Initialize labels with:
 # 'free': the standard FreeSurfer classifier atlas trained on the DK protocol
-# <FUTURE: 'freeDKT31': a FreeSurfer-style classifier atlas trained on the DKT protocol>
 # 'max': maximum probability (majority vote) labels from multiple atlases
+# FUTURE:
+# <'freeDKT31': a FreeSurfer-style classifier atlas trained on the DKT protocol>
 #-----------------------------------------------------------------------------
 init_labels = 'free'
 #-----------------------------------------------------------------------------
