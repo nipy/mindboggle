@@ -349,6 +349,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     Returns
     -------
+    labels : list of integers (one label per vertex)
     vtk_file : output VTK file
 
     """
@@ -378,7 +379,7 @@ def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     LUT_names = ['Labels']
     write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
-    return vtk_file
+    return labels, vtk_file
 
 def vtk_to_label_files(hemi, surface_file, label_numbers, label_names,
                        RGBs, scalar_name):
