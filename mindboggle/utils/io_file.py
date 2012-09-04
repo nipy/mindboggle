@@ -68,7 +68,7 @@ def write_table(labels, columns, column_names, filename):
     for irow, label in enumerate(labels):
         row = ["{0}\t".format(label)]
         for column in columns:
-            row.append(column[irow])
+            row.append(str(column[irow]))
         Fp.write("\t".join(row) + "\n")
 
     Fp.close()
