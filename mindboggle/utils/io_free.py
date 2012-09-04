@@ -102,7 +102,7 @@ def read_curvature(filename):
     Parameters
     ----------
     filename : string
-        A binary FreeSurfer curvature (pre-vertex) file
+        A binary FreeSurfer curvature (per-vertex) file
 
     Returns
     -------
@@ -153,6 +153,81 @@ def read_curvature(filename):
     f.close()
 
     return Curvature
+
+def thickness_to_ascii(hemi, subject_path):
+    """
+    Convert a FreeSurfer thickness (per-vertex) file
+    to an ascii file.
+
+    Parameters
+    ----------
+    hemi : string indicating left or right hemisphere
+    subject_path: string
+        path to subject directory where the binary FreeSurfer
+        thickness file is found ("lh.thickness")
+
+    Returns
+    -------
+    thickness_file : string
+        name of output file, where each element is the thickness
+        value of a FreeSurfer mesh vertex. Elements are ordered
+        by orders of vertexes in FreeSurfer surface file.
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    filename = hemi + 'thickness'
+    filename_full = os.path.join(subject_path, filename)
+    thickness_file = os.path.join(os.getcwd(), filename_full + '.dat')
+
+    cli = CommandLine(command='mri_convert')
+    cli.inputs.args = ' '.join(['--ascii+crsf', thickness_file])
+    cli.cmdline
+    cli.run()
+
+    return thickness_file
+
+def thickness_ascii_to_vtk(filename, surface_file, hemi, subject, subjects_path):
+    """
+    Convert an ascii version of a FreeSurfer thickness (per-vertex)
+    file to a VTK format file.
+
+    Parameters
+    ----------
+    filename : string
+        name of an ascii version of a FreeSurfer thickness file
+    surface_file : string  (name of VTK surface file)
+    hemi : string indicating left or right hemisphere
+    subject : string
+        name of subject directory
+    subjects_path: string
+        path to subject directory
+
+    Returns
+    -------
+    vtk_file : string
+        Name of output VTK file, where each vertex is assigned
+        the thickness value of a mesh vertex.
+
+    """
+
+    import os
+    from utils.io_vtk import load_scalar, write_scalars
+
+    # Load VTK surface
+    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
+    Vertices =  range(1, len(Points) + 1)
+
+    output_stem = os.path.join(os.getcwd(),
+                  os.path.basename(surface_file.strip('.vtk')))
+    vtk_file = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
+
+    LUTs = [labels.tolist()]
+    LUT_names = ['Labels']
+    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
+
+    return vtk_file
 
 def labels_to_annot(hemi, subjects_path, subject, label_files,
                     colortable, annot_name):

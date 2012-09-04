@@ -63,6 +63,9 @@ else:
 #=============================================================================
 #  User settings
 #=============================================================================
+input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
+fill_volume = True  # Fill (gray matter) volumes with surface labels
+include_free_measures = 0 #True  # Include FreeSurfer's thickness and convexity
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -85,13 +88,10 @@ init_labels = 'free'
 label_method = 'manual'
 hemis = ['lh','rh']  # Prepend ('lh.') indicating left and right surfaces
 #-----------------------------------------------------------------------------
-# Debugging options
+# Evaluation options
 #-----------------------------------------------------------------------------
-input_vtk = False  # Load VTK surfaces (not FreeSurfer surfaces)
-fill_volume = True  # Fill (gray matter) volumes with surface labels
-include_free_measures = 0#True  # Include FreeSurfer's thickness and convexity
 evaluate_surface_labels = 0 #False  # Compute surface overlap of auto vs. manual labels
-evaluate_volume_labels = 1 #False  # Compute volume overlap of auto vs. manual labels
+evaluate_volume_labels = 0 #False  # Compute volume overlap of auto vs. manual labels
 
 #=============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -160,7 +160,7 @@ surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
 surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 if include_free_measures:
     surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
-    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
+#    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 # Outputs
@@ -178,6 +178,10 @@ if not input_vtk:
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
+#    if include_free_measures:
+#        convertconvexity = convertsurf.clone('Convexity_to_VTK')
+#        mbflow.connect([(surf, convertconvexity,
+#                         [('convexity_files','surface_file')])])
 #-----------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-----------------------------------------------------------------------------
@@ -475,19 +479,17 @@ if do_save_fundi:
 #
 ##############################################################################
 shapeflow = Workflow(name='Shape_analysis')
+column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
+                'max_curvature', 'min_curvature']
 if include_free_measures:
-    column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
-                    'max_curvature', 'min_curvature', 'thickness', 'convexity']
-else:
-    column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
-                    'max_curvature', 'min_curvature']
-measure_file_vars = [x + '_file' for x in column_names[1::]]
+    column_names.extend(['thickness']) #'convexity']
+shape_files = [x + '_file' for x in column_names[1::]]
 
 #-----------------------------------------------------------------------------
 # Labeled surface patch shapes
 #-----------------------------------------------------------------------------
-input_names = ['filename', 'column_names', 'labels', 'shape_files']
-input_names.extend(measure_file_vars)
+input_names = ['filename', 'column_names', 'labels']
+input_names.extend(shape_files)
 """
 labeltable = Node(name='Label_table',
                       interface = Fn(function = write_table_means,
@@ -504,10 +506,10 @@ foldtable = Node(name='Fold_table',
                  interface = Fn(function = write_mean_scalar_table,
                                 input_names = input_names,
                                 output_names = ['filename']))
-foldtable.inputs.column_names = column_names
 #foldtable = labeltable.clone('Fold_table')
 shapeflow.add_nodes([foldtable])
 foldtable.inputs.filename = 'fold_shapes.txt'
+foldtable.inputs.column_names = column_names
 mbflow.connect([(featureflow, shapeflow,
                  [('Folds.folds','Fold_table.labels')])])
 mbflow.connect([(measureflow, shapeflow,
@@ -525,10 +527,10 @@ mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.min_curvature_file',
                    'Fold_table.min_curvature_file')])])
 if include_free_measures:
-    mbflow.connect([(surf, shapeflow,
-                     [('thickness_files', 'Fold_table.thickness_file')])])
-    mbflow.connect([(surf, shapeflow,
-                     [('convexity_files', 'Fold_table.convexity_file')])])
+    mbflow.connect([(convertthickness, shapeflow,
+                     [('vtk_file', 'Fold_table.thickness_file')])])
+#    mbflow.connect([(convertconvexity, shapeflow,
+#                     [('vtk_file', 'Fold_table.convexity_file')])])
 #-----------------------------------------------------------------------------
 # Segmented fundus shapes
 #-----------------------------------------------------------------------------
@@ -552,10 +554,10 @@ mbflow.connect([(measureflow, shapeflow,
                  [('Curvature.min_curvature_file',
                    'Fundus_table.min_curvature_file')])])
 if include_free_measures:
-    mbflow.connect([(surf, shapeflow,
-                     [('thickness_files', 'Fundus_table.thickness_file')])])
-    mbflow.connect([(surf, shapeflow,
-                     [('convexity_files', 'Fundus_table.convexity_file')])])
+    mbflow.connect([(convertthickness, shapeflow,
+                     [('vtk_file', 'Fundus_table.thickness_file')])])
+#    mbflow.connect([(convertconvexity, shapeflow,
+#                     [('vtk_file', 'Fundus_table.convexity_file')])])
 
 ##############################################################################
 #
