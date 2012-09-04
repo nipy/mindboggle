@@ -43,7 +43,7 @@ def read_surface(filename):
         A 3-tuple's index in the list *Vertex* is the ID of a vertex.
 
     Face : list of 3-tuples of integers
-        Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertexes that form one face
+        Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertices that form one face
 
     Example
     -------
@@ -83,7 +83,7 @@ def read_surface(filename):
         f.seek(-4, os.SEEK_CUR)
         s = f.read(8)
         A, S = struct.unpack(">ff", s)
-        Vertex.append([R,A,S]) # R, A, S are the coordinates of vertexes
+        Vertex.append([R,A,S]) # R, A, S are the coordinates of vertices
 
     for i in xrange(0, FaceCount):
         s = f.read(8)
@@ -97,30 +97,28 @@ def read_surface(filename):
 
 def read_curvature(filename):
     """
-    Read in a FreeSurfer curvature (per-vertex) file.
+    Read in a FreeSurfer curvature, convexity, or thickness file.
 
     Parameters
     ----------
     filename : string
-        A binary FreeSurfer curvature (per-vertex) file
+        A binary FreeSurfer (per-vertex) curvature file
 
     Returns
     -------
     Curvature : list of floats
         Each element is the curvature value of a FreeSurfer mesh vertex.
-        Elements are ordered by orders of vertexes in FreeSurfer surface file.
 
     Example
     -------
-    >>> import readFreeSurfer as rfs
-    >>> Curv = rfs.read_curvature('lh.curv')
+    >>> Curv = read_curvature('lh.curv')
     >>> len(Curv)
     130412
     >>> Curv[10]
     -0.37290969491004944
 
     """
-
+    import os
     import struct
 
     f = open(filename, "rb")
@@ -144,7 +142,7 @@ def read_curvature(filename):
         Curvature += [VertexVal1, VertexVal2]
         VertexCount -= 2
 
-    if VertexCount != 0:  # number of vertexes is even (NOT ODD!!!)
+    if VertexCount != 0:  # number of vertices is even (NOT ODD!!!)
         f.seek(-4, os.SEEK_CUR)  # backward 4 Bytes from current position
         s = f.read(8)
         VertexVal1, VertexVal2 = struct.unpack(">ff", s)
@@ -153,81 +151,6 @@ def read_curvature(filename):
     f.close()
 
     return Curvature
-
-def thickness_to_ascii(hemi, subject_path):
-    """
-    Convert a FreeSurfer thickness (per-vertex) file
-    to an ascii file.
-
-    Parameters
-    ----------
-    hemi : string indicating left or right hemisphere
-    subject_path: string
-        path to subject directory where the binary FreeSurfer
-        thickness file is found ("lh.thickness")
-
-    Returns
-    -------
-    thickness_file : string
-        name of output file, where each element is the thickness
-        value of a FreeSurfer mesh vertex. Elements are ordered
-        by orders of vertexes in FreeSurfer surface file.
-
-    """
-    import os
-    from nipype.interfaces.base import CommandLine
-
-    filename = hemi + 'thickness'
-    filename_full = os.path.join(subject_path, filename)
-    thickness_file = os.path.join(os.getcwd(), filename_full + '.dat')
-
-    cli = CommandLine(command='mri_convert')
-    cli.inputs.args = ' '.join(['--ascii+crsf', thickness_file])
-    cli.cmdline
-    cli.run()
-
-    return thickness_file
-
-def thickness_ascii_to_vtk(filename, surface_file, hemi, subject, subjects_path):
-    """
-    Convert an ascii version of a FreeSurfer thickness (per-vertex)
-    file to a VTK format file.
-
-    Parameters
-    ----------
-    filename : string
-        name of an ascii version of a FreeSurfer thickness file
-    surface_file : string  (name of VTK surface file)
-    hemi : string indicating left or right hemisphere
-    subject : string
-        name of subject directory
-    subjects_path: string
-        path to subject directory
-
-    Returns
-    -------
-    vtk_file : string
-        Name of output VTK file, where each vertex is assigned
-        the thickness value of a mesh vertex.
-
-    """
-
-    import os
-    from utils.io_vtk import load_scalar, write_scalars
-
-    # Load VTK surface
-    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
-    Vertices =  range(1, len(Points) + 1)
-
-    output_stem = os.path.join(os.getcwd(),
-                  os.path.basename(surface_file.strip('.vtk')))
-    vtk_file = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
-
-    LUTs = [labels.tolist()]
-    LUT_names = ['Labels']
-    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
-
-    return vtk_file
 
 def labels_to_annot(hemi, subjects_path, subject, label_files,
                     colortable, annot_name):
@@ -311,12 +234,51 @@ def labels_to_volume(subject, annot_name):
 
     return output_file
 
+def thickness_to_ascii(hemi, subject, subjects_path):
+    """
+    Convert a FreeSurfer thickness (per-vertex) file
+    to an ascii file.
+
+.. note::
+    Untested function
+
+    Parameters
+    ----------
+    hemi : string indicating left or right hemisphere
+    subject_path: string
+        path to subject directory where the binary FreeSurfer
+        thickness file is found ("lh.thickness")
+
+    Returns
+    -------
+    thickness_file : string
+        name of output file, where each element is the thickness
+        value of a FreeSurfer mesh vertex. Elements are ordered
+        by orders of vertices in FreeSurfer surface file.
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    filename = hemi + 'thickness'
+    filename_full = os.path.join(subjects_path, subject, filename)
+    thickness_file = os.path.join(os.getcwd(), filename + '.dat')
+
+    cli = CommandLine(command='mri_convert')
+    cli.inputs.args = ' '.join([filename_full, '--ascii+crsf', thickness_file])
+    cli.cmdline
+    cli.run()
+
+    return thickness_file
+
 #=============================================================================
 # Functions for converting to VTK format
 #=============================================================================
 
 def surf_to_vtk(surface_file):
-
+    """
+    Convert FreeSurfer surface file to VTK format.
+    """
     import os
     from utils.io_vtk import write_vtk_header, write_vtk_points, \
         write_vtk_faces
@@ -331,6 +293,48 @@ def surf_to_vtk(surface_file):
     write_vtk_points(Fp, Vertex)
     write_vtk_faces(Fp, Face)
     Fp.close()
+
+    return vtk_file
+
+def curv_to_vtk(file_string, surface_file, hemi, subject, subjects_path):
+    """
+    Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
+
+    Parameters
+    ----------
+    file_string : string
+        string for FreeSurfer file: 'curv', 'thickness', 'sulc.pial'
+    surface_file : string  (name of VTK surface file)
+    hemi : string indicating left or right hemisphere
+    subject : string
+        name of subject directory
+    subjects_path: string
+        path to subject directory
+
+    Returns
+    -------
+    vtk_file : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value.
+
+    """
+    import os
+    from utils.io_free import read_curvature
+    from utils.io_vtk import load_scalar, write_scalars
+
+    filename = os.path.join(subjects_path, subject, 'surf',
+                            hemi + '.' + file_string)
+    vtk_file = os.path.join(os.getcwd(), file_string + '.vtk')
+
+    curvature_values = read_curvature(filename)
+
+    # Load VTK surface
+    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
+    Vertices =  range(1, len(Points) + 1)
+
+    LUTs = [curvature_values]
+    LUT_names = [file_string]
+    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
 
     return vtk_file
 
