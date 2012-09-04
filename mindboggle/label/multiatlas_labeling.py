@@ -168,11 +168,15 @@ def majority_vote_label(surface_file, annot_files):
 
     Returns
     -------
-    output_files : list of files containing majority vote labels,
-                  number of different label counts, and
-                  number of votes per majority label
-    """
+    labels_max : list of integers  (majority labels for vertices)
+    label_counts : list of integers  (number of different labels for vertices)
+    label_votes : list of integers  (number of votes for the majority labels)
+    consensus_vertices : list of integers  (indicating which are consensus labels)
+    maxlabel_file : VTK file containing majority vote labels
+    labelcounts_file : VTK file containing number of different label counts
+    labelvotes_file : VTK file containing number of votes per majority label
 
+    """
     from os import path, getcwd
     import nibabel as nb
     import pyvtk
@@ -220,4 +224,5 @@ def majority_vote_label(surface_file, annot_files):
                                   name='Votes (number of votes for majority labels)'))).\
           tofile(labelvotes_file, 'ascii')
 
-    return maxlabel_file, labelcounts_file, labelvotes_file, consensus_vertices
+    return labels_max, label_counts, label_votes, consensus_vertices, \
+           maxlabel_file, labelcounts_file, labelvotes_file
