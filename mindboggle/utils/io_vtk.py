@@ -117,7 +117,7 @@ def write_vtk_vertices(Fp, Vertices):
         ...
 
     Indices are 0-offset. Thus the first point is point id 0::
-    
+
         VERTICES n size
         numPoints0 i0 j0 k0
         ...
@@ -286,10 +286,11 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     return output_vtk
 
-def write_mean_scalar_table(filename, column_names, labels,
-                            depth_file, mean_curvature_file, gauss_curvature_file,
+def write_mean_scalar_table(filename, column_names, labels, depth_file,
+                            mean_curvature_file, gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
-                            thickness_file, convexity_file): # *shape_files):
+                            thickness_file='', convexity_file=''):
+                            # *shape_files):
     """
     Make a table of mean values per label per measure.
 
@@ -311,8 +312,12 @@ def write_mean_scalar_table(filename, column_names, labels,
     from measure.measure_functions import mean_value_per_label
 
     shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
-                   max_curvature_file, min_curvature_file, thickness_file,
-                   convexity_file]
+                   max_curvature_file, min_curvature_file]
+    if len(thickness_file) > 0:
+        shape_files.extend(thickness_file)
+    if len(convexity_file) > 0:
+        shape_files.extend(convexity_file)
+
     columns = []
     for shape_file in shape_files:
 
@@ -375,7 +380,7 @@ def load_vtk_lines(Filename):
     ----------
     Filename : string
         The path/filename of a VTK format file.
-    
+
     Returns
     -------
     Vertexes : list of integers
