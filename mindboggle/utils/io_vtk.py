@@ -286,11 +286,10 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     return output_vtk
 
-def write_mean_scalar_table(filename, column_names, labels, depth_file,
+def write_mean_shapes_table(filename, column_names, labels, depth_file,
                             mean_curvature_file, gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
                             thickness_file='', convexity_file=''):
-                            # *shape_files):
     """
     Make a table of mean values per label per measure.
 
