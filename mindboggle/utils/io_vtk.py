@@ -324,6 +324,11 @@ def write_mean_shapes_table(filename, column_names, labels, depth_file,
 
         mean_values, label_list = mean_value_per_label(Scalars, labels)
 
+
+        print(mean_values)
+        print(label_list)
+
+
         columns.append(mean_values)
 
     filename = os.path.join(os.getcwd(), filename)
