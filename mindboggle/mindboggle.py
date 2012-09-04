@@ -64,15 +64,15 @@ else:
 #  User settings
 #=============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
-fill_volume = True  # Fill (gray matter) volumes with surface labels
+fill_volume = 0 #True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
-include_convexity = True  # Include FreeSurfer's convexity measure
+include_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
 # 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
 #-----------------------------------------------------------------------------
-protocol = 'DKT31'
+protocol = 'DKT25'
 #-----------------------------------------------------------------------------
 # Initialize labels with:
 # 'free': the standard FreeSurfer classifier atlas trained on the DK protocol
@@ -342,14 +342,14 @@ elif init_labels == 'free':
 elif init_labels == 'manual':
     atlaslabels = Node(name = 'Atlas_labels',
                        interface = Fn(function = load_scalar,
-                                      input_names = ['input_vtk',
+                                      input_names = ['filename',
                                                      'return_arrays'],
                                       output_names = ['Points',
                                                       'Faces',
                                                       'Scalars']))
     atlasflow.add_nodes([atlaslabels])
     mbflow.connect([(atlas, atlasflow,
-                     [('atlas_file', 'Atlas_labels.input_vtk')])])
+                     [('atlas_file', 'Atlas_labels.filename')])])
     atlaslabels.inputs.return_arrays = 0  # 0: return lists instead of arrays
 
 ##############################################################################
@@ -446,6 +446,7 @@ folds.inputs.min_fold_size = min_fold_size
 #-----------------------------------------------------------------------------
 # Extract sulci from folds
 #-----------------------------------------------------------------------------
+"""
 sulci = Node(name='Sulci',
              interface = Fn(function = write_scalar_subset,
                             input_names = ['folds',
@@ -454,11 +455,12 @@ sulci = Node(name='Sulci',
 featureflow.add_nodes([sulci])
 mbflow.connect([(folds, sulci,
                  [('folds','folds')])])
-save_folds.inputs.output_vtk = 'folds.vtk'
+sulci.inputs.output_vtk = 'folds.vtk'
 featureflow.connect([(folds, save_folds, [('folds','new_scalars')])])
 featureflow.connect([(folds, save_folds, [('folds','filter_scalars')])])
 mbflow.connect([(featureflow, sink,
                  [('Save_folds.output_vtk','features.@folds')])])
+"""
 #-----------------------------------------------------------------------------
 # Extract fundi (curves at the bottoms of sulci)
 #-----------------------------------------------------------------------------
@@ -467,13 +469,13 @@ min_distance = 5.0
 
 fundi = Node(name='Fundi',
              interface = Fn(function = extract_fundi,
-                            input_names = ['sulci',
-                                           'n_sulci',
+                            input_names = ['folds',
+                                           'n_folds',
                                            'neighbor_lists',
                                            'depth_file',
                                            'mean_curvature_file',
                                            'min_curvature_vector_file',
-                                           'min_sulcus_size',
+                                           'min_fold_size',
                                            'min_distance',
                                            'thr'],
                             output_names = ['fundi']))
@@ -511,9 +513,9 @@ save_sulci = Node(name='Save_sulci',
 featureflow.add_nodes([save_sulci])
 mbflow.connect([(measureflow, featureflow,
                  [('Depth.depth_file','Save_sulci.input_vtk')])])
-save_folds.inputs.output_vtk = 'sulci.vtk'
-featureflow.connect([(sulci, save_sulci, [('sulci','new_scalars')])])
-featureflow.connect([(sulci, save_sulci, [('sulci','filter_scalars')])])
+save_sulci.inputs.output_vtk = 'sulci.vtk'
+featureflow.connect([(folds, save_sulci, [('folds','new_scalars')])])
+featureflow.connect([(folds, save_sulci, [('folds','filter_scalars')])])
 mbflow.connect([(featureflow, sink,
                  [('Save_sulci.output_vtk','features.@sulci')])])
 
@@ -523,7 +525,7 @@ mbflow.connect([(measureflow, featureflow,
                  [('Depth.depth_file','Save_fundi.input_vtk')])])
 save_fundi.inputs.output_vtk = 'fundi.vtk'
 featureflow.connect([(fundi, save_fundi, [('fundi','new_scalars')])])
-featureflow.connect([(sulci, save_fundi, [('sulci','filter_scalars')])])
+featureflow.connect([(folds, save_fundi, [('folds','filter_scalars')])])
 mbflow.connect([(featureflow, sink,
                  [('Save_fundi.output_vtk','features.@fundi')])])
 
@@ -550,6 +552,7 @@ labeltable = Node(name='Label_table',
                                 input_names = input_names,
                                 output_names = ['filename']))
 shapeflow.add_nodes([labeltable])
+labeltable.inputs.column_names = column_names
 labeltable.inputs.filename = 'label_shapes.txt'
 mbflow.connect([(measureflow, shapeflow,
                  [('Depth.depth_file','Label_table.depth_file')])])
@@ -588,7 +591,7 @@ elif init_labels == 'free':
 #-----------------------------------------------------------------------------
 elif init_labels == 'manual':
     mbflow.connect([(atlaslabels, shapeflow,
-                     [('labels','Label_table.labels')])])
+                     [('Scalars','Label_table.labels')])])
 #=============================================================================
 # Sulcus fold shapes
 #=============================================================================
@@ -624,6 +627,7 @@ if include_convexity:
 fundustable = labeltable.clone('Fundus_table')
 shapeflow.add_nodes([fundustable])
 fundustable.inputs.filename = 'fundus_shapes.txt'
+fundustable.inputs.column_names = column_names
 mbflow.connect([(featureflow, shapeflow,
                  [('Fundi.fundi','Fundus_table.labels')])])
 mbflow.connect([(measureflow, shapeflow,
