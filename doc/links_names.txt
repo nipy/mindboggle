@@ -78,6 +78,7 @@
 
 .. Visualization
 .. _vtk: http://www.vtk.org/
+.. _Visualization Toolkit: http://www.vtk.org/
 
 .. General software
 .. _gcc: http://gcc.gnu.org

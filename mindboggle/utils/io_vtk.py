@@ -313,9 +313,9 @@ def write_mean_shapes_table(filename, column_names, labels, depth_file,
     shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
                    max_curvature_file, min_curvature_file]
     if len(thickness_file) > 0:
-        shape_files.extend(thickness_file)
+        shape_files.append(thickness_file)
     if len(convexity_file) > 0:
-        shape_files.extend(convexity_file)
+        shape_files.append(convexity_file)
 
     columns = []
     for shape_file in shape_files:
