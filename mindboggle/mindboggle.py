@@ -64,7 +64,7 @@ else:
 #  User settings
 #=============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
-fill_volume = True  # Fill (gray matter) volumes with surface labels
+fill_volume = 0 #True  # Fill (gray matter) volumes with surface labels
 include_free_measures = 0 #True  # Include FreeSurfer's thickness and convexity
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
