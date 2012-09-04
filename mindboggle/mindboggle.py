@@ -66,7 +66,7 @@ else:
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 fill_volume = 0 #True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
-include_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
+include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -164,7 +164,7 @@ surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 if include_thickness:
     surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
 if include_convexity:
-    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'curv.pial']]
+    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'sulc']]
 mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 # Outputs
@@ -204,7 +204,16 @@ if include_thickness:
     convertthickness.inputs.subjects_path = subjects_path
 if include_convexity:
     convertconvexity = convertthickness.clone('Convexity_to_VTK')
-    convertconvexity.inputs.file_string = 'curv.pial'
+    convertconvexity.inputs.file_string = 'sulc'
+    if not input_vtk:
+        mbflow.connect([(convertsurf, convertconvexity,
+                         [('vtk_file','surface_file')])])
+    else:
+        mbflow.connect([(surf, convertconvexity,
+                         [('surface_files','surface_file')])])
+    mbflow.connect([(info, convertconvexity, [('hemi','hemi'),
+        ('subject','subject')])])
+    convertconvexity.inputs.subjects_path = subjects_path
 #-----------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-----------------------------------------------------------------------------
@@ -236,11 +245,47 @@ atlasflow = Workflow(name='Label_initialization')
 #=============================================================================
 #   Initialize labels using multi-atlas registration
 #=============================================================================
+"""
+To create the DKT classifier atlas (?h.DKTatlas40.gcs) I NEED TO VERIFY THIS:
+
+source ./DKTatlas40_Scans.txt #Text file listing scans to be included in training dataset
+
+>>> mris_ca_train -t $FREESURFERHOME/average/colortable_desikan_killiany.txt $hemi sphere.reg aparcNMMjt.annot $SCANS 		./$hemi.DKTatlas40.gcs
+
+To label a brain with the DKT atlas (surface annotation file ?h.DKTatlas40.annot):
+
+source ./Scans2Do.txt #file listing scans ($SCANS) to label
+
+>>> mris_ca_label -l ./$x/label/$hemi.cortex.label $x/ $hemi sphere.reg ./$hemi.DKTatlas40.gcs ./$x/label/$hemi.DKTatlas40.annot
+
+
+To label the cortex of a subject's segmented volume according to the edited surface labels (?h.aparcNMMjt.annot):
+
+source ./Scans2Do.txt #file listing scans ($SCANS) to label
+
+foreach x ($SCANS)
+    mri_aparc2aseg --s ./x --volmask --annot aparcNMMjt
+end
+
+SYNOPSIS
+mris_ca_label [options] <subject> <hemi> <canonsurf> <classifier>
+<outputfile>
+
+DESCRIPTION
+For a single subject, produces an annotation file, in which each
+cortical surface vertex is assigned a neuroanatomical label.This
+automatic procedure employs data from a previously-prepared atlas
+file. An atlas file is created from a training set, capturing region
+data manually drawn by neuroanatomists combined with statistics on
+variability correlated to geometric information derived from the
+cortical model (sulcus and curvature). Besides the atlases provided
+with FreeSurfer, new ones can be prepared using mris_ca_train).
+"""
 if init_labels == 'max':
     #-------------------------------------------------------------------------
     # Register surfaces to average template
     #-------------------------------------------------------------------------
-    template = 'OASIS-TRT-20'
+    free_template = 'OASIS-TRT-20'  # FreeSurfer template
 
     register = Node(name = 'Register_template',
                     interface = Fn(function = register_template,
@@ -256,7 +301,7 @@ if init_labels == 'max':
                                         'Register_template.sphere_file')])])
     register.inputs.transform = 'sphere_to_' + template + '_template.reg'
     register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
-    register.inputs.template = template + '.tif'
+    register.inputs.template = free_template + '.tif'
     #-------------------------------------------------------------------------
     # Register atlases to subject via template
     #-------------------------------------------------------------------------
@@ -351,6 +396,7 @@ elif init_labels == 'manual':
     mbflow.connect([(atlas, atlasflow,
                      [('atlas_file', 'Atlas_labels.filename')])])
     atlaslabels.inputs.return_arrays = 0  # 0: return lists instead of arrays
+
 
 ##############################################################################
 #
@@ -590,8 +636,8 @@ elif init_labels == 'free':
 # Use manual (atlas) labels
 #-----------------------------------------------------------------------------
 elif init_labels == 'manual':
-    mbflow.connect([(atlaslabels, shapeflow,
-                     [('Scalars','Label_table.labels')])])
+    mbflow.connect([(atlasflow, shapeflow,
+                     [('Atlas_labels.Scalars','Label_table.labels')])])
 #=============================================================================
 # Sulcus fold shapes
 #=============================================================================
