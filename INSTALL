@@ -47,7 +47,7 @@ Move the mindboggle_cpp directory to wherever you install your software
     cmake ..
     make
 
-Alternatively, instead of `>> cmake ..`, it may be better to run::
+Alternatively, instead of "`>> cmake ..`", it may be better to run::
 
     ccmake ..
 
@@ -58,8 +58,8 @@ so in ccmake one would set::
 
     CMAKE_OSX_ARCHITECTURES=i386
 
-Step 3: Set environment variable
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Step 3: Set environment variables
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 For your system to recognize the C++ code we just compiled,
 include the following lines in your system's equivalent to a .bashrc file::
@@ -67,6 +67,14 @@ include the following lines in your system's equivalent to a .bashrc file::
     MINDBOGGLE_CPP=YOUR_SOFTWARE_PATH/mindboggle_cpp/bin
 
     export PATH=$PATH:$MINDBOGGLE_CPP
+
+Temporary:
+For your system to recognize the path to Mindboggle, also
+include the following lines in your system's equivalent to a .bashrc file::
+
+    MINDBOGGLE=YOUR_SOFTWARE_PATH/mindboggle/mindboggle
+
+    export PATH=$PATH:$MINDBOGGLE
 
 Step 4: Move directory
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -88,12 +96,10 @@ Must Have
 ~~~~~~~~~
 
 Basic compilation software::
-  - easy_install
-    ????sudo easy_install --always-unzip --upgrade setuptools
   - cmake (http://cmake.org)
   - C++ compiler such as gcc
 
-`Visualization Toolkit <http://vtk.org>`_
+`Visualization Toolkit`_
 
 Python_ 2.6 -2.7
 
@@ -113,25 +119,30 @@ NetworkX_ 1.0 - 1.4
 
 .. note::
 
-    Full distributions such as pythonxy_ or EPD_ provide the above packages,
-    except nibabel_ and nipype_.
+    Full distributions such as EPD_ or pythonxy_ provide the above packages,
+    except nibabel_ and nipype_.  The EPD_ also includes the following
+    strongly recommended libraries::
+
+        IPython_ 0.10.2 - 0.12
+          Interactive python environment. This is necessary for some parallel
+          components of the pipeline engine.
+
+        Matplotlib_ 1.0
+          Plotting library
+
+        Sphinx_
+          Required for building the documentation
+
+        `Graphviz <http://www.graphviz.org/>`_
+          Required for building the documentation
 
 Strong Recommendations
 ~~~~~~~~~~~~~~~~~~~~~~
 
 FreeSurfer_
   FreeSurfer version 4 and higher
+  This software will help to initialize labels for Mindboggle
+  and generates the directory tree that Mindboggle uses to call
+  subject data.
 
-IPython_ 0.10.2 - 0.12
-  Interactive python environment. This is necessary for some parallel
-  components of the pipeline engine.
-
-Matplotlib_ 1.0
-  Plotting library
-
-Sphinx_
-  Required for building the documentation
-
-`Graphviz <http://www.graphviz.org/>`_
-  Required for building the documentation
 
