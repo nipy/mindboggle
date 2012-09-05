@@ -72,7 +72,7 @@ include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
 # 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
 #-------------------------------------------------------------------------------
-protocol = 'DKT31'
+protocol = 'DKT25'
 #-------------------------------------------------------------------------------
 # Initialize labels with:
 # 'free': the standard FreeSurfer classifier atlas trained on the DK protocol
@@ -97,7 +97,7 @@ evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
-run_featureflow = 0 # True
+run_featureflow = True
 run_shapeflow = True
 
 #===============================================================================
@@ -121,7 +121,7 @@ from utils.io_free import labels_to_annot, labels_to_volume, \
 from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
-from measure.measure_functions import compute_depth, \
+from measure.measure_functions import compute_area, compute_depth, \
      compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
@@ -417,6 +417,16 @@ if run_measureflow:
     #   Surface measurements
     #===========================================================================
     #---------------------------------------------------------------------------
+    # Measure surface area
+    #---------------------------------------------------------------------------
+    area = Node(name='Area',
+                interface = Fn(function = compute_area,
+                               input_names = ['command',
+                                              'surface_file'],
+                               output_names = ['area_file']))
+    area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
+    area.inputs.command = area_command
+    #---------------------------------------------------------------------------
     # Measure surface depth
     #---------------------------------------------------------------------------
     depth = Node(name='Depth',
@@ -443,17 +453,23 @@ if run_measureflow:
     #---------------------------------------------------------------------------
     # Add and connect nodes, save output files
     #---------------------------------------------------------------------------
-    measureflow.add_nodes([depth, curvature])
+    measureflow.add_nodes([area, depth, curvature])
     if input_vtk:
+        mbflow.connect([(surf, measureflow,
+                         [('surface_files','Area.surface_file')])])
         mbflow.connect([(surf, measureflow,
                          [('surface_files','Depth.surface_file')])])
         mbflow.connect([(surf, measureflow,
                          [('surface_files','Curvature.surface_file')])])
     else:
         mbflow.connect([(convertsurf, measureflow,
+                         [('vtk_file', 'Area.surface_file')])])
+        mbflow.connect([(convertsurf, measureflow,
                          [('vtk_file', 'Depth.surface_file')])])
         mbflow.connect([(convertsurf, measureflow,
                          [('vtk_file', 'Curvature.surface_file')])])
+    mbflow.connect([(measureflow, sink,
+                     [('Area.area_file', 'measures.@area')])])
     mbflow.connect([(measureflow, sink,
                      [('Depth.depth_file', 'measures.@depth')])])
     mbflow.connect([(measureflow, sink,
@@ -593,14 +609,14 @@ if run_featureflow:
 if run_shapeflow:
 
     shapeflow = Workflow(name='Shape_analysis')
-    column_names = ['labels', 'depth', 'mean_curvature', 'gauss_curvature',
-                    'max_curvature', 'min_curvature']
+    column_names = ['labels', 'area', 'depth', 'mean_curvature',
+                    'gauss_curvature', 'max_curvature', 'min_curvature']
     if include_thickness:
         column_names.append('thickness')
     if include_convexity:
         column_names.append('convexity')
-    shape_files = [x + '_file' for x in column_names[1::]]
-    input_names = ['filename', 'column_names', 'labels']
+    shape_files = [x + '_file' for x in column_names[2::]]
+    input_names = ['filename', 'column_names', 'labels', 'area_file']
     input_names.extend(shape_files)
     #===========================================================================
     # Labeled surface patch shapes
@@ -610,8 +626,10 @@ if run_shapeflow:
                                     input_names = input_names,
                                     output_names = ['filename']))
     shapeflow.add_nodes([labeltable])
-    labeltable.inputs.column_names = column_names
     labeltable.inputs.filename = 'label_shapes.txt'
+    labeltable.inputs.column_names = column_names
+    mbflow.connect([(measureflow, shapeflow,
+                     [('Area.area_file','Label_table.area_file')])])
     mbflow.connect([(measureflow, shapeflow,
                      [('Depth.depth_file','Label_table.depth_file')])])
     mbflow.connect([(measureflow, shapeflow,
@@ -659,6 +677,8 @@ if run_shapeflow:
         shapeflow.add_nodes([foldtable])
         foldtable.inputs.filename = 'fold_shapes.txt'
         foldtable.inputs.column_names = column_names
+        mbflow.connect([(measureflow, shapeflow,
+                         [('Area.area_file','Fold_table.area_file')])])
         mbflow.connect([(featureflow, shapeflow,
                          [('Folds.folds','Fold_table.labels')])])
         mbflow.connect([(measureflow, shapeflow,
@@ -689,6 +709,8 @@ if run_shapeflow:
         shapeflow.add_nodes([fundustable])
         fundustable.inputs.filename = 'fundus_shapes.txt'
         fundustable.inputs.column_names = column_names
+        mbflow.connect([(measureflow, shapeflow,
+                         [('Area.area_file','Fundus_table.area_file')])])
         mbflow.connect([(featureflow, shapeflow,
                          [('Fundi.fundi','Fundus_table.labels')])])
         mbflow.connect([(measureflow, shapeflow,
