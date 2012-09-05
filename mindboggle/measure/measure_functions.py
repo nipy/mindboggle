@@ -96,6 +96,10 @@ def mean_value_per_label(values, areas, labels):
     Compute the mean value across vertices per label,
     taking into account surface area per vertex.
 
+    average value = sum(a_i * v_i) / (total_surface_area * N),
+    where *a_i* and *v_i* are the area and value for each vertex *i*,
+    and *N* is the total number of vertices.
+
     Parameters
     ----------
     values : numpy array of integer or float values
