@@ -286,8 +286,9 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     return output_vtk
 
-def write_mean_shapes_table(filename, column_names, labels, depth_file,
-                            mean_curvature_file, gauss_curvature_file,
+def write_mean_shapes_table(filename, column_names, labels, area_file,
+                            depth_file, mean_curvature_file,
+                            gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
                             thickness_file='', convexity_file=''):
     """
@@ -298,6 +299,7 @@ def write_mean_shapes_table(filename, column_names, labels, depth_file,
     filename :  output filename (without path)
     column_names :  names of columns [list of strings]
     labels :  list (same length as values)
+    area_file :  name of file containing per-vertex surface areas
     *shape_files :  arbitrary number of vtk files with scalar values
 
     Returns
@@ -318,18 +320,18 @@ def write_mean_shapes_table(filename, column_names, labels, depth_file,
         shape_files.append(convexity_file)
 
     columns = []
-    for shape_file in shape_files:
+    for i, shape_file in enumerate(shape_files):
 
-        Points, Faces, Scalars = load_scalar(shape_file, return_arrays=1)
+        Points, Faces, values = load_scalar(shape_file, return_arrays=1)
 
-        mean_values, label_list = mean_value_per_label(Scalars, labels)
+        Points, Faces, areas = load_scalar(area_file, return_arrays=1)
 
-
-        print(mean_values)
-        print(label_list)
-
-
-        columns.append(mean_values)
+        mean_values, surface_areas, label_list = mean_value_per_label(values,
+                                                               areas, labels)
+        if i == 0:
+            columns.append(surface_areas)
+        else:
+            columns.append(mean_values)
 
     filename = os.path.join(os.getcwd(), filename)
     write_table(label_list, columns, column_names, filename)
