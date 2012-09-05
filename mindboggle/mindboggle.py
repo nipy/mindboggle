@@ -64,7 +64,7 @@ else:
 #  User settings
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
-fill_volume = 0 #True  # Fill (gray matter) volumes with surface labels
+fill_volume = True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 #-------------------------------------------------------------------------------
@@ -93,8 +93,8 @@ hemis = ['lh','rh']  # Prepend ('lh.') indicating left and right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
-evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
+evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
+evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
 run_featureflow = True
@@ -668,7 +668,9 @@ if run_shapeflow:
     elif init_labels == 'manual':
         mbflow.connect([(atlasflow, shapeflow,
                          [('Atlas_labels.Scalars','Label_table.labels')])])
-
+    # Save results
+    mbflow.connect([(shapeflow, sink,
+                     [('Label_table.filename', 'shapes.@labels')])])
     #===========================================================================
     # Sulcus fold shapes
     #===========================================================================
@@ -701,6 +703,9 @@ if run_shapeflow:
         if include_convexity:
             mbflow.connect([(convertconvexity, shapeflow,
                              [('vtk_file', 'Fold_table.convexity_file')])])
+        # Save results
+        mbflow.connect([(shapeflow, sink,
+                         [('Fold_table.filename', 'shapes.@folds')])])
     #===========================================================================
     # Fundus shapes
     #===========================================================================
@@ -733,6 +738,9 @@ if run_shapeflow:
         if include_convexity:
             mbflow.connect([(convertconvexity, shapeflow,
                              [('vtk_file', 'Fundus_table.convexity_file')])])
+        # Save results
+        mbflow.connect([(shapeflow, sink,
+                         [('Fundus_table.filename', 'shapes.@fundi')])])
 
 ################################################################################
 #
@@ -761,8 +769,11 @@ if evaluate_surface_labels:
     elif init_labels == 'max':
         mbflow.connect([(atlasflow, eval_surf_labels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
-    mbflow.connect([(eval_surf_labels, sink,
-                     [('overlaps', 'evaluation.@surface')])])
+    elif init_labels == 'manual':
+        mbflow.connect([(atlas, eval_surf_labels,
+                         [('atlas_file','labels_file2')])])
+#    mbflow.connect([(eval_surf_labels, sink,
+#                     [('overlaps', 'evaluation.@surface')])])
 
 ################################################################################
 #
@@ -805,6 +816,11 @@ if fill_volume:
         mbflow.connect([(atlasflow, annotflow,
                          [('Label_vote.maxlabel_file',
                            'Write_label_files.surface_file')])])
+    elif init_labels == 'manual':
+        writelabels.inputs.scalar_name = 'Labels'
+        mbflow.connect([(atlas, annotflow,
+                         [('atlas_file',
+                           'Write_label_files.surface_file')])])
     #---------------------------------------------------------------------------
     # Write .annot file from .label files
     # NOTE:  incorrect labels to be corrected below!
@@ -819,7 +835,7 @@ if fill_volume:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-    writeannot.inputs.annot_name = 'temp.labels'
+    writeannot.inputs.annot_name = 'labels.' + init_labels
     writeannot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([writeannot])
     mbflow.connect([(info, annotflow,

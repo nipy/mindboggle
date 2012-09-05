@@ -28,7 +28,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     labels_file2 : ``vtk file`` with index labels for scalar values
 
     """
-    import os
+#    import os
     from nipype.interfaces.base import CommandLine
 
     cli = CommandLine(command = command)
