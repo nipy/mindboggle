@@ -181,7 +181,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 # Convert surfaces to VTK
 #-------------------------------------------------------------------------------
 if not input_vtk:
-    convertsurf = Node(name = 'Free_to_VTK',
+    convertsurf = Node(name = 'Surf_to_VTK',
                        interface = Fn(function = surf_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
@@ -206,6 +206,8 @@ if include_thickness:
     mbflow.connect([(info, convertthickness, [('hemi','hemi'),
                                               ('subject','subject')])])
     convertthickness.inputs.subjects_path = subjects_path
+    mbflow.connect([(convertthickness, sink,
+                     [('vtk_file', 'measures.@thickness')])])
 if include_convexity:
     convertconvexity = convertthickness.clone('Convexity_to_VTK')
     convertconvexity.inputs.file_string = 'sulc'
@@ -218,6 +220,8 @@ if include_convexity:
     mbflow.connect([(info, convertconvexity, [('hemi','hemi'),
         ('subject','subject')])])
     convertconvexity.inputs.subjects_path = subjects_path
+    mbflow.connect([(convertconvexity, sink,
+                     [('vtk_file', 'measures.@convexity')])])
 #-------------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-------------------------------------------------------------------------------
@@ -364,7 +368,7 @@ if run_atlasflow:
     #   Initialize labels with a classifier atlas (default to FreeSurfer labels)
     #===========================================================================
     elif init_labels == 'free':
-        freelabels = Node(name = 'Free_to_VTK',
+        freelabels = Node(name = 'Surf_to_VTK',
                         interface = Fn(function = annot_to_vtk,
                                        input_names = ['surface_file',
                                                       'hemi',
@@ -377,14 +381,14 @@ if run_atlasflow:
         if input_vtk:
             mbflow.connect([(surf, atlasflow,
                              [('surface_files',
-                               'Free_to_VTK.surface_file')])])
+                               'Surf_to_VTK.surface_file')])])
         else:
             mbflow.connect([(convertsurf, atlasflow,
                              [('vtk_file',
-                               'Free_to_VTK.surface_file')])])
+                               'Surf_to_VTK.surface_file')])])
         mbflow.connect([(info, atlasflow,
-                         [('hemi', 'Free_to_VTK.hemi'),
-                          ('subject', 'Free_to_VTK.subject')])])
+                         [('hemi', 'Surf_to_VTK.hemi'),
+                          ('subject', 'Surf_to_VTK.subject')])])
         freelabels.inputs.subjects_path = subjects_path
         freelabels.inputs.annot_name = 'aparc.annot'
     #===========================================================================
@@ -661,7 +665,7 @@ if run_shapeflow:
     #---------------------------------------------------------------------------
     elif init_labels == 'free':
         mbflow.connect([(atlasflow, shapeflow,
-                         [('Free_to_VTK.labels','Label_table.labels')])])
+                         [('Surf_to_VTK.labels','Label_table.labels')])])
     #---------------------------------------------------------------------------
     # Use manual (atlas) labels
     #---------------------------------------------------------------------------
@@ -765,7 +769,7 @@ if evaluate_surface_labels:
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
     if init_labels == 'free':
         mbflow.connect([(atlasflow, eval_surf_labels,
-                         [('Free_to_VTK.vtk_file','labels_file2')])])
+                         [('Surf_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'max':
         mbflow.connect([(atlasflow, eval_surf_labels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
@@ -809,7 +813,7 @@ if fill_volume:
     if init_labels == 'free':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
-                         [('Free_to_VTK.vtk_file',
+                         [('Surf_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
         writelabels.inputs.scalar_name = 'Max_(majority_labels)'
