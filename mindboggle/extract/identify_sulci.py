@@ -92,15 +92,14 @@
 #[2,12,22,24,30,31,34,35]]
 
 
-def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
+def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
     """The main function
     Parameters
     ------------
 
     Labels:  labels for all vertices (list of integers, 
              [# vertexes x 1],  indexed from 1)
-    Fold_IDs: fold IDs for all vertices (list of integers, 
-              [# vertexes x 1] indexed from 1, with zeros for non-fold vertices)
+    Folds: Lists of vertexes in folds, list of lists of integers
     Label_Pairs: list of label pairs for each sulcus, all contained within a list
 
     Returns
@@ -113,16 +112,16 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
     
     A fold is a group of connected vertices that are deeper than a depth threshold.
 
-    The ``label list’’ is a list of all labels that help to define all sulci in the DKT protocol.
-
-    A ``sulcus label list’’ is the list of labels used to define a single sulcus.
+    The ''label list'' is a list of all labels that help to define all sulci in the DKT protocol.
+    
+    A ''sulcus label list'' is the list of labels used to define a single sulcus.
     A sulcus label list is a subset of the label list.
 
-    A ``sulcus label pair list’’ contains some pairs of labels from a sulcus label list, 
+    A ''sulcus label pair list'' contains some pairs of labels from a sulcus label list, 
     where each pair defines a boundary between two labeled regions. 
     No two sulcus label pair lists share a label pair.
 
-    A ``sulcus ID’’ or ``sulcus index’’ identifies a sulcus.  
+    A ''sulcus ID'' or ''sulcus index'' identifies a sulcus.  
     It is the index within the list of sulcus label pair lists for a given sulcus (starting from 1).
 
     Here is the algorithm. 
@@ -167,7 +166,7 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
           (c) Treat each non-sulcus boundary vertex as a seed, and propagate an assignment
                of -2 until the termination criterion is met for every new seed:
                    -- the nearest label to the seed (that is in the label list or zero,
-                      and is different than the  seed’s label) is not one of the labels
+                      and is different than the  seed's label) is not one of the labels
                       of the original seeds.
         
            (d) Reassign each -2 vertex to its nearest label in the label list.
@@ -274,16 +273,7 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
     Label_List = list(set(Label_List))
     # End of prepare data structures 
     
-    Sulcus_Index = [-1 for i in xrange(len(Labels))]  # Initially -1 for all vertexes
-    # Since we do not touch gyral vertexes and vertexes whose labels are not in label list, 
-    # or vertexes having only one label, their sulcus indexes will remain -1. 
-    
-    Unique_Fold_ID = set(Fold_IDs) # we later traverse each fold
-    
-    for i in Unique_Fold_ID: # on every fold
-        Fold = [Vertex for Vertex in xrange(len(Labels)) if Fold_IDs[Vertex] == i]
-        # Fold is a collection of 
-        
+    for Fold in Folds:          
         Labels_in_this_Fold = set([Labels[Vertex] for Vertex in Fold])
         
         # Case 1: If the fold has only one label, let sulcus index of all vertexes in this fold be -1
@@ -305,7 +295,7 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
                 # in only one of the sulcus label lists, assign the sulcus index 
                 # for that list to all vertices in the fold.
                 for Vertex in Fold:
-                    Sulcus_Index[Vertex] = Subset_Index[0]
+                    Sulcus_Index[Vertex] = Subset_Index[0] + 1
             elif len(Subset_Index) > 1: 
                 # Case 4: If the labels in the fold are a subset of the labels in more 
                 # than one of the sulcus label lists:
@@ -314,7 +304,7 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
                 Subset_Pair_Index = check_subset_pair(Labels_in_this_Fold, Sulcus_Label_Pair_Lists, Selected_Index=Subset_Index)
                 if len(Subset_Pair_Index) ==1:
                     for Vertex in Fold: 
-                        Sulcus_Index[Vertex] = Subset_Pair_Index[0]
+                        Sulcus_Index[Vertex] = Subset_Pair_Index[0] + 1
             else: # Cases 5-6
                 Superset_Index = check_list_superset(Labels_in_this_Fold, Sulcus_Label_Lists)
                 # Case 5. If the labels in the fold are a superset of the labels for only one 
@@ -323,18 +313,22 @@ def identify(Labels, Fold_IDs, Sulcus_Label_Pair_Lists):
                 # (a) Assign the sulcus index for that list to just the vertices in the 
                 # fold with labels in its list (i.e., vertices with label 1, 2 or 3).
                 # (b) Treat the remaining vertices (i.e., vertices of label 4) as a new fold and start from #1.
-                if len(Superset_Index) == 1:
+                if len(Superset_Index) == 1: # Case 5
+                    SubFolds = [[]]
                     for Vertex in Fold:
-                        Sulcus_Index[Vertex] = Superset_Index[0] 
-                
-                
-            # Cases 5b and 6 are to be done. 
-                
+                        if Labels[Vertex] in Sulcus_Label_Lists[Superset_Index[0]]: #subcase a
+                            Sulcus_Index[Vertex] = Superset_Index[0] + 1 
+                        else: 
+                            SubFolds[0].append(Vertex)                    
+                            Sulcus_Index = identify(Labels, SubFolds, Sulcus_Label_Pair_Lists, Sulcus_Index)
+                else: # Cases 6 to be done. 
+                    print "case 6!"
     return Sulcus_Index 
     
 
 if __name__ == "__main__":
     from mindboggle.utils import io_vtk
+    import sys
     Points, Faces, Labels = io_vtk.load_scalar(sys.argv[1], return_arrays=0)
     Points, Faces, Fold_IDs = io_vtk.load_scalar(sys.argv[2], return_arrays=0)
     
@@ -364,7 +358,18 @@ if __name__ == "__main__":
                    [[7,9], [7,11]],\
                    [[7,6], [7,16], [7,13]]]
     
-    Sulcus_Index = identify(Labels, Fold_IDs, Sulcus_Label_Pair_List)
+    Unique_Fold_ID = set(Fold_IDs) # we later traverse each fold
+    
+    Folds = []
+    for i in Unique_Fold_ID: # on every fold
+        Fold = [Vertex for Vertex in xrange(len(Labels)) if Fold_IDs[Vertex] == i]
+        Folds.append(Fold)
+        
+    Sulcus_Index = [-1 for i in xrange(len(Labels))]  # Initially -1 for all vertexes
+    # Since we do not touch gyral vertexes and vertexes whose labels are not in label list, 
+    # or vertexes having only one label, their sulcus indexes will remain -1. 
+    
+    Sulcus_Index = identify(Labels, Folds, Sulcus_Label_Pair_List, Sulcus_Index)
     
     # finally, write points, faces and sulcus_index back to a new vtk file 
     
