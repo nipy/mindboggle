@@ -92,7 +92,7 @@
 #[2,12,22,24,30,31,34,35]]
 
 
-def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
+def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
     """The main function
     Parameters
     ------------
@@ -101,6 +101,7 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
              [# vertexes x 1],  indexed from 1)
     Folds: Lists of vertexes in folds, list of lists of integers
     Label_Pairs: list of label pairs for each sulcus, all contained within a list
+    Sulcus_Index: sulcus indexes assigned  or to be assigned to all vertexes [# vertexes x 1], indexed from 1
 
     Returns
     ----------
@@ -173,6 +174,8 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
            (e) Return to #1.
                   
     """
+    
+    # Nested function definitions 
     def check_list_subset(Labels, Sulcus_Label_Lists):
         """Check if a list of labels, *Labels*, is a subset or subsets of a member list of *Sulcus_Label_Lists*
         
@@ -260,12 +263,61 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
                 Superset_Index.append(Id)
                 
         return Superset_Index
+    
+    def detect_boundary(Labels, Fold, Neighbor):
+        """Detect the label boundary in a fold
+        
+        Parameters
+        -------------
+        Labels:  labels for all vertices (list of integers, 
+             [# vertexes in a hemisphere x 1],  indexed from 1)
+        Fold: a list of integers, representing the vertexes in this fold 
+        Neighbor: neighbors of each vertex in a hemisphere
+                 (list of lists of integers, [# vertexes in a hemisphere x 3], indexed from 0) 
+        
+        Returns
+        --------
+        Boundary: a list of integers, representing vertexes at label boundaries. 
+        Labels_of_Boundary_Vertexes: a dictionary, whose keys are vertexes IDs and values are lists of integers
+        
+        """
+        Boundary_Vertexes = []
+        Labels_of_Boundary_Vertexes = {}
+        for Vertex in Fold:
+            Labels_of_Neighbors = [Labels[A_Neighbor] for A_Neighbor in Neighbor[Vertex] if A_Neighbor in Fold]
+            if not all(x == Labels_of_Neighbors[0] for x in Labels_of_Neighbors): 
+                Boundary_Vertexes.append(Vertex)
+                Labels_of_Boundary_Vertexes[Vertex] = Labels_of_Neighbors 
+            
+        return Boundary_Vertexes, Labels_of_Boundary_Vertexes
+    
+    def only_one_pair(A_Label, A_Label_Pair_List):
+        """Check whether A_Label only appear in one pair in A_Label_Pair_List
+        
+        if it does, return such a pair. O/w, an empty list. 
+        """
+        Appeared = False
+        for Pair in A_Label_Pair_List:
+            if A_Label in Pair:
+                if Appeared: 
+                    return False, []
+                else:
+                    Appeared = True
+        return True, Pair
+    
+    # End of nested function definitions 
         
     import numpy as np
     # Prepared data structures 
     Sulcus_Label_Lists = []
     for Row in Sulcus_Label_Pair_Lists:
         Sulcus_Label_Lists.append(list(np.unique(np.asarray(Row))))
+        
+    All_Protocol_Pairs = [] 
+    for Row in Sulcus_Label_Pair_Lists:
+        for Pair in Row:
+            if not Row in All_Protocol_Pairs:
+                All_Protocol_Pairs.append(Pair)
      
     Label_List = []
     for Row in Sulcus_Label_Lists:
@@ -323,6 +375,51 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index):
                             Sulcus_Index = identify(Labels, SubFolds, Sulcus_Label_Pair_Lists, Sulcus_Index)
                 else: # Cases 6 to be done. 
                     print "case 6!"
+                    # step (a): Detect label boundary vertexes
+                    Boundary_Vertexes, Labels_of_Boundary_Vertexes = detect_boundary(Labels, Fold, Neighbor)
+                    
+                    # step (b): Find label boundary vertices whose two different labels (A) are 
+                    # and (B) are not a sulcus label pair (in the protocol).  
+                    A, B = [], []  # The A and B as we defined in the pseudocode 
+                    for Vertex in Boundary_Vertexes:
+                        Label_Pair_at_this_Boundary_Vertex = Labels_of_Boundary_Vertexes[Vertex]
+                        if Label_Pair_at_this_Boundary_Vertex in All_Protocol_Pairs:
+                            if not Label_Pair_at_this_Boundary_Vertex in A:
+                                A.append(Label_Pair_at_this_Boundary_Vertex)
+                        else:
+                            if not Label_Pair_at_this_Boundary_Vertex in B:
+                                B.append(Label_Pair_at_this_Boundary_Vertex)
+                                
+                    # step (c): For each label in A:
+                    # If there is only one label pair P in the fold containing that label,
+                    # assign all vertices with that label the sulcus index of the sulcus pair list 
+                    # (corr. to the boundary) that contains that label. Otherwise, skip to next label.
+                    All_Labels_in_A = []
+                    for Pair in A:
+                        if not Pair[0] in All_Labels_in_A:
+                            A.append(Pair[0])
+                        if not Pair[1] in All_Labels_in_A:
+                            A.append(Pair[1])
+                    
+                    for Label in All_Labels_in_A:
+                        Appear_in_one_Pair_Only, Such_Pair = only_one_pair(Label, A)
+                        if Appear_in_one_Pair_Only:
+                            if Such_Pair == []:
+                                print "Error"
+                                exit()
+                            for RowID, Row in enumerate(Sulcus_Label_Pair_Lists):
+                                if Such_Pair in Row:
+                                    Assign_Index = RowID + 1
+                        # Assign the proper index to all vertexes in this fold bearing this label
+                        for Vertex in Fold:
+                            if Labels[Vertex] == Label:
+                                Sulcus_Index[Vertex] = Assign_Index       
+                        
+                    # step (d): For each remaining vertex (with label in A or B):
+                    # Assign the vertex the sulcus index of the nearest A boundary.
+                    
+                    # To be done
+                    
     return Sulcus_Index 
     
 
@@ -330,7 +427,8 @@ if __name__ == "__main__":
     from mindboggle.utils import io_vtk
     import sys
     Points, Faces, Labels = io_vtk.load_scalar(sys.argv[1], return_arrays=0)
-    Points, Faces, Fold_IDs = io_vtk.load_scalar(sys.argv[2], return_arrays=0)
+    Points, Faces, Fold_IDs = io_vtk.load_scalar(sys.argv[2], return_arrays=0)  
+    # the second surface has to be inflated. 
     
     Sulcus_Label_Pair_List = [[[28,12]],\
                    [[28,3]],\
@@ -369,7 +467,8 @@ if __name__ == "__main__":
     # Since we do not touch gyral vertexes and vertexes whose labels are not in label list, 
     # or vertexes having only one label, their sulcus indexes will remain -1. 
     
-    Sulcus_Index = identify(Labels, Folds, Sulcus_Label_Pair_List, Sulcus_Index)
+    Sulcus_Index = identify(Labels, Folds, Sulcus_Label_Pair_List, Sulcus_Index, Neighbor)
+    # The Neighbor should be loaded from the 3rd file
     
     # finally, write points, faces and sulcus_index back to a new vtk file 
     
