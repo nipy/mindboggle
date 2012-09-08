@@ -381,14 +381,14 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Poi
                 # fold with labels in its list (i.e., vertices with label 1, 2 or 3).
                 # (b) Treat the remaining vertices (i.e., vertices of label 4) as a new fold and start from #1.
                 if len(Superset_Index) == 1: # Case 5
-                    SubFolds = [[]]
+                    Unassigned = [[]]
                     for Vertex in Fold:
                         if Labels[Vertex] in Sulcus_Label_Lists[Superset_Index[0]]: #subcase a
                             Sulcus_Index[Vertex] = Superset_Index[0] + 1 
-                        else: 
-                            SubFolds[0].append(Vertex)                    
-                            Sulcus_Index = identify(Labels, SubFolds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Points)
-                else: # Cases 6 to be done. 
+                        else:   # subcase b
+                            Unassigned[0].append(Vertex)                    
+                            Sulcus_Index = identify(Labels, Unassigned, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Points)
+                else: # Cases 6 
                     print "case 6!"
                     # step (a): Detect label boundary vertexes
                     Boundary_Vertexes, Labels_of_Boundary_Vertexes = detect_boundary(Labels, Fold, Neighbor)
