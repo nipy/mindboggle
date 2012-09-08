@@ -1,96 +1,48 @@
-# This script loads a labeled surface, and identify sulci within folds. 
+# This script loads a labeled surface and a surface with fold IDs to identify sulci within folds. 
 #
-#      
+#     Last update: Forrest Sheng Bao 2012-09-08 
 #
-#Sulcus label pair lists:  (sulcus label lists are the unions of each of these)
-#
-#label_pairs = [[[28,12]],
-#
-#[[28,3]],
-#
-#[[3,18]],
-#
-#[[28,24], [3,24], [18,24]],
-#
-#[[24, 22]],
-#
-#[[22,29], [22,31]],
-#
-#[[29,31], [29,8]],
-#
-#[[31,8]],
-#
-#[[31,30]],
-#
-#[[11,8], [11,29]],
-#
-#[[11,15], [11,9]],
-#
-#[[30,15]],
-#
-#[[15,9]],
-#
-#[[35,30], [35,34], [35,12], [35,2], [35,24], [35,22], [35,31]],
-#
-#[[30,34]],
-#
-#[[2,14], [2,28], [2,17], [25,17]],
-#
-#[[17,28]],
-#
-#[[5,25]],
-#
-#[[13,25], [13,2]],
-#
-#[[28,14]],
-#
-#[[2,4]],
-#
-#[[12,18], [12,3]],
-#
-#[[12,14]],
-#
-#[[7,9], [7,11]],
-#
-#[[7,6], [7,16], [7,13]]]
-#
-#for pairs in label_pairs:
-#
-#   upairs = np.unique(np.asarray(pairs))
-#
-#   if len(upairs) > 2:
-#
-#       print(upairs)
-#
-#three_label_lists = [
-#
-#[22,29,31],
-#
-#[8,29,31],
-#
-#[8,11,29],
-#
-#[9,11,15],
-#
-#[2,13,25],
-#
-#[3,12,18],
-#
-#[7,9,11]]
-#
-#four_label_lists = [
-#
-#[3,18,24,28],
-#
-#[6,7,13,16]]
-#
-#five_label_lists = [
-#
-#[2,14,17,25,28]]
-#
-#eight_label_list = [
-#[2,12,22,24,30,31,34,35]]
 
+def GenNbrLst(VrtxNo, Faces):
+    """Generate the neighbor list for all vertexes on a hemisphere
+    
+    Parameters
+    ------------
+    VrtxNo: Number of vertexes in this hemisphere, an integer
+    Faces: faces in this hemisphere, [# faces x 3], list of lists of integers
+     
+    Returns
+    --------
+    NbrLst: Neighbor lists of all vertexes, [#vertexes x n], list of lists of integers
+            n is the number of neighbors for a vertex. n varies. 
+     
+    """
+       
+    print "Calculating vertex neighbor list"
+    
+    NbrLst = [[] for i in xrange(VrtxNo)]
+        
+    for Face in Faces:
+        [V0, V1, V2] = Face
+        
+        if not V1 in NbrLst[V0]:
+            NbrLst[V0].append(V1)
+        if not V2 in NbrLst[V0]:
+            NbrLst[V0].append(V2)
+
+        if not V0 in NbrLst[V1]:
+            NbrLst[V1].append(V0)
+        if not V2 in NbrLst[V1]:
+            NbrLst[V1].append(V2) 
+
+        if not V0 in NbrLst[V2]:
+            NbrLst[V2].append(V1)
+        if not V1 in NbrLst[V2]:
+            NbrLst[V2].append(V1)
+    
+    print "neighbor list calculation done"
+    
+    return NbrLst
 
 def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Points):
     """The main function
@@ -103,6 +55,9 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Poi
     Label_Pairs: list of label pairs for each sulcus, all contained within a list
     Sulcus_Index: sulcus indexes assigned  or to be assigned to all vertexes [# vertexes x 1], indexed from 1
     Points: coordinates of all vertexes on the surface [# vertexes x 3]
+    Neighbor: Neighbor lists of all vertexes, [#vertexes x n], list of lists of integers
+            n is the number of neighbors for a vertex. n varies. 
+
     
     Returns
     ----------
@@ -279,9 +234,9 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Poi
         Labels:  labels for all vertices (list of integers, 
              [# vertexes in a hemisphere x 1],  indexed from 1)
         Fold: a list of integers, representing the vertexes in this fold 
-        Neighbor: neighbors of each vertex in a hemisphere
-                 (list of lists of integers, [# vertexes in a hemisphere x 3], indexed from 0) 
-        
+        Neighbor: Neighbor lists of all vertexes, [#vertexes x n], list of lists of integers
+            n is the number of neighbors for a vertex. n varies. 
+
         Returns
         --------
         Boundary: a list of integers, representing vertexes at label boundaries. 
@@ -497,6 +452,9 @@ if __name__ == "__main__":
     for i in Unique_Fold_ID: # on every fold
         Fold = [Vertex for Vertex in xrange(len(Labels)) if Fold_IDs[Vertex] == i]
         Folds.append(Fold)
+    
+    # Calculate neighbor list 
+    Neighbor = GenNbrLst(len(Points), Faces)
         
     Sulcus_Index = [-1 for i in xrange(len(Labels))]  # Initially -1 for all vertexes
     # Since we do not touch gyral vertexes and vertexes whose labels are not in label list, 
