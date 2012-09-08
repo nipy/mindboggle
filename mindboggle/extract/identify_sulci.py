@@ -92,7 +92,7 @@
 #[2,12,22,24,30,31,34,35]]
 
 
-def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
+def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Points):
     """The main function
     Parameters
     ------------
@@ -102,7 +102,8 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
     Folds: Lists of vertexes in folds, list of lists of integers
     Label_Pairs: list of label pairs for each sulcus, all contained within a list
     Sulcus_Index: sulcus indexes assigned  or to be assigned to all vertexes [# vertexes x 1], indexed from 1
-
+    Points: coordinates of all vertexes on the surface [# vertexes x 3]
+    
     Returns
     ----------
     Sulcus_Index: sulcus indexes for all vertices (a list of integers, [# vertexes x 1],
@@ -159,19 +160,25 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
            label lists [1,2,3] and [2,3,4]), or if the assignment is ambiguous (as in 4b), 
            perform segmentation:
         
-          (a) Find all label boundaries within the fold
-               (vertices with two different labels in its neighborhood of connected vertices).
-        
-          (b) Find label boundary vertices whose two different labels are not a sulcus label pair.
-        
-          (c) Treat each non-sulcus boundary vertex as a seed, and propagate an assignment
-               of -2 until the termination criterion is met for every new seed:
-                   -- the nearest label to the seed (that is in the label list or zero,
-                      and is different than the  seed's label) is not one of the labels
-                      of the original seeds.
-        
-           (d) Reassign each -2 vertex to its nearest label in the label list.
-           (e) Return to #1.
+       (a) Find all label boundaries within the fold
+
+           (vertices with two different labels in its neighborhood of connected vertices).
+
+      (b) Find label boundary vertices whose two different labels (A) are and (B) are not
+
+          a sulcus label pair (in the protocol). ''Two different labels'' means a label pair. 
+
+      (c) For each label in A:
+
+          If there is only one label pair P in the fold containing that label,
+
+          assign all vertices with that label the sulcus index of the sulcus pair list (corr. to the boundary)
+
+          that contains that label. Otherwise, skip to next label.
+
+      (d) For each remaining vertex (with label in A or B):
+
+          Assign the vertex the sulcus index of the nearest A boundary.
                   
     """
     
@@ -305,6 +312,14 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
                     Appeared = True
         return True, Pair
     
+    def Euclidean_Distance(Point1, Point2):
+        """Estimate the Euclidean distance between two points
+        """
+        from numpy import sqrt
+        return sqrt((Point1[0]-Point2[0])**2+\
+                    (Point1[1]-Point2[1])**2+\
+                    (Point1[2]-Point2[2])**2)
+    
     # End of nested function definitions 
         
     import numpy as np
@@ -372,7 +387,7 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
                             Sulcus_Index[Vertex] = Superset_Index[0] + 1 
                         else: 
                             SubFolds[0].append(Vertex)                    
-                            Sulcus_Index = identify(Labels, SubFolds, Sulcus_Label_Pair_Lists, Sulcus_Index)
+                            Sulcus_Index = identify(Labels, SubFolds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor, Points)
                 else: # Cases 6 to be done. 
                     print "case 6!"
                     # step (a): Detect label boundary vertexes
@@ -400,6 +415,9 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
                             A.append(Pair[0])
                         if not Pair[1] in All_Labels_in_A:
                             A.append(Pair[1])
+                            
+                    # We create a new data structure to store vertexes that are assigned sulcus indexes
+                    Vertexes_Assigned_Sulcus_Indexes = []
                     
                     for Label in All_Labels_in_A:
                         Appear_in_one_Pair_Only, Such_Pair = only_one_pair(Label, A)
@@ -413,12 +431,29 @@ def identify(Labels, Folds, Sulcus_Label_Pair_Lists, Sulcus_Index, Neighbor):
                         # Assign the proper index to all vertexes in this fold bearing this label
                         for Vertex in Fold:
                             if Labels[Vertex] == Label:
-                                Sulcus_Index[Vertex] = Assign_Index       
+                                Sulcus_Index[Vertex] = Assign_Index
+                                Vertexes_Assigned_Sulcus_Indexes.append(Vertex)      
                         
                     # step (d): For each remaining vertex (with label in A or B):
                     # Assign the vertex the sulcus index of the nearest A boundary.
                     
-                    # To be done
+                    # Only do (d) on vertexes in this fold but not in Vertexes_Assigned_Sulcus_Indexes
+                    # Please note that Vertexes_Assigned_Sulcus_Indexes will NOT be updated from now
+                    for Vertex in Fold:
+                        if Vertex not in Vertexes_Assigned_Sulcus_Indexes:
+                            # Estimate the distance from this vertex to all label boundary vertexes
+                            # And find the closest boundary vertex in Euclidean distance
+                            Shortest_Distance = 1000000
+                            Closest_Boundary_Vertex = -1
+                            
+                            for Boundary_Vertex in Boundary_Vertexes: # Note the plural form
+                                Distance = Euclidean_Distance(Points[Boundary_Vertex], Points[Vertex]) 
+                                if  Distance < Shortest_Distance:
+                                    Closest_Boundary_Vertex = Boundary_Vertex
+                                    Shortest_Distance = Distance
+                                     
+                            # Assign the sulcus index of the closest 
+                            Sulcus_Index[Vertex] = Sulcus_Index[Closest_Boundary_Vertex]
                     
     return Sulcus_Index 
     
@@ -467,7 +502,7 @@ if __name__ == "__main__":
     # Since we do not touch gyral vertexes and vertexes whose labels are not in label list, 
     # or vertexes having only one label, their sulcus indexes will remain -1. 
     
-    Sulcus_Index = identify(Labels, Folds, Sulcus_Label_Pair_List, Sulcus_Index, Neighbor)
+    Sulcus_Index = identify(Labels, Folds, Sulcus_Label_Pair_List, Sulcus_Index, Neighbor, Points)
     # The Neighbor should be loaded from the 3rd file
     
     # finally, write points, faces and sulcus_index back to a new vtk file 
