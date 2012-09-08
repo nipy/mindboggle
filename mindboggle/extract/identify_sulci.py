@@ -506,4 +506,5 @@ if __name__ == "__main__":
     # The Neighbor should be loaded from the 3rd file
     
     # finally, write points, faces and sulcus_index back to a new vtk file 
+    io_vtk.write_scalars(sys.argv[3], Points, range(len(Points)), Faces, LUTs=[Sulcus_Index], LUT_names=['sulcusIndex'])
     
