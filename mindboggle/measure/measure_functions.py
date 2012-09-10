@@ -108,7 +108,8 @@ def mean_value_per_label(values, areas, labels):
 
     Returns
     -------
-    mean_values : list of floats
+    mean_values : list of floats (mean values)
+    norm_mean_values : list of floats (mean values normalized by vertex area)
     label_list : list of unique labels
 
     """
@@ -116,19 +117,22 @@ def mean_value_per_label(values, areas, labels):
 
     # Weight each value by the surface area for the given vertex
     total_surface_area = sum(areas)
-    values = values * areas / (len(values) * total_surface_area)
+    norm_values = values * areas / (len(values) * total_surface_area)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) != 0]
     mean_values = []
+    norm_mean_values = []
     surface_areas = []
 
     for label in label_list:
 
         I = [i for i,x in enumerate(labels) if x == label]
         mean_value = np.mean(values[I])
+        norm_mean_value = np.mean(norm_values[I])
         mean_values.append(mean_value)
+        norm_mean_values.append(norm_mean_value)
         surface_area = sum(areas[I])
         surface_areas.append(surface_area)
 
-    return mean_values, surface_areas, label_list
+    return mean_values, norm_mean_values, surface_areas, label_list
