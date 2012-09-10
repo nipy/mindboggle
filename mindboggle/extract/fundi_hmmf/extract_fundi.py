@@ -110,10 +110,12 @@ def extract_fundi(folds, n_folds, neighbor_lists,
         else:
             fundus_lists.append([])
 
-    fundi = np.ones(n_vertices)
+    fundi = np.zeros(n_vertices)
+    count = 0
     for fundus in fundus_lists:
         if len(fundus) > 0:
-            fundi += fundus
+            count += 1
+            fundi += count * np.array(fundus)
 
     print('  ...Extracted fundi ({0:.2f} seconds)'.format(time() - t1))
 
