@@ -75,11 +75,10 @@ include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 protocol = 'DKT25'
 #-------------------------------------------------------------------------------
 # Initialize labels with:
-# 'free': the standard FreeSurfer classifier atlas trained on the DK protocol
+# 'DKatlas': the standard FreeSurfer classifier atlas trained on the DK protocol
+# 'DKTatlas': a FreeSurfer-style classifier atlas trained on the DKT protocol
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
-# FUTURE:
-# <'freeDKT31': a FreeSurfer-style classifier atlas trained on the DKT protocol>
 #-------------------------------------------------------------------------------
 init_labels = 'manual'
 #-------------------------------------------------------------------------------
@@ -89,12 +88,12 @@ init_labels = 'manual'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-------------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh','rh']  # Prepend ('lh.') indicating left and right surfaces
+hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
+evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
 run_featureflow = True
@@ -125,7 +124,7 @@ from measure.measure_functions import compute_area, compute_depth, \
      compute_curvature
 from extract.fundi_hmmf.extract_folds import extract_folds
 from extract.fundi_hmmf.extract_fundi import extract_fundi
-from label.evaluate_labels import measure_surface_overlap, \
+from evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
 #from mindboggle import get_info
 #-------------------------------------------------------------------------------
@@ -253,45 +252,102 @@ if run_atlasflow:
     atlasflow = Workflow(name='Label_initialization')
 
     #===========================================================================
+    #   Initialize labels with FreeSurfer's standard DK classifier atlas
+    #===========================================================================
+    if init_labels == 'DKatlas':
+        freelabels = Node(name = 'Annot_to_VTK',
+                        interface = Fn(function = annot_to_vtk,
+                                       input_names = ['surface_file',
+                                                      'hemi',
+                                                      'subject',
+                                                      'subjects_path',
+                                                      'annot_name'],
+                                       output_names = ['labels',
+                                                       'vtk_file']))
+        atlasflow.add_nodes([freelabels])
+        if input_vtk:
+            mbflow.connect([(surf, atlasflow,
+                             [('surface_files',
+                               'Annot_to_VTK.surface_file')])])
+        else:
+            mbflow.connect([(convertsurf, atlasflow,
+                             [('vtk_file',
+                               'Annot_to_VTK.surface_file')])])
+        mbflow.connect([(info, atlasflow,
+                         [('hemi', 'Annot_to_VTK.hemi'),
+                          ('subject', 'Annot_to_VTK.subject')])])
+        freelabels.inputs.subjects_path = subjects_path
+        freelabels.inputs.annot_name = 'aparc.annot'
+    #===========================================================================
+    #   Initialize labels with the DKT classifier atlas
+    #===========================================================================
+    elif init_labels == 'DKTatlas':
+        pass
+        """
+        To create the DKT classifier atlas (?h.DKTatlas40.gcs) I NEED TO VERIFY THIS:
+
+        source ./DKTatlas40_Scans.txt #Text file listing scans to be included in training dataset
+
+        >>> mris_ca_train -t $FREESURFERHOME/average/colortable_desikan_killiany.txt $hemi sphere.reg aparcNMMjt.annot $SCANS 		./$hemi.DKTatlas40.gcs
+
+        To label a brain with the DKT atlas (surface annotation file ?h.DKTatlas40.annot):
+
+        source ./Scans2Do.txt #file listing scans ($SCANS) to label
+
+        >>> mris_ca_label -l ./$x/label/$hemi.cortex.label $x/ $hemi sphere.reg ./$hemi.DKTatlas40.gcs ./$x/label/$hemi.DKTatlas40.annot
+
+
+        To label the cortex of a subject's segmented volume according to the edited surface labels (?h.aparcNMMjt.annot):
+
+        source ./Scans2Do.txt #file listing scans ($SCANS) to label
+
+        foreach x ($SCANS)
+            mri_aparc2aseg --s ./x --volmask --annot aparcNMMjt
+        end
+
+        SYNOPSIS
+        mris_ca_label [options] <subject> <hemi> <canonsurf> <classifier>
+        <outputfile>
+
+        DESCRIPTION
+        For a single subject, produces an annotation file, in which each
+        cortical surface vertex is assigned a neuroanatomical label.This
+        automatic procedure employs data from a previously-prepared atlas
+        file. An atlas file is created from a training set, capturing region
+        data manually drawn by neuroanatomists combined with statistics on
+        variability correlated to geometric information derived from the
+        cortical model (sulcus and curvature). Besides the atlases provided
+        with FreeSurfer, new ones can be prepared using mris_ca_train).
+        """
+        """
+        classifier = Node(name = 'Label_with_DKTatlas',
+                          interface = Fn(function = label_with_classifier,
+                                         input_names = ['surface_file',
+                                                        'hemi',
+                                                        'subject',
+                                                        'subjects_path',
+                                                        'annot_name'],
+                                         output_names = ['labels',
+                                                         'vtk_file']))
+        atlasflow.add_nodes([classifier])
+        if input_vtk:
+            mbflow.connect([(surf, atlasflow,
+                             [('surface_files',
+                               'Label_with_DKTatlas.surface_file')])])
+        else:
+            mbflow.connect([(convertsurf, atlasflow,
+                             [('vtk_file',
+                               'Label_with_DKTatlas.surface_file')])])
+        mbflow.connect([(info, atlasflow,
+                         [('hemi', 'Label_with_DKTatlas.hemi'),
+                          ('subject', 'Label_with_DKTatlas.subject')])])
+        classifier.inputs.subjects_path = subjects_path
+#        classifier.inputs.annot_name = 'aparc.annot'
+        """
+    #===========================================================================
     #   Initialize labels using multi-atlas registration
     #===========================================================================
-    """
-    To create the DKT classifier atlas (?h.DKTatlas40.gcs) I NEED TO VERIFY THIS:
-
-    source ./DKTatlas40_Scans.txt #Text file listing scans to be included in training dataset
-
-    >>> mris_ca_train -t $FREESURFERHOME/average/colortable_desikan_killiany.txt $hemi sphere.reg aparcNMMjt.annot $SCANS 		./$hemi.DKTatlas40.gcs
-
-    To label a brain with the DKT atlas (surface annotation file ?h.DKTatlas40.annot):
-
-    source ./Scans2Do.txt #file listing scans ($SCANS) to label
-
-    >>> mris_ca_label -l ./$x/label/$hemi.cortex.label $x/ $hemi sphere.reg ./$hemi.DKTatlas40.gcs ./$x/label/$hemi.DKTatlas40.annot
-
-
-    To label the cortex of a subject's segmented volume according to the edited surface labels (?h.aparcNMMjt.annot):
-
-    source ./Scans2Do.txt #file listing scans ($SCANS) to label
-
-    foreach x ($SCANS)
-        mri_aparc2aseg --s ./x --volmask --annot aparcNMMjt
-    end
-
-    SYNOPSIS
-    mris_ca_label [options] <subject> <hemi> <canonsurf> <classifier>
-    <outputfile>
-
-    DESCRIPTION
-    For a single subject, produces an annotation file, in which each
-    cortical surface vertex is assigned a neuroanatomical label.This
-    automatic procedure employs data from a previously-prepared atlas
-    file. An atlas file is created from a training set, capturing region
-    data manually drawn by neuroanatomists combined with statistics on
-    variability correlated to geometric information derived from the
-    cortical model (sulcus and curvature). Besides the atlases provided
-    with FreeSurfer, new ones can be prepared using mris_ca_train).
-    """
-    if init_labels == 'max':
+    elif init_labels == 'max':
         #-----------------------------------------------------------------------
         # Register surfaces to average template
         #-----------------------------------------------------------------------
@@ -364,33 +420,6 @@ if run_atlasflow:
                          [('Label_vote.maxlabel_file', 'labels.@max'),
                           ('Label_vote.labelcounts_file', 'labels.@counts'),
                           ('Label_vote.labelvotes_file', 'labels.@votes')])])
-    #===========================================================================
-    #   Initialize labels with a classifier atlas (default to FreeSurfer labels)
-    #===========================================================================
-    elif init_labels == 'free':
-        freelabels = Node(name = 'Surf_to_VTK',
-                        interface = Fn(function = annot_to_vtk,
-                                       input_names = ['surface_file',
-                                                      'hemi',
-                                                      'subject',
-                                                      'subjects_path',
-                                                      'annot_name'],
-                                       output_names = ['labels',
-                                                       'vtk_file']))
-        atlasflow.add_nodes([freelabels])
-        if input_vtk:
-            mbflow.connect([(surf, atlasflow,
-                             [('surface_files',
-                               'Surf_to_VTK.surface_file')])])
-        else:
-            mbflow.connect([(convertsurf, atlasflow,
-                             [('vtk_file',
-                               'Surf_to_VTK.surface_file')])])
-        mbflow.connect([(info, atlasflow,
-                         [('hemi', 'Surf_to_VTK.hemi'),
-                          ('subject', 'Surf_to_VTK.subject')])])
-        freelabels.inputs.subjects_path = subjects_path
-        freelabels.inputs.annot_name = 'aparc.annot'
     #===========================================================================
     #   Skip label initialization and process manual (atlas) labels
     #===========================================================================
@@ -628,7 +657,8 @@ if run_shapeflow:
     labeltable = Node(name='Label_table',
                      interface = Fn(function = write_mean_shapes_table,
                                     input_names = input_names,
-                                    output_names = ['filename']))
+                                    output_names = ['means_file',
+                                                    'norm_means_file']))
     shapeflow.add_nodes([labeltable])
     labeltable.inputs.filename = 'label_shapes.txt'
     labeltable.inputs.column_names = column_names
@@ -655,17 +685,23 @@ if run_shapeflow:
         mbflow.connect([(convertconvexity, shapeflow,
                          [('vtk_file', 'Label_table.convexity_file')])])
     #---------------------------------------------------------------------------
-    # Use initial labels assigned by multi-atlas registration
-    #---------------------------------------------------------------------------
-    if init_labels == 'max':
-        mbflow.connect([(atlasflow, shapeflow,
-                         [('Label_vote.labels_max','Label_table.labels')])])
-    #---------------------------------------------------------------------------
     # Use initial labels assigned by classifier atlas (default: FreeSurfer labels)
     #---------------------------------------------------------------------------
-    elif init_labels == 'free':
+    if init_labels == 'DKatlas':
         mbflow.connect([(atlasflow, shapeflow,
-                         [('Surf_to_VTK.labels','Label_table.labels')])])
+                         [('Annot_to_VTK.labels','Label_table.labels')])])
+    #---------------------------------------------------------------------------
+    # Use initial labels assigned by multi-atlas registration
+    #---------------------------------------------------------------------------
+    elif init_labels == 'DKTatlas':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('Label_with_DKTatlas.labels','Label_table.labels')])])
+    #---------------------------------------------------------------------------
+    # Use initial labels assigned by multi-atlas registration
+    #---------------------------------------------------------------------------
+    elif init_labels == 'max':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('Label_vote.labels_max','Label_table.labels')])])
     #---------------------------------------------------------------------------
     # Use manual (atlas) labels
     #---------------------------------------------------------------------------
@@ -674,7 +710,8 @@ if run_shapeflow:
                          [('Atlas_labels.Scalars','Label_table.labels')])])
     # Save results
     mbflow.connect([(shapeflow, sink,
-                     [('Label_table.filename', 'shapes.@labels')])])
+                     [('Label_table.means_file', 'shapes.@labels'),
+                      ('Label_table.norm_means_file', 'shapes.@labels_norm')])])
     #===========================================================================
     # Sulcus fold shapes
     #===========================================================================
@@ -709,7 +746,8 @@ if run_shapeflow:
                              [('vtk_file', 'Fold_table.convexity_file')])])
         # Save results
         mbflow.connect([(shapeflow, sink,
-                         [('Fold_table.filename', 'shapes.@folds')])])
+                         [('Fold_table.means_file', 'shapes.@folds'),
+                          ('Fold_table.norm_means_file', 'shapes.@folds_norm')])])
     #===========================================================================
     # Fundus shapes
     #===========================================================================
@@ -744,7 +782,8 @@ if run_shapeflow:
                              [('vtk_file', 'Fundus_table.convexity_file')])])
         # Save results
         mbflow.connect([(shapeflow, sink,
-                         [('Fundus_table.filename', 'shapes.@fundi')])])
+                         [('Fundus_table.means_file', 'shapes.@fundi'),
+                          ('Fundus_table.norm_means_file', 'shapes.@fundi_norm')])])
 
 ################################################################################
 #
@@ -767,17 +806,20 @@ if evaluate_surface_labels:
         'surface_overlap', 'SurfaceOverlapMain')
     eval_surf_labels.inputs.command = surface_overlap_command
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
-    if init_labels == 'free':
+    if init_labels == 'DKatlas':
         mbflow.connect([(atlasflow, eval_surf_labels,
-                         [('Surf_to_VTK.vtk_file','labels_file2')])])
+                         [('Annot_to_VTK.vtk_file','labels_file2')])])
+    elif init_labels == 'DKTatlas':
+        mbflow.connect([(atlasflow, eval_surf_labels,
+                         [('Label_with_DKTatlas.vtk_file','labels_file2')])])
     elif init_labels == 'max':
         mbflow.connect([(atlasflow, eval_surf_labels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
     elif init_labels == 'manual':
         mbflow.connect([(atlas, eval_surf_labels,
                          [('atlas_file','labels_file2')])])
-#    mbflow.connect([(eval_surf_labels, sink,
-#                     [('overlaps', 'evaluation.@surface')])])
+    mbflow.connect([(eval_surf_labels, sink,
+                     [('overlaps', 'evaluate_labels')])])
 
 ################################################################################
 #
@@ -810,10 +852,15 @@ if fill_volume:
     writelabels.inputs.label_numbers = ctx_label_numbers
     writelabels.inputs.label_names = ctx_label_names
     writelabels.inputs.RGBs = RGBs
-    if init_labels == 'free':
+    if init_labels == 'DKatlas':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
-                         [('Surf_to_VTK.vtk_file',
+                         [('Annot_to_VTK.vtk_file',
+                           'Write_label_files.surface_file')])])
+    if init_labels == 'DKTatlas':
+        writelabels.inputs.scalar_name = 'Labels'
+        mbflow.connect([(atlasflow, annotflow,
+                         [('Label_with_DKTatlas.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
         writelabels.inputs.scalar_name = 'Max_(majority_labels)'
@@ -899,7 +946,7 @@ if fill_volume:
     relabel.inputs.old_labels = old_labels
     relabel.inputs.new_labels = new_labels
     mbflow2.connect([(relabel, sink2,
-                      [('output_file', 'labels.@volume')])])
+                      [('output_file', 'labels_volume')])])
 
 ################################################################################
 #
@@ -939,7 +986,7 @@ if evaluate_volume_labels:
     mbflow2.connect([(relabel, eval_vol_labels,
                       [('output_file', 'input_file')])])
     mbflow2.connect([(eval_vol_labels, sink2,
-                      [('out_file', 'evaluation.@volume')])])
+                      [('out_file', 'evaluate_labels_volume')])])
 
 ################################################################################
 #

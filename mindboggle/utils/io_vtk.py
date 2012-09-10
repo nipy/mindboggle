@@ -304,7 +304,8 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
 
     Returns
     -------
-    filename : table file name
+    means_file : table file name for mean values
+    norm_means_file : table file name for mean values normalized by area
 
     """
     import os
@@ -320,23 +321,30 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
         shape_files.append(convexity_file)
 
     columns = []
+    norm_columns = []
     for i, shape_file in enumerate(shape_files):
 
         Points, Faces, values = load_scalar(shape_file, return_arrays=1)
 
         Points, Faces, areas = load_scalar(area_file, return_arrays=1)
 
-        mean_values, surface_areas, label_list = mean_value_per_label(values,
-                                                               areas, labels)
+        mean_values, norm_mean_values, surface_areas, \
+            label_list = mean_value_per_label(values, areas, labels)
+
         if i == 0:
             columns.append(surface_areas)
+            norm_columns.append(surface_areas)
         else:
             columns.append(mean_values)
+            norm_columns.append(norm_mean_values)
 
-    filename = os.path.join(os.getcwd(), filename)
-    write_table(label_list, columns, column_names, filename)
+    means_file = os.path.join(os.getcwd(), filename)
+    write_table(label_list, columns, column_names, means_file)
 
-    return filename
+    norm_means_file = os.path.join(os.getcwd(), 'norm_' + filename)
+    write_table(label_list, norm_columns, column_names, norm_means_file)
+
+    return means_file, norm_means_file
 
 def load_vtk_vertices(Filename):
     """
