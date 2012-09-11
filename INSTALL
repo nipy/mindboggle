@@ -4,6 +4,20 @@
  Download and install
 ======================
 
+.. 1. setuptools is a dependency. 
+
+.. sudo apt-get install python-setuptools
+
+.. 2. I saw the follows on my Shell: 
+
+.. package init file 'mindboggle/info/__init__.py' not found (or not a regular file)
+.. package init file 'mindboggle/extract/fundi_from_pits/__init__.py' not found (or not a regular file)
+
+.. 3. Now mindboggle is by default installed into my Python's ``root'' path, i.e., /usr/local/lib/python2.7/dist-packages/
+
+.. is there anyway that users can specify the installation path if they do not have root privilege? 
+
+
 This page covers the necessary steps to install Mindboggle.
 
 Download
