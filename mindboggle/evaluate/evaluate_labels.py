@@ -65,6 +65,7 @@ def measure_volume_overlap(labels, atlas_file, input_file):
     # Load labeled image volumes
     input_data = nb.load(input_file).get_data().ravel()
     atlas_data = nb.load(atlas_file).get_data().ravel()
+    #print(input_file + ' ' + atlas_file)
     #print(np.unique(input_data))
     #print(np.unique(atlas_data))
 

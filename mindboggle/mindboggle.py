@@ -80,7 +80,7 @@ protocol = 'DKT25'
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
 #-------------------------------------------------------------------------------
-init_labels = 'DKTatlas'
+init_labels = 'manual'
 #-------------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
@@ -95,9 +95,9 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
-run_measureflow = True
-run_featureflow = True
-run_shapeflow = 0#True
+run_measureflow = 0#True
+run_featureflow = 0#True
+run_shapeflow = 0 #True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -449,6 +449,7 @@ if run_measureflow:
                                                          'subject',
                                                          'subjects_path'],
                                           output_names = ['vtk_file']))
+        measureflow.add_nodes([convertthickness])
         convertthickness.inputs.file_string = 'thickness'
         if not input_vtk:
             mbflow.connect([(convertsurf, measureflow,
@@ -471,6 +472,7 @@ if run_measureflow:
                                                          'subject',
                                                          'subjects_path'],
                                           output_names = ['vtk_file']))
+        measureflow.add_nodes([convertconvexity])
         convertconvexity.inputs.file_string = 'sulc'
         if not input_vtk:
             mbflow.connect([(convertsurf, measureflow,
@@ -670,11 +672,11 @@ if run_shapeflow:
                      [('Curvature.min_curvature_file',
                        'Label_table.min_curvature_file')])])
     if include_thickness:
-        mbflow.connect([(convertthickness, shapeflow,
-                         [('vtk_file', 'Label_table.thickness_file')])])
+        mbflow.connect([(measureflow, shapeflow,
+                         [('Thickness_to_VTK.vtk_file', 'Label_table.thickness_file')])])
     if include_convexity:
-        mbflow.connect([(convertconvexity, shapeflow,
-                         [('vtk_file', 'Label_table.convexity_file')])])
+        mbflow.connect([(measureflow, shapeflow,
+                         [('Convexity_to_VTK.vtk_file', 'Label_table.convexity_file')])])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by classifier atlas (ex: FreeSurfer labels)
     #---------------------------------------------------------------------------
@@ -730,11 +732,13 @@ if run_shapeflow:
                          [('Curvature.min_curvature_file',
                            'Fold_table.min_curvature_file')])])
         if include_thickness:
-            mbflow.connect([(convertthickness, shapeflow,
-                             [('vtk_file', 'Fold_table.thickness_file')])])
+            mbflow.connect([(measureflow, shapeflow,
+                             [('Thickness_to_VTK.vtk_file',
+                               'Fold_table.thickness_file')])])
         if include_convexity:
-            mbflow.connect([(convertconvexity, shapeflow,
-                             [('vtk_file', 'Fold_table.convexity_file')])])
+            mbflow.connect([(measureflow, shapeflow,
+                             [('Convexity_to_VTK.vtk_file',
+                               'Fold_table.convexity_file')])])
         # Save results
         mbflow.connect([(shapeflow, sink,
                          [('Fold_table.means_file', 'shapes.@folds'),
@@ -766,11 +770,13 @@ if run_shapeflow:
                          [('Curvature.min_curvature_file',
                            'Fundus_table.min_curvature_file')])])
         if include_thickness:
-            mbflow.connect([(convertthickness, shapeflow,
-                             [('vtk_file', 'Fundus_table.thickness_file')])])
+            mbflow.connect([(measureflow, shapeflow,
+                             [('Thickness_to_VTK.vtk_file',
+                               'Fundus_table.thickness_file')])])
         if include_convexity:
-            mbflow.connect([(convertconvexity, shapeflow,
-                             [('vtk_file', 'Fundus_table.convexity_file')])])
+            mbflow.connect([(measureflow, shapeflow,
+                             [('Convexity_to_VTK.vtk_file',
+                               'Fundus_table.convexity_file')])])
         # Save results
         mbflow.connect([(shapeflow, sink,
                          [('Fundus_table.means_file', 'shapes.@fundi'),
