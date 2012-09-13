@@ -324,9 +324,8 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     norm_columns = []
     for i, shape_file in enumerate(shape_files):
 
-        Points, Faces, values = load_scalar(shape_file, return_arrays=1)
-
         Points, Faces, areas = load_scalar(area_file, return_arrays=1)
+        Points, Faces, values = load_scalar(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
             label_list = mean_value_per_label(values, areas, labels)
