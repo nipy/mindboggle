@@ -29,6 +29,9 @@ area
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
+INSTALL(TARGETS MeshAnalyser
+        LIBRARY DESTINATION /lib
+        ARCHIVE DESTINATION /lib)
 
 ADD_LIBRARY(
 FsSurfaceReader FsSurfaceReader.cpp
