@@ -15,6 +15,8 @@ INCLUDE(${VTK_USE_FILE})
 ADD_EXECUTABLE(
 PointAreaMain PointAreaMain.cpp
 )
+INSTALL(TARGETS PointAreaMain
+    RUNTIME DESTINATION /bin)
 
 TARGET_LINK_LIBRARIES(
 PointAreaMain
