@@ -1,0 +1,7 @@
+#!/usr/bin/make -f
+# -*- mode: makefile; coding: utf-8 -*-
+
+# one ring to rule them all ...
+%:
+# need to enforce distutils, since we also have other stuff in the source tree
+	dh $@ --buildsystem=python_distutils --builddirectory=build

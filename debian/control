@@ -1,0 +1,34 @@
+Source: mindboggle
+Section: python
+Priority: extra
+Maintainer: NeuroDebian Team <team@neuro.debian.net>
+Uploaders: Michael Hanke <mih@debian.org>,
+ Yaroslav Halchenko <debian@onerussian.com>,
+ Arno Klein <arno@binarybottle.com>
+Build-Depends: debhelper (>= 7.2.18), python-all (>= 2.6),
+ python-support (>= 0.6), python-setuptools, python-nibabel
+Standards-Version: 3.9.3
+XS-Python-Version: >= 2.6
+Homepage: http://mindboggle.info
+
+Package: python-mindboggle
+Architecture: all
+Depends: ${misc:Depends}, ${python:Depends},
+ mindboggle-tools (= ${source:Version},
+ python-numpy, python-scipy,  python-nibabel, python-nipype
+XB-Python-Version: ${python:Versions}
+Recommends: freesurfer, ipython, python-matplotlib
+Description: automated human brain image labeling and morphometry
+ .
+ This package provides the Python ...
+
+Package: mindboggle-tools
+Architecture: any
+ .
+ This package provides the mindboggle command line tools for estimating
+ various cortical surface shape properties.
+ 
+Package: python-mindboggle-doc
+Architecture: all
+ .
+ This package provides the mindboggle documentation.

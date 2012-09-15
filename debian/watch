@@ -1,0 +1,4 @@
+# To be enabled when the repo becomes public.
+# Compulsory line, this is a version 3 file
+#version=3
+#https://github.com/... .*/tarball/(\d[\d\.]+)
