@@ -31,6 +31,13 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
 #    import os
     from nipype.interfaces.base import CommandLine
 
+    #import numpy as np
+    #from utils import io_vtk
+    #Points, Faces, Scalars1 = io_vtk.load_scalar(labels_file1, return_arrays=1)
+    #Points, Faces, Scalars2 = io_vtk.load_scalar(labels_file2, return_arrays=1)
+    #print(np.unique(Scalars1))
+    #print(np.unique(Scalars2))
+
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2])
     cli.cmdline
