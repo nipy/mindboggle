@@ -93,7 +93,7 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 # Evaluation options
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
+evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = 0#True
 run_featureflow = 0#True
