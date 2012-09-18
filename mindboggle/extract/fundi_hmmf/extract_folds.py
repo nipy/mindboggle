@@ -22,15 +22,15 @@ def segment_surface(faces, seeds, n_vertices, min_seeds, min_patch_size):
     ----------
     faces : surface mesh vertex indices [#faces x 3]
     seeds : mesh vertex indices for vertices to be segmented
-           list or [#seeds x 1]
+            list or [#seeds x 1] array
     n_vertices : #vertices total (seeds are a subset)
     min_seeds : minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size : minimum size of segmented set of vertices
 
     Returns
     -------
-    segments : label indices for patches: [#seeds x 1] numpy array
-    n_segments : #labels
+    segments : segment indices for patches: [#seeds x 1] numpy array
+    n_segments : #segments
     max_patch_label : index for largest segmented set of vertices
     neighbor_lists : list of lists of neighboring vertex indices
 
