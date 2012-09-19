@@ -1,5 +1,17 @@
 #!/usr/bin/python
-	
+
+"""
+Evaluate fundi.
+
+
+Authors:
+    - Yrjo Hame  (yrjo.hame@gmail.com)
+    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+"""
+
 def findNeighboringLabels(ind,Faces,labels):
 
 	nlabels = [1000,1000,1000,1000]
