@@ -24,8 +24,7 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-
-import os, sys
+import os
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -43,11 +42,9 @@ copy_to_mb_atlases = 1
 #-----------------------------------------------------------------------------
 output_path = '/projects/Mindboggle/output'  # Where to save output
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-base_path = os.environ['MINDBOGGLE_HOME']  # Mindboggle home directory
-code_path = os.environ['MINDBOGGLE_CODE']  # Mindboggle code directory
-temp_path = os.path.join(output_path, 'workingdir')  # Where to save temp files
-info_path = os.path.join(code_path, 'info')
-sys.path.append(code_path) # Add to PYTHONPATH
+base_path = '/projects/Mindboggle/mindboggle'  # Mindboggle home directory
+info_path = '/projects/Mindboggle/mindboggle/mindboggle/info'  # info directory
+temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 label_string_old = 'labels.DKT31.manual'
 label_string = 'labels.DKT25.manual'
 relabel_file = os.path.join(info_path, 'labels.surface.DKT31to25.txt')
@@ -62,15 +59,14 @@ subjects = iof.read_columns(atlas_list_file, 1)[0]
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
-import os
-from nipype.pipeline.engine import Workflow, Node, MapNode
+from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_vtk import annot_to_vtk
+from utils.io_free import annot_to_vtk
 from label.relabel import relabel_annot_file
 #-----------------------------------------------------------------------------
 # Initialize main workflow
