@@ -1,18 +1,108 @@
 #!/usr/bin/python
 """
-Connect surface mesh vertices ("anchors").
-
-Connect vertices according to a cost function that penalizes vertices
-that do not have high likelihood values and have Hidden Markov Measure Field
-(HMMF) values different than their neighbors.
+Extract fundus curves from surface mesh patches (folds).
 
 Authors:
-    - Yrjo Hame  (yrjo.hame@gmail.com)
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+Yrjo Hame  .  yrjo.hame@gmail.com
+Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+
+#-----------------
+# Sigmoid function
+#-----------------
+def sigmoid(values, gain, shift):
+    """
+    Map values with sigmoid function to range [0,1].
+
+    Y(t) = 1/(1 + exp(-gain*(values - shift))
+    """
+    import numpy as np
+
+    # Make sure argument is a numpy array
+    if type(values) != np.ndarray:
+        values = np.array(values)
+
+    return 1.0 / (1.0 + np.exp(-gain * (values - shift)))
+
+#--------------------
+# Likelihood function
+#--------------------
+def compute_likelihood(depths, curvatures):
+    """
+    Compute (fundus) curve likelihood values on a surface mesh.
+
+    The *slope_factor* is used to compute the "gain" of the slope of sigmoidal values.
+
+    Parameters
+    ----------
+    depths : depth values in [0,1]: [#sulcus vertices x 1] numpy array
+    curvatures : mean curvature values in [-1,1] [#sulcus vertices x 1] array
+
+    Returns
+    -------
+    likelihoods : likelihood values [#sulcus vertices x 1] numpy array
+
+    """
+
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if type(depths) != np.ndarray:
+        depths = np.array(depths)
+    if type(curvatures) != np.ndarray:
+        curvatures = np.array(curvatures)
+
+    #==========================================
+    # Normalize depth values to interval [0,1]
+    # Curvature values retain their values
+    # Compute the means and std. deviations
+    #=========================================
+    depths_norm = depths / max(depths)
+    depth_avg = np.mean(depths_norm)
+    depth_std = np.std(depths_norm)
+    curve_avg = np.mean(curvatures)
+    curve_std = np.std(curvatures)
+
+    #==========================================
+    # Find slope for depth and curvature values
+    #==========================================
+    # Factor influencing "gain" or "sharpness" of the sigmoidal function below
+    # slope_factor = abs(np.log((1. / x) - 1))  # 2.197224577 for x = 0.9
+    # gain_depth = slope_factor / (2 * depth_std)
+    gain_depth = 1 / depth_std
+    gain_curve = 1 / curve_std
+    shift_depth = depth_avg - depth_std
+    shift_curve = curve_avg
+
+    #==========================
+    # Compute likelihood values
+    #==========================
+    # Map values with sigmoid function to range [0,1]
+    depth_sigmoid = sigmoid(depths_norm, gain_depth, shift_depth)
+    curve_sigmoid = sigmoid(curvatures, gain_curve, shift_curve)
+
+    likelihoods = depth_sigmoid * curve_sigmoid
+
+    # Plot the sigmoid curves (does not include value distributions)
+    plot_result = False
+    if plot_result:
+        from matplotlib import pyplot
+        xdepth = np.sort(depths_norm)
+        xcurve = np.sort(curvatures)
+        depth_sigmoid_sort = sigmoid(xdepth, gain_depth, shift_depth)
+        curve_sigmoid_sort = sigmoid(xcurve, gain_curve, shift_curve)
+        sigmoids = depth_sigmoid_sort * curve_sigmoid_sort
+        pyplot.plot(xdepth, depth_sigmoid_sort, 'k')
+        pyplot.plot(xcurve, curve_sigmoid_sort, 'b')
+        pyplot.plot(xdepth, sigmoids, 'r')
+        pyplot.title('Depths, curves: (gains={0:.2f},{1:.2f}; shifts={2:.2f},{3:.2f})'.
+               format(gain_depth, gain_curve, shift_depth, shift_curve))
+        pyplot.show()
+
+    return likelihoods
 
 #--------------
 # Cost function
@@ -54,177 +144,17 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     return cost
 
-
-#-----------------------
-# Test for simple points
-#-----------------------
-def simple_test(faces, index, values, thr, neighbors):
-    """
-    Test to see if vertex is a "simple point".
-
-    A simple point is a vertex that when added to or removed from an object
-    (e.g., a curve) on a surface mesh does not alter the object's topology.
-
-    Parameters
-    ----------
-    faces : [#faces x 3] numpy array
-    index : index of vertex
-    values : values: [#vertices x 1] numpy array
-    thr : threshold
-    neighbors : list of lists of indices of neighboring vertices
-
-    Returns
-    -------
-    sp : simple point or not?: Boolean
-    n_inside : number of neighboring vertices greater than threshold
-
-    """
-
-    import numpy as np
-
-    # Optional:
-    # from find_points import find_neighbors
-
-    run_find_neighbors = False
-    if run_find_neighbors:
-        from find_points import find_neighbors
-
-    # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
-    if type(values) != np.ndarray:
-        values = np.array(values)
-
-    # Find neighbors to the input vertex, and binarize them
-    # into those greater than a threshold, thr,
-    # and those less than or equal to thr ("inside" and "outside").
-    # Count the number of "inside" and "outside" neighbors
-    if run_find_neighbors:
-        I_neighbors = neighbors
-    else:
-        I_neighbors = neighbors[index]
-    neighbor_values = values[I_neighbors]
-    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > thr]
-    n_inside = len(inside)
-    n_outside = len(I_neighbors) - n_inside
-
-    # If the number of inside or outside neighbors is zero,
-    # than the vertex IS NOT a simple point
-    if n_outside * n_inside == 0:
-        sp = False
-    # Or if either the number of inside or outside neighbors is one,
-    # than the vertex IS a simple point
-    elif n_outside == 1 or n_inside == 1:
-        sp = True
-    # Otherwise, test to see if all of the inside neighbors share neighbors
-    # with each other, in which case the vertex IS a simple point
-    else:
-        # For each neighbor exceeding the threshold,
-        # find its neighbors that also exceed the threshold,
-        # then store these neighbors' indices in a sublist of "N"
-        labels = range(1, n_inside + 1)
-        N = []
-        for i_in in range(n_inside):
-            if run_find_neighbors:
-                new_neighbors = find_neighbors(faces, inside[i_in])
-            else:
-                new_neighbors = neighbors[inside[i_in]]
-            new_neighbors = [x for x in new_neighbors
-                             if values[x] > thr if x != index]
-            new_neighbors.extend([inside[i_in]])
-            N.append(new_neighbors)
-
-        # Consolidate labels of connected vertices:
-        # Loop through neighbors (lists within "N"),
-        # reassigning the labels for the lists until each label's
-        # list(s) has a unique set of vertices
-        change = 1
-        while change > 0:
-            change = 0
-
-            # Loop through pairs of inside neighbors
-            # and continue if their two labels are different
-            for i in range(n_inside - 1):
-                for j in range(i + 1, n_inside):
-                    if labels[i] != labels[j]:
-                        # Assign the two subsets the same label
-                        # if they share at least one vertex,
-                        # and continue looping
-                        if len(frozenset(N[i]).intersection(N[j])) > 0:
-                            labels[i] = max([labels[i], labels[j]])
-                            labels[j] = labels[i]
-                            change = 1
-
-        # The vertex is a simple point if all of its neighbors
-        # (if any) share neighbors with each other (one unique label)
-        D = []
-        if len([D.append(x) for x in labels if x not in D]) == 1:
-            sp = True
-        else:
-            sp = False
-
-    return sp, n_inside
-
-
-#===============
+#---------------
 # Connect points
-#===============
-def skeletonize(B, indices_to_keep, faces, neighbor_lists):
-    """
-    Skeletonize a binary numpy array into 1-vertex-thick curves.
-
-    Parameters
-    ----------
-    B : binary [#vertices x 1] numpy array
-    indices_to_keep : indices to retain
-    faces : indices of triangular mesh vertices: [#faces x 3] numpy array
-    neighbor_lists : lists of lists of neighboring vertices
-
-    Returns
-    -------
-    B : binary skeleton: numpy array
-
-    """
-
-    import numpy as np
-
-    # Make sure arguments are numpy arrays
-    if type(B) != np.ndarray:
-        B = np.array(B)
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
-
-    # Loop until all vertices are not simple points
-    indices = np.where(B)[0]
-    exist_simple = True
-    while exist_simple == True:
-        exist_simple = False
-
-        # For each index
-        for index in indices:
-
-            # Do not update certain indices
-            if B[index] and index not in indices_to_keep:
-
-                # Test to see if index is a simple point
-                update, n_in = simple_test(faces, index, B, 0, neighbor_lists)
-
-                # If a simple point, remove and run again
-                if update and n_in > 1:
-                    B[index] = 0
-                    exist_simple = True
-
-    return B
-
-#===============
-# Connect points
-#===============
+#---------------
 def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     """
     Connect vertices in a surface mesh to create a curve.
 
     The goal of this algorithm is to assign each vertex a locally optimal
-    Hidden Markov Measure Field (HMMF) value.
+    Hidden Markov Measure Field (HMMF) value and to connect vertices according
+    to a cost function that penalizes vertices that do not have high likelihood
+    values and have HMMF values different than their neighbors.
 
     We initialize the HMMF values with likelihood values normalized to the
     interval (0.5, 1.0] (to guarantee correct topology) and take those values
@@ -259,22 +189,16 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     indices : list of indices of vertices
     L : likelihood values: [#vertices in mesh x 1] numpy array
     thr : likelihood threshold
-    neighbor_lists : lists of lists of neighboring vertices
-                    (optional: empty list)
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
     fundus : [#vertices x 1] numpy array
 
     """
-
     import numpy as np
-
-    # Optional:
-    # from find_points import find_neighbors
-
-    if len(neighbor_lists) == 0:
-        from find_points import find_neighbors
+    from utils.mesh_operations import simple_test, skeletonize
 
     # Make sure arguments are numpy arrays
     if type(faces) != np.ndarray:
@@ -311,17 +235,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     H[H_init > thr] = H_init[H_init > thr]
     H[anchors] = 1
 
-    # Find neighbors for each vertex
-    # (extract_folds() should have found most, if not all, neighbors)
-    if len(neighbor_lists) > 0:
-        N = neighbor_lists
-        #for index in indices:
-        #    if not len(N[index]):
-        #        N[index] = find_neighbors(faces, index)
-    else:
-        N = [[] for x in L]
-        for index in indices:
-            N[index] = find_neighbors(faces, index)
+    # Neighbors for each vertex
+    N = neighbor_lists
 
     # Assign cost values to each vertex
     C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN_max) for i in indices]
@@ -423,3 +338,123 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
           format(n_points - sum(skeleton)))
 
     return skeleton
+
+#==================
+# Extract all fundi
+#==================
+def extract_fundi(folds, n_folds, neighbor_lists,
+                  depth_file, mean_curvature_file, min_curvature_vector_file,
+                  min_fold_size=50, min_distance=5, thr=0.5):
+    """
+    Extract all fundi.
+
+    A fundus is a connected set of high-likelihood vertices in a surface mesh.
+
+    Parameters
+    ----------
+    folds : list or numpy array
+        fold IDs
+    n_folds :  int
+        number of folds
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices
+    depth_file : str
+        surface mesh file in VTK format with faces and scalar values
+    mean_curvature_file : str
+        surface mesh file in VTK format with scalar values
+    min_curvature_vector_file : str
+        surface mesh file in VTK format with scalar values
+    min_fold_size : int
+        minimum fold size (number of vertices)
+    min_distance :  int
+        minimum distance
+    thr :  float
+        likelihood threshold
+
+    Returns
+    -------
+    fundi :  numpy array of fundi
+
+    """
+
+    import numpy as np
+    from time import time
+
+    from extract.fundi_hmmf.extract_fundi import compute_likelihood,
+                                                 connect_points
+    from utils.mesh_operations import find_anchors
+    from utils.io_vtk import load_scalar, inside_faces
+
+    # Convert folds array to a list of lists of vertex indices
+    index_lists_folds = [np.where(folds == i)[0].tolist()
+                         for i in range(1, n_folds+1)]
+
+    # Load depth and curvature values from VTK and text files
+    vertices, Faces, depths = load_scalar(depth_file, return_arrays=1)
+    vertices, Faces, mean_curvatures = load_scalar(mean_curvature_file,
+                                                   return_arrays=1)
+    min_directions = np.loadtxt(min_curvature_vector_file)
+
+    # For each fold...
+    print("Extract a fundus from each of {0} folds...".format(n_folds))
+    t1 = time()
+    fundus_lists = []
+    n_vertices = len(depths)
+    Z = np.zeros(n_vertices)
+    likelihoods = Z.copy()
+
+    for i_fold, indices_fold in enumerate(index_lists_folds):
+
+        print('  Fold {0} of {1}:'.format(i_fold + 1, n_folds))
+
+        # Compute fundus likelihood values
+        fold_likelihoods = compute_likelihood(depths[indices_fold],
+                                              mean_curvatures[indices_fold])
+        likelihoods[indices_fold] = fold_likelihoods
+
+        # If the fold has enough high-likelihood vertices, continue
+        likelihoods_thr = sum(fold_likelihoods > thr)
+        print('    Computed fundus likelihood values: {0} > {1} (minimum: {2})'.
+              format(likelihoods_thr, thr, min_fold_size))
+        if likelihoods_thr > min_fold_size:
+
+            # Find fundus points
+            fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+                                                fold_likelihoods,
+                                                min_directions[indices_fold],
+                                                min_distance, thr)
+            indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+            n_anchors = len(indices_anchors)
+            if n_anchors > 1:
+
+                # Connect fundus points and extract fundus
+                print('    Connect {0} fundus points...'.format(n_anchors))
+                t2 = time()
+                likelihoods_fold = Z.copy()
+                likelihoods_fold[indices_fold] = fold_likelihoods
+
+                # Remove surface mesh faces whose three vertices
+                # are not all in "indices_fold"
+                faces_folds = inside_faces(Faces, indices_fold)
+
+                H = connect_points(indices_anchors, faces_folds, indices_fold,
+                                   likelihoods_fold, thr, neighbor_lists)
+                fundus_lists.append(H.tolist())
+                print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
+                      format(n_anchors, time() - t2))
+            else:
+                fundus_lists.append([])
+        else:
+            fundus_lists.append([])
+
+    fundi = np.zeros(n_vertices)
+    count = 0
+    for fundus in fundus_lists:
+        if len(fundus) > 0:
+            count += 1
+            fundi += count * np.array(fundus)
+
+    print('  ...Extracted fundi ({0:.2f} seconds)'.format(time() - t1))
+
+    return fundi #np.array(fundus_lists), likelihoods
+                 #fundus_lists, likelihoods

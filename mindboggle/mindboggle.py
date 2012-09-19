@@ -117,14 +117,15 @@ from utils.io_vtk import write_scalar_subset, write_mean_shapes_table, \
 from utils.io_file import read_columns
 from utils.io_free import labels_to_annot, labels_to_volume, \
      surf_to_vtk, curv_to_vtk, annot_to_vtk, vtk_to_label_files
+from utils.mesh_operations import find_all_neighbors_from_file
 from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
 from label.label_functions import label_with_classifier
 from measure.measure_functions import compute_area, compute_depth, \
      compute_curvature
-from extract.fundi_hmmf.extract_folds import extract_folds
-from extract.fundi_hmmf.extract_fundi import extract_fundi
+from extract.extract_folds import extract_folds
+from extract.extract_fundi import extract_fundi
 from evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
 #from mindboggle import get_info
@@ -532,6 +533,20 @@ if run_featureflow:
     #   Feature extraction
     #===========================================================================
     #---------------------------------------------------------------------------
+    # Find all neighbors
+    #---------------------------------------------------------------------------
+    neighbors = Node(name='Neighbors',
+                     interface = Fn(function = find_all_neighbors_from_file,
+                                    input_names = ['surface_file'],
+                                    output_names = ['neighbor_lists']))
+    featureflow.add_nodes([neighbors])
+    if input_vtk:
+        mbflow.connect([(surf, measureflow,
+                         [('surface_files','Neighbors.surface_file')])])
+    else:
+        mbflow.connect([(convertsurf, measureflow,
+                         [('vtk_file', 'Neighbors.surface_file')])])
+    #---------------------------------------------------------------------------
     # Extract folds
     #---------------------------------------------------------------------------
     fraction_folds = 0.5
@@ -540,14 +555,16 @@ if run_featureflow:
     folds = Node(name='Folds',
                  interface = Fn(function = extract_folds,
                                 input_names = ['depth_file',
+                                               'neighbor_lists',
                                                'fraction_folds',
                                                'min_fold_size'],
                                 output_names = ['folds',
-                                                'n_folds',
-                                                'neighbor_lists']))
+                                                'n_folds']))
     featureflow.add_nodes([folds])
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Folds.depth_file')])])
+    featureflow.connect([(neighbors, folds,
+                          [('neighbor_lists','neighbor_lists')])])
     folds.inputs.fraction_folds = fraction_folds
     folds.inputs.min_fold_size = min_fold_size
     #---------------------------------------------------------------------------
@@ -587,8 +604,9 @@ if run_featureflow:
                                                'thr'],
                                 output_names = ['fundi']))
     featureflow.connect([(folds, fundi, [('folds','folds'),
-                                         ('n_folds','n_folds'),
-                                         ('neighbor_lists','neighbor_lists')])])
+                                         ('n_folds','n_folds')]),
+                         (neighbors, fundi,
+                          [('neighbor_lists','neighbor_lists')])])
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Fundi.depth_file'),
                       ('Curvature.mean_curvature_file',
