@@ -178,8 +178,8 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     Faces : list of 3-tuples of integers
         Each element is a face on the mesh, consisting of 3 integers
         representing the 3 vertices of the face
-    LUTs : list of lists of integers
-        Each element is a list of integers representing a scalar map for the mesh
+    LUTs : list of lists of floats
+        Each element is a list of floats representing a scalar map for the mesh
     LUT_names : list of strings
         Each element is the name of a scalar map, e.g., curv, depth.
 
