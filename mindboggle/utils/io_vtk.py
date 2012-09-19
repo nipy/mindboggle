@@ -440,6 +440,10 @@ def load_scalar(filename, return_arrays=1):
     Scalars : list of floats (see return_arrays)
         Each element is a scalar value corresponding to a vertex
 
+    Example
+    -------
+    >>> Points, Faces, Scalars = load_scalar('lh.pial.depth.vtk')
+
     """
     import vtk
     if return_arrays:
