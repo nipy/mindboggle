@@ -11,59 +11,6 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def generate_neighbor_lists(n_vertices, faces):
-    """
-    Generate the list of indices of neighboring vertices for all vertices
-    in the faces of a triangular mesh.
-    
-    Parameters
-    ----------
-    n_vertices : int
-        number of vertices
-    faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
-     
-    Returns
-    -------
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
-
-    Example
-    -------
-    >>> n_vertices = 5
-    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
-    >>> generate_neighbor_lists(n_vertices, faces)
-    >>> [[1, 2, 3, 4], [0, 2, 4], [1, 0, 3], [2, 0, 4], [3, 1]]
-
-    """
-
-    print "Calculating vertex neighbor lists..."
-    
-    neighbor_lists = [[] for i in xrange(n_vertices)]
-        
-    for face in faces:
-        [V0, V1, V2] = face
-        print(V0,V1,V2)
-        if not V1 in neighbor_lists[V0]:
-            neighbor_lists[V0].append(V1)
-        if not V2 in neighbor_lists[V0]:
-            neighbor_lists[V0].append(V2)
-
-        if not V0 in neighbor_lists[V1]:
-            neighbor_lists[V1].append(V0)
-        if not V2 in neighbor_lists[V1]:
-            neighbor_lists[V1].append(V2) 
-
-        if not V0 in neighbor_lists[V2]:
-            neighbor_lists[V2].append(V1)
-        if not V1 in neighbor_lists[V2]:
-            neighbor_lists[V2].append(V1)
-    
-    print "  neighbor list calculation done."
-    
-    return neighbor_lists
-
-
 def identify(labels, folds, label_pair_lists, sulcus_IDs,
              neighbor_lists, points):
     """
@@ -225,7 +172,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
     """
     import numpy as np
-    from mindboggle.extract.fundi_hmmf import segment_surface
+    from extract.extract_folds import segment_surface
 
     #---------------------------------------------------------------------------
     # Nested function definitions
@@ -416,9 +363,11 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     #---------------------------------------------------------------------------
     # Loop through folds
     #---------------------------------------------------------------------------
+    print(len(folds[0]), len(folds[1]), len(folds[2]), len(folds[3]), len(folds[4]))
     for fold in folds:
         fold_labels = [labels[vertex] for vertex in fold]
         unique_fold_labels = list(set(fold_labels))
+        print(unique_fold_labels)
 
         # Case 1:
         # If the fold has only one label, remove the fold by assigning a
@@ -483,6 +432,9 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 # of labels in this fold.
                 subset_list_indices = find_subset_lists(unique_fold_labels,
                                                         sulcus_label_lists)
+                print(unique_fold_labels)
+                print(subset_list_indices)
+
                 # Case 5:
                 # If the set of labels in the fold are a superset of the labels
                 # for only one of the protocol's sulcus label lists:
@@ -536,7 +488,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                     #       separate subfolds.
                     subfolds, n_subfolds, o1, o2 = segment_surface(faces,
                         subfold_vertices, len(subfold_vertices),
-                        1, min_subfold_size=50)
+                        1, min_patch_size=50)
 
                     # (6.5) Assign each vertex with a nonpair label to the
                     #       closest subfold.
@@ -570,7 +522,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 if __name__ == "__main__":
 
     import sys
-    from mindboggle.utils import io_vtk
+    from utils import io_vtk
 
     # Load labels and folds (the second surface has to be inflated).
     points, faces, labels = io_vtk.load_scalar(sys.argv[1], return_arrays=0)
@@ -618,10 +570,10 @@ if __name__ == "__main__":
     # Since we do not touch gyral vertices and vertices whose labels
     # are not in label list, or vertices having only one label,
     # their sulcus IDs will remain -1.
-    sulcus_IDs = identify(labels, folds, sulcus_label_pair_list, \
+    sulcus_IDs = identify(labels, folds, label_pair_lists,
         sulcus_IDs, neighbor_lists, points)
 
     # Finally, write points, faces and sulcus_IDs to a new vtk file
-    io_vtk.write_scalars(sys.argv[3], points, range(len(points)), faces, \
+    io_vtk.write_scalars(sys.argv[3], points, range(len(points)), faces,
         LUTs=[sulcus_IDs], LUT_names=['Sulcus indices'])
     
