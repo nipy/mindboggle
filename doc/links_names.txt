@@ -10,7 +10,7 @@
    mindboggle, MINDBOGGLE, Mindboggle, etc...
 
 .. _mindboggle: http://mindboggle.info
-.. _documentation: http://mindboggle.info/software/documentation.html
+.. _documentation: http://mindboggle.info/documentation.html
 .. _Github repository: http://github.com/binarybottle/mindboggle
 .. _available releases: http://github.com/binarybottle/mindboggle/downloads
 .. _bugs: http://github.com/binarybottle/mindboggle/issues
@@ -23,7 +23,7 @@
 .. _docutils: http://docutils.sourceforge.net
 
 .. Licenses
-.. _Apache v2.0: http://www.opensource.org/licenses/Apache-2.0
+.. _`Apache v2.0`: http://www.opensource.org/licenses/Apache-2.0
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
