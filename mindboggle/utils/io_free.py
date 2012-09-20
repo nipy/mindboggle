@@ -214,6 +214,15 @@ def labels_to_volume(subject, annot_name):
     Propagate surface labels through a gray matter volume
     using FreeSurfer's mri_aparc2aseg.
 
+    Note
+    ----
+    From the mri_aparc2aseg documentation:
+    The volumes of the cortical labels will be different than
+    reported by mris_anatomical_stats because partial volume information
+    is lost when mapping the surface to the volume. The values reported by
+    mris_anatomical_stats will be more accurate than the volumes from the
+    aparc+aseg volume.
+
     """
 
     import os
