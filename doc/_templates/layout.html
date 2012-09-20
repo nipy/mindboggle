@@ -4,8 +4,29 @@
 {% block rootrellink %}
 {% endblock %}
 
+{% block relbar1 %}{% endblock %}
+{% block relbar2 %}{% endblock %}
+
 {% block extrahead %}
-  <meta name="keywords" content="mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis">
+  <HTML><head><title>arno klein's Mindboggle</title>
+  <meta http-equiv="Content-language" content="en">
+  <meta name="description" content="Mindboggle">
+  <meta name="keywords" content="Mindboggle, neuroimaging, brain imaging, python, neuroscience, labeling, parcellation, morphometry, shape analysis, MRI">
+  <meta name="author" content="mailto:arno&#64;binarybottle.com">
+  <meta name="dc.title" content="Mindboggle"> 
+  <meta name="dc.creator.address" content="arno&#64;binarybottle.com">
+  <meta name="dc.subject" content="Mindboggle">
+  <meta name="dc.type" content="text.homepage.academic"> 
+  <meta name="dc.format" content="text/html"> 
+  <meta name="dc.identifier" content="http://www.mindboggle.info/index.html"> 
+
+<!-- XTK -->
+<script type="text/javascript" src="http://mindboggle.info/xtk/xtk.js"></script>
+<script type="text/javascript" src="http://mindboggle.info/xtk/xtk_xdat.gui.js"></script>
+<!--script type="text/javascript" src="http://mindboggle.info/xtk/code.js"></script-->
+<script type="text/javascript" src="http://mindboggle.info/xtk/code_single_panel.js"></script>
+<!--link rel="stylesheet" type="text/css" href="http://mindboggle.info/xtk/style.css"-->
+
 {% endblock %}
 
 {% block header %}
@@ -14,7 +35,7 @@
   <tr>
    <td>
 
- <a href="http://mindboggle.info">
+ <a href="{{pathto('index') }}">
   <img src="{{ pathto("_static/mindboggle_logo_small.jpg", 1) }}" alt="small mindboggle logo"  border="0" width="160"/></a>
 
    </td>
@@ -22,26 +43,26 @@
     <table>
      <tr>
  <a style="padding: 20px 20px 20px 20px; color: #b07613; text-decoration: none; font-size: 32px"
-  href="http://mindboggle.info">Mindboggle</a>
+  href="{{pathto('index') }}">Mindboggle</a>
      </tr>
      <tr> <td height="18"></td>
      </tr>
      <tr>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.info/software/documentation.html">Software</a>
+   href="{{pathto('documentation') }}">Software</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.info/data.html">Data</a>
+   href="{{pathto('data')}}">Data</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.info/papers.html">Papers</a>
+   href="{{pathto('papers')}}">Papers</a>
       </td>
       <td>
   <a style="padding: 20px 20px 20px 20px; text-decoration: none; font-size: 18px"
-   href="http://mindboggle.info/people.html">People</a>
+   href="{{pathto('people')}}">People</a>
       </td>
      </tr>
     </table>
@@ -94,4 +115,19 @@
    put it here, at the end of the sidebarsearch block (before it closes).
    #}
 
+{% endblock %}
+
+
+{% block footer %}
+<!-- Google Analytics -->
+<script type="text/javascript">
+var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+</script>
+<script type="text/javascript">
+try {
+var pageTracker = _gat._getTracker("UA-693862-13");
+pageTracker._trackPageview();
+} catch(err) {}
+</script>
 {% endblock %}
