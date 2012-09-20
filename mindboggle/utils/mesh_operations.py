@@ -10,33 +10,6 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#-----------------------------
-# Find all neighbors from file
-#-----------------------------
-def find_all_neighbors_from_file(surface_file):
-    """
-    Generate the list of unique, sorted indices of neighboring vertices
-    for all vertices in the faces of a triangular mesh file.
-
-    Parameters
-    ----------
-    surface_file : str
-        name of VTK file
-
-    Returns
-    -------
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
-
-    """
-    from utils.io_vtk import load_scalar
-
-    points, faces, scalars = load_scalar(surface_file)
-
-    neighbor_lists = find_all_neighbors(faces)
-
-    return neighbor_lists
-
 #------------------------------
 # Find all neighbors from faces
 #------------------------------
@@ -87,6 +60,34 @@ def find_all_neighbors(faces):
             neighbor_lists[v2].append(v0)
         if v1 not in neighbor_lists[v2]:
             neighbor_lists[v2].append(v1)
+
+    return neighbor_lists
+
+#-----------------------------
+# Find all neighbors from file
+#-----------------------------
+def find_all_neighbors_from_file(surface_file):
+    """
+    Generate the list of unique, sorted indices of neighboring vertices
+    for all vertices in the faces of a triangular mesh file.
+
+    Parameters
+    ----------
+    surface_file : str
+        name of VTK file
+
+    Returns
+    -------
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices
+
+    """
+    from utils.io_vtk import load_scalar
+    from utils.mesh_operations import find_all_neighbors
+
+    points, faces, scalars = load_scalar(surface_file)
+
+    neighbor_lists = find_all_neighbors(faces)
 
     return neighbor_lists
 

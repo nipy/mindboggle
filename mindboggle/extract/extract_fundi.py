@@ -380,8 +380,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     import numpy as np
     from time import time
 
-    from extract.fundi_hmmf.extract_fundi import compute_likelihood,
-                                                 connect_points
+    from extract.extract_fundi import compute_likelihood, connect_points
     from utils.mesh_operations import find_anchors
     from utils.io_vtk import load_scalar, inside_faces
 
