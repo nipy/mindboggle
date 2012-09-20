@@ -53,11 +53,11 @@ If you downloaded the source distribution named something like
 Step 2: Compile C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~
 
-Move the mindboggle_cpp directory to wherever you install your software
+Move the mindboggle_tools directory to wherever you install your software
 (let's call it YOUR_SOFTWARE_PATH), then run cmake and make::
 
-    mv mindboggle_cpp YOUR_SOFTWARE_PATH
-    cd YOUR_SOFTWARE_PATH/mindboggle_cpp/bin/
+    mv mindboggle_tools YOUR_SOFTWARE_PATH
+    cd YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
     cmake ..
     make
 
@@ -78,9 +78,9 @@ Step 3: Set environment variables
 For your system to recognize the C++ code we just compiled,
 include the following lines in your system's equivalent to a .bashrc file::
 
-    MINDBOGGLE_CPP=YOUR_SOFTWARE_PATH/mindboggle_cpp/bin
+    MINDBOGGLE_TOOLS=YOUR_SOFTWARE_PATH/mindboggle_tools/bin
 
-    export PATH=$PATH:$MINDBOGGLE_CPP
+    export PATH=$PATH:$MINDBOGGLE_TOOLS
 
 Temporary:
 For your system to recognize the path to Mindboggle, also
