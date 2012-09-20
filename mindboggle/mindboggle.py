@@ -80,7 +80,7 @@ protocol = 'DKT25'
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
 #-------------------------------------------------------------------------------
-init_labels = 'manual'
+init_labels = 'DKTatlas'
 #-------------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
@@ -92,12 +92,12 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
-evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
+evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
-run_measureflow = 0#True
-run_featureflow = 0#True
-run_shapeflow = 0 #True
+run_measureflow = True
+run_featureflow = True
+run_shapeflow = 0#True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -133,13 +133,15 @@ from evaluate.evaluate_labels import measure_surface_overlap, \
 # Paths
 #-------------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-atlases_path = subjects_path
-templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
-classifier_path = os.path.join(subjects_path, 'MindboggleClassifierAtlases')
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 ccode_path = os.environ['MINDBOGGLE_CPP']
 #info_path = os.path.join(get_info()['pkg_path'], 'info')
 info_path = os.path.join(os.environ['MINDBOGGLE'], 'info')
+atlases_path = subjects_path
+# Label with classifier atlas
+templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
+# Label with classifier atlas
+classifier_path = os.path.join(subjects_path, 'MindboggleClassifierAtlases')
 classifier_atlas = 'DKTatlas40.gcs'
 #-------------------------------------------------------------------------------
 # Initialize main workflow
@@ -223,7 +225,7 @@ if run_atlasflow:
     #   Initialize labels with FreeSurfer's standard DK classifier atlas
     #===========================================================================
     if init_labels == 'DKatlas':
-        freelabels = Node(name = 'Annot_to_VTK',
+        freelabels = Node(name = 'DK_annot_to_VTK',
                         interface = Fn(function = annot_to_vtk,
                                        input_names = ['surface_file',
                                                       'hemi',
@@ -236,14 +238,14 @@ if run_atlasflow:
         if input_vtk:
             mbflow.connect([(surf, atlasflow,
                              [('surface_files',
-                               'Annot_to_VTK.surface_file')])])
+                               'DK_annot_to_VTK.surface_file')])])
         else:
             mbflow.connect([(convertsurf, atlasflow,
                              [('vtk_file',
-                               'Annot_to_VTK.surface_file')])])
+                               'DK_annot_to_VTK.surface_file')])])
         mbflow.connect([(info, atlasflow,
-                         [('hemi', 'Annot_to_VTK.hemi'),
-                          ('subject', 'Annot_to_VTK.subject')])])
+                         [('hemi', 'DK_annot_to_VTK.hemi'),
+                          ('subject', 'DK_annot_to_VTK.subject')])])
         freelabels.inputs.subjects_path = subjects_path
         freelabels.inputs.annot_name = 'aparc.annot'
     #===========================================================================
@@ -275,7 +277,7 @@ if run_atlasflow:
         classifier.inputs.classifier_atlas = classifier_atlas
 
         # Convert .annot file to .vtk format
-        classifier2vtk = Node(name = 'Annot_to_VTK',
+        classifier2vtk = Node(name = 'DKT_annot_to_VTK',
                               interface = Fn(function = annot_to_vtk,
                                              input_names = ['surface_file',
                                                             'hemi',
@@ -288,14 +290,14 @@ if run_atlasflow:
         if input_vtk:
             mbflow.connect([(surf, atlasflow,
                              [('surface_files',
-                               'Annot_to_VTK.surface_file')])])
+                               'DKT_annot_to_VTK.surface_file')])])
         else:
             mbflow.connect([(convertsurf, atlasflow,
                              [('vtk_file',
-                               'Annot_to_VTK.surface_file')])])
+                               'DKT_annot_to_VTK.surface_file')])])
         mbflow.connect([(info, atlasflow,
-                         [('hemi', 'Annot_to_VTK.hemi'),
-                          ('subject', 'Annot_to_VTK.subject')])])
+                         [('hemi', 'DKT_annot_to_VTK.hemi'),
+                          ('subject', 'DKT_annot_to_VTK.subject')])])
         classifier2vtk.inputs.subjects_path = subjects_path
         atlasflow.connect([(classifier, classifier2vtk,
                             [('annot_name', 'annot_name')])])
@@ -541,10 +543,10 @@ if run_featureflow:
                                     output_names = ['neighbor_lists']))
     featureflow.add_nodes([neighbors])
     if input_vtk:
-        mbflow.connect([(surf, measureflow,
+        mbflow.connect([(surf, featureflow,
                          [('surface_files','Neighbors.surface_file')])])
     else:
-        mbflow.connect([(convertsurf, measureflow,
+        mbflow.connect([(convertsurf, featureflow,
                          [('vtk_file', 'Neighbors.surface_file')])])
     #---------------------------------------------------------------------------
     # Extract folds
@@ -700,13 +702,13 @@ if run_shapeflow:
     #---------------------------------------------------------------------------
     if init_labels == 'DKatlas':
         mbflow.connect([(atlasflow, shapeflow,
-                         [('Annot_to_VTK.labels','Label_table.labels')])])
+                         [('DK_annot_to_VTK.labels','Label_table.labels')])])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by multi-atlas registration
     #---------------------------------------------------------------------------
     elif init_labels == 'DKTatlas':
         mbflow.connect([(atlasflow, shapeflow,
-                         [('Annot_to_VTK.labels','Label_table.labels')])])
+                         [('DKT_annot_to_VTK.labels','Label_table.labels')])])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by multi-atlas registration
     #---------------------------------------------------------------------------
@@ -823,10 +825,10 @@ if evaluate_surface_labels:
     mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
     if init_labels == 'DKatlas':
         mbflow.connect([(atlasflow, eval_surf_labels,
-                         [('Annot_to_VTK.vtk_file','labels_file2')])])
+                         [('DK_annot_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'DKTatlas':
         mbflow.connect([(atlasflow, eval_surf_labels,
-                         [('Annot_to_VTK.vtk_file','labels_file2')])])
+                         [('DKT_annot_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'max':
         mbflow.connect([(atlasflow, eval_surf_labels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
@@ -870,12 +872,12 @@ if fill_volume:
     if init_labels == 'DKatlas':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
-                         [('Annot_to_VTK.vtk_file',
+                         [('DK_annot_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     if init_labels == 'DKTatlas':
         writelabels.inputs.scalar_name = 'Labels'
         mbflow.connect([(atlasflow, annotflow,
-                         [('Annot_to_VTK.vtk_file',
+                         [('DKT_annot_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
         writelabels.inputs.scalar_name = 'Max_(majority_labels)'
@@ -977,9 +979,7 @@ if evaluate_volume_labels:
                      interface = DataGrabber(infields=['subject'],
                      outfields=['atlas_vol_file']))
     atlas_vol.inputs.base_directory = atlases_path
-#    atlas_vol.inputs.template = 'os.path.join(%s, 'mri',
-#                                         'labels.' + protocol + '.nii.gz')
-    atlas_vol.inputs.template = '%s/mri/aparcNMMjt+aseg.nii.gz'
+    atlas_vol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
     atlas_vol.inputs.template_args['atlas_vol_file'] = [['subject']]
     mbflow2.connect([(info2, atlas_vol, [('subject','subject')])])
     #---------------------------------------------------------------------------

@@ -184,11 +184,7 @@ if copy_to_fs_atlases or copy_to_mb_atlases:
                 srcs.append(src)
 
             for src in srcs:
-                if copy_to_fs_atlases:
-                    tgt = os.path.join(atlases_path, s, 'label')
-                    cmd = ' '.join(['cp', src, tgt])
-                    print(cmd); os.system(cmd)
-                if copy_to_mb_atlases:
+                if copy_to_output:
                     tgt = os.path.join(base_path, 'data', 'atlases',
                                        'freesurfer', s, 'label')
                     cmd = ' '.join(['cp', src, tgt])
