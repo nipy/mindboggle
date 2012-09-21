@@ -382,7 +382,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     from extract.extract_fundi import compute_likelihood, connect_points
     from utils.mesh_operations import find_anchors
-    from utils.io_vtk import load_scalar, inside_faces
+    from utils.io_vtk import load_scalar
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
@@ -432,11 +432,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
 
-                # Remove surface mesh faces whose three vertices
-                # are not all in "indices_fold"
-                faces_folds = inside_faces(Faces, indices_fold)
-
-                H = connect_points(indices_anchors, faces_folds, indices_fold,
+                H = connect_points(indices_anchors, Faces, indices_fold,
                                    likelihoods_fold, thr, neighbor_lists)
                 fundus_lists.append(H.tolist())
                 print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
