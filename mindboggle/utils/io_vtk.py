@@ -291,7 +291,7 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
 
 def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
-    Load VTK format file and save a subset of (non-zero) scalars into a new file.
+    Load VTK format file and save a subset of scalars into a new file.
 
     Parameters
     ----------
@@ -304,6 +304,7 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
     import os
     from utils import io_vtk
+    from utils.mesh_operations import inside_faces
 
     # Output VTK file to current working directory
     output_vtk = os.path.join(os.getcwd(), output_vtk)
@@ -317,8 +318,9 @@ def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
         indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
     else:
         indices_nonzero = indices
+
     # Remove surface mesh faces whose three vertices are not all in indices
-    faces_indices = io_vtk.inside_faces(Faces, indices_nonzero)
+    faces_indices = inside_faces(Faces, indices_nonzero)
 
     # Lookup lists for saving to VTK format files
     LUTs = [new_scalars]
