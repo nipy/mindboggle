@@ -185,10 +185,14 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
-    >>> anchors = find_anchors(range(len(min_directions)), values_file, min_directions, min_distance, thr)
+    >>> anchors = find_anchors(range(len(min_directions)),
+    >>>                        values_file, min_directions, min_distance, thr)
     >>> # Write results to vtk file:
-#    >>> from utils.io_vtk import rewrite_scalars
-#    >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', anchors)
+    >>> from utils.io_vtk import write_scalars
+    >>> import numpy as np
+    >>> LUT = np.zeros(len(min_directions))
+    >>> LUT[anchors] = 1
+    >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', LUT)
 
     """
 
