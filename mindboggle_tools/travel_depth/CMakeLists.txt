@@ -15,6 +15,8 @@ INCLUDE(${VTK_USE_FILE})
 ADD_EXECUTABLE(
 TravelDepthMain TravelDepthMain.cpp
 )
+INSTALL(TARGETS TravelDepthMain
+    RUNTIME DESTINATION /bin)
 
 TARGET_LINK_LIBRARIES(
 TravelDepthMain

@@ -6,19 +6,21 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 # This project is designed to be built outside the Insight source tree.
-PROJECT(surface_overlap)
+PROJECT(curvature)
 
 # Find VTK.
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
 ADD_EXECUTABLE(
-SurfaceOverlapMain SurfaceOverlapMain.cpp
+CurvatureMain CurvatureMain.cpp
 )
+INSTALL(TARGETS CurvatureMain
+    RUNTIME DESTINATION /bin)
 
 TARGET_LINK_LIBRARIES(
-SurfaceOverlapMain
-Overlap
+CurvatureMain
+MeshAnalyser
 vtkCommon
 vtkRendering
 vtkHybrid
