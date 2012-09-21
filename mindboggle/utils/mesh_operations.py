@@ -275,26 +275,26 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
     max_patch_label : index for largest segmented set of vertices
 
     """
-import numpy as np
+    import numpy as np
 
-# Initialize segments and seeds (indices of deep vertices)
-segments = np.zeros(n_vertices)
-n_seeds = len(seeds)
+    # Initialize segments and seeds (indices of deep vertices)
+    segments = np.zeros(n_vertices)
+    n_seeds = len(seeds)
 
-# Remove faces with fewer than min_seeds seeds to speed up computation
-fs = frozenset(seeds)
-faces_seeds = [lst for lst in faces
-               if len(fs.intersection(lst)) >= min_seeds]
-faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
+    # Remove faces with fewer than min_seeds seeds to speed up computation
+    fs = frozenset(seeds)
+    faces_seeds = [lst for lst in faces
+                   if len(fs.intersection(lst)) >= min_seeds]
+    faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
+    print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
 
-# Loop until all seed vertices segmented
-print('    Grow {0} seed vertices...'.format(n_seeds))
-max_patch_size = 0
-max_patch_label = 1
-n_segments = 0
-counter = 0
-TEMP0 = np.zeros(n_vertices)
+    # Loop until all seed vertices segmented
+    print('    Grow {0} seed vertices...'.format(n_seeds))
+    max_patch_size = 0
+    max_patch_label = 1
+    n_segments = 0
+    counter = 0
+    TEMP0 = np.zeros(n_vertices)
     while n_seeds >= min_patch_size:
         TEMP = np.copy(TEMP0)
 
