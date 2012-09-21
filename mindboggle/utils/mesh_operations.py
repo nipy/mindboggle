@@ -525,3 +525,27 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
                     exist_simple = True
 
     return B
+
+def inside_faces(faces, indices):
+    """
+    Remove surface mesh faces whose three vertices are not all in "indices"
+
+    Parameters
+    ----------
+    faces : triangular surface mesh vertex indices [#faces x 3]
+    indices : vertex indices to mesh
+
+    Returns
+    -------
+    faces : reduced array of faces
+
+    """
+    import numpy as np
+
+    len_faces = len(faces)
+    fs = frozenset(indices)
+    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+    faces = np.reshape(np.ravel(faces), (-1, 3))
+    print('  Reduced {0} to {1} triangular faces.'.format(len_faces, len(faces)))
+
+    return faces
