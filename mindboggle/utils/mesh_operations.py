@@ -30,10 +30,12 @@ def find_all_neighbors(faces):
 
     Example
     -------
-    >>> from extract.identify_sulci import generate_neighbor_lists
+    >>> from utils.mesh_operations import find_all_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> find_all_neighbors(faces)
         [[1, 2, 3, 4], [0, 2, 4, 3], [1, 0, 3], [2, 0, 4, 1], [0, 3, 1]]
+
+    >>> from utils.mesh_operations import find_all_neighbors
     >>> from utils.io_vtk import load_scalar
     >>> points, faces, scalars = load_scalar('lh.pial.depth.vtk')
     >>> neighbor_lists = find_all_neighbors(faces)
@@ -80,6 +82,12 @@ def find_all_neighbors_from_file(surface_file):
     -------
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
+
+    Example
+    -------
+    >>> from utils.mesh_operations import find_all_neighbors_from_file
+    >>> surface_file = 'lh.pial.depth.vtk'
+    >>> neighbor_lists = find_all_neighbors_from_file(surface_file)
 
     """
     from utils.io_vtk import load_scalar
@@ -225,8 +233,7 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
 #========================
 # Segment surface patches
 #========================
-def segment_surface(faces, seeds, neighbor_lists, n_vertices,
-                    min_seeds, min_patch_size):
+def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size):
     """
     Segment a surface into contiguous patches (seed region growing).
 
@@ -237,7 +244,7 @@ def segment_surface(faces, seeds, neighbor_lists, n_vertices,
     seeds : mesh vertex indices for vertices to be segmented
             list or [#seeds x 1] array
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices (see return_arrays)
+        each list contains indices to neighboring vertices
     n_vertices : #vertices total (seeds are a subset)
     min_seeds : minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size : minimum size of segmented set of vertices
@@ -260,8 +267,7 @@ def segment_surface(faces, seeds, neighbor_lists, n_vertices,
     faces_seeds = [lst for lst in faces
                    if len(fs.intersection(lst)) >= min_seeds]
     faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('    Reduced {0} to {1} faces.'.format(len(faces),
-                                                 len(faces_seeds)))
+    print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
 
     # Loop until all seed vertices segmented
     print('    Grow {0} seed vertices...'.format(n_seeds))
