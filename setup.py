@@ -67,8 +67,6 @@ def main(**extra_args):
                           'mindboggle.info',
                           'mindboggle.utils',
                           'mindboggle.extract',
-                          'mindboggle.extract.fundi_hmmf',
-                          'mindboggle.extract.fundi_from_pits',
                           'mindboggle.measure',
                           'mindboggle.label'],
           #                'mindboggle.externals',
