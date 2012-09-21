@@ -248,13 +248,13 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     Example
     -------
     >>> import random
-    >>> import io_vtk
+    >>> from utils.io_vtk import write_scalars
     >>> Points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
     >>> Vertices = [1,2,3,0]
     >>> Faces = [[1,2,3],[0,1,3]]
     >>> LUT_names = ['curv','depth']
     >>> LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
-    >>> io_vtk.write_scalars('test.vtk',Points, Vertices, Faces, LUTs=LUTs, \
+    >>> write_scalars('test.vtk',Points, Vertices, Faces, LUTs=LUTs, \
                       LUT_names=LUT_names)
 
     """

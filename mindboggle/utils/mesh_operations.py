@@ -175,6 +175,8 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     -------
     anchors : list of subset of surface mesh vertex indices
 
+    Example
+    -------
     >>> import numpy as np
     >>> from utils.mesh_operations import find_anchors
     >>> min_curvature_vector_file = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.curv.min.dir.txt'
