@@ -6,19 +6,25 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 # This project is designed to be built outside the Insight source tree.
-PROJECT(curvature)
+PROJECT(medial_surface)
 
 # Find VTK.
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
-ADD_EXECUTABLE(
-CurvatureMain CurvatureMain.cpp
+ADD_LIBRARY(
+MedialSurfaceComputer MedialSurfaceComputer.cpp
 )
 
+ADD_EXECUTABLE(
+MedialSurfaceMain MedialSurfaceMain.cpp
+)
+INSTALL(TARGETS MedialSurfaceMain
+    RUNTIME DESTINATION /bin)
+
 TARGET_LINK_LIBRARIES(
-CurvatureMain
-MeshAnalyser
+MedialSurfaceMain
+MedialSurfaceComputer
 vtkCommon
 vtkRendering
 vtkHybrid
