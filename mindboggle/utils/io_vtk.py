@@ -156,6 +156,68 @@ def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
 # Functions for loading and writing VTK files
 #============================================
 
+def load_scalar(filename, return_arrays=1):
+    """
+    Load a VTK-format scalar map that contains only one SCALAR segment.
+
+    Parameters
+    ----------
+    filename : string
+        The path/filename of a VTK format file.
+    return_arrays : return numpy arrays instead of lists of lists below (1=yes, 0=no)
+
+    Returns
+    -------
+    Points : list of lists of floats (see return_arrays)
+        Each element is a list of 3-D coordinates of a vertex on a surface mesh
+    Faces : list of lists of integers (see return_arrays)
+        Each element is list of 3 IDs of vertices that form a face
+        on a surface mesh
+    Scalars : list of floats (see return_arrays)
+        Each element is a scalar value corresponding to a vertex
+
+    Example
+    -------
+    >>> Points, Faces, Scalars = load_scalar('lh.pial.depth.vtk')
+
+    """
+    import vtk
+    if return_arrays:
+        import numpy as np
+
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(filename)
+    Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
+    Reader.Update()
+
+    Data = Reader.GetOutput()
+    Points = [list(Data.GetPoint(point_id))
+              for point_id in xrange(0, Data.GetNumberOfPoints())]
+
+    #Vrts = Data.GetVerts()
+    #Vertices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+
+    CellArray = Data.GetPolys()
+    Polygons = CellArray.GetData()
+    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
+             for i in xrange(0, CellArray.GetNumberOfCells())]
+
+    PointData = Data.GetPointData()
+    print("Loading {0} {1} scalars in file {2}...".
+          format(Reader.GetNumberOfScalarsInFile,
+                 Reader.GetScalarsNameInFile(0), filename))
+    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
+    if ScalarsArray:
+        Scalars = [ScalarsArray.GetValue(i)
+                   for i in xrange(0, ScalarsArray.GetSize())]
+    else:
+        Scalars = []
+
+    if return_arrays:
+        return np.array(Points), np.array(Faces), np.array(Scalars)
+    else:
+        return Points, Faces, Scalars
+
 def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
     """
     Save scalars into a VTK-format file.
@@ -345,44 +407,7 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
 
     return means_file, norm_means_file
 
-def load_vtk_vertices(Filename):
-    """
-    Load VERTICES from a VTK file, along with the scalar values.
-
-    Note:  vertex extraction iterates from 1 to Vrts.GetSize(), rather than 0
-
-    Parameters
-    ----------
-    Filename : string
-        The path/filename of a VTK format file.
-
-    Returns
-    -------
-    Vertexes : list of integers
-        Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file
-
-    Scalars : list of floats
-        Each element is a scalar value corresponding to a vertex
-
-    """
-    import vtk
-    Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(Filename)
-    Reader.Update()
-
-    Data = Reader.GetOutput()
-    Vrts = Data.GetVerts()
-    Vertexes = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
-
-    PointData = Data.GetPointData()
-    print "There are", Reader.GetNumberOfScalarsInFile(), "scalars in file", Filename
-    print "Loading the scalar", Reader.GetScalarsNameInFile(0)
-    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
-
-    return Vertexes, Scalars
-
-def load_vtk_lines(Filename):
+def load_lines(Filename):
     """
     Load VERTICES from a VTK file, along with the scalar values.
 
@@ -410,7 +435,8 @@ def load_vtk_lines(Filename):
     Data = Reader.GetOutput()
     Lns = Data.GetLines()
 
-    Lines  = [[Lns.GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ] for i in xrange(Data.GetNumberOfLines())]
+    Lines  = [[Lns.GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ]
+              for i in xrange(Data.GetNumberOfLines())]
 
     PointData = Data.GetPointData()
     print "There are", Reader.GetNumberOfScalarsInFile(), "scalars in file", Filename
@@ -420,165 +446,9 @@ def load_vtk_lines(Filename):
 
     return Lines, Scalars
 
-def load_scalar(filename, return_arrays=1):
+def write_lines(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
     """
-    Load a VTK-format scalar map that contains only one SCALAR segment.
-
-    Parameters
-    ----------
-    filename : string
-        The path/filename of a VTK format file.
-    return_arrays : return numpy arrays instead of lists of lists below (1=yes, 0=no)
-
-    Returns
-    -------
-    Points : list of lists of floats (see return_arrays)
-        Each element is a list of 3-D coordinates of a vertex on a surface mesh
-    Faces : list of lists of integers (see return_arrays)
-        Each element is list of 3 IDs of vertices that form a face
-        on a surface mesh
-    Scalars : list of floats (see return_arrays)
-        Each element is a scalar value corresponding to a vertex
-
-    Example
-    -------
-    >>> Points, Faces, Scalars = load_scalar('lh.pial.depth.vtk')
-
-    """
-    import vtk
-    if return_arrays:
-        import numpy as np
-
-    Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(filename)
-    Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
-    Reader.Update()
-
-    Data = Reader.GetOutput()
-    Points = [list(Data.GetPoint(point_id))
-              for point_id in xrange(0, Data.GetNumberOfPoints())]
-
-    CellArray = Data.GetPolys()
-    Polygons = CellArray.GetData()
-    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
-             for i in xrange(0, CellArray.GetNumberOfCells())]
-
-    PointData = Data.GetPointData()
-    print("Loading {0} {1} scalars in file {2}...".
-          format(Reader.GetNumberOfScalarsInFile,
-                 Reader.GetScalarsNameInFile(0), filename))
-    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    if ScalarsArray:
-        Scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
-    else:
-        Scalars = []
-
-    if return_arrays:
-        return np.array(Points), np.array(Faces), np.array(Scalars)
-    else:
-        return Points, Faces, Scalars
-
-def inside_faces(faces, indices):
-    """
-    Remove surface mesh faces whose three vertices are not all in "indices"
-
-    Parameters
-    ----------
-    faces : triangular surface mesh vertex indices [#faces x 3]
-    indices : vertex indices to mesh
-
-    Returns
-    -------
-    faces : reduced array of faces
-
-    """
-    import numpy as np
-
-    len_faces = len(faces)
-    fs = frozenset(indices)
-    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-    faces = np.reshape(np.ravel(faces), (-1, 3))
-    print('  Reduced {0} to {1} triangular faces.'.format(len_faces, len(faces)))
-
-    return faces
-
-#==========================================
-# Functions specific to Mindboggle features
-#==========================================
-
-def write_feature_to_face(Fp, Vertex, Face, index_pair_list):
-    """
-    Load IDs of faces (in my output format) and original surface file
-    to output a face from a feature in VTK format at STDIO.
-    """
-
-    from utils import io_vtk
-
-    io_vtk.write_vtk_header(Fp, 'write_feature_to_face() output by Forrest Bao')
-    io_vtk.write_vtk_points(Fp, Vertex)
-
-    Fundi = []
-    for i in xrange(0, len(index_pair_list)):
-        Fundi.append(Face[index_pair_list[i]])
-
-    io_vtk.write_vtk_faces(Fp, Fundi)
-
-def write_vtk_vertices_to_fundi(Fp, Vertex, index_pair_list):
-    """
-    Load IDs of fundus vertices (in my output format) and original surface file
-    to output fundi in VTK format.
-    """
-
-    from utils import io_vtk
-
-    io_vtk.write_vtk_header(Fp, 'write_vtk_vertices_to_fundi() output by Forrest Bao')
-    io_vtk.write_vtk_points(Fp, Vertex)
-
-    io_vtk.write_vtk_vertices(Fp, index_pair_list)
-
-def write_line_segments_to_fundi(Fp, Vertex, index_pair_list):
-    """
-    Load IDs of fundus curve segments (in my output format)
-    and original surface file to output fundi in VTK format.
-    """
-
-    from utils import io_vtk
-
-    io_vtk.write_vtk_header(Fp, 'Created by Mindboggle')
-    io_vtk.write_vtk_points(Fp, Vertex)
-    io_vtk.write_vtk_faces(Fp, index_pair_list)
-
-def load_fundi_list(filename):
-    """
-    Load the file storing face/vertex IDs, which are fundi faces/vertices.
-    """
-    f = open(filename, 'r')
-    lines = f.readlines()
-    for i in xrange(0,len(lines)):
-        lines[i] = int(lines[i][:-1])
-    return lines
-
-def load_segmented_fundi(filename):
-    """
-    Load the file storing fundi as curve segments.
-    """
-
-    Fp = open(filename, 'r')
-    lines = Fp.readlines()
-    Fp.close()
-
-    Segs = []
-    for line in lines:
-        Segs.append(line)
-        # I do NOT convert strings to integers because
-        # later we write strings into VTK files.
-        # Also no need to split. So break line is also included.
-
-    return Segs
-
-def write_fundi(vtk_file, Points, Vertices, Lines, LUTs=[], LUT_names=[]):
-    """
-    Save fundi into VTK files
+    Save connected line segments to a VTK file.
 
     Parameters
     ----------
