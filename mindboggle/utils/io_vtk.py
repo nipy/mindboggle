@@ -289,7 +289,7 @@ def write_scalars(vtk_file, Points, Vertices, Faces, LUTs=[], LUT_names=[]):
 
     return vtk_file
 
-def write_scalar_subset(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
+def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
     Load VTK format file and save a subset of scalars into a new file.
 

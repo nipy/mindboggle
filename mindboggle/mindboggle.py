@@ -112,7 +112,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from utils.io_vtk import write_scalar_subset, write_mean_shapes_table, \
+from utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
      load_scalar
 from utils.io_file import read_columns
 from utils.io_free import labels_to_annot, labels_to_volume, \
@@ -574,7 +574,7 @@ if run_featureflow:
     #---------------------------------------------------------------------------
     """
     sulci = Node(name='Sulci',
-                 interface = Fn(function = write_scalar_subset,
+                 interface = Fn(function = rewrite_scalars,
                                 input_names = ['folds',
                                                'sulci_list'],
                                 output_names = ['sulci']))
@@ -622,7 +622,7 @@ if run_featureflow:
     # Write sulci and fundi to VTK files
     #---------------------------------------------------------------------------
     save_sulci = Node(name='Save_sulci',
-                      interface = Fn(function = write_scalar_subset,
+                      interface = Fn(function = rewrite_scalars,
                                      input_names = ['input_vtk',
                                                     'output_vtk',
                                                     'new_scalars',
