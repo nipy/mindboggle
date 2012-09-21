@@ -175,6 +175,19 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     -------
     anchors : list of subset of surface mesh vertex indices
 
+    >>> import numpy as np
+    >>> from utils.mesh_operations import find_anchors
+    >>> min_curvature_vector_file = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.curv.min.dir.txt'
+    >>> values_file = '/desk/output/results/measures/_hemi_rh_subject_MMRR-21-1/rh.pial.depth.vtk'
+'
+    >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> min_distance = 5
+    >>> thr = 0.5
+    >>> anchors = find_anchors(range(len(min_directions)), values_file, min_directions, min_distance, thr)
+    >>> # Write results to vtk file:
+#    >>> from utils.io_vtk import rewrite_scalars
+#    >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', anchors)
+
     """
 
     import numpy as np
@@ -256,26 +269,26 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
     max_patch_label : index for largest segmented set of vertices
 
     """
-    import numpy as np
+import numpy as np
 
-    # Initialize segments and seeds (indices of deep vertices)
-    segments = np.zeros(n_vertices)
-    n_seeds = len(seeds)
+# Initialize segments and seeds (indices of deep vertices)
+segments = np.zeros(n_vertices)
+n_seeds = len(seeds)
 
-    # Remove faces with fewer than min_seeds seeds to speed up computation
-    fs = frozenset(seeds)
-    faces_seeds = [lst for lst in faces
-                   if len(fs.intersection(lst)) >= min_seeds]
-    faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
+# Remove faces with fewer than min_seeds seeds to speed up computation
+fs = frozenset(seeds)
+faces_seeds = [lst for lst in faces
+               if len(fs.intersection(lst)) >= min_seeds]
+faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
+print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
 
-    # Loop until all seed vertices segmented
-    print('    Grow {0} seed vertices...'.format(n_seeds))
-    max_patch_size = 0
-    max_patch_label = 1
-    n_segments = 0
-    counter = 0
-    TEMP0 = np.zeros(n_vertices)
+# Loop until all seed vertices segmented
+print('    Grow {0} seed vertices...'.format(n_seeds))
+max_patch_size = 0
+max_patch_label = 1
+n_segments = 0
+counter = 0
+TEMP0 = np.zeros(n_vertices)
     while n_seeds >= min_patch_size:
         TEMP = np.copy(TEMP0)
 
