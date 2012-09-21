@@ -178,16 +178,18 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     Example
     -------
     >>> import numpy as np
+    >>> from utils.io_vtk import load_scalar
     >>> from utils.mesh_operations import find_anchors
     >>> min_curvature_vector_file = '/desk/output/results/measures/' + \
     >>>     '_hemi_lh_subject_MMRR-21-1/lh.pial.curv.min.dir.txt'
     >>> values_file = '/desk/output/results/measures/' + \
-    >>>     '_hemi_rh_subject_MMRR-21-1/rh.pial.depth.vtk'
+    >>>     '_hemi_rh_subject_MMRR-21-1/lh.pial.depth.vtk'
+    >>> points, faces, values = load_scalar(values_file, 1)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
-    >>> anchors = find_anchors(range(len(min_directions)),
-    >>>                        values_file, min_directions, min_distance, thr)
+    >>> anchors = find_anchors(range(len(values)),
+    >>>                        values, min_directions, min_distance, thr)
     >>> # Write results to vtk file:
     >>> from utils.io_vtk import rewrite_scalars
     >>> LUT = np.zeros(len(min_directions))
