@@ -24,7 +24,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     folds : list of lists of integers
         each list contains indices to vertices of a fold
     label_pair_lists : list of sublists of subsublists of integers
-        each subsublist contains a pair of labels, and the sublist of these 
+        each subsublist contains a pair of labels, and the sublist of these
         label pairs represents the label boundaries defining a sulcus
     sulcus_IDs : list of integers, indexed from 1
         sulcus IDs assigned or to be assigned to all vertices
@@ -37,7 +37,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     -------
     sulcus_IDs : list of integers, indexed from 1
         sulcus IDs for all vertices, with -1s for non-sulcus vertices
-                  
+
     Definitions
     -----------
 
@@ -172,16 +172,17 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
     """
     import numpy as np
-    from extract.extract_folds import segment_surface
+    from utils.mesh_operations import segment, detect_boundaries, \
+        euclidean_distance
 
     #---------------------------------------------------------------------------
     # Nested function definitions
     #---------------------------------------------------------------------------
     def find_superset_lists(labels, sulcus_label_lists):
         """
-        Find lists within *sulcus_label_lists* that are supersets 
+        Find lists within *sulcus_label_lists* that are supersets
         of a list of *labels*.
-        
+
         Parameters
         ----------
         labels : list of integers, indexed from 1
@@ -202,19 +203,19 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         >>> [0, 1]
         >>> find_superset_lists([1,2],[[2,3],[1,2,5]])
         >>> [1]
-        
+
         """
         labels = set(labels)
         subset_indices = []
         for Id, pair_list in enumerate(sulcus_label_lists):
             if labels.issubset(set(pair_list)):
                 subset_indices.append(Id)
-                
+
         return subset_indices
-                
+
     def find_subset_pairs(fold_labels, label_pair_lists, selected_indices=[]):
         """
-        Find label pairs within *label_pair_lists* 
+        Find label pairs within *label_pair_lists*
         that are subsets of *fold_labels*.
 
         Parameters
@@ -226,7 +227,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
             label pairs represents the label boundaries defining a sulcus
         selected_indices : list of integers, starting from 0
             indices to label_pair_lists
-        
+
         Returns
         -------
         subset_indices : list of integers, indexed from zero
@@ -238,12 +239,12 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
          [0]
         >>> find_subset_pairs([1,2,3],[[[1,2],[3,4]], [[1,3]], [[1,5],[4,3]]])
          [0, 1]
-         
+
         """
-        
+
         if selected_indices==[]:
             selected_indices = range(len(label_pair_lists))
-        
+
         fold_labels = set(fold_labels)
         subset_indices = []
         for i in selected_indices:
@@ -251,13 +252,13 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
             for pair in row:
                 if set(pair).issubset(fold_labels):
                     subset_indices.append(i)
-        
+
         return subset_indices
 
     def find_subset_lists(labels, sulcus_label_lists):
         """
         Find lists within *sulcus_label_lists* that are subsets of *labels*.
-        
+
         Parameters
         ----------
         labels : list of integers, indexed from 1
@@ -273,70 +274,16 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         Example
         -------
         >>> find_subset_lists([1,2,3,4],[[1,2],[2,3,4]])
-         [0, 1]     
-        
+         [0, 1]
+
         """
         labels = set(labels)
         superset_index = []
         for Id, pair_list in enumerate(sulcus_label_lists):
             if set(pair_list).issubset(labels):
                 superset_index.append(Id)
-                
+
         return superset_index
-    
-    def detect_boundaries(labels, fold, neighbor_lists):
-        """
-        Detect the label boundaries in a fold.
-        
-        Parameters
-        ----------
-        labels : list of integers, indexed from 1
-            labels for all vertices
-        fold : list of integers
-            indices to vertices in a fold
-        neighbor_lists : list of lists of integers
-            each list contains indices to neighboring vertices
-
-        Returns
-        -------
-        boundary_vertices : list of integers
-            indices to label boundary vertices
-        boundary_labels : dictionary
-            keys are vertex indices and values are lists of integer labels
-        
-        """
-        boundary_vertices = []
-        boundary_labels = {}
-        for vertex in fold:
-            labels_of_neighbors = [labels[a_neighbor]
-                                   for a_neighbor in neighbor_lists[vertex]
-                                   if a_neighbor in fold]
-            if not all(x == labels_of_neighbors[0] for x in labels_of_neighbors): 
-                boundary_vertices.append(vertex)
-                boundary_labels[vertex] = labels_of_neighbors 
-            
-        return boundary_vertices, boundary_labels
-    
-    def euclidean_distance(point1, point2):
-        """
-        Estimate the Euclidean distance between two points.
-
-        Parameters
-        ----------
-        point1 : list of three integers, indexed from zero
-            coordinates
-        point2 : list of three integers, indexed from zero
-            coordinates for a second vertex
-
-        Returns
-        -------
-        Euclidean distance between point1 and point2
-
-        """
-        from numpy import sqrt
-        return sqrt((point1[0] - point2[0]) ** 2 + \
-                    (point1[1] - point2[1]) ** 2 + \
-                    (point1[2] - point2[2]) ** 2)
 
     #---------------------------------------------------------------------------
     # Prepare data structures
@@ -363,7 +310,6 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     #---------------------------------------------------------------------------
     # Loop through folds
     #---------------------------------------------------------------------------
-    print(len(folds[0]), len(folds[1]), len(folds[2]), len(folds[3]), len(folds[4]))
     for fold in folds:
         fold_labels = [labels[vertex] for vertex in fold]
         unique_fold_labels = list(set(fold_labels))
@@ -375,7 +321,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         if len(unique_fold_labels) == 1:
             print "  Case 1: fold with only one label..."
             continue  # sulcus_IDs already initialized with -1 values
-        
+
         # Case 2:
         # If the set of labels in the fold is the same as in one of the
         # protocol's sulci, assign the index to the corresponding sulcus label
@@ -465,7 +411,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                     # (6.1) Find all label boundaries within the fold
                     boundary_vertices, boundary_labels = detect_boundaries(labels,
                         fold, neighbor_lists)
-                    
+
                     # (6.2) Find label boundary label pairs in the fold
                     #       that are not members of the protocol's label pairs
                     #       list and return the unique list of 'nonpair labels'.
@@ -486,7 +432,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
                     # (6.4) Segment groups of connected subfold vertices into
                     #       separate subfolds.
-                    subfolds, n_subfolds, o1, o2 = segment_surface(faces,
+                    subfolds, n_subfolds, o1, o2 = segment(faces,
                         subfold_vertices, len(subfold_vertices),
                         1, min_patch_size=50)
 
@@ -517,53 +463,32 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         sulcus_IDs, neighbor_lists, points)
 
     return sulcus_IDs
-    
+
 
 if __name__ == "__main__":
 
     import sys
-    from utils import io_vtk
+    from utils.io_vtk import load_scalar
+    from info.sulcus_boundaries import sulcus_boundaries
 
     # Load labels and folds (the second surface has to be inflated).
-    points, faces, labels = io_vtk.load_scalar(sys.argv[1], return_arrays=0)
-    points, faces, fold_IDs = io_vtk.load_scalar(sys.argv[2], return_arrays=0)
+    points, faces, labels = load_scalar(sys.argv[1], return_arrays=0)
+    points, faces, fold_IDs = load_scalar(sys.argv[2], return_arrays=0)
 
     # Calculate neighbor lists for all vertices
-    neighbor_lists = generate_neighbor_lists(len(points), faces)
+    neighbor_lists = find_all_neighbors(faces)
 
-    label_pair_lists = [[[28,12]],\
-                   [[28,3]],\
-                   [[3,18]],\
-                   [[28,24], [3,24], [18,24]],\
-                   [[24, 22]],\
-                   [[22,29], [22,31]],\
-                   [[29,31], [29,8]],\
-                   [[31,8]],\
-                   [[31,30]],\
-                   [[11,8], [11,29]],\
-                   [[11,15], [11,9]],\
-                   [[30,15]],\
-                   [[15,9]],\
-                   [[35,30], [35,34], [35,12], [35,2], [35,24], [35,22], [35,31]],\
-                   [[30,34]],\
-                   [[2,14], [2,28], [2,17], [25,17]],\
-                   [[17,28]],\
-                   [[5,25]],\
-                   [[13,25], [13,2]],\
-                   [[28,14]],\
-                   [[2,4]],\
-                   [[12,18], [12,3]],\
-                   [[12,14]],\
-                   [[7,9], [7,11]],\
-                   [[7,6], [7,16], [7,13]]]
-    
+    # Prepare list of all unique sorted label pairs in the labeling protocol
+    label_pair_lists = sulcus_boundaries()
+
     # Create a list of lists of folds
-    unique_fold_IDs = set(fold_IDs) # we later traverse each fold
+    unique_fold_IDs = set(fold_IDs)
     folds = []
-    for i in unique_fold_IDs: # on every fold
-        fold = [vertex for vertex in xrange(len(labels)) if fold_IDs[vertex] == i]
-        folds.append(fold)
-    
+    for id in unique_fold_IDs:
+        if id > 0:
+            fold = [i for i,x in enumerate(fold_IDs) if x == id]
+            folds.append(fold)
+
     # Assign a sulcus ID to each fold vertex.
     # Initialize all fold vertices as -1.
     sulcus_IDs = [-1 for i in xrange(len(labels))]
@@ -576,4 +501,3 @@ if __name__ == "__main__":
     # Finally, write points, faces and sulcus_IDs to a new vtk file
     io_vtk.write_scalars(sys.argv[3], points, range(len(points)), faces,
         LUTs=[sulcus_IDs], LUT_names=['Sulcus indices'])
-    
