@@ -576,3 +576,85 @@ def inside_faces(faces, indices):
     print('  Reduced {0} to {1} triangular faces.'.format(len_faces, len(faces)))
 
     return faces
+
+def detect_boundaries(labels, fold, neighbor_lists):
+    """
+    Detect the label boundaries in a fold.
+
+    Parameters
+    ----------
+    labels : list of integers, indexed from 1
+        labels for all vertices
+    fold : list of integers
+        indices to vertices in a fold
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices
+
+    Returns
+    -------
+    boundary_vertices : list of integers
+        indices to label boundary vertices
+    boundary_labels : dictionary
+        keys are vertex indices and values are lists of integer labels
+
+    """
+    boundary_vertices = []
+    boundary_labels = {}
+    for vertex in fold:
+        labels_of_neighbors = [labels[a_neighbor]
+                               for a_neighbor in neighbor_lists[vertex]
+                               if a_neighbor in fold]
+        if not all(x == labels_of_neighbors[0] for x in labels_of_neighbors):
+            boundary_vertices.append(vertex)
+            boundary_labels[vertex] = labels_of_neighbors
+
+    return boundary_vertices, boundary_labels
+
+def euclidean_distance(point1, point2):
+    """
+    Estimate the Euclidean distance between two points.
+
+    Parameters
+    ----------
+    point1 : list of three floats
+        coordinates for a single point
+    point2 : list of three floats
+        coordinates for a second point
+
+    Returns
+    -------
+    Euclidean distance between point1 and point2
+
+    """
+    from numpy import sqrt
+
+    return sqrt((point1[0] - point2[0]) ** 2 + \
+                (point1[1] - point2[1]) ** 2 + \
+                (point1[2] - point2[2]) ** 2)
+
+def closest_distance(point, points):
+    """
+    Find the closest of a list of points to a given point.
+
+    Parameters
+    ----------
+    point : list of three floats
+        coordinates for a single point
+    points : list of lists or numpy array of n by three floats
+        coordinates for multiple points
+
+    Returns
+    -------
+    minimum Euclidean distance between point and points
+
+    """
+    import numpy as np
+    from utils.mesh_operations import euclidean_distance
+
+    min_distance = np.Inf
+    for pick_a_point in points:
+        distance = euclidean_distance(point, pick_a_point)
+        if distance < min_distance:
+            min_distance = distance
+
+    return min_distance
