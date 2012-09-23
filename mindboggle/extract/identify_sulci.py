@@ -10,6 +10,12 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import sys
+import numpy as np
+from utils.io_vtk import load_scalar
+from info.sulcus_boundaries import sulcus_boundaries
+from utils.mesh_operations import segment, detect_boundaries, compute_distance
+
 
 def identify(labels, folds, label_pair_lists, sulcus_IDs,
              neighbor_lists, points):
@@ -171,9 +177,9 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         (6.6) Treat each subfold as a new fold and start again from #1.
 
     """
-    import numpy as np
-    from utils.mesh_operations import segment, detect_boundaries, \
-        euclidean_distance
+    #import numpy as np
+    #from utils.mesh_operations import segment, detect_boundaries, \
+    #    compute_distance
 
     #---------------------------------------------------------------------------
     # Nested function definitions
@@ -205,6 +211,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         >>> [1]
 
         """
+
         labels = set(labels)
         subset_indices = []
         for Id, pair_list in enumerate(sulcus_label_lists):
@@ -277,6 +284,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
          [0, 1]
 
         """
+
         labels = set(labels)
         superset_index = []
         for Id, pair_list in enumerate(sulcus_label_lists):
@@ -406,20 +414,20 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 # If the labels in the fold are a superset of the labels in more
                 # than one of the sulcus label lists, segment:
                 else:
-                    print "  Case 6: fold labels with multiple subset " \
+                    print "  Case 6: fold labels with multiple subset " + \
                           "sulcus label lists..."
                     # (6.1) Find all label boundaries within the fold
-                    boundary_vertices, boundary_labels = detect_boundaries(labels,
+                    boundary_indices, boundary_label_pairs = detect_boundaries(labels,
                         fold, neighbor_lists)
 
                     # (6.2) Find label boundary label pairs in the fold
                     #       that are not members of the protocol's label pairs
                     #       list and return the unique list of 'nonpair labels'.
                     nonpair_labels = []
-                    for vertex in boundary_vertices:
-                        vertex_labels = boundary_labels[vertex]
+                    for index in boundary_indices:
+                        vertex_labels = boundary_label_pairs[index]
                         # Compare sorted, unique labels
-                        if list(set(vertex_labels)) not in protocol_pairs:
+                        if np.unique(vertex_labels).tolist() not in protocol_pairs:
                             [nonpair_labels.append(x) for x in vertex_labels
                              if x not in nonpair_labels]
 
@@ -449,8 +457,8 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         shortest_distance = 1000000
                         closest_subfold_vertex = -1
                         for index, subfold_vertex in enumerate(subfold_vertices):
-                            distance = euclidean_distance(points[subfold_vertex],
-                                                          points[nonpair_vertex])
+                            distance = compute_distance(points[subfold_vertex],
+                                                        points[nonpair_vertex])
                             if distance < shortest_distance:
                                 closest_subfold_vertex = subfold_vertex
                                 shortest_distance = distance
@@ -466,10 +474,6 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
 
 if __name__ == "__main__":
-
-    import sys
-    from utils.io_vtk import load_scalar
-    from info.sulcus_boundaries import sulcus_boundaries
 
     # Load labels and folds (the second surface has to be inflated).
     points, faces, labels = load_scalar(sys.argv[1], return_arrays=0)

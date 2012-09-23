@@ -9,6 +9,7 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import re
 
 def read_columns(filename, n_columns=1, trail=False):
     """
@@ -26,8 +27,7 @@ def read_columns(filename, n_columns=1, trail=False):
     columns :  a list of lists of strings, one list per column of text.
 
     """
-
-    import re
+    #import re
 
     Fp = open(filename, 'r')
     lines = Fp.readlines()
@@ -60,6 +60,7 @@ def write_table(labels, columns, column_names, filename):
     column_names :  names of columns [list of strings]
 
     """
+
     Fp = open(filename,'w')
 
     if len(column_names):
@@ -77,6 +78,7 @@ def write_list(filename, List, header=""):
     """
     Write a list to a file, each line of which is a list element.
     """
+
     Fp = open(filename,'w')
 
     if len(header):
@@ -87,24 +89,9 @@ def write_list(filename, List, header=""):
 
     Fp.close()
 
-def string_vs_list_check(var):
-    """
-    Check type to make sure it is a string.
-
-    (if a list, return the first element)
-    """
-
-    # Check type:
-    if type(var) == str:
-        return var
-    elif type(var) == list:
-        return var[0]
-    else:
-        import os
-        os.error("Check format of " + var)
-
+"""
 def write_table_means(filename, column_names, labels, *values):
-    """
+    ""
     Make a table of mean values per label.
 
     NOTE:  untested
@@ -120,7 +107,7 @@ def write_table_means(filename, column_names, labels, *values):
     -------
     table_file :  table file
 
-    """
+    ""
     import os
     from measure.measure_functions import mean_value_per_label
 
@@ -133,3 +120,4 @@ def write_table_means(filename, column_names, labels, *values):
     write_table(label_list, columns, column_names, filename)
 
     return filename
+"""
