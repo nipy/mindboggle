@@ -1,17 +1,12 @@
 #!/usr/bin/python
 
 """
-Functions related to reading and writing FreeSurfer files.
+Functions for reading surfaces and converting between FreeSurfer formats.
 
 This Python library reads and writes different file types.
-In particular, it has functions to read some FreeSurfer files,
-including surface, curvature, and convexity files.
 The function read_surface() reads in surface files,
 while the function read_curvature() reads in both
 curvature (.curv) and convexity (.sulc) files.
-
-1. Functions for reading surfaces and converting between FreeSurfer formats
-2. Functions for converting to VTK format
 
 
 Authors:
@@ -26,9 +21,6 @@ import struct
 import vtk
 from nipype.interfaces.base import CommandLine
 
-#=============================================================================
-# Functions for reading surfaces and converting between FreeSurfer formats
-#=============================================================================
 
 def read_surface(filename):
     """
