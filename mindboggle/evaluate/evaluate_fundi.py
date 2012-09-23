@@ -7,8 +7,7 @@ protocol.
 
 Example
 -------
-
-$ python evaluate_fundi.py <fundi_file> <folds_file> <labels_file>
+$ python evaluate_fundi.py fundi.vtk folds.vtk lh.labels.DKT25.manual.vtk
 
 
 Authors:
@@ -18,6 +17,14 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import sys
+import numpy as np
+
+from utils.mesh_operations import compute_distance
+from utils.io_vtk import load_scalar, write_scalars
+from info.sulcus_boundaries import sulcus_boundaries
+from utils.mesh_operations import detect_boundaries, find_neighbors
+
 
 def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi):
     """
@@ -27,14 +34,16 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
     to a fundus in the Desikan-Killiany-Tourville cortical labeling protocol
     to all of the fundus vertices in the same fold.
 
-    In the resulting distance matrix, the leftmost column contains distances
-    between label boundaries and fundi for each point, and subsequent columns
-    represent fundi, with the distance values repeated only for fundus points
-    (values default to -1).
+    Returns
+    -------
+    distances : numpy array
+        distance value for each vertex (zero where there is no vertex)
+    distance_matrix : numpy array
+        rows are for vertices and columns for fundi (-1 default value)
 
     """
-    import numpy as np
-    from utils.mesh_operations import closest_distance
+    #import numpy as np
+    #from utils.mesh_operations import compute_distance
 
     n_points = len(points)
 
@@ -54,7 +63,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
                                if folds[i] == folds[i_label_point]]
 
             # Find the closest fundus point to label boundary fundus point
-            d = closest_distance(points[i_label_point],
+            d = compute_distance(points[i_label_point],
                                  points[I_fundus_points])
             distances[i_label_point] = d
             distance_matrix[i_label_point, fundus_ID - 1] = d
@@ -76,12 +85,6 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
 if __name__ == "__main__":
 
-    import sys
-    import numpy as np
-    from utils.io_vtk import load_scalar
-    from info.sulcus_boundaries import sulcus_boundaries
-    from utils.mesh_operations import detect_boundaries, find_all_neighbors
-
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]
     labels_file = sys.argv[3]
@@ -98,46 +101,44 @@ if __name__ == "__main__":
     points, faces, labels = load_scalar(labels_file, return_arrays=1)
     n_points = len(points)
 
-    # List of lists of folds
-    unique_fold_IDs = set(folds)
-    fold_lists = []
-    for id in unique_fold_IDs:
-        if id > 0:
-            fold = [i for i,x in enumerate(folds) if x == id]
-            fold_lists.append(fold)
+    # List of indices to fold vertices
+    fold_indices = [i for i,x in enumerate(folds) if x > 0]
 
     # Calculate neighbor lists for all points
-    neighbor_lists = find_all_neighbors(faces)
+    print('Find neighbors to all vertices...')
+    neighbor_lists = find_neighbors(faces)
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
+    print('Prepare a list of unique, sorted label pairs in the protocol...')
     label_pair_lists = sulcus_boundaries()
     n_fundi = len(label_pair_lists)
 
+    # Find label boundary points in any of the folds
+    print('Find label boundary points in any of the folds...')
+    boundary_indices, boundary_label_pairs = detect_boundaries(labels,
+        fold_indices, neighbor_lists)
+    if not len(boundary_indices):
+        sys.exit('There are no label boundary points!')
+
     # Initialize an array of label boundaries fundus IDs
     # (label boundary vertices that define sulci in the labeling protocol)
+    print('Build an array of label boundary fundus IDs...')
     label_boundary_fundi = np.zeros(n_points)
 
-    # For each list of label pairs (corresponding to a sulcus)
+    # For each list of sorted label pairs (corresponding to a sulcus)
     for isulcus, label_pairs in enumerate(label_pair_lists):
+        print('  Sulcus ' + str(isulcus + 1))
 
-        # For each fold
-        for fold in fold_lists:
+        # Keep the boundary points with label pair labels
+        fundus_indices = [x for i,x in enumerate(boundary_indices)
+                          if np.unique(boundary_label_pairs[i]).tolist()
+                              in label_pairs]
 
-            # Find label boundary points within the fold
-            boundary_points, boundary_labels = detect_boundaries(labels,
-                 fold, neighbor_lists)
+        # Store the points as sulcus IDs in the fundus IDs array
+        label_boundary_fundi[fundus_indices] = isulcus + 1
 
-            # Keep the boundary points with label pair labels
-            fundus_points = [x for i,x in enumerate(boundary_points)
-                             if boundary_labels[i] in label_pairs]
-
-            # Store the points as sulcus IDs in the fundus IDs array
-            label_boundary_fundi[fundus_points] = isulcus + 1
-
-    # Create a distance matrix:
-    # The leftmost column contains distances between label boundaries
-    # and fundi for each point, and subsequent columns represent fundi,
-    # with the distance values repeated only for fundus points (else -1).
+    # Construct a distance matrix
+    print('Construct a boundary-to-fundus distance matrix...')
     distances, distance_matrix = compute_fundus_distances(label_boundary_fundi,
         fundi, folds, points, n_fundi)
 
@@ -156,5 +157,6 @@ if __name__ == "__main__":
     print(fundus_std_distances)
 
     # Write resulting fundus-label boundary distances to VTK file
+    print('Write distances to a VTK file for visualization...')
     write_scalars('evaluate_fundi.vtk', points, range(n_points), faces,
                   [distances], ['fundus-label boundary distances'])
