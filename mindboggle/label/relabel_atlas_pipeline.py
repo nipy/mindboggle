@@ -6,9 +6,9 @@ It will combine the surface labels in .annot format,
 and convert the labels to VTK format.
 
 https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
-      
+
 `mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
-      
+
 ``translation file``: text file that lists the labels (one per line)
 you want to group, and the new label you want to create.  You have to use
 the RGB codes; each line will provide the input and output RGB values::
@@ -66,7 +66,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from utils.io_free import annot_to_vtk
+from utils.io_free import freeannot_to_vtk
 from label.relabel import relabel_annot_file
 #-----------------------------------------------------------------------------
 # Initialize main workflow

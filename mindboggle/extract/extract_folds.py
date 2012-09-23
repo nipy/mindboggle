@@ -9,6 +9,11 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import numpy as np
+from time import time
+from measure.measure_functions import compute_percentile
+from utils.mesh_operations import segment, fill_holes
+from utils.io_vtk import load_scalar
 
 #==============
 # Extract folds
@@ -48,11 +53,11 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     >>> rewrite_scalars(depth_file, 'test_folds.vtk', folds)
 
     """
-    import numpy as np
-    from time import time
-    from utils.percentile import percentile
-    from utils.mesh_operations import segment, fill_holes
-    from utils.io_vtk import load_scalar
+    #import numpy as np
+    #from time import time
+    #from measure.measure_functions import compute_percentile
+    #from utils.mesh_operations import segment, fill_holes
+    #from utils.io_vtk import load_scalar
 
     print("Extract folds from surface mesh...")
     t0 = time()
@@ -66,7 +71,8 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     # For example, if we consider the shallowest one-third of vertices not to be
     # folds, we compute the depth percentile, and two-thirds of vertices would
     # have at least this depth value and would be considered folds.
-    min_depth = percentile(np.sort(depths), 1 - fraction_folds, key=lambda x:x)
+    min_depth = compute_percentile(np.sort(depths),
+                                   1 - fraction_folds, key=lambda x:x)
 
     # Segment folds of a surface mesh
     print("  Segment surface mesh into separate folds deeper than {0:.2f}...".
