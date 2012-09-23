@@ -1,19 +1,22 @@
 #!/usr/bin/python
 """
-Find neighbors to a surface mesh vertex.
+Operations on surface mesh vertices.
 
 Authors:
     - Yrjo Hame  (yrjo.hame@gmail.com)
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Bao  (forrest.bao@gmail.com)
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import numpy as np
+from operator import itemgetter
 
 #------------------------------
 # Find all neighbors from faces
 #------------------------------
-def find_all_neighbors(faces):
+def find_neighbors(faces):
     """
     Generate the list of unique, sorted indices of neighboring vertices
     for all vertices in the faces of a triangular mesh.
@@ -30,18 +33,18 @@ def find_all_neighbors(faces):
 
     Example
     -------
-    >>> from utils.mesh_operations import find_all_neighbors
+    >>> from utils.mesh_operations import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
-    >>> find_all_neighbors(faces)
+    >>> find_neighbors(faces)
         [[1, 2, 3, 4], [0, 2, 4, 3], [1, 0, 3], [2, 0, 4, 1], [0, 3, 1]]
 
-    >>> from utils.mesh_operations import find_all_neighbors
+    >>> from utils.mesh_operations import find_neighbors
     >>> from utils.io_vtk import load_scalar
     >>> points, faces, scalars = load_scalar('lh.pial.depth.vtk')
-    >>> neighbor_lists = find_all_neighbors(faces)
+    >>> neighbor_lists = find_neighbors(faces)
 
     """
-    import numpy as np
+    #import numpy as np
 
     n_vertices = np.max(faces) + 1
     neighbor_lists = [[] for i in xrange(n_vertices)]
@@ -65,44 +68,10 @@ def find_all_neighbors(faces):
 
     return neighbor_lists
 
-#-----------------------------
-# Find all neighbors from file
-#-----------------------------
-def find_all_neighbors_from_file(surface_file):
-    """
-    Generate the list of unique, sorted indices of neighboring vertices
-    for all vertices in the faces of a triangular mesh file.
-
-    Parameters
-    ----------
-    surface_file : str
-        name of VTK file
-
-    Returns
-    -------
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
-
-    Example
-    -------
-    >>> from utils.mesh_operations import find_all_neighbors_from_file
-    >>> surface_file = 'lh.pial.depth.vtk'
-    >>> neighbor_lists = find_all_neighbors_from_file(surface_file)
-
-    """
-    from utils.io_vtk import load_scalar
-    from utils.mesh_operations import find_all_neighbors
-
-    points, faces, scalars = load_scalar(surface_file)
-
-    neighbor_lists = find_all_neighbors(faces)
-
-    return neighbor_lists
-
 #----------------------------------
 # Find neighbors for a given vertex
 #----------------------------------
-def find_neighbors(faces, index):
+def find_neighbors_vertex(faces, index):
     """
     Find neighbors to a surface mesh vertex.
 
@@ -123,15 +92,14 @@ def find_neighbors(faces, index):
 
     Example
     -------
-    >>> from extract.fundi_hmmf.find_points import find_neighbors
+    >>> from utils.mesh_operations import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
-    >>> find_neighbors(faces, index)
+    >>> find_neighbors_vertex(faces, index)
         [0, 2, 4]
 
     """
-
-    import numpy as np
+    #import numpy as np
 
     # Make sure argument is a numpy array
     if type(faces) != np.ndarray:
@@ -152,11 +120,11 @@ def find_neighbors(faces, index):
 #===================
 # Find anchor points
 #===================
-def find_anchors(vertices, L, min_directions, min_distance, thr):
+def find_anchors(points, L, min_directions, min_distance, thr):
     """
     Find anchor points.
 
-    Assign maximum likelihood vertices as "anchor points"
+    Assign maximum likelihood points as "anchor points"
     while ensuring that the anchor points are not close to one another.
     Anchor points are used to construct curves.
 
@@ -165,9 +133,9 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
 
     Parameters
     ----------
-    vertices : [#vertices x 3] numpy array
-    L : fundus likelihood values: [#vertices x 1] numpy array
-    min_directions : [#vertices x 1] numpy array
+    points : [#points x 3] numpy array
+    L : fundus likelihood values: [#points x 1] numpy array
+    min_directions : [#points x 1] numpy array
     min_distance : minimum distance
     thr : likelihood threshold
 
@@ -197,13 +165,12 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
     >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', LUT)
 
     """
-
-    import numpy as np
-    from operator import itemgetter
+    #import numpy as np
+    #from operator import itemgetter
 
     # Make sure arguments are numpy arrays
-    if type(vertices) != np.ndarray:
-        vertices = np.array(vertices)
+    if type(points) != np.ndarray:
+        points = np.array(points)
     if type(L) != np.ndarray:
         L = np.array(L)
     if type(min_directions) != np.ndarray:
@@ -229,14 +196,14 @@ def find_anchors(vertices, L, min_directions, min_distance, thr):
         while i < len(anchors) and found == 0:
 
             # Compute Euclidean distance between points
-            D = np.linalg.norm(vertices[anchors[i], :] - vertices[imax, :])
+            D = np.linalg.norm(points[anchors[i], :] - points[imax, :])
 
             # If distance less than threshold, consider the point found
             if D < min_distance:
                 found = 1
             # Compute directional distance between points if they are close
             elif D < max_distance:
-                dirV = np.dot(vertices[anchors[i], :] - vertices[imax, :],
+                dirV = np.dot(points[anchors[i], :] - points[imax, :],
                               min_directions[anchors[i], :])
                 # If distance less than threshold, consider the point found
                 if np.linalg.norm(dirV) < min_distance:
@@ -277,7 +244,7 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
     max_patch_label : index for largest segmented set of vertices
 
     """
-    import numpy as np
+    #import numpy as np
 
     # Initialize segments and seeds (indices of deep vertices)
     segments = np.zeros(n_vertices)
@@ -375,8 +342,7 @@ def fill_holes(faces, patches, holes, n_holes, neighbor_lists):
     patches : [#vertices x 1] numpy array
 
     """
-
-    import numpy as np
+    #import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(faces) != np.ndarray:
@@ -428,8 +394,7 @@ def simple_test(faces, index, values, thr, neighbor_lists):
     n_inside : number of neighboring vertices greater than threshold
 
     """
-
-    import numpy as np
+    #import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(faces) != np.ndarray:
@@ -522,8 +487,7 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
     B : binary skeleton: numpy array
 
     """
-
-    import numpy as np
+    #import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(B) != np.ndarray:
@@ -567,7 +531,7 @@ def inside_faces(faces, indices):
     faces : reduced array of faces
 
     """
-    import numpy as np
+    #import numpy as np
 
     len_faces = len(faces)
     fs = frozenset(indices)
@@ -579,82 +543,89 @@ def inside_faces(faces, indices):
 
 def detect_boundaries(labels, fold, neighbor_lists):
     """
-    Detect the label boundaries in a fold.
+    Detect the label boundaries in a collection of vertices such as a fold.
 
     Parameters
     ----------
-    labels : list of integers, indexed from 1
+    labels : numpy array of integers, indexed from 1
         labels for all vertices
     fold : list of integers
-        indices to vertices in a fold
+        indices to vertices in a fold (any given collection of vertices)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
     Returns
     -------
-    boundary_vertices : list of integers
+    boundary_indices : list of integers
         indices to label boundary vertices
-    boundary_labels : dictionary
-        keys are vertex indices and values are lists of integer labels
+    boundary_label_pairs : list of lists of pairs of integers
+        label pairs
 
-    """
-    boundary_vertices = []
-    boundary_labels = {}
-    for vertex in fold:
-        labels_of_neighbors = [labels[a_neighbor]
-                               for a_neighbor in neighbor_lists[vertex]
-                               if a_neighbor in fold]
-        if not all(x == labels_of_neighbors[0] for x in labels_of_neighbors):
-            boundary_vertices.append(vertex)
-            boundary_labels[vertex] = labels_of_neighbors
-
-    return boundary_vertices, boundary_labels
-
-def euclidean_distance(point1, point2):
-    """
-    Estimate the Euclidean distance between two points.
-
-    Parameters
-    ----------
-    point1 : list of three floats
-        coordinates for a single point
-    point2 : list of three floats
-        coordinates for a second point
-
-    Returns
+    Example
     -------
-    Euclidean distance between point1 and point2
+    >>> from utils.mesh_operations import detect_boundaries
+    >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
+    >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+    >>> fold = [0,1,2,4,5,8,9]
+    >>> detect_boundaries(labels, fold, neighbor_lists)
+      ([1, 4], [[10, 90], [40, 30]])
 
     """
-    from numpy import sqrt
+    #import numpy as np
 
-    return sqrt((point1[0] - point2[0]) ** 2 + \
-                (point1[1] - point2[1]) ** 2 + \
-                (point1[2] - point2[2]) ** 2)
+    # Make sure arguments are numpy arrays
+    if type(labels) != np.ndarray:
+        labels = np.array(labels)
 
-def closest_distance(point, points):
+    # Construct a list of labels corresponding to the neighbor lists
+    label_lists = [list(set(labels[lst])) for lst in neighbor_lists]
+
+    # Find indices to sets of two labels
+    boundary_indices = [i for i,x in enumerate(label_lists)
+                        if len(set(x)) == 2
+                        if i in fold]
+    boundary_label_pairs = [list(set(x)) for i,x in enumerate(label_lists)
+                            if len(set(x)) == 2
+                            if i in fold]
+
+    return boundary_indices, boundary_label_pairs
+
+def compute_distance(point, points):
     """
-    Find the closest of a list of points to a given point.
+    Estimate the Euclidean distance from one point to a second (set) of points.
 
     Parameters
     ----------
     point : list of three floats
         coordinates for a single point
-    points : list of lists or numpy array of n by three floats
-        coordinates for multiple points
+    points : list with one or more lists of three floats
+        coordinates for a second point (or multiple points)
 
     Returns
     -------
-    minimum Euclidean distance between point and points
+    Euclidean distance between two points, or the minimum distance
+    between a point and a set of points
 
     """
-    import numpy as np
-    from utils.mesh_operations import euclidean_distance
+    #import numpy as np
 
-    min_distance = np.Inf
-    for pick_a_point in points:
-        distance = euclidean_distance(point, pick_a_point)
-        if distance < min_distance:
-            min_distance = distance
+    # If points is a single point
+    if np.ndim(points) == 1:
+        return np.sqrt((point[0] - points[0]) ** 2 + \
+                       (point[1] - points[1]) ** 2 + \
+                       (point[2] - points[2]) ** 2)
 
-    return min_distance
+    # If points is a set of multiple points
+    elif np.ndim(points) == 2:
+        min_distance = np.Inf
+        for point2 in points:
+            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
+                               (point[1] - point2[1]) ** 2 + \
+                               (point[2] - point2[2]) ** 2)
+            if distance < min_distance:
+                min_distance = distance
+        return min_distance
+
+    # Else return None
+    else:
+        return None

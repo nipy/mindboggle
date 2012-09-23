@@ -12,7 +12,6 @@ curvature (.curv) and convexity (.sulc) files.
 
 1. Functions for reading surfaces and converting between FreeSurfer formats
 2. Functions for converting to VTK format
-3. Functions specific to Mindboggle that call the read_surface() function
 
 
 Authors:
@@ -22,6 +21,10 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import os
+import struct
+import vtk
+from nipype.interfaces.base import CommandLine
 
 #=============================================================================
 # Functions for reading surfaces and converting between FreeSurfer formats
@@ -59,9 +62,8 @@ def read_surface(filename):
     [2, 39, 3]
 
     """
-
-    import os
-    import struct
+    #import os
+    #import struct
 
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
@@ -118,8 +120,8 @@ def read_curvature(filename):
     -0.37290969491004944
 
     """
-    import os
-    import struct
+    #import os
+    #import struct
 
     f = open(filename, "rb")
 
@@ -186,9 +188,8 @@ def labels_to_annot(hemi, subjects_path, subject, label_files,
     annot_file :  name of .annot file (with prepend)
 
     """
-
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     label_files = [f for f in label_files if f!=None]
     if label_files:
@@ -224,9 +225,8 @@ def labels_to_volume(subject, annot_name):
     aparc+aseg volume.
 
     """
-
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     print("Fill gray matter volume with surface labels using FreeSurfer...")
 
@@ -265,8 +265,8 @@ def thickness_to_ascii(hemi, subject, subjects_path):
         by orders of vertices in FreeSurfer surface file.
 
     """
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     filename = hemi + 'thickness'
     filename_full = os.path.join(subjects_path, subject, filename)
@@ -278,224 +278,3 @@ def thickness_to_ascii(hemi, subject, subjects_path):
     cli.run()
 
     return thickness_file
-
-#=============================================================================
-# Functions for converting to VTK format
-#=============================================================================
-
-def surf_to_vtk(surface_file):
-    """
-    Convert FreeSurfer surface file to VTK format.
-    """
-    import os
-    from utils.io_vtk import write_vtk_header, write_vtk_points, \
-        write_vtk_faces
-    from utils.io_free import read_surface
-
-    Vertex, Face = read_surface(surface_file)
-
-    vtk_file = os.path.join(os.getcwd(),
-                            os.path.basename(surface_file + '.vtk'))
-    Fp = open(vtk_file, 'w')
-    write_vtk_header(Fp, Title='vtk output from ' + surface_file)
-    write_vtk_points(Fp, Vertex)
-    write_vtk_faces(Fp, Face)
-    Fp.close()
-
-    return vtk_file
-
-def curv_to_vtk(file_string, surface_file, hemi, subject, subjects_path):
-    """
-    Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
-
-    Parameters
-    ----------
-    file_string : string
-        string for FreeSurfer file: 'curv', 'thickness', 'sulc.pial'
-    surface_file : string  (name of VTK surface file)
-    hemi : string indicating left or right hemisphere
-    subject : string
-        name of subject directory
-    subjects_path: string
-        path to subject directory
-
-    Returns
-    -------
-    vtk_file : string
-        name of output VTK file, where each vertex is assigned
-        the corresponding shape value.
-
-    """
-    import os
-    from utils.io_free import read_curvature
-    from utils.io_vtk import load_scalar, write_scalars
-
-    filename = os.path.join(subjects_path, subject, 'surf',
-                            hemi + '.' + file_string)
-    vtk_file = os.path.join(os.getcwd(), file_string + '.vtk')
-
-    curvature_values = read_curvature(filename)
-
-    # Load VTK surface
-    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
-    Vertices =  range(1, len(Points) + 1)
-
-    LUTs = [curvature_values]
-    LUT_names = [file_string]
-    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
-
-    return vtk_file
-
-def annot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
-    """
-    Load a FreeSurfer .annot file and save as a VTK format file.
-
-    Parameters
-    ----------
-    surface_file : string  (name of VTK surface file)
-    annot_file : strings  (name of FreeSurfer .annot file)
-
-    Returns
-    -------
-    labels : list of integers (one label per vertex)
-    vtk_file : output VTK file
-
-    """
-
-    import os
-    import nibabel as nb
-    from utils.io_vtk import load_scalar, write_scalars
-
-    annot_file = os.path.join(subjects_path, subject, 'label',
-                              hemi + '.' + annot_name)
-
-    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
-
-    # Load FreeSurfer surface
-    #from utils.io_file import read_surface
-    #Points, Faces = read_surface(surface_file)
-
-    # Load VTK surface
-    Points, Faces, Scalars = load_scalar(surface_file, return_arrays=0)
-    Vertices =  range(1, len(Points) + 1)
-
-    output_stem = os.path.join(os.getcwd(),
-                  os.path.basename(surface_file.strip('.vtk')))
-    vtk_file = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
-
-    LUTs = [labels.tolist()]
-    LUT_names = ['Labels']
-    write_scalars(vtk_file, Points, Vertices, Faces, LUTs, LUT_names)
-
-    return labels, vtk_file
-
-def vtk_to_label_files(hemi, surface_file, label_numbers, label_names,
-                       RGBs, scalar_name):
-    """
-    Write FreeSurfer .label files from a labeled VTK surface mesh.
-
-    From https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles:
-
-        "A label file is a text file capturing a list of vertices belonging to a region,
-        including their spatial positions(using R,A,S coordinates). A label file
-        corresponds only to a single label, thus contains only a single list of vertices"::
-
-            1806
-            7  -22.796  -66.405  -29.582 0.000000
-            89  -22.273  -43.118  -24.069 0.000000
-            138  -14.142  -81.495  -30.903 0.000000
-            [...]
-
-    Parameters
-    ----------
-    hemi :  hemisphere [string]
-    surface_file :  vtk surface mesh file with labels [string]
-    label_numbers :  label numbers [list of strings]
-    label_names :  label names [list of strings]
-    RGBs :  list of label RGB values for later conversion to a .annot file
-    scalar_name :  name of scalar values in vtk file [string]
-
-    Returns
-    -------
-    label_files :  list of .label file names (order must match label list)
-    colortable :  file with list of labels and RGB values
-                 NOTE: labels are identified by the colortable's RGB values
-
-    """
-
-    import os
-    import numpy as np
-    from utils import io_file
-    import vtk
-
-    # Check type to make sure the filename is a string
-    # (if a list, return the first element)
-    surface_file = io_file.string_vs_list_check(surface_file)
-
-    # Initialize list of label files and output colortable file
-    label_files = []
-    #relabel_file = os.path.join(os.getcwd(), 'relabel_annot.txt')
-    #f_relabel = open(relabel_file, 'w')
-    colortable = os.path.join(os.getcwd(), 'colortable.ctab')
-    f_rgb = open(colortable, 'w')
-
-    # Loop through labels
-    irgb = 0
-    for ilabel, label_number in enumerate(label_numbers):
-
-        # Check type to make sure the number is an int
-        label_number = int(label_number)
-        label_name = label_names[ilabel]
-
-        # Load surface
-        reader = vtk.vtkDataSetReader()
-        reader.SetFileName(surface_file)
-        reader.ReadAllScalarsOn()
-        reader.Update()
-        data = reader.GetOutput()
-        d = data.GetPointData()
-        labels = d.GetArray(scalar_name)
-
-        # Write vertex index, coordinates, and 0
-        count = 0
-        npoints = data.GetNumberOfPoints()
-        L = np.zeros((npoints,5))
-        for i in range(npoints):
-            label = labels.GetValue(i)
-            if label == label_number:
-                L[count,0] = i
-                L[count,1:4] = data.GetPoint(i)
-                count += 1
-
-        # Save the label file
-        if count > 0:
-            irgb += 1
-
-            # Write to relabel_file
-            #if irgb != label_number:
-            #    f_relabel.writelines('{0} {1}\n'.format(irgb, label_number))
-
-            # Write to colortable
-            f_rgb.writelines('{0} {1} {2}\n'.format(
-                             irgb, label_name, RGBs[ilabel]))
-
-            # Store in list of .label files
-            label_file = hemi + '.' + label_name + '.label'
-            label_file = os.path.join(os.getcwd(), label_file)
-            label_files.append(label_file)
-
-            # Write to .label file
-            f = open(label_file, 'w')
-            f.writelines('#!ascii label\n' + str(count) + '\n')
-            for i in range(npoints):
-                if any(L[i,:]):
-                    pr = '{0} {1} {2} {3} 0\n'.format(
-                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-                    f.writelines(pr)
-                else:
-                    break
-            f.close()
-    f_rgb.close()
-    #f_relabel.close()
-
-    return label_files, colortable  #relabel_file

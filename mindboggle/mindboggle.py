@@ -113,11 +113,11 @@ from nipype.interfaces.io import DataGrabber, DataSink
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
 from utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
-     load_scalar
+     load_scalar, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
+     vtk_to_freelabels
 from utils.io_file import read_columns
 from utils.io_free import labels_to_annot, labels_to_volume, \
-     surf_to_vtk, curv_to_vtk, annot_to_vtk, vtk_to_label_files
-from utils.mesh_operations import find_all_neighbors_from_file
+from utils.mesh_operations import find_neighbors
 from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from label.relabel import relabel_volume
@@ -187,7 +187,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-------------------------------------------------------------------------------
 if not input_vtk:
     convertsurf = Node(name = 'Surf_to_VTK',
-                       interface = Fn(function = surf_to_vtk,
+                       interface = Fn(function = freesurface_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
     mbflow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
@@ -226,7 +226,7 @@ if run_atlasflow:
     #===========================================================================
     if init_labels == 'DKatlas':
         freelabels = Node(name = 'DK_annot_to_VTK',
-                        interface = Fn(function = annot_to_vtk,
+                        interface = Fn(function = freeannot_to_vtk,
                                        input_names = ['surface_file',
                                                       'hemi',
                                                       'subject',
@@ -278,7 +278,7 @@ if run_atlasflow:
 
         # Convert .annot file to .vtk format
         classifier2vtk = Node(name = 'DKT_annot_to_VTK',
-                              interface = Fn(function = annot_to_vtk,
+                              interface = Fn(function = freeannot_to_vtk,
                                              input_names = ['surface_file',
                                                             'hemi',
                                                             'subject',
@@ -445,7 +445,7 @@ if run_measureflow:
     #---------------------------------------------------------------------------
     if include_thickness:
         convertthickness = Node(name = 'Thickness_to_VTK',
-                           interface = Fn(function = curv_to_vtk,
+                           interface = Fn(function = freecurvature_to_vtk,
                                           input_names = ['file_string',
                                                          'surface_file',
                                                          'hemi',
@@ -468,7 +468,7 @@ if run_measureflow:
                          [('Thickness_to_VTK.vtk_file', 'measures.@thickness')])])
     if include_convexity:
         convertconvexity = Node(name = 'Convexity_to_VTK',
-                           interface = Fn(function = curv_to_vtk,
+                           interface = Fn(function = freecurvature_to_vtk,
                                           input_names = ['file_string',
                                                          'surface_file',
                                                          'hemi',
@@ -537,17 +537,28 @@ if run_featureflow:
     #---------------------------------------------------------------------------
     # Find all neighbors
     #---------------------------------------------------------------------------
-    neighbors = Node(name='Neighbors',
-                     interface = Fn(function = find_all_neighbors_from_file,
-                                    input_names = ['surface_file'],
-                                    output_names = ['neighbor_lists']))
-    featureflow.add_nodes([neighbors])
+    load_surface = Node(name = 'Load_surface',
+                          interface = Fn(function = load_scalar,
+                                         input_names = ['filename',
+                                                        'return_arrays'],
+                                         output_names = ['points',
+                                                         'faces',
+                                                         'scalars']))
+    featureflow.add_nodes([load_surface])
     if input_vtk:
         mbflow.connect([(surf, featureflow,
-                         [('surface_files','Neighbors.surface_file')])])
+                         [('surface_files','Load_surface.filename')])])
     else:
         mbflow.connect([(convertsurf, featureflow,
-                         [('vtk_file', 'Neighbors.surface_file')])])
+                         [('vtk_file', 'Load_surface.filename')])])
+    load_surface.inputs.return_arrays = 0  # 0: return lists instead of arrays
+
+    neighbors = Node(name='Neighbors',
+                     interface = Fn(function = find_neighbors,
+                                    input_names = ['faces'],
+                                    output_names = ['neighbor_lists']))
+    featureflow.add_nodes([neighbors])
+    featureflow.connect([(load_surface, neighbors, [('faces','faces')])])
     #---------------------------------------------------------------------------
     # Extract folds
     #---------------------------------------------------------------------------
@@ -855,7 +866,7 @@ if fill_volume:
     # Write .label files for surface vertices
     #---------------------------------------------------------------------------
     writelabels = Node(name='Write_label_files',
-                       interface = Fn(function = vtk_to_label_files,
+                       interface = Fn(function = vtk_to_freelabels,
                                       input_names = ['hemi',
                                                      'surface_file',
                                                      'label_numbers',

@@ -10,6 +10,9 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import os
+import numpy as np
+from nipype.interfaces.base import CommandLine
 
 ##############################################################################
 #   Surface calculations
@@ -25,8 +28,8 @@ def compute_area(command, surface_file):
     surface_file : ``vtk file``
 
     """
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     area_file = os.path.join(os.getcwd(),
                 os.path.splitext(os.path.basename(surface_file))[0] + '.area.vtk')
@@ -47,8 +50,8 @@ def compute_depth(command, surface_file):
     surface_file : ``vtk file``
 
     """
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     depth_file = os.path.join(os.getcwd(),
                  os.path.splitext(os.path.basename(surface_file))[0] + '.depth.vtk')
@@ -67,9 +70,8 @@ def compute_curvature(command, surface_file):
     surface_file : ``vtk file``
 
     """
-
-    import os
-    from nipype.interfaces.base import CommandLine
+    #import os
+    #from nipype.interfaces.base import CommandLine
 
     stem = os.path.join(os.getcwd(),
                         os.path.splitext(os.path.basename(surface_file))[0])
@@ -112,7 +114,7 @@ def mean_value_per_label(values, areas, labels):
     label_list : list of unique labels
 
     """
-    import numpy as np
+    #import numpy as np
 
     def avg_by_area(values_label, areas_label):
         return sum(areas_label * values_label) / sum(areas_label)
@@ -134,3 +136,41 @@ def mean_value_per_label(values, areas, labels):
         surface_areas.append(surface_area)
 
     return mean_values, norm_mean_values, surface_areas, label_list
+
+def compute_percentile(N, percent, key=lambda x:x):
+    """
+    Find the percentile of a list of values.
+
+    http://code.activestate.com/recipes/511478/ (r2)
+
+    Alternative scipy implementation:
+    from scipy.stats import scoreatpercentile
+    depth_found = scoreatpercentile(depths, depth_threshold2)
+
+    Parameters
+    ----------
+    N : list of values. Note N MUST BE already sorted
+    percent : float value from 0.0 to 1.0
+    key : optional key function to compute value from each element of N
+
+    Returns
+    -------
+    percentile : percentile of the values
+
+    """
+    #import numpy as np
+
+    if not len(N):
+        return None
+
+    k = (len(N)-1) * percent
+    f = np.floor(k)
+    c = np.ceil(k)
+    if f == c:
+        return key(N[int(k)])
+    d0 = key(N[int(f)]) * (c-k)
+    d1 = key(N[int(c)]) * (k-f)
+
+    percentile = d0 + d1
+
+    return percentile
