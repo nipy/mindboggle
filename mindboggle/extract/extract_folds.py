@@ -79,8 +79,8 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
           format(min_depth))
     t1 = time()
     seeds = np.where(depths > min_depth)[0]
-    folds, n_folds, max_fold, = segment(faces, seeds, neighbor_lists,
-                                        n_vertices, 3, min_fold_size)
+    folds, n_folds, max_fold, = segment(seeds, neighbor_lists,
+                                        n_vertices, min_fold_size)
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
 
     # If there are any folds
@@ -89,12 +89,12 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep) and have some minimum depth
         t2 = time()
-        seeds = [i for i,x in enumerate(folds) if x==0]  # and depths[i] > md]
+        seeds = [i for i,x in enumerate(folds) if x==0 if depths[i] > min_depth]
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes, max_hole = segment(faces, seeds, neighbor_lists,
-                                           n_vertices, 1, 1)
+        holes, n_holes, max_hole = segment(seeds, neighbor_lists,
+                                           n_vertices, min_fold_size=1)
 
         # If there are any holes
         if n_holes > 0:
@@ -107,7 +107,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
             print('    ...Holes segmented ({0:.2f} seconds)'.format(time() - t2))
 
             t3 = time()
-            folds = fill_holes(faces, folds, holes, n_holes, neighbor_lists)
+            folds = fill_holes(folds, holes, n_holes, neighbor_lists)
             print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
 
     print('  ...Extracted folds greater than {0:.2f} depth in {1:.2f} seconds'.

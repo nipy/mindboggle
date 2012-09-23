@@ -221,20 +221,16 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 #========================
 # Segment surface patches
 #========================
-def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size):
+def segment(seeds, neighbor_lists, min_patch_size=1):
     """
     Segment a surface into contiguous patches (seed region growing).
 
     Parameters
     ----------
-    faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
     seeds : mesh vertex indices for vertices to be segmented
             list or [#seeds x 1] array
-    neighbor_lists : list of lists of integers
+    neighbor_lists : list of lists of integers (#lists = #vertices in mesh)
         each list contains indices to neighboring vertices
-    n_vertices : #vertices total (seeds are a subset)
-    min_seeds : minimum number of seeds (vertices) per triangle for inclusion
     min_patch_size : minimum size of segmented set of vertices
 
     Returns
@@ -247,15 +243,9 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
     #import numpy as np
 
     # Initialize segments and seeds (indices of deep vertices)
+    n_vertices = len(neighbor_lists)
     segments = np.zeros(n_vertices)
     n_seeds = len(seeds)
-
-    # Remove faces with fewer than min_seeds seeds to speed up computation
-    fs = frozenset(seeds)
-    faces_seeds = [lst for lst in faces
-                   if len(fs.intersection(lst)) >= min_seeds]
-    faces_seeds = np.reshape(np.ravel(faces_seeds), (-1, 3))
-    print('    Reduced {0} to {1} faces.'.format(len(faces), len(faces_seeds)))
 
     # Loop until all seed vertices segmented
     print('    Grow {0} seed vertices...'.format(n_seeds))
@@ -282,9 +272,10 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
             TEMP[I] = 1
             Inew = []
 
-            # Find neighbors for each selected seed vertex
+            # Identify neighbors for each selected seed vertex
             for index in I:
                 neighbors = neighbor_lists[index]
+
                 # Select neighbors that have not been previously selected
                 if len(neighbors) > 0:
                     neighbors = [x for x in neighbors if TEMP[x] == 0]
@@ -324,13 +315,12 @@ def segment(faces, seeds, neighbor_lists, n_vertices, min_seeds, min_patch_size)
 #-----------
 # Fill holes
 #-----------
-def fill_holes(faces, patches, holes, n_holes, neighbor_lists):
+def fill_holes(patches, holes, n_holes, neighbor_lists):
     """
     Fill holes in surface mesh patches.
 
     Parameters
     ----------
-    faces : surface mesh vertex indices [#faces x 3] numpy array
     patches : [#vertices x 1] numpy array
     holes : [#vertices x 1] numpy array
     n_holes : [#vertices x 1] numpy array
@@ -345,8 +335,6 @@ def fill_holes(faces, patches, holes, n_holes, neighbor_lists):
     #import numpy as np
 
     # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
     if type(patches) != np.ndarray:
         patches = np.array(patches)
 
@@ -372,7 +360,7 @@ def fill_holes(faces, patches, holes, n_holes, neighbor_lists):
 #-----------------------
 # Test for simple points
 #-----------------------
-def simple_test(faces, index, values, thr, neighbor_lists):
+def simple_test(index, values, thr, neighbor_lists):
     """
     Test to see if vertex is a "simple point".
 
@@ -381,7 +369,6 @@ def simple_test(faces, index, values, thr, neighbor_lists):
 
     Parameters
     ----------
-    faces : [#faces x 3] numpy array
     index : index of vertex
     values : values: [#vertices x 1] numpy array
     thr : threshold
@@ -397,8 +384,6 @@ def simple_test(faces, index, values, thr, neighbor_lists):
     #import numpy as np
 
     # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
     if type(values) != np.ndarray:
         values = np.array(values)
 
@@ -470,7 +455,7 @@ def simple_test(faces, index, values, thr, neighbor_lists):
 #------------
 # Skeletonize
 #------------
-def skeletonize(B, indices_to_keep, faces, neighbor_lists):
+def skeletonize(B, indices_to_keep, neighbor_lists):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
 
@@ -478,7 +463,6 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
     ----------
     B : binary [#vertices x 1] numpy array
     indices_to_keep : indices to retain
-    faces : indices of triangular mesh vertices: [#faces x 3] numpy array
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
@@ -492,8 +476,6 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
     # Make sure arguments are numpy arrays
     if type(B) != np.ndarray:
         B = np.array(B)
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
 
     # Loop until all vertices are not simple points
     indices = np.where(B)[0]
@@ -508,7 +490,7 @@ def skeletonize(B, indices_to_keep, faces, neighbor_lists):
             if B[index] and index not in indices_to_keep:
 
                 # Test to see if index is a simple point
-                update, n_in = simple_test(faces, index, B, 0, neighbor_lists)
+                update, n_in = simple_test(index, B, 0, neighbor_lists)
 
                 # If a simple point, remove and run again
                 if update and n_in > 1:
