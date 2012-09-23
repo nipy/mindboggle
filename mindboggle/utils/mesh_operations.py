@@ -242,72 +242,72 @@ def segment(seeds, neighbor_lists, min_patch_size=1):
     """
     #import numpy as np
 
-# Initialize segments and seeds (indices of deep vertices)
-n_vertices = len(neighbor_lists)
-segments = np.zeros(n_vertices)
-n_seeds = len(seeds)
-
-# Loop until all seed vertices segmented
-print('    Grow {0} seed vertices...'.format(n_seeds))
-max_patch_size = 0
-max_patch_label = 1
-n_segments = 0
-counter = 0
-covered_init = np.zeros(n_vertices)
-while n_seeds >= min_patch_size:
-    covered = np.copy(covered_init)
-
-    # Select a seed vertex (selection does not affect result)
-    #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
-    I = [seeds[0]]
-    # Region grown from seed
-    Ipatch = I[:]
-
-    # Grow region about the seed vertex until
-    # there are no more connected seed vertices available.
-    # Continue loop if there are newly selected neighbors.
-    loop = 1
-    while loop:
-        loop = 0
-        covered[I] = 1
-        Inew = []
-
-        # Identify neighbors for selected seed vertices
-        N=[]; [N.extend(neighbor_lists[i]) for i in I]
-        N = list(set(N))
-
-        # Select seed neighbors that have not been previously selected
-        neighbors = [x for x in N if x in seeds if covered[x] == 0]
-        if len(neighbors) > 0:
-            covered[neighbors] = 2
-            Inew.extend(neighbors)
-            loop = 1
-
-        # Resume with new neighbors, and add them to the segmented patch
-        I = Inew
-        Ipatch.extend(Inew)
-
-    # Disregard vertices already visited
-    seeds = list(frozenset(seeds).difference(Ipatch))
+    # Initialize segments and seeds (indices of deep vertices)
+    n_vertices = len(neighbor_lists)
+    segments = np.zeros(n_vertices)
     n_seeds = len(seeds)
 
-    # Assign counter number to segmented patch
-    # if patch size is greater than min_patch_size
-    size_patch = len(Ipatch)
-    if size_patch >= min_patch_size:
-        counter += 1
-        n_segments = counter
-        segments[Ipatch] = n_segments
+    # Loop until all seed vertices segmented
+    print('    Grow {0} seed vertices...'.format(n_seeds))
+    max_patch_size = 0
+    max_patch_label = 1
+    n_segments = 0
+    counter = 0
+    covered_init = np.zeros(n_vertices)
+    while n_seeds >= min_patch_size:
+        covered = np.copy(covered_init)
 
-        # Display current number and size of patch
-        if size_patch > 1:
-            print('    Segmented patch {0}: {1} vertices. {2} seeds remaining...'.
-                  format(n_segments, size_patch, n_seeds))
+        # Select a seed vertex (selection does not affect result)
+        #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
+        I = [seeds[0]]
+        # Region grown from seed
+        Ipatch = I[:]
 
-        # Find the maximum patch size
-        if size_patch > max_patch_size:
-            max_patch_size = size_patch
-            max_patch_label = counter
+        # Grow region about the seed vertex until
+        # there are no more connected seed vertices available.
+        # Continue loop if there are newly selected neighbors.
+        loop = 1
+        while loop:
+            loop = 0
+            covered[I] = 1
+            Inew = []
+
+            # Identify neighbors for selected seed vertices
+            N=[]; [N.extend(neighbor_lists[i]) for i in I]
+            N = list(set(N))
+
+            # Select seed neighbors that have not been previously selected
+            neighbors = [x for x in N if x in seeds if covered[x] == 0]
+            if len(neighbors) > 0:
+                covered[neighbors] = 2
+                Inew.extend(neighbors)
+                loop = 1
+
+            # Resume with new neighbors, and add them to the segmented patch
+            I = Inew
+            Ipatch.extend(Inew)
+
+        # Disregard vertices already visited
+        seeds = list(frozenset(seeds).difference(Ipatch))
+        n_seeds = len(seeds)
+
+        # Assign counter number to segmented patch
+        # if patch size is greater than min_patch_size
+        size_patch = len(Ipatch)
+        if size_patch >= min_patch_size:
+            counter += 1
+            n_segments = counter
+            segments[Ipatch] = n_segments
+
+            # Display current number and size of patch
+            if size_patch > 1:
+                print('    Segmented patch {0}: {1} vertices. {2} seeds remaining...'.
+                      format(n_segments, size_patch, n_seeds))
+
+            # Find the maximum patch size
+            if size_patch > max_patch_size:
+                max_patch_size = size_patch
+                max_patch_label = counter
 
     return segments, n_segments, max_patch_label
 

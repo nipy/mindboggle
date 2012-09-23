@@ -116,7 +116,7 @@ from utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
      load_scalar, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
      vtk_to_freelabels
 from utils.io_file import read_columns
-from utils.io_free import labels_to_annot, labels_to_volume, \
+from utils.io_free import labels_to_annot, labels_to_volume
 from utils.mesh_operations import find_neighbors
 from label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
@@ -538,12 +538,12 @@ if run_featureflow:
     # Find all neighbors
     #---------------------------------------------------------------------------
     load_surface = Node(name = 'Load_surface',
-                          interface = Fn(function = load_scalar,
-                                         input_names = ['filename',
-                                                        'return_arrays'],
-                                         output_names = ['points',
-                                                         'faces',
-                                                         'scalars']))
+                        interface = Fn(function = load_scalar,
+                                       input_names = ['filename',
+                                                      'return_arrays'],
+                                       output_names = ['points',
+                                                       'faces',
+                                                       'scalars']))
     featureflow.add_nodes([load_surface])
     if input_vtk:
         mbflow.connect([(surf, featureflow,
