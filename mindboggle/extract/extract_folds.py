@@ -64,7 +64,6 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
     # Load depth values from VTK file
     points, faces, depths = load_scalar(depth_file, return_arrays=True)
-    n_vertices = len(depths)
 
     # Compute the minimum depth threshold for defining folds by determining the
     # percentile of depth values for the fraction of vertices that are not folds.
@@ -79,8 +78,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
           format(min_depth))
     t1 = time()
     seeds = np.where(depths > min_depth)[0]
-    folds, n_folds, max_fold, = segment(seeds, neighbor_lists,
-                                        n_vertices, min_fold_size)
+    folds, n_folds, max_fold, = segment(seeds, neighbor_lists, min_fold_size)
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
 
     # If there are any folds
@@ -93,8 +91,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes, max_hole = segment(seeds, neighbor_lists,
-                                           n_vertices, min_fold_size=1)
+        holes, n_holes, max_hole = segment(seeds, neighbor_lists, min_fold_size=1)
 
         # If there are any holes
         if n_holes > 0:
