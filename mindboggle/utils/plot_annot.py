@@ -8,16 +8,15 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 import os, sys
 
-debug = 1
+debug = 0
 
 if len(sys.argv) < 6:
     if debug:
         subject = 'HLN-12-3'
         hemisphere = 'lh'
         surface = 'pial'
-        #annotname = 'labels.DKT31.manual'
-        annotname = 'labels.max'
-        colortable = '/projects/Mindboggle/mindboggle/mindboggle/info/labels.surface.DKT31.txt'
+        annotname = 'labels.DKT31.manual'
+        colortable = '/mindboggle/info/labels.surface.DKT31.txt'
     else:
         sys.exit('Usage: %s subject hemisphere surface-type annotname colortable' %sys.argv[0])
 else:
