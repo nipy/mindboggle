@@ -325,11 +325,12 @@ def fill_holes(patches, holes, n_holes, neighbor_lists):
     holes : [#vertices x 1] numpy array
     n_holes : [#vertices x 1] numpy array
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices (see return_arrays)
+        each list contains indices to neighboring vertices
 
     Returns
     -------
-    patches : [#vertices x 1] numpy array
+    patches : [#vertices x 1] numpy array of integers
+        patch ID numbers
 
     """
     #import numpy as np
@@ -338,22 +339,16 @@ def fill_holes(patches, holes, n_holes, neighbor_lists):
     if type(patches) != np.ndarray:
         patches = np.array(patches)
 
-    # Look for vertices that have a fold label and are
-    # connected to any of the vertices in the current hole,
-    # and assign the hole the maximum label number
+    # Identify the vertices for each hole
     for i in range(1, n_holes + 1):
-        indices_holes = np.where(holes == i)[0]
-        # Loop until a labeled neighbor is found
-        for index in indices_holes:
-            # Find neighboring vertices to the hole
-            neighbors = neighbor_lists[index]
-            # If there are any neighboring labels,
-            # assign the hole the maximum label
-            # of its neighbors and end the while loop
-            for fold_neighbor in patches[neighbors]:
-                if fold_neighbor > 0:
-                    patches[indices_holes] = fold_neighbor
-                    break
+        I = np.where(holes == i)[0]
+
+        # Identify neighbors to these vertices
+        N=[]; [N.extend(neighbor_lists[i]) for i in I]
+        if len(N):
+
+            # Assign the hole the maximum patch ID number of its neighbors
+            patches[I] = max([patches[x] for x in N])
 
     return patches
 
@@ -523,16 +518,16 @@ def inside_faces(faces, indices):
 
     return faces
 
-def detect_boundaries(labels, fold, neighbor_lists):
+def detect_boundaries(labels, patch, neighbor_lists):
     """
-    Detect the label boundaries in a collection of vertices such as a fold.
+    Detect the label boundaries in a collection of vertices such as a patch.
 
     Parameters
     ----------
     labels : numpy array of integers, indexed from 1
         labels for all vertices
-    fold : list of integers
-        indices to vertices in a fold (any given collection of vertices)
+    patch : list of integers
+        indices to vertices in a patch (any given collection of vertices)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
@@ -548,8 +543,8 @@ def detect_boundaries(labels, fold, neighbor_lists):
     >>> from utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    >>> fold = [0,1,2,4,5,8,9]
-    >>> detect_boundaries(labels, fold, neighbor_lists)
+    >>> patch = [0,1,2,4,5,8,9]
+    >>> detect_boundaries(labels, patch, neighbor_lists)
       ([1, 4], [[10, 90], [40, 30]])
 
     """
@@ -565,10 +560,10 @@ def detect_boundaries(labels, fold, neighbor_lists):
     # Find indices to sets of two labels
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
-                        if i in fold]
+                        if i in patch]
     boundary_label_pairs = [list(set(x)) for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
-                            if i in fold]
+                            if i in patch]
 
     return boundary_indices, boundary_label_pairs
 
