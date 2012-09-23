@@ -62,7 +62,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
                                if x > 0
                                if folds[i] == folds[i_label_point]]
 
-            # Find the closest fundus point to label boundary fundus point
+            # Find the closest fundus point to the label boundary fundus point
             d = compute_distance(points[i_label_point],
                                  points[I_fundus_points])
             distances[i_label_point] = d
