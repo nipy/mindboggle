@@ -15,7 +15,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 import numpy as np
 import networkx as nx
 from scipy.sparse import lil_matrix
-from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -39,6 +39,7 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
          "csr" stands for "compressed sparse row" matrix
          (http://docs.scipy.org/doc/scipy/reference/sparse.html)
     """
+
     ddm = lil_matrix((W.shape[0], W.shape[0]))
 
     if inverse:
@@ -82,6 +83,7 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
     affinity_matrix :  numpy array (sparse affinity matrix)
 
     """
+
     if kernel is rbf_kernel or kernel is inverse_distance:
         print('Computing weights using {0} kernel with parameter = {1}'.format(
               kernel, sigma))
@@ -157,6 +159,7 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
                (Graph Laplacian of affinity matrix)
 
     """
+
     if type_of_laplacian is 'basic':
         print 'Calculating unnormalized Laplacian...'
         Laplacian = diagonal_degree_matrix(W) - W
