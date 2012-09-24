@@ -12,10 +12,10 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
-import networkx as nx
-from scipy.sparse import lil_matrix
-from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+#import numpy as np
+#import networkx as nx
+#from scipy.sparse import lil_matrix
+#from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -39,6 +39,8 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
          "csr" stands for "compressed sparse row" matrix
          (http://docs.scipy.org/doc/scipy/reference/sparse.html)
     """
+    import math
+    from scipy.sparse import lil_matrix
 
     ddm = lil_matrix((W.shape[0], W.shape[0]))
 
@@ -46,7 +48,7 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
         if not square_root:
             ddm.setdiag(1 / W.sum(axis=1))
         else:
-            ddm.setdiag(np.sqrt(1 / W.sum(axis=1)))
+            ddm.setdiag(math.sqrt(1 / W.sum(axis=1)))
 
     else:
         ddm.setdiag(W.sum(axis=1))
@@ -83,6 +85,9 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
     affinity_matrix :  numpy array (sparse affinity matrix)
 
     """
+    import numpy as np
+    from scipy.sparse import lil_matrix
+    from utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
     if kernel is rbf_kernel or kernel is inverse_distance:
         print('Computing weights using {0} kernel with parameter = {1}'.format(
