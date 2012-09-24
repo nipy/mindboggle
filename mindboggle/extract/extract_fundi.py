@@ -9,9 +9,9 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
-from time import time
-from utils.mesh_operations import simple_test, skeletonize
+#import numpy as np
+#from time import time
+#from utils.mesh_operations import simple_test, skeletonize
 
 #-----------------
 # Sigmoid function
@@ -22,7 +22,7 @@ def sigmoid(values, gain, shift):
 
     Y(t) = 1/(1 + exp(-gain*(values - shift))
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure argument is a numpy array
     if type(values) != np.ndarray:
@@ -49,7 +49,7 @@ def compute_likelihood(depths, curvatures):
     likelihoods : likelihood values [#sulcus vertices x 1] numpy array
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(depths) != np.ndarray:
@@ -199,8 +199,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     fundus : [#vertices x 1] numpy array
 
     """
-    #import numpy as np
-    #from utils.mesh_operations import simple_test, skeletonize
+    import numpy as np
+    from utils.mesh_operations import simple_test, skeletonize
 
     # Make sure arguments are numpy arrays
     if type(faces) != np.ndarray:
@@ -378,8 +378,8 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     fundi :  numpy array of fundi
 
     """
-    #import numpy as np
-    #from time import time
+    import numpy as np
+    from time import time
 
     from extract.extract_fundi import compute_likelihood, connect_points
     from utils.mesh_operations import find_anchors

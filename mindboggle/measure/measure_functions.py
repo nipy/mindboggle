@@ -10,9 +10,9 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import os
-import numpy as np
-from nipype.interfaces.base import CommandLine
+#import os
+#import numpy as np
+#from nipype.interfaces.base import CommandLine
 
 ##############################################################################
 #   Surface calculations
@@ -28,8 +28,8 @@ def compute_area(command, surface_file):
     surface_file : ``vtk file``
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     area_file = os.path.join(os.getcwd(),
                 os.path.splitext(os.path.basename(surface_file))[0] + '.area.vtk')
@@ -50,8 +50,8 @@ def compute_depth(command, surface_file):
     surface_file : ``vtk file``
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     depth_file = os.path.join(os.getcwd(),
                  os.path.splitext(os.path.basename(surface_file))[0] + '.depth.vtk')
@@ -70,8 +70,8 @@ def compute_curvature(command, surface_file):
     surface_file : ``vtk file``
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     stem = os.path.join(os.getcwd(),
                         os.path.splitext(os.path.basename(surface_file))[0])
@@ -114,7 +114,7 @@ def mean_value_per_label(values, areas, labels):
     label_list : list of unique labels
 
     """
-    #import numpy as np
+    import numpy as np
 
     def avg_by_area(values_label, areas_label):
         return sum(areas_label * values_label) / sum(areas_label)
@@ -158,7 +158,7 @@ def compute_percentile(N, percent, key=lambda x:x):
     percentile : percentile of the values
 
     """
-    #import numpy as np
+    import numpy as np
 
     if not len(N):
         return None

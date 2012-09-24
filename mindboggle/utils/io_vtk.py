@@ -14,14 +14,13 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import os
-import numpy as np
-import nibabel as nb
-import vtk
-
-from utils.mesh_operations import inside_faces
-from utils.io_file import write_table
-from measure.measure_functions import mean_value_per_label
+#import os
+#import numpy as np
+#import nibabel as nb
+#import vtk
+#from utils.mesh_operations import inside_faces
+#from utils.io_file import write_table
+#from measure.measure_functions import mean_value_per_label
 
 
 #=============================================================================
@@ -71,7 +70,7 @@ def write_vtk_points(Fp, points, dataType="float"):
         p(n-1)x p(n-1)y p(n-1)z
 
     """
-    #import numpy as np
+    import numpy as np
 
     Fp.write('POINTS {0} {1}\n'.format(len(points), dataType))
 
@@ -96,7 +95,7 @@ def write_vtk_faces(Fp, faces):
         ...
 
     """
-    #import numpy as np
+    import numpy as np
 
     n = np.shape(faces)[1]
     if n == 3:
@@ -195,8 +194,8 @@ def load_scalar(filename, return_arrays=1):
     >>> points, faces, scalars = load_scalar('lh.pial.depth.vtk')
 
     """
-    #import numpy as np
-    #import vtk
+    import numpy as np
+    import vtk
 
     Reader = vtk.vtkDataSetReader()
     Reader.SetFileName(filename)
@@ -270,7 +269,9 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
                       LUT_names=LUT_names)
 
     """
-    #import os
+    import os
+    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+         write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
     vtk_file = os.path.join(os.getcwd(), vtk_file)
 
@@ -313,8 +314,11 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
                      scalar values used to filter faces (non-zero are retained)
 
     """
-    #import os
-    #from utils.mesh_operations import inside_faces
+    import os
+    from utils.mesh_operations import inside_faces
+    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+         write_vtk_vertices, write_vtk_faces, write_vtk_LUT, \
+         load_scalar
 
     # Output VTK file to current working directory
     output_vtk = os.path.join(os.getcwd(), output_vtk)
@@ -382,9 +386,10 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     norm_means_file : table file name for mean values normalized by area
 
     """
-    #import os
-    #from utils.io_file import write_table
-    #from measure.measure_functions import mean_value_per_label
+    import os
+    from utils.io_file import write_table
+    from measure.measure_functions import mean_value_per_label
+    from utils.io_vtk import load_scalar
 
     shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
                    max_curvature_file, min_curvature_file]
@@ -438,7 +443,7 @@ def load_lines(Filename):
         Each element is a scalar value corresponding to a vertex
 
     """
-    #import vtk
+    import vtk
 
     Reader = vtk.vtkDataSetReader()
     Reader.SetFileName(Filename)
@@ -483,14 +488,16 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
     >>> import random
     >>> points = [[random.random() for i in range(3)] for j in xrange(5)]
     >>> indices = [0,1,2,3,4]
-    >>> faces = [[1,2,3],[0,3,4]]
+    >>> lines = [[1,2],[3,4]]  # ?
     >>> LUT_names = ['curv','depth']
     >>> LUTs=[[random.random() for i in range(6)] for j in range(2)]
-    >>> write_scalars('test.vtk',points, indices, faces, LUTs=LUTs, \
-                      LUT_names=LUT_names)
+    >>> write_lines('test.vtk', points, indices, lines, LUTs=LUTs, \
+                    LUT_names=LUT_names)
 
     """
-    #import os
+    import os
+    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+         write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
     vtk_file = os.path.join(os.getcwd(), vtk_file)
 
@@ -506,8 +513,7 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
             if i == 0:
                 write_vtk_LUT(Fp, LUT, LUT_names[i])
             else:
-                write_vtk_LUT(Fp, LUT, LUT_names[i],
-                                        at_LUT_begin=False)
+                write_vtk_LUT(Fp, LUT, LUT_names[i], at_LUT_begin=False)
     Fp.close()
 
 
@@ -519,8 +525,9 @@ def freesurface_to_vtk(surface_file):
     """
     Convert FreeSurfer surface file to VTK format.
     """
-    #import os
-    #from utils.io_free import read_surface
+    import os
+    from utils.io_free import read_surface
+    from utils.io_vtk import write_vtk_header, write_vtk_points, write_vtk_faces
 
     points, faces = read_surface(surface_file)
 
@@ -556,8 +563,9 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
         the corresponding shape value.
 
     """
-    #import os
-    #from utils.io_free import read_curvature
+    import os
+    from utils.io_free import read_curvature
+    from utils.io_vtk import load_scalar, write_scalars
 
     filename = os.path.join(subjects_path, subject, 'surf',
                             hemi + '.' + file_string)
@@ -590,8 +598,9 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     vtk_file : output VTK file
 
     """
-    #import os
-    #import nibabel as nb
+    import os
+    import nibabel as nb
+    from utils.io_vtk import load_scalar, write_scalars
 
     annot_file = os.path.join(subjects_path, subject, 'label',
                               hemi + '.' + annot_name)
@@ -649,9 +658,9 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
                  NOTE: labels are identified by the colortable's RGB values
 
     """
-    #import os
-    #import numpy as np
-    #import vtk
+    import os
+    import numpy as np
+    import vtk
 
     def string_vs_list_check(var):
         """
@@ -666,7 +675,6 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
         elif type(var) == list:
             return var[0]
         else:
-            import os
             os.error("Check format of " + var)
 
     # Check type to make sure the filename is a string
