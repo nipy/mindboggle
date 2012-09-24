@@ -575,11 +575,10 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
 
     # Load VTK surface
     points, faces, scalars = load_scalar(surface_file, return_arrays=0)
-    Vertices =  range(1, len(points) + 1)
 
     LUTs = [curvature_values]
     LUT_names = [file_string]
-    write_scalars(vtk_file, points, Vertices, fas, LUTs, LUT_names)
+    write_scalars(vtk_file, points, range(len(points)), faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -613,7 +612,6 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     # Load VTK surface
     points, faces, scalars = load_scalar(surface_file, return_arrays=0)
-    Vertices =  range(1, len(points) + 1)
 
     output_stem = os.path.join(os.getcwd(),
                   os.path.basename(surface_file.strip('.vtk')))
@@ -621,7 +619,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
-    write_scalars(vtk_file, points, Vertices, faces, LUTs, LUT_names)
+    write_scalars(vtk_file, points, range(len(points)), faces, LUTs, LUT_names)
 
     return labels, vtk_file
 
