@@ -9,7 +9,7 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import re
+#import re
 
 def read_columns(filename, n_columns=1, trail=False):
     """
@@ -27,7 +27,7 @@ def read_columns(filename, n_columns=1, trail=False):
     columns :  a list of lists of strings, one list per column of text.
 
     """
-    #import re
+    import re
 
     Fp = open(filename, 'r')
     lines = Fp.readlines()
