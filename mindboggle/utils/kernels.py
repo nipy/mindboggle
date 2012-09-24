@@ -8,8 +8,8 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
-from scipy.sparse import lil_matrix
+#import numpy as np
+#from scipy.sparse import lil_matrix
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -18,9 +18,14 @@ from scipy.sparse import lil_matrix
 ###############################################################################
 
 def rbf_kernel(x1, x2, sigma):
+    import numpy as np
+
     return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
 
 def cotangent_kernel(Nodes, Meshes):
+    import numpy as np
+    from scipy.sparse import lil_matrix
+
     num_nodes = Nodes.shape[0]
     W = lil_matrix((num_nodes, num_nodes))
     print 'Constructing sparse affinity matrix...'
@@ -44,5 +49,7 @@ def cotangent_kernel(Nodes, Meshes):
     return W
 
 def inverse_distance(x1, x2, epsilon):
+    import numpy as np
+
     return 1.0/(np.linalg.norm(x1 - x2) + epsilon)
 

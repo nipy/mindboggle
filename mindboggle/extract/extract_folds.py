@@ -9,11 +9,11 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
-from time import time
-from measure.measure_functions import compute_percentile
-from utils.mesh_operations import segment, fill_holes
-from utils.io_vtk import load_scalar
+#import numpy as np
+#from time import time
+#from measure.measure_functions import compute_percentile
+#from utils.mesh_operations import segment, fill_holes
+#from utils.io_vtk import load_scalar
 
 #==============
 # Extract folds
@@ -53,11 +53,11 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     >>> rewrite_scalars(depth_file, 'test_folds.vtk', folds)
 
     """
-    #import numpy as np
-    #from time import time
-    #from measure.measure_functions import compute_percentile
-    #from utils.mesh_operations import segment, fill_holes
-    #from utils.io_vtk import load_scalar
+    import numpy as np
+    from time import time
+    from measure.measure_functions import compute_percentile
+    from utils.mesh_operations import segment, fill_holes
+    from utils.io_vtk import load_scalar
 
     print("Extract folds from surface mesh...")
     t0 = time()
