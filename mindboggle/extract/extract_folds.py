@@ -91,7 +91,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes, max_hole = segment(seeds, neighbor_lists, min_fold_size=1)
+        holes, n_holes, max_hole = segment(seeds, neighbor_lists, 1)
 
         # If there are any holes
         if n_holes > 0:
