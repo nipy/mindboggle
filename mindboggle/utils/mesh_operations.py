@@ -10,8 +10,8 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
-from operator import itemgetter
+#import numpy as np
+#from operator import itemgetter
 
 #------------------------------
 # Find all neighbors from faces
@@ -44,7 +44,7 @@ def find_neighbors(faces):
     >>> neighbor_lists = find_neighbors(faces)
 
     """
-    #import numpy as np
+    import numpy as np
 
     n_vertices = np.max(faces) + 1
     neighbor_lists = [[] for i in xrange(n_vertices)]
@@ -99,7 +99,7 @@ def find_neighbors_vertex(faces, index):
         [0, 2, 4]
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure argument is a numpy array
     if type(faces) != np.ndarray:
@@ -165,8 +165,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', LUT)
 
     """
-    #import numpy as np
-    #from operator import itemgetter
+    import numpy as np
+    from operator import itemgetter
 
     # Make sure arguments are numpy arrays
     if type(points) != np.ndarray:
@@ -240,7 +240,7 @@ def segment(seeds, neighbor_lists, min_patch_size=1):
     max_patch_label : index for largest segmented set of vertices
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Initialize segments and seeds (indices of deep vertices)
     n_vertices = len(neighbor_lists)
@@ -333,7 +333,7 @@ def fill_holes(patches, holes, n_holes, neighbor_lists):
         patch ID numbers
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(patches) != np.ndarray:
@@ -376,7 +376,7 @@ def simple_test(index, values, thr, neighbor_lists):
     n_inside : number of neighboring vertices greater than threshold
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(values) != np.ndarray:
@@ -466,7 +466,7 @@ def skeletonize(B, indices_to_keep, neighbor_lists):
     B : binary skeleton: numpy array
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(B) != np.ndarray:
@@ -508,7 +508,7 @@ def inside_faces(faces, indices):
     faces : reduced array of faces
 
     """
-    #import numpy as np
+    import numpy as np
 
     len_faces = len(faces)
     fs = frozenset(indices)
@@ -548,7 +548,7 @@ def detect_boundaries(labels, patch, neighbor_lists):
       ([1, 4], [[10, 90], [40, 30]])
 
     """
-    #import numpy as np
+    import numpy as np
 
     # Make sure arguments are numpy arrays
     if type(labels) != np.ndarray:
@@ -584,7 +584,7 @@ def compute_distance(point, points):
     between a point and a set of points
 
     """
-    #import numpy as np
+    import numpy as np
 
     # If points is a single point
     if np.ndim(points) == 1:
