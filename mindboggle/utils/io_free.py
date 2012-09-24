@@ -16,10 +16,10 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import os
-import struct
-import vtk
-from nipype.interfaces.base import CommandLine
+#import os
+#import struct
+#import vtk
+#from nipype.interfaces.base import CommandLine
 
 
 def read_surface(filename):
@@ -54,8 +54,8 @@ def read_surface(filename):
     [2, 39, 3]
 
     """
-    #import os
-    #import struct
+    import os
+    import struct
 
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
@@ -112,8 +112,8 @@ def read_curvature(filename):
     -0.37290969491004944
 
     """
-    #import os
-    #import struct
+    import os
+    import struct
 
     f = open(filename, "rb")
 
@@ -180,8 +180,8 @@ def labels_to_annot(hemi, subjects_path, subject, label_files,
     annot_file :  name of .annot file (with prepend)
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     label_files = [f for f in label_files if f!=None]
     if label_files:
@@ -217,8 +217,8 @@ def labels_to_volume(subject, annot_name):
     aparc+aseg volume.
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     print("Fill gray matter volume with surface labels using FreeSurfer...")
 
@@ -257,8 +257,8 @@ def thickness_to_ascii(hemi, subject, subjects_path):
         by orders of vertices in FreeSurfer surface file.
 
     """
-    #import os
-    #from nipype.interfaces.base import CommandLine
+    import os
+    from nipype.interfaces.base import CommandLine
 
     filename = hemi + 'thickness'
     filename_full = os.path.join(subjects_path, subject, filename)

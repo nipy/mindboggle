@@ -10,11 +10,12 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import sys
-import numpy as np
-from utils.io_vtk import load_scalar
-from info.sulcus_boundaries import sulcus_boundaries
-from utils.mesh_operations import segment, detect_boundaries, compute_distance
+#import sys
+#import numpy as np
+#from utils.io_vtk import load_scalar, write_scalars
+#from info.sulcus_boundaries import sulcus_boundaries
+#from utils.mesh_operations import segment, detect_boundaries, \
+#    find_neighbors, compute_distance
 
 
 def identify(labels, folds, label_pair_lists, sulcus_IDs,
@@ -177,9 +178,9 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         (6.6) Treat each subfold as a new fold and start again from #1.
 
     """
-    #import numpy as np
-    #from utils.mesh_operations import segment, detect_boundaries, \
-    #    compute_distance
+    import numpy as np
+    from utils.mesh_operations import segment, detect_boundaries, \
+        compute_distance
 
     #---------------------------------------------------------------------------
     # Nested function definitions
@@ -393,7 +394,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 # If the set of labels in the fold are a superset of the labels
                 # for only one of the protocol's sulcus label lists:
                 if len(subset_list_indices) == 1:
-                    print "  Case 5: fold labels a superset of only one " \
+                    print "  Case 5: fold labels a superset of only one " + \
                           "sulcus label list..."
                     unassigned = [[]]
                     for vertex in fold:
@@ -454,7 +455,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         subfold_lists.append(subfold_list)
                     # For each nonpair vertex find the closest subfold vertex
                     for nonpair_vertex in nonpair_vertices:
-                        shortest_distance = 1000000
+                        shortest_distance = np.Inf
                         closest_subfold_vertex = -1
                         for index, subfold_vertex in enumerate(subfold_vertices):
                             distance = compute_distance(points[subfold_vertex],
@@ -475,12 +476,17 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
 if __name__ == "__main__":
 
+    import sys
+    from utils.io_vtk import load_scalar, write_scalars
+    from info.sulcus_boundaries import sulcus_boundaries
+    from utils.mesh_operations import find_neighbors
+
     # Load labels and folds (the second surface has to be inflated).
     points, faces, labels = load_scalar(sys.argv[1], return_arrays=0)
     points, faces, fold_IDs = load_scalar(sys.argv[2], return_arrays=0)
 
     # Calculate neighbor lists for all vertices
-    neighbor_lists = find_all_neighbors(faces)
+    neighbor_lists = find_neighbors(faces)
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     label_pair_lists = sulcus_boundaries()
@@ -503,5 +509,5 @@ if __name__ == "__main__":
         sulcus_IDs, neighbor_lists, points)
 
     # Finally, write points, faces and sulcus_IDs to a new vtk file
-    io_vtk.write_scalars(sys.argv[3], points, range(len(points)), faces,
-        LUTs=[sulcus_IDs], LUT_names=['Sulcus indices'])
+    write_scalars(sys.argv[3], points, range(len(points)), faces,
+        LUTs=[sulcus_IDs], LUT_names=['sulcus IDs'])
