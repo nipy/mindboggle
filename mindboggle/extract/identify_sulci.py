@@ -425,8 +425,8 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                     #       that are not members of the protocol's label pairs
                     #       list and return the unique list of 'nonpair labels'.
                     nonpair_labels = []
-                    for index in boundary_indices:
-                        vertex_labels = boundary_label_pairs[index]
+                    for i_index, index in enumerate(boundary_indices):
+                        vertex_labels = boundary_label_pairs[i_index]
                         # Compare sorted, unique labels
                         if np.unique(vertex_labels).tolist() not in protocol_pairs:
                             [nonpair_labels.append(x) for x in vertex_labels
@@ -441,9 +441,8 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
                     # (6.4) Segment groups of connected subfold vertices into
                     #       separate subfolds.
-                    subfolds, n_subfolds, o1, o2 = segment(faces,
-                        subfold_vertices, len(subfold_vertices),
-                        1, min_patch_size=50)
+                    subfolds, n_subfolds, foo = segment(subfold_vertices,
+                        neighbor_lists, 50)
 
                     # (6.5) Assign each vertex with a nonpair label to the
                     #       closest subfold.
