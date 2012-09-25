@@ -97,7 +97,7 @@ evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
 run_featureflow = True
-run_shapeflow = True
+run_shapeflow = 0#True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
