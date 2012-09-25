@@ -219,11 +219,11 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     return anchors
 
 #========================
-# Segment surface patches
+# Segment surface regions
 #========================
-def segment(seeds, neighbor_lists, min_patch_size=1):
+def segment(seeds, neighbor_lists, min_region_size=1):
     """
-    Segment a surface into contiguous patches (seed region growing).
+    Segment a surface into contiguous regions (seed region growing).
 
     Parameters
     ----------
@@ -231,97 +231,96 @@ def segment(seeds, neighbor_lists, min_patch_size=1):
             list or [#seeds x 1] array
     neighbor_lists : list of lists of integers (#lists = #vertices in mesh)
         each list contains indices to neighboring vertices
-    min_patch_size : minimum size of segmented set of vertices
+    min_region_size : minimum size of segmented set of vertices
 
     Returns
     -------
-    segments : segment indices for patches: [#seeds x 1] numpy array
+    segments : segment indices for regions: [#seeds x 1] numpy array
     n_segments : #segments
-    max_patch_label : index for largest segmented set of vertices
+    max_region_label : index for largest segmented set of vertices
 
     """
     import numpy as np
+    from time import time
 
-    # Initialize segments and seeds (indices of deep vertices)
-    n_vertices = len(neighbor_lists)
-    segments = np.zeros(n_vertices)
-    n_seeds = len(seeds)
+    # Initialize segments (length is equal to the number of mesh vertices)
+    segments = np.zeros(len(neighbor_lists))
+
+    # Keep only seed neighbor lists
+    print('    Removing non-seeds from the neighbor lists...')
+    seed_neighbor_lists = []
+    [seed_neighbor_lists.append([x for x in lst if x in seeds])
+     for lst in neighbor_lists]
 
     # Loop until all seed vertices segmented
-    print('    Grow {0} seed vertices...'.format(n_seeds))
-    max_patch_size = 0
-    max_patch_label = 1
+    print('    Grow from {0} seed vertices...'.format(len(seeds)))
+    max_region_size = 0
+    max_region_label = 1
     n_segments = 0
     counter = 0
-    covered_init = np.zeros(n_vertices)
-    while n_seeds >= min_patch_size:
-        covered = np.copy(covered_init)
+    while len(seeds) >= min_region_size:
 
         # Select a seed vertex (selection does not affect result)
-        #I = [seeds[round(np.random.rand() * (n_seeds - 1))]]
-        I = [seeds[0]]
-        # Region grown from seed
-        Ipatch = I[:]
+        #new_seeds = [seeds[round(np.random.rand() * (len(seeds) - 1))]]
+        new_seeds = [seeds[0]]
+
+        # Initialize region grown from seed
+        region = new_seeds[:]
 
         # Grow region about the seed vertex until
         # there are no more connected seed vertices available.
-        # Continue loop if there are newly selected neighbors.
         loop = 1
         while loop:
             loop = 0
-            covered[I] = 1
-            Inew = []
 
-            # Identify neighbors for selected seed vertices
-            N=[]; [N.extend(neighbor_lists[i]) for i in I]
-            N = list(set(N))
+            # Disregard vertices already visited (new_seeds)
+            seeds = list(frozenset(seeds).difference(new_seeds))
+
+            # Identify neighbors of selected ("new") seed vertices
+            neighbors = []
+            [neighbors.extend(seed_neighbor_lists[x]) for x in new_seeds]
 
             # Select seed neighbors that have not been previously selected
-            neighbors = [x for x in N if x in seeds if covered[x] == 0]
-            if len(neighbors) > 0:
-                covered[neighbors] = 2
-                Inew.extend(neighbors)
+            new_seeds = [x for x in list(set(neighbors)) if x not in region]
+
+            # Add new seeds to the segmented region
+            if len(new_seeds) > 0:
+                region.extend(new_seeds)
+
+                # Continue loop if there are new seed neighbors
                 loop = 1
 
-            # Resume with new neighbors, and add them to the segmented patch
-            I = Inew
-            Ipatch.extend(Inew)
-
-        # Disregard vertices already visited
-        seeds = list(frozenset(seeds).difference(Ipatch))
-        n_seeds = len(seeds)
-
-        # Assign counter number to segmented patch
-        # if patch size is greater than min_patch_size
-        size_patch = len(Ipatch)
-        if size_patch >= min_patch_size:
+        # Assign counter number to segmented region
+        # if region size is greater than min_region_size
+        size_region = len(region)
+        if size_region >= min_region_size:
             counter += 1
             n_segments = counter
-            segments[Ipatch] = n_segments
+            segments[region] = n_segments
 
-            # Display current number and size of patch
-            if size_patch > 1:
-                print('    Segmented patch {0}: {1} vertices. {2} seeds remaining...'.
-                      format(n_segments, size_patch, n_seeds))
+            # Display current number and size of region
+            if size_region > 1:
+                print('    Segmented region {0}: {1} vertices. {2} seeds remaining...'.
+                      format(n_segments, size_region, len(seeds)))
 
-            # Find the maximum patch size
-            if size_patch > max_patch_size:
-                max_patch_size = size_patch
-                max_patch_label = counter
+            # Find the maximum region size
+            if size_region > max_region_size:
+                max_region_size = size_region
+                max_region_label = counter
 
-    return segments, n_segments, max_patch_label
+    return segments, n_segments, max_region_label
 
 
 #-----------
 # Fill holes
 #-----------
-def fill_holes(patches, holes, n_holes, neighbor_lists):
+def fill_holes(regions, holes, n_holes, neighbor_lists):
     """
-    Fill holes in surface mesh patches.
+    Fill holes in surface mesh regions.
 
     Parameters
     ----------
-    patches : [#vertices x 1] numpy array
+    regions : [#vertices x 1] numpy array
     holes : [#vertices x 1] numpy array
     n_holes : [#vertices x 1] numpy array
     neighbor_lists : list of lists of integers
@@ -329,15 +328,15 @@ def fill_holes(patches, holes, n_holes, neighbor_lists):
 
     Returns
     -------
-    patches : [#vertices x 1] numpy array of integers
-        patch ID numbers
+    regions : [#vertices x 1] numpy array of integers
+        region ID numbers
 
     """
     import numpy as np
 
     # Make sure arguments are numpy arrays
-    if type(patches) != np.ndarray:
-        patches = np.array(patches)
+    if type(regions) != np.ndarray:
+        regions = np.array(regions)
 
     # Identify the vertices for each hole
     for i in range(1, n_holes + 1):
@@ -347,10 +346,10 @@ def fill_holes(patches, holes, n_holes, neighbor_lists):
         N=[]; [N.extend(neighbor_lists[i]) for i in I]
         if len(N):
 
-            # Assign the hole the maximum patch ID number of its neighbors
-            patches[I] = max([patches[x] for x in N])
+            # Assign the hole the maximum region ID number of its neighbors
+            regions[I] = max([regions[x] for x in N])
 
-    return patches
+    return regions
 
 #-----------------------
 # Test for simple points
@@ -450,30 +449,30 @@ def simple_test(index, values, thr, neighbor_lists):
 #------------
 # Skeletonize
 #------------
-def skeletonize(B, indices_to_keep, neighbor_lists):
+def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
 
     Parameters
     ----------
-    B : binary [#vertices x 1] numpy array
+    binary_array : binary [#vertices x 1] numpy array
     indices_to_keep : indices to retain
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
-    B : binary skeleton: numpy array
+    binary_array : binary skeleton: numpy array
 
     """
     import numpy as np
 
     # Make sure arguments are numpy arrays
-    if type(B) != np.ndarray:
-        B = np.array(B)
+    if type(binary_array) != np.ndarray:
+        binary_array = np.array(binary_array)
 
     # Loop until all vertices are not simple points
-    indices = np.where(B)[0]
+    indices = np.where(binary_array)[0]
     exist_simple = True
     while exist_simple == True:
         exist_simple = False
@@ -482,17 +481,17 @@ def skeletonize(B, indices_to_keep, neighbor_lists):
         for index in indices:
 
             # Do not update certain indices
-            if B[index] and index not in indices_to_keep:
+            if binary_array[index] and index not in indices_to_keep:
 
                 # Test to see if index is a simple point
-                update, n_in = simple_test(index, B, 0, neighbor_lists)
+                update, n_in = simple_test(index, binary_array, 0, neighbor_lists)
 
                 # If a simple point, remove and run again
                 if update and n_in > 1:
-                    B[index] = 0
+                    binary_array[index] = 0
                     exist_simple = True
 
-    return B
+    return binary_array
 
 def inside_faces(faces, indices):
     """
@@ -518,16 +517,16 @@ def inside_faces(faces, indices):
 
     return faces
 
-def detect_boundaries(labels, patch, neighbor_lists):
+def detect_boundaries(labels, region, neighbor_lists):
     """
-    Detect the label boundaries in a collection of vertices such as a patch.
+    Detect the label boundaries in a collection of vertices such as a region.
 
     Parameters
     ----------
     labels : numpy array of integers, indexed from 1
         labels for all vertices
-    patch : list of integers
-        indices to vertices in a patch (any given collection of vertices)
+    region : list of integers
+        indices to vertices in a region (any given collection of vertices)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
@@ -543,8 +542,8 @@ def detect_boundaries(labels, patch, neighbor_lists):
     >>> from utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    >>> patch = [0,1,2,4,5,8,9]
-    >>> detect_boundaries(labels, patch, neighbor_lists)
+    >>> region = [0,1,2,4,5,8,9]
+    >>> detect_boundaries(labels, region, neighbor_lists)
       ([1, 4], [[10, 90], [40, 30]])
 
     """
@@ -560,10 +559,10 @@ def detect_boundaries(labels, patch, neighbor_lists):
     # Find indices to sets of two labels
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
-                        if i in patch]
+                        if i in region]
     boundary_label_pairs = [list(set(x)) for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
-                            if i in patch]
+                            if i in region]
 
     return boundary_indices, boundary_label_pairs
 
