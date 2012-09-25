@@ -274,9 +274,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
                     # Note: H_new[index] is not changed yet since
                     #       simple_test() only considers its neighbors
                     if H[index] >= thr >= H_test:
-                        update, n_in = simple_test(faces, index, H_new, thr, N)
+                        update, n_in = simple_test(index, H_new, thr, N)
                     elif H[index] <= thr <= H_test:
-                        update, n_in = simple_test(faces, index, 1 - H_new, thr, N)
+                        update, n_in = simple_test(index, 1 - H_new, thr, N)
 
                     # Update the HMMF value if far from the threshold
                     else:
@@ -335,7 +335,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     n_points = sum(H)
 
     # Skeletonize
-    skeleton = skeletonize(H, anchors, faces, N)
+    skeleton = skeletonize(H, anchors, N)
     print('      Removed {0} points to create one-vertex-thin skeletons'.
           format(n_points - sum(skeleton)))
 
@@ -414,7 +414,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
         # If the fold has enough high-likelihood vertices, continue
         likelihoods_thr = sum(fold_likelihoods > thr)
-        print('    Computed fundus likelihood values: {0} > {1} (minimum: {2})'.
+        print('    {0} vertices with fundus likelihood value > {1} (minimum: {2})'.
               format(likelihoods_thr, thr, min_fold_size))
         if likelihoods_thr > min_fold_size:
 
