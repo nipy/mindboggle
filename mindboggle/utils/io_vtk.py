@@ -188,10 +188,12 @@ def load_scalar(filename, return_arrays=1):
         on a surface mesh
     scalars : list of floats (see return_arrays)
         Each element is a scalar value corresponding to a vertex
+    n_vertices : int
+        number of vertices in the mesh
 
     Example
     -------
-    >>> points, faces, scalars = load_scalar('lh.pial.depth.vtk')
+    >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
 
     """
     import numpy as np
@@ -205,6 +207,7 @@ def load_scalar(filename, return_arrays=1):
     Data = Reader.GetOutput()
     points = [list(Data.GetPoint(point_id))
               for point_id in xrange(0, Data.GetNumberOfPoints())]
+    n_vertices = len(points)
 
     #Vrts = Data.GetVerts()
     #indices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
@@ -226,9 +229,9 @@ def load_scalar(filename, return_arrays=1):
         scalars = []
 
     if return_arrays:
-        return np.array(points), np.array(faces), np.array(scalars)
+        return np.array(points), np.array(faces), np.array(scalars), n_vertices
     else:
-        return points, faces, scalars
+        return points, faces, scalars, n_vertices
 
 def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     """
@@ -324,10 +327,10 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
-    points, faces, scalars = load_scalar(input_vtk, return_arrays=1)
+    points, faces, scalars, n_vertices = load_scalar(input_vtk, return_arrays=1)
 
     # Find indices to nonzero values
-    indices = range(len(scalars))
+    indices = range(n_vertices)
     if len(filter_scalars) > 0:
         indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
     else:
@@ -402,8 +405,8 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     norm_columns = []
     for i, shape_file in enumerate(shape_files):
 
-        points, faces, areas = load_scalar(area_file, return_arrays=1)
-        points, faces, values = load_scalar(shape_file, return_arrays=1)
+        points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
+        points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
             label_list = mean_value_per_label(values, areas, labels)
@@ -574,11 +577,11 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
     curvature_values = read_curvature(filename)
 
     # Load VTK surface
-    points, faces, scalars = load_scalar(surface_file, return_arrays=0)
+    points, faces, scalars, n_vertices = load_scalar(surface_file, return_arrays=0)
 
     LUTs = [curvature_values]
     LUT_names = [file_string]
-    write_scalars(vtk_file, points, range(len(points)), faces, LUTs, LUT_names)
+    write_scalars(vtk_file, points, range(n_vertices), faces, LUTs, LUT_names)
 
     return vtk_file
 
@@ -611,7 +614,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     #points, faces = read_surface(surface_file)
 
     # Load VTK surface
-    points, faces, scalars = load_scalar(surface_file, return_arrays=0)
+    points, faces, scalars, n_vertices = load_scalar(surface_file, return_arrays=0)
 
     output_stem = os.path.join(os.getcwd(),
                   os.path.basename(surface_file.strip('.vtk')))
@@ -619,7 +622,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     LUTs = [labels.tolist()]
     LUT_names = ['Labels']
-    write_scalars(vtk_file, points, range(len(points)), faces, LUTs, LUT_names)
+    write_scalars(vtk_file, points, range(n_vertices), faces, LUTs, LUT_names)
 
     return labels, vtk_file
 

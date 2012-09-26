@@ -385,9 +385,10 @@ if run_atlasflow:
                            interface = Fn(function = load_scalar,
                                           input_names = ['filename',
                                                          'return_arrays'],
-                                          output_names = ['Points',
-                                                          'Faces',
-                                                          'Scalars']))
+                                          output_names = ['points',
+                                                          'faces',
+                                                          'scalars',
+                                                          'n_vertices']))
         atlasflow.add_nodes([atlaslabels])
         mbflow.connect([(atlas, atlasflow,
                          [('atlas_file', 'Atlas_labels.filename')])])
@@ -543,7 +544,8 @@ if run_featureflow:
                                                       'return_arrays'],
                                        output_names = ['points',
                                                        'faces',
-                                                       'scalars']))
+                                                       'scalars',
+                                                       'n_vertices']))
     featureflow.add_nodes([load_surface])
     if input_vtk:
         mbflow.connect([(surf, featureflow,
@@ -555,10 +557,11 @@ if run_featureflow:
 
     neighbors = Node(name='Neighbors',
                      interface = Fn(function = find_neighbors,
-                                    input_names = ['faces'],
+                                    input_names = ['faces', 'n_vertices'],
                                     output_names = ['neighbor_lists']))
     featureflow.add_nodes([neighbors])
-    featureflow.connect([(load_surface, neighbors, [('faces','faces')])])
+    featureflow.connect([(load_surface, neighbors,
+                          [('faces','faces'), ('n_vertices','n_vertices')])])
     #---------------------------------------------------------------------------
     # Extract folds
     #---------------------------------------------------------------------------
