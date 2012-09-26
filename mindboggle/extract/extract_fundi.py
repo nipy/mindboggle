@@ -390,16 +390,15 @@ def extract_fundi(folds, n_folds, neighbor_lists,
                          for i in range(1, n_folds+1)]
 
     # Load depth and curvature values from VTK and text files
-    vertices, Faces, depths = load_scalar(depth_file, return_arrays=1)
-    vertices, Faces, mean_curvatures = load_scalar(mean_curvature_file,
-                                                   return_arrays=1)
+    vertices, Faces, depths, n_vertices = load_scalar(depth_file, return_arrays=1)
+    vertices, Faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+                                                               return_arrays=1)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold...
     print("Extract a fundus from each of {0} folds...".format(n_folds))
     t1 = time()
     fundus_lists = []
-    n_vertices = len(depths)
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
 

@@ -16,7 +16,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #------------------------------
 # Find all neighbors from faces
 #------------------------------
-def find_neighbors(faces):
+def find_neighbors(faces, n_vertices):
     """
     Generate the list of unique, sorted indices of neighboring vertices
     for all vertices in the faces of a triangular mesh.
@@ -40,14 +40,12 @@ def find_neighbors(faces):
 
     >>> from utils.mesh_operations import find_neighbors
     >>> from utils.io_vtk import load_scalar
-    >>> points, faces, scalars = load_scalar('lh.pial.depth.vtk')
+    >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors(faces)
 
     """
-    import numpy as np
 
-    n_vertices = np.max(faces) + 1
-    neighbor_lists = [[] for i in xrange(n_vertices)]
+    neighbor_lists = [[] for x in xrange(n_vertices)]
 
     for face in faces:
         [v0, v1, v2] = face
@@ -152,7 +150,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>>     '_hemi_lh_subject_MMRR-21-1/lh.pial.curv.min.dir.txt'
     >>> values_file = '/desk/output/results/measures/' + \
     >>>     '_hemi_rh_subject_MMRR-21-1/lh.pial.depth.vtk'
-    >>> points, faces, values = load_scalar(values_file, 1)
+    >>> points, faces, values, n_vertices = load_scalar(values_file, 1)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
