@@ -101,9 +101,9 @@ if __name__ == "__main__":
     print('***')
 
     # Load fundi, folds, labels
-    points, faces, fundi = load_scalar(fundi_file, return_arrays=1)
-    points, faces, folds = load_scalar(folds_file, return_arrays=1)
-    points, faces, labels = load_scalar(labels_file, return_arrays=1)
+    points, faces, fundi, n_vertices = load_scalar(fundi_file, return_arrays=1)
+    points, faces, folds, n_vertices = load_scalar(folds_file, return_arrays=1)
+    points, faces, labels, n_vertices = load_scalar(labels_file, return_arrays=1)
     n_points = len(points)
 
     # List of indices to fold vertices
@@ -111,7 +111,7 @@ if __name__ == "__main__":
 
     # Calculate neighbor lists for all points
     print('Find neighbors to all vertices...')
-    neighbor_lists = find_neighbors(faces)
+    neighbor_lists = find_neighbors(faces, n_points)
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     print('Prepare a list of unique, sorted label pairs in the protocol...')
