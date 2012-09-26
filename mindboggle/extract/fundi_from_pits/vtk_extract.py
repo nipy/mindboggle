@@ -1,8 +1,3 @@
-# this script extracts fundi/pits/sulci from a VTK file from the output from Joachim's code
-
-import libfundi # this line imports my own library
-import sys, getopt # this line imports pulic libraries
-
 def print_help():
     print "\n  Usage: python vtk_extract.py  [OPTIONS] InputVTK\n"
     print "  Options: "
@@ -111,16 +106,23 @@ def process_opt(opts,args):
     FundiVTK, PitsVTK, SulciVTK, \
     Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"",["thick=","second=","convex=","fundi=","fundi2=","pits=","pits2=","sulci=","sulci2=","sulciThld="])
-except getopt.GetoptError, err:
-    print str(err) # will print something like "option -a not recognized"
-    print_help()
-    sys.exit(2)
-
-check_opt(opts, args)
-
-InputFiles = process_opt(opts, args)
+if __name__ == "__main__":
+    # this script extracts fundi/pits/sulci from a VTK file from the output from Joachim's code
+    
+    import libfundi # this line imports my own library
+    import sys, getopt # this line imports pulic libraries
 
 
-libfundi.getFundi(InputFiles, 'vtk','')
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"",["thick=","second=","convex=","fundi=","fundi2=","pits=","pits2=","sulci=","sulci2=","sulciThld="])
+    except getopt.GetoptError, err:
+        print str(err) # will print something like "option -a not recognized"
+        print_help()
+        sys.exit(2)
+    
+    check_opt(opts, args)
+    
+    InputFiles = process_opt(opts, args)
+    
+    
+    libfundi.getFeatures(InputFiles, 'vtk','')
