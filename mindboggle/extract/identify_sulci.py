@@ -544,11 +544,11 @@ if __name__ == "__main__":
     from utils.mesh_operations import find_neighbors
 
     # Load labels and folds (the second surface has to be inflated).
-    points, faces, labels = load_scalar(sys.argv[1], return_arrays=0)
-    points, faces, fold_IDs = load_scalar(sys.argv[2], return_arrays=0)
+    points, faces, labels, n_vertices = load_scalar(sys.argv[1], return_arrays=0)
+    points, faces, fold_IDs, n_vertices = load_scalar(sys.argv[2], return_arrays=0)
 
     # Calculate neighbor lists for all vertices
-    neighbor_lists = find_neighbors(faces)
+    neighbor_lists = find_neighbors(faces, len(points))
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     label_pair_lists = sulcus_boundaries()

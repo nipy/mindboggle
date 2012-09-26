@@ -33,8 +33,8 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
 
     #import numpy as np
     #from utils import io_vtk
-    #Points, Faces, Scalars1 = io_vtk.load_scalar(labels_file1, return_arrays=1)
-    #Points, Faces, Scalars2 = io_vtk.load_scalar(labels_file2, return_arrays=1)
+    #Points, Faces, Scalars1, n_vertices = io_vtk.load_scalar(labels_file1, return_arrays=1)
+    #Points, Faces, Scalars2, n_vertices = io_vtk.load_scalar(labels_file2, return_arrays=1)
     #print(np.unique(Scalars1))
     #print(np.unique(Scalars2))
 

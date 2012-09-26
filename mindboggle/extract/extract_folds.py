@@ -63,7 +63,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     t0 = time()
 
     # Load depth values from VTK file
-    points, faces, depths = load_scalar(depth_file, return_arrays=True)
+    points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=True)
 
     # Compute the minimum depth threshold for defining folds by determining the
     # percentile of depth values for the fraction of vertices that are not folds.
