@@ -579,8 +579,11 @@ def compute_distance(point, points):
 
     Returns
     -------
-    Euclidean distance between two points, or the minimum distance
-    between a point and a set of points
+    min_distance : float
+        Euclidean distance between two points,
+        or the minimum distance between a point and a set of points
+    min_index : int
+        index of closest of the points (zero if only one)
 
     """
     import numpy as np
@@ -589,19 +592,21 @@ def compute_distance(point, points):
     if np.ndim(points) == 1:
         return np.sqrt((point[0] - points[0]) ** 2 + \
                        (point[1] - points[1]) ** 2 + \
-                       (point[2] - points[2]) ** 2)
+                       (point[2] - points[2]) ** 2), 0
 
     # If points is a set of multiple points
     elif np.ndim(points) == 2:
         min_distance = np.Inf
-        for point2 in points:
+        min_index = 0
+        for index, point2 in enumerate(points):
             distance = np.sqrt((point[0] - point2[0]) ** 2 + \
                                (point[1] - point2[1]) ** 2 + \
                                (point[2] - point2[2]) ** 2)
             if distance < min_distance:
                 min_distance = distance
-        return min_distance
+                min_index = index
+        return min_distance, min_index
 
     # Else return None
     else:
-        return None
+        return None, None
