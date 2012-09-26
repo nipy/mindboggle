@@ -785,7 +785,7 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
         [Vertexes2, Face2] = Mesh2
         pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(Fundi2VTK, 'ascii')
 
-def getFundi(InputFiles, Type, Options):
+def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
     
     Parameters
