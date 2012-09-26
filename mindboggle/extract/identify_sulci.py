@@ -539,7 +539,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 if __name__ == "__main__":
 
     import sys
-    from utils.io_vtk import load_scalar, write_scalars
+    from utils.io_vtk import load_scalar, rewrite_scalars
     from info.sulcus_boundaries import sulcus_boundaries
     from utils.mesh_operations import find_neighbors
 
@@ -563,7 +563,7 @@ if __name__ == "__main__":
 
     # Assign a sulcus ID to each fold vertex.
     # Initialize all fold vertices as -1.
-    sulcus_IDs = [-1 for i in xrange(len(labels))]
+    sulcus_IDs = [-1 for i in xrange(n_vertices)]
     # Since we do not touch gyral vertices and vertices whose labels
     # are not in label list, or vertices having only one label,
     # their sulcus IDs will remain -1.
@@ -571,5 +571,4 @@ if __name__ == "__main__":
         sulcus_IDs, neighbor_lists, points)
 
     # Finally, write points, faces and sulcus_IDs to a new vtk file
-    write_scalars(sys.argv[3], points, range(len(points)), faces,
-        LUTs=[sulcus_IDs], LUT_names=['sulcus IDs'])
+    rewrite_scalars(sys.argv[1], sys.argv[3], sulcus_IDs, filter_scalars=[])
