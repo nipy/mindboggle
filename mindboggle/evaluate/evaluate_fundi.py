@@ -56,14 +56,14 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
     for i_label_point, fundus_ID in enumerate(label_boundary_fundi):
         if fundus_ID > 0:
 
-            # Find indices of fundus points in the same fold
+            # Find (indices of) fundus points in the same fold
             I_fundus_points = [i for i,x in enumerate(fundi)
                                if x > 0
                                if folds[i] == folds[i_label_point]]
 
             # Find the closest fundus point to the label boundary fundus point
-            d = compute_distance(points[i_label_point],
-                                 points[I_fundus_points])
+            d, i = compute_distance(points[i_label_point],
+                                    points[I_fundus_points])
             distances[i_label_point] = d
             distance_matrix[i_label_point, fundus_ID - 1] = d
 
@@ -86,7 +86,6 @@ if __name__ == "__main__":
 
     import sys
     import numpy as np
-    from utils.mesh_operations import compute_distance
     from utils.io_vtk import load_scalar, write_scalars
     from info.sulcus_boundaries import sulcus_boundaries
     from utils.mesh_operations import detect_boundaries, find_neighbors
