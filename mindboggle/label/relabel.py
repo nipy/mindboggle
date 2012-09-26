@@ -143,23 +143,23 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     import utils.io_file as io_file
 
     # Load labeled vtk surfaces
-    Points, Faces, Scalars = io_vtk.load_scalar(vtk_file)
-    Scalars = np.array(Scalars)
-    Vertices = range(1, len(Points) + 1)
+    points, faces, scalars, n_vertices = io_vtk.load_scalar(vtk_file)
+    scalars = np.array(scalars)
+    indices = range(1, n_vertices + 1)
 
     # Load label lists
     labels_to_replace, new_labels = io_file.read_columns(relabel_list, 2)
     for i, new_label in enumerate(new_labels):
 
         # Find which vertices have the label
-        indices = np.where(Scalars == int(labels_to_replace[i]))[0]
-        Scalars[indices] = int(new_label)
+        indices = np.where(scalars == int(labels_to_replace[i]))[0]
+        scalars[indices] = int(new_label)
 
     relabeled_vtk = os.path.join(os.getcwd(),
                                  os.path.basename(vtk_file).split('.')[0] + \
                                  '.' + new_string)
-    io_vtk.write_scalars(relabeled_vtk, Points, Vertices, Faces,
-                         [Scalars.tolist()], ['Labels'])
+    io_vtk.write_scalars(relabeled_vtk, points, indices, faces,
+                         [scalars.tolist()], ['Labels'])
 
     return relabeled_vtk
 
