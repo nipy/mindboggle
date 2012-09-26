@@ -1,6 +1,3 @@
-import sys, getopt # this line imports pulic libraries
-import libfundi
-
 def print_help():
     print "\n  Usage: python extract.py [OPTIONS] SurfFile\n"
     print "  Options (at least one of --curv and --convex are needed): "
@@ -154,16 +151,20 @@ def process_opt(opts, args):
     return SurfFile, SurfFile2, ThickFile, CurvFile, ConvFile,\
         FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, Use, SulciThld
 
-try:
-    opts, args = getopt.getopt(sys.argv[1:],"",["thick=","second=","conv=","fundi=","fundi2=", "pits=","pits2=","sulci=","sulci2=", "curv=", "use=", "sulciThld="])
-except getopt.GetoptError, err:
-    print str(err) # will print something like "option -a not recognized"
-#    print_help()
-    print "To check usage, run: python extract.py"
-    sys.exit(2)
+if __name__ == "__main__":
+    import sys, getopt # this line imports pulic libraries
+    import libfundi
 
-check_opt(opts, args)
-InputFiles = process_opt(opts, args)
-
-# new unified extraction function Forrest 2011-10-08 
-libfundi.getFundi(InputFiles, 'FreeSurfer', '')
+    try:
+        opts, args = getopt.getopt(sys.argv[1:],"",["thick=","second=","conv=","fundi=","fundi2=", "pits=","pits2=","sulci=","sulci2=", "curv=", "use=", "sulciThld="])
+    except getopt.GetoptError, err:
+        print str(err) # will print something like "option -a not recognized"
+    #    print_help()
+        print "To check usage, run: python extract.py"
+        sys.exit(2)
+    
+    check_opt(opts, args)
+    InputFiles = process_opt(opts, args)
+    
+    # new unified extraction function Forrest 2011-10-08 
+    libfundi.getFeatures(InputFiles, 'FreeSurfer', '')
