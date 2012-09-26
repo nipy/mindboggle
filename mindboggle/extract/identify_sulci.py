@@ -348,7 +348,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         # If the fold has only one label, remove the fold by assigning a
         # sulcus ID of -1 to all vertices in this fold.
         if len(unique_fold_labels) <= 1:
-            print "  Case 1: fold has only one label"
+            print "  Case 1: fold has only one label  -- UNASSIGNED"
             continue  # sulcus_IDs already initialized with -1 values
 
         # Case 2:
@@ -419,12 +419,12 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         else:
                             print "  Case 4b: multiple sulcus label pair " \
                                   "lists contain a label pair with two of " \
-                                  "the fold labels -- UNRESOLVED"
+                                  "the fold labels -- UNASSIGNED"
                     else:
                         # (c) If there is no such label list, the fold is unresolved.
                         print "  Case 4c: no sulcus label pair lists " \
                               "contain a label pair with two of the fold " \
-                              "labels -- UNRESOLVED"
+                              "labels -- UNASSIGNED"
 
             # Cases 5-7:
             else:
@@ -525,13 +525,13 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         else:
                             print "  Case 6b: all fold vertices have " + \
                                   "labels in common with non-protocol " + \
-                                  "boundaries -- UNRESOLVED"
+                                  "boundaries -- UNASSIGNED"
 
                 # Case 7: If the fold labels are neither a superset nor subset
                 #         of any sulcus label list, the fold is unresolved.
                 else:
                     print "  Case 7: fold labels neither a superset nor " + \
-                          "subset of any sulcus label list -- UNRESOLVED"
+                          "subset of any sulcus label list -- UNASSIGNED"
 
     return sulcus_IDs
 
