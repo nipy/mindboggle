@@ -558,11 +558,16 @@ def detect_boundaries(labels, region, neighbor_lists):
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
                         if i in region]
-    boundary_label_pairs = [list(set(x)) for i,x in enumerate(label_lists)
+    boundary_label_pairs = [x for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
                             if i in region]
 
-    return boundary_indices, boundary_label_pairs
+    unique_boundary_label_pairs = []
+    for pair in boundary_label_pairs:
+        if np.sort(pair).tolist() not in unique_boundary_label_pairs:
+            unique_boundary_label_pairs.append(np.sort(pair).tolist())
+
+    return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
 
 def compute_distance(point, points):
     """
