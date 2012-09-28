@@ -314,7 +314,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     output_vtk : output VTK file [string]
     new_scalars : new scalar values for VTK file
     filter_scalars : (optional)
-                     scalar values used to filter faces (non-zero are retained)
+        scalar values used to filter faces (positive values retained)
 
     """
     import os
