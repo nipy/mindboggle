@@ -418,7 +418,13 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                                     unassigned.append(vertex)
                         else:
                             print("           Every fold pair has a duplicate label")
-#                            print("           Every fold pair has a duplicate label")
+                            print("           Segment into separate label-pair regions")
+
+
+            # Segment fold into separate label-pair regions
+            subfolds, n_subfolds, foo = segment_multiple_seeds(seeds_lists,
+                neighbor_lists, 50)
+
 
         # If there are remaining unassigned vertices
         if len(unassigned):
