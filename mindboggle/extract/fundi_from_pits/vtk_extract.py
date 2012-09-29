@@ -1,54 +1,84 @@
 def print_help():
     print "\n  Usage: python vtk_extract.py  [OPTIONS] InputVTK\n"
+    print "  InputVTK"
+    print "    The VTK file that contains a map on which features will be extracted (by default, a depth map)\n"
     print "  Options: "
     print "  --thick ThicknessFile"
-    print "    the thickness file provided by FreeSurfer\n"
+    print "    the thickness file provided by FreeSurfer"
     print "  --second SecondSurfaceFile"
-    print "    the 2nd surface to save feature(s) extracted, in FreeSurfer surface format\n"
+    print "    the 2nd surface to save feature(s) extracted, in FreeSurfer surface format"
     print "  --convex ConvexityFile"
-    print "    the convexity file provided by FreeSurfer\n"
+    print "    the convexity file provided by FreeSurfer"
     print "  --fundi FundiVTK"
-    print "    the VTK output file to save fundi, onto the same surface as VTKFile\n"
+    print "    the VTK output file to save fundi, onto the same surface as VTKFile"
     print "  --fundi2 Fundi2VTK"
-    print "    the VTK output file to save fundi, onto the second surface in SecondSurfaceFile\n"
+    print "    the VTK output file to save fundi, onto the second surface in SecondSurfaceFile"
     print "  --pits PitsVTK"
-    print "    the VTK output file to save pits, onto the same surface as VTKFile\n"
+    print "    the VTK output file to save pits, onto the same surface as VTKFile"
     print "  --pits2 Pits2VTK"
-    print "    the VTK output file to save pits, onto the second surface in SecondSurfaceFile\n"
+    print "    the VTK output file to save pits, onto the second surface in SecondSurfaceFile"
     print "  --sulci SulciVTK"
-    print "    the VTK output file to save sulci, onto the same surface as VTKFile\n"
+    print "    the VTK output file to save sulci, onto the same surface as VTKFile"
     print "  --sulci2 Sulci2VTK"
-    print "    the VTK output file to save sulci, onto the second surface in SecondSurfaceFile\n"
+    print "    the VTK output file to save sulci, onto the second surface in SecondSurfaceFile"
     print "  --sulciThld SulciThld"
     print "    SulciThld: the value to threshold the surface to get sulci (default = 0.2)"
+    print "  --clouchoux [followed by no argument]"
+    print "    whether extract pits using Clouchoux's definition"
+    print "  --meancurv MeanCurvVTK"
+    print "    the VTK input that contains a mean curvature map"
+    print "  --gausscurv GaussCurvVTK"
+    print "    the VTK input that contains a Gaussian curvature map"
     print "  Examples: "
-    print "    python vtk_extract.py --thick lh.thickness --second lh.inflated --convex lh.sulc --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk --fundi2 lh.inflated.fundi.vtk --pits2 lh.inflated.pits.vtk --sulci2 lh.inflated.sulci.vtk --sulciThld 0.15 lh.depth.vtk\n"
+    print "    python vtk_extract.py --thick lh.thickness --second lh.inflated --convex lh.sulc\
+ --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk\
+ --fundi2 lh.inflated.fundi.vtk --pits2 lh.inflated.pits.vtk --sulci2 lh.inflated.sulci.vtk\
+ --sulciThld 0.15 --clouchoux --meancurv lh.mean.curv.vtk --gausscurv lh.gauss.curv.vtk lh.depth.vtk\n"
 
 def check_opt(opts, args):
     '''Check whether opts and args satisfy constraints 
     '''
+    
+    for o, p in opts:
+        if o == '-h' or "--help":
+            print_help()
+            sys.exit()
+    
     ## Check whether mandatory input is provided 
     if len(args)!=1:
-        print "\n [ERROR]Please give at least one input VTK file containing a per-vertex map"
-        print "  Since we use getopt module to process options, please provide options ahead of arguments"
-        print_help()
+        print "  [ERROR]Please give at least one input VTK file containing a per-vertex map"
+        print "  Since we use getopt module to process options, please provide options ahead of arguments\n"
+        print "  Please run [python vtk_extract.py -h] or [python vtk_extract.py --help] to get the usage."
         sys.exit()
         
     ## Check whether second surface is provided 
-    Need2nd, Given2nd = False, False # A second surface is needed if options to save features into second surface are on. 
+    Need2nd, Given2nd = False, False # A second surface is needed if options to save features into second surface are on.
+    
+    Clouchoux, MeanCurvVTK, GaussCurvVTK = False, False, False
     for o,p in opts:
         if p == "":
-            print "[ERROR] The option",o, "is missing parameter. Please check usage and provide it."
-#            print_help()
+            print "[ERROR] The option",o, "is missing argument."
+            print "   Please run [python vtk_extract.py -h] or [python vtk_extract.py --help] to get the usage."
             sys.exit()
-        if o in ["--fundi2","--pits2","--sulci2"]:
+        elif o in ["--fundi2","--pits2","--sulci2"]:
             Need2nd = True # we will need the option --second and its parameter
-        if o=="--second":
-            Given2nd = True   
-#    print Need2nd, Given2nd
+        elif o=="--second":
+            Given2nd = True
+        elif o == "--clouchoux":
+            Clouchoux = True
+        elif o == "--meancurv":
+            MeanCurvVTK = True
+        elif o == "gausscurv":
+            GaussCurvvTK = True 
+
     if Need2nd and not Given2nd: # second surface is needed but not provided
         print "[ERROR] Second surface is needed but not provided. Please check usage and provide a second surface using --second option."
         sys.exit()
+        
+    if Clouchoux and not (MeanCurvVTK or GaussCurvVTK):
+        print "[ERROR] Clouchoux type pits will be extracted but mean curvature map and/or Gaussian curvature map is not given."
+        sys.exit()
+       
 
 def process_opt(opts,args):
     '''Give option parameters to variables that represent I/O file names.
@@ -63,6 +93,8 @@ def process_opt(opts,args):
     FundiVTK, PitsVTK, SulciVTK = '','',''
     Fundi2VTK, Pits2VTK, Sulci2VTK = '','',''
     SulciThld = 0.2
+    Clouchoux = False
+    MeanCurvVTK, GaussCurvVTK = "", ""
     
     [VTKFile] = args
     print "  [Input] VTK mesh:" + InputColor + VTKFile + EndColor
@@ -101,10 +133,23 @@ def process_opt(opts,args):
                 print "  [ERROR] Please provide a threshold value for option --", o
                 print "To check usage, run: python extract.py"
                 sys.exit()
-            SulciThld = float(p)        
+            SulciThld = float(p)
+        elif o == '--clouchoux':
+                print "  Will extract pits using Clouchoux's definition "
+                Clouchoux = True
+        elif o == "--meancurv":
+            MeanCurvVTK = p
+            print "  [Input] mean curvature file:" + InputColor + MeanCurvVTK + EndColor
+        elif o == "gausscurv":
+            GaussCurvVTK = p
+            print "  [Input] Gaussian curvature file:" + InputColor + GaussCurvVTK + EndColor
+ 
+
+
     return VTKFile, ThickFile, ConvexFile, SurfFile2, \
+    MeanCurvVTK, GaussCurvVTK, \
     FundiVTK, PitsVTK, SulciVTK, \
-    Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld
+    Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld, Clouchoux
 
 if __name__ == "__main__":
     # this script extracts fundi/pits/sulci from a VTK file from the output from Joachim's code
@@ -114,15 +159,13 @@ if __name__ == "__main__":
 
 
     try:
-        opts, args = getopt.getopt(sys.argv[1:],"",["thick=","second=","convex=","fundi=","fundi2=","pits=","pits2=","sulci=","sulci2=","sulciThld="])
+        opts, args = getopt.getopt(sys.argv[1:],"h",["thick=","second=","convex=","fundi=","fundi2=","pits=","pits2=","sulci=","sulci2=","sulciThld=", "clouchoux", "help"])
     except getopt.GetoptError, err:
         print str(err) # will print something like "option -a not recognized"
-        print_help()
+        print "   Please run [python vtk_extract.py -h] or [python vtk_extract.py --help] to get the usage."
         sys.exit(2)
-    
     check_opt(opts, args)
     
     InputFiles = process_opt(opts, args)
-    
     
     libfundi.getFeatures(InputFiles, 'vtk','')
