@@ -355,7 +355,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     Parameters
     ----------
     folds : list or numpy array
-        fold IDs
+        fold IDs (default = -1)
     n_folds :  int
         number of folds
     neighbor_lists : list of lists of integers
@@ -387,7 +387,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
-                         for i in range(1, n_folds+1)]
+                         for i in range(n_folds)]
 
     # Load depth and curvature values from VTK and text files
     vertices, Faces, depths, n_vertices = load_scalar(depth_file, return_arrays=1)
@@ -442,14 +442,13 @@ def extract_fundi(folds, n_folds, neighbor_lists,
         else:
             fundus_lists.append([])
 
-    fundi = np.zeros(n_vertices)
+    fundi = -1 * np.ones(n_vertices)
     count = 0
     for fundus in fundus_lists:
         if len(fundus) > 0:
+            fundi[fundus] = count
             count += 1
-            fundi += count * np.array(fundus)
 
     print('  ...Extracted fundi ({0:.2f} seconds)'.format(time() - t1))
 
-    return fundi #np.array(fundus_lists), likelihoods
-                 #fundus_lists, likelihoods
+    return fundi
