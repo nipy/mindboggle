@@ -239,16 +239,15 @@ def segment(seeds, neighbor_lists, min_region_size=1):
 
     """
     import numpy as np
-    from time import time
 
     # Initialize segments (length is equal to the number of mesh vertices)
     segments = np.zeros(len(neighbor_lists))
 
     # Keep only seed neighbor lists
-    print('    Removing non-seeds from the neighbor lists...')
-    seed_neighbor_lists = []
-    [seed_neighbor_lists.append([x for x in lst if x in seeds])
-     for lst in neighbor_lists]
+#    print('    Removing non-seeds from the neighbor lists...')
+#    seed_neighbor_lists = []
+#    [seed_neighbor_lists.append([x for x in lst if x in seeds])
+#     for lst in neighbor_lists]
 
     # Loop until all seed vertices segmented
     print('    Grow from {0} seed vertices...'.format(len(seeds)))
@@ -276,10 +275,13 @@ def segment(seeds, neighbor_lists, min_region_size=1):
 
             # Identify neighbors of selected ("new") seed vertices
             neighbors = []
-            [neighbors.extend(seed_neighbor_lists[x]) for x in new_seeds]
+#            [neighbors.extend(seed_neighbor_lists[x]) for x in new_seeds]
+            [neighbors.extend(neighbor_lists[x]) for x in new_seeds]
 
             # Select seed neighbors that have not been previously selected
-            new_seeds = [x for x in list(set(neighbors)) if x not in region]
+#            new_seeds = [x for x in list(set(neighbors)) if x not in region]
+            new_seeds = [x for x in list(set(neighbors))
+                         if x not in region if x in seeds]
 
             # Add new seeds to the segmented region
             if len(new_seeds) > 0:
