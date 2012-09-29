@@ -1,9 +1,8 @@
 # This file contains all functions to extract fundus curves from per-vertex-value (e.g., curvature) map
 # Last updated: 2011-08-09 Forrest Sheng Bao 
 
-import readFreeSurfer as rfs
 import io_file, libbasin
-import libfundifc as libskel
+#import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin, median
 import sys
 from math import sqrt
@@ -825,142 +824,143 @@ def getFeatures(InputFiles, Type, Options):
     
         12/23/2011: We are now rewriting the interface from getFundi to libbasin.getBaisn, fundiFromPits and fundiFromSkel
         Now variables passed into them are data rather than file names
-        
-        03/25/2011: The 3rd type is now avaiable, that pits are extracted in Clouchoux's way 
-        while sulci and fundi are extracted on depth map.  
+
     
     '''
    
-    if Type == 'FreeSurfer' or Type == 'vtk':
-        if Type == 'FreeSurfer':
-            print "\t FreeSurfer mode\n"
-            
-            [SurfFile, SurfFile2, ThickFile, CurvFile, ConvFile,\
-             FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, Use, SulciThld]\
-              = InputFiles
-            
-            # The reason we have both MapBasin and MapExtract 
-            # and PrefixBasin and PrefixExtract is for 
-            # future extension to support extracting different features
-            # from differnt maps 
-            
-            if Use == 'conv':
-                MapBasin = io_file.readCurv(ConvFile)
-                PrefixBasin = ConvFile
-                PrefixExtract = ConvFile
-            elif Use == 'curv':
-                MapBasin = io_file.readCurv(CurvFile)
-                PrefixBasin = CurvFile
-                PrefixExtract = CurvFile
-            else:
-                print "[ERROR] Unrecognized map to use:", Use
-                exit()
-            MapExtract = MapBasin                
-                        
-            # Create shape descriptor array
-            MapFeature = []
-            FeatureNames = []
-            if CurvFile != "":
-                    MapFeature.append(io_file.readCurv(CurvFile))
-                    FeatureNames.append('curv')
-            if ConvFile != '':
-                    MapFeature.append(io_file.readCurv(ConvFile))
-                    FeatureNames.append('conv')
-            if ThickFile != '':
-                MapFeature.append(io_file.readCurv(ThickFile))
-                FeatureNames.append('thickness')
-    
-    #        print PrefixBasin, PrefixExtract
-    #        exit()
-    
-            Mesh = io_file.readSurf(SurfFile)
 
-        elif Type == 'vtk':
-            print "\t Joachim's VTK mode\n" 
-#            [DepthVTK, SurfFile2, ConvexityFile, ThickFile]= InputFiles
-            [DepthVTK, ConvexityFile, ThickFile, SurfFile2, FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld] = InputFiles
-            
-            import pyvtk 
-            
-            VTKReader = pyvtk.VtkData(DepthVTK)
-            Vertexes =  VTKReader.structure.points
-            Faces =     VTKReader.structure.polygons
-            Depth =     VTKReader.point_data.data[1].scalars
-            Curvature = VTKReader.point_data.data[2].scalars  
-             
-            MapBasin = Depth
-            MapExtract = Depth
-            
-            FeatureNames = ['curvature','depth']
-            MapFeature = [Curvature, Depth]
-            
-            # Keep PrefixBasin here and it will be removed later Forrest 2012-06-17
-            PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
-            print "PrefixBasin:", PrefixBasin 
-            PrefixExtract = PrefixBasin + '.depth' 
-            print "PrefixExtract:", PrefixExtract 
-    
-            if ThickFile != '':
-                MapFeature.append(io_file.readCurv(ThickFile))          
-                FeatureNames.append('thickness') 
-    
-            if ConvexityFile != '':
-                MapFeature.append(io_file.readCurv(ConvexityFile))          
-                FeatureNames.append('sulc')
-            
-            Mesh = [Vertexes, Faces]
-            
-        # common for both FreeSurfer and vtk type 
-        if SurfFile2 != '':
-            Mesh2 = io_file.readSurf(SurfFile2)
-#            Mesh2 = [Vertexes2, Face2]
+    if Type == 'FreeSurfer':
+        print "\t FreeSurfer mode\n"
+        
+        [SurfFile, SurfFile2, ThickFile, CurvFile, ConvFile,\
+         FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, Use, SulciThld]\
+          = InputFiles
+        
+        # The reason we have both MapBasin and MapExtract 
+        # and PrefixBasin and PrefixExtract is for 
+        # future extension to support extracting different features
+        # from differnt maps 
+        
+        if Use == 'conv':
+            MapBasin = io_file.readCurv(ConvFile)
+            PrefixBasin = ConvFile
+            PrefixExtract = ConvFile
+        elif Use == 'curv':
+            MapBasin = io_file.readCurv(CurvFile)
+            PrefixBasin = CurvFile
+            PrefixExtract = CurvFile
         else:
-            Mesh2 = []
+            print "[ERROR] Unrecognized map to use:", Use
+            exit()
+        MapExtract = MapBasin                
+                    
+        # Create shape descriptor array
+        MapFeature = []
+        FeatureNames = []
+        if CurvFile != "":
+                MapFeature.append(io_file.readCurv(CurvFile))
+                FeatureNames.append('curv')
+        if ConvFile != '':
+                MapFeature.append(io_file.readCurv(ConvFile))
+                FeatureNames.append('conv')
+        if ThickFile != '':
+            MapFeature.append(io_file.readCurv(ThickFile))
+            FeatureNames.append('thickness')
 
-        libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld, Quick=True)
-        
-        import pyvtk
-        Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
-        
-        fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2)
-        # end of common for both FreeSurfer and vtk type
+#        print PrefixBasin, PrefixExtract
+#        exit()
 
-    elif Type == 'clouchoux':
-        print "\t Clouchoux-type pits while sulci and pits from depth"
-        [VTKFile, SurfFile2, ConvexFile, ThickFile] = InputFiles
-        if SurfFile2 != '':
-            Vertexes2, Face2 = io_file.readSurf(SurfFile2)
-            Mesh2 = [Vertexes2, Face2]
-        else:
-            Mesh2 = []
+        Mesh = io_file.readSurf(SurfFile)
+
+    elif Type == 'vtk':
+        print "\t Joachim's VTK mode\n" 
+        [DepthVTK, ConvexityFile, ThickFile, SurfFile2, MeanCurvVTK, GaussCurvVTK, FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld, Clouchoux] = InputFiles
         
-        # step 1, get pits, Clouchoux style 
-        import clouchoux
-        Vertexes, Faces, Depth, MCurv, GCurv = clouchoux.load_curvs(VTKFile)
+        # This part needs to be rewritten using vtk AND mean curvature is from another place 
+        
+        import pyvtk 
+        
+        VTKReader = pyvtk.VtkData(DepthVTK)
+        Vertexes =  VTKReader.structure.points
+        Faces =     VTKReader.structure.polygons
+        Depth =     VTKReader.point_data.data[1].scalars
+        
+        VTKReader = pyvtk.VtkData(MeanCurvVTK)
+        Curvature = VTKReader.point_data.data[1].scalars  
+         
+        MapBasin = Depth
+        MapExtract = Depth
+        
+        FeatureNames = ['curvature','depth']
+        MapFeature = [Curvature, Depth]
+        
+        # Keep PrefixBasin here and it will be removed later Forrest 2012-06-17
+        PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
+        print "PrefixBasin:", PrefixBasin 
+        PrefixExtract = PrefixBasin + '.depth' 
+        print "PrefixExtract:", PrefixExtract 
+
+        if ThickFile != '':
+            MapFeature.append(io_file.readCurv(ThickFile))          
+            FeatureNames.append('thickness') 
+
+        if ConvexityFile != '':
+            MapFeature.append(io_file.readCurv(ConvexityFile))          
+            FeatureNames.append('sulc')
+        
         Mesh = [Vertexes, Faces]
         
-#        Pits = clouchoux.clouchoux_pits(Vertexes, MCurv, GCurv)
-#        clouchoux.write_Clouchoux_Pits(Vertexes, Pits, VTKFile[:-3]+"pits.vtk", VTKFile[:VTKFile.find(".")]+".inflated.vtk")
-        
-        # step 2, get sulci, from depth
-        # now this step is skipped to avoid changing basin and gyri file structures
-        MapBasin = Depth
-        PrefixBasin = VTKFile[:VTKFile.find(".clouchoux")]+ ".travel.depth"  # now this is the travel depth based sulci, e.g., lh.travel.depth
-        print "PrefixBasin:", PrefixBasin   
-        libbasin.getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0.2)
-        
-        # step 3, connect Clouchoux's pits on depth map into fundi        
-        # preparing input parameters for fundiFromPits()
-        
-        MapExtract = Depth
-        MapFeature = [Depth, MCurv, GCurv]
-        FeatureNames = ["depth", "mean_curv", "gauss_curv"]
-        PrefixExtract = VTKFile[:-3] + 'depth.fundi' 
-        print "PrefixExtract:", PrefixExtract
-        
-        import pyvtk
-        Pits=pyvtk.VtkData(VTKFile[:-3] + 'pits.vtk').structure.vertices[0] # since pits are just computed above
-        fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2) 
+    # common for both FreeSurfer and vtk type 
+    if SurfFile2 != '':
+        Mesh2 = io_file.readSurf(SurfFile2)
+#            Mesh2 = [Vertexes2, Face2]
+    else:
+        Mesh2 = []
+
+    libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld, Quick=True)
+    
+    import pyvtk
+    Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
+    
+    fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2)
+    # end of common for both FreeSurfer and vtk type
+
+#    elif Type == 'clouchoux':
+#        print "\t Clouchoux-type pits while sulci and pits from depth"
+#        [VTKFile, SurfFile2, ConvexFile, ThickFile] = InputFiles
+#        if SurfFile2 != '':
+#            Vertexes2, Face2 = io_file.readSurf(SurfFile2)
+#            Mesh2 = [Vertexes2, Face2]
+#        else:
+#            Mesh2 = []
+#        
+#        # step 1, get pits, Clouchoux style 
+#        import clouchoux
+#        Vertexes, Faces, Depth, MCurv, GCurv = clouchoux.load_curvs(VTKFile)
+#        Mesh = [Vertexes, Faces]
+#        
+##        Pits = clouchoux.clouchoux_pits(Vertexes, MCurv, GCurv)
+##        clouchoux.write_Clouchoux_Pits(Vertexes, Pits, VTKFile[:-3]+"pits.vtk", VTKFile[:VTKFile.find(".")]+".inflated.vtk")
+#        
+#        # step 2, get sulci, from depth
+#        # now this step is skipped to avoid changing basin and gyri file structures
+#        MapBasin = Depth
+#        PrefixBasin = VTKFile[:VTKFile.find(".clouchoux")]+ ".travel.depth"  # now this is the travel depth based sulci, e.g., lh.travel.depth
+#        print "PrefixBasin:", PrefixBasin   
+#        libbasin.getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0.2)
+#        
+#        # step 3, connect Clouchoux's pits on depth map into fundi        
+#        # preparing input parameters for fundiFromPits()
+#        
+#        MapExtract = Depth
+#        MapFeature = [Depth, MCurv, GCurv]
+#        FeatureNames = ["depth", "mean_curv", "gauss_curv"]
+#        PrefixExtract = VTKFile[:-3] + 'depth.fundi' 
+#        print "PrefixExtract:", PrefixExtract
+#        
+#        import pyvtk
+#        Pits=pyvtk.VtkData(VTKFile[:-3] + 'pits.vtk').structure.vertices[0] # since pits are just computed above
+#        fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, Mesh2) 
         
 ## The following elif case is temporarily impossible. So commented.         
 #    elif Type == 'vtk-curv':
