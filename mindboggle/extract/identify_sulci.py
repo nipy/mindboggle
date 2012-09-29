@@ -50,23 +50,16 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     Definitions
     -----------
 
-    A fold is a group of connected vertices that are deeper than a depth threshold.
+    A fold is a group of connected vertices deeper than a depth threshold.
 
-    The ''label list'' is a list of all labels that help to define all sulci
-    in the DKT protocol.
+    A ''label list'' is the list of labels used to define a single sulcus.
 
-    The ''label pair list'' contains all pairs of labels from the protocol.
-
-    A ''sulcus label list'' is the list of labels used to define a single sulcus.
-    A sulcus label list is a subset of the label list.
-
-    A ''sulcus label pair list'' contains pairs of labels, where each pair
+    A ''label pair list'' contains pairs of labels, where each pair
     defines a boundary between two labeled regions.
-    No two sulcus label pair lists share a label pair.
+    No two label pair lists share a label pair.
 
     A ''sulcus ID'' uniquely identifies a sulcus.
-    It is the index to a particular sulcus label list (or sulcus label pair list)
-    in its parent list.
+    It is the index to a sulcus label list (or sulcus label pair list).
 
     Algorithm
     ---------
@@ -247,49 +240,13 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
         return superset_indices, subset_indices
 
-    def find_pairs(label_pairs, label_pair_lists):
-        """
-        Find sublists within *label_pair_lists* that contain
-        at least one label pair within *label_pairs*.
-
-        Parameters
-        ----------
-        label_pairs : list of sublists of (pairs of) integers
-            each sublist contains a pair of labels
-        label_pair_lists : list of sublists of subsublists of (pairs of) integers
-            this list contains sublists like label_pairs
-
-        Returns
-        -------
-        indices : list of integers
-            indices to the sublists of label_pair_lists that contain
-            at least one label pair in *label_pairs*.
-
-        Example
-        -------
-        >>> find_pairs([[2,1]], [[[0,2],[1,2]]])
-         [1]
-        >>> find_pairs([[1,2],[3,1]], [[[1,4],[1,2]], [[1,3]], [[1,5],[2,3]]])
-         [0,1]
-
-        """
-
-        indices = []
-        for label_pair in label_pairs:
-            for index, label_pair_list in enumerate(label_pair_lists):
-                if list(set(label_pair)) in label_pair_list:
-                    if index not in indices:
-                        indices.append(index)
-
-        return indices
-
     #---------------------------------------------------------------------------
     # Prepare data structures
     #---------------------------------------------------------------------------
     # Prepare list of sulcus label lists (labels within a sulcus)
-    sulcus_label_lists = []
+    label_lists = []
     for row in label_pair_lists:
-        sulcus_label_lists.append(list(np.unique(np.asarray(row))))
+        label_lists.append(list(np.unique(np.asarray(row))))
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     protocol_pairs = []
@@ -302,27 +259,33 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     # Loop through folds
     #---------------------------------------------------------------------------
     for ifold, fold in enumerate(folds):
+        unassigned = []
 
         # List the labels in this fold
         fold_labels = [labels[vertex] for vertex in fold]
         unique_fold_labels = [int(x) for x in np.unique(fold_labels)]
-        if verbose:
-            print("\n  Fold {0} vs. protocol:".format(ifold + 1))
+
+        # Case 0: NO LABEL
+        if not len(unique_fold_labels):
+            print("  Fold {0}: NO LABEL")
+            # Ignore: sulcus_IDs already initialized with -1 values
+            continue
 
         # Case 1: NO PAIR -- only one label in fold
-        if len(unique_fold_labels) <= 1:
-            print("  [1] NO PAIR -- only one label in fold: {0}".format(
-                unique_fold_labels[0]))
+        elif len(unique_fold_labels) == 1:
+            print("  Fold {0}: LONE LABEL ({1})".
+                  format(ifold, unique_fold_labels[0]))
             # Ignore: sulcus_IDs already initialized with -1 values
             continue
 
         # Case 2: perfect match between sulcus and fold labels
-        elif unique_fold_labels in sulcus_label_lists:
-            print("  [2] perfect match: {0} ({1})".
-                format(unique_fold_labels,
-                sulcus_names[sulcus_label_lists.index(unique_fold_labels)]))
-            index = sulcus_label_lists.index(unique_fold_labels)
-            # Assign the ID of the matching sulcus to all vertices in the fold
+        elif unique_fold_labels in label_lists:
+            print("  Fold {0}: perfect match: {1} ({2})".
+                format(ifold,
+                sulcus_names[label_lists.index(unique_fold_labels)],
+                  ', '.join([str(x) for x in unique_fold_labels])))
+            index = label_lists.index(unique_fold_labels)
+            # Assign ID of the matching sulcus to all fold vertices
             for vertex in fold:
                 sulcus_IDs[vertex] = index
 
@@ -331,16 +294,23 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
             # Find all label boundary pairs within the fold
             foo, fold_pairs, unique_fold_pairs = detect_boundaries(labels,
                 fold, neighbor_lists)
-
             if verbose:
-                print("  Label pairs in fold: {0}".format(unique_fold_pairs))
+                print("  Fold labels: {0}".
+                      format(', '.join([str(x) for x in unique_fold_labels])))
+                #print("  Fold label pairs: {0}".
+                #      format(', '.join([str(x) for x in unique_fold_pairs])))
 
-            # Find indices to label pair lists that contain fold label pairs
-            list_indices = find_pairs(unique_fold_pairs, label_pair_lists)
+            # Find fold label boundary pairs in the protocol
+            unique_fold_pairs = [x for x in unique_fold_pairs
+                                 if np.unique(x).tolist() in protocol_pairs]
+            if verbose:
+                print("  Fold label pairs in protocol: {0}".
+                      format(', '.join([str(x) for x in unique_fold_pairs])))
 
-            # Case 3: DISJOINT -- no label pair in common between sulci and fold
-            if not len(list_indices):
-                print("  [3] DISJOINT -- no sulcus label pair")
+            # Case 3: NO MATCHING PAIR -- no label pair in common
+            #                             between sulci and fold
+            if not len(unique_fold_pairs):
+                print("  Fold {0}: NO MATCHING PAIR".format(ifold))
 
             # Cases 4-7:
             # There is at least one label pair in common between sulci and fold
@@ -349,116 +319,129 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 # Find sulcus label lists that contain or are contained by
                 # the fold labels
                 superset_indices, subset_indices = find_superset_subset_lists(
-                    unique_fold_labels, sulcus_label_lists)
+                    unique_fold_labels, label_lists)
 
                 # Cases 4-5:
                 # If at least one sulcus label list contains fold labels
                 if len(superset_indices):
 
-                    # Case 4: only one sulcus contains the fold labels
+                    # Case 4: one match -- fold labels in one sulcus
                     if len(superset_indices) == 1:
-                        print("  [4] one match -- sulcus contains "
-                              "the fold labels: {0} ({1})".
-                            format(sulcus_label_lists[superset_indices[0]],
-                                   sulcus_names[superset_indices[0]]))
-                        # Assign ID of the matching sulcus to all vertices in the fold
+                        print("  Fold {0}: one match -- "
+                              "fold labels in one sulcus: {1} ({2})".
+                            format(ifold, sulcus_names[superset_indices[0]],
+                            ', '.join([str(x)
+                            for x in label_lists[superset_indices[0]]])))
+                        # Assign ID of matching sulcus to all fold vertices
                         for vertex in fold:
                             sulcus_IDs[vertex] = superset_indices[0]
 
-                    # Case 5: UNRESOLVED -- more than one sulcus contains the fold labels
+                    # Case 5: UNRESOLVED -- fold labels in more than one sulcus
                     else:
-                        print("  [5] UNRESOLVED -- "
-                              "more than one sulcus contains the fold labels")
+                        print("  Fold {0}: UNRESOLVED -- "
+                              "fold labels in more than one sulcus".
+                              format(ifold))
                         if verbose:
-                            print("Sulcus label superset lists:")
+                            print("           Sulci containing fold labels:")
                             for index in superset_indices:
-                                print("    {0} ({1})".format(
-                                    sulcus_label_lists[index],
+                                print("           {0} ({1})".format(
+                                    label_lists[index],
                                     sulcus_names[index]))
 
                 # Cases 6-7:
                 # If at least one sulcus label list within the fold labels
                 elif len(subset_indices):
 
-                    # Case 6: PARTIAL ASSIGNMENT -- one sulcus within fold labels
+                    # Case 6: PARTIAL MATCH -- fold labels contain one sulcus
                     if len(subset_indices) == 1:
-                        print("  [6] PARTIAL ASSIGNMENT -- "
-                            "sulcus within fold labels: {0} ({1})".format(
-                            sulcus_label_lists[superset_indices[0]],
-                            sulcus_names[superset_indices[0]]))
+                        supind = label_lists[superset_indices[0]]
+                        print("  Fold {0}: PARTIAL MATCH -- "
+                            "fold labels contain one sulcus: {1} ({2})".format(
+                            ifold, sulcus_names[superset_indices[0]],
+                            ', '.join([str(x) for x in supind])))
 
                         # Assign sulcus index to fold vertices that have
-                        # labels in the corresponding sulcus label list
-                        unassigned = [[]]
+                        # labels in the corresponding sulcus label list,
+                        # and save unassigned vertices
+                        unassigned = []
                         for vertex in fold:
-                            if labels[vertex] in sulcus_label_lists[subset_indices[0]]:
+                            if labels[vertex] in label_lists[subset_indices[0]]:
                                 sulcus_IDs[vertex] = subset_indices[0]
                             else:
-                                unassigned[0].append(vertex)
+                                unassigned.append(vertex)
 
-                        # Treat remaining vertices as a new fold and start again
-                        if len(unassigned):
-                            sulcus_IDs = identify(labels, unassigned,
-                                label_pair_lists, sulcus_IDs, neighbor_lists,
-                                points, sulcus_names)
-
-                    # Case 7: AMBIGUOUS -- more than one sulcus within fold labels
+                    # Case 7: AMBIGUOUS -- fold labels contain more than one sulcus
                     else:
-                        print("  [7] AMBIGUOUS -- "
-                              "more than one sulcus within fold labels")
-                        if verbose:
-                            for index in subset_indices:
-                                print("    {0} ({1})".format(
-                                    label_pair_lists[index],
-                                    sulcus_names[sulcus_label_lists.index(
-                                        sulcus_label_lists[index])]))
+                        print("  Fold {0}: AMBIGUOUS -- "
+                              "fold labels contain more than one sulcus".
+                              format(ifold))
+                        #if verbose:
+                        #    for index in subset_indices:
+                        #        print("           {0} ({1})".format(
+                        #            ', '.join([str(x)
+                        #                       for x in label_pair_lists[index]]),
+                        #            sulcus_names[label_lists.index(
+                        #                label_lists[index])]))
 
-                        # Find label boundary pairs in the fold that are not
-                        # members of the protocol's label pairs list and
-                        # return the unique list of 'nonpair labels'
-                        nonpair_labels = []
-                        for vertex_labels in fold_pairs:
-                            if np.unique(vertex_labels).tolist() not in protocol_pairs:
-                                [nonpair_labels.append(x) for x in vertex_labels
-                                 if x not in nonpair_labels]
+                        # Find label boundary pairs in the fold whose labels
+                        # are not shared by any other label pairs in the fold,
+                        # and store the sulcus IDs for these pairs
+                        unique_pairs = []
+                        IDs_unique_pairs = []
+                        for pair in unique_fold_pairs:
+                            labels_pairs = [x for sublst in unique_fold_pairs
+                                            for x in sublst]
+                            if len([x for x in labels_pairs if x in pair]) == 2:
+                                unique_pairs.append(pair)
+                                IDs_unique_pairs.extend([i
+                                    for i,x in enumerate(label_pair_lists)
+                                    if np.unique(pair).tolist() in x])
 
-                        # Find fold vertices whose labels are nonpair labels
-                        # and consider the remaining to be 'subfold' vertices
-                        nonpair_vertices = [i for i, x in enumerate(fold_labels)
-                                            if x in nonpair_labels]
-                        subfold_vertices = [i for i, x in enumerate(fold_labels)
-                                            if x not in nonpair_labels]
+                        # Assign sulcus index to fold vertices that have
+                        # unique label pair labels, and save unassigned vertices
+                        if len(unique_pairs):
+                            print("           Assign sulcus IDs to vertices "
+                                  "with labels in only one fold pair")
+                            if verbose:
+                                for index, ID_unique_pair \
+                                  in enumerate(IDs_unique_pairs):
+                                    print("           {0} ({1})".format(
+                                        unique_pairs[index],
+                                        sulcus_names[ID_unique_pair]))
+                            unassigned = []
+                            for vertex in fold:
+                                index = [i for i,x in enumerate(unique_pairs)
+                                         if labels[vertex] in x]
+                                if len(index):
+                                    sulcus_IDs[vertex] = IDs_unique_pairs[index[0]]
+                                else:
+                                    unassigned.append(vertex)
+                        else:
+                            print("           Every fold pair has a duplicate label")
+#                            print("           Every fold pair has a duplicate label")
 
-                        if len(subfold_vertices):
-                            print("  [7a] fold vertices have labels "
-                                  "independent of non-protocol boundary labels")
-                            subfold_points = [points[x] for x in subfold_vertices]
+        # If there are remaining unassigned vertices
+        if len(unassigned):
+            print("           Segment {0} unassigned vertices "
+                  "into separate subfolds and start again...".
+                format(len(unassigned)))
 
-                            # Segment groups of connected subfold vertices,
-                            # if any, into separate subfolds
-                            subfolds, n_subfolds, foo = segment(subfold_vertices,
-                                neighbor_lists, 50)
+            # Segment groups of connected unassigned vertices
+            # into separate subfolds
+            subfolds, n_subfolds, foo = segment(unassigned,
+                neighbor_lists, 50)
 
-                            # Assign each vertex with a nonpair label
-                            # to the closest subfold
-                            # Create a list of lists of subfolds
-                            subfold_lists = []
-                            for i in range(n_subfolds):
-                                subfold_list = [x for x in subfold_vertices
-                                                if subfolds[x] == i]
-                                subfold_lists.append(subfold_list)
-                            # For each nonpair vertex find the closest subfold vertex
-                            for nonpair_vertex in nonpair_vertices:
-                                foo, index = compute_distance(points[nonpair_vertex],
-                                                              subfold_points)
-                                # Assign the subfold index of the closest vertex
-                                if subfolds[index]:
-                                    subfold_lists[subfolds[index] - 1].append(index)
+            # Create a list of lists of subfolds
+            subfold_lists = []
+            for i in range(n_subfolds):
+                subfold_list = [x for x in unassigned
+                                if subfolds[x] == i]
+                subfold_lists.append(subfold_list)
 
-                            # Treat each subfold as a new fold and start again
-                            sulcus_IDs = identify(labels, subfold_lists,
-                                label_pair_lists, sulcus_IDs, neighbor_lists,
-                                points, sulcus_names)
+            # Treat each subfold as a new fold and start again
+            sulcus_IDs = identify(labels, subfold_lists,
+                label_pair_lists, sulcus_IDs, neighbor_lists,
+                points, sulcus_names)
 
     return sulcus_IDs
 
@@ -483,7 +466,9 @@ if __name__ == "__main__":
     # Load labels and folds (the second surface has to be inflated).
     points, faces, labels, n_vertices = load_scalar(labels_file, return_arrays=0)
     points, faces, fold_IDs, n_vertices = load_scalar(folds_file, return_arrays=0)
-    sulcus_names = read_columns(sulcus_names_file, n_columns=1)[0]
+    fid = open(sulcus_names_file, 'r')
+    sulcus_names = fid.readlines()
+    sulcus_names = [x.strip('\n') for x in sulcus_names]
 
     # Calculate neighbor lists for all vertices
     neighbor_lists = find_neighbors(faces, len(points))
