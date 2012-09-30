@@ -78,7 +78,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
           format(min_depth))
     t1 = time()
     vertices_to_segment = np.where(depths > min_depth)[0]
-    folds, n_folds, max_fold, = segment(vertices_to_segment, neighbor_lists,
+    folds, n_folds, max_fold, = segment(vertices_to_segment, [], neighbor_lists,
                                         min_fold_size)
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
 
@@ -92,7 +92,8 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes, max_hole = segment(vertices_to_segment, neighbor_lists, 1)
+        holes, n_holes, max_hole = segment(vertices_to_segment, [],
+                                           neighbor_lists, 1)
 
         # If there are any holes
         if n_holes > 0:
