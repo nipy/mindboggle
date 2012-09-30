@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Copy scalar maps from one surface to another, vertex by vertex    
+Copy structures and maps from one surface to another, vertex by vertex    
 
 Authors:
     - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
@@ -10,10 +10,10 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 To make this a stand alone script, some functions are copied to here from mindboggle.utils.io_vtk
 
 Usage: 
-     python maps_to_another_surface.py file_containing_maps file_containing_2nd_surface output_file
+     python maps_to_second_surface.py file_containing_structures_and_maps file_containing_2nd_surface output_file
      
 Examples:
-     python maps_to_another_surface.py lh.gaussian_curv.pial.vtk lh.inflated.vtk lh.gaussian_curv.inflated.vtk 
+     python maps_to_second_surface.py lh.gaussian_curv.pial.vtk lh.inflated.vtk lh.gaussian_curv.inflated.vtk
 
 Dependencies:
     python-vtk: vtk's official Python binding
@@ -38,7 +38,10 @@ def load_maps(Filename):
     Note
     ------
     
-        This function differs from load_scalar in io_vtk which loads only one  scalar map 
+        1. This function differs from load_scalar in io_vtk which loads only one  scalar map
+        2. For structures, we only support copying lines, vertexes (indexes of points) and triangular faces from one surface to another.  
+        3. We assume that all vertexes are written in one line in VERTICES segment. 
+           If your VERTICES structure is different, please modify the code accordingly  
     
     """
     Reader = vtk.vtkDataSetReader()
@@ -48,30 +51,48 @@ def load_maps(Filename):
     
     Data = Reader.GetOutput()
     PointData = Data.GetPointData()
+    
+    if Data.GetNumberOfPolys() > 0:
+        Faces = [[Data.GetPolys().GetData().GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
+                 for i in xrange(Data.GetPolys().GetNumberOfCells())]
+    else:
+        Faces = []
+    
+    if Data.GetNumberOfLines() > 0:
+        Lines  = [[Data.GetLines().GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ]
+                  for i in xrange(Data.GetNumberOfLines())]
+    else:
+        Lines = []
 
+    if Data.GetNumberOfVerts() > 0:
+        Vertices = [Data.GetVerts().GetData().GetValue(i) for i in xrange(1, Data.GetVerts().GetSize() )]
+        # The reason the reading starts from 1 is because we need to avoid the 
+    else:
+        Vertices = []
     
     MapsInFile = []
     MapNamesInFile = []
     
-    for Scalar_Index in range(Reader.GetNumberOfScalarsInFile()):
-        Scalar_Name = Reader.GetScalarsNameInFile(Scalar_Index)
-        print("Loading {0} (named \"{1}\") of {2} scalars in file {3}...".
-          format(Scalar_Index + 1,
-                 Reader.GetScalarsNameInFile(Scalar_Index), Reader.GetNumberOfScalarsInFile(), Filename))
-        ScalarArray = PointData.GetArray(Scalar_Name)
-        if ScalarArray:
-            Scalar = [ScalarArray.GetValue(i) for i in xrange(ScalarArray.GetSize())]
-        else:
-            print "An empty scalar map was read. Please check the integrity of the source VTK"
-            sys.exit()
-        MapsInFile.append(Scalar)
-        MapNamesInFile.append(Scalar_Name) 
+    if Reader.GetNumberOfScalarsInFile() > 0:
+        for Scalar_Index in range(Reader.GetNumberOfScalarsInFile()):
+            Scalar_Name = Reader.GetScalarsNameInFile(Scalar_Index)
+            print("Loading {0} (named \"{1}\") of {2} scalars in file {3}...".
+              format(Scalar_Index + 1,
+                     Reader.GetScalarsNameInFile(Scalar_Index), Reader.GetNumberOfScalarsInFile(), Filename))
+            ScalarArray = PointData.GetArray(Scalar_Name)
+            if ScalarArray:
+                Scalar = [ScalarArray.GetValue(i) for i in xrange(ScalarArray.GetSize())]
+            else:
+                print "An empty scalar map was read. Please check the integrity of the source VTK"
+                sys.exit()
+            MapsInFile.append(Scalar)
+            MapNamesInFile.append(Scalar_Name) 
         
-    return MapsInFile, MapNamesInFile
+    return Faces, Lines, Vertices, MapsInFile, MapNamesInFile
 
 def load_2nd_surface(Filename):
     """
-    Load points and triangular faces of the 2nd surface.
+    Load points of the 2nd surface.
 
     Parameters
     ----------
@@ -82,18 +103,6 @@ def load_2nd_surface(Filename):
     -------
     points : list of lists of floats (see return_arrays)
         Each element is a list of 3-D coordinates of a vertex on a surface mesh
-    faces : list of lists of integers (see return_arrays)
-        Each element is list of 3 indices of vertices that form a face
-        on a surface mesh
-        
-    Note
-    --------
-    
-        If the polygons are not triangles, modify the line initializing Faces accordingly. 
-
-    Example
-    -------
-    >>> points, faces = load_2nd_surface('lh.pial.depth.vtk')
 
     """
     Reader = vtk.vtkDataSetReader()
@@ -105,17 +114,9 @@ def load_2nd_surface(Filename):
     Points = [list(Data.GetPoint(point_id))
               for point_id in xrange(Data.GetNumberOfPoints())]
 
-    #Vrts = Data.GetVerts()
-    #indices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+    return Points
 
-    CellArray = Data.GetPolys()
-    Polygons = CellArray.GetData()
-    Faces = [[Polygons.GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
-             for i in xrange(CellArray.GetNumberOfCells())]
-
-    return Points, Faces
-
-def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title="Created by MindBoggle"):
+def write_2nd_surface_with_maps(vtk_file, Points, Faces, Lines, Indices, LUTs, LUT_names, Title="Created by MindBoggle"):
     """Write the second surface along with maps from the 1st file into the target file 
    
     Scalar definition includes specification of a lookup table.
@@ -129,12 +130,14 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
     ----------
     vtk_file : string
         path of the output VTK file
-    points :  list of 3-tuples of floats
+    Points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
-    indices : list of integers
-        indices of vertices
-    faces : list of 3-tuples of integers
+    Indices : list of integers
+        indices of vertices. they are called VERTICES in VTK format though
+    Faces : list of 3-tuples of integers
         indices to the three vertices of a face on the mesh
+    Lines : list of 2-tuples of integers
+        Each element contains two indices  of the two mesh vertexes forming a line on the mesh
     LUTs : list of lists of floats
         each list contains values assigned to the vertices
     LUT_names : list of strings
@@ -221,7 +224,7 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
                      len(faces) * (n + 1)))
         elif n == 2:
             face_name = 'LINES '
-            Fp.write('{0} {1}\n'.format(face_name, len(faces),
+            Fp.write('{0} {1} {2}\n'.format(face_name, len(faces),
                      len(faces) * (n + 1)))
         else:
             print('ERROR: Unrecognized number of vertices per face')
@@ -234,6 +237,43 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
                 [V0, V1] = face
                 Fp.write('{0} {1} {2}\n'.format(n, V0, V1))
 
+    def write_vtk_lines(Fp, lines):
+        """
+        Save connected line segments to a VTK file.
+    
+        Parameters
+        ----------
+        Fp: pointer to a file
+            pointer to the file to write lines
+        lines : list of 2-tuples of integers
+            Each element is an edge on the mesh, consisting of 2 integers
+            representing the 2 vertices of the edge
+        """
+
+        write_vtk_faces(Fp, lines)
+    
+    def write_vtk_vertices(Fp, indices):
+        """
+        Write indices to vertices, the VERTICES section
+        in the DATASET POLYDATA section::
+    
+            VERTICES 140200 420600
+            3 130239 2779 10523
+            ...
+    
+        Indices are 0-offset. Thus the first point is point id 0::
+    
+            VERTICES n size
+            numPoints0 i0 j0 k0
+            ...
+            numPoints_[n-1] i_[n-1] j_[n-1] k_[n-1]
+    
+        """
+    
+        Fp.write('VERTICES {0} {1}\n{2} '.format(
+                 len(indices), len(indices) + 1, len(indices)))
+        [Fp.write('{0} '.format(i)) for i in indices]
+        Fp.write('\n')
     
     def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
         """
@@ -259,6 +299,7 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
             Fp.write('{0}\n'.format(Value))
         Fp.write('\n')
     
+    # End of nested functions
     import os
 
     vtk_file = os.path.join(os.getcwd(), vtk_file)
@@ -266,7 +307,14 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
     Fp = open(vtk_file,'w')
     write_vtk_header(Fp, Title=Title)
     write_vtk_points(Fp, Points)
-    write_vtk_faces(Fp, Faces)
+    if Faces != []:
+        write_vtk_faces(Fp, Faces)
+    if Lines !=[]:
+        write_vtk_lines(Fp, Lines)
+        print "Lines written"
+    if Indices != []:
+        write_vtk_vertices(Fp, Indices)
+        print "Pits written"
     if len(LUTs) > 0:
         # Make sure that LUTs is a list of lists
         if type(LUTs[0]) != list:
@@ -289,9 +337,9 @@ def write_2nd_surface_with_maps(vtk_file, Points, Faces, LUTs, LUT_names, Title=
     return vtk_file
 
 if __name__ == "__main__":
-    Maps, MapNamesInFile = load_maps(sys.argv[1])
-    Points, Faces = load_2nd_surface(sys.argv[2])
+    Faces, Lines, Vertices, Maps, MapNamesInFile = load_maps(sys.argv[1])
+    Points = load_2nd_surface(sys.argv[2])
     if len(sys.argv) > 4:
-        write_2nd_surface_with_maps(sys.argv[3], Points, Faces, Maps, MapNamesInFile, Title=sys.argv[4])
+        write_2nd_surface_with_maps(sys.argv[3], Points, Faces, Lines, Vertices, Maps, MapNamesInFile, Title=sys.argv[4])
     else:
-        write_2nd_surface_with_maps(sys.argv[3], Points, Faces, Maps, MapNamesInFile)
+        write_2nd_surface_with_maps(sys.argv[3], Points, Faces, Lines, Vertices, Maps, MapNamesInFile)
