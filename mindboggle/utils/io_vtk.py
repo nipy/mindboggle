@@ -104,7 +104,7 @@ def write_vtk_faces(Fp, faces):
                  len(faces) * (n + 1)))
     elif n == 2:
         face_name = 'LINES '
-        Fp.write('{0} {1}\n'.format(face_name, len(faces),
+        Fp.write('{0} {1} {2}\n'.format(face_name, len(faces),
                  len(faces) * (n + 1)))
     else:
         print('ERROR: Unrecognized number of vertices per face')
