@@ -734,7 +734,7 @@ if run_shapeflow:
     #---------------------------------------------------------------------------
     elif init_labels == 'manual':
         mbflow.connect([(atlasflow, shapeflow,
-                         [('Atlas_labels.Scalars','Label_table.labels')])])
+                         [('Atlas_labels.scalars','Label_table.labels')])])
     # Save results
     mbflow.connect([(shapeflow, sink,
                      [('Label_table.means_file', 'shapes.@labels'),
