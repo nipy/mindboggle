@@ -1,8 +1,28 @@
-# This file includes all function for curvauture/convexity-based basin extraction
+#!/usr/bin/python
+"""
+Extracting features from VTK input files. 
+
+Authors:
+    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
+
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+For algorithmic details, please check:     
+    Forrest S. Bao, et al., Automated extraction of nested sulcus features from human brain MRI data, 
+    IEEE EMBC 2012, San Diego, CA
+
+Dependencies:
+    python-vtk: vtk's official Python binding
+    numpy
+    io_vtk : under mindboggle/utils
+
+   
+"""
  
 from numpy import mean, std, median, array, zeros, eye, flatnonzero, sign, matrix, zeros_like
 import os.path
-import cPickle 
+import cPickle
+import io_vtk  # Assumming io_vtk is in PYTHONPATH
 
 
 #-----------------Begin function definitions------------------------------------------------------------- 
@@ -135,7 +155,7 @@ def vrtxNbrLst(VrtxNo, FaceDB, Hemi):
 
     return NbrLst
 
-def compnent(FaceDB, Basin, NbrLst, PrefixBasin):
+def compnent(FaceDB, Basin, NbrLst, PathHeader):
     '''Get connected component, in each of all basins, represented as faces and vertex clouds
     
     Parameters
@@ -143,11 +163,13 @@ def compnent(FaceDB, Basin, NbrLst, PrefixBasin):
     
     NbrLst : list
         neighbor list of faces, NOT VERTEXES
+        
+    PathHeader : header of the path to save component list
     
     '''
     
-    FcCmpntFile = PrefixBasin + '.cmpnt.face' 
-    VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'
+    FcCmpntFile = PathHeader + '.cmpnt.face' 
+    VrtxCmpntFile = PathHeader + '.cmpnt.vrtx'
         
     if os.path.exists(FcCmpntFile) and os.path.exists(VrtxCmpntFile):
 #        return fileio.loadCmpnt(FcCmpntFile), fileio.loadCmpnt(VrtxCmpntFile)
@@ -219,11 +241,6 @@ def judgeFace1(FaceID, FaceDB, CurvatureDB, Threshold = 0):
     else:
         return True    
 
-def sulciCover(SulciList, FaceDB):
-    '''Add a polygon cover for an extracted sulcus
-    '''
-    pass
-
 def basin(FaceDB, CurvatureDB, Threshold = 0):
     '''Given a list of faces and per-vertex curvature value, return a list of faces comprising basins
     '''
@@ -240,10 +257,12 @@ def basin(FaceDB, CurvatureDB, Threshold = 0):
 def allTrue(List):
     '''Check whether a logical list contains non-True elements. 
     '''    
-    for Bool in List:
-        if not Bool:
-            return False
-    return True
+#    for Bool in List:
+#        if not Bool:
+#            return False
+#    return True
+
+    return all(x==True for x in List) 
 
 def dfsSeed(Visited, Basin):
     '''Given a list of faces comprising the basins, find a face that has not been visited which will be used as the seeding point for DFS.
@@ -295,65 +314,6 @@ def pmtx(Adj):
 
 def all_same(items):
     return all(x == items[0] for x in items)
-
-## Commented Forrest 2012-02-11, this part is being replaced by new code   
-#def pits(CurvDB, VrtxNbrLst, Threshold = 0):  # activated Forest 2011-05-30 1:22
-#    '''My  algorithm to find pits (lowest point in each pond) and pond hierarchies.
-#     
-#    Docs for this function is detailed in GDoc
-#     
-#    '''
-#    
-#    print "Extracting pits"
-#    
-#    S, P, Child, M, B, End, L  = [], [], {}, -1, [], {}, 10
-#    C = [-1 for i in xrange(0, len(VrtxNbrLst))]
-#    Curv=dict([(i, CurvDB[i]) for i in xrange(0, len(CurvDB))])
-#    for Vrtx, Cvtr in sorted(Curv.iteritems(), key=lambda (k,v): (v,k)):
-#        S.append(Vrtx)
-#    
-#    while len(S) >0 and L> Threshold:  # changed from L > 0 to L > Threshold, Forrest 2011- 06-10 08:25
-#        V = S.pop()
-#        L = CurvDB[V]
-#        P.append(V)
-#        Nbrs = list(set(VrtxNbrLst[V]))
-#        
-#        WetNbr = []
-#        NbrCmpnt = []
-#        for Nbr in Nbrs:
-#            if Nbr in P:
-#                WetNbr.append(Nbr)
-#                if C[Nbr] != -1:
-#                    NbrCmpnt.append(C[Nbr])
-#        
-#        if len(WetNbr) == 1: # if the vetex has one neighbor that is already wet     
-#            [Nbr] = WetNbr
-#            if End[C[Nbr]]:
-#                C[V] = Child[C[Nbr]]
-#            else:
-#                C[V] = C[Nbr]
-##                print C[Nbr], "==>", C[V] 
-#        elif len(WetNbr) >1 and all_same(NbrCmpnt): # if the vertex has more than one neighbors which are in the same component
-#            if End[NbrCmpnt[0]]:
-#                C[V] = Child[NbrCmpnt[0]]
-#            else:
-#                C[V] = NbrCmpnt[0]
-#        elif len(WetNbr) >1 and not all_same(NbrCmpnt):  # if the vertex has more than one neighbors which are NOT in the same component
-#            M += 1
-#            C[V] = M
-#            for Nbr in WetNbr:
-#                Child[C[Nbr]] = M
-#                End[C[Nbr]] = True
-#            End[M] = False
-#        else:
-#            M += 1
-##            if L < Threshold:  # I forgot why i wrote selection structure. But it seems to be UNecessary now. Forrest 2011-06-10 06:25 
-##                B.append(V)
-#            B.append(V)
-#            End[M] = False
-#            C[V] = M
-#    return B, C, Child
-## End of Commented Forrest 2012-02-11
 
 def univariate_pits(CurvDB, VrtxNbrLst, VrtxCmpnt, Thld): 
     '''Finding pits using one variable, e.g., depth. 
@@ -425,175 +385,164 @@ def univariate_pits(CurvDB, VrtxNbrLst, VrtxCmpnt, Thld):
                 C[Vrtx] = M
     return B, C, Child
 
-#def getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0):
-#    '''Only extract sulci. No Pits.
-#    
-#    Parameters
-#    ============
-#        MapBasin: list
-#            a per-vertex map, e.g., curvature map, for extract sulcal basin
-#          
-#        Mesh: 2-tuple of lists
-#            the first list has coordinates of vertexes while the second defines triangles on the mesh
-#            This is a mandatory surface, normally a non-inflated surface. 
-#            
-#        Mesh2: 2-tuple of lists
-#            the first list has coordinates of vertexes while the second defines triangles on the mesh
-#            This is an optional surface, normally an inflated surface.
-#            Default = []
-#
-#        PrefixBasin: string
-#            the prefix for all outputs that are only related to basin extraction,
-#            e.g., connected components, basins and gyri. 
-#
-#        Threshold: float
-#            the value to threshold the surface       
-#    
-#    '''
-#    [Vertexes, Face] = Mesh
-#    if Mesh2 != []:
-#        [Vertexes2, Face2] = Mesh2
-#        
-#    Basin, Gyri = basin(Face, MapBasin, Threshold = Threshold)
-#    BasinFile = PrefixBasin + '.basin'
-#    
-#    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-#    if PrefixBasin[::-1].find('/') == -1:
-#        LastSlash = 0
-#    else:
-#        LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-##    print "LastSlash=",LastSlash 
-#    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
-##    print "Hemi=", Hemi
-#
-#    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
-#    FcNbr   = fcNbrLst(Face, Hemi)
-#    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
-
-
-def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract,SulciVTK, PitsVTK, Threshold = 0, Quick=False):
-    '''Load curvature and surface file and output sulci into SulciFile
+def clouchoux(MCurv, GCurv):
+    '''Judge whether a vertex is a pit in Clouchoux's definition
     
-    This is a general framework for feature extraction
+    Parameters
+    ===========
+    
+    MCurv: float
+        mean curvature of a vertex
+        H in Clouchoux's paper 
+    
+    GCurv: float
+        mean curvature of a vertex 
+        K in Clouchoux's paper
+      
+    Returns 
+    ========
+    
+    True if this is a pit. False, otherwise. 
+    
+    Notes
+    =========
+    
+    (Since Joachim's code updates all the time, this settings has to be updated accordingly)
+    
+    In Clochoux's paper, the following definitions are used:
+        H > 0, K > 0: pit, in Clouchoux's paper
+        H < 0, K > 0: peak, in Clouchoux's paper    
+    
+    If features are computed by ComputePricipalCurvature(), 
+    use this settings to get proper pits:
+        H > 3, K < 0 (curvatures not normalized)
+        H > 0.2, K < 0 (curvatures normalized)
+        
+    
+    '''
+
+#    if (MCurv > 3) and (GCurv < 0):
+    if  (MCurv > 0.2) and (GCurv < 0):
+        return True
+    else:
+        return False
+    
+def clouchoux_pits(Vertexes, MCurv, GCurv):
+    '''Extract pits using Clouchoux's definition
+    '''
+    
+    Pits = []
+
+    for i in xrange(len(Vertexes)):
+        if clouchoux(MCurv[i], GCurv[i]):
+            Pits.append(i)
+    
+    print  len(Pits), "Pits found"
+    
+    return Pits
+
+def getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = 0, PitsThld = 0, Quick=False, Clouchoux=False, SulciMap='depth'):
+    '''Extracting basin and pits (either local minimum approach or Clouchoux's)
     
     Parameters
     =============
-        MapBasin: list
-            a per-vertex map, e.g., curvature map, for extract sulcal basin
-
-        mapExtract: list
-            a per-vertex map, e.g., travel depth map, for extract PITS from the surface
-            
+        Maps: dictionary
+            Keys are map names, e.g., depth or curvatures.
+            Values are per-vertex maps, e.g., curvature map.
+                        
         Mesh: 2-tuple of lists
             the first list has coordinates of vertexes while the second defines triangles on the mesh
             This is a mandatory surface, normally a non-inflated surface. 
 
-        PrefixBasin: string
-            the prefix for all outputs that are only related to basin extraction,
-            e.g., connected components, basins and gyri. 
-
-        PrefixExtract: string
-            the prefix for all outputs that are the result of extraction,
-            e.g., pits and fundi.
-
-        FileBasin: string
-            path to the per-vertex file that is used to threshold the surface
-        
-        FilePits: string
-            path to the per-vertex file that is used to extract pits
-            
-        SurfFile: string
-            path to a surface file
-
-        Threshold: float
-            the value to threshold the surface
+        SulciThld: float
+            the value to threshold the surface to separate sulci and gyri
             
         PitsThld: float
             vertexes deeper than this value can be considered as pits
             
         Quick: Boolean
             If true, extract sulci only (no component ID, only thresholding), skipping pits and later fundi. 
+            
+        Clouchoux: Boolean
+            If true, extract pits using Clouchoux's definition. O/w, local minimum approach.
+            
+        SulciMap: string
+            The map to be used to get sulci
+            by default, 'depth'
 
     '''
-      
-    print "\t thresholding the surface using threshold = ", Threshold
     
-    [Vertexes, Face] = Mesh
-#    if Mesh2 != []:
-#        [Vertexes2, Face2] = Mesh2
-        
-    Basin, Gyri = basin(Face, MapBasin, Threshold = Threshold)
-    # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
-        
-    BasinFile = PrefixBasin + '.basin'
-    GyriFile = PrefixBasin + '.gyri'
-    
-    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
+    def write_surface_with_LUTs(File, Points, Faces, Maps):
+        """Like write_scalars in io_vtk but no writing of vertices 
+        """
+        print "writing sulci into VTK file:", File
 
-    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
-    FcNbr   = fcNbrLst(Face, Hemi)
-    if not Quick:
-        FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
+        Fp = open(File,'w')
+        io_vtk.write_vtk_header(Fp)
+        io_vtk.write_vtk_points(Fp, Points)
+        io_vtk.write_vtk_faces(Fp, Faces)
+        if len(Maps) > 0:
+        # Make sure that LUTs is a list of lists
+            Count = 0
+            for LUT_name, LUT in Maps.iteritems():
+                if Count == 0 :
+                    io_vtk.write_vtk_LUT(Fp, LUT, LUT_name)
+                else:
+                    io_vtk.write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
+                Count += 1
+        Fp.close()
+        return None
+        
+    def write_pits_without_LUTs(File, Points, Indexes):
+        """Like write_scalars in io_vtk but no writing of vertices 
+        """
+        print "writing pits into VTK file:", File
+        Fp = open(File,'w')
+        io_vtk.write_vtk_header(Fp)
+        io_vtk.write_vtk_points(Fp, Points)
+        io_vtk.write_vtk_vertices(Fp, Indexes)
+        Fp.close()
+        return None
     
-        # write component ID as LUT into basin file. 
-        CmpntLUT = [-1 for i in xrange(0, len(MapBasin))]
+    print "\t thresholding the surface using threshold = ", SulciThld
+    
+    [Vertexes, Faces] = Mesh
+        
+    MapBasin = Maps[SulciMap]   
+    Basin, Gyri = basin(Faces, Maps[SulciMap], Threshold = SulciThld) 
+
+    if not Quick:
+        LastSlash = len(SulciVTK) - SulciVTK[::-1].find('/')
+        Hemi =  SulciVTK[:SulciVTK[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
+        VrtxNbr = vrtxNbrLst(len(Vertexes), Faces, Hemi)
+        FcNbr   = fcNbrLst(Faces, Hemi)
+        FcCmpnt, VrtxCmpnt = compnent(Faces, Basin, FcNbr, ".".join([Hemi, SulciMap, str(SulciThld)])) 
+        CmpntLUT = [-1 for i in xrange(len(MapBasin))]
         for CmpntID, Cmpnt in enumerate(VrtxCmpnt):
             for Vrtx in Cmpnt:
                 CmpntLUT[Vrtx] = CmpntID
-        # end of write component ID as LUT into basin file.
-        
-        # finding the proper depth threshold for pits is tricking. the code below are commented. 
-#        DeepHalf = []
-#        for i in xrange(0,len(VrtxCmpnt)):
-#            if mapExtract[i] > median(mapExtract): 
-#                DeepHalf.append(mapExtract[i])
-#        print len(DeepHalf)
-        PitsThld = 0 # 
-        Pits, Parts, Child = univariate_pits(mapExtract, VrtxNbr, VrtxCmpnt, PitsThld)
-    else:
-        print "\t\t GETTING SULCI ONLY"
+                
+        Maps['CmpntID'] = CmpntLUT
 
-# basin pyvtk output
-    print "writing sulci into VTK files"
-    import pyvtk
-    Face = [map(int,i) for i in Face]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
-    Vertexes = map(list, Vertexes)
-    Structure = pyvtk.PolyData(points=Vertexes, polygons=[Face[Idx] for Idx in Basin])
-    if Quick:
-        Pointdata = pyvtk.PointData(pyvtk.Scalars(MapBasin,name='ThresholdFeature'),\
-                                    pyvtk.Scalars(mapExtract,name='ExtractFeature'))
-#                                pyvtk.Scalars(Parts,name='hierarchy'))
-    else: # regular pits extraction case
-        Pointdata = pyvtk.PointData(pyvtk.Scalars(MapBasin,name='ThresholdFeature'),\
-                                    pyvtk.Scalars(mapExtract,name='ExtractFeature'),\
-                                    pyvtk.Scalars(CmpntLUT,name='CmpntID'),\
-                                    pyvtk.Scalars(Parts,name='hierarchy'))
-    pyvtk.VtkData(Structure, Pointdata).tofile(SulciVTK,'ascii')
-# end of basin pyvtk output
+        if Clouchoux:
+            Pits = clouchoux_pits(Vertexes, Maps['meancurv'], Maps['gausscurv'])
+        else: # local minimum approach  
+            MapPits =  Maps[SulciMap]  # Users will get the option to select pits extraction map in the future.
+            Pits, Parts, Child = univariate_pits(MapPits, VrtxNbr, VrtxCmpnt, PitsThld)
+            Maps['hierarchy'] = Parts
+        
+    else:
+        print "\t\t Thresholding the surface to get sulci only."
     
-            
-#    if Mesh2 != []: 
-#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin]), Pointdata).tofile(Sulci2VTK,'ascii')
+    Faces = [map(int,i) for i in Faces]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
+    Vertexes = map(list, Vertexes)    
+    write_surface_with_LUTs(SulciVTK, Vertexes, [Faces[i] for i in Basin], Maps)    
 
     if Quick:
         exit()
         
-    # End of dump basin
+    write_pits_without_LUTs(PitsVTK, Vertexes, Pits)
 
-    # write Pits
-    print "writing pits into VTK files"
-
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertexes, vertices=Pits)).tofile(PitsVTK,'ascii')
-    
-## a testing code to write pits and basin all together
- 
-## end of a testing code to write pits and basin all together
-
-#    if Mesh2 != []:
-#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, vertices=Pits)).tofile(Pits2VTK,'ascii')
-    # End of write pits
-    
     # output tree hierarchies of basal components
 #    print "writing hierarchies of basal components"
 #    WetFile = PrefixExtract + '.pits.hier'
@@ -623,7 +572,5 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract,Sul
 #        Counter += 1
     
 # a monolithic code output each component
-
-
            
 #---------------End of function definitions---------------------------------------------------------------  
