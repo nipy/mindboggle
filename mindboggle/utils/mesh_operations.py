@@ -35,13 +35,14 @@ def find_neighbors(faces, n_vertices):
     -------
     >>> from utils.mesh_operations import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
-    >>> find_neighbors(faces)
+    >>> n_vertices = 5
+    >>> find_neighbors(faces, n_vertices)
         [[1, 2, 3, 4], [0, 2, 4, 3], [1, 0, 3], [2, 0, 4, 1], [0, 3, 1]]
 
     >>> from utils.mesh_operations import find_neighbors
     >>> from utils.io_vtk import load_scalar
     >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors(faces)
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
 
     """
 
@@ -216,111 +217,13 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 
     return anchors
 
-"""
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions
-#------------------------------------------------------------------------------
-def segment(vertices, neighbor_lists, min_region_size=1):
-    ""
-    Segment vertices of surface into contiguous regions (seed region growing).
-
-    Parameters
-    ----------
-    vertices : list or array of integers
-        indices to subset of mesh vertices to be segmented
-    neighbor_lists : list of lists of integers (#lists = total #vertices in mesh)
-        each list contains indices to neighboring vertices
-    min_region_size : minimum size of segmented set of vertices
-
-    Returns
-    -------
-    segments : numpy array [total #vertices in mesh x 1]
-        segment indices for regions (default -1)
-    n_segments : #segments
-    max_region_label : index for largest segmented set of vertices
-
-    ""
-    import numpy as np
-
-    # Initialize segments (length is equal to the number of mesh vertices)
-    segments = -1 * np.ones(len(neighbor_lists))
-
-    ## Keep only seed neighbor lists
-    #print('    Removing indices to other mesh vertices from the neighbor lists...')
-    #seed_neighbor_lists = []
-    #[seed_neighbor_lists.append([x for x in lst if x in vertices])
-    # for lst in neighbor_lists]
-
-    # Loop until all vertices segmented
-    print('    Segment {0} vertices...'.format(len(vertices)))
-    max_region_size = 0
-    max_region_label = 1
-    n_segments = 0
-    counter = 0
-    while len(vertices) >= min_region_size:
-
-        # Select a seed vertex (selection does not affect result)
-        #seeds = [vertices[round(np.random.rand() * (len(vertices) - 1))]]
-        seeds = [vertices[0]]
-
-        # Initialize region grown from seed
-        region = seeds[:]
-
-        # Grow region about the seed vertex until
-        # there are no more connected seed vertices available.
-        loop = 1
-        while loop:
-            loop = 0
-
-            # Disregard vertices already visited (seeds)
-            vertices = list(frozenset(vertices).difference(seeds))
-
-            # Identify neighbors of seed vertices
-            neighbors = []
-            #[neighbors.extend(seed_neighbor_lists[x]) for x in seeds]
-            [neighbors.extend(neighbor_lists[x]) for x in seeds]
-
-            # Select seed neighbors that have not been previously selected
-            #seeds = [x for x in list(set(neighbors)) if x not in region]
-            seeds = [x for x in list(set(neighbors))
-                     if x not in region if x in vertices]
-
-            # Add seed vertices to the segmented region
-            if len(seeds) > 0:
-                region.extend(seeds)
-
-                # Continue loop if there are new seed neighbors
-                loop = 1
-
-        # Assign counter number to segmented region
-        # if region size is greater than min_region_size
-        size_region = len(region)
-        if size_region >= min_region_size:
-            n_segments = counter
-            segments[region] = n_segments
-
-            # Display current number and size of region
-            if size_region > 1:
-                print('    Segmented region {0}: {1} vertices. {2} vertices remaining...'.
-                      format(n_segments, size_region, len(vertices)))
-
-            # Find the maximum region size
-            if size_region > max_region_size:
-                max_region_size = size_region
-                max_region_label = counter
-
-            counter += 1
-
-    return segments, n_segments, max_region_label
-"""
-
-#------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions using multiple seeds
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     """
     Segment vertices of surface into contiguous regions,
-    starting from one or more lists of seed vertices.
+    starting from zero or more lists of seed vertices.
 
     Parameters
     ----------
@@ -337,96 +240,111 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     segments : numpy array [total #vertices in mesh x 1]
         segment indices for regions (default -1)
     n_segments : #segments
-    max_region_label : index for largest segmented set of vertices
+
+    Example
+    -------
+    >>> import numpy as np
+    >>> from utils.mesh_operations import find_neighbors, segment
+    >>> from utils.io_vtk import load_scalar, rewrite_scalars
+    >>> File = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.depth.vtk'
+    >>> points, faces, scalars, n_vertices = load_scalar(File)
+    >>> vertices_to_segment = np.where(scalars > 0.25)[0]
+    >>> seed_lists = []
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> folds, n_folds = segment(vertices_to_segment, seed_lists,
+    >>>                          neighbor_lists, min_region_size=50)
+    >>> # Write results to vtk file:
+    >>> rewrite_scalars(File, 'test_segment.vtk', LUT=folds)
 
     """
     import numpy as np
 
-    # Initialize segments (length is equal to the number of mesh vertices)
-    segments = -1 * np.ones(len(neighbor_lists))
-
     # If seed_lists is empty, select first vertex from vertices_to_segment
+    # (single vertex selection does not affect result -- see below*)
+    print('    Segment {0} vertices...'.format(len(vertices_to_segment)))
     if len(seed_lists):
         select_single_seed = False
+        print('    Select from {1} sets of seed vertices'.format(len(seed_lists)))
     else:
         select_single_seed = True
+        seed_lists = [[vertices_to_segment[0]]]
+        print('    Select first vertex as initial seed')
 
     # Initialize variables, including the list of vertex indices for each region,
     # vertex indices for all regions, and Boolean list indicating which regions
     # are not fully grown, max. region ID, number of segments, etc.
+    segments = -1 * np.ones(len(neighbor_lists))
     region_lists = [[] for x in seed_lists]
     all_regions = []
     fully_grown = [False for x in seed_lists]
-    max_region_size = 0
-    max_region_label = 0
-    n_segments = 0
+    new_segment_index = 0
     counter = 0
-    n_seed_lists = len(seed_lists)
-    if n_seed_lists > 1:
-        plural = 's'
-    else:
-        plural = ''
 
-    print('    Segment {0} vertices starting from {1} set{2} of seed vertices...'.
-        format(len(vertices_to_segment), n_seed_lists, plural))
+    # Loop until all of the seed lists have grown to their full extent
+    while not all(fully_grown):
+        # Loop through seed lists over and over again
+        for ilist, seed_list in enumerate(seed_lists):
+            # If seed list not fully grown
+            if not fully_grown[ilist]:
 
-    # Loop until all of the connected vertices_to_segment have been segmented
-    while len(vertices_to_segment) >= min_region_size:
+                # Add seeds to region
+                region_lists[ilist].extend(seed_list)
+                all_regions.extend(seed_list)
 
-        # If selecting a single seed at a time
-        if select_single_seed:
-            seed_lists = [vertices_to_segment[0]] # selection does not affect result
+                # Remove seeds from vertices to segment
+                vertices_to_segment = list(frozenset(vertices_to_segment).
+                                        difference(seed_list))
 
-        # Loop until all of the seed lists have grown to their full extent
-        while not all(fully_grown):
-            # Loop through seed lists over and over again
-            for ilist, seed_list in enumerate(seed_lists):
-                # If not fully grown
-                if not fully_grown[ilist]:
+                # Identify neighbors of seeds
+                neighbors = []
+                [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
-                    # Add seeds to region
-                    region_lists[ilist].extend(seed_list)
-                    all_regions.extend(seed_list)
+                # Select neighbors that have not been previously selected
+                # and are among the vertices to segment
+                seed_list = [x for x in list(set(neighbors))
+                             if x not in all_regions
+                             if x in vertices_to_segment]
 
-                    # Remove seeds from vertices to segment
-                    vertices_to_segment = list(frozenset(vertices_to_segment).
-                                            difference(seed_list))
+                # Continue growing seed list if there are seeds remaining
+                if len(seed_list):
+                    seed_lists[ilist] = seed_list
 
-                    # Identify neighbors of seeds
-                    neighbors = []
-                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+                # If there are no seeds remaining
+                else:
+                    # Stop growing seed list (see exception below)
+                    fully_grown[ilist] = True
 
-                    # Select neighbors that have not been previously selected
-                    seed_list = [x for x in list(set(neighbors))
-                                 if x not in all_regions
-                                 if x in vertices_to_segment]
+                    # If the region size is large enough
+                    size_region = len(region_lists[ilist])
+                    if size_region >= min_region_size:
 
-                    # Add seeds to the seed list or end this seed set
-                    if len(seed_list) > 0:
-                        seed_lists[ilist] = seed_list
-                    else:
-                        fully_grown[ilist] = True
-
-                        # Assign counter number to segmented region
-                        # if region size is greater than min_region_size
-                        size_region = len(region_lists[ilist])
-                        if size_region >= min_region_size:
-                            n_segments = counter
-                            segments[region_lists[ilist]] = n_segments
-
-                            # Display current number and size of region
-                            if size_region > 1:
-                                print('    Segmented region {0}: {1} vertices. {2} vertices remaining...'.
-                                      format(n_segments, size_region, len(vertices_to_segment)))
-
-                            # Find the maximum region size
-                            if size_region > max_region_size:
-                                max_region_size = size_region
-                                max_region_label = counter
-
+                        # Assign ID to segmented region
+                        if select_single_seed:
+                            new_segment_index = counter
                             counter += 1
+                        else:
+                            new_segment_index = ilist
+                        segments[region_lists[ilist]] = new_segment_index
 
-    return segments, n_segments, max_region_label
+                        # Display current number and size of region
+                        if size_region > 1:
+                            print("    Segmented region {0}: {1} vertices. "
+                                  "{2} vertices remaining...".
+                                  format(new_segment_index, size_region,
+                                         len(vertices_to_segment)))
+
+                    # If selecting a single seed, continue growing
+                    # if there are more vertices to segment
+                    # (*even when the number of vertices to segment is less than
+                    #  min_region_size -- this is to ensure identical results
+                    #  even when the single selected seed is in a tiny region)
+                    if select_single_seed:
+                        if len(vertices_to_segment): # >= min_region_size:
+                            fully_grown[ilist] = False
+                            seed_lists[ilist] = [vertices_to_segment[0]]
+
+    n_segments = new_segment_index + 1
+    return segments, n_segments
 
 #------------------------------------------------------------------------------
 # Fill holes
