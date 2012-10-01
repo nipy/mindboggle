@@ -342,6 +342,7 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
                         if len(vertices_to_segment): # >= min_region_size:
                             fully_grown[ilist] = False
                             seed_lists[ilist] = [vertices_to_segment[0]]
+                            region_lists = [[]]
 
     n_segments = new_segment_index + 1
     return segments, n_segments
