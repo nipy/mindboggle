@@ -4,8 +4,8 @@ Identify sulci from surface files with fold IDs and labels.
 
 
 Authors:
-    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -290,7 +290,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
             for vertex in fold:
                 sulcus_IDs[vertex] = index
 
-        # Cases 3-7:
+        # Cases 3-8:
         # There is at least one fold label but no perfect match
         else:
             # Find all label boundary pairs within the fold
@@ -309,12 +309,12 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 print("  Fold label pairs in protocol: {0}".
                       format(', '.join([str(x) for x in unique_fold_pairs])))
 
-            # Case 3: NO MATCHING PAIR -- no label pair in common
-            #                             between sulci and fold
+            # Case 3: NO MATCHING PAIR --
+            #         no label pair in common between sulci and fold
             if not len(unique_fold_pairs):
                 print("  Fold {0}: NO MATCHING PAIR".format(ifold))
 
-            # Cases 4-7:
+            # Cases 4-5:
             # There is at least one label pair in common between sulci and fold
             else:
 
@@ -323,11 +323,11 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                 superset_indices, subset_indices = find_superset_subset_lists(
                     unique_fold_labels, label_lists)
 
-                # Cases 4-5:
-                # If fold labels contained by one or more sulcus label lists
+                # Cases 4a-c:
+                # Fold labels contained by one or more sulcus label lists
                 if len(superset_indices):
 
-                    # Case 4: one match -- fold labels in one sulcus
+                    # Case 4a: one match -- fold labels in one sulcus
                     if len(superset_indices) == 1:
                         print("  Fold {0}: one match -- "
                               "fold labels in one sulcus: {1} ({2})".
@@ -338,24 +338,46 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         for vertex in fold:
                             sulcus_IDs[vertex] = superset_indices[0]
 
-                    # Case 5: UNRESOLVED -- fold labels in more than one sulcus
-                    # NOTE: Could check to see which sulcus shares a label pair
+                    # Cases 4b-c:
+                    # Fold labels in more than one sulcus
                     else:
-                        print("  Fold {0}: UNRESOLVED -- "
-                              "fold labels in more than one sulcus".
-                              format(ifold))
-                        if verbose:
-                            print("           Sulci containing fold labels:")
-                            for index in superset_indices:
-                                print("           {0} ({1})".format(
-                                    label_lists[index],
-                                    sulcus_names[index]))
+                        # Find how many fold label pairs are shared with
+                        # sulci that contain all of the fold's labels
+                        label_pair_array = np.array(label_pair_lists)
+                        len([x for i, sublst
+                             in enumerate(label_pair_array[superset_indices])
+                             for x in sublst if x in unique_fold_pairs])
 
-                # Cases 6-7:
-                # If the fold labels contain at least one sulcus label list
+                        I = [x for x in label_pair_lists[superset_indices]
+                             unique_fold_pairs
+                             if np.unique(x).tolist() in
+                                label_pair_lists[superset_indices]]
+
+                        # Case 4b: one label pair match
+                        # (fold labels in more than one sulcus)
+                        if fold_pairs_in_common == 1:
+                            print("  Fold {0}: one label pair match "
+                                  " (fold labels in more than one sulcus)".
+                                  format(ifold))
+                        # Case 4c: UNRESOLVED -- more than one label pair match,
+                        # and fold labels in more than one sulcus
+                        else:
+                            print("  Fold {0}: UNRESOLVED -- "
+                                  "more than one label pair match "
+                                  "(fold labels in more than one sulcus)".
+                                  format(ifold))
+                            if verbose:
+                                print("           Sulci containing fold labels:")
+                                for index in superset_indices:
+                                    print("           {0} ({1})".format(
+                                        label_lists[index],
+                                        sulcus_names[index]))
+
+                # Cases 5a-b:
+                # If the fold labels contain one or more sulcus label lists
                 elif len(subset_indices):
 
-                    # Case 6: PARTIAL MATCH -- fold labels contain one sulcus
+                    # Case 5a: PARTIAL MATCH -- fold labels contain one sulcus
                     if len(subset_indices) == 1:
                         supind = label_lists[superset_indices[0]]
                         print("  Fold {0}: PARTIAL MATCH -- "
@@ -373,7 +395,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                             else:
                                 unassigned.append(vertex)
 
-                    # Case 7: AMBIGUOUS -- fold labels contain more than one sulcus
+                    # Case 5b: AMBIGUOUS -- fold labels contain more than one sulcus
                     else:
                         print("  Fold {0}: AMBIGUOUS -- "
                               "fold labels contain more than one sulcus".
