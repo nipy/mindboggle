@@ -43,7 +43,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
     Example
     -------
-    >>> from utils.mesh_operations import find_all_neighbors_from_file
+    >>> from utils.mesh_operations import find_neighbors_from_file
     >>> from extract.extract_folds import extract_folds
     >>> depth_file = '/desk/output/results/measures/_hemi_rh_subject_MMRR-21-1/rh.pial.depth.vtk'
     >>> neighbor_lists = find_all_neighbors_from_file(depth_file)
@@ -78,8 +78,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
           format(min_depth))
     t1 = time()
     vertices_to_segment = np.where(depths > min_depth)[0]
-    folds, n_folds, max_fold, = segment(vertices_to_segment, [], neighbor_lists,
-                                        min_fold_size)
+    folds, n_folds = segment(vertices_to_segment, [], neighbor_lists, min_fold_size)
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
 
     # If there are any folds
@@ -92,19 +91,27 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes, max_hole = segment(vertices_to_segment, [],
-                                           neighbor_lists, 1)
+        holes, n_holes = segment(vertices_to_segment, [], neighbor_lists, 1)
 
         # If there are any holes
         if n_holes > 0:
 
             # Ignore the largest hole (the background) and renumber holes
-            holes[holes == max_hole] = -1
-            if max_hole < n_holes:
-                holes[holes > max_hole] -= 1
+            max_hole_size = 0
+            max_hole_index = 0
+            for ihole in range(n_holes):
+                I = np.where(holes == ihole)
+                if len(I) > max_hole_size:
+                    max_hole_size = len(I)
+                    max_hole_index = ihole
+            holes[holes == max_hole_index] = -1
+            if max_hole_index < n_holes:
+                holes[holes > max_hole_index] -= 1
             n_holes -= 1
-            print('    ...Holes segmented ({0:.2f} seconds)'.format(time() - t2))
+            print('    ...{0} holes segmented ({1:.2f} seconds)'.
+                  format(nholes, time() - t2))
 
+            # Fill holes
             t3 = time()
             folds = fill_holes(folds, holes, n_holes, neighbor_lists)
             print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
