@@ -218,8 +218,8 @@ def load_scalar(filename, return_arrays=1):
              for i in xrange(0, CellArray.GetNumberOfCells())]
 
     PointData = Data.GetPointData()
-    print("Loading {0} {1} scalars in file {2}...".
-          format(Reader.GetNumberOfScalarsInFile,
+    print("Loading 1 (named \'{1}\') out of {0} scalars in file {2}...".
+          format(Reader.GetNumberOfScalarsInFile(),
                  Reader.GetScalarsNameInFile(0), filename))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     if ScalarsArray:
