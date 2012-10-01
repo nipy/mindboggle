@@ -64,7 +64,7 @@ def check_opt(opts, args):
     '''
     
     for o, p in opts:
-        if o == '-h' or "--help":
+        if o in ('-h', "--help"):
             print_help()
             sys.exit()
     
@@ -80,7 +80,7 @@ def check_opt(opts, args):
     
     Clouchoux, MeanCurvVTK, GaussCurvVTK = False, False, False
     for o,p in opts:
-        if p == "":
+        if p == "" and not o in ['--clouchoux', '--help', '-h']:
             print "[ERROR] The option",o, "is missing argument."
             print "   Please run [python vtk_extract.py -h] or [python vtk_extract.py --help] to get the usage."
             sys.exit()
@@ -133,6 +133,22 @@ def process_opt(opts,args):
         elif o=='--thick':
             ThickFile = p
             print "  [Input] thickness file:" + InputColor + ThickFile + EndColor
+        elif o == '--clouchoux':
+                print "  [Settings] Will extract pits using Clouchoux's definition "
+                Clouchoux = True
+        elif o == "--meancurv":
+            MeanCurvVTK = p
+            print "  [Input] mean curvature file:" + InputColor + MeanCurvVTK + EndColor
+        elif o == "--gausscurv":
+            GaussCurvVTK = p
+            print "  [Input] Gaussian curvature file:" + InputColor + GaussCurvVTK + EndColor
+        elif o =='--sulciThld':
+            if p == '':
+                print "  [ERROR] Please provide a threshold value for option --", o
+                print "To check usage, run: python extract.py"
+                sys.exit()
+            SulciThld = float(p)
+            print "  [Settings] Threshold the surface using value:", SulciThld
         elif o=='--fundi':
             FundiVTK = p
             print "  [Output] Fundi in:" + OutputColor + FundiVTK + EndColor
@@ -151,21 +167,8 @@ def process_opt(opts,args):
 #        elif o=='--sulci2':
 #            Sulci2VTK = p
 #            print "  [Output] Sulci on 2nd surface in:" + OutputColor + Sulci2VTK + EndColor
-        elif o =='--sulciThld':
-            if p == '':
-                print "  [ERROR] Please provide a threshold value for option --", o
-                print "To check usage, run: python extract.py"
-                sys.exit()
-            SulciThld = float(p)
-        elif o == '--clouchoux':
-                print "  Will extract pits using Clouchoux's definition "
-                Clouchoux = True
-        elif o == "--meancurv":
-            MeanCurvVTK = p
-            print "  [Input] mean curvature file:" + InputColor + MeanCurvVTK + EndColor
-        elif o == "--gausscurv":
-            GaussCurvVTK = p
-            print "  [Input] Gaussian curvature file:" + InputColor + GaussCurvVTK + EndColor
+
+
  
 
 
@@ -180,8 +183,7 @@ if __name__ == "__main__":
 
     try:
         opts, args = getopt.getopt(sys.argv[1:],"h",
-                                   ["thick=", "convex=","fundi=","pits=","sulci=","sulciThld=",
-                                    "meancurv=", "gausscurv=" "clouchoux", "help"])
+                                   ["clouchoux", "help","thick=", "convex=","fundi=","pits=","sulci=","sulciThld=","meancurv=", "gausscurv="])
     except getopt.GetoptError, err:
         print str(err) # will print something like "option -a not recognized"
         print "   Please run [python vtk_extract.py -h] or [python vtk_extract.py --help] to get the usage."
