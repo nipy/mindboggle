@@ -658,7 +658,7 @@ def stepFilter(L, Y, Z):
 
     return L
 
-def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2):
+def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK):
     '''Connecting pits into fundus curves
     
     Parameters
@@ -780,9 +780,9 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
         print LUTname
     pyvtk.VtkData(pyvtk.PolyData(points=Vrtx, lines=PSegs), Pointdata).tofile(FundiVTK, 'ascii')
 
-    if Mesh2 != []:
-        [Vertexes2, Face2] = Mesh2
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(Fundi2VTK, 'ascii')
+#    if Mesh2 != []:
+#        [Vertexes2, Face2] = Mesh2
+#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(Fundi2VTK, 'ascii')
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -832,8 +832,8 @@ def getFeatures(InputFiles, Type, Options):
     if Type == 'FreeSurfer':
         print "\t FreeSurfer mode\n"
         
-        [SurfFile, SurfFile2, ThickFile, CurvFile, ConvFile,\
-         FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, Use, SulciThld]\
+        [SurfFile, ThickFile, CurvFile, ConvFile,\
+         FundiVTK, PitsVTK, SulciVTK, Use, SulciThld]\
           = InputFiles
         
         # The reason we have both MapBasin and MapExtract 
@@ -874,7 +874,7 @@ def getFeatures(InputFiles, Type, Options):
 
     elif Type == 'vtk':
         print "\t Joachim's VTK mode\n" 
-        [DepthVTK, ConvexityFile, ThickFile, SurfFile2, MeanCurvVTK, GaussCurvVTK, FundiVTK, PitsVTK, SulciVTK, Fundi2VTK, Pits2VTK, Sulci2VTK, SulciThld, Clouchoux] = InputFiles
+        [DepthVTK, ConvexityFile, ThickFile, MeanCurvVTK, GaussCurvVTK, FundiVTK, PitsVTK, SulciVTK, SulciThld, Clouchoux] = InputFiles
         
         # This part needs to be rewritten using vtk AND mean curvature is from another place 
         
@@ -910,19 +910,19 @@ def getFeatures(InputFiles, Type, Options):
         
         Mesh = [Vertexes, Faces]
         
-    # common for both FreeSurfer and vtk type 
-    if SurfFile2 != '':
-        Mesh2 = io_file.readSurf(SurfFile2)
-#            Mesh2 = [Vertexes2, Face2]
-    else:
-        Mesh2 = []
+    ## common parts for both FreeSurfer and vtk type 
+#    if SurfFile2 != '':
+#        Mesh2 = io_file.readSurf(SurfFile2)
+##            Mesh2 = [Vertexes2, Face2]
+#    else:
+#        Mesh2 = []
 
-    libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = SulciThld, Quick=True)
+    libbasin.getBasin_and_Pits(MapBasin, MapExtract, Mesh, PrefixBasin, PrefixExtract, SulciVTK, PitsVTK, Threshold = SulciThld, Quick=True)
     
     import pyvtk
     Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
     
-    fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK, Fundi2VTK, Mesh2)
+    fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK)
     # end of common for both FreeSurfer and vtk type
 
 #    elif Type == 'clouchoux':
