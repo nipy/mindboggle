@@ -425,53 +425,53 @@ def univariate_pits(CurvDB, VrtxNbrLst, VrtxCmpnt, Thld):
                 C[Vrtx] = M
     return B, C, Child
 
-def getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0):
-    '''Only extract sulci. No Pits.
-    
-    Parameters
-    ============
-        MapBasin: list
-            a per-vertex map, e.g., curvature map, for extract sulcal basin
-          
-        Mesh: 2-tuple of lists
-            the first list has coordinates of vertexes while the second defines triangles on the mesh
-            This is a mandatory surface, normally a non-inflated surface. 
-            
-        Mesh2: 2-tuple of lists
-            the first list has coordinates of vertexes while the second defines triangles on the mesh
-            This is an optional surface, normally an inflated surface.
-            Default = []
+#def getBasin_only(MapBasin, Mesh, PrefixBasin, Mesh2, Threshold = 0):
+#    '''Only extract sulci. No Pits.
+#    
+#    Parameters
+#    ============
+#        MapBasin: list
+#            a per-vertex map, e.g., curvature map, for extract sulcal basin
+#          
+#        Mesh: 2-tuple of lists
+#            the first list has coordinates of vertexes while the second defines triangles on the mesh
+#            This is a mandatory surface, normally a non-inflated surface. 
+#            
+#        Mesh2: 2-tuple of lists
+#            the first list has coordinates of vertexes while the second defines triangles on the mesh
+#            This is an optional surface, normally an inflated surface.
+#            Default = []
+#
+#        PrefixBasin: string
+#            the prefix for all outputs that are only related to basin extraction,
+#            e.g., connected components, basins and gyri. 
+#
+#        Threshold: float
+#            the value to threshold the surface       
+#    
+#    '''
+#    [Vertexes, Face] = Mesh
+#    if Mesh2 != []:
+#        [Vertexes2, Face2] = Mesh2
+#        
+#    Basin, Gyri = basin(Face, MapBasin, Threshold = Threshold)
+#    BasinFile = PrefixBasin + '.basin'
+#    
+#    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+#    if PrefixBasin[::-1].find('/') == -1:
+#        LastSlash = 0
+#    else:
+#        LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
+##    print "LastSlash=",LastSlash 
+#    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
+##    print "Hemi=", Hemi
+#
+#    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
+#    FcNbr   = fcNbrLst(Face, Hemi)
+#    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
 
-        PrefixBasin: string
-            the prefix for all outputs that are only related to basin extraction,
-            e.g., connected components, basins and gyri. 
 
-        Threshold: float
-            the value to threshold the surface       
-    
-    '''
-    [Vertexes, Face] = Mesh
-    if Mesh2 != []:
-        [Vertexes2, Face2] = Mesh2
-        
-    Basin, Gyri = basin(Face, MapBasin, Threshold = Threshold)
-    BasinFile = PrefixBasin + '.basin'
-    
-    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-    if PrefixBasin[::-1].find('/') == -1:
-        LastSlash = 0
-    else:
-        LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-#    print "LastSlash=",LastSlash 
-    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
-#    print "Hemi=", Hemi
-
-    VrtxNbr = vrtxNbrLst(len(Vertexes), Face, Hemi)
-    FcNbr   = fcNbrLst(Face, Hemi)
-    FcCmpnt, VrtxCmpnt = compnent(Face, Basin, FcNbr, PrefixBasin)
-
-
-def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Mesh2, SulciVTK, PitsVTK, Sulci2VTK, Pits2VTK, Threshold = 0, Quick=False):
+def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract,SulciVTK, PitsVTK, Threshold = 0, Quick=False):
     '''Load curvature and surface file and output sulci into SulciFile
     
     This is a general framework for feature extraction
@@ -487,11 +487,6 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Me
         Mesh: 2-tuple of lists
             the first list has coordinates of vertexes while the second defines triangles on the mesh
             This is a mandatory surface, normally a non-inflated surface. 
-            
-        Mesh2: 2-tuple of lists
-            the first list has coordinates of vertexes while the second defines triangles on the mesh
-            This is an optional surface, normally an inflated surface.
-            Default = []
 
         PrefixBasin: string
             the prefix for all outputs that are only related to basin extraction,
@@ -510,22 +505,22 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Me
         SurfFile: string
             path to a surface file
 
-        SurfFile2: string
-            path to the 2nd surface file
-            
         Threshold: float
             the value to threshold the surface
             
         PitsThld: float
             vertexes deeper than this value can be considered as pits
+            
+        Quick: Boolean
+            If true, extract sulci only (no component ID, only thresholding), skipping pits and later fundi. 
 
     '''
       
     print "\t thresholding the surface using threshold = ", Threshold
     
     [Vertexes, Face] = Mesh
-    if Mesh2 != []:
-        [Vertexes2, Face2] = Mesh2
+#    if Mesh2 != []:
+#        [Vertexes2, Face2] = Mesh2
         
     Basin, Gyri = basin(Face, MapBasin, Threshold = Threshold)
     # End of 2nd curvature file is only used to provide POINTDATA but not to threshold the surface  Forrest 2011-10-21
@@ -559,10 +554,8 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Me
     else:
         print "\t\t GETTING SULCI ONLY"
 
-    # dump basin
-    print "writing basins into VTK files"
-
 # basin pyvtk output
+    print "writing sulci into VTK files"
     import pyvtk
     Face = [map(int,i) for i in Face]# this is a temporal fix. It won't cause precision problem because sys.maxint is 10^18.
     Vertexes = map(list, Vertexes)
@@ -580,9 +573,8 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Me
 # end of basin pyvtk output
     
             
-    if Mesh2 != []: 
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin]), Pointdata).tofile(Sulci2VTK,'ascii')
-#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Gyri])).tofile(PrefixBasin + '.gyri.2nd.vtk','ascii')
+#    if Mesh2 != []: 
+#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, polygons=[Face2[Idx] for Idx in Basin]), Pointdata).tofile(Sulci2VTK,'ascii')
 
     if Quick:
         exit()
@@ -598,10 +590,8 @@ def getBasin_and_Pits(MapBasin, mapExtract, Mesh, PrefixBasin, PrefixExtract, Me
  
 ## end of a testing code to write pits and basin all together
 
-    if Mesh2 != []:
-        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, vertices=Pits)).tofile(Pits2VTK,'ascii')
-#        VTKFile = PitsFile + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'
-#        libvtk.vrtxLst2VTK(VTKFile, SurfFile2, PitsFile)
+#    if Mesh2 != []:
+#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, vertices=Pits)).tofile(Pits2VTK,'ascii')
     # End of write pits
     
     # output tree hierarchies of basal components
