@@ -109,7 +109,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
                 holes[holes > max_hole_index] -= 1
             n_holes -= 1
             print('    ...{0} holes segmented ({1:.2f} seconds)'.
-                  format(nholes, time() - t2))
+                  format(n_holes, time() - t2))
 
             # Fill holes
             t3 = time()
