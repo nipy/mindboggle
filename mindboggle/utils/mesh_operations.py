@@ -340,9 +340,9 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
                     #  even when the single selected seed is in a tiny region)
                     if select_single_seed:
                         if len(vertices_to_segment): # >= min_region_size:
-                            fully_grown[ilist] = False
-                            seed_lists[ilist] = [vertices_to_segment[0]]
-                            region_lists = [[]]
+                            fully_grown[0] = False
+                            seed_lists[0] = [vertices_to_segment[0]]
+                            region_lists[0] = []
 
     n_segments = new_segment_index + 1
     return segments, n_segments
@@ -578,7 +578,7 @@ def detect_boundaries(labels, region, neighbor_lists):
     -------
     boundary_indices : list of integers
         indices to label boundary vertices
-    boundary_label_pairs : list of lists of pairs of integers
+    boundary_label_pairs : list of lists of sorted pairs of integers
         label pairs
 
     Example
