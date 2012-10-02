@@ -328,8 +328,8 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
 
                         # Display current number and size of region
                         if size_region > 1:
-                            print("    Segmented region {0}: {1} vertices. "
-                                  "{2} vertices remaining...".
+                            print("    Region {0}: {1} vertices "
+                                  "({2} remaining)".
                                   format(new_segment_index, size_region,
                                          len(vertices_to_segment)))
 
