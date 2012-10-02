@@ -266,22 +266,22 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         fold_labels = [labels[vertex] for vertex in fold]
         unique_fold_labels = [int(x) for x in np.unique(fold_labels)]
 
-        # Case 0: NO LABEL
+        # Case 0: NO MATCH -- fold has no label
         if not len(unique_fold_labels):
-            print("  Fold {0}: NO LABEL")
+            print("  Fold {0}: NO MATCH -- fold has no label")
             # Ignore: sulcus_IDs already initialized with -1 values
             continue
 
-        # Case 1: NO PAIR -- only one label in fold
+        # Case 1: NO MATCH -- fold has only one label
         elif len(unique_fold_labels) == 1:
-            print("  Fold {0}: LONE LABEL ({1})".
+            print("  Fold {0}: NO MATCH -- fold has only one label ({1})".
                   format(ifold, unique_fold_labels[0]))
             # Ignore: sulcus_IDs already initialized with -1 values
             continue
 
-        # Case 2: perfect match between sulcus and fold labels
+        # Case 2: matching label set in sulcus
         elif unique_fold_labels in label_lists:
-            print("  Fold {0}: perfect match: {1} ({2})".
+            print("  Fold {0}: matching label set in sulcus: {1} ({2})".
                 format(ifold,
                 sulcus_names[label_lists.index(unique_fold_labels)],
                   ', '.join([str(x) for x in unique_fold_labels])))
@@ -290,36 +290,32 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
             for vertex in fold:
                 sulcus_IDs[vertex] = index
 
-        # Cases 3-8:
-        # There is at least one fold label but no perfect match
+        # Cases 3-5: at least one fold label but no perfect match
         else:
             # Find all label boundary pairs within the fold
             indices_fold_pairs, fold_pairs, unique_fold_pairs = detect_boundaries(
                 labels, fold, neighbor_lists)
+
+            # Find fold label pairs in the protocol (pairs are already sorted)
+            fold_pairs_in_protocol = [x for x in unique_fold_pairs
+                                      if x in protocol_pairs]
             if verbose:
                 print("  Fold labels: {0}".
                       format(', '.join([str(x) for x in unique_fold_labels])))
                 #print("  Fold label pairs: {0}".
                 #      format(', '.join([str(x) for x in unique_fold_pairs])))
-
-            # Find fold label pairs in the protocol
-            unique_fold_pairs = [x for x in unique_fold_pairs
-                                 if np.unique(x).tolist() in protocol_pairs]
-            if verbose:
                 print("  Fold label pairs in protocol: {0}".
-                      format(', '.join([str(x) for x in unique_fold_pairs])))
+                      format(', '.join([str(x) for x in fold_pairs_in_protocol])))
 
-            # Case 3: NO MATCHING PAIR --
-            #         no label pair in common between sulci and fold
-            if not len(unique_fold_pairs):
-                print("  Fold {0}: NO MATCHING PAIR".format(ifold))
+            # Case 3: NO MATCH -- fold has no sulcus label pair
+            if not len(fold_pairs_in_protocol):
+                print("  Fold {0}: NO MATCH -- fold has no sulcus label pair".
+                      format(ifold))
 
-            # Cases 4-5:
-            # There is at least one label pair in common between sulci and fold
+            # Cases 4-5: label pair(s) in common between sulci and fold
             else:
 
-                # Find sulcus label lists that contain or are contained by
-                # the fold labels
+                # Find overlap of sulcus labels and fold labels
                 superset_indices, subset_indices = find_superset_subset_lists(
                     unique_fold_labels, label_lists)
 
@@ -338,43 +334,35 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         for vertex in fold:
                             sulcus_IDs[vertex] = superset_indices[0]
 
-                    # Cases 4b-c:
-                    # Fold labels in more than one sulcus
+                    # Cases 4b-c: Fold labels in more than one sulcus
                     else:
-                        # Find how many fold label pairs are shared with
-                        # sulci that contain all of the fold's labels
+                        # Find sulci that contain all of the fold's labels
+                        # and share one or more label pairs with the fold
                         label_pair_array = np.array(label_pair_lists)
-                        len([x for i, sublst
-                             in enumerate(label_pair_array[superset_indices])
-                             for x in sublst if x in unique_fold_pairs])
+                        IDs = [superset_indices[i] for i, sublst
+                               in enumerate(label_pair_array[superset_indices])
+                               for x in sublst if x in fold_pairs_in_protocol]
+                        IDs = list(set(IDs))
 
-                        I = [x for x in label_pair_lists[superset_indices]
-                             unique_fold_pairs
-                             if np.unique(x).tolist() in
-                                label_pair_lists[superset_indices]]
-
-                        # Case 4b: one label pair match
-                        # (fold labels in more than one sulcus)
-                        if fold_pairs_in_common == 1:
+                        # Case 4b: one match --
+                        #          labels in multiple sulci but label pair in one sulcus
+                        if len(IDs) == 1:
                             print("  Fold {0}: one label pair match "
                                   " (fold labels in more than one sulcus)".
                                   format(ifold))
-                        # Case 4c: UNRESOLVED -- more than one label pair match,
-                        # and fold labels in more than one sulcus
-                        else:
-                            print("  Fold {0}: UNRESOLVED -- "
-                                  "more than one label pair match "
-                                  "(fold labels in more than one sulcus)".
-                                  format(ifold))
-                            if verbose:
-                                print("           Sulci containing fold labels:")
-                                for index in superset_indices:
-                                    print("           {0} ({1})".format(
-                                        label_lists[index],
-                                        sulcus_names[index]))
+                            # Assign ID of matching sulcus to all fold vertices
+                            for vertex in fold:
+                                sulcus_IDs[vertex] = IDs
 
-                # Cases 5a-b:
-                # If the fold labels contain one or more sulcus label lists
+                        # Case 4c: AMBIGUOUS --
+                        #          fold label pairs in more than one sulcus
+                        else:
+                            print("  Fold {0}: AMBIGUOUS -- "
+                                  "fold label pairs in more than one sulcus".
+                                  format(ifold))
+                            unassigned = fold[:]
+
+                # Case 5: AMBIGUOUS -- fold labels are not contained by a sulcus
                 elif len(subset_indices):
 
                     # Case 5a: PARTIAL MATCH -- fold labels contain one sulcus
@@ -415,8 +403,8 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
                         IDs_unique_pairs = []
                         remainder_pairs = []
                         IDs_remainder_pairs = []
-                        for pair in unique_fold_pairs:
-                            labels_in_pairs = [x for sublst in unique_fold_pairs
+                        for pair in fold_pairs_in_protocol:
+                            labels_in_pairs = [x for sublst in fold_pairs_in_protocol
                                                for x in sublst]
                             if len([x for x in labels_in_pairs if x in pair]) == 2:
                                 unique_pairs.append(pair)
