@@ -264,7 +264,7 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     print('    Segment {0} vertices...'.format(len(vertices_to_segment)))
     if len(seed_lists):
         select_single_seed = False
-        print('    Select from {1} sets of seed vertices'.format(len(seed_lists)))
+        print('    Select from {0} sets of seed vertices'.format(len(seed_lists)))
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
