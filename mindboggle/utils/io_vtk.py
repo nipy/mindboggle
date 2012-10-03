@@ -333,11 +333,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     indices = range(n_vertices)
     if len(filter_scalars) > 0:
         indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
-    else:
-        indices_nonzero = indices
-
-    # Remove surface mesh faces whose three vertices are not all in indices
-    faces_indices = inside_faces(faces, indices_nonzero)
+        # Remove surface mesh faces whose three vertices are not all in indices
+        faces = inside_faces(faces, indices_nonzero)
 
     # Lookup lists for saving to VTK format files
     LUTs = [new_scalars]
@@ -348,7 +345,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
     write_vtk_vertices(Fp, indices)
-    write_vtk_faces(Fp, faces_indices)
+    write_vtk_faces(Fp, faces)
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
             if i == 0:
