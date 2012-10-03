@@ -121,7 +121,7 @@ if __name__ == "__main__":
     # Find label boundary points in any of the folds
     print('Find label boundary points in any of the folds...')
     boundary_indices, boundary_label_pairs, unique_boundary_label_pairs = \
-        detect_boundaries(labels, fold_indices, neighbor_lists)
+        detect_boundaries(fold_indices, labels, neighbor_lists)
     if not len(boundary_indices):
         sys.exit('There are no label boundary points!')
 
