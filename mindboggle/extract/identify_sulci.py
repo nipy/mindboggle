@@ -69,128 +69,53 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
     For each fold (vertices with the same non-zero label):
 
-        Case 1:  Unassigned -- isolated fold (only one label)
+        Case 0: NO MATCH -- fold has no label
 
-        If the fold has only one label, remove the fold by assigning a
-        sulcus ID of -1 to all vertices in this fold.
+        Case 1: NO MATCH -- fold has only one label
 
-        Case 2:  fold labels a perfect match with one sulcus
+          If the fold has only one label, remove the fold by assigning a
+          sulcus ID of -1 to all vertices in this fold.
 
-        If the set of labels in the fold is the same as in one of the protocol's
-        sulci, assign the index to the corresponding sulcus label list
-        to all vertices in the fold.
+        Case 2: matching label set in sulcus
 
-        Case 3:  fold labels a subset of only one sulcus
+          If the set of labels in the fold is the same as in one of the
+          protocol's sulci, assign the index to the corresponding sulcus
+          label list to all vertices in the fold.
 
-        If the set of labels in the fold is a subset of labels in
-        only one of the protocol's sulcus label lists, assign the index
-        for that list to all vertices in the fold.
-        (Ex: the labels in the fold are [1,2,3] and there is only one
-        sulcus label list containing 1, 2, and 3: [1,2,3,4])
+        Case 3: NO MATCH -- fold has no sulcus label pair
 
-        Case 4:  AMBIGUOUS -- fold labels a subset of more than one sulcus
+        Case 4a: fold labels in one sulcus
 
-        If the set of labels in the fold is a subset of labels in more than
-        one of the protocol's sulcus label lists, find corresponding sulcus
-        label pair lists that share a label pair with the fold label pairs.
+          If the set of labels in the fold is a subset of labels in
+          only one of the protocol's sulcus label lists, assign the index
+          for that list to all vertices in the fold.
+          (Ex: the labels in the fold are [1,2,3] and there is only one
+           sulcus label list containing 1, 2, and 3: [1,2,3,4])
 
-        (a) fold label pair in only one sulcus
+        Case 4b: labels in sulci but label pair in one sulcus
 
-            If there is only one such pair, assign the index for that list
-            to all vertices in the fold.
+          If the set of labels in the fold is a subset of labels in more than
+          one of the protocol's sulcus label lists, find corresponding sulcus
+          label pair lists that share a label pair with the fold label pairs.
 
-            Ex: the labels in the fold are [1,2,3] with label pairs [1,2] and
-            [1,3], and there are sulcus label lists [1,2,3,4] and [1,2,3,5]
-            for sulcus label pair lists [[1,4],[[2,4],[3,4]] and
-            [[1,2],[2,3],[3,5]]; the index to the latter list would be chosen
-            because the fold shares the label pair [1,2].
+        Case 4c: ambiguous -- fold label pairs in multiple sulci
 
-        (b) UNRESOLVED -- fold label pair in more than one sulcus
+        Case 5: ambiguous -- fold labels not contained by a sulcus
 
-            If there is more than one such label list, the fold is unresolved.
+        For ambiguous cases above:
 
-        (c) UNRESOLVED -- no shared label pair
+          Find label boundary pairs in the fold whose labels
+          are shared by any other label pairs in the fold,
+          and store the sulcus IDs for these pairs.
 
-            If there is no such pair, the fold is unresolved.
+          Assign a sulcus ID to fold vertices that have unique
+          label pair labels (unique to ensure a label is not shared
+          with another label pair); store unassigned vertices.
 
-        Case 5:  PARTIAL ASSIGNMENT -- fold labels a superset of only one sulcus
-
-        If the set of labels in the fold are a superset of the labels for only
-        one of the protocol's sulcus label lists (Ex: the labels in the fold are
-        [1,2,3,4] and there is only one list which is its subset, [1,2,3]):
-
-        (5.1) Assign the index for that list to just the vertices in the fold
-              with labels in its list (vertices with label 1, 2 or 3).
-
-        (5.2) Treat the remaining vertices (vertices with label 4) as a new fold
-              and start again from #1.
-
-        Case 6:  AMBIGUOUS -- fold labels a superset of more than one sulcus
-
-        If the labels in the fold are a superset of the labels in more than
-        one of the sulcus label lists (Ex: labels in the fold are [1,2,3,4]
-        and there are two sulcus label lists [1,2,3] and [2,3,4]), segment:
-
-        (6.1) Find all label boundaries within the fold (vertices with two
-              different labels in its neighborhood of connected vertices:
-              [1,2],[1,3],[2,3],[2,4],[3,4] in the example below).
-
-              Example
-              -------
-
-                |       |
-              1 |   2   | 4
-                +-------+
-              1 |   3   | 4
-                |       |
-
-        (6.2) Find label boundary label pairs that are not members
-              of the label pairs list ([2,3]).
-
-              The example fold contains two sulci and four labels:
-              Sulcus 1: [[1,2], [1,3]]
-              Sulcus 2: [[2,4], [3,4]]
-              and a non-sulcus label boundary: [[2,3]]
-              We wish to segment this fold into two separate sulci.
-
-                |       |
-              1 |   2   | 4
-                xxxxxxxxx
-              1 |   3   | 4
-                |       |
-
-        Case 6a:
-
-        Some fold vertices have labels independent of non-protocol
-        boundary labels.
-
-        (6.4) Segment groups of connected subfold vertices into separate subfolds.
-
-                |       |
-              1 |       | 4
-                +       +
-              1 |       | 4
-                |       |
-
-        (6.5) Assign each vertex with a nonpair label to the closest subfold.
-
-                |   |   |
-              1 | 2 | 2 | 4
-                + - - - +
-              1 | 3 | 3 | 4
-                |   |   |
-
-        (6.6) Treat each subfold as a new fold and start again from #1.
-
-        Case 6b:
-
-        All fold vertices have labels in common with non-protocol boundaries,
-        and the fold is unresolved.
-
-        Case 7:  AMBIGUOUS -- fold labels neither a subset nor superset of any sulcus
-
-        If the fold labels are neither a superset nor a subset of any of the
-        sulcus label lists, the fold is unresolved.
+          If there are remaining vertices with duplicate label pair labels,
+          construct seed lists of remaining label boundary vertices,
+          segment into sets of vertices connected to label boundary seeds,
+          and assign a sulcus ID to each segment.
 
     """
     import numpy as np
