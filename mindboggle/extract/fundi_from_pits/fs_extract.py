@@ -50,7 +50,7 @@ def print_help():
     print "  --sulciThld SulciThld"
     print "    SulciThld: the value to threshold the surface to get sulci (default = 0.2)"
     print "  Examples: "
-    print "    python extract.py --use conv --thick lh.thickness --conv lh.sulc --curv lh.curv --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk --sulciThld 0.15 lh.pial \n"
+    print "    python fs_extract.py --use conv --thick lh.thickness --conv lh.sulc --curv lh.curv --fundi lh.pial.fundi.vtk --pits lh.pial.pits.vtk --sulci lh.pial.sulci.vtk --sulciThld 0.15 lh.pial \n"
 
 def check_opt(opts, args):
     '''Check whether opts and args satisfy constraints 
@@ -114,8 +114,8 @@ def process_opt(opts, args):
     ThickFile, ConvFile, CurvFile = '', '', ''
     FundiVTK, PitsVTK, SulciVTK = '','',''
 #    Fundi2VTK, Pits2VTK, Sulci2VTK = '','',''
-    Use = 'conv'
-    SulciThld = 0.2
+    Use = 'conv' # default map
+    SulciThld = 0.2 # default threshold 
 
     [SurfFile] = args
     print "  [Input] FreeSurfer surface file:" + InputColor + SurfFile  + EndColor 

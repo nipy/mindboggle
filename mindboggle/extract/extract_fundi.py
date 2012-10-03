@@ -310,9 +310,9 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
                 end_flag = 0
 
             # Display information every n_mod iterations
-            if not np.mod(count, 20):
-                print('      {0}: points crossing threshold ({1:.6f}):   {2}'.
-                      format(count, delta_cost, delta_points))
+            if not np.mod(count, 10):
+                print('      Iteration {0}: {2} points crossing threshold'.
+                      format(count, delta_points)) #delta_cost
 
             # Increment next gradient factor and decrement next neighborhood
             # weight as a function of net number of points crossing threshold
@@ -337,7 +337,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Skeletonize
     skeleton = skeletonize(H, anchors, N)
     print('      Removed {0} points to create one-vertex-thin skeletons'.
-          format(n_points - sum(skeleton)))
+          format(int(n_points - sum(skeleton))))
 
     return skeleton
 
@@ -413,8 +413,8 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
         # If the fold has enough high-likelihood vertices, continue
         likelihoods_thr = sum(fold_likelihoods > thr)
-        print('    {0} vertices with fundus likelihood value > {1} (minimum: {2})'.
-              format(likelihoods_thr, thr, min_fold_size))
+        print('    {0} vertices with fundus likelihood value > {1}'.
+              format(likelihoods_thr, thr)) #min_fold_size
         if likelihoods_thr > min_fold_size:
 
             # Find fundus points
