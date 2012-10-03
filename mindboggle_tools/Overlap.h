@@ -30,6 +30,8 @@ public:
     vtkDoubleArray* GetJaccard();
     vtkDoubleArray* GetDice();
 
+    void WriteIntoFile(char* fileName);
+
 private:
     void ComputePointsArea();
 
@@ -43,6 +45,8 @@ private:
 
     vtkPolyData* m_mesh1;
     vtkPolyData* m_mesh2;
+
+    int m_maxLabel;
 
 
 };
