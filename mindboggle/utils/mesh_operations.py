@@ -308,6 +308,8 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
                              if x not in all_regions
                              if x in vertices_to_segment]
 
+                print(ilist, len(seed_list), len(region_lists[ilist]))
+
                 # Continue growing seed list if there are seeds remaining
                 if len(seed_list):
                     seed_lists[ilist] = seed_list
