@@ -36,6 +36,8 @@ Overlap::Overlap(vtkPolyData *mesh1, vtkPolyData *mesh2)
 
     m_mesh1 = mesh1;
     m_mesh2 = mesh2;
+
+    m_maxLabel = 0;
 }
 
 Overlap::~Overlap()
@@ -54,8 +56,6 @@ void Overlap::ComputeOverlap()
     areaComputer->ComputeArea();
     m_pointsArea = areaComputer->GetArea();
 
-
-    int maxLabel = 0;
     int cLabel1, cLabel2;
     double cArea1, cArea2, cAreaC;
     double iArea;
@@ -67,17 +67,17 @@ void Overlap::ComputeOverlap()
     for(int i = 0; i<m_mesh1->GetNumberOfPoints(); i++)
     {
 //        cout<<m_pointsArea->GetValue(i)<<" "<<labels1->GetTuple1(i)<<" "<<labels2->GetTuple1(i)<<endl;
-        if(maxLabel < labels1->GetTuple1(i))
+        if(m_maxLabel < labels1->GetTuple1(i))
         {
-            maxLabel = labels1->GetTuple1(i);
+            m_maxLabel = labels1->GetTuple1(i);
         }
-        if(maxLabel < labels2->GetTuple1(i))
+        if(m_maxLabel < labels2->GetTuple1(i))
         {
-            maxLabel = labels2->GetTuple1(i);
+            m_maxLabel = labels2->GetTuple1(i);
         }
     }
 
-    for(int i = 0; i<maxLabel; i++)
+    for(int i = 0; i<m_maxLabel; i++)
     {
         m_labels1Areas->InsertNextValue(0);
         m_labels2Areas->InsertNextValue(0);
@@ -107,7 +107,7 @@ void Overlap::ComputeOverlap()
 
     cout<<"Label  Dice  Jaccard Common Area1 Area2"<<endl;
 
-    for(int i = 0; i<maxLabel; i++)
+    for(int i = 0; i<=m_maxLabel; i++)
     {
         cAreaC = m_labelsCommonAreas->GetValue(i);
         cArea1 = m_labels1Areas->GetValue(i);
@@ -126,11 +126,42 @@ void Overlap::ComputeOverlap()
 
         m_dice->InsertNextValue(dice);
         m_jaccard->InsertNextValue(jaccard);
-
-        cout<<i<<" "<<dice<<" "<<jaccard<<" "<< m_labelsCommonAreas->GetValue(i)<<" "<< m_labels1Areas->GetValue(i)<<" "<< m_labels2Areas->GetValue(i)<<endl;
+        if(m_labels1Areas->GetValue(i) > 0 || m_labels2Areas->GetValue(i) > 0 )
+        {
+            cout<<i<<" "<<dice<<" "<<jaccard<<" "<< m_labelsCommonAreas->GetValue(i)<<" "<< m_labels1Areas->GetValue(i)<<" "<< m_labels2Areas->GetValue(i)<<endl;
+        }
     }
 
 }
+
+void Overlap::WriteIntoFile(char* fileName)
+{
+    ofstream myfile;
+    myfile.open (fileName, ios::out);
+
+
+    myfile<<"Label  Dice  Jaccard Common Area1 Area2"<<endl;
+
+    for(int i = 0; i<=m_maxLabel; i++)
+    {
+        if(m_labels1Areas->GetValue(i) > 0 || m_labels2Areas->GetValue(i) > 0 )
+        {
+            myfile <<i<<" "
+                 <<m_dice->GetValue(i)<<" "
+                 <<m_jaccard->GetValue(i)<<" "
+                 << m_labelsCommonAreas->GetValue(i)<<" "
+                 << m_labels1Areas->GetValue(i)<<" "
+                 << m_labels2Areas->GetValue(i)<<endl;
+        }
+    }
+
+    myfile.close();
+}
+
+
+
+
+
 
 vtkDoubleArray *Overlap::GetJaccard()
 {
