@@ -43,10 +43,12 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
     Example
     -------
+    >>> from utils.io_vtk import load_scalar, write_scalars
     >>> from utils.mesh_operations import find_neighbors_from_file
     >>> from extract.extract_folds import extract_folds
     >>> depth_file = '/desk/output/results/measures/_hemi_rh_subject_MMRR-21-1/rh.pial.depth.vtk'
-    >>> neighbor_lists = find_all_neighbors_from_file(depth_file)
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=0)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 0.5, 50)
     >>> # Write results to vtk file:
     >>> from utils.io_vtk import rewrite_scalars
