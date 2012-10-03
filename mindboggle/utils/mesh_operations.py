@@ -254,7 +254,7 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     >>> folds, n_folds = segment(vertices_to_segment, seed_lists,
     >>>                          neighbor_lists, min_region_size=50)
     >>> # Write results to vtk file:
-    >>> rewrite_scalars(File, 'test_segment.vtk', LUT=folds)
+    >>> rewrite_scalars(File, 'test_segment.vtk', folds, folds)
 
     """
     import numpy as np
@@ -264,7 +264,7 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     print('    Segment {0} vertices...'.format(len(vertices_to_segment)))
     if len(seed_lists):
         select_single_seed = False
-        print('    Select from {1} sets of seed vertices'.format(len(seed_lists)))
+        print('    Select from {0} sets of seed vertices'.format(len(seed_lists)))
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
@@ -328,8 +328,8 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
 
                         # Display current number and size of region
                         if size_region > 1:
-                            print("    Segmented region {0}: {1} vertices. "
-                                  "{2} vertices remaining...".
+                            print("    Region {0}: {1} vertices "
+                                  "({2} remaining)".
                                   format(new_segment_index, size_region,
                                          len(vertices_to_segment)))
 
