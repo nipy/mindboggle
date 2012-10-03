@@ -254,7 +254,7 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     >>> folds, n_folds = segment(vertices_to_segment, seed_lists,
     >>>                          neighbor_lists, min_region_size=50)
     >>> # Write results to vtk file:
-    >>> rewrite_scalars(File, 'test_segment.vtk', LUT=folds)
+    >>> rewrite_scalars(File, 'test_segment.vtk', folds, folds)
 
     """
     import numpy as np
