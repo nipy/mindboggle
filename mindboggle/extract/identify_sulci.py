@@ -20,8 +20,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 verbose = 1
 
 
-def identify(labels, folds, label_pair_lists, sulcus_IDs,
-             neighbor_lists, points, sulcus_names=''):
+def identify(labels, folds, neighbor_lists, sulcus_names, label_pair_lists):
     """
     Identify sulcus folds in a brain surface according to a labeling protocol
     that includes a list of label pairs defining each sulcus.
@@ -32,19 +31,17 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
         labels for all vertices
     folds : list of lists of integers
         each list contains indices to vertices of a fold
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    sulcus_names : list of strings
+        names of sulci
     label_pair_lists : list of sublists of subsublists of integers
         each subsublist contains a pair of labels, and the sublist of these
         label pairs represents the label boundaries defining a sulcus
-    sulcus_IDs : list of integers
-        sulcus IDs assigned or to be assigned to all vertices
-    points : list of lists of three floats
-        coordinates of all vertices on the surface
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
-    sulcus_IDs : list of integers
+    sulcus_IDs : array of integers
         sulcus IDs for all vertices, with -1s for non-sulcus vertices
 
     Definitions
@@ -119,8 +116,7 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
     """
     import numpy as np
-    from utils.mesh_operations import segment, detect_boundaries, \
-        compute_distance
+    from utils.mesh_operations import segment, detect_boundaries, compute_distance
 
     #---------------------------------------------------------------------------
     # Nested function definitions
@@ -168,6 +164,12 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
     #---------------------------------------------------------------------------
     # Prepare data structures
     #---------------------------------------------------------------------------
+    # Array of sulcus IDs for fold vertices, initialized as -1.
+    # Since we do not touch gyral vertices and vertices whose labels
+    # are not in the label list, or vertices having only one label,
+    # their sulcus IDs will remain -1.
+    sulcus_IDs = -1 * np.ones(len(neighbor_lists))
+
     # Prepare list of sulcus label lists (labels within a sulcus)
     label_lists = []
     for row in label_pair_lists:
@@ -346,8 +348,9 @@ def identify(labels, folds, label_pair_lists, sulcus_IDs,
 
                 # Assign a sulcus ID to each segment
                 print("           Assign sulcus IDs to segmented vertices")
-                for isubfold, subfold in enumerate(subfolds):
-                    sulcus_IDs[subfold] = IDs_remainder_pairs[isubfold]
+                for ifold in range(n_subfolds):
+                    subfold = [i for i,x in enumerate(subfolds) if x == ifold]
+                    sulcus_IDs[subfold] = IDs_remainder_pairs[ifold]
 
     return sulcus_IDs
 
@@ -390,14 +393,9 @@ if __name__ == "__main__":
             fold = [i for i,x in enumerate(fold_IDs) if x == id]
             folds.append(fold)
 
-    # Assign a sulcus ID to each fold vertex.
-    # Initialize all fold vertices as -1.
-    sulcus_IDs = [-1 for i in xrange(n_vertices)]
-    # Since we do not touch gyral vertices and vertices whose labels
-    # are not in label list, or vertices having only one label,
-    # their sulcus IDs will remain -1.
-    sulcus_IDs = identify(labels, folds, label_pair_lists,
-        sulcus_IDs, neighbor_lists, points, sulcus_names)
+    # Identify sulci from folds
+    sulcus_IDs = identify(labels, folds, neighbor_lists, sulcus_names,
+                          label_pair_lists)
 
     # Finally, write points, faces and sulcus_IDs to a new vtk file
     rewrite_scalars(labels_file, vtk_file, sulcus_IDs, filter_scalars=sulcus_IDs)
