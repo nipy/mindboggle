@@ -219,7 +219,7 @@ def identify(labels, folds, neighbor_lists, sulcus_names, label_pair_lists):
         else:
             # Find all label boundary pairs within the fold
             indices_fold_pairs, fold_pairs, unique_fold_pairs = detect_boundaries(
-                labels, fold, neighbor_lists)
+                fold, labels, neighbor_lists)
 
             # Find fold label pairs in the protocol (pairs are already sorted)
             fold_pairs_in_protocol = [x for x in unique_fold_pairs

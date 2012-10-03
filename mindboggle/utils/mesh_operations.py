@@ -284,6 +284,9 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     while not all(fully_grown):
         # Loop through seed lists over and over again
         for ilist, seed_list in enumerate(seed_lists):
+            # If seed list empty
+            if not len(seed_list):
+                fully_grown[ilist] = True
             # If seed list not fully grown
             if not fully_grown[ilist]:
 
@@ -558,7 +561,7 @@ def inside_faces(faces, indices):
 #------------------------------------------------------------------------------
 # Detect label boundaries
 #------------------------------------------------------------------------------
-def detect_boundaries(labels, region, neighbor_lists):
+def detect_boundaries(region, labels, neighbor_lists):
     """
     Detect the label boundaries in a collection of vertices such as a region.
 
@@ -567,10 +570,10 @@ def detect_boundaries(labels, region, neighbor_lists):
 
     Parameters
     ----------
-    labels : numpy array of integers, indexed from 1
-        labels for all vertices
     region : list of integers
         indices to vertices in a region (any given collection of vertices)
+    labels : numpy array of integers
+        labels for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
@@ -587,7 +590,7 @@ def detect_boundaries(labels, region, neighbor_lists):
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     >>> region = [0,1,2,4,5,8,9]
-    >>> detect_boundaries(labels, region, neighbor_lists)
+    >>> detect_boundaries(region, labels, neighbor_lists)
       ([1, 4], [[10, 90], [40, 30]])
 
     """
