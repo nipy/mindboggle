@@ -9,7 +9,7 @@
 void print_help()
 {
     printf(
-    "Usage: Overlap InputVTKMesh1 InputVTKMesh2\n"
+    "Usage: Overlap InputVTKMesh1 InputVTKMesh2 OutputFileName\n"
         );
 }
 
@@ -27,6 +27,8 @@ int main(int argc, char** argv)
 
     Overlap* surfOverlap = new Overlap(reader1->GetOutput(), reader2->GetOutput());
     surfOverlap->ComputeOverlap();
+    surfOverlap->WriteIntoFile(argv[3]);
+
 
 
 
