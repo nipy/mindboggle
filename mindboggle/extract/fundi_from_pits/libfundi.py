@@ -828,49 +828,33 @@ def getFeatures(InputFiles, Type, Options):
     
     '''
   
-
     if Type == 'FreeSurfer':
         print "\t FreeSurfer mode\n"
         
         [SurfFile, ThickFile, CurvFile, ConvFile,\
          FundiVTK, PitsVTK, SulciVTK, Use, SulciThld]\
           = InputFiles
+          
+        Clouchoux = False
         
-        # The reason we have both MapBasin and MapExtract 
-        # and PrefixBasin and PrefixExtract is for 
-        # future extension to support extracting different features
-        # from differnt maps 
+        Maps = {}
+        
+        if ThickFile != "":
+            Maps["thickness"] = io_free.read_curvature(ThickFile)
+        if CurvFile != "":
+            Maps["meancurv"] = io_free.read_curvature(CurvFile)
+        if ConvFile != "":
+            Maps["conv"] = io_free.read_curvature(ConvFile)
         
         if Use == 'conv':
-            MapBasin = io_file.readCurv(ConvFile)
-            PrefixBasin = ConvFile
-            PrefixExtract = ConvFile
+            Extract_Sulci_on_Map = "conv"
         elif Use == 'curv':
-            MapBasin = io_file.readCurv(CurvFile)
-            PrefixBasin = CurvFile
-            PrefixExtract = CurvFile
+            Extract_Sulci_on_Map = "meancurv"
         else:
             print "[ERROR] Unrecognized map to use:", Use
             exit()
-        MapExtract = MapBasin                
-                    
-        # Create shape descriptor array
-        MapFeature = []
-        FeatureNames = []
-        if CurvFile != "":
-                MapFeature.append(io_free.read_curvature(CurvFile))
-                FeatureNames.append('curv')
-        if ConvFile != '':
-                MapFeature.append(io_file.readCurv(ConvFile))
-                FeatureNames.append('conv')
-        if ThickFile != '':
-            MapFeature.append(io_file.readCurv(ThickFile))
-            FeatureNames.append('thickness')
 
-#        print PrefixBasin, PrefixExtract
-#        exit()
-
-        Mesh = io_file.readSurf(SurfFile)
+        Mesh = io_free.read_surface(SurfFile)
 
     elif Type == 'vtk':
         print "\t Joachim's VTK mode\n" 
@@ -880,19 +864,7 @@ def getFeatures(InputFiles, Type, Options):
         
         print "    Loading depth map"
         Vertexes, Faces, Depth, N_Vertices = io_vtk.load_scalar(DepthVTK, return_arrays=0)
-#        Reader = vtk.vtkDataSetReader()
-#        Reader.SetFileName(DepthVTK)
-#        Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
-#        Reader.Update()
-#        Data = Reader.GetOutput()
-#        PointData = Data.GetPointData()    
-#        Faces = [[Data.GetPolys().GetData().GetValue(j) for j in xrange(i*4 + 1, i*4 + 4)]
-#                 for i in xrange(Data.GetPolys().GetNumberOfCells())]
-#        Vertexes = [list(Data.GetPoint(point_id))
-#              for point_id in xrange(Data.GetNumberOfPoints())]
-#        Scalar_Name = Reader.GetScalarsNameInFile(0) 
-#        ScalarArray = PointData.GetArray(Scalar_Name)        
-#        Maps['depth'] = [ScalarArray.GetValue(i) for i in xrange(ScalarArray.GetSize())]
+
         Maps['depth'] = Depth
         
         if MeanCurvVTK != "":
@@ -908,28 +880,16 @@ def getFeatures(InputFiles, Type, Options):
 
         if ConvexityFile != '':
             Maps['sulc'] = io_free.read_curvature(ConvexityFile)
-         
-#        MapBasin = Depth
-#        MapExtract = Depth
-#                
-#        # Keep PrefixBasin here and it will be removed later Forrest 2012-06-17
-#        PrefixBasin = DepthVTK[:-4] + '.depth' # drop suffix .vtk
-#        print "PrefixBasin:", PrefixBasin 
-#        PrefixExtract = PrefixBasin + '.depth' 
-#        print "PrefixExtract:", PrefixExtract 
         
         Mesh = [Vertexes, Faces]
         
+        Extract_Sulci_on_Map = 'depth'
+        
     ## common parts for both FreeSurfer and vtk type 
-#    if SurfFile2 != '':
-#        Mesh2 = io_file.readSurf(SurfFile2)
-##            Mesh2 = [Vertexes2, Face2]
-#    else:
-#        Mesh2 = []
     if Clouchoux:
-        libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=True, SulciMap='depth') # extract depth map from sulci and pits from mean and Gaussian curvatures
+        libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=True, SulciMap =Extract_Sulci_on_Map) # extract depth map from sulci and pits from mean and Gaussian curvatures
     else:
-        libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=True, Clouchoux=False) # by default, extract sulci and pits from depth map
+        libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=False, SulciMap =Extract_Sulci_on_Map) # by default, extract sulci and pits from depth map
     
     sys.exit()
     
