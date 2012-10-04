@@ -60,7 +60,7 @@ def read_surface(filename):
     f = open(filename, "rb")
     f.seek(3)  # skip the first 3 Bytes "Magic" number
 
-    s = f.read(50)   # the second field is a string of variable length
+    s = f.read(100)   # the second field is a string of variable length
     End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
 
     f.seek(3+End2+2)  # jump to immediate Byte after the creating information

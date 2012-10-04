@@ -602,7 +602,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     from utils.io_vtk import load_scalar, write_scalars
 
     annot_file = os.path.join(subjects_path, subject, 'label',
-                              hemi + '.' + annot_name)
+                              hemi + '.' + annot_name + '.annot')
 
     labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
