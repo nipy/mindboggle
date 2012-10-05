@@ -94,10 +94,10 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasflow = True
+run_atlasflow = 0#True
 run_measureflow = True
-run_featureflow = True
-run_shapeflow = True
+run_featureflow = 0#True
+run_shapeflow = 0#True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -133,8 +133,9 @@ from evaluate.evaluate_labels import measure_surface_overlap, \
 # Paths
 #-------------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-ccode_path = os.environ['MINDBOGGLE_CPP']
+ccode_path = os.environ['MINDBOGGLE_TOOLS']
 #info_path = os.path.join(get_info()['pkg_path'], 'info')
 info_path = os.path.join(os.environ['MINDBOGGLE'], 'info')
 atlases_path = subjects_path
