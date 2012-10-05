@@ -87,8 +87,9 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, label_file,
     >>>     depth_file, fraction_folds, min_sulcus_size)
     >>> # Write results to vtk file:
-    >>> from utils.io_vtk import write_scalars
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci.vtk', sulcus_IDs)
+    >>> from utils.io_vtk import rewrite_scalars
+    >>> rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
+    >>>                 sulcus_IDs, sulcus_IDs)
 
     """
     import numpy as np
