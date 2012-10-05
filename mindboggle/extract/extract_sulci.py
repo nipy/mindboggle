@@ -77,6 +77,7 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
 
     Example
     -------
+    >>> import os
     >>> from extract.extract_sulci import extract_sulci
     >>> from info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
