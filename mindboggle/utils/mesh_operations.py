@@ -39,6 +39,7 @@ def find_neighbors(faces, n_vertices):
     >>> find_neighbors(faces, n_vertices)
         [[1, 2, 3, 4], [0, 2, 4, 3], [1, 0, 3], [2, 0, 4, 1], [0, 3, 1]]
 
+    >>> import os
     >>> from utils.mesh_operations import find_neighbors
     >>> from utils.io_vtk import load_scalar
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -147,6 +148,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 
     Example
     -------
+    >>> import os
     >>> import numpy as np
     >>> from utils.io_vtk import load_scalar
     >>> from utils.mesh_operations import find_anchors
@@ -255,6 +257,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 
     Example
     -------
+    >>> import os
     >>> import numpy as np
     >>> from utils.mesh_operations import find_neighbors, segment
     >>> from utils.io_vtk import load_scalar, rewrite_scalars

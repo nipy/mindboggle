@@ -24,7 +24,6 @@ def relabel_volume(input_file, old_labels, new_labels):
     Example
     -------
     >>> import os
-
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
