@@ -220,7 +220,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions
 #------------------------------------------------------------------------------
-def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
+def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=1,
+            spread_same_labels=False, labels=[], label_pair_lists=[]):
     """
     Segment vertices of surface into contiguous regions,
     starting from zero or more lists of seed vertices.
@@ -229,11 +230,18 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     ----------
     vertices_to_segment : list or array of integers
         indices to subset of mesh vertices to be segmented
-    seed_lists : list of lists, or empty list
-        each list contains indices to seed vertices to segment vertices_to_segment
     neighbor_lists : list of lists of integers (#lists = #vertices in mesh)
         each list contains indices to neighboring vertices
+    seed_lists : list of lists, or empty list
+        each list contains indices to seed vertices to segment vertices_to_segment
     min_region_size : minimum size of segmented set of vertices
+    spread_same_labels : Boolean
+        grow seeds only by vertices with labels in the seed labels or not
+    labels : numpy array of integers (optional)
+        labels, one per vertex in the mesh
+    label_pair_lists : list of sublists of subsublists of integers
+        each subsublist contains a pair of labels, and the sublist of these
+        label pairs represents the label boundaries defining a sulcus
 
     Returns
     -------
@@ -246,15 +254,27 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     >>> import numpy as np
     >>> from utils.mesh_operations import find_neighbors, segment
     >>> from utils.io_vtk import load_scalar, rewrite_scalars
-    >>> File = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.depth.vtk'
-    >>> points, faces, scalars, n_vertices = load_scalar(File)
-    >>> vertices_to_segment = np.where(scalars > 0.25)[0]
-    >>> seed_lists = []
+    >>> from info.sulcus_boundaries import sulcus_boundaries
+    >>> depth_file = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.depth.vtk'
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> vertices_to_segment = np.where(depths > .25)[0]
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> folds, n_folds = segment(vertices_to_segment, seed_lists,
-    >>>                          neighbor_lists, min_region_size=50)
+    >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists,
+    >>>     seed_lists=[], min_region_size=1,
+    >>>     spread_same_labels=False, labels=[], label_pair_lists=[])
     >>> # Write results to vtk file:
-    >>> rewrite_scalars(File, 'test_segment.vtk', folds, folds)
+    >>> rewrite_scalars(depth_file, 'test_segment1.vtk', folds, folds)
+
+    >>> seed_lists = [vertices_to_segment[range(100)],
+                      vertices_to_segment[range(100,200)],
+                      vertices_to_segment[range(200,300)]]
+    >>> label_file = '/Applications/freesurfer/subjects/MMRR-21-1/label/lh.labels.DKT25.manual.vtk'
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> label_pair_lists = sulcus_boundaries()
+    >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists, seed_lists,
+    >>>     50, True, labels, label_pair_lists)
+    >>> # Write results to vtk file:
+    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', folds, folds)
 
     """
     import numpy as np
@@ -279,6 +299,9 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
     fully_grown = [False for x in seed_lists]
     new_segment_index = 0
     counter = 0
+
+    # Prepare list of all unique sorted label pairs in the labeling protocol
+    label_lists = [np.ravel(x) for x in label_pair_lists]
 
     # Loop until all of the seed lists have grown to their full extent
     while not all(fully_grown):
@@ -307,6 +330,15 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
                 seed_list = [x for x in list(set(neighbors))
                              if x not in all_regions
                              if x in vertices_to_segment]
+
+                # Select neighbors with the same labels
+                # as the initial seed label pairs
+                if len(seed_list):
+                    if spread_same_labels and not select_single_seed:
+                        print(labels[list(set(neighbors))])
+                        print(label_lists[ilist])
+                        seed_list = [x for x in seed_list
+                                     if labels[x] in label_lists[ilist]]
 
                 print(ilist, len(seed_list), len(region_lists[ilist]))
 
@@ -340,11 +372,8 @@ def segment(vertices_to_segment, seed_lists, neighbor_lists, min_region_size=1):
 
                     # If selecting a single seed, continue growing
                     # if there are more vertices to segment
-                    # (*even when the number of vertices to segment is less than
-                    #  min_region_size -- this is to ensure identical results
-                    #  even when the single selected seed is in a tiny region)
                     if select_single_seed:
-                        if len(vertices_to_segment): # >= min_region_size:
+                        if len(vertices_to_segment) >= min_region_size:
                             fully_grown[0] = False
                             seed_lists[0] = [vertices_to_segment[0]]
                             region_lists[0] = []
@@ -460,9 +489,9 @@ def simple_test(index, values, thr, neighbor_lists):
         # Loop through neighbors (lists within "N"),
         # reassigning the labels for the lists until each label's
         # list(s) has a unique set of vertices
-        change = 1
-        while change > 0:
-            change = 0
+        change = True
+        while change:
+            change = False
 
             # Loop through pairs of inside neighbors
             # and continue if their two labels are different
@@ -475,7 +504,7 @@ def simple_test(index, values, thr, neighbor_lists):
                         if len(frozenset(N[i]).intersection(N[j])) > 0:
                             labels[i] = max([labels[i], labels[j]])
                             labels[j] = labels[i]
-                            change = 1
+                            change = True
 
         # The vertex is a simple point if all of its neighbors
         # (if any) share neighbors with each other (one unique label)

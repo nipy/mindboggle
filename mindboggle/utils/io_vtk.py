@@ -169,7 +169,7 @@ def write_vtk_LUT(Fp, LUT, LUTName, at_LUT_begin=True):
 # Functions for loading and writing VTK files
 #=============================================================================
 
-def load_scalar(filename, return_arrays=1):
+def load_scalar(filename, return_arrays=True):
     """
     Load a VTK-format scalar map that contains only one SCALAR segment.
 
@@ -177,7 +177,8 @@ def load_scalar(filename, return_arrays=1):
     ----------
     filename : string
         The path/filename of a VTK format file.
-    return_arrays : return numpy arrays instead of lists of lists below (1=yes, 0=no)
+    return_arrays : Boolean
+        return numpy arrays instead of lists of lists below?
 
     Returns
     -------

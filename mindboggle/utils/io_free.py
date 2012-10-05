@@ -45,13 +45,13 @@ def read_surface(filename):
     >>> import readFreeSurfer as rfs
     >>> Vrtx, Face = rfs.read_surface('lh.pial')
     >>> len(Vrtx)
-    130412
+      130412
     >>> len(Face)
-    260820
+      260820
     >>> Vrtx[10]
-    [-7.902474880218506, -95.6839370727539, -21.856534957885742]
+      [-7.902474880218506, -95.6839370727539, -21.856534957885742]
     >>> Face[10]
-    [2, 39, 3]
+      [2, 39, 3]
 
     """
     import os
@@ -107,9 +107,9 @@ def read_curvature(filename):
     -------
     >>> Curv = read_curvature('lh.curv')
     >>> len(Curv)
-    130412
+      130412
     >>> Curv[10]
-    -0.37290969491004944
+      -0.37290969491004944
 
     """
     import os
