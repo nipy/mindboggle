@@ -41,7 +41,10 @@ def find_neighbors(faces, n_vertices):
 
     >>> from utils.mesh_operations import find_neighbors
     >>> from utils.io_vtk import load_scalar
-    >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, scalars, n_vertices = load_scalar(depth_file)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
 
     """
@@ -147,11 +150,12 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> import numpy as np
     >>> from utils.io_vtk import load_scalar
     >>> from utils.mesh_operations import find_anchors
-    >>> min_curvature_vector_file = '/desk/output/results/measures/' + \
-    >>>     '_hemi_lh_subject_MMRR-21-1/lh.pial.curv.min.dir.txt'
-    >>> values_file = '/desk/output/results/measures/' + \
-    >>>     '_hemi_rh_subject_MMRR-21-1/lh.pial.depth.vtk'
-    >>> points, faces, values, n_vertices = load_scalar(values_file, 1)
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt'
+    >>> points, faces, values, n_vertices = load_scalar(depth_file, 1)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
@@ -255,7 +259,9 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> from utils.mesh_operations import find_neighbors, segment
     >>> from utils.io_vtk import load_scalar, rewrite_scalars
     >>> from info.sulcus_boundaries import sulcus_boundaries
-    >>> depth_file = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.depth.vtk'
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
     >>> vertices_to_segment = np.where(depths > .25)[0]
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
@@ -268,7 +274,8 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> seed_lists = [vertices_to_segment[range(100)],
                       vertices_to_segment[range(100,200)],
                       vertices_to_segment[range(200,300)]]
-    >>> label_file = '/Applications/freesurfer/subjects/MMRR-21-1/label/lh.labels.DKT25.manual.vtk'
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
     >>> label_pair_lists = sulcus_boundaries()
     >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists, seed_lists,

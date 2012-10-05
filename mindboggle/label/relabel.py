@@ -24,28 +24,13 @@ def relabel_volume(input_file, old_labels, new_labels):
     Example
     -------
     >>> import os
-    >>> relabel_file = os.path.join('info', 'labels.volume.DKT31to25.txt')
-    >>> old_labels, new_labels = read_columns(relabel_file, 2)
-    >>> input_file = 'labels.DKT31.manual.nii.gz'
-    >>> relabel_volume(input_file, old_labels, new_labels)
 
-    >>> input_filename = 'aparcNMMjt+aseg.nii.gz'
-    >>> output_filename = 'labels.DKT25.manual+aseg.nii.gz'
-    >>> subjects_path = '/home/arno/Data/Brains/Mindboggle101/subjects'
-    >>> output_subjects_path = subjects_path
-    >>> from label.relabel import relabel_volume
-    >>> from utils.io_file import read_columns
-    >>> relabel_file = os.path.join('info', 'labels.volume.DKT31to25.txt')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
     >>> old_labels, new_labels = read_columns(relabel_file, 2)
-    >>> atlas_subjects = read_columns('info/atlases101.txt', 1)[0]
-    >>> for subject in atlas_subjects:
-    >>>     input_file = os.path.join(subjects_path, subject, 'mri', input_filename)
-    >>>     output_file1 = os.path.join(os.getcwd(), input_filename)
-    >>>     output_file2 = os.path.join(output_subjects_path, subject, 'mri', output_filename)
-    >>>     if os.path.exists(input_file):
-    >>>         relabel_volume(input_file, old_labels, new_labels)
-    >>>         cmd = 'mv ' + output_file1 + ' ' + output_file2
-    >>>         print(cmd); os.system(cmd)
+    >>> relabel_volume(input_file, old_labels, new_labels)
 
     """
     import os
@@ -91,10 +76,12 @@ def remove_volume_labels(input_file, labels_to_remove):
     Example
     -------
     >>> import os
-    >>> input_file = 'labels.DKT25.manual+aseg.nii.gz'
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'labels_volume',
+    >>>              '_subject_MMRR-21-1', 'labels_manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
-    >>> remove_volume_labels(input_file, labels_to_remove)
+    >>> remove_volume_labels(label_file, labels_to_remove)
 
     """
     import os
@@ -168,9 +155,9 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     Combine surface labels in a .annot file.
 
     https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
-      
+
      `mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
-      
+
       ``translation file``: text file that lists the labels (one per line)
       you want to group, and the new label you want to create.  You have to use
       the RGB codes; each line will provide the input and output RGB values::
