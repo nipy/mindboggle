@@ -269,8 +269,8 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     >>> faces = [[1,2,3],[0,1,3]]
     >>> LUT_names = ['curv','depth']
     >>> LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
-    >>> write_scalars('test.vtk',points, indices, faces, LUTs=LUTs, \
-                      LUT_names=LUT_names)
+    >>> write_scalars('test_write_scalars.vtk', points, indices, faces,
+    >>>               LUTs=LUTs, LUT_names=LUT_names)
 
     """
     import os
@@ -492,8 +492,8 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
     >>> lines = [[1,2],[3,4]]  # ?
     >>> LUT_names = ['curv','depth']
     >>> LUTs=[[random.random() for i in range(6)] for j in range(2)]
-    >>> write_lines('test.vtk', points, indices, lines, LUTs=LUTs, \
-                    LUT_names=LUT_names)
+    >>> write_lines('test_write_lines.vtk', points, indices, lines,
+    >>>             LUTs=LUTs, LUT_names=LUT_names)
 
     """
     import os
