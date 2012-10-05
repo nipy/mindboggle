@@ -79,9 +79,12 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     -------
     >>> from extract.extract_sulci import extract_sulci
     >>> from info.sulcus_boundaries import sulcus_boundaries
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> label_pair_lists = sulcus_boundaries()
-    >>> label_file = '/Applications/freesurfer/subjects/MMRR-21-1/label/lh.labels.DKT31.manual.vtk'
-    >>> depth_file = '/desk/output/results/measures/_hemi_lh_subject_MMRR-21-1/lh.pial.depth.vtk'
     >>> fraction_folds = 0.667
     >>> min_sulcus_size = 50
     >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, label_file,
