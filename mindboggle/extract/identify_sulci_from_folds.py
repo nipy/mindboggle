@@ -343,8 +343,9 @@ def identify(labels, folds, neighbor_lists, sulcus_names, label_pair_lists):
 
                 # Segment into sets of vertices connected to label boundary seeds
                 print("           Segment into separate label-pair regions")
-                subfolds, n_subfolds = segment(unassigned, seed_lists,
-                                               neighbor_lists, 50)
+                subfolds, n_subfolds = segment(unassigned, neighbor_lists,
+                    seed_lists, min_region_size=50,
+                    spread_same_labels=False, labels=[], label_pair_lists=[])
 
                 # Assign a sulcus ID to each segment
                 print("           Assign sulcus IDs to segmented vertices")
