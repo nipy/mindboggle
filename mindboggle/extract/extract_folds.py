@@ -43,6 +43,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
     Example
     -------
+    >>> import os
     >>> from utils.io_vtk import load_scalar, write_scalars
     >>> from utils.mesh_operations import find_neighbors_from_file
     >>> from extract.extract_folds import extract_folds
