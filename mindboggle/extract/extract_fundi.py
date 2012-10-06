@@ -200,7 +200,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     """
     import numpy as np
-    from utils.mesh_operations import simple_test, skeletonize
+    from mindboggle.utils.mesh_operations import simple_test, skeletonize
 
     # Make sure arguments are numpy arrays
     if type(faces) != np.ndarray:
@@ -381,9 +381,9 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     import numpy as np
     from time import time
 
-    from extract.extract_fundi import compute_likelihood, connect_points
-    from utils.mesh_operations import find_anchors
-    from utils.io_vtk import load_scalar
+    from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
+    from mindboggle.utils.mesh_operations import find_anchors
+    from mindboggle.utils.io_vtk import load_scalar
 
     # Convert folds array to a list of lists of vertex indices
     index_lists_folds = [np.where(folds == i)[0].tolist()
