@@ -659,7 +659,7 @@ def stepFilter(L, Y, Z):
 
     return L
 
-def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK):
+def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi_on_Map):
     '''Connecting pits into fundus curves
     
     Parameters
@@ -667,30 +667,27 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
     
         Pits: list of integers
             IDs of vertexes that are pits
+                      
+        Maps: dictionary of lists of floats
+            Keys are strings, e.g., meancurv, depth, etc.
+            Values are list of per-vertex values that will be used as structure feature vectors, e.g., thickness
     
-        Curavture: list of floats
-            i.e., MapExtract, a per-vertex value map used to find minimum cost path between vertexes
-            
-        FeatureNames: list of strings
-            names of per-vertex features about the surface
-            
-        MapFeature: lists of lists of floats
-            lists of list of per-vertex values that will be used as structure feature vectors, e.g., thickness
+        Mesh: List of two lists of floats/integers
+            The first are points from a VTK file. 
+            The second are triangular faces from a VTK file. 
     
         Vrtx: list of 3-tuples of floats
             Each element is the X-, Y- and Z-cooridnates of a vertex on the surface, normally pial
             
         Fc: list of 3-tuples of integers
-            Each element is the ids of 3 vertexes that form one triangle on the surface 
+            Each element is the ids of 3 vertexes that form one triangle on the surface
             
-        SurfFile: string
-            Path to the mandatory-provided surface file
+        SulciThld: a float
+            The number that was used to threhold the surface to get sulci.
+            This is need for loading component file, but it has nothing to do fundi extraction itself
             
-        PrefixBasin: string
-            Path to basin/thresholding related files, e.g., lh.curv
-            
-        PrefixExtract: string
-            Path to save pits and fundi extraction related files, e.g., lh.curv.depth.        
+        Extract_Fundi_on_Map: string
+            The key for the map on which fundi will be built (default: depth)
     
     Notes
     ========
@@ -698,92 +695,34 @@ def fundiFromPits(Pits, Curvature, FeatureNames, MapFeature, Mesh, PrefixBasin, 
         Function and variable names are not fully changed yet. Names like curvature is bad. 
      
     '''
-    import pyvtk
 
     [Vrtx, Fc] = Mesh
-
-    LUTname, LUT = [], []
-    for Idx, Name in enumerate(FeatureNames):
-        Table = MapFeature[Idx]
-        if Name == 'curv':
-            LUT.append(stepFilter(Table, 0, 0))
-        elif Name == 'sulc':  
-            LUT.append(stepFilter(Table, 0, 0))
-        elif Name == 'thickness':  
-            LUT.append(Table)  # no filtering for thickness
-        elif Name == 'curvature':
-            LUT.append(stepFilter(Table, 0, 0))
-        elif Name == 'depth':
-            LUT.append(Table)
-        LUTname.append(Name)
-        
-    LastSlash=len(PrefixBasin)-PrefixBasin[::-1].find('/')
-    Hemi =  PrefixBasin[:PrefixBasin[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
-    NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, Hemi)
-          
-    VrtxCmpntFile = PrefixBasin + '.cmpnt.vrtx'  # need to run libbasin first to get components
-    Fp = open(VrtxCmpntFile, 'r')
-    VrtxCmpnt = cPickle.load(Fp)
-    Fp.close()
     
-    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, Curvature) # changed 2011-07-21 00:23
+    LUT_names = [Name for Name in Maps.iterkeys()]
+    LUTs = [LUT for LUT in Maps.itervalues()]
+    
+    LastSlash = len(FundiVTK) - FundiVTK[::-1].find('/')
+    Hemi =  FundiVTK[:FundiVTK[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
+    NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, Hemi)
+    
+    FcCmpnt, VrtxCmpnt = libbasin.compnent([], [], [], ".".join([Hemi, SulciMap, str(SulciThld)]))
+
+    
+    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, Maps[Extract_Fundi_on_Map]) # changed 2011-07-21 00:23
 
     LenLUT = [0 for i in xrange(0,len(NbrLst))]
     for Key, Value in FundusLen.iteritems():
         LenLUT[Key] = Value               
-    LUTname.append('fundusLength')
-    LUT.append(LenLUT)
+    LUT_names.append('fundusLength')
+    LUTs.append(LenLUT)
     
     FIDLUT = [-1 for i in xrange(0,len(NbrLst))] # value for gyri is now -1 Forrest 2011-11-01
     for Key, Value in FundusID.iteritems():
         FIDLUT[Key] = Value
-    LUTname.append('fundusID')
-    LUT.append(FIDLUT)
-
-## commented to use pyvtk's API to save fundi, no need for my own pits format, Forrest 2011-01-09
-#    print "Saving fundi from Pits into VTK"    
-#    FPits = PrefixExtract + '.fundi.from.pits'
-#    io_file.writeFundiSeg(FPits, PSegs)
-#    
-#    VTKFile = FPits + "." + SurfFile[-1*SurfFile[::-1].find('.'):] + '.vtk'
-#    libvtk.seg2VTK(VTKFile, SurfFile, FPits, LUT=LUT, LUTname=LUTname)
-#    if SurfFile2 != '':
-#        VTKFile = FPits + "." + SurfFile2[-1*SurfFile2[::-1].find('.'):] + '.vtk'            
-#        libvtk.seg2VTK(VTKFile, SurfFile2, FPits, LUT=LUT, LUTname=LUTname)
-## end of commented to use pyvtk's API to save fundi, no need for my own pits format, Forrest 2011-01-09
-
-
-    if len(LUT) == 3:
-        Pointdata= pyvtk.PointData(pyvtk.Scalars(LUT[0], name=LUTname[0]),\
-                                   pyvtk.Scalars(LUT[1], name=LUTname[1]),\
-                                   pyvtk.Scalars(LUT[2], name=LUTname[2]))
-    elif len(LUT) == 4:
-        Pointdata= pyvtk.PointData(pyvtk.Scalars(LUT[0], name=LUTname[0]),\
-                                   pyvtk.Scalars(LUT[1], name=LUTname[1]),\
-                                   pyvtk.Scalars(LUT[2], name=LUTname[2]),\
-                                   pyvtk.Scalars(LUT[3], name=LUTname[3]))
-    elif len(LUT) == 5:
-        Pointdata= pyvtk.PointData(pyvtk.Scalars(LUT[0], name=LUTname[0]),\
-                                   pyvtk.Scalars(LUT[1], name=LUTname[1]),\
-                                   pyvtk.Scalars(LUT[2], name=LUTname[2]),\
-                                   pyvtk.Scalars(LUT[3], name=LUTname[3]),\
-                                   pyvtk.Scalars(LUT[4], name=LUTname[4]))
-    elif len(LUT) == 6:
-        Pointdata= pyvtk.PointData(pyvtk.Scalars(LUT[0], name=LUTname[0]),\
-                                   pyvtk.Scalars(LUT[1], name=LUTname[1]),\
-                                   pyvtk.Scalars(LUT[2], name=LUTname[2]),\
-                                   pyvtk.Scalars(LUT[3], name=LUTname[3]),\
-                                   pyvtk.Scalars(LUT[4], name=LUTname[4]),\
-                                   pyvtk.Scalars(LUT[5], name=LUTname[5]))
-    else:
-        print "LUT length undefined"
-        print len(LUT)
-        print LUTname
-    pyvtk.VtkData(pyvtk.PolyData(points=Vrtx, lines=PSegs), Pointdata).tofile(FundiVTK, 'ascii')
-
-#    if Mesh2 != []:
-#        [Vertexes2, Face2] = Mesh2
-#        pyvtk.VtkData(pyvtk.PolyData(points=Vertexes2, lines=PSegs), Pointdata).tofile(Fundi2VTK, 'ascii')
+    LUT_names.append('fundusID')
+    LUTs.append(FIDLUT)
+    
+    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, LUTs, LUT_names)
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -855,6 +794,8 @@ def getFeatures(InputFiles, Type, Options):
             exit()
 
         Mesh = io_free.read_surface(SurfFile)
+        
+        Extract_Fundi_on_Map = "conv"
 
     elif Type == 'vtk':
         print "\t Joachim's VTK mode\n" 
@@ -883,20 +824,18 @@ def getFeatures(InputFiles, Type, Options):
         
         Mesh = [Vertexes, Faces]
         
-        Extract_Sulci_on_Map = 'depth'
+        Extract_Sulci_on_Map = 'depth' # This will become an option for users later.
+        Extract_Fundi_on_Map = 'depth' # This will become an option for users later.
         
     ## common parts for both FreeSurfer and vtk type 
     if Clouchoux:
         libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=True, SulciMap =Extract_Sulci_on_Map) # extract depth map from sulci and pits from mean and Gaussian curvatures
     else:
         libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=False, SulciMap =Extract_Sulci_on_Map) # by default, extract sulci and pits from depth map
+        
+    Pits=io_vtk.load_vtk_vertices(PitsVTK)
     
-    sys.exit()
-    
-    import pyvtk
-    Pits=pyvtk.VtkData(PitsVTK).structure.vertices[0]
-    
-    fundiFromPits(Pits, MapExtract, FeatureNames, MapFeature, Mesh, PrefixBasin, PrefixExtract, FundiVTK)
+    fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, Extract_Sulci_on_Map, Extract_Fundi_on_Map)
     # end of common for both FreeSurfer and vtk type
 
 #    elif Type == 'clouchoux':
