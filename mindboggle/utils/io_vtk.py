@@ -424,9 +424,43 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
 
     return means_file, norm_means_file
 
+def load_vtk_vertices(Filename):
+    """Load VERTICES segment from a VTK file
+    
+    Parameters
+    ----------
+    Filename : string
+        The path/filename of a VTK format file.
+
+    Returns
+    -------
+    Vertices : a list of integers 
+        Each element is an integer defined in VERTICES segment of the VTK file.
+        The integer is an index referring to a point defined in POINTS segment of the VTK file.
+        
+    Notes
+    ------
+        We assume that VERTICES segment is organized as one line, 
+        the first column of which is the number of vertices.  
+        Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface. 
+
+    """
+    import vtk
+
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(Filename)
+    Reader.Update()
+
+    Data = Reader.GetOutput()
+
+    Vrts = Data.GetVerts()
+    Vertices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+
+    return Vertices
+
 def load_lines(Filename):
     """
-    Load VERTICES from a VTK file, along with the scalar values.
+    Load LINES from a VTK file, along with the scalar values.
 
     The line that extracts vertices from a VTK
     iterates from 1 to Vrts.GetSize(), rather than from 0.
@@ -438,8 +472,8 @@ def load_lines(Filename):
 
     Returns
     -------
-    Vertexes : list of integers
-        Each element is an ID (i.e., index) of a point defined in POINTS segment of the VTK file
+    lines : list of 2-tuple of integers
+        Each element is a 2-tuple of IDs (i.e., indexes) of two points defined in POINTS segment of the VTK file
     scalars : list of floats
         Each element is a scalar value corresponding to a vertex
 
