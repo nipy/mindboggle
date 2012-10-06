@@ -22,7 +22,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Extract folds
 #==============
 def extract_sulci(label_pair_lists, label_file, depth_file,
-                  fraction_folds, min_sulcus_size):
+                  fraction_folds, min_sulcus_size, do_fill_holes=False):
     """
     Use depth and a sulcus labeling protocol to extract sulcus folds
     from an anatomically labeled triangular surface mesh and fill holes
@@ -43,6 +43,8 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
         fraction of surface mesh considered folds
     min_sulcus_size : int
         minimum sulcus size (number of vertices)
+    do_fill_holes : Boolean
+        segment and fill holes?
 
     Returns
     -------
@@ -86,14 +88,20 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> label_pair_lists = sulcus_boundaries()
-    >>> fraction_folds = 0.667
+    >>> fraction_folds = 0.10  # low to speed up
     >>> min_sulcus_size = 50
     >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, label_file,
-    >>>     depth_file, fraction_folds, min_sulcus_size)
-    >>> # Write results to vtk file:
-    >>> from utils.io_vtk import rewrite_scalars
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
+    >>>     depth_file, fraction_folds, min_sulcus_size, do_fill_holes=False)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> from utils.io_vtk import rewrite_scalars, load_scalar
+    >>> rewrite_scalars(label_file, 'test_extract_sulci.vtk',
     >>>                 sulcus_IDs, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
+    >>> # Write and view manual labels restricted to sulci:
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> rewrite_scalars(label_file, 'test_extract_sulci_labels.vtk',
+    >>>                 labels, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
 
     """
     import numpy as np
@@ -149,8 +157,8 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
         print("    Segment into separate label-pair regions...")
         t1 = time()
         sulcus_IDs, n_sulci = segment(indices_folds, neighbor_lists,
-            seed_lists, min_region_size=min_sulcus_size,
-            spread_same_labels=False, labels=[], label_pair_lists=[])
+            seed_lists, min_sulcus_size, spread_same_labels=True,
+            labels=labels, label_pair_lists=label_pair_lists)
         print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
               format(n_sulci, time() - t1))
 
@@ -160,7 +168,7 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     #---------------------------------------------------------------------------
     # Fill holes in folds
     #---------------------------------------------------------------------------
-    if n_sulci > 0:
+    if n_sulci > 0 and do_fill_holes:
 
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep)
