@@ -13,7 +13,7 @@ Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 import numpy as np
-from utils.io_vtk import write_scalars
+from mindboggle.utils.io_vtk import write_scalars
 
 N = 99  # divisible by 3
 build_labels = False

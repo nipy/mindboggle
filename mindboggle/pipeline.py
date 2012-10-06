@@ -112,21 +112,21 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
+from mindboggle.utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
      load_scalar, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
      vtk_to_freelabels
-from utils.io_file import read_columns
-from utils.io_free import labels_to_annot, labels_to_volume
-from utils.mesh_operations import find_neighbors
-from label.multiatlas_labeling import register_template,\
+from mindboggle.utils.io_file import read_columns
+from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
+from mindboggle.utils.mesh_operations import find_neighbors
+from mindboggle.label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
-from label.relabel import relabel_volume
-from label.label_functions import label_with_classifier
-from measure.measure_functions import compute_area, compute_depth, \
+from mindboggle.label.relabel import relabel_volume
+from mindboggle.label.label_functions import label_with_classifier
+from mindboggle.measure.measure_functions import compute_area, compute_depth, \
      compute_curvature
-from extract.extract_folds import extract_folds
-from extract.extract_fundi import extract_fundi
-from evaluate.evaluate_labels import measure_surface_overlap, \
+from mindboggle.extract.extract_folds import extract_folds
+from mindboggle.extract.extract_fundi import extract_fundi
+from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
 #from mindboggle import get_info
 #-------------------------------------------------------------------------------
