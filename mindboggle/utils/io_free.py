@@ -18,7 +18,6 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 #import os
 #import struct
-#import vtk
 #from nipype.interfaces.base import CommandLine
 
 
