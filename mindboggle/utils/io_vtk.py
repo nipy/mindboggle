@@ -21,6 +21,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #from mindboggle.utils.mesh_operations import inside_faces
 #from mindboggle.utils.io_file import write_table
 #from mindboggle.measure.measure_functions import mean_value_per_label
+#from mindboggle.utils.io_free import read_surface
 
 
 #=============================================================================

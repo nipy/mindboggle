@@ -16,6 +16,10 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+#import os
+#import numpy as np
+#import nibabel as nb
+#from nipype.interfaces.base import CommandLine
 
 def measure_surface_overlap(command, labels_file1, labels_file2):
     """
@@ -48,7 +52,6 @@ def measure_volume_overlap(labels, atlas_file, input_file):
     input_file : target image, consisting of index-labeled pixels/voxels
 
     """
-
     import os
     import numpy as np
     import nibabel as nb
