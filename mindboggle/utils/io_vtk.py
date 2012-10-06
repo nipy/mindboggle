@@ -18,9 +18,9 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #import numpy as np
 #import nibabel as nb
 #import vtk
-#from utils.mesh_operations import inside_faces
-#from utils.io_file import write_table
-#from measure.measure_functions import mean_value_per_label
+#from mindboggle.utils.mesh_operations import inside_faces
+#from mindboggle.utils.io_file import write_table
+#from mindboggle.measure.measure_functions import mean_value_per_label
 
 
 #=============================================================================
@@ -263,7 +263,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     Example
     -------
     >>> import random
-    >>> from utils.io_vtk import write_scalars
+    >>> from mindboggle.utils.io_vtk import write_scalars
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
     >>> indices = [1,2,3,0]
     >>> faces = [[1,2,3],[0,1,3]]
@@ -274,7 +274,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
 
     """
     import os
-    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
     vtk_file = os.path.join(os.getcwd(), vtk_file)
@@ -319,8 +319,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     """
     import os
-    from utils.mesh_operations import inside_faces
-    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+    from mindboggle.utils.mesh_operations import inside_faces
+    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_LUT, \
          load_scalar
 
@@ -388,9 +388,9 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
 
     """
     import os
-    from utils.io_file import write_table
-    from measure.measure_functions import mean_value_per_label
-    from utils.io_vtk import load_scalar
+    from mindboggle.utils.io_file import write_table
+    from mindboggle.measure.measure_functions import mean_value_per_label
+    from mindboggle.utils.io_vtk import load_scalar
 
     shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
                    max_curvature_file, min_curvature_file]
@@ -426,7 +426,7 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
 
 def load_vtk_vertices(Filename):
     """Load VERTICES segment from a VTK file
-    
+
     Parameters
     ----------
     Filename : string
@@ -434,15 +434,15 @@ def load_vtk_vertices(Filename):
 
     Returns
     -------
-    Vertices : a list of integers 
+    Vertices : a list of integers
         Each element is an integer defined in VERTICES segment of the VTK file.
         The integer is an index referring to a point defined in POINTS segment of the VTK file.
-        
+
     Notes
     ------
-        We assume that VERTICES segment is organized as one line, 
-        the first column of which is the number of vertices.  
-        Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface. 
+        We assume that VERTICES segment is organized as one line,
+        the first column of which is the number of vertices.
+        Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface.
 
     """
     import vtk
@@ -531,7 +531,7 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
 
     """
     import os
-    from utils.io_vtk import write_vtk_header, write_vtk_points, \
+    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
     vtk_file = os.path.join(os.getcwd(), vtk_file)
@@ -561,8 +561,8 @@ def freesurface_to_vtk(surface_file):
     Convert FreeSurfer surface file to VTK format.
     """
     import os
-    from utils.io_free import read_surface
-    from utils.io_vtk import write_vtk_header, write_vtk_points, write_vtk_faces
+    from mindboggle.utils.io_free import read_surface
+    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, write_vtk_faces
 
     points, faces = read_surface(surface_file)
 
@@ -599,8 +599,8 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
 
     """
     import os
-    from utils.io_free import read_curvature
-    from utils.io_vtk import load_scalar, write_scalars
+    from mindboggle.utils.io_free import read_curvature
+    from mindboggle.utils.io_vtk import load_scalar, write_scalars
 
     filename = os.path.join(subjects_path, subject, 'surf',
                             hemi + '.' + file_string)
@@ -634,7 +634,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     """
     import os
     import nibabel as nb
-    from utils.io_vtk import load_scalar, write_scalars
+    from mindboggle.utils.io_vtk import load_scalar, write_scalars
 
     annot_file = os.path.join(subjects_path, subject, 'label',
                               hemi + '.' + annot_name + '.annot')

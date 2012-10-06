@@ -180,8 +180,8 @@ def majority_vote_label(surface_file, annot_files):
     from os import path, getcwd
     import nibabel as nb
     import pyvtk
-    from label.multiatlas_labeling import vote_labels
-    from utils import io_file
+    from mindboggle.label.multiatlas_labeling import vote_labels
+    from mindboggle.utils.io_file import string_vs_list_check
 
     # Load multiple label sets
     print("Load annotation files...")
@@ -197,7 +197,7 @@ def majority_vote_label(surface_file, annot_files):
 
     # Check type to make sure the filename is a string
     # (if a list, return the first element)
-    surface_file = io_file.string_vs_list_check(surface_file)
+    surface_file = string_vs_list_check(surface_file)
 
     # Save files
     VTKReader = pyvtk.VtkData(surface_file)
