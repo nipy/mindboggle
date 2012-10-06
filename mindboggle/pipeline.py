@@ -93,11 +93,11 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 # Evaluation options
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasflow = 0#True
+evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
+run_atlasflow = True
 run_measureflow = True
-run_featureflow = 0#True
-run_shapeflow = 0#True
+run_featureflow = True
+run_shapeflow = True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -128,6 +128,7 @@ from mindboggle.extract.extract_folds import extract_folds
 from mindboggle.extract.extract_fundi import extract_fundi
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
+
 #from mindboggle import get_info
 #-------------------------------------------------------------------------------
 # Paths
@@ -1032,7 +1033,7 @@ if __name__== '__main__':
 
     run_flow1 = True
     run_flow2 = True
-    generate_graphs = True
+    generate_graphs = 0#True
     if generate_graphs:
         if run_flow1:
             mbflow.write_graph(graph2use='flat')
