@@ -22,7 +22,8 @@ Dependencies:
 from numpy import mean, std, median, array, zeros, eye, flatnonzero, sign, matrix, zeros_like
 import os.path
 import cPickle
-import io_vtk  # Assumming io_vtk is in PYTHONPATH
+import io_vtk  # Assummng io_vtk is in PYTHONPATH
+import sys
 
 
 #-----------------Begin function definitions------------------------------------------------------------- 
@@ -539,7 +540,7 @@ def getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = 0, PitsThld = 0
     write_surface_with_LUTs(SulciVTK, Vertexes, [Faces[i] for i in Basin], Maps)    
 
     if Quick:
-        exit()
+        sys.exit()
         
     write_pits_without_LUTs(PitsVTK, Vertexes, Pits)
 
