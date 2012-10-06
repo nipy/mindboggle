@@ -13,10 +13,10 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 #import numpy as np
 #from time import time
-#from measure.measure_functions import compute_percentile
-#from utils.mesh_operations import find_neighbors, detect_boundaries,\
+#from mindboggle.measure.measure_functions import compute_percentile
+#from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries,\
 #    segment, fill_holes
-#from utils.io_vtk import load_scalar
+#from mindboggle.utils.io_vtk import load_scalar
 
 #==============
 # Extract folds
@@ -80,8 +80,8 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     Example
     -------
     >>> import os
-    >>> from extract.extract_sulci import extract_sulci
-    >>> from info.sulcus_boundaries import sulcus_boundaries
+    >>> from mindboggle.extract.extract_sulci import extract_sulci
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
@@ -93,7 +93,7 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, label_file,
     >>>     depth_file, fraction_folds, min_sulcus_size, do_fill_holes=False)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> from utils.io_vtk import rewrite_scalars, load_scalar
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars, load_scalar
     >>> rewrite_scalars(label_file, 'test_extract_sulci.vtk',
     >>>                 sulcus_IDs, sulcus_IDs)
     >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
@@ -106,10 +106,10 @@ def extract_sulci(label_pair_lists, label_file, depth_file,
     """
     import numpy as np
     from time import time
-    from measure.measure_functions import compute_percentile
-    from utils.mesh_operations import find_neighbors, detect_boundaries,\
+    from mindboggle.measure.measure_functions import compute_percentile
+    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries,\
         segment, fill_holes
-    from utils.io_vtk import load_scalar
+    from mindboggle.utils.io_vtk import load_scalar
 
     #---------------------------------------------------------------------------
     # Load depth and label values from VTK files; find neighboring vertices
