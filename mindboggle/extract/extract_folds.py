@@ -11,9 +11,9 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 #import numpy as np
 #from time import time
-#from measure.measure_functions import compute_percentile
-#from utils.mesh_operations import segment, fill_holes
-#from utils.io_vtk import load_scalar
+#from mindboggle.measure.measure_functions import compute_percentile
+#from mindboggle.utils.mesh_operations import segment, fill_holes
+#from mindboggle.utils.io_vtk import load_scalar
 
 #==============
 # Extract folds
@@ -44,9 +44,9 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     Example
     -------
     >>> import os
-    >>> from utils.io_vtk import load_scalar, write_scalars
-    >>> from utils.mesh_operations import find_neighbors_from_file
-    >>> from extract.extract_folds import extract_folds
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors_from_file
+    >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
@@ -54,15 +54,15 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 0.5, 50)
     >>> # Write results to vtk file:
-    >>> from utils.io_vtk import rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> rewrite_scalars(depth_file, 'test_extract_folds.vtk', folds)
 
     """
     import numpy as np
     from time import time
-    from measure.measure_functions import compute_percentile
-    from utils.mesh_operations import segment, fill_holes
-    from utils.io_vtk import load_scalar
+    from mindboggle.measure.measure_functions import compute_percentile
+    from mindboggle.utils.mesh_operations import segment, fill_holes
+    from mindboggle.utils.io_vtk import load_scalar
 
     print("Extract folds from surface mesh...")
     t0 = time()
