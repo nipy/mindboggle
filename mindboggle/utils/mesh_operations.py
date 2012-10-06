@@ -257,6 +257,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 
     Example
     -------
+    >>> # Setup
     >>> import os
     >>> import numpy as np
     >>> from utils.mesh_operations import find_neighbors, segment, detect_boundaries
@@ -284,13 +285,13 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(vertices_to_segment,
     >>>     labels, neighbor_lists)
-    >>> #seed_lists = [vertices_to_segment[range(2000)],
-    >>> #              vertices_to_segment[range(2000,4000)],
-    >>> #              vertices_to_segment[range(10000,12000)]]
     >>> seed_lists = []
     >>> for label_pair_list in label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries)
     >>>         if np.sort(label_pairs[i]).tolist() in label_pair_list])
+    >>> #seed_lists = [vertices_to_segment[range(2000)],
+    >>> #              vertices_to_segment[range(2000,4000)],
+    >>> #              vertices_to_segment[range(10000,12000)]]
     >>> sulcus_IDs, n_sulci = segment(vertices_to_segment, neighbor_lists,
     >>>     seed_lists, 50, True, labels, label_pair_lists)
     >>> # Write results to vtk file and view with mayavi2:
