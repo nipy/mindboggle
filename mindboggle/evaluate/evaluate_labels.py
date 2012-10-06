@@ -28,25 +28,11 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     labels_file2 : ``vtk file`` with index labels for scalar values
 
     """
-#    import os
     from nipype.interfaces.base import CommandLine
-
-    #import numpy as np
-    #from utils import io_vtk
-    #Points, Faces, Scalars1, n_vertices = io_vtk.load_scalar(labels_file1, return_arrays=1)
-    #Points, Faces, Scalars2, n_vertices = io_vtk.load_scalar(labels_file2, return_arrays=1)
-    #print(np.unique(Scalars1))
-    #print(np.unique(Scalars2))
 
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2])
     cli.cmdline
-
-#    name1 = os.path.splitext(os.path.basename(labels_file1))[0]
-#    name2 = os.path.splitext(os.path.basename(labels_file2))[0]
-#    out_file = os.path.join(os.getcwd(), 'labelvolume_dice_jacc_for_' +
-#                            name1 + '_vs_' + name2 + '.txt')
-
     return cli.run()
 
 

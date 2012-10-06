@@ -12,9 +12,9 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 #import sys
 #import numpy as np
-#from utils.io_vtk import load_scalar, write_scalars
-#from info.sulcus_boundaries import sulcus_boundaries
-#from utils.mesh_operations import segment, detect_boundaries, \
+#from mindboggle.utils.io_vtk import load_scalar, write_scalars
+#from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+#from mindboggle.utils.mesh_operations import segment, detect_boundaries, \
 #    find_neighbors, compute_distance
 
 verbose = 1
@@ -116,7 +116,7 @@ def identify(labels, folds, neighbor_lists, sulcus_names, label_pair_lists):
 
     """
     import numpy as np
-    from utils.mesh_operations import segment, detect_boundaries, compute_distance
+    from mindboggle.utils.mesh_operations import segment, detect_boundaries, compute_distance
 
     #---------------------------------------------------------------------------
     # Nested function definitions
@@ -362,10 +362,10 @@ if __name__ == "__main__":
     run extract/identify_sulci.py /Applications/freesurfer/subjects/MMRR-21-1/label/lh.labels.DKT25.manual.vtk /Users/arno/Desktop/output/results/features/_hemi_lh_subject_MMRR-21-1/sulci.vtk /Users/arno/Documents/Projects/Mindboggle/mindboggle/mindboggle/info/sulcus_names.txt test_identify.vtk
     """
     import sys
-    from utils.io_vtk import load_scalar, rewrite_scalars
-    from utils.io_file import read_columns
-    from info.sulcus_boundaries import sulcus_boundaries
-    from utils.mesh_operations import find_neighbors
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.utils.io_file import read_columns
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    from mindboggle.utils.mesh_operations import find_neighbors
 
     # Arguments
     labels_file = sys.argv[1]

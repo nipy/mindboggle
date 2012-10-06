@@ -19,10 +19,10 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 #import sys
 #import numpy as np
-#from utils.mesh_operations import compute_distance
-#from utils.io_vtk import load_scalar, write_scalars
-#from info.sulcus_boundaries import sulcus_boundaries
-#from utils.mesh_operations import detect_boundaries, find_neighbors
+#from mindboggle.utils.mesh_operations import compute_distance
+#from mindboggle.utils.io_vtk import load_scalar, write_scalars
+#from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+#from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
 
 def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi):
@@ -42,7 +42,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     """
     import numpy as np
-    from utils.mesh_operations import compute_distance
+    from mindboggle.utils.mesh_operations import compute_distance
 
     n_points = len(points)
 
@@ -86,9 +86,9 @@ if __name__ == "__main__":
 
     import sys
     import numpy as np
-    from utils.io_vtk import load_scalar, write_scalars
-    from info.sulcus_boundaries import sulcus_boundaries
-    from utils.mesh_operations import detect_boundaries, find_neighbors
+    from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]

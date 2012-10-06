@@ -33,15 +33,15 @@ def find_neighbors(faces, n_vertices):
 
     Example
     -------
-    >>> from utils.mesh_operations import find_neighbors
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> n_vertices = 5
     >>> find_neighbors(faces, n_vertices)
         [[1, 2, 3, 4], [0, 2, 4, 3], [1, 0, 3], [2, 0, 4, 1], [0, 3, 1]]
 
     >>> import os
-    >>> from utils.mesh_operations import find_neighbors
-    >>> from utils.io_vtk import load_scalar
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.utils.io_vtk import load_scalar
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
@@ -95,7 +95,7 @@ def find_neighbors_vertex(faces, index):
 
     Example
     -------
-    >>> from utils.mesh_operations import find_neighbors_vertex
+    >>> from mindboggle.utils.mesh_operations import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
     >>> find_neighbors_vertex(faces, index)
@@ -150,8 +150,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     -------
     >>> import os
     >>> import numpy as np
-    >>> from utils.io_vtk import load_scalar
-    >>> from utils.mesh_operations import find_anchors
+    >>> from mindboggle.utils.io_vtk import load_scalar
+    >>> from mindboggle.utils.mesh_operations import find_anchors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
@@ -164,7 +164,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> anchors = find_anchors(range(len(values)),
     >>>                        values, min_directions, min_distance, thr)
     >>> # Write results to vtk file:
-    >>> from utils.io_vtk import rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> LUT = np.zeros(len(min_directions))
     >>> LUT[anchors] = 1
     >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', LUT)
@@ -260,8 +260,8 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> # Setup
     >>> import os
     >>> import numpy as np
-    >>> from utils.mesh_operations import find_neighbors, segment, detect_boundaries
-    >>> from utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, segment, detect_boundaries
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
@@ -278,7 +278,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> os.system('mayavi2 -m Surface -d test_segment1.vtk &')
 
     >>> # Example 2: with seed lists
-    >>> from info.sulcus_boundaries import sulcus_boundaries
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
@@ -635,7 +635,7 @@ def detect_boundaries(region, labels, neighbor_lists):
 
     Example
     -------
-    >>> from utils.mesh_operations import detect_boundaries
+    >>> from mindboggle.utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     >>> region = [0,1,2,4,5,8,9]
