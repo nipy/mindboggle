@@ -156,7 +156,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt'
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
     >>> points, faces, values, n_vertices = load_scalar(depth_file, 1)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
@@ -167,7 +167,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> from utils.io_vtk import rewrite_scalars
     >>> LUT = np.zeros(len(min_directions))
     >>> LUT[anchors] = 1
-    >>> rewrite_scalars(values_file, 'test_find_anchors.vtk', LUT)
+    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', LUT)
 
     """
     import numpy as np
@@ -259,32 +259,43 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     -------
     >>> import os
     >>> import numpy as np
-    >>> from utils.mesh_operations import find_neighbors, segment
+    >>> from utils.mesh_operations import find_neighbors, segment, detect_boundaries
     >>> from utils.io_vtk import load_scalar, rewrite_scalars
-    >>> from info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
-    >>> vertices_to_segment = np.where(depths > .25)[0]
+    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
+
+    >>> # Example 1: without seed lists
     >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists,
     >>>     seed_lists=[], min_region_size=1,
     >>>     spread_same_labels=False, labels=[], label_pair_lists=[])
-    >>> # Write results to vtk file:
+    >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment1.vtk', folds, folds)
+    >>> os.system('mayavi2 -m Surface -d test_segment1.vtk &')
 
-    >>> seed_lists = [vertices_to_segment[range(100)],
-                      vertices_to_segment[range(100,200)],
-                      vertices_to_segment[range(200,300)]]
+    >>> # Example 2: with seed lists
+    >>> from info.sulcus_boundaries import sulcus_boundaries
+    >>> label_pair_lists = sulcus_boundaries()
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists, seed_lists,
-    >>>     50, True, labels, label_pair_lists)
-    >>> # Write results to vtk file:
-    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', folds, folds)
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(vertices_to_segment,
+    >>>     labels, neighbor_lists)
+    >>> #seed_lists = [vertices_to_segment[range(2000)],
+    >>> #              vertices_to_segment[range(2000,4000)],
+    >>> #              vertices_to_segment[range(10000,12000)]]
+    >>> seed_lists = []
+    >>> for label_pair_list in label_pair_lists:
+    >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries)
+    >>>         if np.sort(label_pairs[i]).tolist() in label_pair_list])
+    >>> sulcus_IDs, n_sulci = segment(vertices_to_segment, neighbor_lists,
+    >>>     seed_lists, 50, True, labels, label_pair_lists)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', sulcus_IDs, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
 
     """
     import numpy as np
@@ -311,7 +322,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     counter = 0
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
-    label_lists = [np.ravel(x) for x in label_pair_lists]
+    label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
 
     # Loop until all of the seed lists have grown to their full extent
     while not all(fully_grown):
@@ -344,13 +355,9 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                 # Select neighbors with the same labels
                 # as the initial seed label pairs
                 if len(seed_list):
-                    if spread_same_labels and not select_single_seed:
-                        print(labels[list(set(neighbors))])
-                        print(label_lists[ilist])
+                    if spread_same_labels:
                         seed_list = [x for x in seed_list
                                      if labels[x] in label_lists[ilist]]
-
-                print(ilist, len(seed_list), len(region_lists[ilist]))
 
                 # Continue growing seed list if there are seeds remaining
                 if len(seed_list):
