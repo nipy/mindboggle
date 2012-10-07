@@ -159,7 +159,7 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds, min_fol
         seed_lists=[], min_region_size=min_fold_size,
         spread_same_labels=False, labels=[], label_pair_lists=[])
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
-    n_folds = len([x for x in list(set(fold_IDs))])
+    n_folds = len([x for x in list(set(fold_IDs)) if x != -1])
 
     # If there are any folds
     if n_folds > 0:
