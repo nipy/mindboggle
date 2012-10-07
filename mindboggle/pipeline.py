@@ -92,7 +92,7 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
-evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
+evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
@@ -120,11 +120,12 @@ from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
 from mindboggle.utils.mesh_operations import find_neighbors
 from mindboggle.label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
+from mindboggle.info.sulcus_boundaries import sulcus_boundaries
 from mindboggle.label.relabel import relabel_volume
 from mindboggle.label.label_functions import label_with_classifier
 from mindboggle.measure.measure_functions import compute_area, compute_depth, \
      compute_curvature
-from mindboggle.extract.extract_folds import extract_folds
+from mindboggle.extract.extract_sulci import extract_sulci
 from mindboggle.extract.extract_fundi import extract_fundi
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
@@ -565,44 +566,56 @@ if run_featureflow:
     featureflow.connect([(load_surface, neighbors,
                           [('faces','faces'), ('n_vertices','n_vertices')])])
     #---------------------------------------------------------------------------
-    # Extract folds
+    # Extract sulcus folds
     #---------------------------------------------------------------------------
     fraction_folds = 0.5
-    min_fold_size = 50
+    min_sulcus_size = 50
 
-    folds = Node(name='Folds',
-                 interface = Fn(function = extract_folds,
-                                input_names = ['depth_file',
+    label_pairs = Node(name='Label_pairs',
+                       interface = Fn(function = sulcus_boundaries,
+                                      input_names = [],
+                                      output_names = ['label_pair_lists']))
+    featureflow.add_nodes([label_pairs])
+
+    sulci = Node(name='Sulci',
+                 interface = Fn(function = extract_sulci,
+                                input_names = ['label_pair_lists',
+                                               'labels',
+                                               'depth_file',
                                                'neighbor_lists',
                                                'fraction_folds',
-                                               'min_fold_size'],
-                                output_names = ['folds',
-                                                'n_folds']))
-    featureflow.add_nodes([folds])
-    mbflow.connect([(measureflow, featureflow,
-                     [('Depth.depth_file','Folds.depth_file')])])
-    featureflow.connect([(neighbors, folds,
-                          [('neighbor_lists','neighbor_lists')])])
-    folds.inputs.fraction_folds = fraction_folds
-    folds.inputs.min_fold_size = min_fold_size
-    #---------------------------------------------------------------------------
-    # Extract sulci from folds
-    #---------------------------------------------------------------------------
-    """
-    sulci = Node(name='Sulci',
-                 interface = Fn(function = rewrite_scalars,
-                                input_names = ['folds',
-                                               'sulci_list'],
-                                output_names = ['sulci']))
+                                               'min_sulcus_size',
+                                               'do_fill_holes'],
+                                output_names = ['sulcus_IDs',
+                                                'n_sulci']))
     featureflow.add_nodes([sulci])
-    mbflow.connect([(folds, sulci,
-                     [('folds','folds')])])
-    sulci.inputs.output_vtk = 'folds.vtk'
-    featureflow.connect([(folds, save_folds, [('folds','new_scalars')])])
-    featureflow.connect([(folds, save_folds, [('folds','filter_scalars')])])
-    mbflow.connect([(featureflow, sink,
-                     [('Save_folds.output_vtk','features.@folds')])])
-    """
+    featureflow.connect([(label_pairs, sulci,
+                          [('label_pair_lists','label_pair_lists')])])
+    #---------------------------------------------------------------------------
+    # Use initial labels assigned by FreeSurfer classifier atlas
+    if init_labels == 'DKatlas':
+        mbflow.connect([(atlasflow, featureflow,
+                         [('DK_annot_to_VTK.labels','Sulci.labels')])])
+    # Use initial labels assigned by Mindboggle classifier atlas
+    elif init_labels == 'DKTatlas':
+        mbflow.connect([(atlasflow, featureflow,
+                         [('DKT_annot_to_VTK.labels','Sulci.labels')])])
+    # Use initial labels assigned by multi-atlas registration
+    elif init_labels == 'max':
+        mbflow.connect([(atlasflow, featureflow,
+                         [('Label_vote.labels_max','Sulci.labels')])])
+    # Use manual (atlas) labels
+    elif init_labels == 'manual':
+        mbflow.connect([(atlasflow, featureflow,
+                         [('Atlas_labels.scalars','Sulci.labels')])])
+    #---------------------------------------------------------------------------
+    mbflow.connect([(measureflow, featureflow,
+                     [('Depth.depth_file','Sulci.depth_file')])])
+    featureflow.connect([(neighbors, sulci,
+                          [('neighbor_lists','neighbor_lists')])])
+    sulci.inputs.fraction_folds = fraction_folds
+    sulci.inputs.min_sulcus_size = min_sulcus_size
+    sulci.inputs.do_fill_holes = True
     #---------------------------------------------------------------------------
     # Extract fundi (curves at the bottoms of sulci)
     #---------------------------------------------------------------------------
@@ -611,7 +624,7 @@ if run_featureflow:
 
     fundi = Node(name='Fundi',
                  interface = Fn(function = extract_fundi,
-                                input_names = ['folds',
+                                input_names = ['fold_IDs',
                                                'n_folds',
                                                'neighbor_lists',
                                                'depth_file',
@@ -620,9 +633,10 @@ if run_featureflow:
                                                'min_fold_size',
                                                'min_distance',
                                                'thr'],
-                                output_names = ['fundi']))
-    featureflow.connect([(folds, fundi, [('folds','folds'),
-                                         ('n_folds','n_folds')]),
+                                output_names = ['fundus_IDs',
+                                                'n_fundi']))
+    featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs'),
+                                         ('n_sulci','n_folds')]),
                          (neighbors, fundi,
                           [('neighbor_lists','neighbor_lists')])])
     mbflow.connect([(measureflow, featureflow,
@@ -631,7 +645,7 @@ if run_featureflow:
                        'Fundi.mean_curvature_file'),
                       ('Curvature.min_curvature_vector_file',
                        'Fundi.min_curvature_vector_file')])])
-    fundi.inputs.min_fold_size = min_fold_size
+    fundi.inputs.min_fold_size = min_sulcus_size
     fundi.inputs.min_distance = min_distance
     fundi.inputs.thr = thr
     #---------------------------------------------------------------------------
@@ -648,8 +662,8 @@ if run_featureflow:
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Save_sulci.input_vtk')])])
     save_sulci.inputs.output_vtk = 'sulci.vtk'
-    featureflow.connect([(folds, save_sulci, [('folds','new_scalars')])])
-    featureflow.connect([(folds, save_sulci, [('folds','filter_scalars')])])
+    featureflow.connect([(sulci, save_sulci, [('sulcus_IDs','new_scalars')])])
+    featureflow.connect([(sulci, save_sulci, [('sulcus_IDs','filter_scalars')])])
     mbflow.connect([(featureflow, sink,
                      [('Save_sulci.output_vtk','features.@sulci')])])
 
@@ -658,8 +672,8 @@ if run_featureflow:
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Save_fundi.input_vtk')])])
     save_fundi.inputs.output_vtk = 'fundi.vtk'
-    featureflow.connect([(fundi, save_fundi, [('fundi','new_scalars')])])
-    featureflow.connect([(folds, save_fundi, [('folds','filter_scalars')])])
+    featureflow.connect([(fundi, save_fundi, [('fundus_IDs','new_scalars')])])
+    featureflow.connect([(fundi, save_fundi, [('fundus_IDs','filter_scalars')])])
     mbflow.connect([(featureflow, sink,
                      [('Save_fundi.output_vtk','features.@fundi')])])
 
@@ -691,6 +705,24 @@ if run_shapeflow:
     shapeflow.add_nodes([labeltable])
     labeltable.inputs.filename = 'label_shapes.txt'
     labeltable.inputs.column_names = column_names
+    #---------------------------------------------------------------------------
+    # Use initial labels assigned by FreeSurfer classifier atlas
+    if init_labels == 'DKatlas':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('DK_annot_to_VTK.labels','Label_table.labels')])])
+    # Use initial labels assigned by Mindboggle classifier atlas
+    elif init_labels == 'DKTatlas':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('DKT_annot_to_VTK.labels','Label_table.labels')])])
+    # Use initial labels assigned by multi-atlas registration
+    elif init_labels == 'max':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('Label_vote.labels_max','Label_table.labels')])])
+    # Use manual (atlas) labels
+    elif init_labels == 'manual':
+        mbflow.connect([(atlasflow, shapeflow,
+                         [('Atlas_labels.scalars','Label_table.labels')])])
+    #---------------------------------------------------------------------------
     mbflow.connect([(measureflow, shapeflow,
                      [('Area.area_file','Label_table.area_file')])])
     mbflow.connect([(measureflow, shapeflow,
@@ -709,34 +741,12 @@ if run_shapeflow:
                        'Label_table.min_curvature_file')])])
     if include_thickness:
         mbflow.connect([(measureflow, shapeflow,
-                         [('Thickness_to_VTK.vtk_file', 'Label_table.thickness_file')])])
+                         [('Thickness_to_VTK.vtk_file',
+                           'Label_table.thickness_file')])])
     if include_convexity:
         mbflow.connect([(measureflow, shapeflow,
-                         [('Convexity_to_VTK.vtk_file', 'Label_table.convexity_file')])])
-    #---------------------------------------------------------------------------
-    # Use initial labels assigned by classifier atlas (ex: FreeSurfer labels)
-    #---------------------------------------------------------------------------
-    if init_labels == 'DKatlas':
-        mbflow.connect([(atlasflow, shapeflow,
-                         [('DK_annot_to_VTK.labels','Label_table.labels')])])
-    #---------------------------------------------------------------------------
-    # Use initial labels assigned by multi-atlas registration
-    #---------------------------------------------------------------------------
-    elif init_labels == 'DKTatlas':
-        mbflow.connect([(atlasflow, shapeflow,
-                         [('DKT_annot_to_VTK.labels','Label_table.labels')])])
-    #---------------------------------------------------------------------------
-    # Use initial labels assigned by multi-atlas registration
-    #---------------------------------------------------------------------------
-    elif init_labels == 'max':
-        mbflow.connect([(atlasflow, shapeflow,
-                         [('Label_vote.labels_max','Label_table.labels')])])
-    #---------------------------------------------------------------------------
-    # Use manual (atlas) labels
-    #---------------------------------------------------------------------------
-    elif init_labels == 'manual':
-        mbflow.connect([(atlasflow, shapeflow,
-                         [('Atlas_labels.scalars','Label_table.labels')])])
+                         [('Convexity_to_VTK.vtk_file',
+                           'Label_table.convexity_file')])])
     # Save results
     mbflow.connect([(shapeflow, sink,
                      [('Label_table.means_file', 'shapes.@labels'),
@@ -745,40 +755,56 @@ if run_shapeflow:
     # Sulcus fold shapes
     #===========================================================================
     if run_featureflow:
-        foldtable = labeltable.clone('Fold_table')
-        shapeflow.add_nodes([foldtable])
-        foldtable.inputs.filename = 'fold_shapes.txt'
-        foldtable.inputs.column_names = column_names
+        sulcustable = labeltable.clone('Sulcus_table')
+        shapeflow.add_nodes([sulcustable])
+        sulcustable.inputs.filename = 'sulcus_shapes.txt'
+        sulcustable.inputs.column_names = column_names
+        #-----------------------------------------------------------------------
+        # Use initial labels assigned by FreeSurfer classifier atlas
+        if init_labels == 'DKatlas':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('DK_annot_to_VTK.labels','Sulcus_table.labels')])])
+        # Use initial labels assigned by Mindboggle classifier atlas
+        elif init_labels == 'DKTatlas':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('DKT_annot_to_VTK.labels','Sulcus_table.labels')])])
+        # Use initial labels assigned by multi-atlas registration
+        elif init_labels == 'max':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('Label_vote.labels_max','Sulcus_table.labels')])])
+        # Use manual (atlas) labels
+        elif init_labels == 'manual':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('Atlas_labels.scalars','Sulcus_table.labels')])])
+        #-----------------------------------------------------------------------
         mbflow.connect([(measureflow, shapeflow,
-                         [('Area.area_file','Fold_table.area_file')])])
-        mbflow.connect([(featureflow, shapeflow,
-                         [('Folds.folds','Fold_table.labels')])])
+                         [('Area.area_file','Sulcus_table.area_file')])])
         mbflow.connect([(measureflow, shapeflow,
-                         [('Depth.depth_file','Fold_table.depth_file')])])
+                         [('Depth.depth_file','Sulcus_table.depth_file')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Curvature.mean_curvature_file',
-                           'Fold_table.mean_curvature_file')])])
+                           'Sulcus_table.mean_curvature_file')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Curvature.gauss_curvature_file',
-                           'Fold_table.gauss_curvature_file')])])
+                           'Sulcus_table.gauss_curvature_file')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Curvature.max_curvature_file',
-                           'Fold_table.max_curvature_file')])])
+                           'Sulcus_table.max_curvature_file')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Curvature.min_curvature_file',
-                           'Fold_table.min_curvature_file')])])
+                           'Sulcus_table.min_curvature_file')])])
         if include_thickness:
             mbflow.connect([(measureflow, shapeflow,
                              [('Thickness_to_VTK.vtk_file',
-                               'Fold_table.thickness_file')])])
+                               'Sulcus_table.thickness_file')])])
         if include_convexity:
             mbflow.connect([(measureflow, shapeflow,
                              [('Convexity_to_VTK.vtk_file',
-                               'Fold_table.convexity_file')])])
+                               'Sulcus_table.convexity_file')])])
         # Save results
         mbflow.connect([(shapeflow, sink,
-                         [('Fold_table.means_file', 'shapes.@folds'),
-                          ('Fold_table.norm_means_file', 'shapes.@folds_norm')])])
+                         [('Sulcus_table.means_file', 'shapes.@sulci'),
+                          ('Sulcus_table.norm_means_file', 'shapes.@sulci_norm')])])
     #===========================================================================
     # Fundus shapes
     #===========================================================================
@@ -787,10 +813,26 @@ if run_shapeflow:
         shapeflow.add_nodes([fundustable])
         fundustable.inputs.filename = 'fundus_shapes.txt'
         fundustable.inputs.column_names = column_names
+        #-----------------------------------------------------------------------
+        # Use initial labels assigned by FreeSurfer classifier atlas
+        if init_labels == 'DKatlas':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('DK_annot_to_VTK.labels','Fundus_table.labels')])])
+        # Use initial labels assigned by Mindboggle classifier atlas
+        elif init_labels == 'DKTatlas':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('DKT_annot_to_VTK.labels','Fundus_table.labels')])])
+        # Use initial labels assigned by multi-atlas registration
+        elif init_labels == 'max':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('Label_vote.labels_max','Fundus_table.labels')])])
+        # Use manual (atlas) labels
+        elif init_labels == 'manual':
+            mbflow.connect([(atlasflow, shapeflow,
+                             [('Atlas_labels.scalars','Fundus_table.labels')])])
+        #-----------------------------------------------------------------------
         mbflow.connect([(measureflow, shapeflow,
                          [('Area.area_file','Fundus_table.area_file')])])
-        mbflow.connect([(featureflow, shapeflow,
-                         [('Fundi.fundi','Fundus_table.labels')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Depth.depth_file','Fundus_table.depth_file')])])
         mbflow.connect([(measureflow, shapeflow,
@@ -833,7 +875,7 @@ if evaluate_surface_labels:
                                            input_names = ['command',
                                                           'labels_file1',
                                                           'labels_file2'],
-                                           output_names = ['overlaps']))
+                                           output_names = ['overlap_file']))
     mbflow.add_nodes([eval_surf_labels])
     surface_overlap_command = os.path.join(ccode_path,
         'surface_overlap', 'SurfaceOverlapMain')
@@ -851,8 +893,8 @@ if evaluate_surface_labels:
     elif init_labels == 'manual':
         mbflow.connect([(atlas, eval_surf_labels,
                          [('atlas_file','labels_file2')])])
-    #mbflow.connect([(eval_surf_labels, sink,
-    #                 [('overlaps', 'evaluate_labels')])])
+    mbflow.connect([(eval_surf_labels, sink,
+                     [('overlap_file', 'evaluate_labels')])])
 
 ################################################################################
 #

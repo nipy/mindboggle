@@ -15,10 +15,84 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #from mindboggle.utils.mesh_operations import segment, fill_holes
 #from mindboggle.utils.io_vtk import load_scalar
 
-#==============
+#===============================================================================
 # Extract folds
-#==============
-def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
+#===============================================================================
+def extract_all_folds(depth_file, area_file, fraction_folds):
+    """
+    Use depth to extract all folds from a triangular surface mesh,
+    by fraction of surface area.
+
+    Parameters
+    ----------
+    depth_file : str
+        surface mesh file in VTK format with faces and depth scalar values
+    area_file : str
+        surface mesh file in VTK format with faces and surface area scalar values
+    fraction_folds : float
+        fraction of surface mesh considered folds
+
+    Returns
+    -------
+    folds : array of integers
+        an integer for every mesh vertex: 1 for fold, -1 for non-fold
+
+    Example
+    -------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> from mindboggle.extract.extract_folds import extract_all_folds
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
+    >>>     area_file, 0.5)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
+    >>> rewrite_scalars(depth_file, 'test_extract_all_folds.vtk', folds, folds)
+    >>> os.system('mayavi2 -m Surface -d test_extract_all_folds.vtk &')
+
+    """
+    import numpy as np
+    from time import time
+    from mindboggle.utils.io_vtk import load_scalar
+
+    print("Extract the deepest surface mesh vertices ({0} of surface area)...".
+          format(fraction_folds))
+    t0 = time()
+
+    # Load depth and surface area values from VTK files
+    points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=True)
+    points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=True)
+
+    sort_indices = np.argsort(depths)
+    sort_indices = sort_indices[::-1]
+
+    total_area = np.sum(areas)
+    fraction_area = fraction_folds * total_area
+    sum_area = 0
+    folds = -1 * np.ones(len(areas))
+    min_depth = 1
+    for index in sort_indices:
+        folds[index] = 1
+        sum_area += areas[index]
+        if sum_area >= fraction_area:
+            min_depth = depths[index]
+            break
+
+    n_deep_vertices = len([x for x in folds if x == 1])
+
+    print('  ...Extracted {0} vertices deeper than {1:.2f} ({2:.2f} seconds)'.
+          format(n_deep_vertices, min_depth, time() - t0))
+
+    return folds, min_depth, n_deep_vertices
+
+#===============================================================================
+# Extract individual folds
+#===============================================================================
+def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds, min_fold_size):
     """
     Use depth to extract folds from a triangular surface mesh and fill holes
     resulting from shallower areas within a fold.
@@ -26,7 +100,9 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     Parameters
     ----------
     depth_file : str
-        surface mesh file in VTK format with faces and scalar values
+        surface mesh file in VTK format with faces and depth scalar values
+    area_file : str
+        surface mesh file in VTK format with faces and surface area scalar values
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
     fraction_folds : float
@@ -36,26 +112,28 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
     Returns
     -------
-    folds : numpy array
-        fold IDs
+    fold_IDs : array of integers
+        fold IDs for all vertices, with -1s for non-fundus vertices
     n_folds :  int
         number of folds
 
     Example
     -------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors_from_file
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=0)
     >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 0.5, 50)
-    >>> # Write results to vtk file:
-    >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> rewrite_scalars(depth_file, 'test_extract_folds.vtk', folds)
+    >>> fold_IDs, n_folds = extract_folds(depth_file, area_file, neighbor_lists, 0.5, 50)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_extract_folds.vtk', fold_IDs, fold_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
 
     """
     import numpy as np
@@ -63,27 +141,21 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
     from mindboggle.measure.measure_functions import compute_percentile
     from mindboggle.utils.mesh_operations import segment, fill_holes
     from mindboggle.utils.io_vtk import load_scalar
+    from mindboggle.extract.extract_folds import extract_all_folds
 
     print("Extract folds from surface mesh...")
     t0 = time()
 
-    # Load depth values from VTK file
-    points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=True)
-
-    # Compute the minimum depth threshold for defining folds by determining the
-    # percentile of depth values for the fraction of vertices that are not folds.
-    # For example, if we consider the shallowest one-third of vertices not to be
-    # folds, we compute the depth percentile, and two-thirds of vertices would
-    # have at least this depth value and would be considered folds.
-    min_depth = compute_percentile(np.sort(depths),
-                                   1 - fraction_folds, key=lambda x:x)
+    # Compute the minimum depth threshold for defining folds
+    folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
+        area_file, fraction_folds)
 
     # Segment folds of a surface mesh
     print("  Segment surface mesh into separate folds deeper than {0:.2f}...".
           format(min_depth))
     t1 = time()
-    vertices_to_segment = np.where(depths > min_depth)[0]
-    folds, n_folds = segment(vertices_to_segment, neighbor_lists,
+    vertices_to_segment = [i for i,x in enumerate(folds) if x == 1]
+    fold_IDs, n_folds = segment(vertices_to_segment, neighbor_lists,
         seed_lists=[], min_region_size=min_fold_size,
         spread_same_labels=False, labels=[], label_pair_lists=[])
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
@@ -94,7 +166,7 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep)
         t2 = time()
-        vertices_to_segment = [i for i,x in enumerate(folds) if x==-1]
+        vertices_to_segment = [i for i,x in enumerate(fold_IDs) if x==-1]
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
@@ -122,11 +194,11 @@ def extract_folds(depth_file, neighbor_lists, fraction_folds, min_fold_size):
 
             # Fill holes
             t3 = time()
-            folds = fill_holes(folds, holes, n_holes, neighbor_lists)
+            fold_IDs = fill_holes(fold_IDs, holes, n_holes, neighbor_lists)
             print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
 
     print('  ...Extracted folds greater than {0:.2f} depth in {1:.2f} seconds'.
           format(min_depth, time() - t0))
 
     # Return folds, number of folds
-    return folds, n_folds
+    return fold_IDs, n_folds
