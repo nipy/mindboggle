@@ -311,7 +311,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
             # Display information every n_mod iterations
             if not np.mod(count, 10):
-                print('      Iteration {0}: {2} points crossing threshold'.
+                print('      Iteration {0}: {1} points crossing threshold'.
                       format(count, delta_points)) #delta_cost
 
             # Increment next gradient factor and decrement next neighborhood
@@ -344,7 +344,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(folds, n_folds, neighbor_lists,
+def extract_fundi(fold_IDs, n_folds, neighbor_lists,
                   depth_file, mean_curvature_file, min_curvature_vector_file,
                   min_fold_size=50, min_distance=5, thr=0.5):
     """
@@ -354,7 +354,7 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     Parameters
     ----------
-    folds : list or numpy array
+    fold_IDs : list or numpy array
         fold IDs (default = -1)
     n_folds :  int
         number of folds
@@ -375,7 +375,10 @@ def extract_fundi(folds, n_folds, neighbor_lists,
 
     Returns
     -------
-    fundi :  numpy array of fundi
+    fundus_IDs : array of integers
+        fundus IDs for all vertices, with -1s for non-fundus vertices
+    n_fundi :  int
+        number of sulcus fundi
 
     """
     import numpy as np
@@ -385,8 +388,8 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     from mindboggle.utils.mesh_operations import find_anchors
     from mindboggle.utils.io_vtk import load_scalar
 
-    # Convert folds array to a list of lists of vertex indices
-    index_lists_folds = [np.where(folds == i)[0].tolist()
+    # Convert fold_IDs array to a list of lists of vertex indices
+    index_lists = [np.where(fold_IDs == i)[0].tolist()
                          for i in range(n_folds)]
 
     # Load depth and curvature values from VTK and text files
@@ -396,15 +399,15 @@ def extract_fundi(folds, n_folds, neighbor_lists,
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold...
-    print("Extract a fundus from each of {0} folds...".format(n_folds))
+    print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
     fundus_lists = []
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
 
-    for i_fold, indices_fold in enumerate(index_lists_folds):
+    for i_fold, indices_fold in enumerate(index_lists):
 
-        print('  Fold {0} of {1}:'.format(i_fold + 1, n_folds))
+        print('  Region {0} of {1}:'.format(i_fold + 1, n_folds))
 
         # Compute fundus likelihood values
         fold_likelihoods = compute_likelihood(depths[indices_fold],
@@ -442,13 +445,14 @@ def extract_fundi(folds, n_folds, neighbor_lists,
         else:
             fundus_lists.append([])
 
-    fundi = -1 * np.ones(n_vertices)
+    fundus_IDs = -1 * np.ones(n_vertices)
     count = 0
     for fundus in fundus_lists:
         if len(fundus) > 0:
-            fundi[fundus] = count
+            fundus_IDs[fundus] = count
             count += 1
 
-    print('  ...Extracted fundi ({0:.2f} seconds)'.format(time() - t1))
+    n_fundi = count
+    print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
-    return fundi
+    return fundus_IDs, n_fundi
