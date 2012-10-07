@@ -155,10 +155,11 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds, min_fol
           format(min_depth))
     t1 = time()
     vertices_to_segment = [i for i,x in enumerate(folds) if x == 1]
-    fold_IDs, n_folds = segment(vertices_to_segment, neighbor_lists,
+    fold_IDs = segment(vertices_to_segment, neighbor_lists,
         seed_lists=[], min_region_size=min_fold_size,
         spread_same_labels=False, labels=[], label_pair_lists=[])
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
+    n_folds = len([x for x in list(set(fold_IDs))])
 
     # If there are any folds
     if n_folds > 0:
@@ -170,9 +171,10 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds, min_fol
 
         # Segment holes in the folds
         print('  Segment holes in the folds...')
-        holes, n_holes = segment(vertices_to_segment, neighbor_lists,
+        holes = segment(vertices_to_segment, neighbor_lists,
                 seed_lists=[], min_region_size=1,
                 spread_same_labels=False, labels=[], label_pair_lists=[])
+        n_holes = len([x for x in list(set(holes))])
 
         # If there are any holes
         if n_holes > 0:
