@@ -153,9 +153,10 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
         # Segment into sets of vertices connected to label boundary seeds
         print("    Segment into separate label-pair regions...")
         t1 = time()
-        sulcus_IDs, n_sulci = segment(indices_folds, neighbor_lists,
+        sulcus_IDs = segment(indices_folds, neighbor_lists,
             seed_lists, min_sulcus_size, spread_same_labels=True,
             labels=labels, label_pair_lists=label_pair_lists)
+        n_sulci = len([x for x in list(set(sulcus_IDs))])
         print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
               format(n_sulci, time() - t1))
 
@@ -174,9 +175,10 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
 
         # Segment holes in the folds
         print("    Segment holes...")
-        holes, n_holes = segment(vertices_to_segment, neighbor_lists,
+        holes = segment(vertices_to_segment, neighbor_lists,
             seed_lists=[], min_region_size=1,
             spread_same_labels=False, labels=[], label_pair_lists=[])
+        n_holes = len([x for x in list(set(holes))])
 
         # If there are any holes
         if n_holes > 0:
