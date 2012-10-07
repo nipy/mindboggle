@@ -32,12 +32,17 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     labels_file2 : ``vtk file`` with index labels for scalar values
 
     """
+    import os
     from nipype.interfaces.base import CommandLine
 
+    overlap_filename = os.path.basename(labels_file1) + '_and_' + \
+                       os.path.basename(labels_file2) + '.txt'
+    overlap_file = os.path.join(os.getcwd(), overlap_filename)
     cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join([labels_file1, labels_file2])
+    cli.inputs.args = ' '.join([labels_file1, labels_file2, overlap_file])
     cli.cmdline
-    return cli.run()
+
+    return overlap_file
 
 
 def measure_volume_overlap(labels, atlas_file, input_file):
