@@ -388,15 +388,15 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     from mindboggle.utils.mesh_operations import find_anchors
     from mindboggle.utils.io_vtk import load_scalar
 
-    # Convert fold_IDs array to a list of lists of vertex indices
-    index_lists = [np.where(fold_IDs == i)[0].tolist()
-                         for i in range(n_folds)]
-
     # Load depth and curvature values from VTK and text files
-    vertices, Faces, depths, n_vertices = load_scalar(depth_file, return_arrays=1)
-    vertices, Faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    vertices, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=1)
+    vertices, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
                                                                return_arrays=1)
     min_directions = np.loadtxt(min_curvature_vector_file)
+
+    # Convert fold_IDs array to a list of lists of vertex indices
+    index_lists = [np.where(fold_IDs == i)[0].tolist()
+                   for i in range(n_folds)]
 
     # For each fold...
     print("Extract a fundus from each of {0} regions...".format(n_folds))
@@ -407,39 +407,43 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
 
     for i_fold, indices_fold in enumerate(index_lists):
 
-        print('  Region {0} of {1}:'.format(i_fold + 1, n_folds))
+        if len(indices_fold):
 
-        # Compute fundus likelihood values
-        fold_likelihoods = compute_likelihood(depths[indices_fold],
-                                              mean_curvatures[indices_fold])
-        likelihoods[indices_fold] = fold_likelihoods
+            print('  Region {0} of {1}:'.format(i_fold + 1, n_folds))
 
-        # If the fold has enough high-likelihood vertices, continue
-        likelihoods_thr = sum(fold_likelihoods > thr)
-        print('    {0} vertices with fundus likelihood value > {1}'.
-              format(likelihoods_thr, thr)) #min_fold_size
-        if likelihoods_thr > min_fold_size:
+            # Compute fundus likelihood values
+            fold_likelihoods = compute_likelihood(depths[indices_fold],
+                                                  mean_curvatures[indices_fold])
+            likelihoods[indices_fold] = fold_likelihoods
 
-            # Find fundus points
-            fold_indices_anchors = find_anchors(vertices[indices_fold, :],
-                                                fold_likelihoods,
-                                                min_directions[indices_fold],
-                                                min_distance, thr)
-            indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-            n_anchors = len(indices_anchors)
-            if n_anchors > 1:
+            # If the fold has enough high-likelihood vertices, continue
+            likelihoods_thr = sum(fold_likelihoods > thr)
+            print('    {0} vertices with fundus likelihood value > {1}'.
+                  format(likelihoods_thr, thr)) #min_fold_size
+            if likelihoods_thr > min_fold_size:
 
-                # Connect fundus points and extract fundus
-                print('    Connect {0} fundus points...'.format(n_anchors))
-                t2 = time()
-                likelihoods_fold = Z.copy()
-                likelihoods_fold[indices_fold] = fold_likelihoods
+                # Find fundus points
+                fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+                                                    fold_likelihoods,
+                                                    min_directions[indices_fold],
+                                                    min_distance, thr)
+                indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+                n_anchors = len(indices_anchors)
+                if n_anchors > 1:
 
-                H = connect_points(indices_anchors, Faces, indices_fold,
-                                   likelihoods_fold, thr, neighbor_lists)
-                fundus_lists.append(H.tolist())
-                print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
-                      format(n_anchors, time() - t2))
+                    # Connect fundus points and extract fundus
+                    print('    Connect {0} fundus points...'.format(n_anchors))
+                    t2 = time()
+                    likelihoods_fold = Z.copy()
+                    likelihoods_fold[indices_fold] = fold_likelihoods
+
+                    H = connect_points(indices_anchors, faces, indices_fold,
+                                       likelihoods_fold, thr, neighbor_lists)
+                    fundus_lists.append(H.tolist())
+                    print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
+                          format(n_anchors, time() - t2))
+                else:
+                    fundus_lists.append([])
             else:
                 fundus_lists.append([])
         else:
@@ -447,9 +451,9 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
 
     fundus_IDs = -1 * np.ones(n_vertices)
     count = 0
-    for fundus in fundus_lists:
+    for ifundus, fundus in enumerate(fundus_lists):
         if len(fundus) > 0:
-            fundus_IDs[fundus] = count
+            fundus_IDs[fundus] = ifundus
             count += 1
 
     n_fundi = count
