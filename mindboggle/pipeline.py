@@ -93,7 +93,7 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 # Evaluation options
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 1 #False  # Volume overlap: auto vs. manual labels
+evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasflow = True
 run_measureflow = True
 run_featureflow = True
@@ -762,23 +762,8 @@ if run_shapeflow:
         shapeflow.add_nodes([sulcustable])
         sulcustable.inputs.filename = 'sulcus_shapes.txt'
         sulcustable.inputs.column_names = column_names
-        #-----------------------------------------------------------------------
-        # Use initial labels assigned by FreeSurfer classifier atlas
-        if init_labels == 'DKatlas':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('DK_annot_to_VTK.labels','Sulcus_table.labels')])])
-        # Use initial labels assigned by Mindboggle classifier atlas
-        elif init_labels == 'DKTatlas':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('DKT_annot_to_VTK.labels','Sulcus_table.labels')])])
-        # Use initial labels assigned by multi-atlas registration
-        elif init_labels == 'max':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('Label_vote.labels_max','Sulcus_table.labels')])])
-        # Use manual (atlas) labels
-        elif init_labels == 'manual':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('Atlas_labels.scalars','Sulcus_table.labels')])])
+        mbflow.connect([(featureflow, shapeflow,
+                         [('Sulci.sulcus_IDs','Sulcus_table.labels')])])
         #-----------------------------------------------------------------------
         mbflow.connect([(measureflow, shapeflow,
                          [('Area.area_file','Sulcus_table.area_file')])])
@@ -816,24 +801,8 @@ if run_shapeflow:
         shapeflow.add_nodes([fundustable])
         fundustable.inputs.filename = 'fundus_shapes.txt'
         fundustable.inputs.column_names = column_names
-        #-----------------------------------------------------------------------
-        # Use initial labels assigned by FreeSurfer classifier atlas
-        if init_labels == 'DKatlas':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('DK_annot_to_VTK.labels','Fundus_table.labels')])])
-        # Use initial labels assigned by Mindboggle classifier atlas
-        elif init_labels == 'DKTatlas':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('DKT_annot_to_VTK.labels','Fundus_table.labels')])])
-        # Use initial labels assigned by multi-atlas registration
-        elif init_labels == 'max':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('Label_vote.labels_max','Fundus_table.labels')])])
-        # Use manual (atlas) labels
-        elif init_labels == 'manual':
-            mbflow.connect([(atlasflow, shapeflow,
-                             [('Atlas_labels.scalars','Fundus_table.labels')])])
-        #-----------------------------------------------------------------------
+        mbflow.connect([(featureflow, shapeflow,
+                         [('Fundi.fundus_IDs','Fundus_table.labels')])])
         mbflow.connect([(measureflow, shapeflow,
                          [('Area.area_file','Fundus_table.area_file')])])
         mbflow.connect([(measureflow, shapeflow,
