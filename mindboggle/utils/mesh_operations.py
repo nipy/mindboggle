@@ -253,7 +253,6 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     -------
     segments : numpy array [total #vertices in mesh x 1]
         segment indices for regions (default -1)
-    n_segments : #segments
 
     Example
     -------
@@ -396,8 +395,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                             seed_lists[0] = [vertices_to_segment[0]]
                             region_lists[0] = []
 
-    n_segments = new_segment_index + 1
-    return segments, n_segments
+    return segments
 
 #------------------------------------------------------------------------------
 # Fill holes
