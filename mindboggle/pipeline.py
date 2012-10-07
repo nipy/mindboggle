@@ -582,6 +582,7 @@ if run_featureflow:
                                 input_names = ['label_pair_lists',
                                                'labels',
                                                'depth_file',
+                                               'area_file',
                                                'neighbor_lists',
                                                'fraction_folds',
                                                'min_sulcus_size',
@@ -611,6 +612,8 @@ if run_featureflow:
     #---------------------------------------------------------------------------
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Sulci.depth_file')])])
+    mbflow.connect([(measureflow, featureflow,
+                     [('Area.area_file','Sulci.area_file')])])
     featureflow.connect([(neighbors, sulci,
                           [('neighbor_lists','neighbor_lists')])])
     sulci.inputs.fraction_folds = fraction_folds
