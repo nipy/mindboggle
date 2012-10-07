@@ -269,7 +269,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
 
     >>> # Example 1: without seed lists
-    >>> folds, n_folds = segment(vertices_to_segment, neighbor_lists,
+    >>> folds = segment(vertices_to_segment, neighbor_lists,
     >>>     seed_lists=[], min_region_size=1,
     >>>     spread_same_labels=False, labels=[], label_pair_lists=[])
     >>> # Write results to vtk file and view with mayavi2:
@@ -291,7 +291,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> #seed_lists = [vertices_to_segment[range(2000)],
     >>> #              vertices_to_segment[range(2000,4000)],
     >>> #              vertices_to_segment[range(10000,12000)]]
-    >>> sulcus_IDs, n_sulci = segment(vertices_to_segment, neighbor_lists,
+    >>> sulcus_IDs = segment(vertices_to_segment, neighbor_lists,
     >>>     seed_lists, 50, True, labels, label_pair_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment2.vtk', sulcus_IDs, sulcus_IDs)
