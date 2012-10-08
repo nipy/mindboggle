@@ -431,11 +431,13 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     if len(convexity_file) > 0:
         shape_files.append(convexity_file)
 
+    # Load per-vertex surface area file
+    points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
+
     columns = []
     norm_columns = []
     for i, shape_file in enumerate(shape_files):
 
-        points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
         points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
