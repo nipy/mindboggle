@@ -633,7 +633,6 @@ if run_featureflow:
                                                'depth_file',
                                                'mean_curvature_file',
                                                'min_curvature_vector_file',
-                                               'min_fold_size',
                                                'min_distance',
                                                'thr'],
                                 output_names = ['fundus_IDs',
@@ -648,7 +647,6 @@ if run_featureflow:
                        'Fundi.mean_curvature_file'),
                       ('Curvature.min_curvature_vector_file',
                        'Fundi.min_curvature_vector_file')])])
-    fundi.inputs.min_fold_size = min_sulcus_size
     fundi.inputs.min_distance = min_distance
     fundi.inputs.thr = thr
     #---------------------------------------------------------------------------
