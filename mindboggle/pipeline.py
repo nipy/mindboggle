@@ -726,7 +726,7 @@ if run_shapeflow:
         mbflow.connect([(atlasflow, shapeflow,
                          [('Atlas_labels.scalars','Label_table.labels')])])
     #---------------------------------------------------------------------------
-    labeltable.inputs.nonlabels = [-1]
+    labeltable.inputs.nonlabels = [-1,0]
     mbflow.connect([(measureflow, shapeflow,
                      [('Area.area_file','Label_table.area_file')])])
     mbflow.connect([(measureflow, shapeflow,
@@ -765,7 +765,7 @@ if run_shapeflow:
         sulcustable.inputs.column_names = column_names
         mbflow.connect([(featureflow, shapeflow,
                          [('Sulci.sulcus_IDs','Sulcus_table.labels')])])
-        #-----------------------------------------------------------------------
+        sulcustable.inputs.nonlabels = [-1]
         mbflow.connect([(measureflow, shapeflow,
                          [('Area.area_file','Sulcus_table.area_file')])])
         mbflow.connect([(measureflow, shapeflow,
@@ -804,6 +804,7 @@ if run_shapeflow:
         fundustable.inputs.column_names = column_names
         mbflow.connect([(featureflow, shapeflow,
                          [('Fundi.fundus_IDs','Fundus_table.labels')])])
+        fundustable.inputs.nonlabels = [-1]
         mbflow.connect([(measureflow, shapeflow,
                          [('Area.area_file','Fundus_table.area_file')])])
         mbflow.connect([(measureflow, shapeflow,
