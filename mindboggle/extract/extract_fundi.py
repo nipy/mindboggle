@@ -149,7 +149,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 #---------------
 # Connect points
 #---------------
-def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
+def connect_points(anchors, faces, indices, L, neighbor_lists):
     """
     Connect vertices in a surface mesh to create a curve.
 
@@ -190,7 +190,6 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     faces : indices of triangular mesh vertices: [#faces x 3] numpy array
     indices : list of indices of vertices
     L : likelihood values: [#vertices in mesh x 1] numpy array
-    thr : likelihood threshold
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
@@ -215,7 +214,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     wN_max = 0.5  # maximum neighborhood weight
     wN_min = 0.1  # minimum neighborhood weight
     H_step = 0.1  # step down HMMF value
-    H_min = thr - H_step  # minimum HMMF value to be processed
+    H_min = 0.5 - H_step  # minimum HMMF value to be processed
 
     # Parameters to speed up optimization and for termination of the algorithm
     grad_min = 0.1  # minimum gradient factor
@@ -228,13 +227,14 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     # Initialize all Hidden Markov Measure Field (HMMF) values with
     # likelihood values (except 0) normalized to the interval (0.5, 1.0]
     # (to guarantee correct topology). Assign a 1 for each anchor point.
+    # Note: 0.5 is the class boundary threshold for the HMMF values.
     n_vertices = len(indices)
     C = np.zeros(len(L))
     H = C.copy()
     H_init = (L + 1.000001) / 2
     H_init[L == 0.0] = 0
     H_init[H_init > 1.0] = 1
-    H[H_init > thr] = H_init[H_init > thr]
+    H[H_init > 0.5] = H_init[H_init > 0.5]
     H[anchors] = 1
 
     # Neighbors for each vertex
@@ -273,10 +273,10 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
                     # and the vertex is a "simple point"
                     # Note: H_new[index] is not changed yet since
                     #       simple_test() only considers its neighbors
-                    if H[index] >= thr >= H_test:
-                        update, n_in = simple_test(index, H_new, thr, N)
-                    elif H[index] <= thr <= H_test:
-                        update, n_in = simple_test(index, 1 - H_new, thr, N)
+                    if H[index] >= 0.5 >= H_test:
+                        update, n_in = simple_test(index, H_new, N)
+                    elif H[index] <= 0.5 <= H_test:
+                        update, n_in = simple_test(index, 1 - H_new, N)
 
                     # Update the HMMF value if far from the threshold
                     else:
@@ -297,7 +297,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag.
         costs = sum(C)
-        n_points = sum([1 for x in H if x > thr])
+        n_points = sum([1 for x in H if x > 0.5])
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
@@ -330,8 +330,8 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
     print('      Updated hidden Markov measure field (HMMF) values')
 
     # Threshold the resulting array
-    H[H > thr] = 1
-    H[H <= thr] = 0
+    H[H > 0.5] = 1
+    H[H <= 0.5] = 0
     n_points = sum(H)
 
     # Skeletonize
@@ -346,7 +346,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 #==================
 def extract_fundi(fold_IDs, n_folds, neighbor_lists,
                   depth_file, mean_curvature_file, min_curvature_vector_file,
-                  min_fold_size=50, min_distance=5, thr=0.5):
+                  min_distance=5, thr=0.5):
     """
     Extract all fundi.
 
@@ -411,7 +411,7 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     >>> thr = 0.5
     >>> fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, n_sulci, neighbor_lists,
     >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
-    >>>     min_sulcus_size, min_distance, thr)
+    >>>     min_distance, thr)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
     >>>                 fundus_IDs, fundus_IDs)
@@ -456,34 +456,28 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
                                                   mean_curvatures[indices_fold])
             likelihoods[indices_fold] = fold_likelihoods
 
-            # If the fold has enough high-likelihood vertices, continue
-            likelihoods_thr = sum(fold_likelihoods > thr)
-            print('    {0} vertices with fundus likelihood value > {1}'.
-                  format(likelihoods_thr, thr)) #min_fold_size
-            if likelihoods_thr > min_fold_size:
+            # Find fundus points
+            fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+                                                fold_likelihoods,
+                                                min_directions[indices_fold],
+                                                min_distance, thr)
+            indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+            n_anchors = len(indices_anchors)
+            if n_anchors > 1:
 
-                # Find fundus points
-                fold_indices_anchors = find_anchors(vertices[indices_fold, :],
-                                                    fold_likelihoods,
-                                                    min_directions[indices_fold],
-                                                    min_distance, thr)
-                indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-                n_anchors = len(indices_anchors)
-                if n_anchors > 1:
+                # Connect fundus points and extract fundus
+                print('    Connect {0} fundus points...'.format(n_anchors))
+                t2 = time()
+                likelihoods_fold = Z.copy()
+                likelihoods_fold[indices_fold] = fold_likelihoods
 
-                    # Connect fundus points and extract fundus
-                    print('    Connect {0} fundus points...'.format(n_anchors))
-                    t2 = time()
-                    likelihoods_fold = Z.copy()
-                    likelihoods_fold[indices_fold] = fold_likelihoods
-
-                    H = connect_points(indices_anchors, faces, indices_fold,
-                                       likelihoods_fold, thr, neighbor_lists)
-                    indices_skeleton = [i for i,x in enumerate(H) if x > 0]
-                    fundus_IDs[indices_skeleton] = fold_ID
-                    count += 1
-                    print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
-                          format(n_anchors, time() - t2))
+                H = connect_points(indices_anchors, faces, indices_fold,
+                                   likelihoods_fold, neighbor_lists)
+                indices_skeleton = [i for i,x in enumerate(H) if x > 0]
+                fundus_IDs[indices_skeleton] = fold_ID
+                count += 1
+                print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
+                      format(n_anchors, time() - t2))
 
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
