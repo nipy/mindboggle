@@ -380,6 +380,47 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     n_fundi :  int
         number of sulcus fundi
 
+    Example
+    -------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.extract.extract_sulci import extract_sulci
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> from mindboggle.extract.extract_fundi import extract_fundi
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> label_pair_lists = sulcus_boundaries()
+    >>> fraction_folds = 0.05  # low to speed up
+    >>> min_sulcus_size = 50
+    >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
+    >>>     depth_file, area_file, neighbor_lists, fraction_folds,
+    >>>     min_sulcus_size, do_fill_holes=False)
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+    >>> min_distance = 5
+    >>> thr = 0.5
+    >>> fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, n_sulci, neighbor_lists,
+    >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
+    >>>     min_sulcus_size, min_distance, thr)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
+    >>>                 fundus_IDs, fundus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
+    >>> # Write and view manual labels restricted to sulci:
+    >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
+    >>>                 labels, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
+
     """
     import numpy as np
     from time import time
@@ -394,22 +435,21 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
                                                                return_arrays=1)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
-    # Convert fold_IDs array to a list of lists of vertex indices
-    index_lists = [np.where(fold_IDs == i)[0].tolist()
-                   for i in range(n_folds)]
-
-    # For each fold...
+    # For each fold region...
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
-    fundus_lists = []
     Z = np.zeros(n_vertices)
     likelihoods = Z.copy()
+    fundus_IDs = -1 * np.ones(n_vertices)
 
-    for i_fold, indices_fold in enumerate(index_lists):
-
+    unique_fold_IDs = np.unique(fold_IDs)
+    unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
+    count = 0
+    for fold_ID in unique_fold_IDs:
+        indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
         if len(indices_fold):
 
-            print('  Region {0} of {1}:'.format(i_fold + 1, n_folds))
+            print('  Region {0}:'.format(fold_ID))
 
             # Compute fundus likelihood values
             fold_likelihoods = compute_likelihood(depths[indices_fold],
@@ -439,22 +479,10 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
 
                     H = connect_points(indices_anchors, faces, indices_fold,
                                        likelihoods_fold, thr, neighbor_lists)
-                    fundus_lists.append(H.tolist())
+                    fundus_IDs[H] = fold_ID
+                    count += 1
                     print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
                           format(n_anchors, time() - t2))
-                else:
-                    fundus_lists.append([])
-            else:
-                fundus_lists.append([])
-        else:
-            fundus_lists.append([])
-
-    fundus_IDs = -1 * np.ones(n_vertices)
-    count = 0
-    for ifundus, fundus in enumerate(fundus_lists):
-        if len(fundus) > 0:
-            fundus_IDs[fundus] = ifundus
-            count += 1
 
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
