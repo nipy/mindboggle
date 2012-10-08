@@ -695,7 +695,7 @@ if run_shapeflow:
     if include_convexity:
         column_names.append('convexity')
     shape_files = [x + '_file' for x in column_names[2::]]
-    input_names = ['filename', 'column_names', 'labels', 'area_file']
+    input_names = ['filename', 'column_names', 'labels', 'nonlabels', 'area_file']
     input_names.extend(shape_files)
     #===========================================================================
     # Labeled surface patch shapes
@@ -726,6 +726,7 @@ if run_shapeflow:
         mbflow.connect([(atlasflow, shapeflow,
                          [('Atlas_labels.scalars','Label_table.labels')])])
     #---------------------------------------------------------------------------
+    labeltable.inputs.nonlabels = [-1]
     mbflow.connect([(measureflow, shapeflow,
                      [('Area.area_file','Label_table.area_file')])])
     mbflow.connect([(measureflow, shapeflow,
@@ -1047,7 +1048,7 @@ if __name__== '__main__':
 
     run_flow1 = True
     run_flow2 = True
-    generate_graphs = 0#True
+    generate_graphs = True
     if generate_graphs:
         if run_flow1:
             mbflow.write_graph(graph2use='flat')
