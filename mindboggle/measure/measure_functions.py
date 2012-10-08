@@ -114,6 +114,25 @@ def mean_value_per_label(values, areas, labels, nonlabels):
     norm_mean_values : list of floats (mean values normalized by vertex area)
     label_list : list of unique labels
 
+    Example
+    -------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar
+    >>> from mindboggle.measure.measure_functions import mean_value_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, areas, n_vertices = load_scalar(area_file, True)
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> nonlabels = [-1,0]
+    >>> mean_values, norm_mean_values, surface_areas, label_list = mean_value_per_label(depths,
+    >>>     areas, labels, nonlabels)
+
     """
     import numpy as np
 
