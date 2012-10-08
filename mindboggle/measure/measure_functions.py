@@ -130,8 +130,8 @@ def mean_value_per_label(values, areas, labels, nonlabels):
     >>> points, faces, areas, n_vertices = load_scalar(area_file, True)
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
     >>> nonlabels = [-1,0]
-    >>> mean_values, norm_mean_values, surface_areas, label_list = mean_value_per_label(depths,
-    >>>     areas, labels, nonlabels)
+    >>> mean_values, norm_mean_values, surface_areas, \
+    >>>     label_list = mean_value_per_label(depths, areas, labels, nonlabels)
 
     """
     import numpy as np
