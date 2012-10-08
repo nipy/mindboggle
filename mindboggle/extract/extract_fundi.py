@@ -196,7 +196,7 @@ def connect_points(anchors, faces, indices, L, thr, neighbor_lists):
 
     Returns
     -------
-    fundus : [#vertices x 1] numpy array
+    skeleton : [#vertices x 1] numpy array
 
     """
     import numpy as np
@@ -479,7 +479,8 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
 
                     H = connect_points(indices_anchors, faces, indices_fold,
                                        likelihoods_fold, thr, neighbor_lists)
-                    fundus_IDs[H] = fold_ID
+                    indices_skeleton = [i for i,x in enumerate(H) if x > 0]
+                    fundus_IDs[indices_skeleton] = fold_ID
                     count += 1
                     print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
                           format(n_anchors, time() - t2))
