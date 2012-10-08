@@ -384,7 +384,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                         if size_region > 1:
                             print("    Region {0}: {1} vertices "
                                   "({2} remaining)".
-                                  format(new_segment_index, size_region,
+                                  format(int(new_segment_index), size_region,
                                          len(vertices_to_segment)))
 
                     # If selecting a single seed, continue growing

@@ -388,6 +388,36 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     means_file : table file name for mean values
     norm_means_file : table file name for mean values normalized by area
 
+    Example
+    -------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_mean_shapes_table
+    >>> filename = 'test_write_mean_shapes_table.txt'
+    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
+    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> nonlabels = [-1]
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+    >>> write_mean_shapes_table(filename, column_names, labels, nonlabels,
+    >>>                         area_file, depth_file, mean_curvature_file,
+    >>>                         gauss_curvature_file,
+    >>>                         max_curvature_file, min_curvature_file,
+    >>>                         thickness_file='', convexity_file='')
+
     """
     import os
     from mindboggle.utils.io_file import write_table
