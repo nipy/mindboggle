@@ -441,7 +441,7 @@ def fill_holes(regions, holes, n_holes, neighbor_lists):
 #------------------------------------------------------------------------------
 # Test for simple points
 #------------------------------------------------------------------------------
-def simple_test(index, values, thr, neighbor_lists):
+def simple_test(index, values, neighbor_lists):
     """
     Test to see if vertex is a "simple point".
 
@@ -452,7 +452,6 @@ def simple_test(index, values, thr, neighbor_lists):
     ----------
     index : index of vertex
     values : values: [#vertices x 1] numpy array
-    thr : threshold
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
@@ -469,12 +468,11 @@ def simple_test(index, values, thr, neighbor_lists):
         values = np.array(values)
 
     # Find neighbors to the input vertex, and binarize them
-    # into those greater than a threshold, thr,
-    # and those less than or equal to thr ("inside" and "outside").
-    # Count the number of "inside" and "outside" neighbors
+    # into those greater or less than the class boundary threshold for HMMF (0.5)
+    # ("inside" and "outside"); count the number of inside and outside neighbors
     I_neighbors = neighbor_lists[index]
     neighbor_values = values[I_neighbors]
-    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > thr]
+    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > 0.5]
     n_inside = len(inside)
     n_outside = len(I_neighbors) - n_inside
 
@@ -497,7 +495,7 @@ def simple_test(index, values, thr, neighbor_lists):
         for i_in in range(n_inside):
             new_neighbors = neighbor_lists[inside[i_in]]
             new_neighbors = [x for x in new_neighbors
-                             if values[x] > thr if x != index]
+                             if values[x] > 0.5 if x != index]
             new_neighbors.extend([inside[i_in]])
             N.append(new_neighbors)
 
