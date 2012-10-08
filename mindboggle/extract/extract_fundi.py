@@ -398,7 +398,7 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> label_pair_lists = sulcus_boundaries()
-    >>> fraction_folds = 0.05  # low to speed up
+    >>> fraction_folds = 0.10  # low to speed up
     >>> min_sulcus_size = 50
     >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
     >>>     depth_file, area_file, neighbor_lists, fraction_folds,

@@ -93,7 +93,7 @@ def compute_curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, areas, labels):
+def mean_value_per_label(values, areas, labels, nonlabels):
     """
     Compute the mean value across vertices per label,
     taking into account surface area per vertex.
@@ -106,6 +106,7 @@ def mean_value_per_label(values, areas, labels):
     values : numpy array of integer or float values
     areas : numpy array of surface areas
     labels : array or list of integer labels (same length as values)
+    nonlabels : list of integer labels to be excluded
 
     Returns
     -------
@@ -120,7 +121,7 @@ def mean_value_per_label(values, areas, labels):
         return sum(areas_label * values_label) / sum(areas_label)
 
     label_list = np.unique(labels)
-    label_list = [int(x) for x in label_list if int(x) != 0]
+    label_list = [int(x) for x in label_list if int(x) not in nonlabels]
     mean_values = []
     norm_mean_values = []
     surface_areas = []
