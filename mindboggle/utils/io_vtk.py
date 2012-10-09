@@ -462,7 +462,8 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
 def write_vertex_shape_table(filename, column_names, indices, area_file,
                              depth_file, mean_curvature_file, gauss_curvature_file,
                              max_curvature_file, min_curvature_file,
-                             thickness_file='', convexity_file='', segment_IDs=[]):
+                             thickness_file='', convexity_file='',
+                             segment_IDs=[], nonsegment_IDs=[]):
     """
     Make a table of shape values per vertex per label per measure.
 
@@ -477,6 +478,8 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     segment_IDs : numpy array of integers (optional)
         IDs assigning all vertices to segments
         (depth is normalized by the maximum depth value in a segment)
+    nonsegment_IDs : list of integers
+        segment IDs to be excluded
 
     Returns
     -------
@@ -503,6 +506,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> sulcus_indices = [i for i,x in enumerate(sulcus_IDs) if x > -1]
     >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
     >>>     neighbor_lists)
+    >>> nonsegments = [-1]
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(data_path, 'measures',
@@ -516,10 +520,9 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> min_curvature_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
     >>> write_vertex_shape_table(filename, column_names, indices,
-    >>>                          area_file, depth_file, mean_curvature_file,
-    >>>                          gauss_curvature_file, max_curvature_file,
-    >>>                          min_curvature_file, thickness_file='',
-    >>>                          convexity_file='', segment_IDs=sulcus_IDs)
+    >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
+    >>>     max_curvature_file, min_curvature_file, thickness_file='',
+    >>>     convexity_file='', segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
 
     """
     import os
@@ -549,7 +552,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     if len(segment_IDs):
         for segment_ID in unique_segment_IDs:
             indices_segment = [i for i,x in enumerate(segment_IDs)
-                               if x == segment_ID]
+                               if x == segment_ID and x not in nonsegment_IDs]
             max_depth_segment = max(depths[indices_segment])
             depths[indices_segment] = depths[indices_segment] / max_depth_segment
         column_names.append('norm_depth')
