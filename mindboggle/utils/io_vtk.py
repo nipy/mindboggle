@@ -549,12 +549,14 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
 
     # Normalize depth values by maximum depth per segment
     unique_segment_IDs = np.unique(segment_IDs)
-    if len(segment_IDs):
+    unique_segment_IDs = [x for x in unique_segment_IDs if x not in nonsegment_IDs]
+    if len(unique_segment_IDs):
         for segment_ID in unique_segment_IDs:
             indices_segment = [i for i,x in enumerate(segment_IDs)
-                               if x == segment_ID and x not in nonsegment_IDs]
-            max_depth_segment = max(depths[indices_segment])
-            depths[indices_segment] = depths[indices_segment] / max_depth_segment
+                               if x == segment_ID]
+            if len(indices_segment):
+                max_depth_segment = max(depths[indices_segment])
+                depths[indices_segment] = depths[indices_segment] / max_depth_segment
         column_names.append('norm_depth')
         columns.append(depths[indices])
     print(len(column_names), len(columns))
