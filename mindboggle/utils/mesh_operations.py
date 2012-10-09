@@ -569,7 +569,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
             if binary_array[index] and index not in indices_to_keep:
 
                 # Test to see if index is a simple point
-                update, n_in = simple_test(index, binary_array, 0, neighbor_lists)
+                update, n_in = simple_test(index, binary_array, neighbor_lists)
 
                 # If a simple point, remove and run again
                 if update and n_in > 1:
