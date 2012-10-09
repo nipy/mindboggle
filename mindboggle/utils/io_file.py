@@ -49,9 +49,9 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_table(labels, columns, column_names, filename):
+def write_table(labels, columns, column_names, table_file):
     """
-    Write table with label column, value column, and column names.
+    Write table with label column, value columns, and column names.
 
     Parameters
     ----------
@@ -61,7 +61,7 @@ def write_table(labels, columns, column_names, filename):
 
     """
 
-    Fp = open(filename,'w')
+    Fp = open(table_file, 'w')
 
     if len(column_names):
         Fp.write("\t".join(column_names) + "\n")
@@ -74,7 +74,7 @@ def write_table(labels, columns, column_names, filename):
 
     Fp.close()
 
-def write_list(filename, List, header=""):
+def write_list(table_file, List, header=""):
     """
     Write a list to a file, each line of which is a list element.
     """
