@@ -433,22 +433,23 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
 
     # Load per-vertex surface area file
     points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
+    mean_values, norm_mean_values, surface_areas, \
+        label_list = mean_value_per_label(areas, areas, labels, nonlabels)
 
     columns = []
     norm_columns = []
-    for i, shape_file in enumerate(shape_files):
+    columns.append(surface_areas)
+    norm_columns.append(surface_areas)
+
+    for shape_file in shape_files:
 
         points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
             label_list = mean_value_per_label(values, areas, labels, nonlabels)
 
-        if i == 0:
-            columns.append(surface_areas)
-            norm_columns.append(surface_areas)
-        else:
-            columns.append(mean_values)
-            norm_columns.append(norm_mean_values)
+        columns.append(mean_values)
+        norm_columns.append(norm_mean_values)
 
     means_file = os.path.join(os.getcwd(), filename)
     write_table(label_list, columns, column_names, means_file)
@@ -467,12 +468,12 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
 
     Parameters
     ----------
-    filename :  output filename (without path)
-    column_names :  names of columns [list of strings]
+    filename : output filename (without path)
+    column_names : names of columns [list of strings]
     indices : list of integers
         indices to vertices to compute shapes
-    area_file :  name of file containing per-vertex surface areas
-    *shape_files :  arbitrary number of vtk files with scalar values
+    area_file : name of file containing per-vertex surface areas
+    *shape_files : arbitrary number of vtk files with scalar values
     segment_IDs : numpy array of integers (optional)
         IDs assigning all vertices to segments
         (depth is normalized by the maximum depth value in a segment)
@@ -526,8 +527,8 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     from mindboggle.utils.io_file import write_table
     from mindboggle.utils.io_vtk import load_scalar
 
-    shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
-                   max_curvature_file, min_curvature_file]
+    shape_files = [area_file, depth_file, mean_curvature_file,
+                   gauss_curvature_file, max_curvature_file, min_curvature_file]
     if len(thickness_file):
         shape_files.append(thickness_file)
     if len(convexity_file):
@@ -545,7 +546,6 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
 
     # Normalize depth values by maximum depth per segment
     unique_segment_IDs = np.unique(segment_IDs)
-    unique_segment_IDs = [x for x in unique_segment_IDs if x > -1]
     if len(segment_IDs):
         for segment_ID in unique_segment_IDs:
             indices_segment = [i for i,x in enumerate(segment_IDs)
@@ -554,9 +554,9 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
             depths[indices_segment] = depths[indices_segment] / max_depth_segment
         column_names.append('norm_depth')
         columns.append(depths[indices])
-
+    print(len(column_names), len(columns))
     shape_table = os.path.join(os.getcwd(), filename)
-    write_table(segment_IDs, columns, column_names, shape_table)
+    write_table(segment_IDs[indices], columns, column_names, shape_table)
 
     return shape_table
 
