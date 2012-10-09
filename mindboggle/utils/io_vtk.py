@@ -533,11 +533,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     if len(convexity_file):
         shape_files.append(convexity_file)
 
-    # Load per-vertex surface area file
-    points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
-
     columns = []
-    columns.append(areas[indices])
     for i, shape_file in enumerate(shape_files):
 
         points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
