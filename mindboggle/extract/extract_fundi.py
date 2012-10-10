@@ -226,6 +226,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
     >>>                                                          True)
     >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
@@ -241,7 +242,6 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
     >>> likelihoods_fold = np.zeros(len(points))
     >>> likelihoods_fold[indices_fold] = fold_likelihoods
-    >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> H = connect_points(indices_anchors, faces, indices_fold,
     >>>     likelihoods_fold, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
@@ -294,10 +294,6 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     N = neighbor_lists
 
     # Assign cost values to each vertex
-    print(len(indices))
-    print(np.unique(H))
-    print(np.unique(L))
-    print(L[0], H[0], H[N[0]], wN_max)
     C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN_max) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
