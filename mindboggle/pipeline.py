@@ -634,7 +634,8 @@ if run_featureflow:
                                                'mean_curvature_file',
                                                'min_curvature_vector_file',
                                                'min_distance',
-                                               'thr'],
+                                               'thr',
+                                               'use_only_endpoints'],
                                 output_names = ['fundus_IDs',
                                                 'n_fundi']))
     featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs'),
@@ -649,6 +650,7 @@ if run_featureflow:
                        'Fundi.min_curvature_vector_file')])])
     fundi.inputs.min_distance = min_distance
     fundi.inputs.thr = thr
+    fundi.inputs.use_only_endpoints = True
     #---------------------------------------------------------------------------
     # Write sulci and fundi to VTK files
     #---------------------------------------------------------------------------
