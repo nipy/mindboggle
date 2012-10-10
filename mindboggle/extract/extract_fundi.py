@@ -130,10 +130,14 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     Parameters
     ----------
-    likelihood : likelihood value in interval [0,1]
-    hmmf : HMMF value
-    hmmf_neighbors : HMMF values of neighboring vertices: numpy array
-    wN : weight influence of neighbors on cost (term 2)
+    likelihood : float
+        likelihood value in interval [0,1]
+    hmmf : float
+        HMMF value
+    hmmf_neighbors : numpy array
+        HMMF values of neighboring vertices
+    wN : float
+        weight influence of neighbors on cost (term 2)
 
     Returns
     -------
@@ -146,8 +150,11 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 #    if type(hmmf_neighbors) != np.ndarray:
 #        hmmf_neighbors = np.array(hmmf_neighbors)
 
-    cost = hmmf * (1 - likelihood) +\
-           wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+    if len(hmmf_neighbors):
+        cost = hmmf * (1 - likelihood) +\
+               wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+    else:
+        exit('ERROR: No HMMF neighbors to compute cost.')
 
     return cost
 
@@ -191,7 +198,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 
     Parameters
     ----------
-    anchors : list of indices of vertices to connect (should contain >=2)
+    anchors : list of indices of vertices to connect (should contain > 1)
     faces : indices of triangular mesh vertices: [#faces x 3] numpy array
     indices : list of indices of vertices
     L : likelihood values: [#vertices in mesh x 1] numpy array
@@ -201,6 +208,47 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     Returns
     -------
     skeleton : [#vertices x 1] numpy array
+
+    Example
+    -------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
+    >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    >>>                                                          True)
+    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> sulcus_ID = 1
+    >>> indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
+    >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
+    >>>                                       mean_curvatures[indices_fold])
+    >>> likelihoods = np.zeros(len(points))
+    >>> likelihoods[indices_fold] = fold_likelihoods
+    >>> fold_indices_anchors = find_anchors(points[indices_fold, :],
+    >>>     fold_likelihoods, min_directions[indices_fold], 5, 0.5)
+    >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+    >>> likelihoods_fold = np.zeros(len(points))
+    >>> likelihoods_fold[indices_fold] = fold_likelihoods
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> H = connect_points(indices_anchors, faces, indices_fold,
+    >>>     likelihoods_fold, neighbor_lists)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> H[indices_anchors] = 2
+    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk',
+    >>>                 H, H)
+    >>> os.system('mayavi2 -m Surface -d test_connect_points.vtk &')
 
     """
     import numpy as np
@@ -246,6 +294,10 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     N = neighbor_lists
 
     # Assign cost values to each vertex
+    print(len(indices))
+    print(np.unique(H))
+    print(np.unique(L))
+    print(L[0], H[0], H[N[0]], wN_max)
     C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN_max) for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
@@ -349,9 +401,9 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(fold_IDs, n_folds, neighbor_lists,
-                  depth_file, mean_curvature_file, min_curvature_vector_file,
-                  min_distance=5, thr=0.5, use_only_endpoints=1):
+def extract_fundi(fold_IDs, neighbor_lists, depth_file,
+                  mean_curvature_file, min_curvature_vector_file,
+                  min_distance=5, thr=0.5, use_only_endpoints=True):
     """
     Extract all fundi.
 
@@ -361,8 +413,6 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     ----------
     fold_IDs : list or numpy array
         fold IDs (default = -1)
-    n_folds :  int
-        number of folds
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
     depth_file : str
@@ -392,34 +442,22 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.extract.extract_sulci import extract_sulci
-    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> from mindboggle.extract.extract_fundi import extract_fundi
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> fraction_folds = 0.10  # low to speed up
-    >>> min_sulcus_size = 50
-    >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
-    >>>     depth_file, area_file, neighbor_lists, fraction_folds,
-    >>>     min_sulcus_size, do_fill_holes=False)
     >>> mean_curvature_file = os.path.join(data_path, 'measures',
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-    >>> min_distance = 5
-    >>> thr = 0.5
-    >>> use_only_endpoints = True
-    >>> fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, n_sulci, neighbor_lists,
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, neighbor_lists,
     >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
-    >>>     min_distance, thr, use_only_endpoints)
+    >>>     min_distance=5, thr=0.5, use_only_endpoints=True)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
     >>>                 fundus_IDs, fundus_IDs)
@@ -434,16 +472,17 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     from time import time
 
     from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
-    from mindboggle.utils.mesh_operations import find_anchors, extract_endpoints
+    from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
     from mindboggle.utils.io_vtk import load_scalar
 
     # Load depth and curvature values from VTK and text files
-    vertices, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=1)
-    vertices, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
-                                                               return_arrays=1)
+    points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+                                                             True)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
+    n_folds = len([x for x in np.unique(fold_IDs) if x > -1])
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
     Z = np.zeros(n_vertices)
@@ -465,7 +504,7 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
             likelihoods[indices_fold] = fold_likelihoods
 
             # Find fundus points
-            fold_indices_anchors = find_anchors(vertices[indices_fold, :],
+            fold_indices_anchors = find_anchors(points[indices_fold, :],
                                                 fold_likelihoods,
                                                 min_directions[indices_fold],
                                                 min_distance, thr)
@@ -479,17 +518,27 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
 
-                H = connect_points(indices_anchors, faces, indices_fold,
-                                   likelihoods_fold, neighbor_lists)
-                indices_skeleton = [i for i,x in enumerate(H) if x > 0]
-
-                if use_only_endpoints:
+                # If using only endpoints to connect fundus vertices,
+                # run in two stages -- fast, to get a rough skeleton
+                # to extract the endpoints, then slow, to get fundi
+                if not use_only_endpoints:
+                    B = connect_points(indices_anchors, faces, indices_fold,
+                        likelihoods_fold, neighbor_lists)
+                    indices_skeleton = [i for i,x in enumerate(B) if x > 0]
+                else:
+                    L = likelihoods_fold.copy()
+                    L[L > thr] = 1
+                    L[L <= thr] = 0
+                    S = skeletonize(L, indices_anchors, neighbor_lists)
+                    indices_skeleton = [i for i,x in enumerate(S) if x > 0]
                     indices_endpoints = extract_endpoints(indices_skeleton,
                                                           neighbor_lists)
+                    indices_endpoints = [x for x in indices_endpoints
+                                         if x in indices_anchors]
                     if len(indices_endpoints) > 1:
-                        H = connect_points(indices_endpoints, faces, indices_fold,
+                        B = connect_points(indices_endpoints, faces, indices_fold,
                                            likelihoods_fold, neighbor_lists)
-                        indices_skeleton = [i for i,x in enumerate(H) if x > 0]
+                        indices_skeleton = [i for i,x in enumerate(B) if x > 0]
                     else:
                         indices_skeleton = []
 
@@ -503,3 +552,39 @@ def extract_fundi(fold_IDs, n_folds, neighbor_lists,
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
     return fundus_IDs, n_fundi
+
+
+# Example
+if __name__ == "__main__" :
+    import os
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.utils.mesh_operations import find_neighbors
+    from mindboggle.extract.extract_fundi import extract_fundi
+
+    data_path = os.environ['MINDBOGGLE_DATA']
+
+    depth_file = os.path.join(data_path, 'measures',
+                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+
+    mean_curvature_file = os.path.join(data_path, 'measures',
+        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+
+    min_curvature_vector_file = os.path.join(data_path, 'measures',
+        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+
+    sulci_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+
+    points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    neighbor_lists = find_neighbors(faces, len(points))
+
+    points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+
+    fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, neighbor_lists,
+        depth_file, mean_curvature_file, min_curvature_vector_file,
+        min_distance=5, thr=0.5, use_only_endpoints=True)
+
+    # Write results to vtk file and view with mayavi2:
+    rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
+                    fundus_IDs, fundus_IDs)
+    os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
