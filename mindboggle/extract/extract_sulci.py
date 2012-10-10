@@ -113,11 +113,9 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
     """
     import numpy as np
     from time import time
-    from mindboggle.measure.measure_functions import compute_percentile
-    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries,\
-        segment, fill_holes
-    from mindboggle.utils.io_vtk import load_scalar
     from mindboggle.extract.extract_folds import extract_all_folds
+    from mindboggle.utils.mesh_operations import detect_boundaries,\
+        segment, fill_holes
 
     #---------------------------------------------------------------------------
     # Load deep vertices
