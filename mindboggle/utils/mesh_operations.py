@@ -860,6 +860,71 @@ def compute_distance(point, points):
     else:
         return None, None
 
+def downsample(special_vertices, vertices, neighbor_lists, Prob):
+    """
+    Delete vertices of mesh while retaining connectivity of special vertices.
+
+    Note
+    ----
+    UNTESTED
+
+    Parameters
+    ----------
+    special_vertices : list of integers
+        special vertices that have to be in downsampled mesh
+    vertices : list of integers
+        indices to vertices
+    neighbor_lists : list of lists of integers
+        neighbor list of vertices
+    Prob : float
+        The probability in [0, 1] that a vertex is to be KEPT.
+        If it is 1, remove nothing
+        If it is 0, remove as much as possible while retaining connectivity
+
+    Returns
+    -------
+    new_vertices : list of integers
+        new vertices to be left after downsampling
+    new_neighbor_lists : list of lists of integers
+        neighbor lists after downsampling
+
+    """
+    import random
+
+    print "Downsampling mesh..."
+
+    new_vertices = []
+    new_neighbor_lists = neighbor_lists[:]
+
+    for vtx in vertices:
+
+        # Keep special vertices
+        if vtx in special_vertices:
+            if vtx not in new_vertices:
+                new_vertices.append(vtx)
+
+        # Randomly delete nonspecial vertices
+        else:
+
+            # REMOVE vertex
+            if Prob <= random.random():
+                for nbr in neighbor_lists[vtx]:
+                    if nbr in vertices:
+                        # step 1: put vertex's neighbors, which are ALSO in vertices,
+                        # into new_vertices and thus delete vertex
+                        if nbr not in new_vertices:
+                            new_vertices.append(nbr) # yield more vertices and edges removed
+                        # step 2: delete edges ending at vertex
+                        if vtx in new_neighbor_lists[nbr]:
+                            new_neighbor_lists[nbr].remove(vtx)
+                new_neighbor_lists[vtx] = [] # vertex has no neighbors now
+
+            # KEEP vertex
+            else:
+                new_vertices.append(vtx)
+
+    return new_vertices, new_neighbor_lists
+
 
 # Skeletonize example
 if __name__ == "__main__" :
