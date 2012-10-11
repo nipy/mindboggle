@@ -93,7 +93,10 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
         'w' is the list of all connected vertices (in order of discovery)
         'path' is a list of tuples showing (from, to)
         """
+        import sys
         import numpy as np
+
+        sys.setrecursionlimit(30000)
 
         # Stop when we've added all nodes to the path
         # (number of 1-D arrays within matrix that contain nonzero elements)
@@ -197,6 +200,7 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> os.system('mayavi2 -m Surface -d test_mst.vtk &')
 
     """
+
     if len(indices_to_connect) > 1:
         Root = indices_to_connect[0]
         M = Prim(adjacency_matrix, Root)
