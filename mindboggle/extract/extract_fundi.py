@@ -507,17 +507,16 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
             indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
             n_anchors = len(indices_anchors)
             if n_anchors > 1:
-
-                # Connect fundus points and extract fundus
-                print('    Connect {0} fundus points...'.format(n_anchors))
                 t2 = time()
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
 
+                # Connect fundus points and extract fundus.
                 # If using only endpoints to connect fundus vertices,
                 # run in two stages -- fast, to get a rough skeleton
                 # to extract the endpoints, then slow, to get fundi
                 if not use_only_endpoints:
+                    print('    Connect {0} fundus points...'.format(n_anchors))
                     B = connect_points(indices_anchors, faces, indices_fold,
                         likelihoods_fold, neighbor_lists)
                     indices_skeleton = [i for i,x in enumerate(B) if x > 0]
@@ -532,6 +531,8 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
                     indices_endpoints = [x for x in indices_endpoints
                                          if x in indices_anchors]
                     if len(indices_endpoints) > 1:
+                        print('    Connect {0} fundus endpoints...'.
+                              format(len(indices_endpoints)))
                         B = connect_points(indices_endpoints, faces, indices_fold,
                                            likelihoods_fold, neighbor_lists)
                         indices_skeleton = [i for i,x in enumerate(B) if x > 0]
