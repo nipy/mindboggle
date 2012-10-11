@@ -628,7 +628,6 @@ if run_featureflow:
     fundi = Node(name='Fundi',
                  interface = Fn(function = extract_fundi,
                                 input_names = ['fold_IDs',
-                                               'n_folds',
                                                'neighbor_lists',
                                                'depth_file',
                                                'mean_curvature_file',
@@ -638,8 +637,7 @@ if run_featureflow:
                                                'use_only_endpoints'],
                                 output_names = ['fundus_IDs',
                                                 'n_fundi']))
-    featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs'),
-                                         ('n_sulci','n_folds')]),
+    featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs')]),
                          (neighbors, fundi,
                           [('neighbor_lists','neighbor_lists')])])
     mbflow.connect([(measureflow, featureflow,
