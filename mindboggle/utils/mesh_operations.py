@@ -563,25 +563,47 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     -------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.utils.mesh_operations import skeletonize
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
+    >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
-    >>> label_indices = [i for i,x in enumerate(labels) if x == max(labels)]
-    >>> binary_array = np.zeros(len(points))
-    >>> binary_array[label_indices] = 1
-    >>> indices_to_keep = [min(label_indices), max(label_indices)]
-    >>> binary_array = skeletonize(binary_array, indices_to_keep, neighbor_lists)
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    >>>                                                          True)
+    >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> sulcus_ID = 1
+    >>> indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
+    >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
+    >>>                                       mean_curvatures[indices_fold])
+    >>> thr = 0.5
+    >>> L = np.zeros(len(points))
+    >>> L[indices_fold] = fold_likelihoods
+    >>> fold_indices_anchors = find_anchors(points[indices_fold, :],
+    >>>     fold_likelihoods, min_directions[indices_fold], 5, thr)
+    >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+    >>> L[L > thr] = 1
+    >>> L[L <= thr] = 0
+    >>> anchor_skeleton = skeletonize(L, indices_anchors, neighbor_lists)
+    >>> indices_skeleton = [i for i,x in enumerate(anchor_skeleton) if x > 0]
+    >>> indices_endpoints = extract_endpoints(indices_skeleton, neighbor_lists)
+    >>> indices_endpoints = [x for x in indices_endpoints if x in indices_anchors]
+    >>> skeleton = skeletonize(L, indices_endpoints, neighbor_lists)
+    >>> indices_endpoint_skel = [x for x in skeleton if x > 0]
     >>> # Write results to vtk file and view with mayavi2:
-    >>> IDs = -1 * np.ones(len(points))
-    >>> indices_skeleton = [i for i,x in enumerate(binary_array) if x == 1]
-    >>> IDs[indices_skeleton] = 1
-    >>> IDs[indices_to_keep] = 2
-    >>> rewrite_scalars(label_file, 'test_skeletonize.vtk', IDs, IDs)
+    >>> skeleton[indices_anchors] = 3
+    >>> skeleton[indices_endpoints] = 5
+    >>> rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
     >>> os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
 
     """
@@ -837,3 +859,57 @@ def compute_distance(point, points):
     # Else return None
     else:
         return None, None
+
+
+# Skeletonize example
+if __name__ == "__main__" :
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.utils.mesh_operations import find_neighbors
+    from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
+    from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
+    data_path = os.environ['MINDBOGGLE_DATA']
+    depth_file = os.path.join(data_path, 'measures',
+                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    mean_curvature_file = os.path.join(data_path, 'measures',
+        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    min_curvature_vector_file = os.path.join(data_path, 'measures',
+        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+    sulci_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    neighbor_lists = find_neighbors(faces, len(points))
+    points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+                                                             True)
+    min_directions = np.loadtxt(min_curvature_vector_file)
+    sulcus_ID = 1
+    indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
+    fold_likelihoods = compute_likelihood(depths[indices_fold],
+                                          mean_curvatures[indices_fold])
+    thr = 0.5
+    L = np.zeros(len(points))
+    L[indices_fold] = fold_likelihoods
+    fold_indices_anchors = find_anchors(points[indices_fold, :],
+        fold_likelihoods, min_directions[indices_fold], 5, thr)
+    indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+    L[L > thr] = 1
+    L[L <= thr] = 0
+    anchor_skeleton = skeletonize(L, indices_anchors, neighbor_lists)
+    indices_skeleton = [i for i,x in enumerate(anchor_skeleton) if x > 0]
+    indices_endpoints = extract_endpoints(indices_skeleton, neighbor_lists)
+    indices_endpoints = [x for x in indices_endpoints if x in indices_anchors]
+    skeleton = skeletonize(L, indices_endpoints, neighbor_lists)
+
+    print("Fold: {0}, L: {1}, skeleton: {2}, anchors: {3}, endpoints: {4}".
+          format(len([x for x in sulcus_IDs if x == sulcus_ID]),
+                len([x for x in L if x > 0]),
+                len([x for x in skeleton if x > 0]),
+                len(indices_anchors), len(indices_endpoints)))
+
+    # Write results to vtk file and view with mayavi2:
+    skeleton[indices_anchors] = 3
+    skeleton[indices_endpoints] = 4
+    rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
+    os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
