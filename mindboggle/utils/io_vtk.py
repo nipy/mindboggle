@@ -922,3 +922,58 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
     #f_relabel.close()
 
     return label_files, colortable  #relabel_file
+
+"""
+if __name__ == "__main__" :
+
+
+    # Save a shape table for the fundus label boundary vertices
+    # in each subject hemisphere
+    import os
+    from mindboggle.utils.io_vtk import load_scalar, write_vertex_shape_table
+    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    # data_path = os.environ['MINDBOGGLE_DATA']
+    data_path = '/desk/output/results'
+    column_names = ['labels', 'area', 'depth', 'mean_curvature',
+                    'gauss_curvature', 'max_curvature', 'min_curvature']
+    hemis = ['lh','rh']
+    list_file = os.path.join(os.environ['MINDBOGGLE'], 'info', 'atlases101.txt')
+    # For each subject in the subjects file
+    fid = open(list_file, 'r')
+    subjects = fid.readlines()
+    subjects = [''.join(x.split()) for x in subjects]
+    for subject in subjects:
+        print(subject)
+        for hemi in hemis:
+            filename = subject + '_' + hemi + '_fundus_label_boundary_shape_table.txt'
+            label_file = os.path.join(data_path, 'subjects', subject,
+                                      'label', 'lh.labels.DKT25.manual.vtk')
+            points, faces, labels, n_vertices = load_scalar(label_file, True)
+            mesh_indices = find_neighbors(faces, n_vertices)
+            neighbor_lists = find_neighbors(faces, n_vertices)
+            sulci_file = os.path.join(data_path, 'results', 'features',
+                                      '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+            points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+            sulcus_indices = [i for i,x in enumerate(sulcus_IDs) if x > -1]
+            indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
+                                                neighbor_lists)
+            nonsegments = [-1]
+            area_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+            depth_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+            mean_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+            gauss_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
+            max_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
+            min_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+            write_vertex_shape_table(filename, column_names, indices,
+                area_file, depth_file, mean_curvature_file, gauss_curvature_file,
+                max_curvature_file, min_curvature_file, thickness_file='',
+                convexity_file='', segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
+            exit()
+"""
