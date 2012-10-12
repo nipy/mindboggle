@@ -182,3 +182,42 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     cli.run()
 
     return new_annot_name
+
+if __name__ == "__main__" :
+
+    import os
+    import numpy as np
+    import mindboggle.label.rebound as rb
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.utils.mesh_operations import find_neighbors
+    data_path = os.environ['MINDBOGGLE_DATA']
+    depth_file = os.path.join(data_path, 'measures',
+                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    sulci_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    neighbor_lists = find_neighbors(faces, len(points))
+    points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+
+    # Set up rebound Bounds class instance
+    B = rb.Bounds()
+    B.Points = points
+    B.Faces = faces
+    B.Labels = sulcus_IDs
+    B.has_points = True
+    B.has_faces = True
+    B.has_labels = True
+    B.num_points = len(points)
+    B.num_faces = len(faces)
+
+    # For label propagation
+    B.seed_labels = 0
+    B.Polylines = self.polyline_elements = 0
+
+    # For constructing the neighbors matrix
+    B.found_neighbors = 0
+
+    output_file_regions, output_file_boundaries = B.realign_label_boundary(self,
+        surface_file, polylines_file,
+        label_boundary_filename, output_file_regions,
+        output_file_boundaries, max_iters)
