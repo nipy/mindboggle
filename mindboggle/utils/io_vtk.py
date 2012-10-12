@@ -936,7 +936,8 @@ if __name__ == "__main__" :
     # data_path = os.environ['MINDBOGGLE_DATA']
     data_path = '/desk/output/results'
     column_names = ['labels', 'area', 'depth', 'mean_curvature',
-                    'gauss_curvature', 'max_curvature', 'min_curvature']
+                    'gauss_curvature', 'max_curvature', 'min_curvature',
+                    'freesurfer_thickness', 'freesurfer_convexity']
     hemis = ['lh','rh']
     list_file = os.path.join(os.environ['MINDBOGGLE'], 'info', 'atlases101.txt')
     # For each subject in the subjects file
@@ -971,9 +972,13 @@ if __name__ == "__main__" :
                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
             min_curvature_file = os.path.join(data_path, 'measures',
                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+            thickness_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'thickness.vtk')
+            convexity_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'sulc.vtk')
             write_vertex_shape_table(filename, column_names, indices,
                 area_file, depth_file, mean_curvature_file, gauss_curvature_file,
-                max_curvature_file, min_curvature_file, thickness_file='',
-                convexity_file='', segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
+                max_curvature_file, min_curvature_file, thickness_file=,
+                convexity_file, segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
             exit()
 """
