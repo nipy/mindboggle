@@ -871,7 +871,7 @@ def downsample(special_vertices, vertices, neighbor_lists, Prob):
     Parameters
     ----------
     special_vertices : list of integers
-        special vertices that have to be in downsampled mesh
+        special vertices that have to be in downsampled mesh (subset of vertices)
     vertices : list of integers
         indices to vertices
     neighbor_lists : list of lists of integers
@@ -888,40 +888,72 @@ def downsample(special_vertices, vertices, neighbor_lists, Prob):
     new_neighbor_lists : list of lists of integers
         neighbor lists after downsampling
 
+    Example
+    -------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, downsample
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> sulcus_ID = 1
+    >>> vertices = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
+    >>> indices_to_connect = [min(indices_to_reduce), max(indices_to_reduce)]
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> Prob = 0.01  # Lower means more calculations
+    >>> new_vertices, new_neighbor_lists = downsample(indices_to_connect,
+    >>>     vertices, neighbor_lists, Prob)
+      ...Downsampled mesh from 4787 to 4265 vertices
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> IDs = -1 * np.ones(len(points))
+    >>> IDs[vertices] = 1
+    >>> IDs[new_vertices] = 2
+    >>> N=[]; [N.extend(new_neighbor_lists[x]) for x in new_vertices]
+    >>> IDs[N] = 3
+    >>> rewrite_scalars(sulci_file, 'test_downsample.vtk', IDs, IDs)
+    >>> os.system('mayavi2 -m Surface -d test_downsample.vtk &')
+
     """
-    import random
+    import numpy as np
+    print("  ...Downsample mesh from {0} vertices with probability threshold {1}...".
+          format(len(vertices), Prob))
 
-    print "Downsampling mesh..."
-
-    new_vertices = []
+    max_index = max(vertices)
+    new_vertices = -1 * np.ones(max_index + 1)
     new_neighbor_lists = neighbor_lists[:]
 
-    for vtx in vertices:
+    # Keep special vertices
+    new_vertices[special_vertices] = 1
 
-        # Keep special vertices
-        if vtx in special_vertices:
-            if vtx not in new_vertices:
-                new_vertices.append(vtx)
+    # Keep vertices assigned a high random number
+    randoms = np.random.rand(max_index + 1)
+    highprob = [x for x in vertices if randoms[x] < Prob]
+    new_vertices[highprob] = 1
 
-        # Randomly delete nonspecial vertices
-        else:
+    # Remove non-special vertices assigned a low random number
+    lowprob = [x for x in vertices if randoms[x] >= Prob
+               if x not in special_vertices]
+    for index in lowprob:
 
-            # REMOVE vertex
-            if Prob <= random.random():
-                for nbr in neighbor_lists[vtx]:
-                    if nbr in vertices:
-                        # step 1: put vertex's neighbors, which are ALSO in vertices,
-                        # into new_vertices and thus delete vertex
-                        if nbr not in new_vertices:
-                            new_vertices.append(nbr) # yield more vertices and edges removed
-                        # step 2: delete edges ending at vertex
-                        if vtx in new_neighbor_lists[nbr]:
-                            new_neighbor_lists[nbr].remove(vtx)
-                new_neighbor_lists[vtx] = [] # vertex has no neighbors now
+        # Keep vertex's neighbors that are ALSO in vertices
+        nbrs = [x for x in neighbor_lists[index] if x in vertices]
+        new_vertices[nbrs] = 1
 
-            # KEEP vertex
-            else:
-                new_vertices.append(vtx)
+        # Delete edges to vertex:
+        # Remove vertex's neighbor list
+        new_neighbor_lists[index] = []
+
+        # Remove any instance of vertex in neighbor lists
+        for nbr in nbrs:
+            if index in new_neighbor_lists[nbr]:
+                new_neighbor_lists[nbr].remove(index)
+
+    new_vertices = [x for x in new_vertices if x > -1]
+
+    print("  ...Downsampled mesh from {0} to {1} vertices".
+          format(len(vertices), len(new_vertices)))
 
     return new_vertices, new_neighbor_lists
 
