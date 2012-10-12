@@ -211,194 +211,6 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     return fold_IDs, n_folds
 
 #===============================================================================
-# Extract sulci
-#===============================================================================
-def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_lists,
-                  fraction_folds, min_sulcus_size, do_fill_holes=False):
-    """
-    Use depth and a sulcus labeling protocol to extract sulcus folds
-    from an anatomically labeled triangular surface mesh and fill holes
-    resulting from shallower areas within a fold.
-
-    Parameters
-    ----------
-    label_pair_lists : list of sublists of subsublists of integers
-        each subsublist contains a pair of labels, and the sublist of these
-        label pairs represents the label boundaries defining a sulcus
-    labels : array of integers
-        label IDs for all vertices, with -1s for unlabeled vertices
-    depth_file : str
-        surface mesh file in VTK format with faces and depth scalar values
-    area_file : str
-        surface mesh file in VTK format with faces and surface area scalar values
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
-    fraction_folds : float
-        fraction of surface mesh considered folds
-    min_sulcus_size : int
-        minimum sulcus size (number of vertices)
-    do_fill_holes : Boolean
-        segment and fill holes?
-
-    Returns
-    -------
-    sulcus_IDs : array of integers
-        sulcus IDs for all vertices, with -1s for non-sulcus vertices
-    n_sulci :  int
-        number of sulcus folds
-
-    Definitions
-    -----------
-
-    A fold is a group of connected vertices deeper than a depth threshold.
-
-    A ''label list'' is the list of labels used to define a single sulcus.
-
-    A ''label pair list'' contains pairs of labels, where each pair
-    defines a boundary between two labeled regions.
-    No two label pair lists share a label pair.
-
-    A ''sulcus ID'' uniquely identifies a sulcus.
-    It is the index to a sulcus label list (or sulcus label pair list).
-
-    Algorithm
-    ---------
-
-    First, extract folds by a depth threshold, and remove all non-fold
-    vertices by assigning -1 to them.
-
-    Construct seed lists of label boundary vertices, segment into sets
-    of vertices connected to label boundary seeds that have the same labels,
-    and assign a sulcus ID to each segment.
-
-    Example
-    -------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.extract.extract_folds import extract_sulci
-    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> fraction_folds = 0.10  # low to speed up
-    >>> min_sulcus_size = 50
-    >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
-    >>>     depth_file, area_file, neighbor_lists, fraction_folds,
-    >>>     min_sulcus_size, do_fill_holes=False)
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
-    >>>                 sulcus_IDs, sulcus_IDs)
-    >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
-    >>> # Write and view manual labels restricted to sulci:
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
-    >>>                 labels, sulcus_IDs)
-    >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
-
-    """
-    import numpy as np
-    from time import time
-    from mindboggle.extract.extract_folds import extract_all_folds
-    from mindboggle.utils.mesh_operations import detect_boundaries,\
-        segment, fill_holes
-
-    #---------------------------------------------------------------------------
-    # Load deep vertices
-    #---------------------------------------------------------------------------
-    folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
-        area_file, fraction_folds)
-    indices_folds = [i for i,x in enumerate(folds) if x == 1]
-    if len(indices_folds):
-
-        #---------------------------------------------------------------------------
-        # Segment sulcus folds of a surface mesh
-        #---------------------------------------------------------------------------
-        print("  Segment surface mesh into sulcus folds...")
-        t0 = time()
-
-        # Array of sulcus IDs for fold vertices, initialized as -1.
-        # Since we do not touch gyral vertices and vertices whose labels
-        # are not in the label list, or vertices having only one label,
-        # their sulcus IDs will remain -1.
-        sulcus_IDs = -1 * np.ones(len(folds))
-
-        # Find all label boundary pairs within the fold
-        indices_boundaries, label_pairs, unique_label_pairs = detect_boundaries(
-            indices_folds, labels, neighbor_lists)
-
-        # Construct seed lists containing indices
-        # to the vertices of each label boundary
-        seed_lists = []
-        for label_pair_list in label_pair_lists:
-            seed_lists.append([x for i,x in enumerate(indices_boundaries)
-                if np.sort(label_pairs[i]).tolist() in label_pair_list])
-
-        # Segment into sets of vertices connected to label boundary seeds
-        print("    Segment into separate label-pair regions...")
-        t1 = time()
-        sulcus_IDs = segment(indices_folds, neighbor_lists,
-            seed_lists, min_sulcus_size, spread_same_labels=True,
-            labels=labels, label_pair_lists=label_pair_lists)
-        n_sulci = len([x for x in list(set(sulcus_IDs)) if x != -1])
-        print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
-              format(n_sulci, time() - t1))
-
-    else:
-        n_sulci = 0
-
-    #---------------------------------------------------------------------------
-    # Fill holes in folds
-    #---------------------------------------------------------------------------
-    if n_sulci > 0 and do_fill_holes:
-
-        # Find fold vertices that have not yet been segmented
-        # (because they weren't sufficiently deep)
-        t2 = time()
-        vertices_to_segment = [i for i,x in enumerate(sulcus_IDs) if x==-1]
-
-        # Segment holes in the folds
-        print("    Segment holes...")
-        holes = segment(vertices_to_segment, neighbor_lists,
-            seed_lists=[], min_region_size=1,
-            spread_same_labels=False, labels=[], label_pair_lists=[])
-        n_holes = len([x for x in list(set(holes)) if x != -1])
-
-        # If there are any holes
-        if n_holes > 0:
-
-            # Ignore the largest hole (the background) and renumber holes
-            max_hole_size = 0
-            max_hole_index = 0
-            for ihole in range(n_holes):
-                I = np.where(holes == ihole)
-                if len(I) > max_hole_size:
-                    max_hole_size = len(I)
-                    max_hole_index = ihole
-            holes[holes == max_hole_index] = -1
-            if max_hole_index < n_holes:
-                holes[holes > max_hole_index] -= 1
-            n_holes -= 1
-            print('    ...{0} holes segmented ({1:.2f} seconds)'.
-                  format(n_holes, time() - t2))
-
-            # Fill holes
-            t3 = time()
-            sulcus_IDs = fill_holes(sulcus_IDs, holes, n_holes, neighbor_lists)
-            print("    Filled holes ({0:.2f} seconds)".format(time() - t3))
-
-    print("  ...Extracted and filled {0} sulcus folds in {1:.2f} seconds".
-          format(n_sulci, time() - t0))
-
-    return sulcus_IDs, n_sulci
-
-#===============================================================================
 # Identify sulci from folds
 #===============================================================================
 def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
@@ -777,46 +589,224 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
 
     return sulcus_IDs
 
+#===============================================================================
+# Extract sulci
+#===============================================================================
+def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_lists,
+                  fraction_folds, min_sulcus_size, do_fill_holes=False):
+    """
+    Use depth and a sulcus labeling protocol to extract sulcus folds
+    from an anatomically labeled triangular surface mesh and fill holes
+    resulting from shallower areas within a fold.
 
-# Example for identify_sulci_from_folds
+    Parameters
+    ----------
+    label_pair_lists : list of sublists of subsublists of integers
+        each subsublist contains a pair of labels, and the sublist of these
+        label pairs represents the label boundaries defining a sulcus
+    labels : array of integers
+        label IDs for all vertices, with -1s for unlabeled vertices
+    depth_file : str
+        surface mesh file in VTK format with faces and depth scalar values
+    area_file : str
+        surface mesh file in VTK format with faces and surface area scalar values
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices
+    fraction_folds : float
+        fraction of surface mesh considered folds
+    min_sulcus_size : int
+        minimum sulcus size (number of vertices)
+    do_fill_holes : Boolean
+        segment and fill holes?
+
+    Returns
+    -------
+    sulcus_IDs : array of integers
+        sulcus IDs for all vertices, with -1s for non-sulcus vertices
+    n_sulci :  int
+        number of sulcus folds
+
+    Definitions
+    -----------
+
+    A fold is a group of connected vertices deeper than a depth threshold.
+
+    A ''label list'' is the list of labels used to define a single sulcus.
+
+    A ''label pair list'' contains pairs of labels, where each pair
+    defines a boundary between two labeled regions.
+    No two label pair lists share a label pair.
+
+    A ''sulcus ID'' uniquely identifies a sulcus.
+    It is the index to a sulcus label list (or sulcus label pair list).
+
+    Algorithm
+    ---------
+
+    First, extract folds by a depth threshold, and remove all non-fold
+    vertices by assigning -1 to them.
+
+    Construct seed lists of label boundary vertices, segment into sets
+    of vertices connected to label boundary seeds that have the same labels,
+    and assign a sulcus ID to each segment.
+
+    Example
+    -------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.extract.extract_folds import extract_sulci
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> label_pair_lists = sulcus_boundaries()
+    >>> fraction_folds = 0.10  # low to speed up
+    >>> min_sulcus_size = 50
+    >>> sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
+    >>>     depth_file, area_file, neighbor_lists, fraction_folds,
+    >>>     min_sulcus_size, do_fill_holes=False)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
+    >>>                 sulcus_IDs, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
+    >>> # Write and view manual labels restricted to sulci:
+    >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
+    >>>                 labels, sulcus_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
+
+    """
+    import numpy as np
+    from time import time
+    from mindboggle.extract.extract_folds import extract_all_folds
+    from mindboggle.utils.mesh_operations import detect_boundaries,\
+        segment, fill_holes
+
+    #---------------------------------------------------------------------------
+    # Load deep vertices
+    #---------------------------------------------------------------------------
+    folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
+        area_file, fraction_folds)
+    indices_folds = [i for i,x in enumerate(folds) if x == 1]
+    if len(indices_folds):
+
+        #---------------------------------------------------------------------------
+        # Segment sulcus folds of a surface mesh
+        #---------------------------------------------------------------------------
+        print("  Segment surface mesh into sulcus folds...")
+        t0 = time()
+
+        # Array of sulcus IDs for fold vertices, initialized as -1.
+        # Since we do not touch gyral vertices and vertices whose labels
+        # are not in the label list, or vertices having only one label,
+        # their sulcus IDs will remain -1.
+        sulcus_IDs = -1 * np.ones(len(folds))
+
+        # Find all label boundary pairs within the fold
+        indices_boundaries, label_pairs, unique_label_pairs = detect_boundaries(
+            indices_folds, labels, neighbor_lists)
+
+        # Construct seed lists containing indices
+        # to the vertices of each label boundary
+        seed_lists = []
+        for label_pair_list in label_pair_lists:
+            seed_lists.append([x for i,x in enumerate(indices_boundaries)
+                if np.sort(label_pairs[i]).tolist() in label_pair_list])
+
+        # Segment into sets of vertices connected to label boundary seeds
+        print("    Segment into separate label-pair regions...")
+        t1 = time()
+        sulcus_IDs = segment(indices_folds, neighbor_lists,
+            seed_lists, min_sulcus_size, spread_same_labels=True,
+            labels=labels, label_pair_lists=label_pair_lists)
+        n_sulci = len([x for x in list(set(sulcus_IDs)) if x != -1])
+        print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
+              format(n_sulci, time() - t1))
+
+    else:
+        n_sulci = 0
+
+    #---------------------------------------------------------------------------
+    # Fill holes in folds
+    #---------------------------------------------------------------------------
+    if n_sulci > 0 and do_fill_holes:
+
+        # Find fold vertices that have not yet been segmented
+        # (because they weren't sufficiently deep)
+        t2 = time()
+        vertices_to_segment = [i for i,x in enumerate(sulcus_IDs) if x==-1]
+
+        # Segment holes in the folds
+        print("    Segment holes...")
+        holes = segment(vertices_to_segment, neighbor_lists,
+            seed_lists=[], min_region_size=1,
+            spread_same_labels=False, labels=[], label_pair_lists=[])
+        n_holes = len([x for x in list(set(holes)) if x != -1])
+
+        # If there are any holes
+        if n_holes > 0:
+
+            # Ignore the largest hole (the background) and renumber holes
+            max_hole_size = 0
+            max_hole_index = 0
+            for ihole in range(n_holes):
+                I = np.where(holes == ihole)
+                if len(I) > max_hole_size:
+                    max_hole_size = len(I)
+                    max_hole_index = ihole
+            holes[holes == max_hole_index] = -1
+            if max_hole_index < n_holes:
+                holes[holes > max_hole_index] -= 1
+            n_holes -= 1
+            print('    ...{0} holes segmented ({1:.2f} seconds)'.
+                  format(n_holes, time() - t2))
+
+            # Fill holes
+            t3 = time()
+            sulcus_IDs = fill_holes(sulcus_IDs, holes, n_holes, neighbor_lists)
+            print("    Filled holes ({0:.2f} seconds)".format(time() - t3))
+
+    print("  ...Extracted and filled {0} sulcus folds in {1:.2f} seconds".
+          format(n_sulci, time() - t0))
+
+    return sulcus_IDs, n_sulci
+
+
+# Example for extract_sulci
 if __name__ == "__main__":
 
-    import sys
+    import os
     from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    from mindboggle.utils.io_file import read_columns
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     from mindboggle.utils.mesh_operations import find_neighbors
+    from mindboggle.extract.extract_folds import extract_sulci
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
 
-    # Arguments
-    labels_file = sys.argv[1]
-    folds_file = sys.argv[2]
-    sulcus_names_file = sys.argv[3]
-    vtk_file = sys.argv[4]
+    data_path = os.environ['MINDBOGGLE_DATA']
+    label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                 'label', 'lh.labels.DKT25.manual.vtk')
+    depth_file = os.path.join(data_path, 'measures',
+                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    area_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
 
-    # Load labels and folds (the second surface has to be inflated).
-    points, faces, labels, n_vertices = load_scalar(labels_file, return_arrays=0)
-    points, faces, fold_IDs, n_vertices = load_scalar(folds_file, return_arrays=0)
-    fid = open(sulcus_names_file, 'r')
-    sulcus_names = fid.readlines()
-    sulcus_names = [x.strip('\n') for x in sulcus_names]
-
-    # Calculate neighbor lists for all vertices
+    points, faces, labels, n_vertices = load_scalar(label_file, True)
     neighbor_lists = find_neighbors(faces, len(points))
-
-    # Prepare list of all unique sorted label pairs in the labeling protocol
     label_pair_lists = sulcus_boundaries()
 
-    # Create a list of lists of folds
-    unique_fold_IDs = set(fold_IDs)
-    folds = []
-    for id in unique_fold_IDs:
-        if id > 0:
-            fold = [i for i,x in enumerate(fold_IDs) if x == id]
-            folds.append(fold)
+    fraction_folds = 0.10  # low to speed up
+    min_sulcus_size = 50
 
-    # Identify sulci from folds
-    sulcus_IDs = identify(labels, folds, neighbor_lists, sulcus_names,
-                          label_pair_lists)
+    sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
+        depth_file, area_file, neighbor_lists, fraction_folds,
+        min_sulcus_size, do_fill_holes=False)
 
-    # Finally, write points, faces and sulcus_IDs to a new vtk file
-    rewrite_scalars(labels_file, vtk_file, sulcus_IDs, filter_scalars=sulcus_IDs)
+    # Write results to vtk file and view with mayavi2:
+    rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
+                    sulcus_IDs, sulcus_IDs)
+    os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
