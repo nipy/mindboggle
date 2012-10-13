@@ -569,7 +569,6 @@ if run_featureflow:
     # Extract sulcus folds
     #---------------------------------------------------------------------------
     fraction_folds = 0.5
-    min_sulcus_size = 50
     fundi_from_sulci = True
     if fundi_from_sulci:
         label_pairs = Node(name='Label_pairs',
@@ -586,7 +585,6 @@ if run_featureflow:
                                                    'area_file',
                                                    'neighbor_lists',
                                                    'fraction_folds',
-                                                   'min_sulcus_size',
                                                    'do_fill_holes'],
                                     output_names = ['sulcus_IDs',
                                                     'n_sulci']))
@@ -618,9 +616,9 @@ if run_featureflow:
         featureflow.connect([(neighbors, sulci,
                               [('neighbor_lists','neighbor_lists')])])
         sulci.inputs.fraction_folds = fraction_folds
-        sulci.inputs.min_sulcus_size = min_sulcus_size
         sulci.inputs.do_fill_holes = True
     else:
+        min_fold_size = 50
         folds = Node(name='Folds',
                      interface = Fn(function = extract_folds,
                                     input_names = ['depth_file',
@@ -639,7 +637,7 @@ if run_featureflow:
         featureflow.connect([(neighbors, folds,
                               [('neighbor_lists','neighbor_lists')])])
         folds.inputs.fraction_folds = fraction_folds
-        folds.inputs.min_fold_size = min_sulci_size
+        folds.inputs.min_fold_size = min_fold_size
         folds.inputs.do_fill_holes = True
     #---------------------------------------------------------------------------
     # Extract fundi (curves at the bottoms of sulci)

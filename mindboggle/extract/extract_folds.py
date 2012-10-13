@@ -592,12 +592,33 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
 #===============================================================================
 # Extract sulci
 #===============================================================================
-def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_lists,
-                  fraction_folds, min_sulcus_size, do_fill_holes=False):
+def extract_sulci(label_pair_lists, labels, depth_file, area_file,
+                  neighbor_lists, fraction_folds, do_fill_holes=False):
     """
-    Use depth and a sulcus labeling protocol to extract sulcus folds
-    from an anatomically labeled triangular surface mesh and fill holes
-    resulting from shallower areas within a fold.
+    Extract sulci from a surface mesh using depth and a sulcus labeling protocol.
+
+    First, extract all folds from a triangular surface mesh by a depth threshold
+    (remove all non-fold vertices by assigning a value of -1 to them).
+
+    Construct seed lists of label boundary vertices from anatomical labels
+    on the mesh, where each seed list corresponds to label boundaries in a
+    sulcus labeling protocol, and is assigned a sulcus ID.
+
+    Segment the folds into sulci by propagating sulcus IDs from the seed vertices
+    and fill holes resulting from shallower areas within a fold.
+
+    Definitions
+    -----------
+    A fold is a group of connected vertices deeper than a depth threshold.
+
+    A ''label list'' is the list of labels used to define a single sulcus.
+
+    A ''label pair list'' contains pairs of labels, where each pair
+    defines a boundary between two labeled regions.
+    No two label pair lists share a label pair.
+
+    A ''sulcus ID'' uniquely identifies a sulcus.
+    It is the index to a sulcus label list (or sulcus label pair list).
 
     Parameters
     ----------
@@ -625,30 +646,6 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
         sulcus IDs for all vertices, with -1s for non-sulcus vertices
     n_sulci :  int
         number of sulcus folds
-
-    Definitions
-    -----------
-
-    A fold is a group of connected vertices deeper than a depth threshold.
-
-    A ''label list'' is the list of labels used to define a single sulcus.
-
-    A ''label pair list'' contains pairs of labels, where each pair
-    defines a boundary between two labeled regions.
-    No two label pair lists share a label pair.
-
-    A ''sulcus ID'' uniquely identifies a sulcus.
-    It is the index to a sulcus label list (or sulcus label pair list).
-
-    Algorithm
-    ---------
-
-    First, extract folds by a depth threshold, and remove all non-fold
-    vertices by assigning -1 to them.
-
-    Construct seed lists of label boundary vertices, segment into sets
-    of vertices connected to label boundary seeds that have the same labels,
-    and assign a sulcus ID to each segment.
 
     Example
     -------
@@ -687,10 +684,6 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
     from mindboggle.extract.extract_folds import extract_all_folds
     from mindboggle.utils.mesh_operations import detect_boundaries,\
         propagate, segment, fill_holes
-    import os
-    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, detect_boundaries
-    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
 
     #---------------------------------------------------------------------------
     # Load deep vertices
@@ -711,7 +704,7 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
             indices_folds, labels, neighbor_lists)
 
         # Construct seeds with indices to the vertices of each label boundary
-        seeds = -1 * np.ones(len(points))
+        seeds = -1 * np.ones(len(labels))
         for ilist,label_pair_list in enumerate(label_pair_lists):
             I = [x for i,x in enumerate(indices_boundaries)
                  if np.sort(label_pairs[i]).tolist() in label_pair_list]
@@ -720,7 +713,8 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
         # Segment into sets of vertices connected to label boundary seeds
         print("    Segment into separate label-pair regions...")
         t1 = time()
-        sulcus_IDs = propagate(folds, seeds, labels)
+        points, faces, depths, n_vertices = load_scalar(depth_file, True)
+        sulcus_IDs = propagate(points, faces, folds, seeds, labels)
 
         n_sulci = len([x for x in list(set(sulcus_IDs)) if x != -1])
         print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
@@ -799,9 +793,9 @@ if __name__ == "__main__":
     fraction_folds = 0.10  # low to speed up
     min_sulcus_size = 50
 
+    # do_fill_holes=False to speed up
     sulcus_IDs, n_sulci = extract_sulci(label_pair_lists, labels,
-        depth_file, area_file, neighbor_lists, fraction_folds,
-        min_sulcus_size, do_fill_holes=False)
+        depth_file, area_file, neighbor_lists, fraction_folds, do_fill_holes=False)
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalars(depth_file, 'test_extract_sulci.vtk',
