@@ -53,6 +53,25 @@ def compute_likelihood(depths, curvatures):
     -------
     likelihoods : likelihood values [#sulcus vertices x 1] numpy array
 
+    Example
+    -------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.extract.extract_fundi import compute_likelihood
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    >>>                                                          True)
+    >>> L = compute_likelihood(depths, mean_curvatures)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L) #, L)
+    >>> os.system('mayavi2 -m Surface -d test_compute_likelihood.vtk &')
+
     """
     import numpy as np
 
