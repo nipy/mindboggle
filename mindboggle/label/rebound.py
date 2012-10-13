@@ -42,12 +42,11 @@ class Bounds:
         Initialize attributes of object.
         """
         self.Points = self.Faces = self.Labels = self.Indices = 0
-        self.num_points = len(self.Points)
-        self.min_label = min(self.Labels)
+        self.num_points = 0
 
         # For label propagation
         self.seed_labels = 0
-        self.min_label = 0
+        self.min_label = 0 # ignore -1s
         self.Polylines = self.polyline_elements = 0
 
         # For constructing the neighbors matrix
