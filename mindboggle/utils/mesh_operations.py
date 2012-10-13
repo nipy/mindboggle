@@ -234,6 +234,97 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     return anchors
 
 #------------------------------------------------------------------------------
+# Propagate labels to segment surface into contiguous regions
+#------------------------------------------------------------------------------
+def propagate(region, seeds, labels):
+    """
+    Propagate labels to segment surface into contiguous regions,
+    starting from seed vertices.
+
+    Parameters
+    ----------
+    region : numpy array of integers
+        binary values, one per vertex in the mesh
+    seeds : numpy array of integers
+        seeds, one per vertex in the mesh
+    labels : numpy array of integers
+        labels, one per vertex in the mesh
+
+    Returns
+    -------
+    segment_IDs : numpy array of integers
+        segment IDs for regions (default -1)
+
+    Example
+    -------
+    >>> import os
+    >>> import numpy as np
+    >>> import mindboggle.label.rebound as rb
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, detect_boundaries
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> import mindboggle.utils.kernels as kernels
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
+    >>>     labels, neighbor_lists)
+    >>> folds_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+    >>> label_pair_lists = sulcus_boundaries()
+    >>> fold_ID = 2
+    >>> indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
+    >>>     labels, neighbor_lists)
+    >>> seeds = -1 * np.ones(len(points))
+    >>> for ilist,label_pair_list in enumerate(label_pair_lists):
+    >>>     I = [x for i,x in enumerate(indices_boundaries)
+    >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
+    >>>     seeds[I] = ilist
+    >>> segment_IDs = propagate(region, seeds, labels)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
+
+    """
+    import numpy as np
+    from mindboggle.utils.mesh_operations import inside_faces
+    import mindboggle.utils.kernels as kernels
+    import mindboggle.label.rebound as rb
+
+    indices_region = [i for i,x in enumerate(region) if x > -1]
+    local_indices_region = -1 * np.ones(len(region))
+    local_indices_region[indices_region] = range(len(indices_region))
+
+    print('    Segment {0} vertices from {1} sets of seed vertices'.
+          format(len(indices_region), len([x for x in seeds if x > -1])))
+
+    # Set up rebound Bounds class instance
+    B = rb.Bounds()
+    B.Indices = local_indices_region
+    B.Points = points[indices_region, :]
+    B.Faces = inside_faces(faces, indices_region)
+    B.Labels = labels[indices_region]
+    B.seed_labels = seeds[indices_region]
+
+    # Propagate seed IDs from seeds
+    B.graph_based_learning(method='propagate_labels', realign=False,
+                           kernel=kernels.rbf_kernel, sigma=10, vis=False,
+                           max_iters=200, tol=.001)
+
+    # Assign maximum probability seed IDs to each point of region
+    max_prob_labels = B.assign_max_prob_label()
+
+    # Return segment IDs in original vertex array
+    segment_IDs = -1 * np.ones(len(points))
+    segment_IDs[indices_region] = max_prob_labels
+
+    return segment_IDs
+
+#------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=1,
@@ -860,8 +951,52 @@ def compute_distance(point, points):
     else:
         return None, None
 
-# Skeletonize example
+# propagate() example
 if __name__ == "__main__" :
+    import os
+    import numpy as np
+    import mindboggle.label.rebound as rb
+    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, \
+        detect_boundaries
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    import mindboggle.utils.kernels as kernels
+
+    data_path = os.environ['MINDBOGGLE_DATA']
+    label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                 'label', 'lh.labels.DKT25.manual.vtk')
+    points, faces, labels, n_vertices = load_scalar(label_file, True)
+
+    neighbor_lists = find_neighbors(faces, n_vertices)
+
+    indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
+        labels, neighbor_lists)
+
+    folds_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+
+    label_pair_lists = sulcus_boundaries()
+
+    fold_ID = 2
+    indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
+        labels, neighbor_lists)
+
+    seeds = -1 * np.ones(len(points))
+    for ilist,label_pair_list in enumerate(label_pair_lists):
+        I = [x for i,x in enumerate(indices_boundaries)
+             if np.sort(label_pairs[i]).tolist() in label_pair_list]
+        seeds[I] = ilist
+
+    segment_IDs = propagate(region, seeds, labels)
+
+    # Write results to vtk file and view with mayavi2:
+    rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    os.system('mayavi2 -m Surface -d test_propagate.vtk &')
+
+    # Skeletonize example
+    """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -912,3 +1047,4 @@ if __name__ == "__main__" :
     skeleton[indices_endpoints] = 4
     rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
     os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
+    """
