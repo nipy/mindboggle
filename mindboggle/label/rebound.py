@@ -16,7 +16,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 #-----------------------------------------------------------------------------
 import os
 import numpy as np
-import pyvtk
 from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
@@ -42,214 +41,17 @@ class Bounds:
         """
         Initialize attributes of object.
         """
-        self.Points = self.Faces = self.Labels = 0
-        self.has_points = self.has_faces = self.has_labels = 0
-        self.num_points = self.num_faces = 0
+        self.Points = self.Faces = self.Labels = self.Indices = 0
+        self.num_points = len(self.Points)
+        self.min_label = min(self.Labels)
 
         # For label propagation
         self.seed_labels = 0
+        self.min_label = 0
         self.Polylines = self.polyline_elements = 0
 
         # For constructing the neighbors matrix
         self.found_neighbors = 0
-
-    ##########################################################################
-    # ------------------------------------------------------------------------
-    #     VTK I/O methods (to supplement io_vtk.py functions)
-    # ------------------------------------------------------------------------
-    ##########################################################################
-
-    def assign_points(self, points):
-        """
-        Assign 3D coordinates of vertices as 2d array.
-
-        - Check to make sure that Points were inputted as a 2D array.
-        - Check to make sure that Points are of dimension <= 3
-        """
-        points = np.asarray(points)
-        if points.ndim != 2:
-            print('Please enter data as a 2D array.')
-        elif points.shape[1] > 3:
-            print('Please provide data of dimension <= 3.')
-        else:
-            self.Points = points
-            self.Vertices = range(len(self.Points))
-            self.has_points = 1
-            self.num_points = self.Points.shape[0]
-        return 0
-
-    def assign_faces(self, faces):
-        """
-        Assign triangular faces as 2d array.
-        """
-        faces = np.asarray(faces)
-        if faces.ndim !=2:
-            print('Please enter data as a 2D array.')
-        elif faces.shape[1] < 2 or faces.shape[1] > 4:
-            print('Please provide VTK polylines, triangles or tetrahedra.')
-        elif not all([len(set(list(i)))==faces.shape[1] for i in faces]):
-            print('Some faces reference the same vertex multiple times.')
-        elif np.amax(faces) >=  self.num_points:
-            print('Faces refer to non-existent points. Be advised.')
-        else:
-            self.Faces = faces
-            self.has_faces = 1
-            self.num_faces = self.Faces.shape[0]
-        return 0
-
-    def assign_labels(self, labels):
-        """
-        Assign labels to points as 1d array.
-        """
-        labels = np.asarray(labels)
-        if labels.ndim != 1:
-            print('Please enter labels as a 1D array.')
-        elif labels.shape[0] != self.num_points:
-            print('Please provide the appropriate number of labels.')
-        else:
-            self.Labels = np.asarray(labels)
-            self.has_labels = 1
-            self.seed_labels = np.array(self.Labels.size)
-
-        self.set_manual_labels = np.sort(np.asarray(list(set(self.Labels))))
-        self.num_manual_labels = len(self.set_manual_labels)
-
-        return 0
-
-    def load_vtk_surface(self, fname, check=1):
-        """
-        Load VTK surface file with labels as the first scalar type (if any scalars).
-        """
-        if not isinstance(fname, str):
-            print('Please enter the file name as a string.')
-        else:
-            Data = pyvtk.VtkData(fname)
-            self.Points = np.asarray(Data.structure.points)
-            self.Vertices = range(len(self.Points))
-            self.Faces = np.asarray(Data.structure.polygons)
-            self.has_points = self.has_faces = 1
-            self.num_points = self.Points.shape[0]
-            self.num_faces = self.Faces.shape[0]
-
-            if Data.point_data.data != []:
-                self.Labels = np.asarray(Data.point_data.data[0].scalars)
-                self.has_labels = 1
-                self.seed_labels = np.array(self.Labels.size)
-                self.set_manual_labels = np.sort(np.asarray(list(set(self.Labels))))
-                self.num_manual_labels = len(self.set_manual_labels)
-
-    def load_vtk_polylines(self, fname):
-        """
-        Load VTK polylines file.
-        """
-        Data = pyvtk.VtkData(fname)
-
-        new_points = np.asarray(Data.structure.points)
-        if new_points.shape != self.Points.shape:
-            print('Points in the polylines file do not match points in the original file!')
-        try:
-            self.Polylines = np.asarray(Data.structure.lines)
-        except:
-            print('The file does not contain polylines. Please load a different file.')
-            return
-
-        self.polyline_elements = np.asarray(list(set(self.Polylines.flatten())))
-
-        if np.amax(self.Polylines) >= self.num_points:
-            print('The polylines reference points which are not in the file.')
-
-        self.polylines_file = fname
-
-    def write_vtk(self, fname, label = 'Labels', header='Generated by Bounds class'):
-        """
-        Create VTK file from data.
-        """
-
-        if not(self.has_points and self.has_faces):
-            print('Please enter points and faces.')
-            return
-
-        if not self.has_labels:
-            self.Labels = None
-
-        write_scalars(fname, self.Points, self.Vertices,
-                         self.Faces, [self.Labels],
-                         label_type=[label], msg=header)
-        print('VTK file was successfully created as: {0}'.format(fname))
-
-        self.fname = fname
-
-        return fname
-
-    def check_vtk_data(self):
-        """
-        Check whether VTK data is well formed.
-
-        - Check that number of labels corresponds to number of points.
-        - Check that numbers in faces don't exceed number of points.
-        """
-        if not self.has_points:
-            print('There are no points!')
-        if not self.has_faces:
-            print('There are no faces!')
-
-        if self.has_labels and self.has_points:
-            if self.Labels.size != self.num_points:
-                print('There is a mismatch between the number of labels provided \
-                        and the number of points in the object.')
-                print('There are {0} points and {1} labels. Please fix'.format(
-                      self.Points.shape[0],self.Labels.size))
-
-        if self.has_points and self.has_labels:
-            max_faces_num = np.amax(self.Faces)
-            if max_faces_num >= self.num_points:
-                print('The faces contains reference to a non-existent vertex. Please fix.')
-
-        return 0
-
-    def highlight_vtk_vertices(self, index_list, filename, complete_list=False):
-        """
-        Create VTK file highlighting the desired vertices.
-
-        Input
-        =====
-        index_list: np array or list (of indices of vertices)
-        filename: string (for VTK file)
-        complete_list: boolean (full self.num_points list given, not indices?)
-
-        Return
-        ======
-        filename: string (for VTK file)
-
-        """
-        if not complete_list:
-            labels = np.zeros(self.Labels.shape)
-            labels[index_list] = 1
-        else:
-            labels = index_list
-            labels[labels>0] = 1
-
-        write_scalars(filename, self.Points, self.Vertices,
-                         self.Faces, [labels])
-
-        return filename
-
-    def highlight_vtk_label(self, label):
-        """
-        Highlight a set of vertices which belong to a specified label.
-
-        Find all vertices which have the label (self.Labels)
-        then create a new array where those vertices are labeled 1
-        and all other vertices are labeled -1.
-        """
-
-        indices = np.asarray(map(int,self.Labels==label)) * 2 - 1
-
-        filename = 'highlighted'+str(label)+'.vtk'
-
-        write_scalars(filename, self.Points, indices,
-                         self.Faces, [self.Labels])
-
 
     ##########################################################################
     # ------------------------------------------------------------------------
@@ -271,10 +73,6 @@ class Bounds:
 #@        - consensus:  TO DO!
 
         """
-        if not self.has_labels:
-            print('Please add labels.')
-            return
-
         self.seed_labels = np.zeros(self.num_points)
 
         # To initialize with vertices flanking polylines,
@@ -324,7 +122,7 @@ class Bounds:
 
         Input
         =====
-        Array of n labels. Zero corresponds to no label.
+        Array of n labels. -1 corresponds to no label.
 
         Return
         ======
@@ -339,15 +137,17 @@ class Bounds:
         self.unique_labels = np.sort(np.asarray(list(set(self.seed_labels))))
 
         # Number of labels and vertices
-        C = len(np.nonzero(self.unique_labels)[0])
-        n = self.Labels.shape[0]
+        self.unique_labels = [x for x in self.unique_labels if x >= self.min_label]
+        C = len(self.unique_labels)
+        n = len(self.Labels)
 
         # Construct n x C matrix
         self.label_matrix = np.zeros((n, C))
 
         # Populate the label assignment matrix with -1s and 1s for seed labels
+        # For each row...
         for i in xrange(n):
-            if self.seed_labels[i] > 0:
+            if self.seed_labels[i] >= self.min_label:
                 self.label_matrix[i, :] = -1
                 unique_label_index = np.where(self.unique_labels == self.seed_labels[i])[0]
                 self.label_matrix[i, unique_label_index] = 1
@@ -382,7 +182,7 @@ class Bounds:
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        self.affinity_matrix = go.weight_graph(self.Points, self.Faces,
+        self.affinity_matrix = go.weight_graph(self.Points, self.Indices, self.Faces,
                                                   kernel=kernel, sigma=sigma,
                                                   add_to_graph=False)
 
@@ -418,43 +218,28 @@ class Bounds:
 
         Return
         ======
-        self.max_prob_label: np array (size num_points,
+        self.max_prob_labels: np array (size num_points,
                              containing the most probable label for each vertex)
-        self.max_prob_file: string (vtk file containing highest probability labels)
 
         """
 
-        # First check that the label propagation algorithm has been called
+        # Go row by row (one vertex at a time),
+        # and find the column with the maximum value
         try:
-            a = self.learned_matrix[0]
+            max_col = np.argmax(self.learned_matrix,axis=1)
         except:
             print('First call graph_based_learning().')
             return
 
-        # Go row by row (one vertex at a time),
-        # and find the column with the maximum value
-        max_col = np.argmax(self.learned_matrix,axis=1)
-
         # Define an array called max_prob_label to store the final values
-        self.max_prob_label = np.zeros(self.num_points)
+        self.max_prob_labels = np.zeros(self.num_points)
 
         # Use the array of unique, sorted labels to convert this matrix
         # back to the original labeling; max_col[i] is the temporary label number
-        for i in self.num_points:
-            self.max_prob_label[i] = self.unique_labels[max_col[i]]
+        for i in range(self.num_points):
+            self.max_prob_labels[i] = self.unique_labels[max_col[i]]
 
-        # Visualize results by writing to a VTK file
-        self.max_prob_file = 'max_prob_visualization.vtk'
-        write_scalars(self.max_prob_file, self.Points, self.Vertices, self.Faces, self.max_prob_label)
-
-        return self.max_prob_label, self.max_prob_file
-
-    def assess_percent_correct(self):
-        """
-        Compare the results of label propagation to the original VTK file.
-        """
-        self.percent_labeled_correctly = (np.sum(self.max_prob_label == self.Labels) + 0.0) / self.num_points
-        return self.percent_labeled_correctly
+        return self.max_prob_labels
 
     # - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
     #-------------------------------------------------------------------------
@@ -552,7 +337,7 @@ class Bounds:
 
             # Set up indices and values to be clamped during propagation
             if not realign:
-                restore_indices = self.seed_labels > 0
+                restore_indices = self.seed_labels >= self.min_label
                 restore_values = column[restore_indices]
             else:
                 restore_indices = np.hstack((self.label_boundary,self.polyline_elements))
@@ -1522,25 +1307,25 @@ class Bounds:
 #     Tests / Debugging
 # ----------------------------------------------------------------------------
 ##############################################################################
+if __name__ == "__main__" :
+    indir = '/drop/share/EliezerStavsky/realignment_test/'
+    #indir = '/home/eliezer/Dropbox/share_eliezer/realignment_test/'
 
-indir = '/drop/share/EliezerStavsky/realignment_test/'
-#indir = '/home/eliezer/Dropbox/share_eliezer/realignment_test/'
+    dir = os.getcwd()
+    bounds = Bounds()
+    f1 = indir + 'testdatalabels.vtk'
+    f2 = indir + 'testdatafundi.vtk'
+    f1 = indir + 'testlabels.vtk'
+    f2 = indir + 'testfundi.vtk'
 
-dir = os.getcwd()
-bounds = Bounds()
-f1 = indir + 'testdatalabels.vtk'
-f2 = indir + 'testdatafundi.vtk'
-f1 = indir + 'testlabels.vtk'
-f2 = indir + 'testfundi.vtk'
+    f3 = indir + '/label_boundary.vtk'
+    f4 = indir + '/realigned_labels.vtk'
+    f5 = indir + '/realigned_label_boundary_segments.vtk'
 
-f3 = indir + '/label_boundary.vtk'
-f4 = indir + '/realigned_labels.vtk'
-f5 = indir + '/realigned_label_boundary_segments.vtk'
+    def test():
+        """ This test is for the realignment task."""
+        bounds.realign_label_boundary(f1, f2, f3, f4, f5, 10)
 
-def test():
-    """ This test is for the realignment task."""
-    bounds.realign_label_boundary(f1, f2, f3, f4, f5, 10)
+        return 0
 
-    return 0
-
-test()
+    test()
