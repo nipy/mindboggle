@@ -681,6 +681,7 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
     """
     import numpy as np
     from time import time
+    from mindboggle.utils.io_vtk import load_scalar
     from mindboggle.extract.extract_folds import extract_all_folds
     from mindboggle.utils.mesh_operations import detect_boundaries,\
         propagate, segment, fill_holes
