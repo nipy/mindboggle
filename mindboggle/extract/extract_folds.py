@@ -686,7 +686,11 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
     from time import time
     from mindboggle.extract.extract_folds import extract_all_folds
     from mindboggle.utils.mesh_operations import detect_boundaries,\
-        segment, fill_holes
+        propagate, segment, fill_holes
+    import os
+    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, detect_boundaries
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
 
     #---------------------------------------------------------------------------
     # Load deep vertices
@@ -699,32 +703,25 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file, neighbor_list
         #---------------------------------------------------------------------------
         # Segment sulcus folds of a surface mesh
         #---------------------------------------------------------------------------
-        print("  Segment surface mesh into sulcus folds...")
+        print("  Segment surface mesh into sulcus folds")
         t0 = time()
-
-        # Array of sulcus IDs for fold vertices, initialized as -1.
-        # Since we do not touch gyral vertices and vertices whose labels
-        # are not in the label list, or vertices having only one label,
-        # their sulcus IDs will remain -1.
-        sulcus_IDs = -1 * np.ones(len(folds))
 
         # Find all label boundary pairs within the fold
         indices_boundaries, label_pairs, unique_label_pairs = detect_boundaries(
             indices_folds, labels, neighbor_lists)
 
-        # Construct seed lists containing indices
-        # to the vertices of each label boundary
-        seed_lists = []
-        for label_pair_list in label_pair_lists:
-            seed_lists.append([x for i,x in enumerate(indices_boundaries)
-                if np.sort(label_pairs[i]).tolist() in label_pair_list])
+        # Construct seeds with indices to the vertices of each label boundary
+        seeds = -1 * np.ones(len(points))
+        for ilist,label_pair_list in enumerate(label_pair_lists):
+            I = [x for i,x in enumerate(indices_boundaries)
+                 if np.sort(label_pairs[i]).tolist() in label_pair_list]
+            seeds[I] = ilist
 
         # Segment into sets of vertices connected to label boundary seeds
         print("    Segment into separate label-pair regions...")
         t1 = time()
-        sulcus_IDs = segment(indices_folds, neighbor_lists,
-            seed_lists, min_sulcus_size, spread_same_labels=True,
-            labels=labels, label_pair_lists=label_pair_lists)
+        sulcus_IDs = propagate(folds, seeds, labels)
+
         n_sulci = len([x for x in list(set(sulcus_IDs)) if x != -1])
         print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
               format(n_sulci, time() - t1))
