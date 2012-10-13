@@ -13,9 +13,9 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 #import numpy as np
-#import networkx as nx
+import networkx as nx
 #from scipy.sparse import lil_matrix
-#from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
 ###############################################################################
 # -----------------------------------------------------------------------------
@@ -61,7 +61,7 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
 # -----------------------------------------------------------------------------
 ###############################################################################
 
-def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
+def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
                  G=nx.Graph(), sigma=20):
     """
     Construct weighted edges of a graph and compute an affinity matrix.
@@ -69,6 +69,7 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
     Parameters
     ----------
     Nodes : numpy array
+    Indices : numpy array
     Meshes : numpy array
     kernel : function which determines weights of edges
         - rbf_kernel: Gaussian kernel, with parameter sigma
@@ -99,8 +100,9 @@ def weight_graph(Nodes, Meshes, kernel=rbf_kernel, add_to_graph=True,
         elif Meshes.shape[1] == 2:
             edge_mat = Meshes
         # Augment matrix to contain edge weight in the third column
-        weighted_edges = np.asarray([[i, j, kernel(Nodes[i], Nodes[j], sigma)]
-                                      for [i, j] in edge_mat])
+        weighted_edges = np.asarray([[Indices[i], Indices[j],
+            kernel(Nodes[Indices[i]], Nodes[Indices[j]], sigma)]
+            for [i, j] in edge_mat])
 
         # Add weights to graph
         if add_to_graph:
