@@ -236,13 +236,17 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 #------------------------------------------------------------------------------
 # Propagate labels to segment surface into contiguous regions
 #------------------------------------------------------------------------------
-def propagate(region, seeds, labels):
+def propagate(points, faces, region, seeds, labels):
     """
     Propagate labels to segment surface into contiguous regions,
     starting from seed vertices.
 
     Parameters
     ----------
+    points : list of lists of three integers
+        coordinates of vertices
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
     region : numpy array of integers
         binary values, one per vertex in the mesh
     seeds : numpy array of integers
@@ -277,6 +281,8 @@ def propagate(region, seeds, labels):
     >>> label_pair_lists = sulcus_boundaries()
     >>> fold_ID = 2
     >>> indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    >>> fold_array = np.zeros(len(points))
+    >>> fold_array[indices_fold] = 1
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
     >>>     labels, neighbor_lists)
     >>> seeds = -1 * np.ones(len(points))
@@ -284,7 +290,7 @@ def propagate(region, seeds, labels):
     >>>     I = [x for i,x in enumerate(indices_boundaries)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
-    >>> segment_IDs = propagate(region, seeds, labels)
+    >>> segment_IDs = propagate(points, faces, fold_array, seeds, labels)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
     >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
@@ -309,6 +315,7 @@ def propagate(region, seeds, labels):
     B.Faces = inside_faces(faces, indices_region)
     B.Labels = labels[indices_region]
     B.seed_labels = seeds[indices_region]
+    B.num_points = len(B.Points)
 
     # Propagate seed IDs from seeds
     B.graph_based_learning(method='propagate_labels', realign=False,
@@ -978,8 +985,10 @@ if __name__ == "__main__" :
 
     label_pair_lists = sulcus_boundaries()
 
-    fold_ID = 2
+    fold_ID = 1
     indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    fold_array = np.zeros(len(points))
+    fold_array[indices_fold] = 1
     indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
         labels, neighbor_lists)
 
@@ -989,7 +998,7 @@ if __name__ == "__main__" :
              if np.sort(label_pairs[i]).tolist() in label_pair_list]
         seeds[I] = ilist
 
-    segment_IDs = propagate(region, seeds, labels)
+    segment_IDs = propagate(points, faces, fold_array, seeds, labels)
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
