@@ -5,6 +5,17 @@ Papers
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+<<<<<<< HEAD
+| |pic_paper7|    | |authors_paper7|    |
++                 +---------------------+
+|                 | |title_paper7|      |
++                 +---------------------+
+|                 | |ref_paper7|        |
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
+=======
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 | |pic_paper6|    | |authors_paper6|    |
 +                 +---------------------+
 |                 | |title_paper6|      |
@@ -67,6 +78,26 @@ Conferences
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+<<<<<<< HEAD
+| |pic_pres15|    | |authors_pres15|    |
++                 +---------------------+
+|                 | |title_pres15|      |
++                 +---------------------+
+|                 | |ref_pres15|        |
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
+| |pic_pres14|    | |authors_pres14|    |
++                 +---------------------+
+|                 | |title_pres14|      |
++                 +---------------------+
+|                 | |ref_pres14|        |
++-----------------+---------------------+
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
+=======
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 | |pic_pres13|    | |authors_pres13|    |
 +                 +---------------------+
 |                 | |title_pres13|      |
@@ -175,6 +206,18 @@ Conferences
 +-----------------+---------------------+
 
 
+<<<<<<< HEAD
+.. |pic_paper7| image:: http://media.mindboggle.info/images/papers/Mindboggle101_FIBIM2012.png
+.. |authors_paper7| replace::
+    Klein, A, Tourville, J. 2012.
+.. |title_paper7| replace::
+    `101 labeled brain images and a consistent human cortical labeling protocol`_.
+.. |ref_paper7| replace::
+    *Frontiers in Brain Imaging Methods*. --Under Review--
+.. _`101 labeled brain images and a consistent human cortical labeling protocol`:
+
+=======
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 .. |pic_paper6| image:: http://media.mindboggle.info/images/papers/ANTSevaluation_NeuroImage2010.png
                     :width: 300px
@@ -185,7 +228,11 @@ Conferences
 .. |ref_paper6| replace::
     *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962. 
 .. _`A reproducible evaluation of ANTs similarity metric performance in brain image registration`:
+<<<<<<< HEAD
+    http://mindboggle.info/papers/ANTSevaluation_NeuroImage2010.pdf
+=======
     http://www.mindboggle.info/papers/ANTSevaluation_NeuroImage2010.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_paper5| image:: http://media.mindboggle.info/images/papers/SurfaceVolumeEval_NeuroImage_2009.jpg
@@ -200,8 +247,13 @@ Conferences
 .. |www_paper5| replace::
     `Supplementary website for PMC2862732`_
 .. _`Evaluation of volume-based and surface-based brain image registration methods`:
+<<<<<<< HEAD
+    http://mindboggle.info/papers/evaluation_NeuroImage2010/Evaluation_Klein_NeuroImage2010.pdf
+.. _`Supplementary website for PMC2862732`: http://mindboggle.info/papers/evaluation_NeuroImage2010.php
+=======
     http://www.mindboggle.info/papers/evaluation_NeuroImage2010/Evaluation_Klein_NeuroImage2010.pdf
 .. _`Supplementary website for PMC2862732`: http://www.mindboggle.info/papers/evaluation_NeuroImage2010.php
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 .. |pic_paper4| image:: http://media.mindboggle.info/images/papers/EvaluationData_NeuroImage2009_half.png
                     :width: 300px
@@ -216,9 +268,15 @@ Conferences
 .. |www_paper4| replace::
     `Supplementary website for PMC2747506`_
 .. _`PMCID: PMC2747506`: http://www.ncbi.nlm.nih.gov/sites/ppmc/articles/PMC2747506/
+<<<<<<< HEAD
+.. _`Supplementary website for PMC2747506`: http://mindboggle.info/papers/evaluation_NeuroImage2009.php
+.. _`Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration`:
+    http://mindboggle.info/papers/evaluation_NeuroImage2009/Evaluation_Klein_NeuroImage2009.pdf
+=======
 .. _`Supplementary website for PMC2747506`: http://www.mindboggle.info/papers/evaluation_NeuroImage2009.php
 .. _`Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration`:
     http://www.mindboggle.info/papers/evaluation_NeuroImage2009/Evaluation_Klein_NeuroImage2009.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_paper3| image:: http://media.mindboggle.info/images/papers/coregistration_SPIE_2009.png
@@ -230,7 +288,11 @@ Conferences
 .. |ref_paper3| replace::
     *Proc. SPIE - Medical Imaging*. 7259, 72592W.
 .. _`A new method for assessing PET-MRI coregistration`:
+<<<<<<< HEAD
+    http://mindboggle.info/papers/CoregistrationPETtoMRI_SPIE_2009.pdf
+=======
     http://www.mindboggle.info/papers/CoregistrationPETtoMRI_SPIE_2009.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_paper2| image:: http://media.mindboggle.info/images/papers/Mindboggle_BMCMedicalImaging_2005.png
@@ -255,23 +317,62 @@ Conferences
 .. |ref_paper1| replace::
     *NeuroImage*. 24(2): 261-280. PMID: 15627570
 .. _`Mindboggle: A scatterbrained approach to automate brain labeling`:
+<<<<<<< HEAD
+    http://mindboggle.info/papers/Mindboggle_Neuroimage_ArnoKlein2005.pdf
+
+=======
     http://www.mindboggle.info/papers/Mindboggle_Neuroimage_ArnoKlein2005.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 
 
 
+<<<<<<< HEAD
+.. |pic_pres15| image:: http://media.mindboggle.info/images/conferences/Neuroinformatics2012_Mindboggle.png
+                    :width: 300px
+.. |authors_pres15| replace::
+    Klein, A, Bao, FS, Hame, Y, Stavsky, E, Giard, J, Haehn, D, Nichols, N, Ghosh, SS. 2012.
+.. |title_pres15| replace::
+    `Mindboggle: Automated human brain MRI feature extraction, labeling, morphometry, and online visualization`_.
+.. |ref_pres15| replace::
+    *Neuroinformatics 2012 (Munich, Germany).*
+.. _`Mindboggle: Automated human brain MRI feature extraction, labeling, morphometry, and online visualization`:
+    http://mindboggle.info/posters/Neuroinformatics2012_Mindboggle_poster.pdf
+
+
+.. |pic_pres14| image:: http://media.mindboggle.info/images/conferences/Neuroinformatics2012_Mindboggle101.png
+                    :width: 300px
+.. |authors_pres14| replace::
+    Tourville, J, Klein, A. 2012.
+.. |title_pres14| replace::
+    `101 labeled brains and a new human cortical labeling protocol`_.
+.. |ref_pres14| replace::
+    *Neuroinformatics 2012 (Munich, Germany).*
+.. _`101 labeled brains and a new human cortical labeling protocol`:
+    http://mindboggle.info/posters/Neuroinformatics2012_Mindboggle101_poster.pdf
+
+=======
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 .. |pic_pres13| image:: http://media.mindboggle.info/images/conferences/MDDremission_SFN2011.png
                     :width: 300px
 .. |authors_pres13| replace::
+<<<<<<< HEAD
+    Bao, FS, Ghosh, SS, Giard, J, Parsey, RV, Klein, A. 2011.
+=======
     Bao, FA, Ghosh, SS, Giard, J, Parsey, RV, Klein, A. 2011.
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 .. |title_pres13| replace::
     `Brain shape analysis for predicting treatment remission in major depressive disorder`_.
 .. |ref_pres13| replace::
     *41st Annual Meeting for the Society for Neuroscience.*
 .. _`Brain shape analysis for predicting treatment remission in major depressive disorder`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/SFN2011_MDDremission_poster.pdf
+=======
     http://www.mindboggle.info/posters/SFN2011_MDDremission_poster/SFN2011_MDDremission_poster_ArnoKlein.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres12| image:: http://media.mindboggle.info/images/conferences/JaneliaFarm2011_small.png
@@ -283,7 +384,11 @@ Conferences
 .. |ref_pres12| replace::
     *BioImage Informatics II (talk at Janelia Farm).*
 .. _`Mindboggle: an informatics framework for open research in quantifying the shape of the human brain`:
+<<<<<<< HEAD
+    http://mindboggle.info/talks/JaneliaFarm_BioImageInformatics2_20110919.pdf
+=======
     http://www.mindboggle.info/talks/JaneliaFarm_BioImageInformatics2_20110919.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres11| image:: http://media.mindboggle.info/images/conferences/Neuroinformatics2011_small.png
@@ -296,7 +401,11 @@ Conferences
     *Frontiers in Neuroinformatics (Neuroinformatics 2011).*
     doi:http://dx.doi.org/10.3389/conf.fninf.2011.08.00139
 .. _`A graph-based database of hierarchical brain features`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/Neuroinformatics2011_graphdb_poster.pdf
+=======
     http://www.mindboggle.info/posters/NoahLee_Neuroinformatics2011_poster.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres10| image:: http://media.mindboggle.info/images/conferences/ESMRMB2011_small.png
@@ -308,7 +417,11 @@ Conferences
 .. |ref_pres10| replace::
     *28th Annual Meeting for the European Society for Magnetic Resonance in Medicine and Biology.*
 .. _`Automatic detection of corrupted volumes in DTI data`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/ESMRMB2011_abstract.pdf
+=======
     http://www.mindboggle.info/posters/ESMRMB2011abstract.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres9| image:: http://media.mindboggle.info/images/conferences/HBM2011_small.png
@@ -320,7 +433,11 @@ Conferences
 .. |ref_pres9| replace::
     *17th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`Automated extraction of nested sulcal features from human brain MRI data`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2011_nestedfeatures_poster.pdf
+=======
     http://www.mindboggle.info/posters/HBM2011_features_poster.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres8| image:: http://media.mindboggle.info/images/conferences/OptimalColormaps_SFN2010.png
@@ -334,7 +451,11 @@ Conferences
 .. |www_pres8| replace::
     Website: http://www.braincolor.org/colors/
 .. _`An interactive tool for constructing optimal brain colormaps`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/SFN2010_BrainCOLORmap_poster.pdf
+=======
     http://www.mindboggle.info/posters/SFN2010_BrainCOLORmap_poster/SFN2010_BrainCOLORmap_poster_ArnoKlein.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres7| image:: http://media.mindboggle.info/images/conferences/OpenLabels_HBM2010.png
@@ -348,7 +469,11 @@ Conferences
 .. |www_pres7| replace::
     Website: http://www.braincolor.org/roygbiv/
 .. _`Open labels: online feedback for a public resource of manually labeled brain images`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2010_openlabels_poster.pdf
+=======
     http://www.mindboggle.info/posters/OpenLabels_HBM2010_poster/OpenLabels_HBM2010_poster_ArnoKlein.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres6| image:: http://media.mindboggle.info/images/conferences/Atropos_HBM2010.png
@@ -360,7 +485,11 @@ Conferences
 .. |ref_pres6| replace::
     *16th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`Evaluation of open-access, automated brain extraction methods on multi-site multi-disorder data`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2010_Atropos_poster.pdf
+=======
     http://www.mindboggle.info/posters/HBM2010poster_Atropos.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres5| image:: http://media.mindboggle.info/images/conferences/evaluation_surfaceVSvolume_HBM2009.png
@@ -372,7 +501,11 @@ Conferences
 .. |ref_pres5| replace::
     15th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`An evaluation of volume- and surface-based nonlinear registration of human brain MRI data`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2009_evaluation_poster.pdf
+=======
     http://www.mindboggle.info/posters/HBM2009_poster_ArnoKlein.pdf
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres4| image:: http://media.mindboggle.info/images/conferences/hbm2003c.png
@@ -394,7 +527,11 @@ Conferences
 .. |ref_pres3| replace::
     *9th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`Mindboggle: new developments in automated brain labeling`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2003_Mindboggle_poster.jpg
+=======
     http://www.mindboggle.info/posters/hbm2003poster_arnoklein.jpg
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 
 .. |pic_pres2| image:: http://media.mindboggle.info/images/conferences/hbm2002.png
@@ -406,7 +543,11 @@ Conferences
 .. |ref_pres2| replace::
     *8th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`Fully-automated nonlinear labeling of human brain activity`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2002_Mindboggle_poster.jpg
+=======
     http://www.mindboggle.info/posters/hbm2002poster_arnoklein.jpg
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2
 
 .. |pic_pres1| image:: http://media.mindboggle.info/images/conferences/hbm2001.png
                     :width: 300px
@@ -417,4 +558,8 @@ Conferences
 .. |ref_pres1| replace::
     *7th Annual Meeting for the Organization of Human Brain Mapping.*
 .. _`Automatic labeling of brain anatomy and fMRI brain activity`:
+<<<<<<< HEAD
+    http://mindboggle.info/posters/HBM2001_Mindboggle_poster.jpg
+=======
     http://mindboggle.info/posters/hbm2001poster_arnoklein.jpg
+>>>>>>> d3e2d7dafaaf0e1c22b242aaf13b2902e4ac57f2

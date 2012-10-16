@@ -119,8 +119,8 @@ def mean_value_per_label(values, areas, labels, nonlabels):
     label_list : list of integers
         unique label numbers
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar
     >>> from mindboggle.measure.measure_functions import mean_value_per_label
