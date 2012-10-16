@@ -64,7 +64,7 @@ else:
 #  User settings
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
-fill_volume = True  # Fill (gray matter) volumes with surface labels
+fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 #-------------------------------------------------------------------------------
@@ -92,12 +92,12 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
-evaluate_surface_labels = 1 #False  # Surface overlap: auto vs. manual labels
+evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasflow = True
+run_atlasflow = 0#True
 run_measureflow = True
-run_featureflow = True
-run_shapeflow = True
+run_featureflow = 0#True
+run_shapeflow = 0#True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
