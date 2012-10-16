@@ -193,8 +193,8 @@ def load_scalar(filename, return_arrays=True):
     n_vertices : int
         number of vertices in the mesh
 
-    Example
-    -------
+    Examples
+    --------
     >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
 
     """
@@ -261,8 +261,8 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     LUT_names : list of strings
         each element is the name of a LUT
 
-    Example
-    -------
+    Examples
+    --------
     >>> import random
     >>> from mindboggle.utils.io_vtk import write_scalars
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
@@ -388,8 +388,8 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     means_file : table file name for mean shape values
     norm_means_file : table file name for mean shape values normalized by area
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, write_mean_shapes_table
     >>> filename = 'test_write_mean_shapes_table.txt'
@@ -485,8 +485,8 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     -------
     shape_table : table file name for vertex shape values
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, write_vertex_shape_table
     >>> from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
@@ -579,8 +579,8 @@ def load_vtk_vertices(Filename):
         Each element is an integer defined in VERTICES segment of the VTK file.
         The integer is an index referring to a point defined in POINTS segment of the VTK file.
 
-    Notes
-    ------
+    Notes ::
+
         We assume that VERTICES segment is organized as one line,
         the first column of which is the number of vertices.
         Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface.
@@ -659,8 +659,8 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
     LUT_names : list of strings
         each element is the name of a LUT
 
-    Example
-    -------
+    Examples
+    --------
     >>> import random
     >>> points = [[random.random() for i in range(3)] for j in xrange(5)]
     >>> indices = [0,1,2,3,4]

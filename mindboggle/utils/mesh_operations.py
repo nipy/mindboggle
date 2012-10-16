@@ -31,8 +31,8 @@ def find_neighbors(faces, n_vertices):
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Simple example:
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
@@ -103,8 +103,8 @@ def find_neighbors_vertex(faces, index):
     neighbor_list : list of integers
         indices of neighboring vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
@@ -156,8 +156,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     -------
     anchors : list of subset of surface mesh vertex indices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Use depth values instead of likelihood values for the example
     >>> import os
     >>> import numpy as np
@@ -234,6 +234,104 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     return anchors
 
 #------------------------------------------------------------------------------
+# Propagate labels to segment surface into contiguous regions
+#------------------------------------------------------------------------------
+def propagate(points, faces, region, seeds, labels):
+    """
+    Propagate labels to segment surface into contiguous regions,
+    starting from seed vertices.
+
+    Parameters
+    ----------
+    points : list of lists of three integers
+        coordinates of vertices
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+    region : numpy array of integers
+        binary values, one per vertex in the mesh
+    seeds : numpy array of integers
+        seeds, one per vertex in the mesh
+    labels : numpy array of integers
+        labels, one per vertex in the mesh
+
+    Returns
+    -------
+    segment_IDs : numpy array of integers
+        segment IDs for regions (default -1)
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> import mindboggle.label.rebound as rb
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, detect_boundaries
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> import mindboggle.utils.kernels as kernels
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
+    >>>     labels, neighbor_lists)
+    >>> folds_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+    >>> label_pair_lists = sulcus_boundaries()
+    >>> fold_ID = 2
+    >>> indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    >>> fold_array = np.zeros(len(points))
+    >>> fold_array[indices_fold] = 1
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
+    >>>     labels, neighbor_lists)
+    >>> seeds = -1 * np.ones(len(points))
+    >>> for ilist,label_pair_list in enumerate(label_pair_lists):
+    >>>     I = [x for i,x in enumerate(indices_boundaries)
+    >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
+    >>>     seeds[I] = ilist
+    >>> segment_IDs = propagate(points, faces, fold_array, seeds, labels)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
+
+    """
+    import numpy as np
+    from mindboggle.utils.mesh_operations import inside_faces
+    import mindboggle.utils.kernels as kernels
+    import mindboggle.label.rebound as rb
+
+    indices_region = [i for i,x in enumerate(region) if x > -1]
+    local_indices_region = -1 * np.ones(len(region))
+    local_indices_region[indices_region] = range(len(indices_region))
+
+    print('    Segment {0} vertices from {1} sets of seed vertices'.
+          format(len(indices_region), len([x for x in seeds if x > -1])))
+
+    # Set up rebound Bounds class instance
+    B = rb.Bounds()
+    B.Indices = local_indices_region
+    B.Points = points[indices_region, :]
+    B.Faces = inside_faces(faces, indices_region)
+    B.Labels = labels[indices_region]
+    B.seed_labels = seeds[indices_region]
+    B.num_points = len(B.Points)
+
+    # Propagate seed IDs from seeds
+    B.graph_based_learning(method='propagate_labels', realign=False,
+                           kernel=kernels.rbf_kernel, sigma=10, vis=False,
+                           max_iters=200, tol=.001)
+
+    # Assign maximum probability seed IDs to each point of region
+    max_prob_labels = B.assign_max_prob_label()
+
+    # Return segment IDs in original vertex array
+    segment_IDs = -1 * np.ones(len(points))
+    segment_IDs[indices_region] = max_prob_labels
+
+    return segment_IDs
+
+#------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=1,
@@ -264,8 +362,8 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     segments : numpy array [total #vertices in mesh x 1]
         segment indices for regions (default -1)
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Setup
     >>> import os
     >>> import numpy as np
@@ -412,7 +510,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 #------------------------------------------------------------------------------
 def fill_holes(regions, holes, n_holes, neighbor_lists):
     """
-    Fill holes in surface mesh regions.
+    Fill holes in regions on a surface mesh.
 
     Parameters
     ----------
@@ -559,8 +657,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     -------
     binary_array : binary skeleton: numpy array
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -651,8 +749,8 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     indices_endpoints : list of integers
         indices to endpoints of connected vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Extract endpoints from a sulcus label boundary segment
     >>> import os
     >>> import numpy as np
@@ -704,8 +802,8 @@ def inside_faces(faces, indices):
     -------
     faces : reduced array of faces
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
@@ -751,8 +849,8 @@ def detect_boundaries(region, labels, neighbor_lists):
     boundary_label_pairs : list of lists of sorted pairs of integers
         label pairs
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Small example:
     >>> from mindboggle.utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
@@ -826,8 +924,8 @@ def compute_distance(point, points):
     min_index : int
         index of closest of the points (zero if only one)
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import compute_distance
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
@@ -860,74 +958,54 @@ def compute_distance(point, points):
     else:
         return None, None
 
-def downsample(special_vertices, vertices, neighbor_lists, Prob):
-    """
-    Delete vertices of mesh while retaining connectivity of special vertices.
-
-    Note
-    ----
-    UNTESTED
-
-    Parameters
-    ----------
-    special_vertices : list of integers
-        special vertices that have to be in downsampled mesh
-    vertices : list of integers
-        indices to vertices
-    neighbor_lists : list of lists of integers
-        neighbor list of vertices
-    Prob : float
-        The probability in [0, 1] that a vertex is to be KEPT.
-        If it is 1, remove nothing
-        If it is 0, remove as much as possible while retaining connectivity
-
-    Returns
-    -------
-    new_vertices : list of integers
-        new vertices to be left after downsampling
-    new_neighbor_lists : list of lists of integers
-        neighbor lists after downsampling
-
-    """
-    import random
-
-    print "Downsampling mesh..."
-
-    new_vertices = []
-    new_neighbor_lists = neighbor_lists[:]
-
-    for vtx in vertices:
-
-        # Keep special vertices
-        if vtx in special_vertices:
-            if vtx not in new_vertices:
-                new_vertices.append(vtx)
-
-        # Randomly delete nonspecial vertices
-        else:
-
-            # REMOVE vertex
-            if Prob <= random.random():
-                for nbr in neighbor_lists[vtx]:
-                    if nbr in vertices:
-                        # step 1: put vertex's neighbors, which are ALSO in vertices,
-                        # into new_vertices and thus delete vertex
-                        if nbr not in new_vertices:
-                            new_vertices.append(nbr) # yield more vertices and edges removed
-                        # step 2: delete edges ending at vertex
-                        if vtx in new_neighbor_lists[nbr]:
-                            new_neighbor_lists[nbr].remove(vtx)
-                new_neighbor_lists[vtx] = [] # vertex has no neighbors now
-
-            # KEEP vertex
-            else:
-                new_vertices.append(vtx)
-
-    return new_vertices, new_neighbor_lists
-
-
-# Skeletonize example
+# propagate() example
 if __name__ == "__main__" :
+    import os
+    import numpy as np
+    import mindboggle.label.rebound as rb
+    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, \
+        detect_boundaries
+    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    import mindboggle.utils.kernels as kernels
+
+    data_path = os.environ['MINDBOGGLE_DATA']
+    label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                 'label', 'lh.labels.DKT25.manual.vtk')
+    points, faces, labels, n_vertices = load_scalar(label_file, True)
+
+    neighbor_lists = find_neighbors(faces, n_vertices)
+
+    indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
+        labels, neighbor_lists)
+
+    folds_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+
+    label_pair_lists = sulcus_boundaries()
+
+    fold_ID = 1
+    indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    fold_array = np.zeros(len(points))
+    fold_array[indices_fold] = 1
+    indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
+        labels, neighbor_lists)
+
+    seeds = -1 * np.ones(len(points))
+    for ilist,label_pair_list in enumerate(label_pair_lists):
+        I = [x for i,x in enumerate(indices_boundaries)
+             if np.sort(label_pairs[i]).tolist() in label_pair_list]
+        seeds[I] = ilist
+
+    segment_IDs = propagate(points, faces, fold_array, seeds, labels)
+
+    # Write results to vtk file and view with mayavi2:
+    rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    os.system('mayavi2 -m Surface -d test_propagate.vtk &')
+
+    # Skeletonize example
+    """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -978,3 +1056,4 @@ if __name__ == "__main__" :
     skeleton[indices_endpoints] = 4
     rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
     os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
+    """
