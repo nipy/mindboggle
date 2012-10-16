@@ -451,6 +451,8 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
         fundus IDs for all vertices, with -1s for non-fundus vertices
     n_fundi :  int
         number of sulcus fundi
+    likelihoods : array of floats
+        fundus likelihood values for all vertices (zero outside folds)
 
     Examples
     --------
@@ -470,9 +472,10 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
-    >>> fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, neighbor_lists,
-    >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
-    >>>     min_distance=5, thr=0.5, use_only_endpoints=True)
+    >>> fundus_IDs, n_fundi, likelihoods = extract_fundi(sulcus_IDs, 
+    >>>     neighbor_lists, depth_file, mean_curvature_file, 
+    >>>     min_curvature_vector_file, min_distance=5, thr=0.5,
+    >>>     use_only_endpoints=True)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
     >>>                 fundus_IDs, fundus_IDs)
@@ -501,8 +504,8 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
     Z = np.zeros(n_vertices)
-    likelihoods = Z.copy()
     fundus_IDs = -1 * np.ones(n_vertices)
+    likelihoods = np.copy(fundus_IDs)
 
     unique_fold_IDs = np.unique(fold_IDs)
     unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
@@ -567,7 +570,7 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
-    return fundus_IDs, n_fundi
+    return fundus_IDs, n_fundi, likelihoods
 
 
 # Example
@@ -596,7 +599,7 @@ if __name__ == "__main__" :
 
     points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
 
-    fundus_IDs, n_fundi = extract_fundi(sulcus_IDs, neighbor_lists,
+    fundus_IDs, n_fundi, likelihoods = extract_fundi(sulcus_IDs, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
         min_distance=5, thr=0.5, use_only_endpoints=True)
 
