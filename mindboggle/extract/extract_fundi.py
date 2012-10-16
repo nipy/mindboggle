@@ -53,8 +53,8 @@ def compute_likelihood(depths, curvatures):
     -------
     likelihoods : likelihood values [#sulcus vertices x 1] numpy array
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -228,8 +228,8 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     -------
     skeleton : [#vertices x 1] numpy array
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -452,8 +452,8 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     n_fundi :  int
         number of sulcus fundi
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
