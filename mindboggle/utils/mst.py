@@ -2,6 +2,8 @@
 def prune(Path, Degree, TreeNbr, Terminal, Branching, Special, Vertices):
     """
     Prune an MST by deleting edges
+
+    Note: Only links between special vertices are left.
     
     Parameters
     ----------
@@ -28,10 +30,6 @@ def prune(Path, Degree, TreeNbr, Terminal, Branching, Special, Vertices):
         Each element of *Path* is a list of the two terminals of each pair of
         connected vertices
         Note: vertices are indexed LOCALLY
-
-    Note
-    ----
-    Only links between special vertices are left.
         
     """
 
@@ -170,8 +168,8 @@ def mst(adjacency_matrix, indices_to_connect):
     adjacency_matrix : list of lists of integers
         adjacency matrix of vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> import networkx as nx
