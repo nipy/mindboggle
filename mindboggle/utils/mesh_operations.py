@@ -31,8 +31,8 @@ def find_neighbors(faces, n_vertices):
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Simple example:
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
@@ -103,8 +103,8 @@ def find_neighbors_vertex(faces, index):
     neighbor_list : list of integers
         indices of neighboring vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import find_neighbors_vertex
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4]]
     >>> index = 1
@@ -156,8 +156,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     -------
     anchors : list of subset of surface mesh vertex indices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Use depth values instead of likelihood values for the example
     >>> import os
     >>> import numpy as np
@@ -259,8 +259,8 @@ def propagate(points, faces, region, seeds, labels):
     segment_IDs : numpy array of integers
         segment IDs for regions (default -1)
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> import mindboggle.label.rebound as rb
@@ -362,8 +362,8 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     segments : numpy array [total #vertices in mesh x 1]
         segment indices for regions (default -1)
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Setup
     >>> import os
     >>> import numpy as np
@@ -510,7 +510,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 #------------------------------------------------------------------------------
 def fill_holes(regions, holes, n_holes, neighbor_lists):
     """
-    Fill holes in surface mesh regions.
+    Fill holes in regions on a surface mesh.
 
     Parameters
     ----------
@@ -657,8 +657,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     -------
     binary_array : binary skeleton: numpy array
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
@@ -749,8 +749,8 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     indices_endpoints : list of integers
         indices to endpoints of connected vertices
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Extract endpoints from a sulcus label boundary segment
     >>> import os
     >>> import numpy as np
@@ -802,8 +802,8 @@ def inside_faces(faces, indices):
     -------
     faces : reduced array of faces
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
     >>> indices = [0,1,2,3,4,5]
@@ -849,8 +849,8 @@ def detect_boundaries(region, labels, neighbor_lists):
     boundary_label_pairs : list of lists of sorted pairs of integers
         label pairs
 
-    Example
-    -------
+    Examples
+    --------
     >>> # Small example:
     >>> from mindboggle.utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
@@ -924,8 +924,8 @@ def compute_distance(point, points):
     min_index : int
         index of closest of the points (zero if only one)
 
-    Example
-    -------
+    Examples
+    --------
     >>> from mindboggle.utils.mesh_operations import compute_distance
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
