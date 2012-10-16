@@ -848,6 +848,8 @@ def detect_boundaries(region, labels, neighbor_lists):
         indices to label boundary vertices
     boundary_label_pairs : list of lists of sorted pairs of integers
         label pairs
+    unique_boundary_label_pairs : list of pairs of integers
+        unique label pairs
 
     Examples
     --------
