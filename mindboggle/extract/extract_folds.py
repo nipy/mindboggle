@@ -40,8 +40,8 @@ def extract_all_folds(depth_file, area_file, fraction_folds):
     folds : array of integers
         an integer for every mesh vertex: 1 for fold, -1 for non-fold
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
     >>> from mindboggle.extract.extract_folds import extract_all_folds
@@ -123,8 +123,8 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     n_folds :  int
         number of folds
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
@@ -219,27 +219,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
     Identify sulcus folds in a brain surface according to a labeling protocol
     that includes a list of label pairs defining each sulcus.
 
-    Parameters
-    ----------
-    labels : list of integers
-        labels for all vertices
-    folds : list of lists of integers
-        each list contains indices to vertices of a fold
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-    sulcus_names : list of strings
-        names of sulci
-    label_pair_lists : list of sublists of subsublists of integers
-        each subsublist contains a pair of labels, and the sublist of these
-        label pairs represents the label boundaries defining a sulcus
-
-    Returns
-    -------
-    sulcus_IDs : array of integers
-        sulcus IDs for all vertices, with -1s for non-sulcus vertices
-
-    Definitions
-    -----------
+    Definitions ::
 
     A fold is a group of connected vertices deeper than a depth threshold.
 
@@ -252,13 +232,12 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
     A ''sulcus ID'' uniquely identifies a sulcus.
     It is the index to a sulcus label list (or sulcus label pair list).
 
-    Algorithm
-    ---------
+    Algorithm ::
 
-    First, remove all fold vertices with labels that are not in the label list
-    by assigning -1 to them.
+      First, remove all fold vertices with labels that are not in the label list
+      by assigning -1 to them.
 
-    For each fold (vertices with the same non-zero label):
+      For each fold (vertices with the same non-zero label):
 
         Case 0: NO MATCH -- fold has no label
 
@@ -308,14 +287,27 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
           segment into sets of vertices connected to label boundary seeds,
           and assign a sulcus ID to each segment.
 
-    import sys
-    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    from mindboggle.utils.io_file import read_columns
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    from mindboggle.utils.mesh_operations import find_neighbors
+    Parameters
+    ----------
+    labels : list of integers
+        labels for all vertices
+    folds : list of lists of integers
+        each list contains indices to vertices of a fold
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    sulcus_names : list of strings
+        names of sulci
+    label_pair_lists : list of sublists of subsublists of integers
+        each subsublist contains a pair of labels, and the sublist of these
+        label pairs represents the label boundaries defining a sulcus
 
-    Example
+    Returns
     -------
+    sulcus_IDs : array of integers
+        sulcus IDs for all vertices, with -1s for non-sulcus vertices
+
+    Examples
+    --------
     >>> # Arguments
     >>> labels_file = sys.argv[1]
     >>> folds_file = sys.argv[2]
@@ -607,15 +599,15 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
     Segment the folds into sulci by propagating sulcus IDs from the seed vertices
     and fill holes resulting from shallower areas within a fold.
 
-    Definitions
-    -----------
-    A fold is a group of connected vertices deeper than a depth threshold.
+    Definitions::
 
-    A ''label list'' is the list of labels used to define a single sulcus.
+      A fold is a group of connected vertices deeper than a depth threshold.
 
-    A ''label pair list'' contains pairs of labels, where each pair
-    defines a boundary between two labeled regions.
-    No two label pair lists share a label pair.
+      A ''label list'' is the list of labels used to define a single sulcus.
+
+      A ''label pair list'' contains pairs of labels, where each pair
+      defines a boundary between two labeled regions.
+      No two label pair lists share a label pair.
 
     A ''sulcus ID'' uniquely identifies a sulcus.
     It is the index to a sulcus label list (or sulcus label pair list).
@@ -647,8 +639,8 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
     n_sulci :  int
         number of sulcus folds
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
