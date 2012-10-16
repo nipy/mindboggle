@@ -94,9 +94,9 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasflow = 0#True
+run_atlasflow = True
 run_measureflow = True
-run_featureflow = 0#True
+run_featureflow = True
 run_shapeflow = 0#True
 
 #===============================================================================
@@ -395,7 +395,7 @@ if run_atlasflow:
         atlasflow.add_nodes([atlaslabels])
         mbflow.connect([(atlas, atlasflow,
                          [('atlas_file', 'Atlas_labels.filename')])])
-        atlaslabels.inputs.return_arrays = 0  # 0: return lists instead of arrays
+        atlaslabels.inputs.return_arrays = True  # 0: return lists instead of arrays
 
 
 ################################################################################
@@ -556,7 +556,7 @@ if run_featureflow:
     else:
         mbflow.connect([(convertsurf, featureflow,
                          [('vtk_file', 'Load_surface.filename')])])
-    load_surface.inputs.return_arrays = 0  # 0: return lists instead of arrays
+    load_surface.inputs.return_arrays = True  # 0: return lists instead of arrays
 
     neighbors = Node(name='Neighbors',
                      interface = Fn(function = find_neighbors,
@@ -656,7 +656,8 @@ if run_featureflow:
                                                'thr',
                                                'use_only_endpoints'],
                                 output_names = ['fundus_IDs',
-                                                'n_fundi']))
+                                                'n_fundi',
+                                                'likelihoods']))
     if fundi_from_sulci:
         featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs')]),
                              (neighbors, fundi,
@@ -675,16 +676,17 @@ if run_featureflow:
     fundi.inputs.thr = thr
     fundi.inputs.use_only_endpoints = True
     #---------------------------------------------------------------------------
-    # Write folds/sulci and fundi to VTK files
+    # Write folds/sulci and fundi, likelihoods to VTK files
     #---------------------------------------------------------------------------
+    save_sulci = Node(name='Save_sulci',
+                      interface = Fn(function = rewrite_scalars,
+                                     input_names = ['input_vtk',
+                                                    'output_vtk',
+                                                    'new_scalars',
+                                                    'filter_scalars'],
+                                     output_names = ['output_vtk']))
+    # Save sulci
     if fundi_from_sulci:
-        save_sulci = Node(name='Save_sulci',
-                          interface = Fn(function = rewrite_scalars,
-                                         input_names = ['input_vtk',
-                                                        'output_vtk',
-                                                        'new_scalars',
-                                                        'filter_scalars'],
-                                         output_names = ['output_vtk']))
         featureflow.add_nodes([save_sulci])
         mbflow.connect([(measureflow, featureflow,
                          [('Depth.depth_file','Save_sulci.input_vtk')])])
@@ -694,8 +696,8 @@ if run_featureflow:
         mbflow.connect([(featureflow, sink,
                          [('Save_sulci.output_vtk','features.@sulci')])])
 
-        save_fundi = save_sulci.clone('Save_fundi')
-
+    # Save fundi
+    save_fundi = save_sulci.clone('Save_fundi')
     featureflow.add_nodes([save_fundi])
     mbflow.connect([(measureflow, featureflow,
                      [('Depth.depth_file','Save_fundi.input_vtk')])])
@@ -704,6 +706,17 @@ if run_featureflow:
     featureflow.connect([(fundi, save_fundi, [('fundus_IDs','filter_scalars')])])
     mbflow.connect([(featureflow, sink,
                      [('Save_fundi.output_vtk','features.@fundi')])])
+
+    # Save likelihoods values (in folds/sulci)
+    save_likelihoods = save_sulci.clone('Save_likelihoods')
+    featureflow.add_nodes([save_likelihoods])
+    mbflow.connect([(measureflow, featureflow,
+                     [('Depth.depth_file','Save_likelihoods.input_vtk')])])
+    save_likelihoods.inputs.output_vtk = 'likelihoods.vtk'
+    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','new_scalars')])])
+    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','filter_scalars')])])
+    mbflow.connect([(featureflow, sink,
+                     [('Save_likelihoods.output_vtk','features.@likelihoods')])])
 
 ################################################################################
 #

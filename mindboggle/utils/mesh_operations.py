@@ -306,7 +306,7 @@ def propagate(points, faces, region, seeds, labels):
     local_indices_region[indices_region] = range(len(indices_region))
 
     print('    Segment {0} vertices from {1} sets of seed vertices'.
-          format(len(indices_region), len([x for x in seeds if x > -1])))
+          format(len(indices_region), len(np.unique([x for x in seeds if x > -1]))))
 
     # Set up rebound Bounds class instance
     B = rb.Bounds()
