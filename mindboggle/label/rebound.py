@@ -119,12 +119,12 @@ class Bounds:
         """
         Construct a vertices x labels array of vertex label assignment values.
 
-        Input
-        =====
+        Parameters
+        ----------
         Array of n labels. -1 corresponds to no label.
 
-        Return
-        ======
+        Returns
+        -------
         n x C array. Row corresponds to vertex, column corresponds to label.
             1:   assigned the label corresponding to the column
            -1:   does not have that label
@@ -163,8 +163,8 @@ class Bounds:
 
         Other methods include "jacobi iteration" and "label spreading"
 
-        Input
-        =====
+        Parameters
+        ----------
         - faces and points of a vtk surface mesh
         method: string (choice of algorithm)
         realign: boolean (use label propagation for realigning boundaries?)
@@ -174,8 +174,8 @@ class Bounds:
         max_iters: int (number of times to repeat the algorithm)
         tol: float (threshold to assess convergence of the algorithm)
 
-        Return
-        ======
+        Returns
+        -------
         self.learned_matrix: np array (n x C array of probabilities
                                        that vertex has a given label)
         """
@@ -215,8 +215,8 @@ class Bounds:
         probable labeling for each vertex.  It outputs a separate array,
         max_prob_label, which contains one label for each vertex.
 
-        Return
-        ======
+        Returns
+        -------
         self.max_prob_labels: np array (size num_points,
                              containing the most probable label for each vertex)
 
@@ -250,15 +250,15 @@ class Bounds:
         """
         Run iterative weighted average algorithm to propagate labels to unlabeled vertices.
 
-        Input
-        =====
+        Parameters
+        ----------
         realign:    boolean (propagation is for realignment?)
         max_iters:  int (number of iterations)
         tol:        float (threshold for terminating algorithm)
         vis:        boolean (incremental VTK files to visualize
                              progress of the algorithm?)
-        Return
-        ======
+        Returns
+        -------
         self.learned_matrix: np array
              (n x C matrix of probabilities that vertex belongs to a given label)
 
@@ -436,13 +436,13 @@ class Bounds:
 
         NOTE: This method is redundant and inelegant.
 
-        Input
-        =====
+        Parameters
+        ----------
         realigned_labels: boolean (use realigned labels, not manual labels?)
         output_filename: string (vtk file containing highlighted label boundaries)
 
-        Return
-        ======
+        Returns
+        -------
         self.label_boundary: numpy array (of indices of vertices which comprise the label boundary)
         self.label_boundary_file: string (VTK file name containing highlighted label boundary)
         --OR--
@@ -503,11 +503,11 @@ class Bounds:
 
         This is a helper method for find_label_boundary_segments.
 
-        Input
-        =====
+        Parameters
+        ----------
 
-        Return
-        ======
+        Returns
+        -------
         self.label_boundary_per_label: dict (key: int label, value: list of vertices)
 
         """
@@ -541,8 +541,8 @@ class Bounds:
         two thick, following from the (>=2 label neighborhood) definition,
         so we call these "label cosegments".
 
-        Return
-        ======
+        Returns
+        -------
         self.label_boundary_segments: dict (key: tuple of labels, value: set of vertices)
         self.segment_file: string (pickled file containing the dictionary, for future, and faster, use)
         self.highlighted_segment_file: string (VTK file with boundary segments highlighted according to label)
@@ -596,12 +596,12 @@ class Bounds:
 #        NOTE: FIX -- no endpoints
 
         Parameters
-        ==========
+        ----------
         segment: list (vertices comprising the label boundary segment)
         endpoint: list (two endpoints of the label boundary segment)
 
         Returns
-        =======
+        -------
         intersection: list (two outermost vertices of the label boundary segment which intersect the polylines)
                         If there are not two intersection, return -1s in place
 
@@ -656,15 +656,15 @@ class Bounds:
 
         NOTE:  Useful if using label propagation for realignment.
 
-        Input
-        =====
+        Parameters
+        ----------
         Array of n label segments.
         self.label_boundary_segments: dict
             key:  2-tuple containing the assigned label and the adjacent label
             value:  list of vertices with the assigned label
 
-        Return
-        ======
+        Returns
+        -------
         n x C array. Row corresponds to vertex, column corresponds to label segment.
             1:   assigned the label segment corresponding to the column
            -1:   does not have that label
@@ -701,11 +701,11 @@ class Bounds:
         Determines whether two label boundary vertices belong to the same label boundary.
 
         Parameters
-        ==========
+        ----------
         vertex1, vertex2: int (index of label boundary vertex)
 
         Returns
-        =======
+        -------
         same: boolean (belong to the same boundary?)
 
         """
@@ -727,7 +727,7 @@ class Bounds:
 #       NOTE:  Face validity but not directed to do what we need at present.
 
         Parameters
-        ==========
+        ----------
         proportion: float (threshold of acceptable ratio of differences between polylines-to-boundary distances)
         dist_threshold: float (threshold of absolute distance between polylines and boundary, above which propagation is prohibited)
         num_good_vertices: int (threshold above which a label boundary segment will be preserved)
@@ -735,11 +735,11 @@ class Bounds:
         pickled_filename: str (pkl file storing the distance matrix. Saves time.)
 
         Returns
-        =======
+        -------
         self.label_segment_matrix: np array (n x num_segments matrix of labels, with zeros in unusable columns)
 
-        Explanation
-        ===========
+        Explanation ::
+
         In this method, we will prune the realignment matrix which was just constructed from the label boundary segments.
         The pruning will follow the principles that we want the polylines to be not too far from a given label boundary segment,
         and that it should be significantly closer to one than another.
@@ -897,8 +897,8 @@ class Bounds:
 
         Runs functions: self.find_label_boundary_segments() - if necessary
 
-        Return
-        ======
+        Returns
+        -------
         self.label_boundary_segments: dict (updated dict, with code at end signifying what type of label propagation to use)
             0: two polylines intersections from same fundus curve - do fill operation, in essence.
             1: all other cases - do label propagation, see other methods for details.
@@ -989,8 +989,8 @@ class Bounds:
         Complete method to realign the label boundaries.
         Calls all necessary subroutines.
 
-        Input
-        =====
+        Parameters
+        ----------
         surface_file: string (vtk file containing the vertices,
                               faces and manual labels of brain surface)
         polylines_file: string (vtk file containing polylines)
@@ -998,8 +998,8 @@ class Bounds:
         output_file_regions: string (vtk file to contain new labels)
         max_iters: int (maximum number of iterations)
 
-        Return
-        ======
+        Returns
+        -------
         output_file_regions: string (vtk file containing new labels)
         output_file_boundaries: string (vtk file containing highlighted
                                         label boundaries)
@@ -1037,12 +1037,12 @@ class Bounds:
 
 #        NOTE: assignment tricky -- based on label segments NOT labels
 
-        Input
-        =====
+        Parameters
+        ----------
         filename: string (output vtk file to visualize realigned label boundaries)
 
-        Return
-        ======
+        Returns
+        -------
         self.RLabels: array (of size num_points which contains the most
                              probable realigned label for each vertex)
         self.RLabels_file: string (vtk file containing most probable labels)
@@ -1122,8 +1122,8 @@ class Bounds:
                   reassignment would not change many polyline vertices,
                   then this is probably not a good group of vertices to change.
                   (Remove them from the input dictionary.)
-        Input
-        =====
+        Parameters
+        ----------
         dict_of_vertices: dict
             key:  label index
             value:  list of vertices under consideration for reassignment to label
@@ -1131,8 +1131,8 @@ class Bounds:
         threshold: int (minimum number of vertices that must also be part
                         of a polylines boundary)
 
-        Return
-        ======
+        Returns
+        -------
         dict_of_vertices: dict (subset of the input dict)
             key:  label index
             value:  list of vertices to be reassigned to the label
@@ -1152,8 +1152,8 @@ class Bounds:
         """
         Find vertices that flank the polylines.
 
-        Return
-        ======
+        Returns
+        -------
         self.polylines_flanks_indices: np array (of indices of vertices which border but are not part of the polylines)
 
         """
@@ -1184,8 +1184,8 @@ class Bounds:
                   and remove the other group from the input dictionary.
                   Presumably this group runs parallel to the polyline
                   representing a label-delimiting feature (such as a fundus).
-        Input
-        =====
+        Parameters
+        ----------
         dict_of_vertices: dict
             key:  label index
             value:  list of vertices under consideration for reassignment to label
@@ -1193,8 +1193,8 @@ class Bounds:
         threshold: int (minimum number of vertices that must also be part
                         of a polylines boundary)
 
-        Return
-        ======
+        Returns
+        -------
         dict_of_vertices: dict (subset of the input dict)
             key:  label index
             value:  list of vertices to be reassigned to the label
@@ -1262,8 +1262,8 @@ class Bounds:
                   and remove the other group from the input dictionary.
                   Presumably this group runs parallel to the polyline
                   representing a label-delimiting feature (such as a fundus).
-        Input
-        =====
+        Parameters
+        ----------
         dict_of_vertices: dict
             key:  label index
             value:  list of vertices under consideration for reassignment to label
@@ -1271,8 +1271,8 @@ class Bounds:
         threshold: int (minimum number of vertices that must also be part
                         of a polylines boundary)
 
-        Return
-        ======
+        Returns
+        -------
         dict_of_vertices: dict (subset of the input dict)
             key:  label index
             value:  list of vertices to be reassigned to the label
