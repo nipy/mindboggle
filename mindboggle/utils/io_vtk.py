@@ -923,7 +923,7 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
 
     return label_files, colortable  #relabel_file
 
-"""
+
 if __name__ == "__main__" :
 
 
@@ -934,7 +934,8 @@ if __name__ == "__main__" :
     from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
     from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     # data_path = os.environ['MINDBOGGLE_DATA']
-    data_path = '/desk/output/results'
+    label_data_path = '/brains/Mindboggle101'
+    data_path = '/desk/output_measures/results'
     column_names = ['labels', 'area', 'depth', 'mean_curvature',
                     'gauss_curvature', 'max_curvature', 'min_curvature',
                     'freesurfer_thickness', 'freesurfer_convexity']
@@ -948,7 +949,7 @@ if __name__ == "__main__" :
         print(subject)
         for hemi in hemis:
             filename = subject + '_' + hemi + '_fundus_label_boundary_shape_table.txt'
-            label_file = os.path.join(data_path, 'subjects', subject,
+            label_file = os.path.join(label_data_path, 'subjects', subject,
                                       'label', 'lh.labels.DKT25.manual.vtk')
             points, faces, labels, n_vertices = load_scalar(label_file, True)
             mesh_indices = find_neighbors(faces, n_vertices)
@@ -978,7 +979,7 @@ if __name__ == "__main__" :
                 '_hemi_lh_subject_MMRR-21-1', 'sulc.vtk')
             write_vertex_shape_table(filename, column_names, indices,
                 area_file, depth_file, mean_curvature_file, gauss_curvature_file,
-                max_curvature_file, min_curvature_file, thickness_file=,
+                max_curvature_file, min_curvature_file, thickness_file,
                 convexity_file, segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
             exit()
-"""
+
