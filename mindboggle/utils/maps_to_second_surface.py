@@ -25,18 +25,17 @@ import sys
 def load_maps(Filename):
     """Load all maps from the first VTK files 
     
-    parameters
-    --------------
+    Parameters
+    ----------
     Filename: string
         the path to the first VTK file
         
-    returns
-    ---------
+    Returns
+    --------
     MapsInFile: list of lists of floats/integers
         Each element (size: 1 by #vertexes) is a list represent a map on the surface
     
-    Note
-    ------
+    Note ::
     
         1. This function differs from load_scalar in io_vtk which loads only one  scalar map
         2. For structures, we only support copying lines, vertexes (indexes of points) and triangular faces from one surface to another.  
