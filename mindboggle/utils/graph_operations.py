@@ -42,13 +42,15 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
     import math
     from scipy.sparse import lil_matrix
 
+    stability_term = 0.000001
+
     ddm = lil_matrix((W.shape[0], W.shape[0]))
 
     if inverse:
         if not square_root:
-            ddm.setdiag(1 / W.sum(axis=1))
+            ddm.setdiag(1 / (W.sum(axis=1) + stability_term))
         else:
-            ddm.setdiag(math.sqrt(1 / W.sum(axis=1)))
+            ddm.setdiag(math.sqrt(1 / (W.sum(axis=1) + stability_term)))
 
     else:
         ddm.setdiag(W.sum(axis=1))
