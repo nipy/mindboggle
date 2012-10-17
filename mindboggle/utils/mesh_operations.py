@@ -320,7 +320,7 @@ def propagate(points, faces, region, seeds, labels):
     # Propagate seed IDs from seeds
     B.graph_based_learning(method='propagate_labels', realign=False,
                            kernel=kernels.rbf_kernel, sigma=10, vis=False,
-                           max_iters=200, tol=.001)
+                           max_iters=500, tol=.001)
 
     # Assign maximum probability seed IDs to each point of region
     max_prob_labels = B.assign_max_prob_label()
