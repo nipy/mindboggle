@@ -235,7 +235,7 @@ def load_scalar(filename, return_arrays=True):
     else:
         return points, faces, scalars, n_vertices
 
-def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
+def write_scalars(output_vtk, points, indices, faces, LUTs=[], LUT_names=[]):
     """
     Save scalars into a VTK-format file.
 
@@ -248,7 +248,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
 
     Parameters
     ----------
-    vtk_file : string
+    output_vtk : string
         path of the output VTK file
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
@@ -263,6 +263,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
 
     Examples
     --------
+    >>> # Toy example
     >>> import random
     >>> from mindboggle.utils.io_vtk import write_scalars
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
@@ -272,23 +273,39 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     >>> LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
     >>> write_scalars('test_write_scalars.vtk', points, indices, faces,
     >>>               LUTs=LUTs, LUT_names=LUT_names)
+    >>>
+    >>> # Write vtk file with depth values on sulci
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file)
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file)
+    >>> # Write to vtk file and view with mayavi2:
+    >>> indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>> write_scalars('test_write_scalars.vtk', points, indices,
+    >>>     inside_faces(faces, indices),
+    >>>     LUTs=[depths], LUT_names=['depths'])
+    >>> os.system('mayavi2 -m Surface -d test_write_scalars.vtk &')
 
     """
     import os
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
-    vtk_file = os.path.join(os.getcwd(), vtk_file)
+    output_vtk = os.path.join(os.getcwd(), output_vtk)
 
-    Fp = open(vtk_file,'w')
+    Fp = open(output_vtk,'w')
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(LUTs) > 0:
-        # Make sure that LUTs is a list of lists
-        if type(LUTs[0]) != list:
-            LUTs = [LUTs]
+
         for i, LUT in enumerate(LUTs):
             if i == 0:
                 if len(LUT_names) == 0:
@@ -304,7 +321,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
                 write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
     Fp.close()
 
-    return vtk_file
+    return output_vtk
 
 def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
@@ -316,7 +333,24 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     output_vtk : output VTK file [string]
     new_scalars : new scalar values for VTK file
     filter_scalars : (optional)
-        scalar values used to filter faces (positive values retained)
+        scalar values used to filter faces (values > -1 retained)
+
+    Examples
+    --------
+    >>> # Write vtk file with depth values on sulci
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file)
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file)
+    >>> # Write to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_write_scalars.vtk', depths, sulci)
+    >>> os.system('mayavi2 -m Surface -d test_write_scalars.vtk &')
 
     """
     import os
@@ -334,9 +368,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     # Find indices to nonzero values
     indices = range(n_vertices)
     if len(filter_scalars) > 0:
-        indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
+        indices_filter = [i for i,x in enumerate(filter_scalars) if int(x) > -1]
         # Remove surface mesh faces whose three vertices are not all in indices
-        faces = inside_faces(faces, indices_nonzero)
+        faces = inside_faces(faces, indices_filter)
 
     # Lookup lists for saving to VTK format files
     LUTs = [new_scalars]
