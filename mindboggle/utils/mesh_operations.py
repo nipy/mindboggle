@@ -29,7 +29,7 @@ def find_neighbors(faces, n_vertices):
     Returns
     -------
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
+        each list contains indices to neighboring vertices for each vertex
 
     Examples
     --------
@@ -100,8 +100,8 @@ def find_neighbors_vertex(faces, index):
 
     Returns
     -------
-    neighbor_list : list of integers
-        indices of neighboring vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
 
     Examples
     --------
@@ -141,14 +141,14 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     while ensuring that the anchor points are not close to one another.
     Anchor points are used to construct curves.
 
-    Note: only the sulcus end points are strictly necessary
-          (so that the fundus doesn't shrink)
-
     Parameters
     ----------
-    points : [#points x 3] numpy array
-    L : fundus likelihood values: [#points x 1] numpy array
-    min_directions : [#points x 1] numpy array
+    points : numpy array of floats
+        coordinates for all vertices
+    L : numpy array of integers
+        fundus likelihood values for all vertices (default -1)
+    min_directions : numpy array of floats
+        minimum directions for all vertices
     min_distance : minimum distance
     thr : likelihood threshold
 
@@ -244,20 +244,20 @@ def propagate(points, faces, region, seeds, labels):
     Parameters
     ----------
     points : list of lists of three integers
-        coordinates of vertices
+        coordinates for all vertices
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
     region : numpy array of integers
-        binary values, one per vertex in the mesh
+        binary values for all vertices
     seeds : numpy array of integers
-        seeds, one per vertex in the mesh
+        seed numbers for all vertices (default -1)
     labels : numpy array of integers
-        labels, one per vertex in the mesh
+        label numbers for all vertices, with -1s for unlabeled vertices
 
     Returns
     -------
-    segment_IDs : numpy array of integers
-        segment IDs for regions (default -1)
+    segments : numpy array of integers
+        region numbers for all vertices (default -1)
 
     Examples
     --------
@@ -277,10 +277,10 @@ def propagate(points, faces, region, seeds, labels):
     >>>     labels, neighbor_lists)
     >>> folds_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
-    >>> points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+    >>> points, faces, folds, n_vertices = load_scalar(folds_file, True)
     >>> label_pair_lists = sulcus_boundaries()
     >>> fold_ID = 2
-    >>> indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     >>> fold_array = np.zeros(len(points))
     >>> fold_array[indices_fold] = 1
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
@@ -290,9 +290,9 @@ def propagate(points, faces, region, seeds, labels):
     >>>     I = [x for i,x in enumerate(indices_boundaries)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
-    >>> segment_IDs = propagate(points, faces, fold_array, seeds, labels)
+    >>> segments = propagate(points, faces, fold_array, seeds, labels)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    >>> rewrite_scalars(label_file, 'test_propagate.vtk', segments, segments)
     >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
 
     """
@@ -326,10 +326,10 @@ def propagate(points, faces, region, seeds, labels):
     max_prob_labels = B.assign_max_prob_label()
 
     # Return segment IDs in original vertex array
-    segment_IDs = -1 * np.ones(len(points))
-    segment_IDs[indices_region] = max_prob_labels
+    segments = -1 * np.ones(len(points))
+    segments[indices_region] = max_prob_labels
 
-    return segment_IDs
+    return segments
 
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions
@@ -344,23 +344,23 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     ----------
     vertices_to_segment : list or array of integers
         indices to subset of mesh vertices to be segmented
-    neighbor_lists : list of lists of integers (#lists = #vertices in mesh)
-        each list contains indices to neighboring vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
     seed_lists : list of lists, or empty list
         each list contains indices to seed vertices to segment vertices_to_segment
     min_region_size : minimum size of segmented set of vertices
     spread_same_labels : Boolean
         grow seeds only by vertices with labels in the seed labels or not
     labels : numpy array of integers (optional)
-        labels, one per vertex in the mesh
+        label numbers for all vertices, with -1s for unlabeled vertices
     label_pair_lists : list of sublists of subsublists of integers
         each subsublist contains a pair of labels, and the sublist of these
         label pairs represents the label boundaries defining a sulcus
 
     Returns
     -------
-    segments : numpy array [total #vertices in mesh x 1]
-        segment indices for regions (default -1)
+    segments : numpy array of integers
+        region numbers for all vertices (default -1)
 
     Examples
     --------
@@ -377,9 +377,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
 
     >>> # Example 1: without seed lists
-    >>> folds = segment(vertices_to_segment, neighbor_lists,
-    >>>     seed_lists=[], min_region_size=1,
-    >>>     spread_same_labels=False, labels=[], label_pair_lists=[])
+    >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment1.vtk', folds, folds)
     >>> os.system('mayavi2 -m Surface -d test_segment1.vtk &')
@@ -399,10 +397,10 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> #seed_lists = [vertices_to_segment[range(2000)],
     >>> #              vertices_to_segment[range(2000,4000)],
     >>> #              vertices_to_segment[range(10000,12000)]]
-    >>> sulcus_IDs = segment(vertices_to_segment, neighbor_lists,
+    >>> sulci = segment(vertices_to_segment, neighbor_lists,
     >>>     seed_lists, 50, True, labels, label_pair_lists)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', sulcus_IDs, sulcus_IDs)
+    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', sulci, sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
 
     """
@@ -508,23 +506,23 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 #------------------------------------------------------------------------------
 # Fill holes
 #------------------------------------------------------------------------------
-def fill_holes(regions, holes, n_holes, neighbor_lists):
+def fill_holes(holes, regions, neighbor_lists):
     """
     Fill holes in regions on a surface mesh.
 
     Parameters
     ----------
-    regions : numpy array [total #vertices in mesh x 1]
-        indices for regions (default -1)
-    holes : [#vertices x 1] numpy array
-    n_holes : [#vertices x 1] numpy array
+    holes : numpy array of integers
+        hole numbers for all vertices (default -1)
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
+        each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
-    regions : [#vertices x 1] numpy array of integers
-        region ID numbers
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
 
     """
     import numpy as np
@@ -534,7 +532,8 @@ def fill_holes(regions, holes, n_holes, neighbor_lists):
         regions = np.array(regions)
 
     # Identify the vertices for each hole
-    for n_hole in range(n_holes):
+    hole_numbers = [x for x in np.unique(holes) if x > -1]
+    for n_hole in hole_numbers:
         I = np.where(holes == n_hole)[0]
 
         # Identify neighbors to these vertices
@@ -543,6 +542,145 @@ def fill_holes(regions, holes, n_holes, neighbor_lists):
 
             # Assign the hole the maximum region ID number of its neighbors
             regions[I] = max([regions[x] for x in N])
+
+    return regions
+
+def fill_hole_boundaries(regions, neighbor_lists):
+    """
+    Fill holes in regions on a surface mesh by using region boundaries.
+
+    NOTE: assumes one set of connected vertices per region
+
+    Parameters
+    ----------
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, segment
+    >>> from mindboggle.utils.mesh_operations import inside_faces, fill_holes
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> # Select one sulcus
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> #neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> n_sulcus = 0
+    >>> sulci[sulci != n_sulcus] = -1
+    >>> # Make hole in sulcus in case there isn't one
+    >>> I = np.where(sulci==n_sulcus)[0]
+    >>> index = I[np.round(len(I)/2)]
+    >>> N = neighbor_lists[index]
+    >>> for n in N:
+    >>>     if any(sulci[neighbor_lists[n]] == -1):
+    >>>         print("Select a different index")
+    >>>         break
+    >>> neighbor_lists[index] = []
+    >>> for n in N:
+    >>>     neighbor_lists[n] = []
+    >>> sulci[index] = -1
+    >>> sulci[N] = -1
+    >>> # Write hole to vtk file and view with mayavi2:
+    >>> indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>> write_scalars('test_hole.vtk', points, indices,
+    >>>     inside_faces(faces, indices), LUTs=[sulci], LUT_names=['holes'])
+    >>> os.system('mayavi2 -m Surface -d test_hole.vtk &')
+    >>> # Fill hole
+    >>> regions = fill_holes(sulci, neighbor_lists)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> indices = [i for i,x in enumerate(regions) if x > -1]
+    >>> write_scalars('test_fill_holes.vtk', points, indices,
+    >>>     inside_faces(faces, indices), LUTs=[regions], LUT_names=['regions'])
+    >>> os.system('mayavi2 -m Surface -d test_fill_holes.vtk &')
+
+    """
+    import numpy as np
+
+    #--------------------------------------------------------------------------
+    # Find boundaries to holes
+    #--------------------------------------------------------------------------
+    hole_boundaries = -1 * np.ones(len(regions))
+
+    # Identify vertices for each region
+    region_numbers = [x for x in np.unique(regions) if x > -1]
+    count = 0
+    for n_region in region_numbers:
+        region_indices = np.where(regions == n_region)[0]
+
+        # Identify neighbors to these vertices and their neighbors
+        N = []
+        [N.extend(neighbor_lists[x]) for x in region_indices]
+        N = np.unique(N)
+        N = [x for x in N if x not in region_indices]
+        N2 = []
+        [N2.extend(neighbor_lists[x]) for x in N if x not in region_indices]
+        N.extend(N2)
+        N = np.unique(N)
+        if len(N):
+
+            # Segment the neighbors into connected vertices (region boundaries)
+            boundaries = segment(N, neighbor_lists)
+
+            # Remove the largest region boundary, presumably the
+            # outer contour of the region, leaving smaller boundaries,
+            # presumably the contours of holes within the region
+            boundary_numbers = [x for x in np.unique(boundaries) if x > -1]
+            max_size = 0
+            max_number = 0
+            for n_boundary in boundary_numbers:
+                boundary_indices = np.where(boundaries == n_boundary)[0]
+                if len(boundary_indices) > max_size:
+                    max_size = len(boundary_indices)
+                    max_number = n_boundary
+            boundaries[boundaries == max_number] = -1
+            boundary_numbers = [x for x in boundary_numbers if x != max_number]
+
+            # Add remaining boundaries to holes array
+            for n_boundary in boundary_numbers:
+                indices = [i for i,x in enumerate(boundaries) if x == n_boundary]
+                hole_boundaries[indices] = count
+                count += 1
+
+    #--------------------------------------------------------------------------
+    # Fill holes
+    #--------------------------------------------------------------------------
+    # If there are any holes
+    if count > 0:
+        hole_numbers = [x for x in np.unique(hole_boundaries) if x > -1]
+
+        # Grow seeds from hole boundaries to fill holes (background value -1)
+        seed_lists = []
+        for n_hole in hole_numbers:
+            I = np.where(hole_boundaries == n_hole)[0]
+            seed_lists.append(I)
+        background = [i for i,x in enumerate(regions) if x == -1]
+        holes = segment(background, neighbor_lists, seed_lists)
+
+        # Identify the vertices for each hole
+        for n_hole in hole_numbers:
+            I = np.where(holes == n_hole)[0]
+
+            # Identify neighbors to these vertices
+            N=[]; [N.extend(neighbor_lists[i]) for i in I]
+            if len(N):
+
+                # Assign the hole the maximum region number of its neighbors
+                regions[I] = max([regions[x] for x in N])
 
     return regions
 
@@ -559,7 +697,8 @@ def simple_test(index, values, neighbor_lists):
     Parameters
     ----------
     index : index of vertex
-    values : values: [#vertices x 1] numpy array
+    values : numpy array of integers or floats
+        values for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
@@ -648,21 +787,23 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
 
     Parameters
     ----------
-    binary_array : binary [#vertices x 1] numpy array
+    binary_array : numpy array of integers
+        binary values for all vertices
     indices_to_keep : indices to retain
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
-    binary_array : binary skeleton: numpy array
+    binary_array : numpy array of integers
+        skeleton: binary values for all vertices
 
     Examples
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
     >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -674,22 +815,23 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
     >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
     >>>                                                          True)
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
-    >>> sulcus_ID = 1
-    >>> indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
-    >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
-    >>>                                       mean_curvatures[indices_fold])
+    >>> n_sulcus = max(sulci)
+    >>> sulci[sulci != n_sulcus] = -1
+    >>> indices_sulcus = [i for i,x in enumerate(sulci) if x == n_sulcus]
+    >>> sulcus_likelihoods = compute_likelihood(depths[indices_sulcus],
+    >>>                                       mean_curvatures[indices_sulcus])
     >>> thr = 0.5
     >>> L = np.zeros(len(points))
-    >>> L[indices_fold] = fold_likelihoods
-    >>> fold_indices_anchors = find_anchors(points[indices_fold, :],
-    >>>     fold_likelihoods, min_directions[indices_fold], 5, thr)
-    >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
+    >>> L[indices_sulcus] = sulcus_likelihoods
+    >>> sulcus_indices_anchors = find_anchors(points[indices_sulcus, :],
+    >>>     sulcus_likelihoods, min_directions[indices_sulcus], 5, thr)
+    >>> indices_anchors = [indices_sulcus[x] for x in sulcus_indices_anchors]
     >>> L[L > thr] = 1
     >>> L[L <= thr] = 0
     >>> anchor_skeleton = skeletonize(L, indices_anchors, neighbor_lists)
@@ -701,7 +843,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> # Write results to vtk file and view with mayavi2:
     >>> skeleton[indices_anchors] = 3
     >>> skeleton[indices_endpoints] = 5
-    >>> rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
+    >>> indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>> write_scalars('test_skeletonize.vtk', points, indices,
+    >>>     inside_faces(faces, indices), LUTs=[skeleton], LUT_names=['skeleton'])
     >>> os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
 
     """
@@ -838,9 +982,9 @@ def detect_boundaries(region, labels, neighbor_lists):
     region : list of integers
         indices to vertices in a region (any given collection of vertices)
     labels : numpy array of integers
-        labels for all vertices
+        label numbers for all vertices, with -1s for unlabeled vertices
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
+        each list contains indices to neighboring vertices for each vertex
 
     Returns
     -------
@@ -981,14 +1125,14 @@ if __name__ == "__main__" :
     indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
         labels, neighbor_lists)
 
-    folds_file = os.path.join(data_path, 'results', 'features',
-                 '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
-    points, faces, fold_IDs, n_vertices = load_scalar(folds_file, True)
+    sulcuss_file = os.path.join(data_path, 'results', 'features',
+                 '_hemi_lh_subject_MMRR-21-1', 'sulcuss.vtk')
+    points, faces, folds, n_vertices = load_scalar(folds_file, True)
 
     label_pair_lists = sulcus_boundaries()
 
     fold_ID = 1
-    indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+    indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     fold_array = np.zeros(len(points))
     fold_array[indices_fold] = 1
     indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
@@ -1000,62 +1144,8 @@ if __name__ == "__main__" :
              if np.sort(label_pairs[i]).tolist() in label_pair_list]
         seeds[I] = ilist
 
-    segment_IDs = propagate(points, faces, fold_array, seeds, labels)
+    segments = propagate(points, faces, fold_array, seeds, labels)
 
     # Write results to vtk file and view with mayavi2:
-    rewrite_scalars(label_file, 'test_propagate.vtk', segment_IDs, segment_IDs)
+    rewrite_scalars(label_file, 'test_propagate.vtk', segments, segments)
     os.system('mayavi2 -m Surface -d test_propagate.vtk &')
-
-    # Skeletonize example
-    """
-    import os
-    import numpy as np
-    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
-    from mindboggle.utils.mesh_operations import find_neighbors
-    from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
-    from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
-    data_path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(data_path, 'measures',
-                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    mean_curvature_file = os.path.join(data_path, 'measures',
-        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    min_curvature_vector_file = os.path.join(data_path, 'measures',
-        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-    sulci_file = os.path.join(data_path, 'results', 'features',
-                 '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    points, faces, depths, n_vertices = load_scalar(depth_file, True)
-    neighbor_lists = find_neighbors(faces, len(points))
-    points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
-    points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
-                                                             True)
-    min_directions = np.loadtxt(min_curvature_vector_file)
-    sulcus_ID = 1
-    indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
-    fold_likelihoods = compute_likelihood(depths[indices_fold],
-                                          mean_curvatures[indices_fold])
-    thr = 0.5
-    L = np.zeros(len(points))
-    L[indices_fold] = fold_likelihoods
-    fold_indices_anchors = find_anchors(points[indices_fold, :],
-        fold_likelihoods, min_directions[indices_fold], 5, thr)
-    indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-    L[L > thr] = 1
-    L[L <= thr] = 0
-    anchor_skeleton = skeletonize(L, indices_anchors, neighbor_lists)
-    indices_skeleton = [i for i,x in enumerate(anchor_skeleton) if x > 0]
-    indices_endpoints = extract_endpoints(indices_skeleton, neighbor_lists)
-    indices_endpoints = [x for x in indices_endpoints if x in indices_anchors]
-    skeleton = skeletonize(L, indices_endpoints, neighbor_lists)
-
-    print("Fold: {0}, L: {1}, skeleton: {2}, anchors: {3}, endpoints: {4}".
-          format(len([x for x in sulcus_IDs if x == sulcus_ID]),
-                len([x for x in L if x > 0]),
-                len([x for x in skeleton if x > 0]),
-                len(indices_anchors), len(indices_endpoints)))
-
-    # Write results to vtk file and view with mayavi2:
-    skeleton[indices_anchors] = 3
-    skeleton[indices_endpoints] = 4
-    rewrite_scalars(depth_file, 'test_skeletonize.vtk', skeleton, skeleton)
-    os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
-    """
