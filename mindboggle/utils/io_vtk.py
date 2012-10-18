@@ -497,7 +497,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
                              depth_file, mean_curvature_file, gauss_curvature_file,
                              max_curvature_file, min_curvature_file,
                              thickness_file='', convexity_file='',
-                             segment_IDs=[], nonsegment_IDs=[]):
+                             segments=[], nonsegments=[]):
     """
     Make a table of shape values per vertex per label per measure.
 
@@ -509,11 +509,11 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
         indices to vertices to compute shapes
     area_file : name of file containing per-vertex surface areas
     *shape_files : arbitrary number of vtk files with scalar values
-    segment_IDs : numpy array of integers (optional)
+    segments : numpy array of integers (optional)
         IDs assigning all vertices to segments
         (depth is normalized by the maximum depth value in a segment)
-    nonsegment_IDs : list of integers
-        segment IDs to be excluded
+    nonsegments : list of integers
+        segment numbers to be excluded
 
     Returns
     -------
@@ -536,8 +536,8 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
-    >>> sulcus_indices = [i for i,x in enumerate(sulcus_IDs) if x > -1]
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
     >>>     neighbor_lists)
     >>> nonsegments = [-1]
@@ -556,7 +556,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> write_vertex_shape_table(filename, column_names, indices,
     >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
     >>>     max_curvature_file, min_curvature_file, thickness_file='',
-    >>>     convexity_file='', segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
+    >>>     convexity_file='', segments=sulci, nonsegments=nonsegments)
 
     """
     import os
@@ -582,11 +582,11 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
             depths = values
 
     # Normalize depth values by maximum depth per segment
-    unique_segment_IDs = np.unique(segment_IDs)
-    unique_segment_IDs = [x for x in unique_segment_IDs if x not in nonsegment_IDs]
-    if len(unique_segment_IDs):
-        for segment_ID in unique_segment_IDs:
-            indices_segment = [i for i,x in enumerate(segment_IDs)
+    unique_segments = np.unique(segments)
+    unique_segments = [x for x in unique_segments if x not in nonsegments]
+    if len(unique_segments):
+        for segment_ID in unique_segments:
+            indices_segment = [i for i,x in enumerate(segments)
                                if x == segment_ID]
             if len(indices_segment):
                 max_depth_segment = max(depths[indices_segment])
@@ -595,7 +595,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
         columns.append(depths[indices])
     print(len(column_names), len(columns))
     shape_table = os.path.join(os.getcwd(), filename)
-    write_table(segment_IDs[indices], columns, column_names, shape_table)
+    write_table(segments[indices], columns, column_names, shape_table)
 
     return shape_table
 
@@ -990,8 +990,8 @@ if __name__ == "__main__" :
             neighbor_lists = find_neighbors(faces, n_vertices)
             sulci_file = os.path.join(data_path, 'results', 'features',
                                       '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-            points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
-            sulcus_indices = [i for i,x in enumerate(sulcus_IDs) if x > -1]
+            points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+            sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
             indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
                                                 neighbor_lists)
             nonsegments = [-1]
@@ -1014,6 +1014,6 @@ if __name__ == "__main__" :
             write_vertex_shape_table(filename, column_names, indices,
                 area_file, depth_file, mean_curvature_file, gauss_curvature_file,
                 max_curvature_file, min_curvature_file, thickness_file,
-                convexity_file, segment_IDs=sulcus_IDs, nonsegment_IDs=nonsegments)
+                convexity_file, segments=sulci, nonsegments=nonsegments)
             exit()
 
