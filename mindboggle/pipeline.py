@@ -94,10 +94,10 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasflow = True
-run_measureflow = True
-run_featureflow = True
-run_shapeflow = 0#True
+run_atlasFlow = True
+run_measureFlow = True
+run_featureFlow = True
+run_shapeFlow = 0#True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -149,8 +149,8 @@ classifier_atlas = 'DKTatlas40.gcs'
 #-------------------------------------------------------------------------------
 # Initialize main workflow
 #-------------------------------------------------------------------------------
-mbflow = Workflow(name='Mindboggle')
-mbflow.base_dir = temp_path
+mbFlow = Workflow(name='Mindboggle')
+mbFlow.base_dir = temp_path
 if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 
 #===============================================================================
@@ -160,54 +160,54 @@ if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 # Iterate inputs over subjects, hemispheres
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-------------------------------------------------------------------------------
-info = Node(name = 'Inputs',
+Info = Node(name = 'Inputs',
             interface = IdentityInterface(fields=['subject', 'hemi']))
-info.iterables = ([('subject', subjects), ('hemi', hemis)])
+Info.iterables = ([('subject', subjects), ('hemi', hemis)])
 #-------------------------------------------------------------------------------
 # Location and structure of the surface inputs
 #-------------------------------------------------------------------------------
-surf = Node(name = 'Surfaces',
+Surf = Node(name = 'Surfaces',
             interface = DataGrabber(infields=['subject', 'hemi'],
                                     outfields=['surface_files', 'sphere_files']))
-surf.inputs.base_directory = subjects_path
-surf.inputs.template = '%s/surf/%s.%s'
-surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
-surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
+Surf.inputs.base_directory = subjects_path
+Surf.inputs.template = '%s/surf/%s.%s'
+Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
+Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 if include_thickness:
-    surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
+    Surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
 if include_convexity:
-    surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'sulc']]
-mbflow.connect([(info, surf, [('subject','subject'), ('hemi','hemi')])])
+    Surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'sulc']]
+mbFlow.connect([(Info, Surf, [('subject','subject'), ('hemi','hemi')])])
 #-------------------------------------------------------------------------------
 # Outputs
 #-------------------------------------------------------------------------------
-sink = Node(DataSink(), name = 'Results')
-sink.inputs.base_directory = output_path
-sink.inputs.container = 'results'
+Sink = Node(DataSink(), name = 'Results')
+Sink.inputs.base_directory = output_path
+Sink.inputs.container = 'results'
 if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-------------------------------------------------------------------------------
 # Convert surfaces to VTK
 #-------------------------------------------------------------------------------
 if not input_vtk:
-    convertsurf = Node(name = 'Surf_to_VTK',
+    ConvertSurf = Node(name = 'Surf_to_VTK',
                        interface = Fn(function = freesurface_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
-    mbflow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
+    mbFlow.connect([(Surf, ConvertSurf, [('surface_files','surface_file')])])
 #-------------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-------------------------------------------------------------------------------
 if evaluate_surface_labels or init_labels == 'manual':
-    atlas = Node(name = 'Atlases',
+    Atlas = Node(name = 'Atlases',
                  interface = DataGrabber(infields=['subject','hemi'],
                                          outfields=['atlas_file']))
-    atlas.inputs.base_directory = atlases_path
+    Atlas.inputs.base_directory = atlases_path
 
-    atlas.inputs.template = '%s/label/%s.labels.' +\
+    Atlas.inputs.template = '%s/label/%s.labels.' +\
                             protocol + '.' + label_method + '.vtk'
-    atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
+    Atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
 
-    mbflow.connect([(info, atlas, [('subject','subject'),('hemi','hemi')])])
+    mbFlow.connect([(Info, Atlas, [('subject','subject'),('hemi','hemi')])])
 #-------------------------------------------------------------------------------
 # Load data
 #-------------------------------------------------------------------------------
@@ -220,15 +220,15 @@ ctx_label_numbers, ctx_label_names, RGBs = read_columns(ctx_labels_file,
 #   Multi-atlas labeling workflow
 #
 ################################################################################
-if run_atlasflow:
+if run_atlasFlow:
 
-    atlasflow = Workflow(name='Label_initialization')
+    atlasFlow = Workflow(name='Label_initialization')
 
     #===========================================================================
     #   Initialize labels with FreeSurfer's standard DK classifier atlas
     #===========================================================================
     if init_labels == 'DKatlas':
-        freelabels = Node(name = 'DK_annot_to_VTK',
+        FreeLabels = Node(name = 'DK_annot_to_VTK',
                         interface = Fn(function = freeannot_to_vtk,
                                        input_names = ['surface_file',
                                                       'hemi',
@@ -237,20 +237,20 @@ if run_atlasflow:
                                                       'annot_name'],
                                        output_names = ['labels',
                                                        'vtk_file']))
-        atlasflow.add_nodes([freelabels])
+        atlasFlow.add_nodes([FreeLabels])
         if input_vtk:
-            mbflow.connect([(surf, atlasflow,
+            mbFlow.connect([(Surf, atlasFlow,
                              [('surface_files',
                                'DK_annot_to_VTK.surface_file')])])
         else:
-            mbflow.connect([(convertsurf, atlasflow,
+            mbFlow.connect([(ConvertSurf, atlasFlow,
                              [('vtk_file',
                                'DK_annot_to_VTK.surface_file')])])
-        mbflow.connect([(info, atlasflow,
+        mbFlow.connect([(Info, atlasFlow,
                          [('hemi', 'DK_annot_to_VTK.hemi'),
                           ('subject', 'DK_annot_to_VTK.subject')])])
-        freelabels.inputs.subjects_path = subjects_path
-        freelabels.inputs.annot_name = 'aparc.annot'
+        FreeLabels.inputs.subjects_path = subjects_path
+        FreeLabels.inputs.annot_name = 'aparc.annot'
     #===========================================================================
     #   Initialize labels with the DKT classifier atlas
     #===========================================================================
@@ -258,7 +258,7 @@ if run_atlasflow:
         """
         Label a brain with the DKT atlas using FreeSurfer's mris_ca_label.
         """
-        classifier = Node(name = 'Label_with_DKTatlas',
+        Classifier = Node(name = 'Label_with_DKTatlas',
                           interface = Fn(function = label_with_classifier,
                                          input_names = ['hemi',
                                                         'subject',
@@ -268,19 +268,19 @@ if run_atlasflow:
                                                         'classifier_atlas'],
                                          output_names = ['annot_name',
                                                          'annot_file']))
-        atlasflow.add_nodes([classifier])
-        mbflow.connect([(info, atlasflow,
+        atlasFlow.add_nodes([Classifier])
+        mbFlow.connect([(Info, atlasFlow,
                          [('hemi', 'Label_with_DKTatlas.hemi'),
                           ('subject', 'Label_with_DKTatlas.subject')])])
-        classifier.inputs.subjects_path = subjects_path
-        mbflow.connect([(surf, atlasflow,
+        Classifier.inputs.subjects_path = subjects_path
+        mbFlow.connect([(Surf, atlasFlow,
                          [('sphere_files',
                            'Label_with_DKTatlas.sphere_file')])])
-        classifier.inputs.classifier_path = classifier_path
-        classifier.inputs.classifier_atlas = classifier_atlas
+        Classifier.inputs.classifier_path = classifier_path
+        Classifier.inputs.classifier_atlas = classifier_atlas
 
         # Convert .annot file to .vtk format
-        classifier2vtk = Node(name = 'DKT_annot_to_VTK',
+        Classifier2vtk = Node(name = 'DKT_annot_to_VTK',
                               interface = Fn(function = freeannot_to_vtk,
                                              input_names = ['surface_file',
                                                             'hemi',
@@ -289,20 +289,20 @@ if run_atlasflow:
                                                             'annot_name'],
                                              output_names = ['labels',
                                                              'vtk_file']))
-        atlasflow.add_nodes([classifier2vtk])
+        atlasFlow.add_nodes([Classifier2vtk])
         if input_vtk:
-            mbflow.connect([(surf, atlasflow,
+            mbFlow.connect([(Surf, atlasFlow,
                              [('surface_files',
                                'DKT_annot_to_VTK.surface_file')])])
         else:
-            mbflow.connect([(convertsurf, atlasflow,
+            mbFlow.connect([(ConvertSurf, atlasFlow,
                              [('vtk_file',
                                'DKT_annot_to_VTK.surface_file')])])
-        mbflow.connect([(info, atlasflow,
+        mbFlow.connect([(Info, atlasFlow,
                          [('hemi', 'DKT_annot_to_VTK.hemi'),
                           ('subject', 'DKT_annot_to_VTK.subject')])])
-        classifier2vtk.inputs.subjects_path = subjects_path
-        atlasflow.connect([(classifier, classifier2vtk,
+        Classifier2vtk.inputs.subjects_path = subjects_path
+        atlasFlow.connect([(Classifier, Classifier2vtk,
                             [('annot_name', 'annot_name')])])
     #===========================================================================
     #   Initialize labels using multi-atlas registration
@@ -313,7 +313,7 @@ if run_atlasflow:
         #-----------------------------------------------------------------------
         free_template = 'OASIS-TRT-20'  # FreeSurfer template
 
-        register = Node(name = 'Register_template',
+        Register = Node(name = 'Register_template',
                         interface = Fn(function = register_template,
                                        input_names = ['hemi',
                                                       'sphere_file',
@@ -321,13 +321,13 @@ if run_atlasflow:
                                                       'templates_path',
                                                       'template'],
                                        output_names = ['transform']))
-        atlasflow.add_nodes([register])
-        mbflow.connect([(info, atlasflow, [('hemi', 'Register_template.hemi')]),
-                        (surf, atlasflow, [('sphere_files',
+        atlasFlow.add_nodes([Register])
+        mbFlow.connect([(Info, atlasFlow, [('hemi', 'Register_template.hemi')]),
+                        (Surf, atlasFlow, [('sphere_files',
                                             'Register_template.sphere_file')])])
-        register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-        register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
-        register.inputs.template = free_template + '.tif'
+        Register.inputs.transform = 'sphere_to_' + template + '_template.reg'
+        Register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
+        Register.inputs.template = free_template + '.tif'
         #-----------------------------------------------------------------------
         # Register atlases to subject via template
         #-----------------------------------------------------------------------
@@ -335,7 +335,7 @@ if run_atlasflow:
         atlas_list_file = os.path.join(info_path, 'atlases.txt')
         atlas_list = read_columns(atlas_list_file, 1)[0]
 
-        transform = MapNode(name = 'Transform_labels',
+        Transform = MapNode(name = 'Transform_labels',
                             iterfield = ['atlas'],
                             interface = Fn(function = transform_atlas_labels,
                                            input_names = ['hemi',
@@ -345,19 +345,19 @@ if run_atlasflow:
                                                           'atlas',
                                                           'atlas_string'],
                                            output_names = ['output_file']))
-        atlasflow.add_nodes([transform])
-        mbflow.connect([(info, atlasflow,
+        atlasFlow.add_nodes([Transform])
+        mbFlow.connect([(info, atlasFlow,
                          [('hemi', 'Transform_labels.hemi'),
                           ('subject', 'Transform_labels.subject')])])
-        atlasflow.connect([(register, transform, [('transform', 'transform')])])
-        #transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
-        transform.inputs.subjects_path = subjects_path
-        transform.inputs.atlas = atlas_list
-        transform.inputs.atlas_string = 'labels.' + protocol + '.' + label_method
+        atlasFlow.connect([(Register, Transform, [('transform', 'transform')])])
+        #Transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
+        Transform.inputs.subjects_path = subjects_path
+        Transform.inputs.atlas = atlas_list
+        Transform.inputs.atlas_string = 'labels.' + protocol + '.' + label_method
         #-----------------------------------------------------------------------
         # Majority vote label
         #-----------------------------------------------------------------------
-        vote = Node(name='Label_vote',
+        Vote = Node(name='Label_vote',
                     interface = Fn(function = majority_vote_label,
                                    input_names = ['surface_file',
                                                   'annot_files'],
@@ -368,15 +368,15 @@ if run_atlasflow:
                                                    'maxlabel_file',
                                                    'labelcounts_file',
                                                    'labelvotes_file']))
-        atlasflow.add_nodes([vote])
+        atlasFlow.add_nodes([Vote])
         if input_vtk:
-            mbflow.connect([(surf, atlasflow,
+            mbFlow.connect([(Surf, atlasFlow,
                              [('surface_files', 'Label_vote.surface_file')])])
         else:
-            mbflow.connect([(convertsurf, atlasflow,
+            mbFlow.connect([(ConvertSurf, atlasFlow,
                              [('vtk_file', 'Label_vote.surface_file')])])
-        atlasflow.connect([(transform, vote, [('output_file', 'annot_files')])])
-        mbflow.connect([(atlasflow, sink,
+        atlasFlow.connect([(Transform, Vote, [('output_file', 'annot_files')])])
+        mbFlow.connect([(atlasFlow, Sink,
                          [('Label_vote.maxlabel_file', 'labels.@max'),
                           ('Label_vote.labelcounts_file', 'labels.@counts'),
                           ('Label_vote.labelvotes_file', 'labels.@votes')])])
@@ -384,7 +384,7 @@ if run_atlasflow:
     #   Skip label initialization and process manual (atlas) labels
     #===========================================================================
     elif init_labels == 'manual':
-        atlaslabels = Node(name = 'Atlas_labels',
+        AtlasLabels = Node(name = 'Atlas_labels',
                            interface = Fn(function = load_scalar,
                                           input_names = ['filename',
                                                          'return_arrays'],
@@ -392,10 +392,10 @@ if run_atlasflow:
                                                           'faces',
                                                           'scalars',
                                                           'n_vertices']))
-        atlasflow.add_nodes([atlaslabels])
-        mbflow.connect([(atlas, atlasflow,
+        atlasFlow.add_nodes([AtlasLabels])
+        mbFlow.connect([(Atlas, atlasFlow,
                          [('atlas_file', 'Atlas_labels.filename')])])
-        atlaslabels.inputs.return_arrays = True  # 0: return lists instead of arrays
+        AtlasLabels.inputs.return_arrays = True  # 0: return lists instead of arrays
 
 
 ################################################################################
@@ -403,9 +403,9 @@ if run_atlasflow:
 #   Surface measurement workflow
 #
 ################################################################################
-if run_measureflow:
+if run_measureFlow:
 
-    measureflow = Workflow(name='Surface_measurement')
+    measureFlow = Workflow(name='Surface_measurement')
 
     #===========================================================================
     #   Surface measurements
@@ -413,27 +413,27 @@ if run_measureflow:
     #---------------------------------------------------------------------------
     # Measure surface area
     #---------------------------------------------------------------------------
-    area = Node(name='Area',
+    AreaNode = Node(name='Area',
                 interface = Fn(function = compute_area,
                                input_names = ['command',
                                               'surface_file'],
                                output_names = ['area_file']))
     area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
-    area.inputs.command = area_command
+    AreaNode.inputs.command = area_command
     #---------------------------------------------------------------------------
     # Measure surface depth
     #---------------------------------------------------------------------------
-    depth = Node(name='Depth',
+    DepthNode = Node(name='Depth',
                  interface = Fn(function = compute_depth,
                                 input_names = ['command',
                                                'surface_file'],
                                 output_names = ['depth_file']))
     depth_command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
-    depth.inputs.command = depth_command
+    DepthNode.inputs.command = depth_command
     #---------------------------------------------------------------------------
     # Measure surface curvature
     #---------------------------------------------------------------------------
-    curvature = Node(name='Curvature',
+    CurvNode = Node(name='Curvature',
                      interface = Fn(function = compute_curvature,
                                     input_names = ['command',
                                                    'surface_file'],
@@ -443,12 +443,12 @@ if run_measureflow:
                                                     'min_curvature_file',
                                                     'min_curvature_vector_file']))
     curvature_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain')
-    curvature.inputs.command = curvature_command
+    CurvNode.inputs.command = curvature_command
     #---------------------------------------------------------------------------
     # Convert FreeSurfer surface measures to VTK
     #---------------------------------------------------------------------------
     if include_thickness:
-        convertthickness = Node(name = 'Thickness_to_VTK',
+        ThickNode = Node(name = 'Thickness_to_VTK',
                            interface = Fn(function = freecurvature_to_vtk,
                                           input_names = ['file_string',
                                                          'surface_file',
@@ -456,22 +456,22 @@ if run_measureflow:
                                                          'subject',
                                                          'subjects_path'],
                                           output_names = ['vtk_file']))
-        measureflow.add_nodes([convertthickness])
-        convertthickness.inputs.file_string = 'thickness'
+        measureFlow.add_nodes([ThickNode])
+        ThickNode.inputs.file_string = 'thickness'
         if not input_vtk:
-            mbflow.connect([(convertsurf, measureflow,
+            mbFlow.connect([(ConvertSurf, measureFlow,
                              [('vtk_file','Thickness_to_VTK.surface_file')])])
         else:
-            mbflow.connect([(surf, measureflow,
+            mbFlow.connect([(Surf, measureFlow,
                              [('surface_files','Thickness_to_VTK.surface_file')])])
-        mbflow.connect([(info, measureflow,
+        mbFlow.connect([(Info, measureFlow,
                          [('hemi','Thickness_to_VTK.hemi'),
                           ('subject','Thickness_to_VTK.subject')])])
-        convertthickness.inputs.subjects_path = subjects_path
-        mbflow.connect([(measureflow, sink,
+        ThickNode.inputs.subjects_path = subjects_path
+        mbFlow.connect([(measureFlow, Sink,
                          [('Thickness_to_VTK.vtk_file', 'measures.@thickness')])])
     if include_convexity:
-        convertconvexity = Node(name = 'Convexity_to_VTK',
+        ConvexNode = Node(name = 'Convexity_to_VTK',
                            interface = Fn(function = freecurvature_to_vtk,
                                           input_names = ['file_string',
                                                          'surface_file',
@@ -479,42 +479,42 @@ if run_measureflow:
                                                          'subject',
                                                          'subjects_path'],
                                           output_names = ['vtk_file']))
-        measureflow.add_nodes([convertconvexity])
-        convertconvexity.inputs.file_string = 'sulc'
+        measureFlow.add_nodes([ConvexNode])
+        ConvexNode.inputs.file_string = 'sulc'
         if not input_vtk:
-            mbflow.connect([(convertsurf, measureflow,
+            mbFlow.connect([(ConvertSurf, measureFlow,
                              [('vtk_file','Convexity_to_VTK.surface_file')])])
         else:
-            mbflow.connect([(surf, measureflow,
+            mbFlow.connect([(Surf, measureFlow,
                              [('surface_files','Convexity_to_VTK.surface_file')])])
-        mbflow.connect([(info, measureflow, [('hemi','Convexity_to_VTK.hemi'),
+        mbFlow.connect([(Info, measureFlow, [('hemi','Convexity_to_VTK.hemi'),
                         ('subject','Convexity_to_VTK.subject')])])
-        convertconvexity.inputs.subjects_path = subjects_path
-        mbflow.connect([(measureflow, sink,
+        ConvexNode.inputs.subjects_path = subjects_path
+        mbFlow.connect([(measureFlow, Sink,
                          [('Convexity_to_VTK.vtk_file', 'measures.@convexity')])])
     #---------------------------------------------------------------------------
     # Add and connect nodes, save output files
     #---------------------------------------------------------------------------
-    measureflow.add_nodes([area, depth, curvature])
+    measureFlow.add_nodes([AreaNode, DepthNode, CurvNode])
     if input_vtk:
-        mbflow.connect([(surf, measureflow,
+        mbFlow.connect([(Surf, measureFlow,
                          [('surface_files','Area.surface_file')])])
-        mbflow.connect([(surf, measureflow,
+        mbFlow.connect([(Surf, measureFlow,
                          [('surface_files','Depth.surface_file')])])
-        mbflow.connect([(surf, measureflow,
+        mbFlow.connect([(Surf, measureFlow,
                          [('surface_files','Curvature.surface_file')])])
     else:
-        mbflow.connect([(convertsurf, measureflow,
+        mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Area.surface_file')])])
-        mbflow.connect([(convertsurf, measureflow,
+        mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Depth.surface_file')])])
-        mbflow.connect([(convertsurf, measureflow,
+        mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Curvature.surface_file')])])
-    mbflow.connect([(measureflow, sink,
+    mbFlow.connect([(measureFlow, Sink,
                      [('Area.area_file', 'measures.@area')])])
-    mbflow.connect([(measureflow, sink,
+    mbFlow.connect([(measureFlow, Sink,
                      [('Depth.depth_file', 'measures.@depth')])])
-    mbflow.connect([(measureflow, sink,
+    mbFlow.connect([(measureFlow, Sink,
                      [('Curvature.mean_curvature_file',
                        'measures.@mean_curvature'),
                       ('Curvature.gauss_curvature_file',
@@ -531,9 +531,9 @@ if run_measureflow:
 #   Feature extraction workflow
 #
 ################################################################################
-if run_featureflow:
+if run_featureFlow:
 
-    featureflow = Workflow(name='Feature_extraction')
+    featureFlow = Workflow(name='Feature_extraction')
 
     #===========================================================================
     #   Feature extraction
@@ -541,7 +541,7 @@ if run_featureflow:
     #---------------------------------------------------------------------------
     # Find all neighbors
     #---------------------------------------------------------------------------
-    load_surface = Node(name = 'Load_surface',
+    LoadSurf = Node(name = 'Load_surface',
                         interface = Fn(function = load_scalar,
                                        input_names = ['filename',
                                                       'return_arrays'],
@@ -549,21 +549,21 @@ if run_featureflow:
                                                        'faces',
                                                        'scalars',
                                                        'n_vertices']))
-    featureflow.add_nodes([load_surface])
+    featureFlow.add_nodes([LoadSurf])
     if input_vtk:
-        mbflow.connect([(surf, featureflow,
+        mbFlow.connect([(Surf, featureFlow,
                          [('surface_files','Load_surface.filename')])])
     else:
-        mbflow.connect([(convertsurf, featureflow,
+        mbFlow.connect([(ConvertSurf, featureFlow,
                          [('vtk_file', 'Load_surface.filename')])])
-    load_surface.inputs.return_arrays = True  # 0: return lists instead of arrays
+    LoadSurf.inputs.return_arrays = True  # 0: return lists instead of arrays
 
-    neighbors = Node(name='Neighbors',
+    NbrNode = Node(name='Neighbors',
                      interface = Fn(function = find_neighbors,
                                     input_names = ['faces', 'n_vertices'],
                                     output_names = ['neighbor_lists']))
-    featureflow.add_nodes([neighbors])
-    featureflow.connect([(load_surface, neighbors,
+    featureFlow.add_nodes([NbrNode])
+    featureFlow.connect([(LoadSurf, NbrNode,
                           [('faces','faces'), ('n_vertices','n_vertices')])])
     #---------------------------------------------------------------------------
     # Extract sulcus folds
@@ -571,13 +571,13 @@ if run_featureflow:
     fraction_folds = 0.5
     fundi_from_sulci = True
     if fundi_from_sulci:
-        label_pairs = Node(name='Label_pairs',
+        LabelPairs = Node(name='Label_pairs',
                            interface = Fn(function = sulcus_boundaries,
                                           input_names = [],
                                           output_names = ['label_pair_lists']))
-        featureflow.add_nodes([label_pairs])
+        featureFlow.add_nodes([LabelPairs])
 
-        sulci = Node(name='Sulci',
+        SulciNode = Node(name='Sulci',
                      interface = Fn(function = extract_sulci,
                                     input_names = ['label_pair_lists',
                                                    'labels',
@@ -586,40 +586,40 @@ if run_featureflow:
                                                    'neighbor_lists',
                                                    'fraction_folds',
                                                    'do_fill_holes'],
-                                    output_names = ['sulcus_IDs',
+                                    output_names = ['sulci',
                                                     'n_sulci']))
-        featureflow.add_nodes([sulci])
-        featureflow.connect([(label_pairs, sulci,
+        featureFlow.add_nodes([SulciNode])
+        featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         #---------------------------------------------------------------------------
         # Use initial labels assigned by FreeSurfer classifier atlas
         if init_labels == 'DKatlas':
-            mbflow.connect([(atlasflow, featureflow,
+            mbFlow.connect([(atlasFlow, featureFlow,
                              [('DK_annot_to_VTK.labels','Sulci.labels')])])
         # Use initial labels assigned by Mindboggle classifier atlas
         elif init_labels == 'DKTatlas':
-            mbflow.connect([(atlasflow, featureflow,
+            mbFlow.connect([(atlasFlow, featureFlow,
                              [('DKT_annot_to_VTK.labels','Sulci.labels')])])
         # Use initial labels assigned by multi-atlas registration
         elif init_labels == 'max':
-            mbflow.connect([(atlasflow, featureflow,
+            mbFlow.connect([(atlasFlow, featureFlow,
                              [('Label_vote.labels_max','Sulci.labels')])])
         # Use manual (atlas) labels
         elif init_labels == 'manual':
-            mbflow.connect([(atlasflow, featureflow,
+            mbFlow.connect([(atlasFlow, featureFlow,
                              [('Atlas_labels.scalars','Sulci.labels')])])
         #---------------------------------------------------------------------------
-        mbflow.connect([(measureflow, featureflow,
+        mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Sulci.depth_file')])])
-        mbflow.connect([(measureflow, featureflow,
+        mbFlow.connect([(measureFlow, featureFlow,
                          [('Area.area_file','Sulci.area_file')])])
-        featureflow.connect([(neighbors, sulci,
+        featureFlow.connect([(NbrNode, SulciNode,
                               [('neighbor_lists','neighbor_lists')])])
-        sulci.inputs.fraction_folds = fraction_folds
-        sulci.inputs.do_fill_holes = True
+        SulciNode.inputs.fraction_folds = fraction_folds
+        SulciNode.inputs.do_fill_holes = True
     else:
         min_fold_size = 50
-        folds = Node(name='Folds',
+        FoldsNode = Node(name='Folds',
                      interface = Fn(function = extract_folds,
                                     input_names = ['depth_file',
                                                    'area_file',
@@ -627,27 +627,27 @@ if run_featureflow:
                                                    'fraction_folds',
                                                    'min_fold_size',
                                                    'do_fill_holes'],
-                                    output_names = ['fold_IDs',
+                                    output_names = ['folds',
                                                     'n_folds']))
-        featureflow.add_nodes([folds])
-        mbflow.connect([(measureflow, featureflow,
+        featureFlow.add_nodes([FoldsNode])
+        mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Folds.depth_file')])])
-        mbflow.connect([(measureflow, featureflow,
+        mbFlow.connect([(measureFlow, featureFlow,
                          [('Area.area_file','Folds.area_file')])])
-        featureflow.connect([(neighbors, folds,
+        featureFlow.connect([(NbrNode, FoldsNode,
                               [('neighbor_lists','neighbor_lists')])])
-        folds.inputs.fraction_folds = fraction_folds
-        folds.inputs.min_fold_size = min_fold_size
-        folds.inputs.do_fill_holes = True
+        FoldsNode.inputs.fraction_folds = fraction_folds
+        FoldsNode.inputs.min_fold_size = min_fold_size
+        FoldsNode.inputs.do_fill_holes = True
     #---------------------------------------------------------------------------
     # Extract fundi (curves at the bottoms of sulci)
     #---------------------------------------------------------------------------
     thr = 0.5
     min_distance = 5.0
 
-    fundi = Node(name='Fundi',
+    FundiNode = Node(name='Fundi',
                  interface = Fn(function = extract_fundi,
-                                input_names = ['fold_IDs',
+                                input_names = ['folds',
                                                'neighbor_lists',
                                                'depth_file',
                                                'mean_curvature_file',
@@ -655,30 +655,30 @@ if run_featureflow:
                                                'min_distance',
                                                'thr',
                                                'use_only_endpoints'],
-                                output_names = ['fundus_IDs',
+                                output_names = ['fundi',
                                                 'n_fundi',
                                                 'likelihoods']))
     if fundi_from_sulci:
-        featureflow.connect([(sulci, fundi, [('sulcus_IDs','fold_IDs')]),
-                             (neighbors, fundi,
+        featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')]),
+                             (NbrNode, FundiNode,
                               [('neighbor_lists','neighbor_lists')])])
     else:
-        featureflow.connect([(folds, fundi, [('fold_IDs','fold_IDs')]),
-                             (neighbors, fundi,
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')]),
+                             (NbrNode, FundiNode,
                               [('neighbor_lists','neighbor_lists')])])
-    mbflow.connect([(measureflow, featureflow,
+    mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Fundi.depth_file'),
                       ('Curvature.mean_curvature_file',
                        'Fundi.mean_curvature_file'),
                       ('Curvature.min_curvature_vector_file',
                        'Fundi.min_curvature_vector_file')])])
-    fundi.inputs.min_distance = min_distance
-    fundi.inputs.thr = thr
-    fundi.inputs.use_only_endpoints = True
+    FundiNode.inputs.min_distance = min_distance
+    FundiNode.inputs.thr = thr
+    FundiNode.inputs.use_only_endpoints = True
     #---------------------------------------------------------------------------
     # Write folds/sulci and fundi, likelihoods to VTK files
     #---------------------------------------------------------------------------
-    save_sulci = Node(name='Save_sulci',
+    SaveSulci = Node(name='Save_sulci',
                       interface = Fn(function = rewrite_scalars,
                                      input_names = ['input_vtk',
                                                     'output_vtk',
@@ -687,35 +687,35 @@ if run_featureflow:
                                      output_names = ['output_vtk']))
     # Save sulci
     if fundi_from_sulci:
-        featureflow.add_nodes([save_sulci])
-        mbflow.connect([(measureflow, featureflow,
+        featureFlow.add_nodes([SaveSulci])
+        mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Save_sulci.input_vtk')])])
-        save_sulci.inputs.output_vtk = 'sulci.vtk'
-        featureflow.connect([(sulci, save_sulci, [('sulcus_IDs','new_scalars')])])
-        featureflow.connect([(sulci, save_sulci, [('sulcus_IDs','filter_scalars')])])
-        mbflow.connect([(featureflow, sink,
+        SaveSulci.inputs.output_vtk = 'sulci.vtk'
+        featureFlow.connect([(SulciNode, SaveSulci, [('sulci','new_scalars')])])
+        featureFlow.connect([(SulciNode, SaveSulci, [('sulci','filter_scalars')])])
+        mbFlow.connect([(featureFlow, Sink,
                          [('Save_sulci.output_vtk','features.@sulci')])])
 
     # Save fundi
-    save_fundi = save_sulci.clone('Save_fundi')
-    featureflow.add_nodes([save_fundi])
-    mbflow.connect([(measureflow, featureflow,
+    SaveFundi = SaveSulci.clone('Save_fundi')
+    featureFlow.add_nodes([SaveFundi])
+    mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Save_fundi.input_vtk')])])
-    save_fundi.inputs.output_vtk = 'fundi.vtk'
-    featureflow.connect([(fundi, save_fundi, [('fundus_IDs','new_scalars')])])
-    featureflow.connect([(fundi, save_fundi, [('fundus_IDs','filter_scalars')])])
-    mbflow.connect([(featureflow, sink,
+    SaveFundi.inputs.output_vtk = 'fundi.vtk'
+    featureFlow.connect([(FundiNode, SaveFundi, [('fundi','new_scalars')])])
+    featureFlow.connect([(FundiNode, SaveFundi, [('fundi','filter_scalars')])])
+    mbFlow.connect([(featureFlow, Sink,
                      [('Save_fundi.output_vtk','features.@fundi')])])
 
     # Save likelihoods values (in folds/sulci)
-    save_likelihoods = save_sulci.clone('Save_likelihoods')
-    featureflow.add_nodes([save_likelihoods])
-    mbflow.connect([(measureflow, featureflow,
+    SaveLikelihoods = SaveSulci.clone('Save_likelihoods')
+    featureFlow.add_nodes([SaveLikelihoods])
+    mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Save_likelihoods.input_vtk')])])
-    save_likelihoods.inputs.output_vtk = 'likelihoods.vtk'
-    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','new_scalars')])])
-    featureflow.connect([(fundi, save_likelihoods, [('likelihoods','filter_scalars')])])
-    mbflow.connect([(featureflow, sink,
+    SaveLikelihoods.inputs.output_vtk = 'likelihoods.vtk'
+    featureFlow.connect([(FundiNode, SaveLikelihoods, [('likelihoods','new_scalars')])])
+    featureFlow.connect([(FundiNode, SaveLikelihoods, [('likelihoods','filter_scalars')])])
+    mbFlow.connect([(featureFlow, Sink,
                      [('Save_likelihoods.output_vtk','features.@likelihoods')])])
 
 ################################################################################
@@ -723,9 +723,9 @@ if run_featureflow:
 #   Shape analysis workflow
 #
 ################################################################################
-if run_shapeflow:
+if run_shapeFlow:
 
-    shapeflow = Workflow(name='Shape_analysis')
+    shapeFlow = Workflow(name='Shape_analysis')
     column_names = ['labels', 'area', 'depth', 'mean_curvature',
                     'gauss_curvature', 'max_curvature', 'min_curvature']
     if include_thickness:
@@ -738,138 +738,138 @@ if run_shapeflow:
     #===========================================================================
     # Labeled surface patch shapes
     #===========================================================================
-    labeltable = Node(name='Label_table',
+    LabelTable = Node(name='Label_table',
                       interface = Fn(function = write_mean_shapes_table,
                                      input_names = input_names,
                                      output_names = ['means_file',
                                                      'norm_means_file']))
-    shapeflow.add_nodes([labeltable])
-    labeltable.inputs.filename = 'label_shapes.txt'
-    labeltable.inputs.column_names = column_names
+    shapeFlow.add_nodes([LabelTable])
+    LabelTable.inputs.filename = 'label_shapes.txt'
+    LabelTable.inputs.column_names = column_names
     #---------------------------------------------------------------------------
     # Use initial labels assigned by FreeSurfer classifier atlas
     if init_labels == 'DKatlas':
-        mbflow.connect([(atlasflow, shapeflow,
+        mbFlow.connect([(atlasFlow, shapeFlow,
                          [('DK_annot_to_VTK.labels','Label_table.labels')])])
     # Use initial labels assigned by Mindboggle classifier atlas
     elif init_labels == 'DKTatlas':
-        mbflow.connect([(atlasflow, shapeflow,
+        mbFlow.connect([(atlasFlow, shapeFlow,
                          [('DKT_annot_to_VTK.labels','Label_table.labels')])])
     # Use initial labels assigned by multi-atlas registration
     elif init_labels == 'max':
-        mbflow.connect([(atlasflow, shapeflow,
+        mbFlow.connect([(atlasFlow, shapeFlow,
                          [('Label_vote.labels_max','Label_table.labels')])])
     # Use manual (atlas) labels
     elif init_labels == 'manual':
-        mbflow.connect([(atlasflow, shapeflow,
+        mbFlow.connect([(atlasFlow, shapeFlow,
                          [('Atlas_labels.scalars','Label_table.labels')])])
     #---------------------------------------------------------------------------
-    labeltable.inputs.nonlabels = [-1,0]
-    mbflow.connect([(measureflow, shapeflow,
+    LabelTable.inputs.nonlabels = [-1,0]
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Area.area_file','Label_table.area_file')])])
-    mbflow.connect([(measureflow, shapeflow,
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Depth.depth_file','Label_table.depth_file')])])
-    mbflow.connect([(measureflow, shapeflow,
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Curvature.mean_curvature_file',
                        'Label_table.mean_curvature_file')])])
-    mbflow.connect([(measureflow, shapeflow,
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Curvature.gauss_curvature_file',
                        'Label_table.gauss_curvature_file')])])
-    mbflow.connect([(measureflow, shapeflow,
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Curvature.max_curvature_file',
                        'Label_table.max_curvature_file')])])
-    mbflow.connect([(measureflow, shapeflow,
+    mbFlow.connect([(measureFlow, shapeFlow,
                      [('Curvature.min_curvature_file',
                        'Label_table.min_curvature_file')])])
     if include_thickness:
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Thickness_to_VTK.vtk_file',
                            'Label_table.thickness_file')])])
     if include_convexity:
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Convexity_to_VTK.vtk_file',
                            'Label_table.convexity_file')])])
     # Save results
-    mbflow.connect([(shapeflow, sink,
+    mbFlow.connect([(shapeFlow, Sink,
                      [('Label_table.means_file', 'shapes.@labels'),
                       ('Label_table.norm_means_file', 'shapes.@labels_norm')])])
     #===========================================================================
     # Sulcus fold shapes
     #===========================================================================
-    if run_featureflow:
+    if run_featureFlow:
         if fundi_from_sulci:
-            sulcustable = labeltable.clone('Sulcus_table')
-            shapeflow.add_nodes([sulcustable])
-            sulcustable.inputs.filename = 'sulcus_shapes.txt'
-            sulcustable.inputs.column_names = column_names
-            mbflow.connect([(featureflow, shapeflow,
-                             [('Sulci.sulcus_IDs','Sulcus_table.labels')])])
-            sulcustable.inputs.nonlabels = [-1]
-            mbflow.connect([(measureflow, shapeflow,
+            SulcusTable = LabelTable.clone('Sulcus_table')
+            shapeFlow.add_nodes([SulcusTable])
+            SulcusTable.inputs.filename = 'sulcus_shapes.txt'
+            SulcusTable.inputs.column_names = column_names
+            mbFlow.connect([(featureFlow, shapeFlow,
+                             [('Sulci.sulci','Sulcus_table.labels')])])
+            SulcusTable.inputs.nonlabels = [-1]
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Area.area_file','Sulcus_table.area_file')])])
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Depth.depth_file','Sulcus_table.depth_file')])])
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Curvature.mean_curvature_file',
                                'Sulcus_table.mean_curvature_file')])])
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Curvature.gauss_curvature_file',
                                'Sulcus_table.gauss_curvature_file')])])
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Curvature.max_curvature_file',
                                'Sulcus_table.max_curvature_file')])])
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Curvature.min_curvature_file',
                                'Sulcus_table.min_curvature_file')])])
             if include_thickness:
-                mbflow.connect([(measureflow, shapeflow,
+                mbFlow.connect([(measureFlow, shapeFlow,
                                  [('Thickness_to_VTK.vtk_file',
                                    'Sulcus_table.thickness_file')])])
             if include_convexity:
-                mbflow.connect([(measureflow, shapeflow,
+                mbFlow.connect([(measureFlow, shapeFlow,
                                  [('Convexity_to_VTK.vtk_file',
                                    'Sulcus_table.convexity_file')])])
             # Save results
-            mbflow.connect([(shapeflow, sink,
+            mbFlow.connect([(shapeFlow, Sink,
                              [('Sulcus_table.means_file', 'shapes.@sulci'),
                               ('Sulcus_table.norm_means_file', 'shapes.@sulci_norm')])])
     #===========================================================================
     # Fundus shapes
     #===========================================================================
-    if run_featureflow:
-        fundustable = labeltable.clone('Fundus_table')
-        shapeflow.add_nodes([fundustable])
-        fundustable.inputs.filename = 'fundus_shapes.txt'
-        fundustable.inputs.column_names = column_names
-        mbflow.connect([(featureflow, shapeflow,
-                         [('Fundi.fundus_IDs','Fundus_table.labels')])])
-        fundustable.inputs.nonlabels = [-1]
-        mbflow.connect([(measureflow, shapeflow,
+    if run_featureFlow:
+        FundusTable = LabelTable.clone('Fundus_table')
+        shapeFlow.add_nodes([FundusTable])
+        FundusTable.inputs.filename = 'fundus_shapes.txt'
+        FundusTable.inputs.column_names = column_names
+        mbFlow.connect([(featureFlow, shapeFlow,
+                         [('Fundi.fundi','Fundus_table.labels')])])
+        FundusTable.inputs.nonlabels = [-1]
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Area.area_file','Fundus_table.area_file')])])
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Fundus_table.depth_file')])])
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.mean_curvature_file',
                            'Fundus_table.mean_curvature_file')])])
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.gauss_curvature_file',
                            'Fundus_table.gauss_curvature_file')])])
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.max_curvature_file',
                            'Fundus_table.max_curvature_file')])])
-        mbflow.connect([(measureflow, shapeflow,
+        mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.min_curvature_file',
                            'Fundus_table.min_curvature_file')])])
         if include_thickness:
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Thickness_to_VTK.vtk_file',
                                'Fundus_table.thickness_file')])])
         if include_convexity:
-            mbflow.connect([(measureflow, shapeflow,
+            mbFlow.connect([(measureFlow, shapeFlow,
                              [('Convexity_to_VTK.vtk_file',
                                'Fundus_table.convexity_file')])])
         # Save results
-        mbflow.connect([(shapeflow, sink,
+        mbFlow.connect([(shapeFlow, Sink,
                          [('Fundus_table.means_file', 'shapes.@fundi'),
                           ('Fundus_table.norm_means_file', 'shapes.@fundi_norm')])])
 
@@ -883,30 +883,30 @@ if evaluate_surface_labels:
     #---------------------------------------------------------------------------
     # Evaluate surface labels
     #---------------------------------------------------------------------------
-    eval_surf_labels = Node(name='Evaluate_surface_labels',
+    EvalSurfLabels = Node(name='Evaluate_surface_labels',
                             interface = Fn(function = measure_surface_overlap,
                                            input_names = ['command',
                                                           'labels_file1',
                                                           'labels_file2'],
                                            output_names = ['overlap_file']))
-    mbflow.add_nodes([eval_surf_labels])
+    mbFlow.add_nodes([EvalSurfLabels])
     surface_overlap_command = os.path.join(ccode_path,
         'surface_overlap', 'SurfaceOverlapMain')
-    eval_surf_labels.inputs.command = surface_overlap_command
-    mbflow.connect([(atlas, eval_surf_labels, [('atlas_file','labels_file1')])])
+    EvalSurfLabels.inputs.command = surface_overlap_command
+    mbFlow.connect([(Atlas, EvalSurfLabels, [('atlas_file','labels_file1')])])
     if init_labels == 'DKatlas':
-        mbflow.connect([(atlasflow, eval_surf_labels,
+        mbFlow.connect([(atlasFlow, EvalSurfLabels,
                          [('DK_annot_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'DKTatlas':
-        mbflow.connect([(atlasflow, eval_surf_labels,
+        mbFlow.connect([(atlasFlow, EvalSurfLabels,
                          [('DKT_annot_to_VTK.vtk_file','labels_file2')])])
     elif init_labels == 'max':
-        mbflow.connect([(atlasflow, eval_surf_labels,
+        mbFlow.connect([(atlasFlow, EvalSurfLabels,
                          [('Label_vote.maxlabel_file','labels_file2')])])
     elif init_labels == 'manual':
-        mbflow.connect([(atlas, eval_surf_labels,
+        mbFlow.connect([(Atlas, EvalSurfLabels,
                          [('atlas_file','labels_file2')])])
-    mbflow.connect([(eval_surf_labels, sink,
+    mbFlow.connect([(EvalSurfLabels, Sink,
                      [('overlap_file', 'evaluate_labels')])])
 
 ################################################################################
@@ -925,7 +925,7 @@ if fill_volume:
     #---------------------------------------------------------------------------
     # Write .label files for surface vertices
     #---------------------------------------------------------------------------
-    writelabels = Node(name='Write_label_files',
+    WriteLabels = Node(name='Write_label_files',
                        interface = Fn(function = vtk_to_freelabels,
                                       input_names = ['hemi',
                                                      'surface_file',
@@ -935,36 +935,36 @@ if fill_volume:
                                                      'scalar_name'],
                                       output_names = ['label_files',
                                                       'colortable']))
-    annotflow.add_nodes([writelabels])
-    mbflow.connect([(info, annotflow, [('hemi', 'Write_label_files.hemi')])])
-    writelabels.inputs.label_numbers = ctx_label_numbers
-    writelabels.inputs.label_names = ctx_label_names
-    writelabels.inputs.RGBs = RGBs
+    annotflow.add_nodes([WriteLabels])
+    mbFlow.connect([(Info, annotflow, [('hemi', 'Write_label_files.hemi')])])
+    WriteLabels.inputs.label_numbers = ctx_label_numbers
+    WriteLabels.inputs.label_names = ctx_label_names
+    WriteLabels.inputs.RGBs = RGBs
     if init_labels == 'DKatlas':
-        writelabels.inputs.scalar_name = 'Labels'
-        mbflow.connect([(atlasflow, annotflow,
+        WriteLabels.inputs.scalar_name = 'Labels'
+        mbFlow.connect([(atlasFlow, annotflow,
                          [('DK_annot_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     if init_labels == 'DKTatlas':
-        writelabels.inputs.scalar_name = 'Labels'
-        mbflow.connect([(atlasflow, annotflow,
+        WriteLabels.inputs.scalar_name = 'Labels'
+        mbFlow.connect([(atlasFlow, annotflow,
                          [('DKT_annot_to_VTK.vtk_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'max':
-        writelabels.inputs.scalar_name = 'Max_(majority_labels)'
-        mbflow.connect([(atlasflow, annotflow,
+        WriteLabels.inputs.scalar_name = 'Max_(majority_labels)'
+        mbFlow.connect([(atlasFlow, annotflow,
                          [('Label_vote.maxlabel_file',
                            'Write_label_files.surface_file')])])
     elif init_labels == 'manual':
-        writelabels.inputs.scalar_name = 'Labels'
-        mbflow.connect([(atlas, annotflow,
+        WriteLabels.inputs.scalar_name = 'Labels'
+        mbFlow.connect([(Atlas, annotflow,
                          [('atlas_file',
                            'Write_label_files.surface_file')])])
     #---------------------------------------------------------------------------
     # Write .annot file from .label files
     # NOTE:  incorrect labels to be corrected below!
     #---------------------------------------------------------------------------
-    writeannot = Node(name='Write_annot_file',
+    WriteAnnot = Node(name='Write_annot_file',
                       interface = Fn(function = labels_to_annot,
                                      input_names = ['hemi',
                                                     'subjects_path',
@@ -974,16 +974,16 @@ if fill_volume:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-    writeannot.inputs.annot_name = 'labels.' + init_labels
-    writeannot.inputs.subjects_path = subjects_path
-    annotflow.add_nodes([writeannot])
-    mbflow.connect([(info, annotflow,
+    WriteAnnot.inputs.annot_name = 'labels.' + init_labels
+    WriteAnnot.inputs.subjects_path = subjects_path
+    annotflow.add_nodes([WriteAnnot])
+    mbFlow.connect([(Info, annotflow,
                      [('hemi', 'Write_annot_file.hemi')])])
-    mbflow.connect([(info, annotflow,
+    mbFlow.connect([(Info, annotflow,
                      [('subject', 'Write_annot_file.subject')])])
-    annotflow.connect([(writelabels, writeannot,
+    annotflow.connect([(WriteLabels, WriteAnnot,
                       [('label_files','label_files')])])
-    annotflow.connect([(writelabels, writeannot,
+    annotflow.connect([(WriteLabels, WriteAnnot,
                       [('colortable','colortable')])])
 
 ################################################################################
@@ -993,47 +993,47 @@ if fill_volume:
 #   * Label evaluation
 #
 ################################################################################
-mbflow2 = Workflow(name='Label_volumes')
-mbflow2.base_dir = temp_path
+mbFlow2 = Workflow(name='Label_volumes')
+mbFlow2.base_dir = temp_path
 
 #-------------------------------------------------------------------------------
 # Iterate inputs over subjects
 #-------------------------------------------------------------------------------
-info2 = info.clone('Inputs2')
-info2.iterables = ([('subject', subjects)])
-sink2 = sink.clone('Results2')
+Info2 = Info.clone('Inputs2')
+Info2.iterables = ([('subject', subjects)])
+Sink2 = Sink.clone('Results2')
 
 #-------------------------------------------------------------------------------
 # Fill volume mask with surface vertex labels from .annot file
 #-------------------------------------------------------------------------------
 if fill_volume:
 
-    fillvolume = Node(name='Fill_volume',
+    FillVolume = Node(name='Fill_volume',
                       interface = Fn(function = labels_to_volume,
                                      input_names = ['subject',
                                                     'annot_name'],
                                      output_names = ['output_file']))
-    mbflow2.add_nodes([fillvolume])
-    fillvolume.inputs.annot_name = 'labels.' + init_labels
-    mbflow2.connect([(info2, fillvolume, [('subject', 'subject')])])
+    mbFlow2.add_nodes([FillVolume])
+    FillVolume.inputs.annot_name = 'labels.' + init_labels
+    mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
     #---------------------------------------------------------------------------
     # Relabel file, replacing colortable labels with real labels
     #---------------------------------------------------------------------------
-    relabel = Node(name='Correct_labels',
+    Relabel = Node(name='Correct_labels',
                    interface = Fn(function = relabel_volume,
                                   input_names = ['input_file',
                                                  'old_labels',
                                                  'new_labels'],
                                   output_names = ['output_file']))
-    mbflow2.add_nodes([relabel])
-    mbflow2.connect([(fillvolume, relabel,
+    mbFlow2.add_nodes([Relabel])
+    mbFlow2.connect([(FillVolume, Relabel,
                           [('output_file', 'input_file')])])
     relabel_file = os.path.join(info_path,
                                 'label_volume_errors.' + protocol + '.txt')
     old_labels, new_labels = read_columns(relabel_file, 2)
-    relabel.inputs.old_labels = old_labels
-    relabel.inputs.new_labels = new_labels
-    mbflow2.connect([(relabel, sink2,
+    Relabel.inputs.old_labels = old_labels
+    Relabel.inputs.new_labels = new_labels
+    mbFlow2.connect([(Relabel, Sink2,
                       [('output_file', 'labels_volume')])])
 
 ################################################################################
@@ -1046,17 +1046,17 @@ if evaluate_volume_labels:
     #---------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas volumes
     #---------------------------------------------------------------------------
-    atlas_vol = Node(name = 'Atlas',
+    AtlasVol = Node(name = 'Atlas_volume',
                      interface = DataGrabber(infields=['subject'],
                      outfields=['atlas_vol_file']))
-    atlas_vol.inputs.base_directory = atlases_path
-    atlas_vol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
-    atlas_vol.inputs.template_args['atlas_vol_file'] = [['subject']]
-    mbflow2.connect([(info2, atlas_vol, [('subject','subject')])])
+    AtlasVol.inputs.base_directory = atlases_path
+    AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
+    AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
+    mbFlow2.connect([(Info2, AtlasVol, [('subject','subject')])])
     #---------------------------------------------------------------------------
     # Evaluate volume labels
     #---------------------------------------------------------------------------
-    eval_vol_labels = Node(name='Evaluate_volume_labels',
+    EvalVolLabels = Node(name='Evaluate_volume_labels',
                            interface = Fn(function = measure_volume_overlap,
                                           input_names = ['labels',
                                                          'atlas_file',
@@ -1065,13 +1065,13 @@ if evaluate_volume_labels:
                                                           'out_file']))
     labels_file = os.path.join(info_path, 'labels.volume.' + protocol + '.txt')
     labels = read_columns(labels_file, 1)[0]
-    eval_vol_labels.inputs.labels = labels
-    mbflow2.add_nodes([eval_vol_labels])
-    mbflow2.connect([(atlas_vol, eval_vol_labels,
+    EvalVolLabels.inputs.labels = labels
+    mbFlow2.add_nodes([EvalVolLabels])
+    mbFlow2.connect([(AtlasVol, EvalVolLabels,
                       [('atlas_vol_file','atlas_file')])])
-    mbflow2.connect([(relabel, eval_vol_labels,
+    mbFlow2.connect([(Relabel, EvalVolLabels,
                       [('output_file', 'input_file')])])
-    mbflow2.connect([(eval_vol_labels, sink2,
+    mbFlow2.connect([(EvalVolLabels, Sink2,
                       [('out_file', 'evaluate_labels_volume')])])
 
 ################################################################################
@@ -1091,12 +1091,12 @@ if __name__== '__main__':
     generate_graphs = True
     if generate_graphs:
         if run_flow1:
-            mbflow.write_graph(graph2use='flat')
-            mbflow.write_graph(graph2use='hierarchical')
+            mbFlow.write_graph(graph2use='flat')
+            mbFlow.write_graph(graph2use='hierarchical')
         if run_flow2:
-            mbflow2.write_graph(graph2use='flat')
-            mbflow2.write_graph(graph2use='hierarchical')
+            mbFlow2.write_graph(graph2use='flat')
+            mbFlow2.write_graph(graph2use='hierarchical')
     if run_flow1:
-        mbflow.run()
+        mbFlow.run()
     if run_flow2:
-        mbflow2.run()
+        mbFlow2.run()

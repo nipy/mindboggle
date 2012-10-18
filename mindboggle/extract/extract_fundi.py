@@ -248,10 +248,10 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
     >>>                                                          True)
-    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> sulcus_ID = 1
-    >>> indices_fold = [i for i,x in enumerate(sulcus_IDs) if x == sulcus_ID]
+    >>> indices_fold = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
     >>>                                       mean_curvatures[indices_fold])
     >>> likelihoods = np.zeros(len(points))
@@ -416,7 +416,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(fold_IDs, neighbor_lists, depth_file,
+def extract_fundi(folds, neighbor_lists, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
                   min_distance=5, thr=0.5, use_only_endpoints=True):
     """
@@ -426,7 +426,7 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
 
     Parameters
     ----------
-    fold_IDs : list or numpy array
+    folds : list or numpy array
         fold IDs (default = -1)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
@@ -447,7 +447,7 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
 
     Returns
     -------
-    fundus_IDs : array of integers
+    fundi : array of integers
         fundus IDs for all vertices, with -1s for non-fundus vertices
     n_fundi :  int
         number of sulcus fundi
@@ -471,18 +471,18 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
-    >>> fundus_IDs, n_fundi, likelihoods = extract_fundi(sulcus_IDs, 
-    >>>     neighbor_lists, depth_file, mean_curvature_file, 
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> fundi, n_fundi, likelihoods = extract_fundi(sulci,
+    >>>     neighbor_lists, depth_file, mean_curvature_file,
     >>>     min_curvature_vector_file, min_distance=5, thr=0.5,
     >>>     use_only_endpoints=True)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-    >>>                 fundus_IDs, fundus_IDs)
+    >>>                 fundi, fundi)
     >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
     >>> # Write and view manual labels restricted to sulci:
     >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
-    >>>                 labels, sulcus_IDs)
+    >>>                 labels, sulci)
     >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
 
     """
@@ -500,18 +500,18 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
-    n_folds = len([x for x in np.unique(fold_IDs) if x > -1])
+    n_folds = len([x for x in np.unique(folds) if x > -1])
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
     Z = np.zeros(n_vertices)
-    fundus_IDs = -1 * np.ones(n_vertices)
-    likelihoods = np.copy(fundus_IDs)
+    fundi = -1 * np.ones(n_vertices)
+    likelihoods = np.copy(fundi)
 
-    unique_fold_IDs = np.unique(fold_IDs)
+    unique_fold_IDs = np.unique(folds)
     unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
     count = 0
     for fold_ID in unique_fold_IDs:
-        indices_fold = [i for i,x in enumerate(fold_IDs) if x == fold_ID]
+        indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if len(indices_fold):
 
             print('  Region {0}:'.format(fold_ID))
@@ -562,7 +562,7 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
                         indices_skeleton = []
 
                 if len(indices_skeleton) > 1:
-                    fundus_IDs[indices_skeleton] = fold_ID
+                    fundi[indices_skeleton] = fold_ID
                     count += 1
                     print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
                           format(n_anchors, time() - t2))
@@ -570,7 +570,7 @@ def extract_fundi(fold_IDs, neighbor_lists, depth_file,
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
-    return fundus_IDs, n_fundi, likelihoods
+    return fundi, n_fundi, likelihoods
 
 
 # Example
@@ -597,13 +597,13 @@ if __name__ == "__main__" :
     points, faces, depths, n_vertices = load_scalar(depth_file, True)
     neighbor_lists = find_neighbors(faces, len(points))
 
-    points, faces, sulcus_IDs, n_vertices = load_scalar(sulci_file, True)
+    points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
 
-    fundus_IDs, n_fundi, likelihoods = extract_fundi(sulcus_IDs, neighbor_lists,
+    fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
         min_distance=5, thr=0.5, use_only_endpoints=True)
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-                    fundus_IDs, fundus_IDs)
+                    fundi, fundi)
     os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
