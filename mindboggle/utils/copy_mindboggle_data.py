@@ -36,12 +36,13 @@ elif run_this == 4:
 if run_this == 1:
     src_dirs = ['mri']
     tgt_dirs = []
-    copy_files = [['t1weighted.nii.gz','labels.DKT25.manual.nii.gz']]
+    copy_files = [['t1weighted.nii.gz','labels.DKT25.manual.nii.gz','labels.DKT31.manual.nii.gz']]
 # Mindboggle-101-surfaces distribution
 if run_this == 2:
     src_dirs = ['label']
     tgt_dirs = []
-    copy_files = [['lh.labels.DKT25.manual.vtk','rh.labels.DKT25.manual.vtk']]
+    copy_files = [['lh.labels.DKT25.manual.vtk','rh.labels.DKT25.manual.vtk',
+                   'lh.labels.DKT31.manual.vtk','rh.labels.DKT31.manual.vtk']]
 # Mindboggle-101 distribution FreeSurfer supplement;
 # everything needed to run Mindboggle as atlas or as target, and evaluate:
 elif run_this == 3:
