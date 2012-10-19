@@ -93,7 +93,7 @@ def compute_curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, areas, labels):
+def mean_value_per_label(values, areas, labels, nonlabels):
     """
     Compute the mean value across vertices per label,
     taking into account surface area per vertex.
@@ -106,12 +106,37 @@ def mean_value_per_label(values, areas, labels):
     values : numpy array of integer or float values
     areas : numpy array of surface areas
     labels : array or list of integer labels (same length as values)
+    nonlabels : list of integer labels to be excluded
 
     Returns
     -------
-    mean_values : list of floats (mean values)
-    norm_mean_values : list of floats (mean values normalized by vertex area)
-    label_list : list of unique labels
+    mean_values : list of floats
+        mean values
+    norm_mean_values : list of floats
+        mean values normalized by vertex area
+    surface_areas : list of floats
+        surface area for each labeled set of vertices
+    label_list : list of integers
+        unique label numbers
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar
+    >>> from mindboggle.measure.measure_functions import mean_value_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, areas, n_vertices = load_scalar(area_file, True)
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> nonlabels = [-1,0]
+    >>> mean_values, norm_mean_values, surface_areas, \
+    >>>     label_list = mean_value_per_label(depths, areas, labels, nonlabels)
 
     """
     import numpy as np
@@ -120,7 +145,7 @@ def mean_value_per_label(values, areas, labels):
         return sum(areas_label * values_label) / sum(areas_label)
 
     label_list = np.unique(labels)
-    label_list = [int(x) for x in label_list if int(x) != 0]
+    label_list = [int(x) for x in label_list if int(x) not in nonlabels]
     mean_values = []
     norm_mean_values = []
     surface_areas = []
