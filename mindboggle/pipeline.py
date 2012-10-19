@@ -88,7 +88,7 @@ init_labels = 'manual'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-------------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
+hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
@@ -678,45 +678,45 @@ if run_featureFlow:
     #---------------------------------------------------------------------------
     # Write folds/sulci and fundi, likelihoods to VTK files
     #---------------------------------------------------------------------------
-    SaveSulci = Node(name='Save_sulci',
-                      interface = Fn(function = rewrite_scalars,
-                                     input_names = ['input_vtk',
-                                                    'output_vtk',
-                                                    'new_scalars',
-                                                    'filter_scalars'],
-                                     output_names = ['output_vtk']))
+    SulciVTK = Node(name='Sulci_to_VTK',
+                    interface = Fn(function = rewrite_scalars,
+                                   input_names = ['input_vtk',
+                                                  'output_vtk',
+                                                  'new_scalars',
+                                                  'filter_scalars'],
+                                   output_names = ['output_vtk']))
     # Save sulci
     if fundi_from_sulci:
-        featureFlow.add_nodes([SaveSulci])
+        featureFlow.add_nodes([SulciVTK])
         mbFlow.connect([(measureFlow, featureFlow,
-                         [('Depth.depth_file','Save_sulci.input_vtk')])])
-        SaveSulci.inputs.output_vtk = 'sulci.vtk'
-        featureFlow.connect([(SulciNode, SaveSulci, [('sulci','new_scalars')])])
-        featureFlow.connect([(SulciNode, SaveSulci, [('sulci','filter_scalars')])])
+                         [('Depth.depth_file','Sulci_to_VTK.input_vtk')])])
+        SulciVTK.inputs.output_vtk = 'sulci.vtk'
+        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalars')])])
+        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
-                         [('Save_sulci.output_vtk','features.@sulci')])])
+                         [('Sulci_to_VTK.output_vtk','features.@sulci')])])
 
     # Save fundi
-    SaveFundi = SaveSulci.clone('Save_fundi')
-    featureFlow.add_nodes([SaveFundi])
+    FundiVTK = SulciVTK.clone('Fundi_to_VTK')
+    featureFlow.add_nodes([FundiVTK])
     mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Save_fundi.input_vtk')])])
-    SaveFundi.inputs.output_vtk = 'fundi.vtk'
-    featureFlow.connect([(FundiNode, SaveFundi, [('fundi','new_scalars')])])
-    featureFlow.connect([(FundiNode, SaveFundi, [('fundi','filter_scalars')])])
+                     [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
+    FundiVTK.inputs.output_vtk = 'fundi.vtk'
+    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalars')])])
+    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
-                     [('Save_fundi.output_vtk','features.@fundi')])])
+                     [('Fundi_to_VTK.output_vtk','features.@fundi')])])
 
     # Save likelihoods values (in folds/sulci)
-    SaveLikelihoods = SaveSulci.clone('Save_likelihoods')
-    featureFlow.add_nodes([SaveLikelihoods])
+    LikelihoodsVTK = SulciVTK.clone('Likelihoods_to_VTK')
+    featureFlow.add_nodes([LikelihoodsVTK])
     mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Save_likelihoods.input_vtk')])])
-    SaveLikelihoods.inputs.output_vtk = 'likelihoods.vtk'
-    featureFlow.connect([(FundiNode, SaveLikelihoods, [('likelihoods','new_scalars')])])
-    featureFlow.connect([(FundiNode, SaveLikelihoods, [('likelihoods','filter_scalars')])])
+                     [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
+    LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
+    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
+    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
-                     [('Save_likelihoods.output_vtk','features.@likelihoods')])])
+                     [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
 
 ################################################################################
 #
