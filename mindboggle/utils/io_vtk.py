@@ -716,7 +716,8 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
     write_vtk_points(Fp, points)
     write_vtk_vertices(Fp, indices)
     for i in xrange(0,len(lines)):
-        lines[i] = str(lines[i][0]) + " " + str(lines[i][1]) + "\n"
+#        lines[i] = str(lines[i][0]) + " " + str(lines[i][1]) + "\n"
+        lines[i] = [lines[i][0], lines[i][1]]
     write_vtk_faces(Fp, lines)
     if len(LUTs) > 0:
         for i, LUT in enumerate(LUTs):
