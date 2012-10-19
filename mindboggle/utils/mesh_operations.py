@@ -131,15 +131,14 @@ def find_neighbors_vertex(faces, index):
     return neighbor_list
 
 #------------------------------------------------------------------------------
-# Find anchor points
+# Find special "anchor" points for constructing fundus curves
 #------------------------------------------------------------------------------
 def find_anchors(points, L, min_directions, min_distance, thr):
     """
-    Find anchor points.
+    Find special "anchor" points for constructing fundus curves.
 
     Assign maximum likelihood points as "anchor points"
     while ensuring that the anchor points are not close to one another.
-    Anchor points are used to construct curves.
 
     Parameters
     ----------
@@ -236,7 +235,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 #------------------------------------------------------------------------------
 # Propagate labels to segment surface into contiguous regions
 #------------------------------------------------------------------------------
-def propagate(points, faces, region, seeds, labels):
+def propagate(points, faces, region, seeds, labels,
+              max_iters=500, tol=0.001, sigma=10):
     """
     Propagate labels to segment surface into contiguous regions,
     starting from seed vertices.
@@ -253,6 +253,12 @@ def propagate(points, faces, region, seeds, labels):
         seed numbers for all vertices (default -1)
     labels : numpy array of integers
         label numbers for all vertices, with -1s for unlabeled vertices
+    max_iters : integer
+        maximum number of iterations to run graph-based learning algorithm
+    tol: float
+        threshold to assess convergence of the algorithm
+    sigma: float
+        gaussian kernel parameter
 
     Returns
     -------
@@ -319,8 +325,8 @@ def propagate(points, faces, region, seeds, labels):
 
     # Propagate seed IDs from seeds
     B.graph_based_learning(method='propagate_labels', realign=False,
-                           kernel=kernels.rbf_kernel, sigma=10, vis=False,
-                           max_iters=500, tol=.001)
+                           kernel=kernels.rbf_kernel, sigma=sigma,
+                           max_iters=max_iters, tol=tol, vis=False)
 
     # Assign maximum probability seed IDs to each point of region
     max_prob_labels = B.assign_max_prob_label()
@@ -332,12 +338,12 @@ def propagate(points, faces, region, seeds, labels):
     return segments
 
 #------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions
+# Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=1,
-            spread_same_labels=False, labels=[], label_pair_lists=[]):
+            spread_within_labels=False, labels=[], label_lists=[]):
     """
-    Segment vertices of surface into contiguous regions,
+    Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
 
     Parameters
@@ -349,13 +355,13 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     seed_lists : list of lists, or empty list
         each list contains indices to seed vertices to segment vertices_to_segment
     min_region_size : minimum size of segmented set of vertices
-    spread_same_labels : Boolean
-        grow seeds only by vertices with labels in the seed labels or not
-    labels : numpy array of integers (optional)
+    spread_within_labels : Boolean
+        grow seeds only by vertices with labels in the seed labels?
+    labels : numpy array of integers (required only if spread_within_labels)
         label numbers for all vertices, with -1s for unlabeled vertices
-    label_pair_lists : list of sublists of subsublists of integers
-        each subsublist contains a pair of labels, and the sublist of these
-        label pairs represents the label boundaries defining a sulcus
+    label_lists : list of lists of integers (required only if spread_within_labels)
+        List of unique labels for each seed list to grow into
+        (If empty, set to unique labels for each seed list)
 
     Returns
     -------
@@ -385,6 +391,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> # Example 2: with seed lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
+    >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
@@ -398,7 +405,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> #              vertices_to_segment[range(2000,4000)],
     >>> #              vertices_to_segment[range(10000,12000)]]
     >>> sulci = segment(vertices_to_segment, neighbor_lists,
-    >>>     seed_lists, 50, True, labels, label_pair_lists)
+    >>>     seed_lists, 50, True, labels, label_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment2.vtk', sulci, sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
@@ -411,7 +418,10 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     print('    Segment {0} vertices...'.format(len(vertices_to_segment)))
     if len(seed_lists):
         select_single_seed = False
-        print('    Select from {0} sets of seed vertices'.format(len(seed_lists)))
+        if len(seed_lists) == 1:
+            print('    Select from 1 set of seed vertices')
+        else:
+            print('    Select from {0} sets of seed vertices'.format(len(seed_lists)))
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
@@ -427,8 +437,13 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     new_segment_index = 0
     counter = 0
 
-    # Prepare list of all unique sorted label pairs in the labeling protocol
-    label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
+    # If label_lists empty, set to unique labels for each seed list
+    if spread_within_labels:
+        if not len(label_lists):
+            label_lists = []
+            for seed_list in seed_lists:
+                seed_labels = np.unique([labels[x] for x in seed_list])
+                label_lists.append(seed_labels)
 
     # Loop until all of the seed lists have grown to their full extent
     while not all(fully_grown):
@@ -446,7 +461,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 
                 # Remove seeds from vertices to segment
                 vertices_to_segment = list(frozenset(vertices_to_segment).
-                                        difference(seed_list))
+                                           difference(seed_list))
 
                 # Identify neighbors of seeds
                 neighbors = []
@@ -458,15 +473,16 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                              if x not in all_regions
                              if x in vertices_to_segment]
 
-                # Select neighbors with the same labels
-                # as the initial seed label pairs
+                # If there are seeds remaining
                 if len(seed_list):
-                    if spread_same_labels:
+
+                    # Select neighbors with the same labels
+                    # as the initial seed labels
+                    if spread_within_labels:
                         seed_list = [x for x in seed_list
                                      if labels[x] in label_lists[ilist]]
 
-                # Continue growing seed list if there are seeds remaining
-                if len(seed_list):
+                    # Continue growing seed list
                     seed_lists[ilist] = seed_list
 
                 # If there are no seeds remaining
@@ -506,7 +522,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 #------------------------------------------------------------------------------
 # Fill holes
 #------------------------------------------------------------------------------
-def fill_holes(holes, regions, neighbor_lists):
+def label_holes(holes, hole_numbers, regions, neighbor_lists):
     """
     Fill holes in regions on a surface mesh.
 
@@ -514,6 +530,8 @@ def fill_holes(holes, regions, neighbor_lists):
     ----------
     holes : numpy array of integers
         hole numbers for all vertices (default -1)
+    hole_numbers : list or numpy array of integers
+        unique hole numbers (no -1)
     regions : numpy array of integers
         region numbers for all vertices (default -1)
     neighbor_lists : list of lists of integers
@@ -532,7 +550,6 @@ def fill_holes(holes, regions, neighbor_lists):
         regions = np.array(regions)
 
     # Identify the vertices for each hole
-    hole_numbers = [x for x in np.unique(holes) if x > -1]
     for n_hole in hole_numbers:
         I = np.where(holes == n_hole)[0]
 
@@ -545,7 +562,7 @@ def fill_holes(holes, regions, neighbor_lists):
 
     return regions
 
-def fill_hole_boundaries(regions, neighbor_lists):
+def fill_holes(regions, neighbor_lists):
     """
     Fill holes in regions on a surface mesh by using region boundaries.
 
@@ -671,16 +688,8 @@ def fill_hole_boundaries(regions, neighbor_lists):
         background = [i for i,x in enumerate(regions) if x == -1]
         holes = segment(background, neighbor_lists, seed_lists)
 
-        # Identify the vertices for each hole
-        for n_hole in hole_numbers:
-            I = np.where(holes == n_hole)[0]
-
-            # Identify neighbors to these vertices
-            N=[]; [N.extend(neighbor_lists[i]) for i in I]
-            if len(N):
-
-                # Assign the hole the maximum region number of its neighbors
-                regions[I] = max([regions[x] for x in N])
+        # Label the vertices for each hole by surrounding region number
+        regions = label_holes(holes, hole_numbers, regions, neighbor_lists)
 
     return regions
 
@@ -877,6 +886,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
 
     return binary_array
 
+#------------------------------------------------------------------------------
+# Extract endpoints
+#------------------------------------------------------------------------------
 def extract_endpoints(indices_skeleton, neighbor_lists):
     """
     Extract endpoints from connected set of vertices
@@ -932,6 +944,9 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
 
     return indices_endpoints
 
+#------------------------------------------------------------------------------
+# Filter faces
+#------------------------------------------------------------------------------
 def inside_faces(faces, indices):
     """
     Remove surface mesh faces whose three vertices are not all in "indices"
@@ -1050,7 +1065,9 @@ def detect_boundaries(region, labels, neighbor_lists):
 
     return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
 
-
+#------------------------------------------------------------------------------
+# Compute distance
+#------------------------------------------------------------------------------
 def compute_distance(point, points):
     """
     Estimate the Euclidean distance from one point to a second (set) of points.
