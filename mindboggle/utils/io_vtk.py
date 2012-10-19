@@ -193,8 +193,8 @@ def load_scalar(filename, return_arrays=True):
     n_vertices : int
         number of vertices in the mesh
 
-    Example
-    -------
+    Examples
+    --------
     >>> points, faces, scalars, n_vertices = load_scalar('lh.pial.depth.vtk')
 
     """
@@ -235,7 +235,7 @@ def load_scalar(filename, return_arrays=True):
     else:
         return points, faces, scalars, n_vertices
 
-def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
+def write_scalars(output_vtk, points, indices, faces, LUTs=[], LUT_names=[]):
     """
     Save scalars into a VTK-format file.
 
@@ -248,7 +248,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
 
     Parameters
     ----------
-    vtk_file : string
+    output_vtk : string
         path of the output VTK file
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
@@ -261,8 +261,9 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     LUT_names : list of strings
         each element is the name of a LUT
 
-    Example
-    -------
+    Examples
+    --------
+    >>> # Toy example
     >>> import random
     >>> from mindboggle.utils.io_vtk import write_scalars
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
@@ -272,23 +273,39 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
     >>> LUTs=[[random.random() for i in xrange(1,5)] for j in [1,2]]
     >>> write_scalars('test_write_scalars.vtk', points, indices, faces,
     >>>               LUTs=LUTs, LUT_names=LUT_names)
+    >>>
+    >>> # Write vtk file with depth values on sulci
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file)
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file)
+    >>> # Write to vtk file and view with mayavi2:
+    >>> indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>> write_scalars('test_write_scalars.vtk', points, indices,
+    >>>     inside_faces(faces, indices),
+    >>>     LUTs=[depths], LUT_names=['depths'])
+    >>> os.system('mayavi2 -m Surface -d test_write_scalars.vtk &')
 
     """
     import os
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_LUT
 
-    vtk_file = os.path.join(os.getcwd(), vtk_file)
+    output_vtk = os.path.join(os.getcwd(), output_vtk)
 
-    Fp = open(vtk_file,'w')
+    Fp = open(output_vtk,'w')
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(LUTs) > 0:
-        # Make sure that LUTs is a list of lists
-        if type(LUTs[0]) != list:
-            LUTs = [LUTs]
+
         for i, LUT in enumerate(LUTs):
             if i == 0:
                 if len(LUT_names) == 0:
@@ -304,7 +321,7 @@ def write_scalars(vtk_file, points, indices, faces, LUTs=[], LUT_names=[]):
                 write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
     Fp.close()
 
-    return vtk_file
+    return output_vtk
 
 def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     """
@@ -316,7 +333,24 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     output_vtk : output VTK file [string]
     new_scalars : new scalar values for VTK file
     filter_scalars : (optional)
-        scalar values used to filter faces (positive values retained)
+        scalar values used to filter faces (values > -1 retained)
+
+    Examples
+    --------
+    >>> # Write vtk file with depth values on sulci
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalar(depth_file)
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file)
+    >>> # Write to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_write_scalars.vtk', depths, sulci)
+    >>> os.system('mayavi2 -m Surface -d test_write_scalars.vtk &')
 
     """
     import os
@@ -334,9 +368,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
     # Find indices to nonzero values
     indices = range(n_vertices)
     if len(filter_scalars) > 0:
-        indices_nonzero = [i for i,x in enumerate(filter_scalars) if int(x) > 0]
+        indices_filter = [i for i,x in enumerate(filter_scalars) if int(x) > -1]
         # Remove surface mesh faces whose three vertices are not all in indices
-        faces = inside_faces(faces, indices_nonzero)
+        faces = inside_faces(faces, indices_filter)
 
     # Lookup lists for saving to VTK format files
     LUTs = [new_scalars]
@@ -366,8 +400,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars, filter_scalars=[]):
 
     return output_vtk
 
-def write_mean_shapes_table(filename, column_names, labels, area_file,
-                            depth_file, mean_curvature_file,
+def write_mean_shapes_table(filename, column_names, labels, nonlabels,
+                            area_file, depth_file, mean_curvature_file,
                             gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
                             thickness_file='', convexity_file=''):
@@ -379,13 +413,44 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     filename :  output filename (without path)
     column_names :  names of columns [list of strings]
     labels :  list (same length as values)
+    nonlabels : list of integer labels to be excluded
     area_file :  name of file containing per-vertex surface areas
     *shape_files :  arbitrary number of vtk files with scalar values
 
     Returns
     -------
-    means_file : table file name for mean values
-    norm_means_file : table file name for mean values normalized by area
+    means_file : table file name for mean shape values
+    norm_means_file : table file name for mean shape values normalized by area
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_mean_shapes_table
+    >>> filename = 'test_write_mean_shapes_table.txt'
+    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
+    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> nonlabels = [-1]
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+    >>> write_mean_shapes_table(filename, column_names, labels, nonlabels,
+    >>>                         area_file, depth_file, mean_curvature_file,
+    >>>                         gauss_curvature_file,
+    >>>                         max_curvature_file, min_curvature_file,
+    >>>                         thickness_file='', convexity_file='')
 
     """
     import os
@@ -400,22 +465,25 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     if len(convexity_file) > 0:
         shape_files.append(convexity_file)
 
+    # Load per-vertex surface area file
+    points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
+    mean_values, norm_mean_values, surface_areas, \
+        label_list = mean_value_per_label(areas, areas, labels, nonlabels)
+
     columns = []
     norm_columns = []
-    for i, shape_file in enumerate(shape_files):
+    columns.append(surface_areas)
+    norm_columns.append(surface_areas)
 
-        points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=1)
+    for shape_file in shape_files:
+
         points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
-            label_list = mean_value_per_label(values, areas, labels)
+            label_list = mean_value_per_label(values, areas, labels, nonlabels)
 
-        if i == 0:
-            columns.append(surface_areas)
-            norm_columns.append(surface_areas)
-        else:
-            columns.append(mean_values)
-            norm_columns.append(norm_mean_values)
+        columns.append(mean_values)
+        norm_columns.append(norm_mean_values)
 
     means_file = os.path.join(os.getcwd(), filename)
     write_table(label_list, columns, column_names, means_file)
@@ -424,6 +492,112 @@ def write_mean_shapes_table(filename, column_names, labels, area_file,
     write_table(label_list, norm_columns, column_names, norm_means_file)
 
     return means_file, norm_means_file
+
+def write_vertex_shape_table(filename, column_names, indices, area_file,
+                             depth_file, mean_curvature_file, gauss_curvature_file,
+                             max_curvature_file, min_curvature_file,
+                             thickness_file='', convexity_file='',
+                             segments=[], nonsegments=[]):
+    """
+    Make a table of shape values per vertex per label per measure.
+
+    Parameters
+    ----------
+    filename : output filename (without path)
+    column_names : names of columns [list of strings]
+    indices : list of integers
+        indices to vertices to compute shapes
+    area_file : name of file containing per-vertex surface areas
+    *shape_files : arbitrary number of vtk files with scalar values
+    segments : numpy array of integers (optional)
+        IDs assigning all vertices to segments
+        (depth is normalized by the maximum depth value in a segment)
+    nonsegments : list of integers
+        segment numbers to be excluded
+
+    Returns
+    -------
+    shape_table : table file name for vertex shape values
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalar, write_vertex_shape_table
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
+    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> filename = 'test_write_vertex_shape_table.txt'
+    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
+    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
+    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalar(label_file, True)
+    >>> mesh_indices = find_neighbors(faces, n_vertices)
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
+    >>>     neighbor_lists)
+    >>> nonsegments = [-1]
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+    >>> write_vertex_shape_table(filename, column_names, indices,
+    >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
+    >>>     max_curvature_file, min_curvature_file, thickness_file='',
+    >>>     convexity_file='', segments=sulci, nonsegments=nonsegments)
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_file import write_table
+    from mindboggle.utils.io_vtk import load_scalar
+
+    shape_files = [area_file, depth_file, mean_curvature_file,
+                   gauss_curvature_file, max_curvature_file, min_curvature_file]
+    if len(thickness_file):
+        shape_files.append(thickness_file)
+    if len(convexity_file):
+        shape_files.append(convexity_file)
+
+    columns = []
+    for i, shape_file in enumerate(shape_files):
+
+        points, faces, values, n_vertices = load_scalar(shape_file, return_arrays=1)
+        columns.append(values[indices])
+
+        # Store depths to normalize
+        if shape_files[i] == depth_file:
+            depths = values
+
+    # Normalize depth values by maximum depth per segment
+    unique_segments = np.unique(segments)
+    unique_segments = [x for x in unique_segments if x not in nonsegments]
+    if len(unique_segments):
+        for segment_ID in unique_segments:
+            indices_segment = [i for i,x in enumerate(segments)
+                               if x == segment_ID]
+            if len(indices_segment):
+                max_depth_segment = max(depths[indices_segment])
+                depths[indices_segment] = depths[indices_segment] / max_depth_segment
+        column_names.append('norm_depth')
+        columns.append(depths[indices])
+    print(len(column_names), len(columns))
+    shape_table = os.path.join(os.getcwd(), filename)
+    write_table(segments[indices], columns, column_names, shape_table)
+
+    return shape_table
 
 def load_vtk_vertices(Filename):
     """Load VERTICES segment from a VTK file
@@ -439,8 +613,8 @@ def load_vtk_vertices(Filename):
         Each element is an integer defined in VERTICES segment of the VTK file.
         The integer is an index referring to a point defined in POINTS segment of the VTK file.
 
-    Notes
-    ------
+    Notes ::
+
         We assume that VERTICES segment is organized as one line,
         the first column of which is the number of vertices.
         Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface.
@@ -519,8 +693,8 @@ def write_lines(vtk_file, points, indices, lines, LUTs=[], LUT_names=[]):
     LUT_names : list of strings
         each element is the name of a LUT
 
-    Example
-    -------
+    Examples
+    --------
     >>> import random
     >>> points = [[random.random() for i in range(3)] for j in xrange(5)]
     >>> indices = [0,1,2,3,4]
@@ -782,3 +956,64 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
     #f_relabel.close()
 
     return label_files, colortable  #relabel_file
+
+
+if __name__ == "__main__" :
+
+
+    # Save a shape table for the fundus label boundary vertices
+    # in each subject hemisphere
+    import os
+    from mindboggle.utils.io_vtk import load_scalar, write_vertex_shape_table
+    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    # data_path = os.environ['MINDBOGGLE_DATA']
+    label_data_path = '/brains/Mindboggle101'
+    data_path = '/desk/output_measures/results'
+    column_names = ['labels', 'area', 'depth', 'mean_curvature',
+                    'gauss_curvature', 'max_curvature', 'min_curvature',
+                    'freesurfer_thickness', 'freesurfer_convexity']
+    hemis = ['lh','rh']
+    list_file = os.path.join(os.environ['MINDBOGGLE'], 'info', 'atlases101.txt')
+    # For each subject in the subjects file
+    fid = open(list_file, 'r')
+    subjects = fid.readlines()
+    subjects = [''.join(x.split()) for x in subjects]
+    for subject in subjects:
+        print(subject)
+        for hemi in hemis:
+            filename = subject + '_' + hemi + '_fundus_label_boundary_shape_table.txt'
+            label_file = os.path.join(label_data_path, 'subjects', subject,
+                                      'label', 'lh.labels.DKT25.manual.vtk')
+            points, faces, labels, n_vertices = load_scalar(label_file, True)
+            mesh_indices = find_neighbors(faces, n_vertices)
+            neighbor_lists = find_neighbors(faces, n_vertices)
+            sulci_file = os.path.join(data_path, 'results', 'features',
+                                      '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+            points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+            sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
+            indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
+                                                neighbor_lists)
+            nonsegments = [-1]
+            area_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+            depth_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+            mean_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+            gauss_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
+            max_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
+            min_curvature_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+            thickness_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'thickness.vtk')
+            convexity_file = os.path.join(data_path, 'measures',
+                '_hemi_lh_subject_MMRR-21-1', 'sulc.vtk')
+            write_vertex_shape_table(filename, column_names, indices,
+                area_file, depth_file, mean_curvature_file, gauss_curvature_file,
+                max_curvature_file, min_curvature_file, thickness_file,
+                convexity_file, segments=sulci, nonsegments=nonsegments)
+            exit()
+
