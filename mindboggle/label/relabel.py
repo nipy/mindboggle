@@ -21,15 +21,15 @@ def relabel_volume(input_file, old_labels, new_labels):
     old_labels : list of old labels
     new_labels : list of new labels
 
-    Example
-    -------
-    >>> import os
+    Examples
+    --------
+    import os
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
     >>> old_labels, new_labels = read_columns(relabel_file, 2)
-    >>> relabel_volume(input_file, old_labels, new_labels)
+  relabel_volume(input_file, old_labels, new_labels)
 
     """
     import os
@@ -72,8 +72,8 @@ def remove_volume_labels(input_file, labels_to_remove):
     input_file : labeled nibabel-readable (e.g., nifti) file
     labels_to_remove : list of labels to remove
 
-    Example
-    -------
+    Examples
+    --------
     >>> import os
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(data_path, 'labels_volume',
