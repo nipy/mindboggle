@@ -156,8 +156,8 @@ class Bounds:
         return self.label_matrix
 
     def graph_based_learning(self,method='propagate_labels', realign=False,
-                         kernel=kernels.rbf_kernel, sigma=10, vis=True,
-                         max_iters=200, tol=.001):
+                         kernel=kernels.rbf_kernel,
+                         sigma=10, max_iters=200, tol=.001, vis=False):
         """
         Main function to perform graph-based learning, such as label propagation.
 
