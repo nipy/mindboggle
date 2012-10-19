@@ -21,10 +21,12 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_all_folds(depth_file, area_file, fraction_folds):
+def find_deep_vertices(depth_file, area_file, fraction_folds):
     """
-    Use depth to extract all folds from a triangular surface mesh,
-    by fraction of surface area.
+    Find the deepest vertices in a surface mesh whose collective area
+    is a given fraction of the total surface area of the mesh.
+
+    Note: Resulting folds may have holes.
 
     Parameters
     ----------
@@ -44,18 +46,18 @@ def extract_all_folds(depth_file, area_file, fraction_folds):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalar, write_scalars
-    >>> from mindboggle.extract.extract_folds import extract_all_folds
+    >>> from mindboggle.extract.extract_folds import find_deep_vertices
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
-    >>>     area_file, 0.5)
+    >>> folds = find_deep_vertices(depth_file, area_file, 0.5)
     >>> # Write results to vtk file and view with mayavi2:
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> rewrite_scalars(depth_file, 'test_extract_all_folds.vtk', folds, folds)
-    >>> os.system('mayavi2 -m Surface -d test_extract_all_folds.vtk &')
+    >>> rewrite_scalars(depth_file, 'test_find_deep_vertices.vtk', folds, folds)
+    >>> os.system('mayavi2 -m Surface -d test_find_deep_vertices.vtk &')
 
     """
     import numpy as np
@@ -70,36 +72,54 @@ def extract_all_folds(depth_file, area_file, fraction_folds):
     points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=True)
     points, faces, areas, n_vertices = load_scalar(area_file, return_arrays=True)
 
-    sort_indices = np.argsort(depths)
-    sort_indices = sort_indices[::-1]
+    indices_asc = np.argsort(depths)
+    indices_des = indices_asc[::-1]
 
     total_area = np.sum(areas)
     fraction_area = fraction_folds * total_area
     sum_area = 0
     folds = -1 * np.ones(len(areas))
-    min_depth = 1
-    for index in sort_indices:
-        folds[index] = 1
-        sum_area += areas[index]
-        if sum_area >= fraction_area:
-            min_depth = depths[index]
-            break
 
-    n_deep_vertices = len([x for x in folds if x == 1])
+    # Start by making fraction_area of the vertices folds
+    start = np.round(fraction_folds * len(depths))
+    folds[indices_des[0:start]] = 1
+    sum_area = np.sum(areas[indices_des[0:start]])
 
-    print('  ...Extracted {0} vertices deeper than {1:.2f} ({2:.2f} seconds)'.
-          format(n_deep_vertices, min_depth, time() - t0))
+    # If these initial vertices cover less than fraction_area,
+    # add vertices until the remaining vertices' area exceeds fraction_area
+    if sum_area <= fraction_area:
+        for index in indices_des[start::]:
+            folds[index] = 1
+            sum_area += areas[index]
+            if sum_area >= fraction_area:
+                break
+    # Otherwise, if these initial vertices cover more than fraction_area,
+    # remove vertices until the remaining vertices' area is less than fraction_area
+    else:
+        start = np.round((1-fraction_folds) * len(depths))
+        for index in indices_asc[start::]:
+            folds[index] = -1
+            sum_area += areas[index]
+            if sum_area <= fraction_area:
+                break
 
-    return folds, min_depth, n_deep_vertices
+    print('  ...Extracted deep vertices ({1:.2f} seconds)'.format(time() - t0))
+
+    return folds
 
 #===============================================================================
 # Extract individual folds
 #===============================================================================
 def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
-                  min_fold_size, do_fill_holes=False):
+                  min_fold_size, do_fill_holes=True):
     """
-    Use depth to extract folds from a triangular surface mesh and fill holes
-    resulting from shallower areas within a fold.
+    Use depth to extract folds from a triangular surface mesh.
+
+    The resulting separately numbered folds may have holes
+    resulting from shallower areas within a fold,
+    so the largest connected set of background vertices are removed
+    (presumed to be the background) and smaller sets of connected
+    background vertices (presumed to be holes) are filled by fold number.
 
     Parameters
     ----------
@@ -119,7 +139,7 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     Returns
     -------
     folds : array of integers
-        fold numbers for all vertices, with -1s for non-fundus vertices
+        fold numbers for all vertices (default -1 for non-fold vertices)
     n_folds :  int
         number of folds
 
@@ -136,7 +156,8 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
     >>> points, faces, depths, n_vertices = load_scalar(depth_file, return_arrays=0)
     >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> folds, n_folds = extract_folds(depth_file, area_file, neighbor_lists, 0.5, 50, False)
+    >>> folds, n_folds = extract_folds(depth_file, area_file, neighbor_lists,
+    >>>     0.5, 50, False)
     >>> # Write results to vtk file and view with mayavi2:
     >>> #rewrite_scalars(depth_file, 'test_extract_folds.vtk', folds, folds)
     >>> indices = [i for i,x in enumerate(folds) if x > -1]
@@ -148,67 +169,64 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     import numpy as np
     from time import time
     from mindboggle.utils.mesh_operations import segment, fill_holes
-    from mindboggle.utils.io_vtk import load_scalar
-    from mindboggle.extract.extract_folds import extract_all_folds
+    from mindboggle.extract.extract_folds import find_deep_vertices
+
+    fill_boundaries = True
 
     print("Extract folds from surface mesh...")
     t0 = time()
 
-    # Compute the minimum depth threshold for defining folds
-    folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
-        area_file, fraction_folds)
+    # Extract folds (fraction of surface area covered by deeper vertices)
+    folds = find_deep_vertices(depth_file, area_file, fraction_folds)
 
     # Segment folds of a surface mesh
-    print("  Segment surface mesh into separate folds deeper than {0:.2f}...".
-          format(min_depth))
+    print("  Segment surface mesh into separate folds")
     t1 = time()
-    vertices_to_segment = [i for i,x in enumerate(folds) if x == 1]
-    folds = segment(vertices_to_segment, neighbor_lists,
-        seed_lists=[], min_region_size=min_fold_size,
-        spread_same_labels=False, labels=[], label_pair_lists=[])
+    folds = segment(np.where(folds == 1)[0], neighbor_lists,
+                    seed_lists=[], min_region_size=min_fold_size)
     print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
     n_folds = len([x for x in list(set(folds)) if x != -1])
 
-    # If there are any folds
+    # If there are any folds, find and fill holes
     if n_folds > 0 and do_fill_holes:
 
-        # Find fold vertices that have not yet been segmented
-        # (because they weren't sufficiently deep)
-        t2 = time()
-        vertices_to_segment = [i for i,x in enumerate(folds) if x==-1]
+        if fill_boundaries:
+            folds = fill_hole_boundaries(folds, neighbor_lists)
 
-        # Segment holes in the folds
-        print('  Segment holes in the folds...')
-        holes = segment(vertices_to_segment, neighbor_lists,
-                seed_lists=[], min_region_size=1,
-                spread_same_labels=False, labels=[], label_pair_lists=[])
-        n_holes = len([x for x in list(set(holes))])
+        else:
+            # Find nonfold vertices
+            t2 = time()
+            nonfold_indices = [i for i,x in enumerate(folds) if x==-1]
 
-        # If there are any holes
-        if n_holes > 0:
+            # Segment holes in the folds
+            print('  Segment holes in the folds...')
+            holes = segment(nonfold_indices, neighbor_lists)
+            n_holes = len([x for x in list(set(holes))])
 
-            # Ignore the largest hole (the background) and renumber holes
-            max_hole_size = 0
-            max_hole_index = 0
-            for ihole in range(n_holes):
-                I = np.where(holes == ihole)
-                if len(I) > max_hole_size:
-                    max_hole_size = len(I)
-                    max_hole_index = ihole
-            holes[holes == max_hole_index] = -1
-            if max_hole_index < n_holes:
-                holes[holes > max_hole_index] -= 1
-            n_holes -= 1
-            print('    ...{0} holes segmented ({1:.2f} seconds)'.
-                  format(n_holes, time() - t2))
+            # If there are any holes
+            if n_holes > 0:
 
-            # Fill holes
-            t3 = time()
-            folds = fill_holes(folds, holes, n_holes, neighbor_lists)
-            print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
+                # Ignore the largest hole (the background) and renumber holes
+                max_hole_size = 0
+                max_hole_index = 0
+                for ihole in range(n_holes):
+                    I = np.where(holes == ihole)
+                    if len(I) > max_hole_size:
+                        max_hole_size = len(I)
+                        max_hole_index = ihole
+                holes[holes == max_hole_index] = -1
+                if max_hole_index < n_holes:
+                    holes[holes > max_hole_index] -= 1
+                n_holes -= 1
+                print('    ...{0} holes segmented ({1:.2f} seconds)'.
+                      format(n_holes, time() - t2))
 
-    print('  ...Extracted folds greater than {0:.2f} depth in {1:.2f} seconds'.
-          format(min_depth, time() - t0))
+                # Fill holes
+                t3 = time()
+                folds = fill_holes(folds, holes, neighbor_lists)
+                print('  Filled holes ({0:.2f} seconds)'.format(time() - t3))
+
+    print('  ...Extracted folds in {1:.2f} seconds'.format(time() - t0))
 
     # Return folds, number of folds
     return folds, n_folds
@@ -216,15 +234,15 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
 #===============================================================================
 # Identify sulci from folds
 #===============================================================================
-def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
-                              label_pair_lists):
+def identify_sulci_from_folds(folds, labels, neighbor_lists, label_pair_lists
+                              sulcus_names=[]):
     """
     Identify sulcus folds in a brain surface according to a labeling protocol
     that includes a list of label pairs defining each sulcus.
 
     Definitions ::
 
-    A fold is a group of connected vertices deeper than a depth threshold.
+    A fold is a group of connected, deep vertices.
 
     A ''label list'' is the list of labels used to define a single sulcus.
 
@@ -237,27 +255,27 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
 
     Algorithm ::
 
-      First, remove all fold vertices with labels that are not in the label list
-      by assigning -1 to them.
+      First, remove all fold vertices with labels that are not
+      in any of the label lists by assigning -1 to them.
 
-      For each fold (vertices with the same non-zero label):
+      For each fold (vertices with the same fold label):
 
         Case 0: NO MATCH -- fold has no label
 
         Case 1: NO MATCH -- fold has only one label
 
-          If the fold has only one label, remove the fold by assigning a
-          sulcus ID of -1 to all vertices in this fold.
+          If the fold has only one label, remove the fold by assigning
+          -1 to all vertices in this fold.
 
         Case 2: matching label set in sulcus
 
           If the set of labels in the fold is the same as in one of the
-          protocol's sulci, assign the index to the corresponding sulcus
+          protocol's sulci, assign the index to the corresponding
           label list to all vertices in the fold.
 
         Case 3: NO MATCH -- fold has no sulcus label pair
 
-        Case 4a: fold labels in one sulcus
+        Case 4: fold labels in one sulcus
 
           If the set of labels in the fold is a subset of labels in
           only one of the protocol's sulcus label lists, assign the index
@@ -265,20 +283,11 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
           (Ex: the labels in the fold are [1,2,3] and there is only one
            sulcus label list containing 1, 2, and 3: [1,2,3,4])
 
-        Case 4b: labels in sulci but label pair in one sulcus
-
-          If the set of labels in the fold is a subset of labels in more than
-          one of the protocol's sulcus label lists, find corresponding sulcus
-          label pair lists that share a label pair with the fold label pairs.
-
-        Case 4c: ambiguous -- fold label pairs in multiple sulci
-
-        Case 5: ambiguous -- fold labels not contained by a sulcus
-
-        For ambiguous cases above:
+        Case 5: ambiguous -- fold labels in more than one sulcus
+                          -- fold labels not contained by a sulcus
 
           Find label boundary pairs in the fold whose labels
-          are shared by any other label pairs in the fold,
+          are not shared by any other label pairs in the fold,
           and store the sulcus IDs for these pairs.
 
           Assign a sulcus ID to fold vertices that have unique
@@ -335,7 +344,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
     >>>         folds.append(fold)
     >>> # Identify sulci from folds
     >>> sulci = identify_sulci_from_folds(labels, folds, neighbor_lists,
-    >>>                       sulcus_names, label_pair_lists)
+    >>>                                   label_pair_lists, sulcus_names)
     >>> # Finally, write points, faces and sulci to a new vtk file
     >>> rewrite_scalars(labels_file, vtk_file, sulci, filter_scalars=sulci)
 
@@ -346,7 +355,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
     verbose = 0
 
     #---------------------------------------------------------------------------
-    # Nested function definitions
+    # Nested function
     #---------------------------------------------------------------------------
     def find_superset_subset_lists(labels, label_lists):
         """
@@ -412,7 +421,9 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
     #---------------------------------------------------------------------------
     # Loop through folds
     #---------------------------------------------------------------------------
-    for ifold, fold in enumerate(folds):
+    fold_numbers = [x for x in np.unique(folds) if x > -1]
+    for n_fold in fold_numbers:
+        fold = np.where(folds == n_fold)[0]
         special_case = False
 
         # List the labels in this fold
@@ -428,14 +439,14 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
         # Case 1: NO MATCH -- fold has only one label
         elif len(unique_fold_labels) == 1:
             print("  Fold {0}: NO MATCH -- fold has only one label ({1})".
-                  format(ifold, unique_fold_labels[0]))
+                  format(n_fold, unique_fold_labels[0]))
             # Ignore: sulci already initialized with -1 values
             continue
 
         # Case 2: matching label set in sulcus
         elif unique_fold_labels in label_lists:
             print("  Fold {0}: matching label set in sulcus: {1} ({2})".
-                format(ifold,
+                format(n_fold,
                 sulcus_names[label_lists.index(unique_fold_labels)],
                   ', '.join([str(x) for x in unique_fold_labels])))
             index = label_lists.index(unique_fold_labels)
@@ -462,7 +473,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
             # Case 3: NO MATCH -- fold has no sulcus label pair
             if not len(fold_pairs_in_protocol):
                 print("  Fold {0}: NO MATCH -- fold has no sulcus label pair".
-                      format(ifold))
+                      format(n_fold))
 
             # Cases 4-5: label pair(s) in common between sulci and fold
             else:
@@ -477,7 +488,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
                     # Case 4a: fold labels in one sulcus
                     if len(superset_indices) == 1:
                         print("  Fold {0}: fold labels in one sulcus: {1} ({2})".
-                            format(ifold, sulcus_names[superset_indices[0]],
+                            format(n_fold, sulcus_names[superset_indices[0]],
                             ', '.join([str(x)
                             for x in label_lists[superset_indices[0]]])))
                         # Assign ID of matching sulcus to all fold vertices
@@ -496,7 +507,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
                         # Case 4b: labels in sulci but label pair in one sulcus
                         if len(IDs) == 1:
                             print("  Fold {0}: labels in sulci "
-                                  "but label pair in one sulcus".format(ifold))
+                                  "but label pair in one sulcus".format(n_fold))
                             # Assign ID of matching sulcus to all fold vertices
                             sulci[fold] = IDs
 
@@ -504,60 +515,19 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
                         else:
                             print("  Fold {0}: ambiguous -- "
                                   "fold label pairs in multiple sulci".
-                                  format(ifold))
+                                  format(n_fold))
                             special_case = True
 
                 # Case 5: ambiguous -- fold labels not contained by a sulcus
                 else:
                     print("  Fold {0}: ambiguous -- "
-                          "fold labels not contained by a sulcus".format(ifold))
+                          "fold labels not contained by a sulcus".format(n_fold))
                     special_case = True
 
         # Special cases
         if special_case:
 
-            # Find label boundary pairs in the fold whose labels
-            # are and are not shared by any other label pairs
-            # in the fold, and store the sulcus IDs for these pairs
-            unique_pairs = []
-            IDs_unique_pairs = []
-            remainder_pairs = []
-            IDs_remainder_pairs = []
-            for pair in fold_pairs_in_protocol:
-                labels_in_pairs = [x for sublst in fold_pairs_in_protocol
-                                   for x in sublst]
-                if len([x for x in labels_in_pairs if x in pair]) == 2:
-                    unique_pairs.append(pair)
-                    IDs_unique_pairs.extend(
-                        [i for i,x in enumerate(label_pair_lists)
-                         if np.sort(pair).tolist() in x])
-                else:
-                    remainder_pairs.append(pair)
-                    IDs_remainder_pairs.extend([i
-                        for i,x in enumerate(label_pair_lists)
-                        if np.sort(pair).tolist() in x])
-
-            # Assign a sulcus ID to fold vertices that have unique
-            # label pair labels (unique to ensure a label is not shared
-            # with another label pair); store unassigned vertices
-            if len(unique_pairs):
-                print("           Assign sulcus IDs to vertices "
-                      "with labels in only one fold pair")
-                if verbose:
-                    for index, ID_unique_pair \
-                      in enumerate(IDs_unique_pairs):
-                        print("           {0} ({1})".format(
-                            unique_pairs[index], sulcus_names[ID_unique_pair]))
-                unassigned = []
-                for vertex in fold:
-                    index = [i for i,x in enumerate(unique_pairs)
-                             if labels[vertex] in x]
-                    if len(index):
-                        sulci[vertex] = IDs_unique_pairs[index[0]]
-                    else:
-                        unassigned.append(vertex)
-            else:
-                unassigned = fold[:]
+            unassigned = fold[:]
 
             # If there are remaining vertices with duplicate label pair labels
             if len(unassigned) and len(remainder_pairs):
@@ -571,16 +541,15 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
                 # Segment into sets of vertices connected to label boundary seeds
                 print("           Segment into separate label-pair regions")
                 subfolds = segment(unassigned, neighbor_lists,
-                    seed_lists, min_region_size=50,
-                    spread_same_labels=False, labels=[], label_pair_lists=[])
+                                   seed_lists, min_region_size=50)
                 #n_subfolds = len([x for x in list(set(subfolds)) if x != -1])
 
                 # Assign a sulcus ID to each segment
                 print("           Assign sulcus IDs to segmented vertices")
-                for ifold in np.unique(subfolds).tolist():
-                    if ifold > -1:
-                        subfold = [i for i,x in enumerate(subfolds) if x == ifold]
-                        sulci[subfold] = IDs_remainder_pairs[ifold]
+                for n_fold in np.unique(subfolds).tolist():
+                    if n_fold > -1:
+                        subfold = [i for i,x in enumerate(subfolds) if x == n_fold]
+                        sulci[subfold] = IDs_remainder_pairs[n_fold]
 
     return sulci
 
@@ -588,7 +557,7 @@ def identify_sulci_from_folds(labels, folds, neighbor_lists, sulcus_names,
 # Extract sulci
 #===============================================================================
 def extract_sulci(label_pair_lists, labels, depth_file, area_file,
-                  neighbor_lists, fraction_folds, do_fill_holes=False):
+                  neighbor_lists, fraction_folds, do_fill_holes=True):
     """
     Extract sulci from a surface mesh using depth and a sulcus labeling protocol.
 
@@ -677,15 +646,14 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
     import numpy as np
     from time import time
     from mindboggle.utils.io_vtk import load_scalar
-    from mindboggle.extract.extract_folds import extract_all_folds
+    from mindboggle.extract.extract_folds import find_deep_vertices
     from mindboggle.utils.mesh_operations import detect_boundaries,\
         propagate, segment, fill_holes
 
     #---------------------------------------------------------------------------
     # Load deep vertices
     #---------------------------------------------------------------------------
-    folds, min_depth, n_deep_vertices = extract_all_folds(depth_file,
-        area_file, fraction_folds)
+    folds = find_deep_vertices(depth_file, area_file, fraction_folds)
     indices_folds = [i for i,x in enumerate(folds) if x == 1]
     if len(indices_folds):
 
@@ -710,7 +678,8 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
         print("    Segment into separate label-pair regions...")
         t1 = time()
         points, faces, depths, n_vertices = load_scalar(depth_file, True)
-        sulci = propagate(points, faces, folds, seeds, labels)
+        sulci = propagate(points, faces, folds, seeds, labels,
+                          max_iters=200, tol=0.001, sigma=10)
 
         n_sulci = len([x for x in list(set(sulci)) if x != -1])
         print("    ...Segmented {0} sulcus folds in {1:.2f} seconds".
@@ -727,13 +696,11 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
         # Find fold vertices that have not yet been segmented
         # (because they weren't sufficiently deep)
         t2 = time()
-        vertices_to_segment = [i for i,x in enumerate(sulci) if x==-1]
+        nonsulcus_indices = [i for i,x in enumerate(sulci) if x==-1]
 
         # Segment holes in the folds
         print("    Find holes...")
-        holes = segment(vertices_to_segment, neighbor_lists,
-            seed_lists=[], min_region_size=1,
-            spread_same_labels=False, labels=[], label_pair_lists=[])
+        holes = segment(nonsulcus_indices, neighbor_lists)
         n_holes = len([x for x in list(set(holes)) if x != -1])
 
         # If there are any holes
@@ -756,7 +723,7 @@ def extract_sulci(label_pair_lists, labels, depth_file, area_file,
 
             # Fill holes
             t3 = time()
-            sulci = fill_holes(sulci, holes, n_holes, neighbor_lists)
+            sulci = fill_holes(sulci, holes, neighbor_lists)
             print("    Filled holes ({0:.2f} seconds)".format(time() - t3))
 
     print("  ...Extracted and filled {0} sulcus folds in {1:.2f} seconds".
