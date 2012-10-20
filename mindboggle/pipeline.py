@@ -112,8 +112,8 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalars, write_mean_shapes_table, \
-     load_scalar, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
+from mindboggle.utils.io_vtk import rewrite_scalar_lists, write_mean_shapes_table, \
+     load_scalars, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
      vtk_to_freelabels
 from mindboggle.utils.io_file import read_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
@@ -385,7 +385,7 @@ if run_atlasFlow:
     #===========================================================================
     elif init_labels == 'manual':
         AtlasLabels = Node(name = 'Atlas_labels',
-                           interface = Fn(function = load_scalar,
+                           interface = Fn(function = load_scalars,
                                           input_names = ['filename',
                                                          'return_arrays'],
                                           output_names = ['points',
@@ -542,7 +542,7 @@ if run_featureFlow:
     # Find all neighbors
     #---------------------------------------------------------------------------
     LoadSurf = Node(name = 'Load_surface',
-                        interface = Fn(function = load_scalar,
+                        interface = Fn(function = load_scalars,
                                        input_names = ['filename',
                                                       'return_arrays'],
                                        output_names = ['points',
@@ -679,10 +679,11 @@ if run_featureFlow:
     # Write folds/sulci and fundi, likelihoods to VTK files
     #---------------------------------------------------------------------------
     SulciVTK = Node(name='Sulci_to_VTK',
-                    interface = Fn(function = rewrite_scalars,
+                    interface = Fn(function = rewrite_scalar_lists,
                                    input_names = ['input_vtk',
                                                   'output_vtk',
-                                                  'new_scalars',
+                                                  'new_scalar_lists',
+                                                  'new_scalar_names'
                                                   'filter_scalars'],
                                    output_names = ['output_vtk']))
     # Save sulci
@@ -691,7 +692,8 @@ if run_featureFlow:
         mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Sulci_to_VTK.input_vtk')])])
         SulciVTK.inputs.output_vtk = 'sulci.vtk'
-        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalars')])])
+        SulciVTK.inputs.new_scalar_names = ['sulci']
+        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalar_lists')])])
         featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
                          [('Sulci_to_VTK.output_vtk','features.@sulci')])])
@@ -702,7 +704,8 @@ if run_featureFlow:
     mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
     FundiVTK.inputs.output_vtk = 'fundi.vtk'
-    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalars')])])
+    FundiVTK.inputs.new_scalar_names = ['fundi']
+    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalar_lists')])])
     featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
                      [('Fundi_to_VTK.output_vtk','features.@fundi')])])
@@ -713,7 +716,8 @@ if run_featureFlow:
     mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
     LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
-    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
+    LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
+    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalar_lists')])])
     featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
                      [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
