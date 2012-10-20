@@ -24,6 +24,7 @@ $ mris_ca_label MMRR-21-1 lh lh.sphere.reg ../lh.DKTatlas40.gcs ../out.annot
 Authors:
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
     - Jason Tourville  (jtour@bu.edu)
+    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -80,3 +81,43 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
     cli.run()
 
     return annot_name, annot_file
+
+def find_superset_subset_lists(labels, label_lists):
+    """
+    Find *label_lists* that are supersets or subsets of *labels*.
+
+    Parameters
+    ----------
+    labels : list of integers
+        label numbers
+    label_lists : list of lists of integers
+        each list contains label numbers
+
+    Returns
+    -------
+    superset_indices : list of integers
+        indices to label_lists that are a superset of labels
+    subset_indices : list of integers
+        indices to label_lists that are a subset of labels
+
+    Example
+    -------
+    >>> find_superset_subset_lists([1,2],[[1,2],[3,4]])
+    >>> [0]
+    >>> find_superset_subset_lists([1,2],[[1,2,3],[1,2,5]])
+    >>> [0, 1]
+    >>> find_superset_subset_lists([1,2],[[2,3],[1,2,5]])
+    >>> [1]
+
+    """
+
+    labels = set(labels)
+    superset_indices = []
+    subset_indices = []
+    for Id, label_list in enumerate(label_lists):
+        if labels.issubset(set(label_list)):
+            superset_indices.append(Id)
+        if set(label_list).issubset(labels):
+            subset_indices.append(Id)
+
+    return superset_indices, subset_indices
