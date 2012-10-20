@@ -487,9 +487,9 @@ def getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = 0, PitsThld = 0
             Count = 0
             for LUT_name, LUT in Maps.iteritems():
                 if Count == 0 :
-                    io_vtk.write_vtk_LUT(Fp, LUT, LUT_name)
+                    io_vtk.write_vtk_scalars(Fp, LUT, LUT_name)
                 else:
-                    io_vtk.write_vtk_LUT(Fp, LUT, LUT_name, at_LUT_begin=False)
+                    io_vtk.write_vtk_scalars(Fp, LUT, LUT_name, at_LUT_begin=False)
                 Count += 1
         Fp.close()
         return None

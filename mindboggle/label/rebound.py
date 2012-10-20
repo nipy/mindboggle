@@ -19,7 +19,7 @@ import numpy as np
 from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
-from mindboggle.utils.io_vtk import write_scalars
+from mindboggle.utils.io_vtk import write_scalar_lists
 import mindboggle.utils.graph_operations as go
 import mindboggle.utils.kernels as kernels
 
@@ -379,7 +379,8 @@ class Bounds:
                     if not np.mod(counter,1000):
                         LABELS = np.zeros(self.num_points)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
-                        write_scalars(filename, self.Points, self.Vertices, self.Faces, LABELS)
+                        write_scalar_lists(filename, self.Points, self.Vertices,
+                                           self.Faces, [LABELS])
 
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
                 Y_hat_next[restore_indices, 0] = restore_values # reset
@@ -478,10 +479,12 @@ class Bounds:
 
         # We can now output a file to show the boundary.
         if not realigned_labels:
-            write_scalars(output_filename,self.Points,self.Vertices, self.Faces,self.label_boundary)
+            write_scalar_lists(output_filename, self.Points, self.Vertices,
+                               self.Faces, [self.label_boundary])
             self.label_boundary_file = output_filename
         else:
-            write_scalars(output_filename,self.Points,self.Vertices, self.Faces,self.Rlabel_boundary)
+            write_scalar_lists(output_filename, self.Points, self.Vertices,
+                               self.Faces, [self.Rlabel_boundary])
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -584,7 +587,8 @@ class Bounds:
         for value in self.label_boundary_segments.values():
             colored_segments[value] = color
             color += 1
-        write_scalars(self.highlighted_segment_file, self.Points, self.Vertices, self.Faces,colored_segments)
+        write_scalar_lists(self.highlighted_segment_file, self.Points,
+                           self.Vertices, self.Faces, [colored_segments])
 
         return self.label_boundary_segments, self.highlighted_segment_file
 
@@ -636,7 +640,8 @@ class Bounds:
             labels = np.zeros(self.Labels.shape)
             labels[segment] = 100
             labels[endpoint] = 200
-            write_scalars('debug_intersections.vtk',self.Points, self.Vertices, self.Faces, labels)
+            write_scalar_lists('debug_intersections.vtk',self.Points,
+                               self.Vertices, self.Faces, [labels])
             raw_input("Check this out...")
 
         return intersection
@@ -884,7 +889,8 @@ class Bounds:
                 vertices_to_highlight[value] = 1
                 print('______________Preserving Label Boundary Segment_____________')
 
-        write_scalars(dir + '/propagating_regions.vtk',self.Points, self.Vertices, self.Faces,vertices_to_highlight)
+        write_scalar_lists(dir + '/propagating_regions.vtk',self.Points,
+                           self.Vertices, self.Faces, [vertices_to_highlight])
 
         return self.label_segment_matrix
 
@@ -1105,7 +1111,8 @@ class Bounds:
 
         # Write VTK file with the new labels
         self.RLabels_file = filename
-        write_scalars(self.RLabels_file, self.Points, self.Vertices, self.Faces, self.RLabels)
+        write_scalar_lists(self.RLabels_file, self.Points, self.Vertices,
+                           self.Faces, [self.RLabels])
 
         return self.RLabels, self.RLabels_file
 
