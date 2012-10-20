@@ -248,9 +248,9 @@ def propagate(points, faces, region, seeds, labels,
     points : list of lists of three integers
         coordinates for all vertices
     faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
+        indices to three vertices per face (indices start from zero)
     region : numpy array of integers
-        binary values for all vertices
+        values > -1 indicate inclusion in a region for all vertices
     seeds : numpy array of integers
         seed numbers for all vertices (default -1)
     labels : numpy array of integers
@@ -572,6 +572,14 @@ def fill_holes(regions, neighbor_lists):
     Fill holes in regions on a surface mesh by using region boundaries.
 
     NOTE: assumes one set of connected vertices per region
+
+    Steps ::
+
+        1. Segment region vertex neighbors into connected vertices (region boundaries).
+        2. Remove the largest region boundary, presumably the
+           outer contour of the region, leaving smaller boundaries,
+           presumably the contours of holes within the region.
+        3. Call label_holes() to fill holes with surrounding region numbers.
 
     Parameters
     ----------
