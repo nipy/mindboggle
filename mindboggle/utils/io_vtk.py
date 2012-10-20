@@ -340,7 +340,7 @@ def load_scalar_lists(filename):
     return faces, lines, indices, scalar_lists, scalar_names
 
 def write_scalar_lists(output_vtk, points, indices, faces,
-                       scalar_lists=[], scalar_names=['scalars']):
+                       scalar_lists, scalar_names=['scalars']):
     """
     Save lists of scalars into the lookup table of a VTK-format file.
 
@@ -426,7 +426,7 @@ def write_scalar_lists(output_vtk, points, indices, faces,
 
     return output_vtk
 
-def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists=[],
+def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
                          new_scalar_names=['scalars'], filter_scalars=[]):
     """
     Load VTK format file and save a subset of scalars into a new file.
@@ -464,7 +464,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists=[],
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file)
     >>> # Write to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_write_rescalar_lists.vtk',
-    >>>                 [depths], ['depths'], sulci)
+    >>>                      [depths], ['depths'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalar_lists.vtk &')
 
     """
@@ -825,6 +825,44 @@ def load_points(filename):
               for point_id in xrange(Data.GetNumberOfPoints())]
 
     return points
+
+def load_points_faces(filename):
+    """
+    Load points and faces of a VTK surface file.
+
+    Parameters
+    ----------
+    filename : string
+        path/filename of a VTK format file
+
+    Returns
+    -------
+    points : list of lists of floats
+        each element is a list of 3-D coordinates of a vertex on a surface mesh
+    faces : list of lists of integers (see return_arrays)
+        each element is list of 3 indices of vertices that form a face
+        on a surface mesh
+
+    """
+    import vtk
+
+    Reader = vtk.vtkDataSetReader()
+    Reader.SetFileName(filename)
+    Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
+    Reader.Update()
+
+    Data = Reader.GetOutput()
+    points = [list(Data.GetPoint(point_id))
+              for point_id in xrange(Data.GetNumberOfPoints())]
+
+    if Data.GetNumberOfPolys() > 0:
+        faces = [[Data.GetPolys().GetData().GetValue(j)
+                  for j in xrange(i*4 + 1, i*4 + 4)]
+                  for i in xrange(Data.GetPolys().GetNumberOfCells())]
+    else:
+        faces = []
+
+    return points, faces
 
 def load_vertices(Filename):
     """
