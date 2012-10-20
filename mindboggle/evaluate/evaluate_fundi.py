@@ -20,7 +20,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #import sys
 #import numpy as np
 #from mindboggle.utils.mesh_operations import compute_distance
-#from mindboggle.utils.io_vtk import load_scalar, write_scalars
+#from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
 #from mindboggle.info.sulcus_boundaries import sulcus_boundaries
 #from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
@@ -86,7 +86,7 @@ if __name__ == "__main__":
 
     import sys
     import numpy as np
-    from mindboggle.utils.io_vtk import load_scalar, write_scalars
+    from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
@@ -101,9 +101,9 @@ if __name__ == "__main__":
     print('***')
 
     # Load fundi, folds, labels
-    points, faces, fundi, n_vertices = load_scalar(fundi_file, return_arrays=1)
-    points, faces, folds, n_vertices = load_scalar(folds_file, return_arrays=1)
-    points, faces, labels, n_vertices = load_scalar(labels_file, return_arrays=1)
+    points, faces, fundi, n_vertices = load_scalars(fundi_file, return_arrays=1)
+    points, faces, folds, n_vertices = load_scalars(folds_file, return_arrays=1)
+    points, faces, labels, n_vertices = load_scalars(labels_file, return_arrays=1)
     n_points = len(points)
 
     # List of indices to fold vertices
@@ -163,5 +163,5 @@ if __name__ == "__main__":
 
     # Write resulting fundus-label boundary distances to VTK file
     print('Write distances to a VTK file for visualization...')
-    write_scalars('evaluate_fundi.vtk', points, range(n_points), faces,
-                  [distances], ['fundus-label boundary distances'])
+    write_scalar_lists('evaluate_fundi.vtk', points, range(n_points), faces,
+                       [distances], ['fundus-label boundary distances'])
