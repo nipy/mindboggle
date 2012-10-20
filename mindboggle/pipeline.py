@@ -683,7 +683,7 @@ if run_featureFlow:
                                    input_names = ['input_vtk',
                                                   'output_vtk',
                                                   'new_scalar_lists',
-                                                  'new_scalar_names'
+                                                  'new_scalar_names',
                                                   'filter_scalars'],
                                    output_names = ['output_vtk']))
     # Save sulci
