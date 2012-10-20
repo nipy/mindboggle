@@ -235,7 +235,7 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
 #===============================================================================
 # Identify sulci from folds
 #===============================================================================
-def identify_sulci_from_folds(folds, labels, neighbor_lists, label_pair_lists
+def identify_sulci_from_folds(folds, labels, neighbor_lists, label_pair_lists,
                               sulcus_names=[]):
     """
     Identify sulcus folds in a brain surface according to a labeling protocol
