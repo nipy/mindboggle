@@ -16,7 +16,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
 #from mindboggle.utils.mesh_operations import find_anchors, extract_endpoints,
 #                                             simple_test, skeletonize
-#from mindboggle.utils.io_vtk import load_scalar
+#from mindboggle.utils.io_vtk import load_scalars
 
 #-----------------
 # Sigmoid function
@@ -57,19 +57,20 @@ def compute_likelihood(depths, curvatures):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.extract.extract_fundi import compute_likelihood
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> mean_curvature_file = os.path.join(data_path, 'measures',
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
-    >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
     >>>                                                          True)
     >>> L = compute_likelihood(depths, mean_curvatures)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L) #, L)
+    >>> rewrite_scalar_lists(depth_file, 'test_compute_likelihood.vtk',
+    >>>                      [L], ['likelihoods']) #, L)
     >>> os.system('mayavi2 -m Surface -d test_compute_likelihood.vtk &')
 
     """
@@ -232,7 +233,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
     >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -244,11 +245,11 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
     >>>                                                          True)
-    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> sulcus_ID = 1
     >>> indices_fold = [i for i,x in enumerate(sulci) if x == sulcus_ID]
@@ -265,8 +266,8 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>>     likelihoods_fold, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> H[indices_anchors] = 2
-    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk',
-    >>>                 H, H)
+    >>> rewrite_scalar_lists(depth_file, 'test_connect_points.vtk',
+    >>>                      [H], ['connected points'], H)
     >>> os.system('mayavi2 -m Surface -d test_connect_points.vtk &')
 
     """
@@ -457,7 +458,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_fundi import extract_fundi
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -469,20 +470,20 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> fundi, n_fundi, likelihoods = extract_fundi(sulci,
     >>>     neighbor_lists, depth_file, mean_curvature_file,
     >>>     min_curvature_vector_file, min_distance=5, thr=0.5,
     >>>     use_only_endpoints=True)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-    >>>                 fundi, fundi)
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_fundi.vtk',
+    >>>                      [fundi], ['fundi'], fundi)
     >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
     >>> # Write and view manual labels restricted to sulci:
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
-    >>>                 labels, sulci)
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_sulci_labels.vtk',
+    >>>                      [labels], ['sulcus labels'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
 
     """
@@ -491,11 +492,11 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
     from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
-    from mindboggle.utils.io_vtk import load_scalar
+    from mindboggle.utils.io_vtk import load_scalars
 
     # Load depth and curvature values from VTK and text files
-    points, faces, depths, n_vertices = load_scalar(depth_file, True)
-    points, faces, mean_curvatures, n_vertices = load_scalar(mean_curvature_file,
+    points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
                                                              True)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
@@ -576,7 +577,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 # Example
 if __name__ == "__main__" :
     import os
-    from mindboggle.utils.io_vtk import load_scalar, rewrite_scalars
+    from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     from mindboggle.utils.mesh_operations import find_neighbors
     from mindboggle.extract.extract_fundi import extract_fundi
 
@@ -594,16 +595,16 @@ if __name__ == "__main__" :
     sulci_file = os.path.join(data_path, 'results', 'features',
                  '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
 
-    points, faces, depths, n_vertices = load_scalar(depth_file, True)
+    points, faces, depths, n_vertices = load_scalars(depth_file, True)
     neighbor_lists = find_neighbors(faces, len(points))
 
-    points, faces, sulci, n_vertices = load_scalar(sulci_file, True)
+    points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
 
     fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
         min_distance=5, thr=0.5, use_only_endpoints=True)
 
     # Write results to vtk file and view with mayavi2:
-    rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-                    fundi, fundi)
+    rewrite_scalar_lists(depth_file, 'test_extract_fundi.vtk',
+                         [fundi], ['fundi'], fundi)
     os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
