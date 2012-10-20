@@ -125,11 +125,11 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import load_scalar
+    from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     from mindboggle.utils.io_file import read_columns
 
     # Load labeled vtk surfaces
-    points, faces, scalars, n_vertices = load_scalar(vtk_file)
+    points, faces, scalars, n_vertices = load_scalars(vtk_file)
     scalars = np.array(scalars)
     indices = range(1, n_vertices + 1)
 
@@ -144,8 +144,8 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     relabeled_vtk = os.path.join(os.getcwd(),
                                  os.path.basename(vtk_file).split('.')[0] + \
                                  '.' + new_string)
-    io_vtk.write_scalars(relabeled_vtk, points, indices, faces,
-                         [scalars.tolist()], ['Labels'])
+    write_scalar_lists(relabeled_vtk, points, indices, faces,
+                       [scalars.tolist()], ['Labels'])
 
     return relabeled_vtk
 
