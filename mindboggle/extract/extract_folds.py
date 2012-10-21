@@ -184,7 +184,7 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     t1 = time()
     folds = segment(np.where(folds == 1)[0], neighbor_lists,
                     seed_lists=[], min_region_size=min_fold_size)
-    print('    ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
+    print('  ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
     n_folds = len([x for x in list(set(folds)) if x != -1])
 
     # If there are any folds, find and fill holes
@@ -318,6 +318,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     -------
     sulci : array of integers
         sulcus numbers for all vertices, with -1s for non-sulcus vertices
+    n_sulci : integers
+        number of sulci
 
     Examples
     --------
@@ -344,14 +346,15 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>> sulcus_names = fid.readlines()
     >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
     >>> label_pair_lists = sulcus_boundaries()
-    >>> vtk_file = labels_file
+    >>> vtk_file = 'test_extract_sulci.vtk'
     >>>
     >>> # Extract sulci
-    >>> sulci = extract_sulci(labels_file, labels, folds,
-    >>>                       neighbor_lists, label_pair_lists, sulcus_names)
+    >>> sulci, n_sulci = extract_sulci(labels_file, folds, labels, neighbor_lists,
+    >>>                                label_pair_lists, sulcus_names)
     >>>
     >>> # Finally, write points, faces and sulci to a new vtk file
     >>> rewrite_scalar_lists(labels_file, vtk_file, [sulci], ['sulci'], sulci)
+    >>> os.system('mayavi2 -m Surface -d ' + vtk_file + ' &')
 
     """
     from time import time
@@ -360,7 +363,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     from mindboggle.utils.mesh_operations import detect_boundaries, propagate
     from mindboggle.label.label_functions import find_superset_subset_lists
 
-    verbose = 1
+    verbose = 0
 
     #---------------------------------------------------------------------------
     # Prepare data
@@ -383,26 +386,29 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
      for x in lst
      if list(set(x)) not in protocol_pairs]
 
+    # Load points, faces
+    points, faces = load_points_faces(surface_vtk)
+
     #---------------------------------------------------------------------------
     # Loop through folds
     #---------------------------------------------------------------------------
     fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
     n_folds = len(fold_numbers)
+    print("Extract sulci from {0} folds...".format(n_folds))
+    t0 = time()
     for n_fold in fold_numbers:
         fold = np.where(folds == n_fold)[0]
         ambiguous_case = False
 
         # List the labels in this fold
         fold_labels = [labels[x] for x in fold]
-        print(fold_labels)
         unique_fold_labels = [int(x) for x in np.unique(fold_labels) if x > -1]
-        print(unique_fold_labels)
         #-----------------------------------------------------------------------
         # Case 0: NO MATCH -- fold has no label
         #-----------------------------------------------------------------------
         if not len(unique_fold_labels):
             print("  Fold {0} of {1}: NO MATCH -- fold has no label".
-                  format(n_fold, n_folds))
+                  format(n_fold + 1, n_folds))
             # Ignore: sulci already initialized with -1 values
             continue
         #-----------------------------------------------------------------------
@@ -410,7 +416,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         #-----------------------------------------------------------------------
         elif len(unique_fold_labels) == 1:
             print("  Fold {0} of {1}: NO MATCH -- fold has only one label ({2})".
-                  format(n_fold, n_folds, unique_fold_labels[0]))
+                  format(n_fold + 1, n_folds, unique_fold_labels[0]))
             # Ignore: sulci already initialized with -1 values
             continue
         #-----------------------------------------------------------------------
@@ -419,12 +425,12 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         elif unique_fold_labels in label_lists:
             if len(sulcus_names):
                 print("  Fold {0} of {1}: matching label set in sulcus: {2} ({3})".
-                    format(n_fold, n_folds,
+                    format(n_fold + 1, n_folds,
                     sulcus_names[label_lists.index(unique_fold_labels)],
                       ', '.join([str(x) for x in unique_fold_labels])))
             else:
                 print("  Fold {0} of {1}: matching label set in sulcus ({2})".
-                    format(n_fold, n_folds,
+                    format(n_fold + 1, n_folds,
                            ', '.join([str(x) for x in unique_fold_labels])))
             # Assign ID of the matching sulcus to all fold vertices
             sulci[fold] = label_lists.index(unique_fold_labels)
@@ -449,7 +455,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
             #-------------------------------------------------------------------
             if not len(fold_pairs_in_protocol):
                 print("  Fold {0} of {1}: NO MATCH -- fold has no sulcus label pair".
-                      format(n_fold, n_folds))
+                      format(n_fold + 1, n_folds))
 
             # Cases 4-5: labels in common between fold and sulcus/sulci
             else:
@@ -464,12 +470,12 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                 if len(superset_indices) == 1:
                     if len(sulcus_names):
                         print("  Fold {0} of {1}: fold labels in one sulcus: {2} ({3})".
-                            format(n_fold, n_folds, sulcus_names[superset_indices[0]],
+                            format(n_fold + 1, n_folds, sulcus_names[superset_indices[0]],
                             ', '.join([str(x)
                             for x in label_lists[superset_indices[0]]])))
                     else:
                         print("  Fold {0} of {1}: fold labels in one sulcus: ({2})".
-                            format(n_fold, n_folds, ', '.join([str(x)
+                            format(n_fold + 1, n_folds, ', '.join([str(x)
                             for x in label_lists[superset_indices[0]]])))
                     # Assign ID of matching sulcus to all fold vertices
                     sulci[fold] = superset_indices[0]
@@ -481,7 +487,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                 else:
                     print("  Fold {0} of {1}: ambiguous -- "
                           "fold labels in more than one sulcus or "
-                          "not contained by a sulcus".format(n_fold, n_folds))
+                          "not contained by a sulcus".format(n_fold + 1, n_folds))
                     ambiguous_case = True
 
         #-----------------------------------------------------------------------
@@ -533,7 +539,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                         sulci[index] = IDs_unique_pairs[pair_index[0]]
                     else:
                         indices_unassigned.append(index)
-                print("  Assign sulcus IDs to {0} vertices with labels "
+                print("    Assign sulcus IDs to {0} vertices with labels "
                       "in only one fold pair".format(
                       len(fold)-len(indices_unassigned)+1))
             else:
@@ -547,28 +553,31 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                 for ipair, remainder_pair in enumerate(remainder_pairs):
                     I = [x for i,x in enumerate(indices_fold_pairs)
                          if list(set(fold_pairs[i])) == list(set(remainder_pair))]
-                seeds[I] = IDs_remainder_pairs[ipair]
-                break
+                    seeds[I] = IDs_remainder_pairs[ipair]
+                    break
 
                 #---------------------------------------------------------------
                 # Case 7: remaining vertices connected to sulcus label boundaries
                 #---------------------------------------------------------------
                 # Segment remaining vertices into sets of vertices
                 # connected to label boundary seeds by label propagation
-                print("  Segment remaining {0} vertices into label-pair regions".
+                print("    Segment remaining {0} vertices into label-pair regions".
                       format(len(indices_unassigned)))
                 t1 = time()
-                points, faces = load_points_faces(surface_vtk)
                 unassigned = -1 * np.ones(len(points))
                 unassigned[indices_unassigned] = 1
 
                 sulci = propagate(points, faces, unassigned, seeds, sulci,
                                   max_iters=500, tol=0.001, sigma=10)
 
-                print("    ...Segmented remaining sulcus vertices in {1:.2f} seconds".
+                print("    ...Segmented remaining vertices in {0:.2f} seconds".
                       format(time() - t1))
 
-    return sulci
+    n_sulci = len([x for x in np.unique(sulci) if x > -1])
+    print("...Extracted {0} sulci from {1} folds in {2:.2f}...".
+          format(n_sulci, n_folds, time() - t0))
+
+    return sulci, n_sulci
 
 
 # Extract_sulci()
@@ -590,20 +599,18 @@ if __name__ == "__main__":
     labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                  'label', 'lh.labels.DKT25.manual.vtk')
     points, faces, folds, n_vertices = load_scalars(folds_file, return_arrays=True)
-    print(np.unique(folds))
     points, faces, labels, n_vertices = load_scalars(labels_file, return_arrays=True)
-    print(np.unique(labels))
     neighbor_lists = find_neighbors(faces, len(points))
     sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
     fid = open(sulcus_names_file, 'r')
     sulcus_names = fid.readlines()
     sulcus_names = [x.strip('\n') for x in sulcus_names]
     label_pair_lists = sulcus_boundaries()
-    vtk_file = labels_file
 
     # Extract sulci
-    sulci = extract_sulci(labels_file, labels, folds,
-                          neighbor_lists, label_pair_lists, sulcus_names)
+    sulci, n_sulci = extract_sulci(labels_file, folds, labels, neighbor_lists,
+                                   label_pair_lists, sulcus_names)
 
     # Finally, write points, faces and sulci to a new vtk file
-    rewrite_scalar_lists(labels_file, vtk_file, [sulci], ['sulci'], sulci)
+    rewrite_scalar_lists(labels_file, 'test_extract_sulci.vtk', [sulci], ['sulci'], sulci)
+    os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')

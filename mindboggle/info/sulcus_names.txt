@@ -1,10 +1,10 @@
 frontomarginal sulcus
-superior frontal
-inferior frontal
-precentral
+superior frontal sulcus
+inferior frontal sulcus
+precentral sulcus
 central sulcus
-postcentral
-intraparietal
+postcentral sulcus
+intraparietal sulcus
 primary intermediate sulcus/1st segment of the posterior superior temporal sulcus
 sylvian fissure
 lateral occipital sulcus
