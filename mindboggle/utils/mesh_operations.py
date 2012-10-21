@@ -313,9 +313,15 @@ def propagate(points, faces, region, seeds, labels,
     indices_region = [i for i,x in enumerate(region) if x > -1]
     local_indices_region = -1 * np.ones(len(region))
     local_indices_region[indices_region] = range(len(indices_region))
+    points = np.asarray(points)
 
-    print('    Segment {0} vertices from {1} sets of seed vertices'.
-          format(len(indices_region), len(np.unique([x for x in seeds if x > -1]))))
+    n_sets = len(np.unique([x for x in seeds if x > -1]))
+    if n_sets == 1:
+        print('Segment {0} vertices from 1 set of seed vertices'.
+              format(len(indices_region)))
+    else:
+        print('Segment {0} vertices from {1} sets of seed vertices'.
+              format(len(indices_region), n_sets))
 
     # Set up rebound Bounds class instance
     B = rb.Bounds()
@@ -993,7 +999,7 @@ def inside_faces(faces, indices):
     fs = frozenset(indices)
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
-    print('  Reduced {0} to {1} triangular faces.'.format(len_faces, len(faces)))
+    print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
     return faces
 
