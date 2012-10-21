@@ -93,8 +93,11 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
 
     if kernel is rbf_kernel or kernel is inverse_distance:
-        print('Computing weights using {0} kernel with parameter = {1}'.format(
-              kernel, sigma))
+        if kernel is rbf_kernel:
+            print('Computing weights using rbf kernel (sigma={0})'.format(sigma))
+        else:
+            print('Computing weights using inverse distance kernel (sigma={0})'.
+                  format(sigma))
 
         # Construct matrix of edge lines by breaking triangle into three edges.
         if Meshes.shape[1] == 3:
