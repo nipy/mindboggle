@@ -193,8 +193,8 @@ class Bounds:
 
         # Step 3. Propagate Labels!
         if method == "propagate_labels":
-            print('Performing weighted average algorithm: max_iters={0}'.format(
-                  str(max_iters)))
+            print('Performing weighted average algorithm (max_iters={0})'.format(
+                  max_iters))
             # Construct self.learned_matrix matrix within method
             self.propagate_labels(realign, max_iters, tol, vis=vis)
         else:
@@ -331,8 +331,8 @@ class Bounds:
         for column in self.learned_matrix.T:
 
             t0 = time()
-            print('Working on label: {0}'.format(i))
-            print('Number of members initially for this label: {0}'.format(np.nonzero(column==1)[0].size))
+            print('Number of initial members for label {0}: {1}'.format(
+                  i, np.nonzero(column==1)[0].size))
 
             # Set up indices and values to be clamped during propagation
             if not realign:
@@ -385,7 +385,7 @@ class Bounds:
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
                 Y_hat_next[restore_indices, 0] = restore_values # reset
                 converged = (np.sum(np.abs(Y_hat_now.todense() - Y_hat_next)) < tol) # check convergence
-                # print('Iteration number {0}, convergence = {1}'.format(str(counter),str(np.sum(np.abs(column.todense() - tmp))))
+                # print('Iteration number {0}, convergence = {1}'.format(counter,np.sum(np.abs(column.todense() - tmp)))
                 Y_hat_now = csr_matrix(Y_hat_next)
                 counter += 1
 
@@ -393,17 +393,17 @@ class Bounds:
             # It is also an indication of whether the algorithm converged.
 
             if counter == max_iters:
-                print('The algorithm did not converge.')
+                print('Done in {0:.2f} seconds (the algorithm did not converge)'.
+                      format(time()-t0))
             else:
-                print('The algorithm converged in {0} iterations.'.format(str(counter)))
-
-            print('Done in {0} seconds'.format(str(time()-t0)))
+                print('Done in {0:.2f} seconds ({1} iterations)'.
+                      format(time()-t0, counter))
 
             self.learned_matrix[:,i] = Y_hat_now.todense().flatten()
 
-            #print('There were {0} initial seed vertices for this label'.format(str(self.count_assigned_members(i)))
-            #print('The file actually had {0} vertices for this label'.format(str(self.count_real_members(self.label_mapping[i])))
-            #print('Using only those vertices which crossed the threshold, there are now: '.format(str(self.count_real_members(i)))
+            #print('There were {0} initial seed vertices for this label'.format(self.count_assigned_members(i))
+            #print('The file actually had {0} vertices for this label'.format(self.count_real_members(self.label_mapping[i]))
+            #print('Using only those vertices which crossed the threshold, there are now: '.format(self.count_real_members(i))
 
             #pylab.plot(self.learned_matrix[:,i])
             #pylab.show()
