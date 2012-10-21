@@ -213,6 +213,7 @@ def load_scalars(filename, return_arrays=True):
     >>> points, faces, scalars, n_vertices = load_scalars('lh.pial.depth.vtk')
 
     """
+    import os
     import numpy as np
     import vtk
 
@@ -235,9 +236,15 @@ def load_scalars(filename, return_arrays=True):
              for i in xrange(0, CellArray.GetNumberOfCells())]
 
     PointData = Data.GetPointData()
-    print("Loading 1 (named \'{1}\') out of {0} scalars in file {2}...".
-          format(Reader.GetNumberOfScalarsInFile(),
-                 Reader.GetScalarsNameInFile(0), filename))
+    n_scalars = Reader.GetNumberOfScalarsInFile()
+    scalar_name = Reader.GetScalarsNameInFile(0)
+    if n_scalars == 1:
+        print("Loading \"{0}\" scalars from {1}...".
+              format(scalar_name, os.path.basename(filename)))
+    else:
+        print("Loading \"{0}\" (of {1} scalars) from {2}...".
+              format(scalar_name, n_scalars, os.path.basename(filename)))
+
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     if ScalarsArray:
         scalars = [ScalarsArray.GetValue(i)
@@ -286,10 +293,11 @@ def load_scalar_lists(filename):
     >>> faces, lines, indices, scalar_lists, scalar_names = load_scalar_lists('lh.pial.depth.vtk')
 
     """
+    import os
     import vtk
 
     Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(Filename)
+    Reader.SetFileName(filename)
     Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
     Reader.Update()
 
@@ -323,16 +331,21 @@ def load_scalar_lists(filename):
     if Reader.GetNumberOfScalarsInFile() > 0:
         for scalar_index in range(Reader.GetNumberOfScalarsInFile()):
             scalar_name = Reader.GetScalarsNameInFile(scalar_index)
-            print("Loading {0} (named \"{1}\") of {2} scalars in file {3}...".
-              format(scalar_index + 1,
-                     Reader.GetScalarsNameInFile(scalar_index), 
-                     Reader.GetNumberOfScalarsInFile(), Filename))
+
+            n_scalars = scalar_index + 1
+            if n_scalars == 1:
+                print("Loading \"{0}\" scalars from {2}...".
+                      format(scalar_name, os.path.basename(filename)))
+            else:
+                print("Loading \"{0}\" (of {1} scalars) from {2}...".
+                      format(scalar_name, n_scalars, os.path.basename(filename)))
+
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
                 scalar = [scalar_array.GetValue(i) 
                           for i in xrange(scalar_array.GetSize())]
             else:
-                print "An empty scalar map was read. Please check the integrity of the source VTK"
+                print "Empty scalar -- Please check the source VTK"
                 exit()
             scalar_lists.append(scalar)
             scalar_names.append(scalar_name)
@@ -463,7 +476,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file)
     >>> # Write to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(depth_file, 'test_write_rescalar_lists.vtk',
+    >>> rewrite_scalar_lists(depth_file, 'test_rewrite_rescalar_lists.vtk',
     >>>                      [depths], ['depths'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalar_lists.vtk &')
 
@@ -481,8 +494,8 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
 
     # Find indices to nonzero values
     indices = range(n_vertices)
-    if len(filter_scalars) > 0:
-        indices_filter = [i for i,x in enumerate(filter_scalars) if int(x) > -1]
+    if len(filter_scalars):
+        indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
         # Remove surface mesh faces whose three vertices are not all in indices
         faces = inside_faces(faces, indices_filter)
 
@@ -1225,62 +1238,5 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
     return label_files, colortable  #relabel_file
 
 
-if __name__ == "__main__" :
-
-
-    # Save a shape table for the fundus label boundary vertices
-    # in each subject hemisphere
-    import os
-    from mindboggle.utils.io_vtk import load_scalars, write_vertex_shape_table
-    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    # data_path = os.environ['MINDBOGGLE_DATA']
-    label_data_path = '/brains/Mindboggle101'
-    data_path = '/desk/output_measures/results'
-    column_names = ['labels', 'area', 'depth', 'mean_curvature',
-                    'gauss_curvature', 'max_curvature', 'min_curvature',
-                    'freesurfer_thickness', 'freesurfer_convexity']
-    hemis = ['lh','rh']
-    list_file = os.path.join(os.environ['MINDBOGGLE'], 'info', 'atlases101.txt')
-    # For each subject in the subjects file
-    fid = open(list_file, 'r')
-    subjects = fid.readlines()
-    subjects = [''.join(x.split()) for x in subjects]
-    for subject in subjects:
-        print(subject)
-        for hemi in hemis:
-            filename = subject + '_' + hemi + '_fundus_label_boundary_shape_table.txt'
-            label_file = os.path.join(label_data_path, 'subjects', subject,
-                                      'label', 'lh.labels.DKT25.manual.vtk')
-            points, faces, labels, n_vertices = load_scalars(label_file, True)
-            mesh_indices = find_neighbors(faces, n_vertices)
-            neighbor_lists = find_neighbors(faces, n_vertices)
-            sulci_file = os.path.join(data_path, 'results', 'features',
-                                      '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-            points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
-            sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
-            indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
-                                                neighbor_lists)
-            nonsegments = [-1]
-            area_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-            depth_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-            mean_curvature_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-            gauss_curvature_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
-            max_curvature_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
-            min_curvature_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
-            thickness_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'thickness.vtk')
-            convexity_file = os.path.join(data_path, 'measures',
-                '_hemi_lh_subject_MMRR-21-1', 'sulc.vtk')
-            write_vertex_shape_table(filename, column_names, indices,
-                area_file, depth_file, mean_curvature_file, gauss_curvature_file,
-                max_curvature_file, min_curvature_file, thickness_file,
-                convexity_file, segments=sulci, nonsegments=nonsegments)
-            exit()
+#if __name__ == "__main__" :
 
