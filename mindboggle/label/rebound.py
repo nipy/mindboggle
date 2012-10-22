@@ -193,7 +193,7 @@ class Bounds:
 
         # Step 3. Propagate Labels!
         if method == "propagate_labels":
-            print('Performing weighted average algorithm (max_iters={0})'.format(
+            print('Perform weighted average algorithm (max_iters={0})'.format(
                   max_iters))
             # Construct self.learned_matrix matrix within method
             self.propagate_labels(realign, max_iters, tol, vis=vis)

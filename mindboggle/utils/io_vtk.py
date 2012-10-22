@@ -239,10 +239,10 @@ def load_scalars(filename, return_arrays=True):
     n_scalars = Reader.GetNumberOfScalarsInFile()
     scalar_name = Reader.GetScalarsNameInFile(0)
     if n_scalars == 1:
-        print("Loading \"{0}\" scalars from {1}...".
+        print("Load \"{0}\" scalars from {1}".
               format(scalar_name, os.path.basename(filename)))
     else:
-        print("Loading \"{0}\" (of {1} scalars) from {2}...".
+        print("Load \"{0}\" (of {1} scalars) from {2}".
               format(scalar_name, n_scalars, os.path.basename(filename)))
 
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
@@ -334,10 +334,10 @@ def load_scalar_lists(filename):
 
             n_scalars = scalar_index + 1
             if n_scalars == 1:
-                print("Loading \"{0}\" scalars from {2}...".
+                print("Load \"{0}\" scalars from {2}".
                       format(scalar_name, os.path.basename(filename)))
             else:
-                print("Loading \"{0}\" (of {1} scalars) from {2}...".
+                print("Load \"{0}\" (of {1} scalars) from {2}".
                       format(scalar_name, n_scalars, os.path.basename(filename)))
 
             scalar_array = PointData.GetArray(scalar_name)
@@ -424,7 +424,8 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     if len(scalar_lists) > 0:
         # Make sure that scalar_lists is a list of lists
         if type(scalar_lists[0]) != list:
-            scalar_lists = [scalar_lists]
+            print('Error: scalar_lists should be a list of lists')
+            exit()
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
                 scalar_name = scalar_names[i]
@@ -435,6 +436,10 @@ def write_scalar_lists(output_vtk, points, indices, faces,
                 else:
                     scalar_name  = scalar_names[i]
                 write_vtk_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
+    else:
+        print('Error: scalar_lists is empty')
+        exit()
+
     Fp.close()
 
     return output_vtk
@@ -454,7 +459,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
         each list (lookup table) contains new values to assign to the vertices
     new_scalar_names : list of strings
         each element is the new name for a lookup table
-    filter_scalars : (optional)
+    filter_scalars : list or numpy array (optional)
         scalar values used to filter faces (values > -1 retained)
 
     Returns
@@ -508,7 +513,8 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     if len(new_scalar_lists) > 0:
         # Make sure that new_scalar_lists is a list of lists
         if type(new_scalar_lists[0]) != list:
-            new_scalar_lists = [new_scalar_lists]
+            print('Error: new_scalar_lists should be a list of lists')
+            exit()
         for i, new_scalar_list in enumerate(new_scalar_lists):
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
@@ -519,6 +525,10 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
                 else:
                     new_scalar_name  = new_scalar_names[i]
                 write_vtk_scalars(Fp, new_scalar_list, new_scalar_name, begin_scalars=False)
+    else:
+        print('Error: new_scalar_lists is empty')
+        exit()
+
     Fp.close()
 
     return output_vtk
@@ -597,7 +607,8 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
     if len(scalar_lists) > 0:
         # Make sure that scalar_lists is a list of lists
         if type(scalar_lists[0]) != list:
-            scalar_lists = [scalar_lists]
+            print('Error: new_scalar_lists should be a list of lists')
+            exit()
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
                 scalar_name = scalar_names[i]
@@ -608,6 +619,10 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
                 else:
                     scalar_name  = scalar_names[i]
                 write_vtk_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
+    else:
+        print('Error: scalar_lists is empty')
+        exit()
+
     Fp.close()
 
     return output_vtk
