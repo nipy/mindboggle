@@ -576,9 +576,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                                   max_iters=500, tol=0.001, sigma=10)
                 sulci += sulci2
 
-                print("    Segmented vertices in {0:.2f} seconds".
+                print("    Segmented vertices ({0:.2f} seconds) from the following sulci:".
                       format(time() - t1))
-                sulcus_numbers = [x for x in np.unique(sulci) if x > -1]
+                sulcus_numbers = [int(x) for x in np.unique(sulci) if x > -1]
                 if len(sulcus_names):
                     for sulcus_number in sulcus_numbers:
                         print("    {0}: {1}".format(
@@ -587,7 +587,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     print("    " + ", ".join([str(x) for x in sulcus_numbers]))
 
     sulci[sulci < 0] = -1
-    sulcus_numbers = [x for x in np.unique(sulci) if x > -1]
+    sulcus_numbers = [int(x) for x in np.unique(sulci) if x > -1]
     n_sulci = len(sulcus_numbers)
     print("Extracted {0} sulci from {1} folds in {2:.2f} seconds:".
           format(n_sulci, n_folds, time() - t0))
