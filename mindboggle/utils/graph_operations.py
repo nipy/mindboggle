@@ -94,9 +94,9 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
 
     if kernel is rbf_kernel or kernel is inverse_distance:
         if kernel is rbf_kernel:
-            print('Computing weights using rbf kernel (sigma={0})'.format(sigma))
+            print('Compute weights using rbf kernel (sigma={0})'.format(sigma))
         else:
-            print('Computing weights using inverse distance kernel (sigma={0})'.
+            print('Compute weights using inverse distance kernel (sigma={0})'.
                   format(sigma))
 
         # Construct matrix of edge lines by breaking triangle into three edges.
@@ -111,17 +111,17 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
 
         # Add weights to graph
         if add_to_graph:
-            print('Adding weighted edges to the graph...')
+            print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
         # Construct affinity matrix
-        print('Constructing sparse affinity matrix...')
+        print('Construct sparse affinity matrix')
         affinity_matrix = lil_matrix((Nodes.shape[0], Nodes.shape[0]))
         for [i, j, edge_weight] in weighted_edges:
             affinity_matrix[i, j] = affinity_matrix[j, i] = edge_weight
 
     elif kernel is cotangent_kernel:
-        print('Computing weights using cotangents...')
+        print('Compute weights using cotangents')
         affinity_matrix = cotangent_kernel(Nodes, Meshes)
 
         # Add weights to graph
@@ -133,7 +133,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
                                           edge_mat[i,1],
                                           affinity_matrix[edge_mat[i]]]
                                           for i in xrange(affinity_matrix.shape[0])])
-            print('Adding weighted edges to the graph...')
+            print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
     # Return the affinity matrix as a "compressed sparse row" matrix
@@ -173,30 +173,30 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
     """
 
     if type_of_laplacian is 'basic':
-        print 'Calculating unnormalized Laplacian...'
+        print 'Calculate unnormalized Laplacian'
         Laplacian = diagonal_degree_matrix(W) - W
         return Laplacian
 
     elif type_of_laplacian is 'norm1':
-        print "Normalizing the Laplacian..."
+        print "Normalize the Laplacian"
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
         return Laplacian
 
     elif type_of_laplacian is 'norm2':
-        print "Normalizing the Laplacian..."
+        print "Normalize the Laplacian"
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * W * ddmi_sq
         return Laplacian
 
     elif type_of_laplacian is 'norm3':
-        print "Normalizing the Laplacian..."
+        print "Normalize the Laplacian"
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
         return Laplacian
 
     elif type_of_laplacian is 'random_walk':
-        print "Computing Random Walk Laplacian..."
+        print "Compute Random Walk Laplacian"
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * W
 
