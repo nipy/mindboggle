@@ -627,6 +627,65 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
 
     return output_vtk
 
+def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
+                        background_value=-1, output_scalar_name='scalars'):
+    """
+    Write out a separate VTK file for each integer (>-1)
+    in (the first) scalar list of an input VTK file.
+
+    Parameters
+    ----------
+    input_vtk : string
+        path of the input VTK file
+    output_stem : string
+        path and stem of the output VTK file
+    exclude_values : list or array
+        values to exclude
+    background_value : integer or float
+        background value in output VTK files
+    scalar_name : string
+        name of a lookup table of scalars values
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import load_scalars, explode_scalar_list
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(data_path, 'results', 'features',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> output_stem = 'sulcus'
+    >>> explode_scalar_list(sulci_file, output_stem)
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
+    >>> os.system('mayavi2 -m Surface -d ' + example_vtk + ' &')
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+
+    # Load VTK file
+    points, faces, scalars, n_vertices = load_scalars(input_vtk, return_arrays=True)
+    print("Explode the scalar list in {0}".format(os.path.basename(input_vtk)))
+
+    # Loop through unique (non-excluded) scalar values
+    unique_scalars = [int(x) for x in np.unique(scalars) if x not in exclude_values]
+    for scalar in unique_scalars:
+
+        # Create array and indices for scalar value
+        new_scalars = np.copy(scalars)
+        new_scalars[scalars != scalar] = background_value
+        indices = [i for i,x in enumerate(new_scalars) if x == scalar]
+        print("  Scalar {0}: {1} vertices".format(scalar, len(indices)))
+
+        # Write VTK file with scalar value
+        output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
+        write_scalar_lists(output_vtk, points, indices, faces,
+                           [new_scalars.tolist()], [output_scalar_name])
+        #rewrite_scalar_lists(input_vtk, output_vtk,
+        #                     [new_scalars.tolist()], [output_scalar_name],
+        #                     filter_scalars=[scalar])
+
 def write_mean_shapes_table(filename, column_names, labels, nonlabels,
                             area_file, depth_file, mean_curvature_file,
                             gauss_curvature_file,
