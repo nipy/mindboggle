@@ -479,7 +479,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>     use_only_endpoints=True)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_extract_fundi.vtk',
-    >>>                      [fundi], ['fundi'], fundi)
+    >>>                      [fundi], ['fundi'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
     >>> # Write and view manual labels restricted to sulci:
     >>> rewrite_scalar_lists(depth_file, 'test_extract_sulci_labels.vtk',
@@ -606,5 +606,5 @@ if __name__ == "__main__" :
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalar_lists(depth_file, 'test_extract_fundi.vtk',
-                         [fundi], ['fundi'], fundi)
+                         [fundi], ['fundi'], sulci)
     os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
