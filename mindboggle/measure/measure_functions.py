@@ -93,7 +93,7 @@ def compute_curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, areas, labels, nonlabels):
+def mean_value_per_label(values, areas, labels, exclude_values):
     """
     Compute the mean value across vertices per label,
     taking into account surface area per vertex.
@@ -106,7 +106,7 @@ def mean_value_per_label(values, areas, labels, nonlabels):
     values : numpy array of integer or float values
     areas : numpy array of surface areas
     labels : array or list of integer labels (same length as values)
-    nonlabels : list of integer labels to be excluded
+    exclude_values : list of integer labels to be excluded
 
     Returns
     -------
@@ -134,9 +134,9 @@ def mean_value_per_label(values, areas, labels, nonlabels):
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
     >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
-    >>> nonlabels = [-1,0]
+    >>> exclude_values = [-1,0]
     >>> mean_values, norm_mean_values, surface_areas, \
-    >>>     label_list = mean_value_per_label(depths, areas, labels, nonlabels)
+    >>>     label_list = mean_value_per_label(depths, areas, labels, exclude_values)
 
     """
     import numpy as np
@@ -145,7 +145,7 @@ def mean_value_per_label(values, areas, labels, nonlabels):
         return sum(areas_label * values_label) / sum(areas_label)
 
     label_list = np.unique(labels)
-    label_list = [int(x) for x in label_list if int(x) not in nonlabels]
+    label_list = [int(x) for x in label_list if int(x) not in exclude_values]
     mean_values = []
     norm_mean_values = []
     surface_areas = []

@@ -366,7 +366,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     from mindboggle.utils.mesh_operations import detect_boundaries, propagate
     from mindboggle.label.label_functions import find_superset_subset_lists
 
-    verbose = 0
+    verbose = 1
 
     #---------------------------------------------------------------------------
     # Prepare data
@@ -575,7 +575,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                 unassigned[indices_unassigned] = 1
 
                 sulci2 = propagate(points, faces, unassigned, seeds, sulci,
-                                  max_iters=500, tol=0.001, sigma=10)
+                                   max_iters=500, tol=0.001, sigma=10)
                 sulci += sulci2
 
                 print("    Segmented vertices ({0:.2f} seconds) from the following sulci:".
