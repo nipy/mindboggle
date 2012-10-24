@@ -511,6 +511,9 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(new_scalar_lists) > 0:
+        # Make sure that new_scalar_lists is a list (important for nipype use)
+        if type(new_scalar_lists) != list:
+            new_scalar_lists = [new_scalar_lists]
         # Make sure that new_scalar_lists is a list of lists
         if type(new_scalar_lists[0]) != list:
             print('Error: new_scalar_lists should be a list of lists')
