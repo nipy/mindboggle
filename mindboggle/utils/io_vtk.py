@@ -689,7 +689,7 @@ def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
         #                     [new_scalars.tolist()], [output_scalar_name],
         #                     filter_scalars=[scalar])
 
-def write_mean_shapes_table(filename, column_names, labels, nonlabels,
+def write_mean_shapes_table(filename, column_names, labels, exclude_values,
                             area_file, depth_file, mean_curvature_file,
                             gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
@@ -702,7 +702,7 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     filename :  output filename (without path)
     column_names :  names of columns [list of strings]
     labels :  list (same length as values)
-    nonlabels : list of integer labels to be excluded
+    exclude_values : list of integer labels to be excluded
     area_file :  name of file containing per-vertex surface areas
     *shape_files :  arbitrary number of vtk files with scalar values
 
@@ -722,7 +722,7 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
-    >>> nonlabels = [-1]
+    >>> exclude_values = [-1]
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(data_path, 'measures',
@@ -735,7 +735,7 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
     >>> min_curvature_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
-    >>> write_mean_shapes_table(filename, column_names, labels, nonlabels,
+    >>> write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>>                         area_file, depth_file, mean_curvature_file,
     >>>                         gauss_curvature_file,
     >>>                         max_curvature_file, min_curvature_file,
@@ -757,7 +757,7 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
     # Load per-vertex surface area file
     points, faces, areas, n_vertices = load_scalars(area_file, return_arrays=1)
     mean_values, norm_mean_values, surface_areas, \
-        label_list = mean_value_per_label(areas, areas, labels, nonlabels)
+        label_list = mean_value_per_label(areas, areas, labels, exclude_values)
 
     columns = []
     norm_columns = []
@@ -769,7 +769,7 @@ def write_mean_shapes_table(filename, column_names, labels, nonlabels,
         points, faces, values, n_vertices = load_scalars(shape_file, return_arrays=1)
 
         mean_values, norm_mean_values, surface_areas, \
-            label_list = mean_value_per_label(values, areas, labels, nonlabels)
+            label_list = mean_value_per_label(values, areas, labels, exclude_values)
 
         columns.append(mean_values)
         norm_columns.append(norm_mean_values)
