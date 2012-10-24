@@ -252,7 +252,7 @@ def propagate(points, faces, region, seeds, labels,
     region : numpy array of integers
         values > -1 indicate inclusion in a region for all vertices
     seeds : numpy array of integers
-        seed numbers for all vertices (default -1)
+        seed numbers for all vertices (default -1 for not a seed)
     labels : numpy array of integers
         label numbers for all vertices, with -1s for unlabeled vertices
     max_iters : integer
