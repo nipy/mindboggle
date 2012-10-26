@@ -185,7 +185,7 @@ def write_vtk_scalars(Fp, scalars, scalar_name, begin_scalars=True):
 # Functions for loading and writing VTK files
 #=============================================================================
 
-def load_scalars(filename, return_arrays=True):
+def load_scalars(filename, return_arrays=False):
     """
     Load a VTK-format scalar lookup table that contains only one SCALAR segment.
 
@@ -238,12 +238,16 @@ def load_scalars(filename, return_arrays=True):
     PointData = Data.GetPointData()
     n_scalars = Reader.GetNumberOfScalarsInFile()
     scalar_name = Reader.GetScalarsNameInFile(0)
-    if n_scalars == 1:
-        print("Load \"{0}\" scalars from {1}".
-              format(scalar_name, os.path.basename(filename)))
+    if return_arrays:
+        s = 'as a numpy array'
     else:
-        print("Load \"{0}\" (of {1} scalars) from {2}".
-              format(scalar_name, n_scalars, os.path.basename(filename)))
+        s = ''
+    if n_scalars == 1:
+        print("Load \"{0}\" scalars {1} from {2}".
+              format(scalar_name, s, os.path.basename(filename)))
+    else:
+        print("Load \"{0}\" (of {1} scalars) {2} from {3}".
+              format(scalar_name, n_scalars, s, os.path.basename(filename)))
 
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     if ScalarsArray:
@@ -399,10 +403,10 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file)
+    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices,
@@ -476,12 +480,12 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> sulci_file = os.path.join(data_path, 'results', 'features',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
-    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file)
+    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(depth_file, 'test_rewrite_rescalar_lists.vtk',
+    >>> rewrite_scalar_lists(depth_file, 'test_rewrite_scalar_lists.vtk',
     >>>                      [depths], ['depths'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalar_lists.vtk &')
 
@@ -495,7 +499,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
-    points, faces, scalars, n_vertices = load_scalars(input_vtk, return_arrays=1)
+    points, faces, scalars, n_vertices = load_scalars(input_vtk, False)
 
     # Find indices to nonzero values
     indices = range(n_vertices)
@@ -668,7 +672,7 @@ def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
     from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
 
     # Load VTK file
-    points, faces, scalars, n_vertices = load_scalars(input_vtk, return_arrays=True)
+    points, faces, scalars, n_vertices = load_scalars(input_vtk, True)
     print("Explode the scalar list in {0}".format(os.path.basename(input_vtk)))
 
     # Loop through unique (non-excluded) scalar values
@@ -755,7 +759,7 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
         shape_files.append(convexity_file)
 
     # Load per-vertex surface area file
-    points, faces, areas, n_vertices = load_scalars(area_file, return_arrays=1)
+    points, faces, areas, n_vertices = load_scalars(area_file, True)
     mean_values, norm_mean_values, surface_areas, \
         label_list = mean_value_per_label(areas, areas, labels, exclude_values)
 
@@ -766,7 +770,7 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
 
     for shape_file in shape_files:
 
-        points, faces, values, n_vertices = load_scalars(shape_file, return_arrays=1)
+        points, faces, values, n_vertices = load_scalars(shape_file, True)
 
         mean_values, norm_mean_values, surface_areas, \
             label_list = mean_value_per_label(values, areas, labels, exclude_values)
@@ -863,7 +867,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     columns = []
     for i, shape_file in enumerate(shape_files):
 
-        points, faces, values, n_vertices = load_scalars(shape_file, return_arrays=1)
+        points, faces, values, n_vertices = load_scalars(shape_file, True)
         columns.append(values[indices])
 
         # Store depths to normalize
@@ -1141,7 +1145,7 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
     curvature_values = read_curvature(filename)
 
     # Load VTK surface
-    points, faces, scalars, n_vertices = load_scalars(surface_file, return_arrays=0)
+    points, faces, scalars, n_vertices = load_scalars(surface_file, False)
 
     scalar_lists = [curvature_values]
     scalar_names = [file_string]
@@ -1178,7 +1182,7 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     #points, faces = read_surface(surface_file)
 
     # Load VTK surface
-    points, faces, scalars, n_vertices = load_scalars(surface_file, return_arrays=0)
+    points, faces, scalars, n_vertices = load_scalars(surface_file, False)
 
     output_stem = os.path.join(os.getcwd(),
                   os.path.basename(surface_file.strip('.vtk')))
