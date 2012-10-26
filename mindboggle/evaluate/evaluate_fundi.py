@@ -101,9 +101,9 @@ if __name__ == "__main__":
     print('***')
 
     # Load fundi, folds, labels
-    points, faces, fundi, n_vertices = load_scalars(fundi_file, return_arrays=1)
-    points, faces, folds, n_vertices = load_scalars(folds_file, return_arrays=1)
-    points, faces, labels, n_vertices = load_scalars(labels_file, return_arrays=1)
+    points, faces, fundi, n_vertices = load_scalars(fundi_file, return_arrays=True)
+    points, faces, folds, n_vertices = load_scalars(folds_file, return_arrays=True)
+    points, faces, labels, n_vertices = load_scalars(labels_file, return_arrays=True)
     n_points = len(points)
 
     # List of indices to fold vertices

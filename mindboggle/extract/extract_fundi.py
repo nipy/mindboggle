@@ -66,7 +66,7 @@ def compute_likelihood(depths, curvatures):
     >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
-    >>>                                                          True)
+    >>>                                                           True)
     >>> L = compute_likelihood(depths, mean_curvatures)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_compute_likelihood.vtk',
@@ -248,7 +248,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
-    >>>                                                          True)
+    >>>                                                           True)
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> sulcus_ID = 1
@@ -497,7 +497,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     # Load depth and curvature values from VTK and text files
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
     points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
-                                                             True)
+                                                              True)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
