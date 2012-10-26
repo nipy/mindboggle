@@ -225,7 +225,7 @@ class Bounds:
         # Go row by row (one vertex at a time),
         # and find the column with the maximum value
         try:
-            max_col = np.argmax(self.learned_matrix,axis=1)
+            max_col = np.argmax(self.learned_matrix, axis=1)
         except:
             print('First call graph_based_learning().')
             return

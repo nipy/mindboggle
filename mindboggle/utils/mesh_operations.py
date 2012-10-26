@@ -48,7 +48,7 @@ def find_neighbors(faces, n_vertices):
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> points, faces, scalars, n_vertices = load_scalars(depth_file)
+    >>> points, faces, scalars, n_vertices = load_scalars(depth_file, False)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> # Write results to vtk file and view with mayavi2:
     >>> index = 0
@@ -272,24 +272,25 @@ def propagate(points, faces, region, seeds, labels,
     >>> import os
     >>> import numpy as np
     >>> import mindboggle.label.rebound as rb
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, detect_boundaries
-    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> from mindboggle.utils.mesh_operations import find_neighbors,\
+    >>>     inside_faces, propagate, detect_boundaries
+    >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> import mindboggle.utils.kernels as kernels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
     >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
     >>>     labels, neighbor_lists)
-    >>> folds_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
-    >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
     >>> label_pair_lists = sulcus_boundaries()
     >>> fold_ID = 2
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    >>> fold_array = np.zeros(len(points))
+    >>> fold_array = -1 * np.ones(len(points))
     >>> fold_array[indices_fold] = 1
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
     >>>     labels, neighbor_lists)
@@ -298,10 +299,15 @@ def propagate(points, faces, region, seeds, labels,
     >>>     I = [x for i,x in enumerate(indices_boundaries)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
+    >>>
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(label_file, 'test_propagate.vtk', [segments],
-    >>>                      ['propagated segments'], segments)
+    >>> #rewrite_scalar_lists(label_file, 'test_propagate.vtk',
+    >>> #                     [segments.tolist()], ['segments'], segments.tolist())
+    >>> indices = [i for i,x in enumerate(segments) if x > -1]
+    >>> write_scalar_lists('test_propagate.vtk', points, indices,
+    >>>     inside_faces(faces, indices), [segments.tolist()], ['segments'])
     >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
 
     """
@@ -999,7 +1005,8 @@ def inside_faces(faces, indices):
     fs = frozenset(indices)
     faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
     faces = np.reshape(np.ravel(faces), (-1, 3))
-    print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
+    if len(faces) < len_faces:
+        print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
     return faces
 
