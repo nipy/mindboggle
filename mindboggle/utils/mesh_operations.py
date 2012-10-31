@@ -432,17 +432,19 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 
     # If seed_lists is empty, select first vertex from vertices_to_segment
     # (single vertex selection does not affect result -- see below*)
-    print('    Segment {0} vertices...'.format(len(vertices_to_segment)))
     if len(seed_lists):
         select_single_seed = False
         if len(seed_lists) == 1:
-            print('    Select from 1 set of seed vertices')
+            print('    Segment {0} vertices using seed vertices'.
+                  format(len(vertices_to_segment)))
         else:
-            print('    Select from {0} sets of seed vertices'.format(len(seed_lists)))
+            print('    Segment {0} vertices from {1} sets of seed vertices'.
+                  format(len(vertices_to_segment), len(seed_lists)))
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
-        print('    Select first vertex as initial seed')
+        print('    Segment {0} vertices, selecting the first vertex as initial seed'.
+              format(len(vertices_to_segment)))
 
     # Initialize variables, including the list of vertex indices for each region,
     # vertex indices for all regions, and Boolean list indicating which regions
@@ -521,10 +523,14 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
 
                         # Display current number and size of region
                         if size_region > 1:
-                            print("    Region {0}: {1} vertices "
-                                  "({2} remaining)".
-                                  format(int(new_segment_index), size_region,
-                                         len(vertices_to_segment)))
+                            if len(seed_lists) == 1:
+                                if len(vertices_to_segment):
+                                    print("      {0} vertices remain".
+                                          format(len(vertices_to_segment)))
+                            else:
+                                print("      Region {0}: {1} vertices ({2} remain)".
+                                      format(int(new_segment_index), size_region,
+                                             len(vertices_to_segment)))
 
                     # If selecting a single seed, continue growing
                     # if there are more vertices to segment
