@@ -378,7 +378,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     protocol_pairs = []
-    [protocol_pairs.append(list(set(x))) for lst in label_pair_lists for x in lst
+    [protocol_pairs.append(np.unique(x)) for lst in label_pair_lists for x in lst
      if list(set(x)) not in protocol_pairs]
 
     # Load points, faces
@@ -392,6 +392,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
     for n_fold in fold_numbers:
+
         fold = np.where(folds == n_fold)[0]
         len_fold = len(fold)
         ambiguous_case = False
@@ -399,6 +400,24 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         # List the labels in this fold (greater than zero)
         fold_labels = [labels[x] for x in fold]
         unique_fold_labels = [int(x) for x in np.unique(fold_labels) if x > 0]
+
+
+
+        indices_fold_pairs, fold_pairs, unique_fold_pairs = detect_boundaries(
+            fold, labels, neighbor_lists)
+
+        # Find fold label pairs in the protocol (pairs are already sorted)
+        fold_pairs_in_protocol = [x for x in unique_fold_pairs
+                                  if x in protocol_pairs]
+
+        print("  Fold {0} labels: {1}".format(n_fold + 1,
+              ', '.join([str(x) for x in unique_fold_labels])))
+        print("  Fold {0} label pairs in protocol: {1}".format(n_fold+1,
+              ', '.join([str(x) for x in fold_pairs_in_protocol])))
+
+
+
+
 
         #-----------------------------------------------------------------------
         # Case 0: NO MATCH -- fold has no label
@@ -436,6 +455,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
         # Cases 3-5: at least one fold label but no perfect match
         else:
+            """
             # Find all label boundary pairs within the fold
             indices_fold_pairs, fold_pairs, unique_fold_pairs = detect_boundaries(
                 fold, labels, neighbor_lists)
@@ -444,11 +464,11 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
                                       if x in protocol_pairs]
 
-            #print("  Fold {0} labels: {1}".format(n_fold + 1,
-            #      ', '.join([str(x) for x in unique_fold_labels])))
-            #print("  Fold {0} label pairs in protocol: {1}".format(n_fold+1,
-            #      ', '.join([str(x) for x in fold_pairs_in_protocol])))
-
+            print("  Fold {0} labels: {1}".format(n_fold + 1,
+                  ', '.join([str(x) for x in unique_fold_labels])))
+            print("  Fold {0} label pairs in protocol: {1}".format(n_fold+1,
+                  ', '.join([str(x) for x in fold_pairs_in_protocol])))
+            """
             #-------------------------------------------------------------------
             # Case 3: NO MATCH -- fold has no sulcus label pair
             #-------------------------------------------------------------------
@@ -589,9 +609,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     # Propagate from seeds to vertices with label
                     sulci2 = propagate(points, faces, label_array, seeds, sulci,
                                        max_iters=500, tol=0.001, sigma=10)
-                    print(np.unique(sulci2))
                     sulci[sulci2 > -1] = sulci2[sulci2 > -1]
-                    print(np.unique(sulci))
 
                     # Print statement
                     print("    Propagate sulcus label boundaries with label {0}".
