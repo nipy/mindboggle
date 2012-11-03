@@ -112,15 +112,15 @@ def masses(Nodes, Areas, Faces_at_Nodes):
     D /= 3 
     return D
 
-def geometric_laplacian(Nodes, Meshes):
+def geometric_laplacian(Nodes, Faces):
     """The portal function to compute geometric laplacian
     
     Parameters
     ----------
     Nodes : 2-D numpy array 
         Nodes[i] is the 3-D coordinates of nodes on a mesh 
-    Meshes : 2-D numpy array
-        Meshes[i] is a 3-element array containing the indexes of nodes 
+    Faces : 2-D numpy array
+        Faces[i] is a 3-element array containing the indexes of nodes 
 
     Returns
     -------
@@ -143,12 +143,21 @@ def geometric_laplacian(Nodes, Meshes):
     
     """
     import mindboggle.utils.kernels
-    W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Meshes)
-     
-    V = gen_V(Meshes, W, Neighbor)# Assume that we have a function to compute neighbors of each node on a given mesh
-    A = V - W # the stiffness matrix
-    Area = area(Nodes, Meshes)
-    D = masses(Nodes, Area, Faces_at_Nodes)# Also assume that we have a function to compute triangles at each vertex .
-    from numpy import linalg 
-    L = linalg.inv(D)*A
+    W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
+    W /= 2
     
+    import mindboggle.utils.mesh_operations
+    Neighbor = mindboggle.utils.mesh_operations.find_neighbors(Faces, len(Nodes))
+     
+    V = gen_V(Faces, W, Neighbor)
+    A = V - W # the stiffness matrix
+    Area = area(Nodes, Faces)
+    
+    Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertexes(Faces, len(Nodes))
+    D = masses(Nodes, Area, Faces_at_Nodes)
+    
+    import numpy
+    L = numpy.linalg.inv(D)*A
+    Spectrum = numpy.linalg.eig(L)
+    
+    return Spectrum
