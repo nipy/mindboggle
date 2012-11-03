@@ -25,6 +25,9 @@ def find_neighbors(faces, n_vertices):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
+        
+    n_vertices: integer
+        number of vertexes on the mesh 
 
     Returns
     -------
@@ -130,6 +133,47 @@ def find_neighbors_vertex(faces, index):
                          for x in I if x not in neighbor_list if x != index]
 
     return neighbor_list
+
+#-----------------------------------------------------------------------------
+# find all triangle faces centered at each node on the mesh
+#-----------------------------------------------------------------------------
+def find_faces_at_vertexes(faces, n_vertexes):
+    """For each vertex, find all faces containing this vertex
+    
+    Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+        
+    n_vertexes: integer
+        number of vertexes on the mesh 
+        
+    Returns
+    --------
+    faces_at_vertex : list of lists of integers
+        faces_at_vertexes[i] is a list of faces that contain the i-th vertex
+     
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh_operations import find_faces_at_vertexes
+    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
+    >>> n_vertices = 5
+    >>> find_faces_at_vertexes(faces, n_vertices)
+        [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]     
+    
+    Notes
+    -------
+    
+        faces do not have to be triangles.      
+     
+    """
+    faces_at_vertexes = [[] for i in xrange(n_vertexes)]
+    for face_id, face in enumerate(faces):
+        for vertex in face:
+           faces_at_vertexes[vertex].append(face_id)
+
+    return faces_at_vertexes
 
 #------------------------------------------------------------------------------
 # Find special "anchor" points for constructing fundus curves
