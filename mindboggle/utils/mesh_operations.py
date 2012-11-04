@@ -25,9 +25,9 @@ def find_neighbors(faces, n_vertices):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-        
+
     n_vertices: integer
-        number of vertexes on the mesh 
+        number of vertices on the mesh
 
     Returns
     -------
@@ -137,43 +137,40 @@ def find_neighbors_vertex(faces, index):
 #-----------------------------------------------------------------------------
 # find all triangle faces centered at each node on the mesh
 #-----------------------------------------------------------------------------
-def find_faces_at_vertexes(faces, n_vertexes):
-    """For each vertex, find all faces containing this vertex
-    
+def find_faces_at_vertices(faces, n_vertices):
+    """
+    For each vertex, find all faces containing this vertex.
+    Note: faces do not have to be triangles.
+
     Parameters
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-        
-    n_vertexes: integer
-        number of vertexes on the mesh 
-        
+
+    n_vertices: integer
+        number of vertices on the mesh
+
     Returns
     --------
     faces_at_vertex : list of lists of integers
-        faces_at_vertexes[i] is a list of faces that contain the i-th vertex
-     
+        faces_at_vertices[i] is a list of faces that contain the i-th vertex
+
     Examples
     --------
     >>> # Simple example:
-    >>> from mindboggle.utils.mesh_operations import find_faces_at_vertexes
+    >>> from mindboggle.utils.mesh_operations import find_faces_at_vertices
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> n_vertices = 5
-    >>> find_faces_at_vertexes(faces, n_vertices)
-        [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]     
-    
-    Notes
-    -------
-    
-        faces do not have to be triangles.      
-     
+    >>> find_faces_at_vertices(faces, n_vertices)
+        [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]
+
     """
-    faces_at_vertexes = [[] for i in xrange(n_vertexes)]
+    faces_at_vertices = [[] for i in xrange(n_vertices)]
     for face_id, face in enumerate(faces):
         for vertex in face:
-           faces_at_vertexes[vertex].append(face_id)
+           faces_at_vertices[vertex].append(face_id)
 
-    return faces_at_vertexes
+    return faces_at_vertices
 
 #------------------------------------------------------------------------------
 # Find special "anchor" points for constructing fundus curves
