@@ -592,6 +592,7 @@ if run_featureFlow:
     #===========================================================================
     # Extract sulci from folds
     #===========================================================================
+    min_sulcus_size = 50
     LabelPairs = Node(name='Label_pairs',
                        interface = Fn(function = sulcus_boundaries,
                                       input_names = [],
@@ -605,6 +606,7 @@ if run_featureFlow:
                                                'labels',
                                                'neighbor_lists',
                                                'label_pair_lists',
+                                               'min_boundary',
                                                'sulcus_names=[]'],
                                 output_names = ['sulci',
                                                 'n_sulci']))
@@ -634,6 +636,7 @@ if run_featureFlow:
                           [('neighbor_lists','neighbor_lists')])])
     featureFlow.connect([(LabelPairs, SulciNode,
                           [('label_pair_lists','label_pair_lists')])])
+    SulciNode.inputs.min_boundary = min_boundary
     SulciNode.inputs.sulcus_names = []
 
     #===========================================================================
