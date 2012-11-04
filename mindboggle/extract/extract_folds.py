@@ -392,6 +392,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
     for n_fold in fold_numbers:
+#    for n_fold in [1]:
 
         fold = np.where(folds == n_fold)[0]
         len_fold = len(fold)
@@ -572,6 +573,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
             if len(nonunique_labels):
                 # For each label shared by different label pairs
                 for label in nonunique_labels:
+                    # Print statement
+                    print("    Propagate sulcus label boundaries with label {0}".
+                          format(int(label)))
 
                     # Construct seeds from label boundary vertices
                     seeds = -1 * np.ones(len(points))
@@ -579,7 +583,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                         label_pairs = [x for x in label_pair_list if label in x]
                         for label_pair in label_pairs:
                             indices_pair = [x for i,x in enumerate(indices_fold_pairs)
-                                            if list(set(fold_pairs[i])) == label_pair]
+                                            if np.sort(fold_pairs[i]).tolist() == label_pair]
                             seeds[indices_pair] = ID
 
                     # Identify vertices with the label
@@ -592,10 +596,6 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     sulci2 = propagate(points, faces, label_array, seeds, sulci,
                                        max_iters=500, tol=0.001, sigma=10)
                     sulci[sulci2 > -1] = sulci2[sulci2 > -1]
-
-                    # Print statement
-                    print("    Propagate sulcus label boundaries with label {0}".
-                          format(int(label)))
 
     # Print out assigned sulci
     sulcus_numbers = [int(x) for x in np.unique(sulci) if x > -1]
@@ -611,7 +611,10 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     # Print out unresolved sulci
     unresolved = [i for i in range(len(label_pair_lists))
                   if i not in sulcus_numbers]
-    print("The following {0} sulci are unaccounted for:".format(len(unresolved)))
+    if len(unresolved) == 1:
+        print("The following sulcus is unaccounted for:")
+    else:
+        print("The following {0} sulci are unaccounted for:".format(len(unresolved)))
     if len(sulcus_names):
         for sulcus_number in unresolved:
             print("  {0}: {1}".format(sulcus_number, sulcus_names[sulcus_number]))
