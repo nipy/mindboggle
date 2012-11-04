@@ -233,7 +233,7 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
 # Extract sulci
 #===============================================================================
 def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
-                  min_boundary=0, sulcus_names=[]):
+                  min_boundary=1, sulcus_names=[]):
     """
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
@@ -343,7 +343,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>> sulcus_names = fid.readlines()
     >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
     >>> label_pair_lists = sulcus_boundaries()
-    >>> min_boundary = 0
+    >>> min_boundary = 10
     >>> vtk_file = 'test_extract_sulci.vtk'
     >>>
     >>> # Extract sulci
@@ -587,14 +587,14 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                                 # Do not include short boundary segments
                                 if min_boundary > 1:
                                     indices_pair2 = []
-                                    seeds2 = segment(indices_pair, neighbor_lists,
-                                                     [], min_boundary)
+                                    seeds2 = segment(indices_pair, neighbor_lists)
                                     for seed2 in range(int(max(seeds2))):
                                         iseed2 = [i for i,x in enumerate(seeds2)
                                                   if x == seed2]
+                                        print("{0} - {1} - {2}".format(ID,len(iseed2),min_boundary))
                                         if len(iseed2) >= min_boundary:
                                             indices_pair2.extend(iseed2)
-                                    indices_pair = indices_pair2
+                                    #indices_pair = indices_pair2
 
                                 # Assign sulcus IDs to seeds
                                 seeds[indices_pair] = ID
@@ -673,7 +673,7 @@ if __name__ == "__main__":
 
     # Extract sulci
     sulci, n_sulci = extract_sulci(labels_file, folds, labels, neighbor_lists,
-                                   label_pair_lists, min_boundary=1,
+                                   label_pair_lists, min_boundary=10,
                                    sulcus_names=sulcus_names)
 
     # Finally, write points, faces and sulci to a new vtk file
