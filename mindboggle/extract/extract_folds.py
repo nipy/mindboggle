@@ -588,13 +588,21 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                                 if min_boundary > 1:
                                     indices_pair2 = []
                                     seeds2 = segment(indices_pair, neighbor_lists)
-                                    for seed2 in range(int(max(seeds2))):
+                                    for seed2 in range(int(max(seeds2))+1):
                                         iseed2 = [i for i,x in enumerate(seeds2)
                                                   if x == seed2]
-                                        print("{0} - {1} - {2}".format(ID,len(iseed2),min_boundary))
                                         if len(iseed2) >= min_boundary:
                                             indices_pair2.extend(iseed2)
-                                    #indices_pair = indices_pair2
+                                        else:
+                                            if len(iseed2) == 1:
+                                                print("    Remove assignment "
+                                                      "of ID {0} from 1 vertex".
+                                                      format(seed2))
+                                            else:
+                                                print("    Remove assignment "
+                                                      "of ID {0} from {1} vertices".
+                                                      format(seed2, len(iseed2)))
+                                    indices_pair = indices_pair2
 
                                 # Assign sulcus IDs to seeds
                                 seeds[indices_pair] = ID
@@ -606,13 +614,13 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     label_array[indices_label] = 1
 
                     # Propagate from seeds to vertices with label
-                    """
-                        #sulci2 = propagate(points, faces, unique_array, seeds,
-                        #                   sulci, max_iters=500, tol=0.001, sigma=10)
-                        sulci2 = segment(indices_unique_labels, neighbor_lists,
-                                         [indices_pair], min_region_size=1,
-                                         spread_within_labels=True, labels=labels)
-                    """
+                    #indices_seeds = []
+                    #for seed in range(int(max(seeds))+1):
+                    #    indices_seeds.append([i for i,x in enumerate(seeds)
+                    #                          if x == seed])
+                    #sulci2 = segment(indices_label, neighbor_lists,
+                    #                 indices_seeds, min_region_size=50,
+                    #                 spread_within_labels=True, labels=labels)
                     sulci2 = propagate(points, faces, label_array, seeds, sulci,
                                        max_iters=500, tol=0.001, sigma=10)
                     sulci[sulci2 > -1] = sulci2[sulci2 > -1]
