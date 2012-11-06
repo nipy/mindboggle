@@ -395,8 +395,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     n_folds = len(fold_numbers)
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
-    for n_fold in fold_numbers:
-#    for n_fold in [1]:
+#    for n_fold in fold_numbers:
+    for n_fold in [1]:
 
         fold = np.where(folds == n_fold)[0]
         len_fold = len(fold)
@@ -622,7 +622,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     #                 indices_seeds, min_region_size=50,
                     #                 spread_within_labels=True, labels=labels)
                     sulci2 = propagate(points, faces, label_array, seeds, sulci,
-                                       max_iters=500, tol=0.001, sigma=10)
+                                       max_iters=10000, tol=0.001, sigma=5)
                     sulci[sulci2 > -1] = sulci2[sulci2 > -1]
 
     # Print out assigned sulci
