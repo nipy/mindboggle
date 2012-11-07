@@ -4,8 +4,17 @@ This is Mindboggle's nipype software pipeline!
 
 Examples
 --------
-python mindboggle.py <output path> <1 or more subject names>
-python mindboggle.py output HLN-12-1 HLN-12-2
+python pipeline.py <output path> <1 or more subject names>
+python pipeline.py output HLN-12-1 HLN-12-2
+
+>>> import os
+>>> from mindboggle.utils.io_file import read_columns
+>>> data_path = os.environ['MINDBOGGLE_DATA']
+>>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
+>>> atlases = read_columns(atlases_file, n_columns=1)[0]
+>>> for atlas in atlases[80:101]:
+>>>     cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
+>>>     print(cmd); os.system(cmd)
 
 .. note::
   Mindboggle assumes a file tree like FreeSurfer's,
@@ -14,14 +23,14 @@ python mindboggle.py output HLN-12-1 HLN-12-2
   names in FreeSurfer's subjects directory.
 
 For more information about Mindboggle,
-see the website: http://www.mindboggle.info and
-read the documentation: http://mindboggle.info/software/documentation.html
+see the website: http://www.mindboggle.info
+and read the documentation: http://mindboggle.info/software/documentation.html
 
 For information on Nipype (http://www.nipy.org/nipype/):
 http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 
-Authors:
+Authors of this pipeline:
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
@@ -94,9 +103,9 @@ hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasFlow = True
+run_atlasFlow = 0 #True
 run_measureFlow = True
-run_featureFlow = True
+run_featureFlow = 0 #True
 run_shapeFlow = 0#True
 
 #===============================================================================
