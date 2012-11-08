@@ -396,7 +396,8 @@ def propagate(points, faces, region, seeds, labels,
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
-def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=1,
+def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
+            seed_lists=[], keep_seeding=False,
             spread_within_labels=False, labels=[], label_lists=[]):
     """
     Segment vertices of surface into contiguous regions by seed growing,
@@ -408,9 +409,12 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
         indices to subset of mesh vertices to be segmented
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+    min_region_size : integer
+        minimum size of segmented set of vertices
     seed_lists : list of lists, or empty list
         each list contains indices to seed vertices to segment vertices_to_segment
-    min_region_size : minimum size of segmented set of vertices
+    keep_seeding : Boolean
+        grow from new seeds even after all seed lists have fully grown
     spread_within_labels : Boolean
         grow seeds only by vertices with labels in the seed labels?
     labels : numpy array of integers (required only if spread_within_labels)
@@ -444,7 +448,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> rewrite_scalar_lists(depth_file, 'test_segment1.vtk',
     >>>                      [folds], ['folds'], folds)
     >>> os.system('mayavi2 -m Surface -d test_segment1.vtk &')
-
+    >>>
     >>> # Example 2: with seed lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
@@ -461,11 +465,13 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
     >>> #seed_lists = [vertices_to_segment[range(2000)],
     >>> #              vertices_to_segment[range(2000,4000)],
     >>> #              vertices_to_segment[range(10000,12000)]]
+    >>>
     >>> sulci = segment(vertices_to_segment, neighbor_lists,
-    >>>     seed_lists, 50, True, labels, label_lists)
+    >>>     50, seed_lists, True, True, labels, label_lists)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
-    >>>                      [sulci], ['sulci'], sulci)
+    >>>                      [sulci.tolist()], ['sulci'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
 
     """
@@ -554,7 +560,7 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                     size_region = len(region_lists[ilist])
                     if size_region >= min_region_size:
 
-                        # Assign ID to segmented region
+                        # Assign ID to segmented region and increment ID
                         if select_single_seed:
                             new_segment_index = counter
                             counter += 1
@@ -580,6 +586,57 @@ def segment(vertices_to_segment, neighbor_lists, seed_lists=[], min_region_size=
                             fully_grown[0] = False
                             seed_lists[0] = [vertices_to_segment[0]]
                             region_lists[0] = []
+
+    # Keep growing from new seeds even after all seed lists have fully grown
+    if keep_seeding and len(vertices_to_segment) > min_region_size:
+        print('    Keep seeding to segment {0} remaining vertices'.
+              format(len(vertices_to_segment)))
+
+        # Select first unsegmented vertex as new seed
+        seed_list = [vertices_to_segment[0]]
+
+        # Loop until the seed list has grown to its full extent
+        new_segment_index = ilist + 1
+        region = []
+        while len(vertices_to_segment) > min_region_size:
+
+            # Add seeds to region
+            region.extend(seed_list)
+            all_regions.extend(seed_list)
+
+            # Remove seeds from vertices to segment
+            vertices_to_segment = list(frozenset(vertices_to_segment).
+                                       difference(seed_list))
+
+            # Identify neighbors of seeds
+            neighbors = []
+            [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+            # Select neighbors that have not been previously selected
+            # and are among the vertices to segment
+            seed_list = [x for x in list(set(neighbors))
+                         if x not in all_regions
+                         if x in vertices_to_segment]
+
+            # If there are no seeds remaining
+            if not len(seed_list):
+
+                # If the region size is large enough
+                size_region = len(region)
+                if size_region >= min_region_size:
+
+                    # Assign ID to segmented region and increment ID
+                    segments[region] = new_segment_index
+                    new_segment_index += 1
+
+                    # Display current number and size of region
+                    if size_region > 1:
+                        print("      {0} vertices remain".
+                              format(len(vertices_to_segment)))
+
+                    # Select first unsegmented vertex as new seed
+                    seed_list = [vertices_to_segment[0]]
+                    region = []
 
     return segments
 
@@ -758,7 +815,7 @@ def fill_holes(regions, neighbor_lists):
             I = np.where(hole_boundaries == n_hole)[0]
             seed_lists.append(I)
         background = [i for i,x in enumerate(regions) if x == -1]
-        holes = segment(background, neighbor_lists, seed_lists)
+        holes = segment(background, neighbor_lists, 1, seed_lists)
 
         # Label the vertices for each hole by surrounding region number
         regions = label_holes(holes, hole_numbers, regions, neighbor_lists)
