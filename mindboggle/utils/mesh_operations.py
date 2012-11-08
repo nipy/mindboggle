@@ -406,7 +406,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     Parameters
     ----------
     vertices_to_segment : list or array of integers
-        indices to subset of mesh vertices to be segmented
+        indices to mesh vertices to be segmented
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     min_region_size : integer
@@ -441,15 +441,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-
-    >>> # Example 1: without seed lists
-    >>> folds = segment(vertices_to_segment, neighbor_lists)
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(depth_file, 'test_segment1.vtk',
-    >>>                      [folds], ['folds'], folds)
-    >>> os.system('mayavi2 -m Surface -d test_segment1.vtk &')
     >>>
-    >>> # Example 2: with seed lists
+    >>> # Example 1: with seed lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
     >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
@@ -470,8 +463,15 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>>                 seed_lists, True, True, labels, label_lists)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
+    >>> rewrite_scalar_lists(depth_file, 'test_segment.vtk',
     >>>                      [sulci.tolist()], ['sulci'], sulci)
+    >>> os.system('mayavi2 -m Surface -d test_segment.vtk &')
+    >>>
+    >>> # Example 2: without seed lists
+    >>> folds = segment(vertices_to_segment, neighbor_lists)
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
+    >>>                      [folds], ['folds'], folds)
     >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
 
     """
@@ -623,6 +623,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                              if x in vertices_to_segment]
             else:
                 seed_list = []
+
+            print(len(vertices_to_segment), len(seed_list))
 
             # If there are no seeds remaining
             if not len(seed_list):
