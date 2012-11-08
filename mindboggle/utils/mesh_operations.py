@@ -466,8 +466,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> #              vertices_to_segment[range(2000,4000)],
     >>> #              vertices_to_segment[range(10000,12000)]]
     >>>
-    >>> sulci = segment(vertices_to_segment, neighbor_lists,
-    >>>     50, seed_lists, True, True, labels, label_lists)
+    >>> sulci = segment(vertices_to_segment, neighbor_lists, 50,
+    >>>                 seed_lists, True, True, labels, label_lists)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
@@ -528,16 +528,19 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                 # Remove seeds from vertices to segment
                 vertices_to_segment = list(frozenset(vertices_to_segment).
                                            difference(seed_list))
+                if len(vertices_to_segment):
 
-                # Identify neighbors of seeds
-                neighbors = []
-                [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+                    # Identify neighbors of seeds
+                    neighbors = []
+                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
-                # Select neighbors that have not been previously selected
-                # and are among the vertices to segment
-                seed_list = [x for x in list(set(neighbors))
-                             if x not in all_regions
-                             if x in vertices_to_segment]
+                    # Select neighbors that have not been previously selected
+                    # and are among the vertices to segment
+                    seed_list = [x for x in list(set(neighbors))
+                                 if x not in all_regions
+                                 if x in vertices_to_segment]
+                else:
+                    seed_list = []
 
                 # If there are seeds remaining
                 if len(seed_list):
@@ -588,7 +591,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                             region_lists[0] = []
 
     # Keep growing from new seeds even after all seed lists have fully grown
-    if keep_seeding and len(vertices_to_segment) > min_region_size:
+    if keep_seeding and len(vertices_to_segment) >= min_region_size:
         print('    Keep seeding to segment {0} remaining vertices'.
               format(len(vertices_to_segment)))
 
@@ -607,16 +610,19 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             # Remove seeds from vertices to segment
             vertices_to_segment = list(frozenset(vertices_to_segment).
                                        difference(seed_list))
+            if len(vertices_to_segment):
 
-            # Identify neighbors of seeds
-            neighbors = []
-            [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+                # Identify neighbors of seeds
+                neighbors = []
+                [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
-            # Select neighbors that have not been previously selected
-            # and are among the vertices to segment
-            seed_list = [x for x in list(set(neighbors))
-                         if x not in all_regions
-                         if x in vertices_to_segment]
+                # Select neighbors that have not been previously selected
+                # and are among the vertices to segment
+                seed_list = [x for x in list(set(neighbors))
+                             if x not in all_regions
+                             if x in vertices_to_segment]
+            else:
+                seed_list = []
 
             # If there are no seeds remaining
             if not len(seed_list):
@@ -634,7 +640,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                         print("      {0} vertices remain".
                               format(len(vertices_to_segment)))
 
-                    # Select first unsegmented vertex as new seed
+                # Select first unsegmented vertex as new seed
+                if len(vertices_to_segment) >= min_region_size:
                     seed_list = [vertices_to_segment[0]]
                     region = []
 
