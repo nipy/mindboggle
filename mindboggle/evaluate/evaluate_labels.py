@@ -31,6 +31,24 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     labels_file1 : ``vtk file`` with index labels for scalar values
     labels_file2 : ``vtk file`` with index labels for scalar values
 
+    Returns
+    -------
+    overlap_file : string
+        name of output text file with overlap results
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
+    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
+    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
+    >>> data_path = os.path.join(os.environ['MINDBOGGLE_DATA'], 'rescan_labels')
+    >>> file_append = '.lh.pial.labels.DKT31.manual.vtk'
+    >>> # Two misaligned label files:
+    >>> labels_file1 = os.path.join(data_path, 'MMRR-21-2' + file_append)
+    >>> labels_file2 = os.path.join(data_path, 'MMRR-21-2_rescan' + file_append)
+    >>> measure_surface_overlap(command, labels_file1, labels_file2)
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -41,6 +59,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2, overlap_file])
     cli.cmdline
+    cli.run()
 
     return overlap_file
 
