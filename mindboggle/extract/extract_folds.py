@@ -165,13 +165,8 @@ def extract_folds(depth_file, area_file, fraction_folds,
     import numpy as np
     from time import time
     from mindboggle.utils.io_vtk import load_scalars
-
-
-
-    from mindboggle.utils.mesh_operations2 import find_neighbors, segment, fill_holes
-
-
-
+    from mindboggle.utils.mesh_operations import find_neighbors, segment, \
+                                                 propagate, fill_holes
     from mindboggle.extract.extract_folds import find_deep_vertices
 
     print("Extract folds from surface mesh...")
@@ -196,13 +191,22 @@ def extract_folds(depth_file, area_file, fraction_folds,
         # Segment initial set of folds
         print("  Segment deepest vertices into separate folds")
         t1 = time()
-        folds = segment(indices_deep, neighbor_lists, min_fold_size)
+        folds = segment(indices_deep, neighbor_lists)
         print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
 
         # If multiple fractions are given, expand folds iteratively
         print("  Grow folds by including shallower vertices")
         for fraction in fraction_folds[1::]:
             deep_vertices = find_deep_vertices(depths, areas, fraction)
+            indices_left = [i for i,x in enumerate(deep_vertices) if x > -1
+                            if folds[i] == -1]
+            folds2 = segment(indices_left, neighbor_lists)
+            folds[folds2 > -1] = folds2[folds2 > -1] + np.max(folds) + 1
+
+            """
+            folds = propagate(points, faces, deep_vertices, folds, folds,
+                              max_iters=10000, tol=0.001, sigma=5)
+            # OR:
             indices_deep = [i for i,x in enumerate(deep_vertices) if x > -1]
             unique_folds = [x for x in np.unique(folds) if x > -1]
             fold_lists = [[] for x in unique_folds]
@@ -210,6 +214,7 @@ def extract_folds(depth_file, area_file, fraction_folds,
                 fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
             folds = segment(indices_deep, neighbor_lists, min_fold_size,
                             fold_lists, keep_seeding=True)
+            """
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         n_folds = len([x for x in list(set(folds)) if x != -1])
 
