@@ -1309,3 +1309,89 @@ if __name__ == "__main__" :
     rewrite_scalar_lists(label_file, 'test_propagate.vtk',
                          [segments], ['segments'], segments)
     os.system('mayavi2 -m Surface -d test_propagate.vtk &')
+
+#------------------------------------------------------------------------------
+# Find vertices with highest values within a fraction of the surface
+#------------------------------------------------------------------------------
+def extract_area(values, areas, fraction):
+    """
+    Find the highest-valued vertices in a surface whose collective area
+    is a given fraction of the total surface area of the mesh.
+
+    Example: extract half of a surface with the highest depth values
+
+    Parameters
+    ----------
+    values : list or array of floats
+        values for all vertices
+    areas : list or array of floats
+        surface area values for all vertices
+    fraction : float
+        fraction of surface mesh to extract
+
+    Returns
+    -------
+    area_values : array of integers
+        an integer for every mesh vertex: 1 if extracted, -1 if not
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> from mindboggle.utils.mesh_operations import extract_area
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'measures',
+    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> points, faces, values, n_vertices = load_scalars(vtk_file, True)
+    >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
+    >>> fraction = 0.50
+    >>>
+    >>> area_values = extract_area(values, areas, fraction)
+    >>>
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalar_lists(vtk_file, 'test_extract_area.vtk',
+    >>>                      [area_values.tolist()], ['area values'], area_values)
+    >>> os.system('mayavi2 -m Surface -d test_extract_area.vtk &')
+
+    """
+    import numpy as np
+
+    print("  Extract the highest-valued surface vertices ({0} of surface area)".
+          format(fraction))
+
+    # Load depth and surface area values from VTK files
+
+    indices_asc = np.argsort(values)
+    indices_des = indices_asc[::-1]
+
+    total_area = np.sum(areas)
+    fraction_area = fraction * total_area
+    area_values = -1 * np.ones(len(areas))
+
+    # Start with fraction_area of the vertices
+    start = np.round(fraction * len(values))
+    area_values[indices_des[0:start]] = 1
+    sum_area = np.sum(areas[indices_des[0:start]])
+
+    # If these initial vertices cover less than fraction_area,
+    # add vertices until the remaining vertices' area exceeds fraction_area
+    if sum_area <= fraction_area:
+        for index in indices_des[start::]:
+            area_values[index] = 1
+            sum_area += areas[index]
+            if sum_area >= fraction_area:
+                break
+    # Otherwise, if these initial vertices cover more than fraction_area,
+    # remove vertices until the remaining vertices' area is less than fraction_area
+    else:
+        start = np.round((1-fraction) * len(values))
+        for index in indices_asc[start::]:
+            area_values[index] = -1
+            sum_area += areas[index]
+            if sum_area <= fraction_area:
+                break
+
+    return area_values
