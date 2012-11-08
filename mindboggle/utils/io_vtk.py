@@ -268,7 +268,7 @@ def load_scalar_lists(filename):
     Note ::
 
         1. This differs from load_scalars(), which loads only one scalar segment.
-        2. This supports copying lines, vertices (indices of points), 
+        2. This supports copying lines, vertices (indices of points),
            and triangular faces from one surface to another.
         3. We assume that all vertices are written in one line in VERTICES segment.
 
@@ -309,21 +309,21 @@ def load_scalar_lists(filename):
     PointData = Data.GetPointData()
 
     if Data.GetNumberOfPolys() > 0:
-        faces = [[Data.GetPolys().GetData().GetValue(j) 
+        faces = [[Data.GetPolys().GetData().GetValue(j)
                   for j in xrange(i*4 + 1, i*4 + 4)]
                   for i in xrange(Data.GetPolys().GetNumberOfCells())]
     else:
         faces = []
 
     if Data.GetNumberOfLines() > 0:
-        lines  = [[Data.GetLines().GetData().GetValue(j) 
+        lines  = [[Data.GetLines().GetData().GetValue(j)
                    for j in xrange(i*3+1, i*3+3) ]
                    for i in xrange(Data.GetNumberOfLines())]
     else:
         lines = []
 
     if Data.GetNumberOfVerts() > 0:
-        indices = [Data.GetVerts().GetData().GetValue(i) 
+        indices = [Data.GetVerts().GetData().GetValue(i)
                     for i in xrange(1, Data.GetVerts().GetSize() )]
         # The reason the reading starts from 1 is because we need to avoid the
     else:
@@ -346,7 +346,7 @@ def load_scalar_lists(filename):
 
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
-                scalar = [scalar_array.GetValue(i) 
+                scalar = [scalar_array.GetValue(i)
                           for i in xrange(scalar_array.GetSize())]
             else:
                 print "Empty scalar -- Please check the source VTK"
@@ -1095,6 +1095,15 @@ def write_lines(output_vtk, points, indices, lines, scalar_lists=[], scalar_name
 def freesurface_to_vtk(surface_file):
     """
     Convert FreeSurfer surface file to VTK format.
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import freesurface_to_vtk
+    >>> subjects_path = os.environ['SUBJECTS_DIR']
+    >>> surface_file = os.path.join(subjects_path, 'MMRR-21-2', 'surf', 'lh.pial')
+    >>> freesurface_to_vtk(surface_file)
+
     """
     import os
     from mindboggle.utils.io_free import read_surface
@@ -1166,6 +1175,22 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     -------
     labels : list of integers (one label per vertex)
     output_vtk : output VTK file
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import freeannot_to_vtk
+    >>> hemi = "lh"
+    >>> #subject = "MMRR-21-2"
+    >>> # see freesurface_to_vtk():
+    >>> #surface_file = os.path.join(os.getcwd(), 'lh.pial.vtk')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> subject = "MMRR-21-1"
+    >>> surface_file = os.path.join(data_path, 'measures',
+    >>>                '_hemi_'+hemi+'_subject_'+subject, hemi+'.pial.depth.vtk')
+    >>> subjects_path = os.environ['SUBJECTS_DIR']
+    >>> annot_name = "aparcNMMjt" #labels.DKT31.manual"
+    >>> freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name)
 
     """
     import os
