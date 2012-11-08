@@ -150,8 +150,9 @@ def extract_folds(depth_file, area_file, fraction_folds,
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>>
-    >>> folds, n_folds = extract_folds(depth_file, area_file, [0.1, 0.25], 50, False)
+    >>> fold_fractions = [0.1, 0.2, 0.3, 0.4, 0.5]
+    >>> folds, n_folds = extract_folds(depth_file, area_file, fold_fractions,
+    >>>                                50, True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> #rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
@@ -207,8 +208,8 @@ def extract_folds(depth_file, area_file, fraction_folds,
             fold_lists = [[] for x in unique_folds]
             for ifold, nfold in enumerate(unique_folds):
                 fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
-            folds = segment(indices_deep, neighbor_lists,
-                            min_fold_size, fold_lists, keep_seeding=True)
+            folds = segment(indices_deep, neighbor_lists, min_fold_size,
+                            fold_lists, keep_seeding=True)
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         n_folds = len([x for x in list(set(folds)) if x != -1])
 
@@ -576,7 +577,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                         # Propagate from seeds to labels in label pair
                         sulci2 = segment(indices_unique_labels, neighbor_lists,
                                          min_region_size=1,
-                                         [indices_pair], keep_seeding=False,
+                                         seed_lists=[indices_pair],
+                                         keep_seeding=False,
                                          spread_within_labels=True, labels=labels)
                         sulci[sulci2 > -1] = ID
 
