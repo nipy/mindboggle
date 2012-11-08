@@ -109,7 +109,7 @@ def find_deep_vertices(depths, areas, fraction_folds):
 # Extract individual folds
 #===============================================================================
 def extract_folds(depth_file, area_file, fraction_folds,
-                  min_fold_size, do_fill_holes=True):
+                  min_fold_size=1, do_fill_holes=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -142,7 +142,7 @@ def extract_folds(depth_file, area_file, fraction_folds,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -152,13 +152,15 @@ def extract_folds(depth_file, area_file, fraction_folds,
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
     >>> fold_fractions = [0.1, 0.2, 0.3, 0.4, 0.5]
     >>> folds, n_folds = extract_folds(depth_file, area_file, fold_fractions,
-    >>>                                50, True)
+    >>>                                50, False)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> #rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
-    >>> indices = [i for i,x in enumerate(folds) if x > -1]
-    >>> write_scalar_lists('test_extract_folds.vtk', points, indices,
-    >>>     inside_faces(faces, indices), [folds], ['folds'])
+    >>> folds = folds.tolist()
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
+    >>> #points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> #indices = [i for i,x in enumerate(folds) if x > -1]
+    >>> #write_scalar_lists('test_extract_folds.vtk', points, indices,
+    >>> #    inside_faces(faces, indices), [folds], ['folds'])
     >>> os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
 
     """
@@ -200,8 +202,13 @@ def extract_folds(depth_file, area_file, fraction_folds,
             deep_vertices = find_deep_vertices(depths, areas, fraction)
             indices_left = [i for i,x in enumerate(deep_vertices) if x > -1
                             if folds[i] == -1]
-            folds2 = segment(indices_left, neighbor_lists)
-            folds[folds2 > -1] = folds2[folds2 > -1] + np.max(folds) + 1
+            unique_folds = [x for x in np.unique(folds) if x > -1]
+            fold_lists = [[] for x in unique_folds]
+            for ifold, nfold in enumerate(unique_folds):
+                fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
+            folds2 = segment(indices_left, neighbor_lists, 1,
+                             fold_lists, keep_seeding=True)
+            folds[folds2 > -1] = folds2[folds2 > -1]
 
             """
             folds = propagate(points, faces, deep_vertices, folds, folds,
@@ -257,7 +264,7 @@ def extract_folds(depth_file, area_file, fraction_folds,
                 folds = label_holes(holes, hole_numbers, folds, neighbor_lists)
             """
 
-        print('  ...Extracted folds in {1:.2f} seconds'.format(time() - t0))
+        print('  ...Extracted folds in {0:.2f} seconds'.format(time() - t0))
     else:
         print('  No deep vertices')
 
