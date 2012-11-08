@@ -22,7 +22,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def find_deep_vertices(depth_file, area_file, fraction_folds):
+def find_deep_vertices(depths, areas, fraction_folds):
     """
     Find the deepest vertices in a surface mesh whose collective area
     is a given fraction of the total surface area of the mesh.
@@ -31,22 +31,22 @@ def find_deep_vertices(depth_file, area_file, fraction_folds):
 
     Parameters
     ----------
-    depth_file : str
-        surface mesh file in VTK format with faces and depth scalar values
-    area_file : str
-        surface mesh file in VTK format with faces and surface area scalar values
+    depths : list or array of floats
+        depth values for all vertices
+    areas : list or array of floats
+        surface area values for all vertices
     fraction_folds : float
         fraction of surface mesh considered folds
 
     Returns
     -------
-    folds : array of integers
+    deep_vertices : array of integers
         an integer for every mesh vertex: 1 for fold, -1 for non-fold
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import rewrite_scalar_lists
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.extract.extract_folds import find_deep_vertices
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -54,42 +54,42 @@ def find_deep_vertices(depth_file, area_file, fraction_folds):
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> folds = find_deep_vertices(depth_file, area_file, 0.5)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
+    >>> deep_vertices = find_deep_vertices(depths, areas, 0.5)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_find_deep_vertices.vtk',
-    >>>                      [folds], ['folds'], folds)
+    >>>                      [deep_vertices], ['deep_vertices'], deep_vertices)
     >>> os.system('mayavi2 -m Surface -d test_find_deep_vertices.vtk &')
 
     """
     import numpy as np
-    from time import time
     from mindboggle.utils.io_vtk import load_scalars
 
-    print("Extract the deepest surface mesh vertices ({0} of surface area)...".
+    print("  Extract the deepest surface mesh vertices ({0} of surface area)".
           format(fraction_folds))
-    t0 = time()
 
     # Load depth and surface area values from VTK files
-    points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    points, faces, areas, n_vertices = load_scalars(area_file, True)
+    #points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    #points, faces, areas, n_vertices = load_scalars(area_file, True)
 
     indices_asc = np.argsort(depths)
     indices_des = indices_asc[::-1]
 
     total_area = np.sum(areas)
     fraction_area = fraction_folds * total_area
-    folds = -1 * np.ones(len(areas))
+    deep_vertices = -1 * np.ones(len(areas))
 
-    # Start by making fraction_area of the vertices folds
+    # Start with fraction_area of the vertices
     start = np.round(fraction_folds * len(depths))
-    folds[indices_des[0:start]] = 1
+    deep_vertices[indices_des[0:start]] = 1
     sum_area = np.sum(areas[indices_des[0:start]])
 
     # If these initial vertices cover less than fraction_area,
     # add vertices until the remaining vertices' area exceeds fraction_area
     if sum_area <= fraction_area:
         for index in indices_des[start::]:
-            folds[index] = 1
+            deep_vertices[index] = 1
             sum_area += areas[index]
             if sum_area >= fraction_area:
                 break
@@ -98,19 +98,17 @@ def find_deep_vertices(depth_file, area_file, fraction_folds):
     else:
         start = np.round((1-fraction_folds) * len(depths))
         for index in indices_asc[start::]:
-            folds[index] = -1
+            deep_vertices[index] = -1
             sum_area += areas[index]
             if sum_area <= fraction_area:
                 break
 
-    print('  ...Extracted deep vertices ({0:.2f} seconds)'.format(time() - t0))
-
-    return folds
+    return deep_vertices
 
 #===============================================================================
 # Extract individual folds
 #===============================================================================
-def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
+def extract_folds(depth_file, area_file, fraction_folds,
                   min_fold_size, do_fill_holes=True):
     """
     Use depth to extract folds from a triangular surface mesh.
@@ -127,10 +125,8 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
         surface mesh file in VTK format with faces and depth scalar values
     area_file : str
         surface mesh file in VTK format with faces and surface area scalar values
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
-    fraction_folds : float
-        fraction of surface mesh considered folds
+    fraction_folds : float or list of floats
+        fraction of surface mesh considered folds (iterative if a list)
     min_fold_size : int
         minimum fold size (number of vertices)
     do_fill_holes : Boolean
@@ -147,17 +143,16 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
+    >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'measures',
     >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
-    >>> folds, n_folds = extract_folds(depth_file, area_file, neighbor_lists,
-    >>>     0.5, 50, False)
+    >>>
+    >>> folds, n_folds = extract_folds(depth_file, area_file, [0.1, 0.25], 50, False)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> #rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
     >>> indices = [i for i,x in enumerate(folds) if x > -1]
@@ -168,63 +163,97 @@ def extract_folds(depth_file, area_file, neighbor_lists, fraction_folds,
     """
     import numpy as np
     from time import time
-    from mindboggle.utils.mesh_operations import segment, fill_holes
+    from mindboggle.utils.io_vtk import load_scalars
+
+
+
+    from mindboggle.utils.mesh_operations2 import find_neighbors, segment, fill_holes
+
+
+
     from mindboggle.extract.extract_folds import find_deep_vertices
 
     print("Extract folds from surface mesh...")
     t0 = time()
 
-    # Extract folds (fraction of surface area covered by deeper vertices)
-    folds = find_deep_vertices(depth_file, area_file, fraction_folds)
+    # Load depth and surface area values for all vertices
+    points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    points, faces, areas, n_vertices = load_scalars(area_file, True)
 
-    # Segment folds of a surface mesh
-    print("  Segment surface mesh into separate folds")
-    t1 = time()
-    folds = segment(np.where(folds == 1)[0], neighbor_lists,
-                    seed_lists=[], min_region_size=min_fold_size)
-    print('  ...Folds segmented ({0:.2f} seconds)'.format(time() - t1))
-    n_folds = len([x for x in list(set(folds)) if x != -1])
+    # Find neighbors for each vertex
+    neighbor_lists = find_neighbors(faces, len(points))
 
-    # If there are any folds, find and fill holes
-    if n_folds > 0 and do_fill_holes:
+    # Extract deepest vertices as initial set of folds
+    # (fraction of surface area with deepest vertices)
+    if type(fraction_folds) is list:
+        deep_vertices = find_deep_vertices(depths, areas, fraction_folds[0])
+    else:
+        deep_vertices = find_deep_vertices(depths, areas, fraction_folds)
+    indices_deep = [i for i,x in enumerate(deep_vertices) if x > -1]
+    if len(indices_deep):
 
-        folds = fill_holes(folds, neighbor_lists)
+        # Segment initial set of folds
+        print("  Segment deepest vertices into separate folds")
+        t1 = time()
+        folds = segment(indices_deep, neighbor_lists, min_fold_size)
+        print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
 
-        # Slower alternative: Rather than use boundaries, segment()
-        # all background vertices, remove the largest connected set of vertices,
-        # and continue with label_holes().
-        """
-        # Find nonfold vertices
-        nonfold_indices = [i for i,x in enumerate(folds) if x==-1]
+        # If multiple fractions are given, expand folds iteratively
+        print("  Grow folds by including shallower vertices")
+        for fraction in fraction_folds[1::]:
+            deep_vertices = find_deep_vertices(depths, areas, fraction)
+            indices_deep = [i for i,x in enumerate(deep_vertices) if x > -1]
+            unique_folds = [x for x in np.unique(folds) if x > -1]
+            fold_lists = [[] for x in unique_folds]
+            for ifold, nfold in enumerate(unique_folds):
+                fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
+            folds = segment(indices_deep, neighbor_lists,
+                            min_fold_size, fold_lists, keep_seeding=True)
+        print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
+        n_folds = len([x for x in list(set(folds)) if x != -1])
 
-        # Segment holes in the folds
-        print('  Segment holes in the folds...')
-        holes = segment(nonfold_indices, neighbor_lists)
-        n_holes = len([x for x in list(set(holes))])
+        # If there are any folds, find and fill holes
+        if n_folds > 0 and do_fill_holes:
 
-        # If there are any holes
-        if n_holes > 0:
+            folds = fill_holes(folds, neighbor_lists)
 
-            # Ignore the largest hole (the background) and renumber holes
-            max_hole_size = 0
-            max_hole_index = 0
-            for ihole in range(n_holes):
-                I = np.where(holes == ihole)
-                if len(I) > max_hole_size:
-                    max_hole_size = len(I)
-                    max_hole_index = ihole
-            holes[holes == max_hole_index] = -1
-            if max_hole_index < n_holes:
-                holes[holes > max_hole_index] -= 1
-            n_holes -= 1
-            print('    ...{0} holes segmented'.format(n_holes))
+            # Slower alternative: Rather than use boundaries, segment()
+            # all background vertices, remove the largest connected set of vertices,
+            # and continue with label_holes().
+            """
+            # Find nonfold vertices
+            nonfold_indices = [i for i,x in enumerate(folds) if x==-1]
 
-            # Label the vertices for each hole by surrounding region number
-            hole_numbers = [x for x in np.unique(holes) if x > -1]
-            folds = label_holes(holes, hole_numbers, folds, neighbor_lists)
-        """
+            # Segment holes in the folds
+            print('  Segment holes in the folds...')
+            holes = segment(nonfold_indices, neighbor_lists)
+            n_holes = len([x for x in list(set(holes))])
 
-    print('  ...Extracted folds in {1:.2f} seconds'.format(time() - t0))
+            # If there are any holes
+            if n_holes > 0:
+
+                # Ignore the largest hole (the background) and renumber holes
+                max_hole_size = 0
+                max_hole_index = 0
+                for ihole in range(n_holes):
+                    I = np.where(holes == ihole)
+                    if len(I) > max_hole_size:
+                        max_hole_size = len(I)
+                        max_hole_index = ihole
+                holes[holes == max_hole_index] = -1
+                if max_hole_index < n_holes:
+                    holes[holes > max_hole_index] -= 1
+                n_holes -= 1
+                print('    ...{0} holes segmented'.format(n_holes))
+
+                # Label the vertices for each hole by surrounding region number
+                hole_numbers = [x for x in np.unique(holes) if x > -1]
+                folds = label_holes(holes, hole_numbers, folds, neighbor_lists)
+            """
+
+        print('  ...Extracted folds in {1:.2f} seconds'.format(time() - t0))
+    else:
+        print('  No deep vertices')
 
     # Return folds, number of folds
     return folds, n_folds
@@ -546,7 +575,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
                         # Propagate from seeds to labels in label pair
                         sulci2 = segment(indices_unique_labels, neighbor_lists,
-                                         [indices_pair], min_region_size=1,
+                                         min_region_size=1,
+                                         [indices_pair], keep_seeding=False,
                                          spread_within_labels=True, labels=labels)
                         sulci[sulci2 > -1] = ID
 
@@ -619,8 +649,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     #    indices_seeds.append([i for i,x in enumerate(seeds)
                     #                          if x == seed])
                     #sulci2 = segment(indices_label, neighbor_lists,
-                    #                 indices_seeds, min_region_size=50,
-                    #                 spread_within_labels=True, labels=labels)
+                    #                 50, indices_seeds, False, True, labels)
                     sulci2 = propagate(points, faces, label_array, seeds, sulci,
                                        max_iters=10000, tol=0.001, sigma=5)
                     sulci[sulci2 > -1] = sulci2[sulci2 > -1]
@@ -660,7 +689,7 @@ if __name__ == "__main__":
     import numpy as np
     from mindboggle.utils.io_vtk import load_points_faces
     from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
-    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, segment
+    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     from mindboggle.extract.extract_folds import extract_sulci
     from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     data_path = os.environ['MINDBOGGLE_DATA']
