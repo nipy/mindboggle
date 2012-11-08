@@ -12,10 +12,10 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
->>> for atlas in atlases: #[80:101]:
->>>     if "MMRR-21-" in atlas:
->>>         cmd = 'python pipeline.py /desk/output_measures {0}b'.format(atlas)
->>>         print(cmd); os.system(cmd)
+>>> for atlas in atlases[0:20]:
+>>> #  if "MMRR-21-" in atlas:
+>>>       cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
+>>>       print(cmd); os.system(cmd)
 
 .. note::
   Mindboggle assumes a file tree like FreeSurfer's,
@@ -98,7 +98,7 @@ init_labels = 'manual'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-------------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
+hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
