@@ -31,7 +31,7 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     of low depth values (on the outer surface) with a long tail
     of higher depth values (in the folds), so we smooth the histogram's
     bin values (Gaussian), convolve to compute slopes,
-    and find the depth value for the first bin with slope = 1.
+    and find the depth value for the first bin with slope = 0.
 
     The resulting separately numbered folds may have holes
     resulting from shallower areas within a fold,
@@ -105,28 +105,30 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     # Anticipating that there will be a rapidly decreasing distribution
     # of low depth values (on the outer surface) with a long tail of higher
     # depth values (in the folds), smooth the bin values (Gaussian), convolve
-    # to compute slopes, and find the depth for the first bin with slope = 1.
+    # to compute slopes, and find the depth for the first bin with slope = 0.
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-    # Plot smoothed histogram:
-    # plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    """
+    >>> # Plot smoothed histogram:
+    >>> plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    """
     window = [-1, 0, 1]
     bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
-    ibin = np.where(bin_slopes == 1)[0]
+    ibin = np.where(bin_slopes == 0)[0]
     if len(ibin):
         depth_threshold = bin_edges[ibin[0]]
     else:
         depth_threshold = np.median(depths)
-    # Display resulting initial folds:
-    # n = -1 * np.ones(n_vertices)
-    # n[[i for i,x in enumerate(depths) if x > depth_threshold]] = 1
-    # rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()])
-    # os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
+    """
+    >>> # Display resulting initial folds:
+    >>> n = -1 * np.ones(n_vertices)
+    >>> n[[i for i,x in enumerate(depths) if x > depth_threshold]] = 1
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()])
+    >>> os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
+    """
 
-    # Iteratively extract vertices from the deepest to the less deep
+    # Iteratively extract vertices from deep to less deep
     number_of_thresholds = 3
-    thresholds = np.linspace(0, depth_threshold, num=number_of_thresholds+1)[1::]
-    thresholds = thresholds.tolist()
-    thresholds.reverse()
+    thresholds = np.linspace(1, depth_threshold, num=number_of_thresholds+3)[3::]
 
     # Find the deepest vertices (depths greater than the highest depth threshold)
     for ithreshold in range(number_of_thresholds):
@@ -135,44 +137,33 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
             break
     if len(indices_deep):
 
-# Segment initial set of folds
-print("  Segment vertices deeper than {0}".format(thresholds[ithreshold]))
-t1 = time()
-folds = segment(indices_deep, neighbor_lists)
-print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
-# Display resulting initial folds:
-n = -1 * np.ones(n_vertices)
-n[[i for i,x in enumerate(folds) if x > -1]] = 1
-rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()],'n',n)
-os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
+        # Segment initial set of folds
+        print("  Segment vertices deeper than {0}".format(thresholds[ithreshold]))
+        t1 = time()
+        folds = segment(indices_deep, neighbor_lists)
+        print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
+        """
+        >>> # Display resulting initial folds:
+        >>> rewrite_scalar_lists(depth_file, 'test_folds1.vtk', [folds.tolist()], 'folds', folds)
+        >>> os.system('mayavi2 -m Surface -d test_folds1.vtk &')
+        """
 
-        for threshold in thresholds:
-
-        # If multiple fractions are given, expand folds iteratively
+        # Expand folds iteratively
         print("  Grow folds by including shallower vertices")
-        for fraction in fraction_folds[1::]:
-            deep_vertices = find_deep_vertices(depths, areas, fraction)
-            indices_left = [i for i,x in enumerate(deep_vertices) if x > -1
-                            if folds[i] == -1]
+        for threshold in thresholds[ithreshold+1::]:
+
+            indices_deep = [i for i,x in enumerate(depths) if x >= threshold]
             unique_folds = [x for x in np.unique(folds) if x > -1]
             fold_lists = [[] for x in unique_folds]
             for ifold, nfold in enumerate(unique_folds):
                 fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
-            folds2 = segment(indices_left, neighbor_lists, 1,
+            folds2 = segment(indices_deep, neighbor_lists, 1,
                              fold_lists, keep_seeding=True)
             folds[folds2 > -1] = folds2[folds2 > -1]
 
             """
             folds = propagate(points, faces, deep_vertices, folds, folds,
                               max_iters=10000, tol=0.001, sigma=5)
-            # OR:
-            indices_deep = [i for i,x in enumerate(deep_vertices) if x > -1]
-            unique_folds = [x for x in np.unique(folds) if x > -1]
-            fold_lists = [[] for x in unique_folds]
-            for ifold, nfold in enumerate(unique_folds):
-                fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
-            folds = segment(indices_deep, neighbor_lists, min_fold_size,
-                            fold_lists, keep_seeding=True)
             """
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         n_folds = len([x for x in list(set(folds)) if x != -1])
