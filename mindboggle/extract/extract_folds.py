@@ -22,96 +22,16 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def find_deep_vertices(depths, areas, fraction_folds):
-    """
-    Find the deepest vertices in a surface mesh whose collective area
-    is a given fraction of the total surface area of the mesh.
-
-    Note: Resulting folds may have holes.
-
-    Parameters
-    ----------
-    depths : list or array of floats
-        depth values for all vertices
-    areas : list or array of floats
-        surface area values for all vertices
-    fraction_folds : float
-        fraction of surface mesh considered folds
-
-    Returns
-    -------
-    deep_vertices : array of integers
-        an integer for every mesh vertex: 1 for fold, -1 for non-fold
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
-    >>> from mindboggle.extract.extract_folds import find_deep_vertices
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
-    >>> deep_vertices = find_deep_vertices(depths, areas, 0.5)
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalar_lists(depth_file, 'test_find_deep_vertices.vtk',
-    >>>                      [deep_vertices], ['deep_vertices'], deep_vertices)
-    >>> os.system('mayavi2 -m Surface -d test_find_deep_vertices.vtk &')
-
-    """
-    import numpy as np
-    from mindboggle.utils.io_vtk import load_scalars
-
-    print("  Extract the deepest surface mesh vertices ({0} of surface area)".
-          format(fraction_folds))
-
-    # Load depth and surface area values from VTK files
-    #points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    #points, faces, areas, n_vertices = load_scalars(area_file, True)
-
-    indices_asc = np.argsort(depths)
-    indices_des = indices_asc[::-1]
-
-    total_area = np.sum(areas)
-    fraction_area = fraction_folds * total_area
-    deep_vertices = -1 * np.ones(len(areas))
-
-    # Start with fraction_area of the vertices
-    start = np.round(fraction_folds * len(depths))
-    deep_vertices[indices_des[0:start]] = 1
-    sum_area = np.sum(areas[indices_des[0:start]])
-
-    # If these initial vertices cover less than fraction_area,
-    # add vertices until the remaining vertices' area exceeds fraction_area
-    if sum_area <= fraction_area:
-        for index in indices_des[start::]:
-            deep_vertices[index] = 1
-            sum_area += areas[index]
-            if sum_area >= fraction_area:
-                break
-    # Otherwise, if these initial vertices cover more than fraction_area,
-    # remove vertices until the remaining vertices' area is less than fraction_area
-    else:
-        start = np.round((1-fraction_folds) * len(depths))
-        for index in indices_asc[start::]:
-            deep_vertices[index] = -1
-            sum_area += areas[index]
-            if sum_area <= fraction_area:
-                break
-
-    return deep_vertices
-
-#===============================================================================
-# Extract individual folds
-#===============================================================================
-def extract_folds(depth_file, area_file, fraction_folds,
-                  min_fold_size=1, do_fill_holes=False):
+def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     """
     Use depth to extract folds from a triangular surface mesh.
+
+    To extract an initial set of deep vertices from the surface mesh,
+    we anticipate that there will be a rapidly decreasing distribution
+    of low depth values (on the outer surface) with a long tail
+    of higher depth values (in the folds), so we smooth the histogram's
+    bin values (Gaussian), convolve to compute slopes,
+    and find the depth value for the first bin with slope = 1.
 
     The resulting separately numbered folds may have holes
     resulting from shallower areas within a fold,
@@ -123,10 +43,6 @@ def extract_folds(depth_file, area_file, fraction_folds,
     ----------
     depth_file : str
         surface mesh file in VTK format with faces and depth scalar values
-    area_file : str
-        surface mesh file in VTK format with faces and surface area scalar values
-    fraction_folds : float or list of floats
-        fraction of surface mesh considered folds (iterative if a list)
     min_fold_size : int
         minimum fold size (number of vertices)
     do_fill_holes : Boolean
@@ -148,15 +64,12 @@ def extract_folds(depth_file, area_file, fraction_folds,
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> fold_fractions = [0.1, 0.2, 0.3, 0.4, 0.5]
-    >>> folds, n_folds = extract_folds(depth_file, area_file, fold_fractions,
-    >>>                                50, False)
+    >>>
+    >>> folds, n_folds = extract_folds(depth_file, 50, False)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
-    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [folds], ['folds'], folds)
     >>> #points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> #indices = [i for i,x in enumerate(folds) if x > -1]
     >>> #write_scalar_lists('test_extract_folds.vtk', points, indices,
@@ -166,35 +79,74 @@ def extract_folds(depth_file, area_file, fraction_folds,
     """
     import numpy as np
     from time import time
+    from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import load_scalars
     from mindboggle.utils.mesh_operations import find_neighbors, segment, \
                                                  propagate, fill_holes
-    from mindboggle.extract.extract_folds import find_deep_vertices
 
-    print("Extract folds from surface mesh...")
+    print("Extract folds in surface mesh")
     t0 = time()
 
     # Load depth and surface area values for all vertices
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    points, faces, areas, n_vertices = load_scalars(area_file, True)
 
     # Find neighbors for each vertex
     neighbor_lists = find_neighbors(faces, len(points))
 
-    # Extract deepest vertices as initial set of folds
-    # (fraction of surface area with deepest vertices)
-    if type(fraction_folds) is list:
-        deep_vertices = find_deep_vertices(depths, areas, fraction_folds[0])
+    # Compute histogram of depth measures
+    if n_vertices > 10000:
+        nbins = np.round(n_vertices / 100.0)
     else:
-        deep_vertices = find_deep_vertices(depths, areas, fraction_folds)
-    indices_deep = [i for i,x in enumerate(deep_vertices) if x > -1]
+        error("  Too few vertices to create depth histogram")
+    bins, bin_edges = np.histogram(depths, bins=nbins)
+    # Plot histogram:
+    # a,b,c = hist(depths, bins=nbins)
+
+    # Anticipating that there will be a rapidly decreasing distribution
+    # of low depth values (on the outer surface) with a long tail of higher
+    # depth values (in the folds), smooth the bin values (Gaussian), convolve
+    # to compute slopes, and find the depth for the first bin with slope = 1.
+    bins_smooth = gaussian_filter1d(bins.tolist(), 5)
+    # Plot smoothed histogram:
+    # plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
+    window = [-1, 0, 1]
+    bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
+    ibin = np.where(bin_slopes == 1)[0]
+    if len(ibin):
+        depth_threshold = bin_edges[ibin[0]]
+    else:
+        depth_threshold = np.median(depths)
+    # Display resulting initial folds:
+    # n = -1 * np.ones(n_vertices)
+    # n[[i for i,x in enumerate(depths) if x > depth_threshold]] = 1
+    # rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()])
+    # os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
+
+    # Iteratively extract vertices from the deepest to the less deep
+    number_of_thresholds = 3
+    thresholds = np.linspace(0, depth_threshold, num=number_of_thresholds+1)[1::]
+    thresholds = thresholds.tolist()
+    thresholds.reverse()
+
+    # Find the deepest vertices (depths greater than the highest depth threshold)
+    for ithreshold in range(number_of_thresholds):
+        indices_deep = [i for i,x in enumerate(depths) if x >= thresholds[ithreshold]]
+        if len(indices_deep):
+            break
     if len(indices_deep):
 
-        # Segment initial set of folds
-        print("  Segment deepest vertices into separate folds")
-        t1 = time()
-        folds = segment(indices_deep, neighbor_lists)
-        print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
+# Segment initial set of folds
+print("  Segment vertices deeper than {0}".format(thresholds[ithreshold]))
+t1 = time()
+folds = segment(indices_deep, neighbor_lists)
+print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
+# Display resulting initial folds:
+n = -1 * np.ones(n_vertices)
+n[[i for i,x in enumerate(folds) if x > -1]] = 1
+rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()],'n',n)
+os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
+
+        for threshold in thresholds:
 
         # If multiple fractions are given, expand folds iteratively
         print("  Grow folds by including shallower vertices")
@@ -264,7 +216,7 @@ def extract_folds(depth_file, area_file, fraction_folds,
                 folds = label_holes(holes, hole_numbers, folds, neighbor_lists)
             """
 
-        print('  ...Extracted folds in {0:.2f} seconds'.format(time() - t0))
+        print('  ...Extracted folds ({0:.2f} seconds)'.format(time() - t0))
     else:
         print('  No deep vertices')
 
