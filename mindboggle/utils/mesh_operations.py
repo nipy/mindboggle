@@ -650,6 +650,118 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 #------------------------------------------------------------------------------
+# Fill boundaries on a surface mesh to segment vertices into contiguous regions
+#------------------------------------------------------------------------------
+def fill_boundaries(regions, neighbor_lists):
+    """
+    Fill boundaries (contours) on a surface mesh
+    to segment vertices into contiguous regions.
+
+    Steps ::
+        1. Extract region boundaries (assumed to be closed contours)
+        2. Segment boundaries into separate, contiguous boundaries
+        3. For each boundary
+            4. Find the neighbors to either side of the boundary
+            5. Segment the neighbors into exterior and interior sets of neighbors
+            6. Find the interior (smaller) sets of neighbors
+            7. For each set of interior neighbors
+                8. Fill the contour formed by the neighbors
+
+    Parameters
+    ----------
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    segments : numpy array of integers
+        region numbers for all vertices (default -1)
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh_operations import fill_boundaries
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> regions = -1 * np.ones(len(points))
+    >>> regions[depths > 0.50] = 1
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>>
+    >>> folds = fill_boundaries(regions, neighbor_lists)
+    >>>
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
+    >>>                      [folds], ['folds'], folds)
+    >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
+
+    """
+    import numpy as np
+    from mindboggle.utils.mesh_operations import find_neighbors_vertex, \
+        detect_boundaries, segment
+
+    print('  Segment vertices using region boundaries')
+
+    # Extract background
+    indices_background = [i for i,x in enumerate(regions) if x == -1]
+
+    # Extract region boundaries (assumed to be closed contours)
+    print('    Extract region boundaries (assumed to be closed contours)')
+    indices_boundaries, foo1, foo2 = detect_boundaries(range(len(regions)),
+                                                       regions, neighbor_lists)
+
+    # Segment boundaries into separate, contiguous boundaries
+    print('    Segment boundaries into separate, contiguous boundaries')
+    boundaries = segment(indices_boundaries, neighbor_lists, 1)
+
+    # For each boundary
+    unique_boundaries = [x for x in np.unique(boundaries) if x > -1]
+    for boundary_number in unique_boundaries:
+        boundary_indices = [i for i,x in enumerate(boundaries)
+                            if x == boundary_number]
+
+        # Find the neighbors to either side of the boundary, and their neighbors
+        indices_neighbors = []
+        [indices_neighbors.extend(find_neighbors_vertex(faces, i))
+         for i in boundary_indices]
+        [indices_neighbors.extend(find_neighbors_vertex(faces, i))
+         for i in indices_neighbors]
+
+        # Segment the neighbors into exterior and interior sets of neighbors
+        print('  Segment the neighbors into exterior and interior sets of neighbors')
+        neighbors = segment(indices_neighbors, neighbor_lists, 1)
+
+        # Find the interior (smaller) sets of neighbors
+        print('  Find the interior (smaller) sets of neighbors')
+        seed_lists = []
+        unique_neighbors = [x for x in np.unique(neighbors) if x > -1]
+        max_neighbor = 0
+        for ineighbor, neighbor in enumerate(unique_neighbors):
+            indices_neighbor = [i for i,x in enumerate(neighbors)
+                                if x == neighbor]
+            seed_lists.append(indices_neighbor)
+            if len(indices_neighbor) > max_neighbor:
+                max_neighbor = ineighbor
+        interior_neighbors = [x for i,x in enumerate(seed_lists)
+                              if i != max_neighbor]
+
+        # For each set of interior neighbors
+        print('  For each set of interior neighbors '
+              'fill the contour formed by the interior neighbors')
+        for interior_neighbor in interior_neighbors:
+
+            # Fill the contour formed by the interior neighbors
+            segments = segment(indices_background, neighbor_lists, 1,
+                               [interior_neighbor])
+
+    return segments
+
+#------------------------------------------------------------------------------
 # Fill holes
 #------------------------------------------------------------------------------
 def label_holes(holes, hole_numbers, regions, neighbor_lists):
@@ -1126,7 +1238,7 @@ def inside_faces(faces, indices):
 #------------------------------------------------------------------------------
 # Detect label boundaries
 #------------------------------------------------------------------------------
-def detect_boundaries(region, labels, neighbor_lists):
+def detect_boundaries(region_indices, labels, neighbor_lists):
     """
     Detect the label boundaries in a collection of vertices such as a region.
 
@@ -1135,7 +1247,7 @@ def detect_boundaries(region, labels, neighbor_lists):
 
     Parameters
     ----------
-    region : list of integers
+    region_indices : list of integers
         indices to vertices in a region (any given collection of vertices)
     labels : numpy array of integers
         label numbers for all vertices, with -1s for unlabeled vertices
@@ -1157,8 +1269,8 @@ def detect_boundaries(region, labels, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import detect_boundaries
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    >>> region = [0,1,2,4,5,8,9]
-    >>> detect_boundaries(region, labels, neighbor_lists)
+    >>> region_indices = [0,1,2,4,5,8,9]
+    >>> detect_boundaries(region_indices, labels, neighbor_lists)
       ([1, 4], [[10, 90], [40, 30]])
 
     >>> Real example -- extract sulcus label boundaries:
@@ -1173,8 +1285,10 @@ def detect_boundaries(region, labels, neighbor_lists):
     >>>              'label', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>>
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
     >>>     labels, neighbor_lists)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
@@ -1195,10 +1309,10 @@ def detect_boundaries(region, labels, neighbor_lists):
     # Find indices to sets of two labels
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
-                        if i in region]
+                        if i in region_indices]
     boundary_label_pairs = [x for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
-                            if i in region]
+                            if i in region_indices]
 
     unique_boundary_label_pairs = []
     for pair in boundary_label_pairs:
