@@ -152,6 +152,8 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
         print("  Grow folds by including shallower vertices")
         for threshold in thresholds[ithreshold+1::]:
 
+#            fill_holes(regions, neighbor_lists)
+
             indices_deep = [i for i,x in enumerate(depths) if x >= threshold]
             unique_folds = [x for x in np.unique(folds) if x > -1]
             fold_lists = [[] for x in unique_folds]
