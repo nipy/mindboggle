@@ -22,7 +22,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
+def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=True):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -39,10 +39,14 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     leaving smaller boundaries, presumably contours of holes within a region,
     and calls label_holes() to fill holes with surrounding region numbers.
 
+    Note: do_fill_holes fills holes within each fold, not between abutting folds.
+
     Parameters
     ----------
     depth_file : str
         surface mesh file in VTK format with faces and depth scalar values
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
     min_fold_size : int
         minimum fold size (number of vertices)
     do_fill_holes : Boolean
@@ -64,8 +68,10 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalars(labels_file, False)
+    >>> neighbor_lists = find_neighbors(faces, len(points))
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, 50, False)
+    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
@@ -91,7 +97,7 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
 
     # Find neighbors for each vertex
-    neighbor_lists = find_neighbors(faces, len(points))
+    #neighbor_lists = find_neighbors(faces, len(points))
 
     # Compute histogram of depth measures
     min_vertices = 10000
@@ -258,8 +264,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         file name for surface mesh vtk (from which to extract points and faces)
     labels : list of integers
         labels for all vertices
-    fold_lists : list of lists of integers
-        each list contains indices to vertices of a fold
+    folds : list or array of integers
+        fold IDs for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     label_pair_lists : list of sublists of subsublists of integers
@@ -354,10 +360,10 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     n_folds = len(fold_numbers)
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
-#    for n_fold in fold_numbers:
-    for n_fold in [1]:
+    for n_fold in fold_numbers:
+#    for n_fold in [1]:
 
-        fold = np.where(folds == n_fold)[0]
+        fold = [i for i,x in enumerate(folds) if x == n_fold]
         len_fold = len(fold)
         ambiguous_case = False
 
