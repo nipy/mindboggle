@@ -82,7 +82,7 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import load_scalars
     from mindboggle.utils.mesh_operations import find_neighbors, segment, \
-                                                 propagate, fill_holes
+        fill_holes, fill_boundaries, propagate
 
     print("Extract folds in surface mesh")
     t0 = time()
@@ -94,13 +94,17 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     neighbor_lists = find_neighbors(faces, len(points))
 
     # Compute histogram of depth measures
-    if n_vertices > 10000:
+    min_vertices = 10000
+    if n_vertices > min_vertices:
         nbins = np.round(n_vertices / 100.0)
     else:
-        error("  Too few vertices to create depth histogram")
+        error("  Expecting at least {0} vertices to create depth histogram".
+        format(min_vertices))
     bins, bin_edges = np.histogram(depths, bins=nbins)
-    # Plot histogram:
-    # a,b,c = hist(depths, bins=nbins)
+    """
+    >>> # Plot histogram:
+    >>> a,b,c = hist(depths, bins=nbins)
+    """
 
     # Anticipating that there will be a rapidly decreasing distribution
     # of low depth values (on the outer surface) with a long tail of higher
@@ -118,13 +122,6 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
         depth_threshold = bin_edges[ibin[0]]
     else:
         depth_threshold = np.median(depths)
-    """
-    >>> # Display resulting initial folds:
-    >>> n = -1 * np.ones(n_vertices)
-    >>> n[[i for i,x in enumerate(depths) if x > depth_threshold]] = 1
-    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [n.tolist()])
-    >>> os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
-    """
 
     # Iteratively extract vertices from deep to less deep
     number_of_thresholds = 3
@@ -138,9 +135,13 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
     if len(indices_deep):
 
         # Segment initial set of folds
-        print("  Segment vertices deeper than {0}".format(thresholds[ithreshold]))
+        print("  Segment vertices deeper than {0:.2f}".format(thresholds[ithreshold]))
         t1 = time()
         folds = segment(indices_deep, neighbor_lists)
+        # Slightly slower alternative -- fill boundaries:
+        #regions = -1 * np.ones(len(points))
+        #regions[indices_deep] = 1
+        #folds = fill_boundaries(regions, neighbor_lists)
         print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
         """
         >>> # Display resulting initial folds:
@@ -152,8 +153,6 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
         print("  Grow folds by including shallower vertices")
         for threshold in thresholds[ithreshold+1::]:
 
-#            fill_holes(regions, neighbor_lists)
-
             indices_deep = [i for i,x in enumerate(depths) if x >= threshold]
             unique_folds = [x for x in np.unique(folds) if x > -1]
             fold_lists = [[] for x in unique_folds]
@@ -162,54 +161,27 @@ def extract_folds(depth_file, min_fold_size=1, do_fill_holes=False):
             folds2 = segment(indices_deep, neighbor_lists, 1,
                              fold_lists, keep_seeding=True)
             folds[folds2 > -1] = folds2[folds2 > -1]
+            #folds = propagate(points, faces, deep_vertices, folds, folds,
+            #                  max_iters=10000, tol=0.001, sigma=5)
 
-            """
-            folds = propagate(points, faces, deep_vertices, folds, folds,
-                              max_iters=10000, tol=0.001, sigma=5)
-            """
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         n_folds = len([x for x in list(set(folds)) if x != -1])
 
         # If there are any folds, find and fill holes
         if n_folds > 0 and do_fill_holes:
-
             folds = fill_holes(folds, neighbor_lists)
 
-            # Slower alternative: Rather than use boundaries, segment()
-            # all background vertices, remove the largest connected set of vertices,
-            # and continue with label_holes().
-            """
-            # Find nonfold vertices
-            nonfold_indices = [i for i,x in enumerate(folds) if x==-1]
+        # Remove small folds
+        if min_fold_size > 1:
+            print('    Remove folds smaller than {0}'.format(min_fold_size))
+            for nfold in np.unique(folds):
+                indices_fold = np.where(folds == nfold)[0]
+                if len(indices_fold) < min_fold_size:
+                    folds[indices_fold] = -1
+            n_folds = len(np.unique(folds))
 
-            # Segment holes in the folds
-            print('  Segment holes in the folds...')
-            holes = segment(nonfold_indices, neighbor_lists)
-            n_holes = len([x for x in list(set(holes))])
-
-            # If there are any holes
-            if n_holes > 0:
-
-                # Ignore the largest hole (the background) and renumber holes
-                max_hole_size = 0
-                max_hole_index = 0
-                for ihole in range(n_holes):
-                    I = np.where(holes == ihole)
-                    if len(I) > max_hole_size:
-                        max_hole_size = len(I)
-                        max_hole_index = ihole
-                holes[holes == max_hole_index] = -1
-                if max_hole_index < n_holes:
-                    holes[holes > max_hole_index] -= 1
-                n_holes -= 1
-                print('    ...{0} holes segmented'.format(n_holes))
-
-                # Label the vertices for each hole by surrounding region number
-                hole_numbers = [x for x in np.unique(holes) if x > -1]
-                folds = label_holes(holes, hole_numbers, folds, neighbor_lists)
-            """
-
-        print('  ...Extracted folds ({0:.2f} seconds)'.format(time() - t0))
+        print('  ...Extracted {0} folds ({0:.2f} seconds)'.
+              format(n_folds, time() - t0))
     else:
         print('  No deep vertices')
 
