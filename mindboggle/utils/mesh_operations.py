@@ -787,16 +787,14 @@ def fill_boundaries(regions, neighbor_lists):
 #------------------------------------------------------------------------------
 # Fill holes
 #------------------------------------------------------------------------------
-def label_holes(holes, hole_numbers, regions, neighbor_lists):
+def label_holes(holes, regions, neighbor_lists):
     """
     Fill holes in regions on a surface mesh.
 
     Parameters
     ----------
-    holes : numpy array of integers
+    holes : list or array of integers
         hole numbers for all vertices (default -1)
-    hole_numbers : list or numpy array of integers
-        unique hole numbers (no -1)
     regions : numpy array of integers
         region numbers for all vertices (default -1)
     neighbor_lists : list of lists of integers
@@ -815,8 +813,9 @@ def label_holes(holes, hole_numbers, regions, neighbor_lists):
         regions = np.array(regions)
 
     # Identify the vertices for each hole
+    hole_numbers = [x for x in np.unique(holes) if x > -1]
     for n_hole in hole_numbers:
-        I = np.where(holes == n_hole)[0]
+        I = [i for i,x in enumerate(holes) if x == n_hole]
 
         # Identify neighbors to these vertices
         N=[]; [N.extend(neighbor_lists[i]) for i in I]
@@ -963,7 +962,7 @@ def fill_holes(regions, neighbor_lists):
         holes = segment(background, neighbor_lists, 1, seed_lists)
 
         # Label the vertices for each hole by surrounding region number
-        regions = label_holes(holes, hole_numbers, regions, neighbor_lists)
+        regions = label_holes(holes, regions, neighbor_lists)
 
     return regions
 
