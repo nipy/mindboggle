@@ -63,15 +63,15 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
-    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'measures',
     >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(labels_file, False)
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists)
+    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 1, True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
@@ -165,12 +165,12 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
             for ifold, nfold in enumerate(unique_folds):
                 fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
             folds2 = segment(indices_deep, neighbor_lists, 1,
-                             fold_lists, keep_seeding=True)
+                             fold_lists, conving=True)
             folds[folds2 > -1] = folds2[folds2 > -1]
             #folds = propagate(points, faces, deep_vertices, folds, folds,
             #                  max_iters=10000, tol=0.001, sigma=5)
 
-        print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
+        print('    ...Grew and segmented folds ({0:.2f} seconds)'.format(time() - t1))
         n_folds = len([x for x in list(set(folds)) if x != -1])
 
         # If there are any folds, find and fill holes
@@ -186,7 +186,7 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
                     folds[indices_fold] = -1
             n_folds = len(np.unique(folds))
 
-        print('  ...Extracted {0} folds ({0:.2f} seconds)'.
+        print('  ...Extracted {0} folds ({1:.2f} seconds)'.
               format(n_folds, time() - t0))
     else:
         print('  No deep vertices')
