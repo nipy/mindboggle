@@ -104,7 +104,7 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasFlow = 0 #True
+run_atlasFlow = True
 run_measureFlow = True
 run_featureFlow = True
 run_shapeFlow = 0#True
@@ -643,7 +643,7 @@ if run_featureFlow:
     fid = open(sulcus_names_file, 'r')
     sulcus_names = fid.readlines()
     sulcus_names = [x.strip('\n') for x in sulcus_names]
-    SulciNode.inputs.sulcus_names = []
+    SulciNode.inputs.sulcus_names = sulcus_names
 
     #===========================================================================
     # Fill holes in sulci
@@ -663,40 +663,42 @@ if run_featureFlow:
     #===========================================================================
     # Extract fundi (curves at the bottoms of sulci)
     #===========================================================================
-    thr = 0.5
-    min_distance = 5.0
-    fundi_from_sulci = True
-    FundiNode = Node(name='Fundi',
-                     interface = Fn(function = extract_fundi,
-                                    input_names = ['folds',
-                                                   'neighbor_lists',
-                                                   'depth_file',
-                                                   'mean_curvature_file',
-                                                   'min_curvature_vector_file',
-                                                   'min_distance',
-                                                   'thr',
-                                                   'use_only_endpoints'],
-                                    output_names = ['fundi',
-                                                    'n_fundi',
-                                                    'likelihoods']))
-    if fundi_from_sulci:
-        if fill_sulcus_holes:
-            featureFlow.connect([(FillHoles, FundiNode, [('regions','folds')])])
+    do_extract_fundi = False
+    if do_extract_fundi:
+        thr = 0.5
+        min_distance = 5.0
+        fundi_from_sulci = True
+        FundiNode = Node(name='Fundi',
+                         interface = Fn(function = extract_fundi,
+                                        input_names = ['folds',
+                                                       'neighbor_lists',
+                                                       'depth_file',
+                                                       'mean_curvature_file',
+                                                       'min_curvature_vector_file',
+                                                       'min_distance',
+                                                       'thr',
+                                                       'use_only_endpoints'],
+                                        output_names = ['fundi',
+                                                        'n_fundi',
+                                                        'likelihoods']))
+        if fundi_from_sulci:
+            if fill_sulcus_holes:
+                featureFlow.connect([(FillHoles, FundiNode, [('regions','folds')])])
+            else:
+                featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
         else:
-            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
-    else:
-        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
-    featureFlow.connect([(NbrNode, FundiNode,
-                          [('neighbor_lists','neighbor_lists')])])
-    mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Fundi.depth_file'),
-                      ('Curvature.mean_curvature_file',
-                       'Fundi.mean_curvature_file'),
-                      ('Curvature.min_curvature_vector_file',
-                       'Fundi.min_curvature_vector_file')])])
-    FundiNode.inputs.min_distance = min_distance
-    FundiNode.inputs.thr = thr
-    FundiNode.inputs.use_only_endpoints = True
+            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+        featureFlow.connect([(NbrNode, FundiNode,
+                              [('neighbor_lists','neighbor_lists')])])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Fundi.depth_file'),
+                          ('Curvature.mean_curvature_file',
+                           'Fundi.mean_curvature_file'),
+                          ('Curvature.min_curvature_vector_file',
+                           'Fundi.min_curvature_vector_file')])])
+        FundiNode.inputs.min_distance = min_distance
+        FundiNode.inputs.thr = thr
+        FundiNode.inputs.use_only_endpoints = True
 
     #---------------------------------------------------------------------------
     # Write folds, sulci, fundi, and likelihoods to VTK files
@@ -725,28 +727,29 @@ if run_featureFlow:
                      [('Sulci_to_VTK.output_vtk','features.@sulci')])])
 
     # Save fundi
-    FundiVTK = SulciVTK.clone('Fundi_to_VTK')
-    featureFlow.add_nodes([FundiVTK])
-    mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
-    FundiVTK.inputs.output_vtk = 'fundi.vtk'
-    FundiVTK.inputs.new_scalar_names = ['fundi']
-    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalar_lists')])])
-    featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
-    mbFlow.connect([(featureFlow, Sink,
-                     [('Fundi_to_VTK.output_vtk','features.@fundi')])])
+    if do_extract_fundi:
+        FundiVTK = SulciVTK.clone('Fundi_to_VTK')
+        featureFlow.add_nodes([FundiVTK])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
+        FundiVTK.inputs.output_vtk = 'fundi.vtk'
+        FundiVTK.inputs.new_scalar_names = ['fundi']
+        featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalar_lists')])])
+        featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Fundi_to_VTK.output_vtk','features.@fundi')])])
 
-    # Save likelihoods values in sulci (or in folds if fundi_from_sulci==False)
-    LikelihoodsVTK = SulciVTK.clone('Likelihoods_to_VTK')
-    featureFlow.add_nodes([LikelihoodsVTK])
-    mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
-    LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
-    LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
-    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalar_lists')])])
-    featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
-    mbFlow.connect([(featureFlow, Sink,
-                     [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
+        # Save likelihoods values in sulci (or in folds if fundi_from_sulci==False)
+        LikelihoodsVTK = SulciVTK.clone('Likelihoods_to_VTK')
+        featureFlow.add_nodes([LikelihoodsVTK])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
+        LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
+        LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
+        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalar_lists')])])
+        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
 
 ################################################################################
 #
@@ -868,7 +871,7 @@ if run_shapeFlow:
     #===========================================================================
     # Fundus shapes
     #===========================================================================
-    if run_featureFlow:
+    if run_featureFlow and do_extract_fundi:
         FundusTable = LabelTable.clone('Fundus_table')
         shapeFlow.add_nodes([FundusTable])
         FundusTable.inputs.filename = 'fundus_shapes.txt'
