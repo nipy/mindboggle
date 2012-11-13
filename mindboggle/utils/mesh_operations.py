@@ -651,7 +651,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
-def watershed(depths, indices, neighbor_lists, min_depth=0.01):
+def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.01):
     """
     Segment vertices of surface into contiguous "watershed basin" regions
     by seed growing from an iterative selection of the deepest vertices.
@@ -664,8 +664,11 @@ def watershed(depths, indices, neighbor_lists, min_depth=0.01):
         indices to mesh vertices to be segmented
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    min_depth : float
-        minimum watershed (catchment basin) depth -- otherwise merged
+    depth_factor : float
+        minimum fraction of depth for a neighboring deeper watershed catchment basin
+        (otherwise merged with the deeper basin)
+    delta_depth : float
+        tolerance for detecting differences in depth between vertices
 
     Returns
     -------
@@ -684,27 +687,32 @@ def watershed(depths, indices, neighbor_lists, min_depth=0.01):
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> depth_factor = 0.1
+    >>> delta_depth = 0.01
     >>>
-    >>> folds = watershed(depths, indices, neighbor_lists, min_depth=0.01)
+    >>> segments = watershed(depths, indices, neighbor_lists, depth_factor, delta_depth)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
-    >>>                      [folds.tolist()], ['folds'], folds)
+    >>>                      [segments.tolist()], ['segments'], segments)
     >>> os.system('mayavi2 -m Surface -d test_watershed.vtk &')
 
     """
     import numpy as np
     from time import time
+    from mindboggle.utils.mesh_operations import detect_boundaries
 
-    print('Segment {0} vertices by a watershed algorithm'.
+    print('Segment {0} vertices by a surface watershed algorithm'.
           format(len(indices)))
     verbose = False
+    merge = False
     t0 = time()
 
     # Select deepest vertex as initial seed
     seed_list = [indices[np.argmax(depths[indices])]]
     max_depth = depths[seed_list[0]]
     basin_depths = []
+    original_indices = indices[:]
 
     # Loop until all vertices segmented
     segments = -1 * np.ones(len(neighbor_lists))
@@ -738,13 +746,9 @@ def watershed(depths, indices, neighbor_lists, min_depth=0.01):
             # For each vertex, select neighbors that are shallower
             seed_neighbors = []
             for seed in old_seed_list:
-                #seed_neighbors.extend([x for x in neighbor_lists[seed]
-                #                       if depths[x] <= depths[seed]])
                 seed_neighbors.extend([x for x in neighbor_lists[seed]
-                                       if depths[x] <= depths[seed]])
+                                       if depths[x] - delta_depth <= depths[seed]])
             seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
-            if len(seed_list):
-                last_seed_list = seed_list[:]
 
         else:
             seed_list = []
@@ -754,48 +758,59 @@ def watershed(depths, indices, neighbor_lists, min_depth=0.01):
 
             # Assign ID to segmented region and increment ID
             segments[region] = counter
-            counter += 1
 
+            # Compute basin depth (max - min)
+            basin_depths.append(max_depth - np.min(depths[region]))
+
+            # If vertices left to segment, re-initialize parameters
             if len(indices):
-                # Select first unsegmented vertex as new seed
+                # Select deepest unsegmented vertex as new seed
                 seed_list = [indices[np.argmax(depths[indices])]]
-                # Initialize new region/basin
+                # Initialize new region/basin, maximum depth, and counter
                 region = []
-                # Compute basin depth (max - min)
-                basin_depths.append(max_depth - depths[last_seed_list[-1]])
                 max_depth = depths[seed_list[0]]
+                counter += 1
 
             # Display current number and size of region
             if verbose:
                 print("    {0} vertices remain".format(len(indices)))
+    print('  ...Segmented {0} regions ({1:.2f} seconds)'.
+          format(counter, time() - t0))
 
-    # Find shallow watershed catchment basins
-    print(FIX!)
-    holes = -1 * np.ones(len(depths))
-    Imin = [i for i,x in enumerate(basin_depths) if x < min_depth]
-    if len(Imin):
-        print(basin_depths)
-        print(Imin)
-        for imin in Imin:
-            Ihole = [i for i,x in enumerate(segments) if x == imin]
-            holes[Ihole] = imin
+    # Merge watershed catchment basins
+    if merge:
 
-        I = [i for i,x in enumerate(holes) if x == n_hole]
+        # Extract boundaries between watershed catchment basins
+        print('  Merge watershed catchment basins with deeper neighboring basins')
+        print('    Extract region boundaries')
+        foo1, foo2, pairs = detect_boundaries(original_indices, segments,
+                                              neighbor_lists, ignore_indices=[-1])
 
-        # Identify neighbors to these vertices
-        N=[]; [N.extend(neighbor_lists[i]) for i in I]
-        if len(N):
+        # Sort basin depths (descending order) -- return segment indices
+        Isort = np.argsort(basin_depths).tolist()
+        Isort.reverse()
 
-            # Assign the hole the maximum region ID number of its neighbors
-            regions[I] = max([regions[x] for x in N])
+        # Find neighboring basins to each of the sorted basins
+        print("    Find neighbors whose depth is less than a fraction of the basin's depth")
+        basin_pairs = []
+        for index in Isort:
+            index_neighbors = [int(list(frozenset(x).difference([index]))[0])
+                               for x in pairs if index in x]
+            # Store neighbors whose depth is less than a fraction of the basin's depth
+            index_neighbors = [[x, index] for x in index_neighbors
+                if basin_depths[x] / basin_depths[index] < depth_factor]
+            if len(index_neighbors):
+                basin_pairs.extend(index_neighbors)
 
         # Merge shallow watershed catchment basins
-        # Label the vertices for each hole by surrounding region number
-        print('  Merge shallow watershed catchment basins')
-        segments = label_holes(holes, segments, neighbor_lists)
+        if len(basin_pairs):
+            print('    Merge basins with deeper neighboring basins')
+            for basin_pair in basin_pairs:
+                segments[np.where(segments == basin_pair[0])] = basin_pair[1]
 
+    # Print statement
     n_segments = len([x for x in np.unique(segments) if x > -1])
-    print('  ...Segmented {0} watershed regions ({1:.2f} seconds)'.
+    print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
           format(n_segments, time() - t0))
 
     return segments
@@ -1440,7 +1455,7 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     Examples
     --------
     >>> # Small example:
-    >>> from mindboggle.utils.mesh_operations import detect_boundaries
+    >>> from mindboggle.utils.mesh_operations import detect_boundary
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     >>> region_indices = [0,1,2,4,5,8,9]
@@ -1451,7 +1466,7 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.utils.mesh_operations import detect_boundaries
+    >>> from mindboggle.utils.mesh_operations import detect_boundary
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -1466,9 +1481,9 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
-    >>> rewrite_scalar_lists(label_file, 'test_detect_boundaries.vtk',
+    >>> rewrite_scalar_lists(label_file, 'test_detect_boundary.vtk',
     >>>                      [IDs], ['boundaries'], IDs)
-    >>> os.system('mayavi2 -m Surface -d test_detect_boundaries.vtk &')
+    >>> os.system('mayavi2 -m Surface -d test_detect_boundary.vtk &')
 
     """
     import numpy as np
@@ -1490,7 +1505,7 @@ def detect_boundary(region_indices, labels, neighbor_lists):
 #------------------------------------------------------------------------------
 # Detect label boundaries
 #------------------------------------------------------------------------------
-def detect_boundaries(region_indices, labels, neighbor_lists):
+def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[]):
     """
     Detect the label boundaries in a collection of vertices such as a region.
 
@@ -1505,6 +1520,8 @@ def detect_boundaries(region_indices, labels, neighbor_lists):
         label numbers for all vertices, with -1s for unlabeled vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+    ignore_indices : list of integers
+        integers to ignore (e.g., background)
 
     Returns
     -------
@@ -1565,6 +1582,14 @@ def detect_boundaries(region_indices, labels, neighbor_lists):
     boundary_label_pairs = [x for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
                             if i in region_indices]
+
+    if len(ignore_indices):
+        Ikeep = [i for i,x in enumerate(boundary_label_pairs)
+                 if not len(set(x).intersection(ignore_indices))]
+        boundary_label_pairs = [x for i,x in enumerate(boundary_label_pairs)
+                                if i in Ikeep]
+        boundary_indices = [x for i,x in enumerate(boundary_indices)
+                            if i in Ikeep]
 
     unique_boundary_label_pairs = []
     for pair in boundary_label_pairs:
@@ -1628,53 +1653,6 @@ def compute_distance(point, points):
     # Else return None
     else:
         return None, None
-
-# propagate() example
-if __name__ == "__main__" :
-    import os
-    import numpy as np
-    import mindboggle.label.rebound as rb
-    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces, \
-        detect_boundaries
-    from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    import mindboggle.utils.kernels as kernels
-
-    data_path = os.environ['MINDBOGGLE_DATA']
-    label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-                 'label', 'lh.labels.DKT25.manual.vtk')
-    points, faces, labels, n_vertices = load_scalars(label_file, True)
-
-    neighbor_lists = find_neighbors(faces, n_vertices)
-
-    indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
-        labels, neighbor_lists)
-
-    sulcuss_file = os.path.join(data_path, 'results', 'features',
-                 '_hemi_lh_subject_MMRR-21-1', 'sulcuss.vtk')
-    points, faces, folds, n_vertices = load_scalars(folds_file, True)
-
-    label_pair_lists = sulcus_boundaries()
-
-    fold_ID = 1
-    indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    fold_array = np.zeros(len(points))
-    fold_array[indices_fold] = 1
-    indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
-        labels, neighbor_lists)
-
-    seeds = -1 * np.ones(len(points))
-    for ilist,label_pair_list in enumerate(label_pair_lists):
-        I = [x for i,x in enumerate(indices_boundaries)
-             if np.sort(label_pairs[i]).tolist() in label_pair_list]
-        seeds[I] = ilist
-
-    segments = propagate(points, faces, fold_array, seeds, labels)
-
-    # Write results to vtk file and view with mayavi2:
-    rewrite_scalar_lists(label_file, 'test_propagate.vtk',
-                         [segments], ['segments'], segments)
-    os.system('mayavi2 -m Surface -d test_propagate.vtk &')
 
 #------------------------------------------------------------------------------
 # Find vertices with highest values within a fraction of the surface
@@ -1761,3 +1739,28 @@ def extract_area(values, areas, fraction):
                 break
 
     return area_values
+
+#------------------------------------------------------------------------------
+# Example: watershed()
+#------------------------------------------------------------------------------
+if __name__ == "__main__":
+
+     import os
+     import numpy as np
+     from mindboggle.utils.mesh_operations import find_neighbors, watershed
+     from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+     data_path = os.environ['MINDBOGGLE_DATA']
+     depth_file = os.path.join(data_path, 'measures',
+                  '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+     points, faces, depths, n_vertices = load_scalars(depth_file, True)
+     indices = np.where(depths > 0.11)[0]  # high to speed up
+     neighbor_lists = find_neighbors(faces, n_vertices)
+     depth_factor = 0.1
+     delta_depth = 0.01
+
+     segments = watershed(depths, indices, neighbor_lists, depth_factor, delta_depth)
+
+     # Write results to vtk file and view with mayavi2:
+     rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
+                          [segments.tolist()], ['segments'], segments)
+     os.system('mayavi2 -m Surface -d test_watershed.vtk &')
