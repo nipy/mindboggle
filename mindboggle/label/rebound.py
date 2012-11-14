@@ -274,12 +274,12 @@ class Bounds:
         l of which are labeled, and u unlabeled.
         The algorithm takes as its input the affinity matrix W (self.affinity_matrix).
         From the affinity matrix, one may construct the diagonal degree matrix,
-        which is a measure of the total weight (or number of edges) which are attached to a vertex."""
+        which is a measure of the total weight (or number of edges) attached to a vertex."""
 
         self.DDM = go.diagonal_degree_matrix(self.affinity_matrix, inverse=True)
 
-        """ Next, we must initialize a vector to represent the results of the label propagation algorithm.
-        It will contain l labels and u 0's.
+        """ Next, we must initialize a vector to represent the results of the label
+        propagation algorithm. It will contain l labels and u 0's.
         This has already been done by the function initialize_seed_labels,
         and is called self.seed_labels.
         We will just check to make sure this has been accomplished."""
@@ -289,27 +289,29 @@ class Bounds:
             return
 
         """ Now, we can actually proceed to perform the iterative algorithm.
-        At each timestep, the labels will be updated to reflect the weighted average
-        of adjacent vertices. An important caveat of this algorithm
+        At each timestep, the labels will be updated to reflect the weighted
+        average of adjacent vertices. An important caveat of this algorithm
         is that the labeled vertices remain fixed, or clamped.
         They should not be changed, and will need to be reset.
         We accomplish the reset by recalling that self.seed_labels
         stores the indexes of seed labels,
         and self.Labels contains the actual labels.
-        The algorithm repeates itself until either convergence or max_iters
+        The algorithm repeats itself until either convergence or max_iters
         (which will prevent excessive computation time).
         We must also take care to solve the multi-label problem.
-        To do so, we employ a one-vs-all framework, where each label is considered independently,
-        and set against the rest of the labels.
-        More specifically, self.label_matrix is an n x C matrix, where each row represents a vertex
-        and each column represents label membership. We can go column by column and process the algorithm
-        iteratively. So, we'd start at the first column and see which vertices get labeled.
-        Then we'd move to the next column and label more vertices.
+        To do so, we employ a one-vs-all framework, where each label is
+        considered independently, and set against the rest of the labels.
+        More specifically, self.label_matrix is an n x C matrix, where each
+        row represents a vertex and each column represents label membership.
+        We can go column by column and process the algorithm
+        iteratively. So, we'd start at the first column and see which vertices
+        get labeled. Then we'd move to the next column and label more vertices.
         Because it is possible (likely) that some vertices will not receive any label,
         and also to account for probabilistic labeling, we will assign a probability
         of a vertex receiving a label. Then we can report these probabilities.
         So, to begin, let us first construct this probabilistic label assignment:
-        This matrix will store a 1 for 100% probability, 0 for 0%, and fractional values for the rest.
+        This matrix will store a 1 for 100% probability, 0 for 0%, and
+        fractional values for the rest.
         We will rename self.label_matrix for this purpose."""
 
         if not realign:
@@ -320,12 +322,13 @@ class Bounds:
             self.learned_matrix = self.label_segment_matrix
 
         """ We will later change the -1s to 0s.
-        As vertices get labeled, we assign a confidence measure to the labeling and store the value
-        in this matrix.
+        As vertices get labeled, we assign a confidence measure to the labeling
+        and store the value in this matrix.
         Now, let us go column by column, and run the weighted averaging algorithm.
-        For each column, you're studying one label. Therefore, when updating self.learned_matrix,
-        you'll be working with one column at a time too.
-        If a label gets vertex, keep the fractional value, do not simply round to 1 to assign membership."""
+        For each column, you're studying one label. Therefore, when updating
+        self.learned_matrix, you'll be working with one column at a time too.
+        If a label gets vertex, keep the fractional value, do not simply round
+        to 1 to assign membership."""
 
         i = 0 # record of label number
         for column in self.learned_matrix.T:
@@ -347,32 +350,38 @@ class Bounds:
             counter = 0
             while not converged and counter < max_iters:
                 """ The option will exist to visualize the proceedings of the algorithm.
-                The results of a number of the iterations will be sent to vtk files which can then be visualized.
+                The results of a number of the iterations will be sent to vtk
+                files which can then be visualized.
                 For the visualization, we will construct two types of vtk files.
-                The first will be the actual (manual) labels, as found in self.Labels,
-                with the label of interest highlighted (=1), and the others blanked out (=-1)
-                The other vtk files will be the result of the algorithm.
-                """
+                The first will be the actual (manual) labels, as found in
+                self.Labels, with the label of interest highlighted (=1),
+                and the others blanked out (=-1).
+                The other vtk files will be the result of the algorithm."""
                 if vis and not realign:
-                    """First, we'll find out which label we're working with, by calling label_mapping.
-                    We'll then send that label to the method highlight() which will do the actual work of
+                    """First, we'll find out which label we're working with,
+                    by calling label_mapping. We'll then send that label to the
+                    method highlight() which will do the actual work of
                     creating the vtk."""
                     label = self.unique_labels[i]
 
                     if not counter: # No need to do this more than once :-)
                         self.highlight(label)
 
-                    """ Next, we'll construct vtk files, assuming that the iteration step is one we care about.
-                    For our purposes, let's see the early iterations in high density, once low density in the middle,
+                    """ Next, we'll construct vtk files, assuming that the
+                    iteration step is one we care about.
+                    For our purposes, let's see the early iterations in high
+                    density, once low density in the middle,
                     and the last iteration before convergence or max_iters.
-                    So, the numbers of interest will be when counter is between 0 and 10, and at 100.
+                    So, the numbers of interest will be when counter is between
+                    0 and 10, and at 100.
                     We'll also see max_iters/2, and max_iters (or convergence).
                     """
                     # Actually, just see if counter is a multiple of a number of interest.
                     # set_of_interest = np.array([0,101,202,max_iters-2,max_iters-1])
 
                     """ Let's define a file for output.
-                    We have the vertices and faces, and we have the labels which are found in column.todense().flatten()."""
+                    We have the vertices and faces, and we have the labels
+                    which are found in column.todense().flatten()."""
 
                     filename = str(label)+'_'+str(counter)+'.vtk'
 
@@ -382,9 +391,12 @@ class Bounds:
                         write_scalar_lists(filename, self.Points, self.Vertices,
                                            self.Faces, [LABELS])
 
-                Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense() # column matrix
-                Y_hat_next[restore_indices, 0] = restore_values # reset
-                converged = (np.sum(np.abs(Y_hat_now.todense() - Y_hat_next)) < tol) # check convergence
+                # column matrix
+                Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense()
+                # reset
+                Y_hat_next[restore_indices, 0] = restore_values
+                # check convergence
+                converged = (np.sum(np.abs(Y_hat_now.todense() - Y_hat_next)) < tol)
                 # print('Iteration number {0}, convergence = {1}'.format(counter,np.sum(np.abs(column.todense() - tmp)))
                 Y_hat_now = csr_matrix(Y_hat_next)
                 counter += 1
@@ -401,19 +413,22 @@ class Bounds:
 
             self.learned_matrix[:,i] = Y_hat_now.todense().flatten()
 
-            #print('There were {0} initial seed vertices for this label'.format(self.count_assigned_members(i))
-            #print('The file actually had {0} vertices for this label'.format(self.count_real_members(self.label_mapping[i]))
-            #print('Using only those vertices which crossed the threshold, there are now: '.format(self.count_real_members(i))
-
+            #print('There were {0} initial seed vertices for this label'.
+            # format(self.count_assigned_members(i))
+            #print('The file actually had {0} vertices for this label'.
+            # format(self.count_real_members(self.label_mapping[i]))
+            #print('Using only those vertices which crossed the threshold,
+            # there are now: '.format(self.count_real_members(i))
             #pylab.plot(self.learned_matrix[:,i])
             #pylab.show()
 
             i += 1
 
-        """ Before reporting the probabilistic assignment, we change all -1's, which indicates 0 probability
-        that the vertex has that label.
-        Note: because the labels were initially numbered -1 and 1, there will be 'probabilities' below 0.
-        So, to obtain a sort of probability distribution which preserves order, we will add 1 to each number,
+        """ Before reporting the probabilistic assignment, we change all -1's,
+        which indicates 0 probability that the vertex has that label.
+        Note: because the labels were initially numbered -1 and 1, there will
+        be 'probabilities' below 0.  So, to obtain a sort of probability
+        distribution which preserves order, we will add 1 to each number,
         and then divide by 2. Thus -1 --> 0, 1 --> 1 and everything else keeps its order."""
 
         self.learned_matrix += 1
