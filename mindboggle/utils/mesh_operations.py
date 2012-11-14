@@ -651,10 +651,17 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
-def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.01):
+def watershed(depths, indices, neighbor_lists, depth_factor=0.1, 
+              tolerance=0.01, remove_fraction=0):
     """
     Segment vertices of surface into contiguous "watershed basin" regions
     by seed growing from an iterative selection of the deepest vertices.
+
+    Note: This function, when used alone, has the same drawback as segment():
+    the order in which you select seeds impacts the result.
+    Therefore, we follow up watershed() with propagate().
+    We establish the basins with watershed() and use partially segmented basins
+    (by setting remove_fraction > 0) as seeds for the propagate() function.
 
     Parameters
     ----------
@@ -667,8 +674,10 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
     depth_factor : float
         minimum fraction of depth for a neighboring deeper watershed catchment basin
         (otherwise merged with the deeper basin)
-    delta_depth : float
+    tolerance : float
         tolerance for detecting differences in depth between vertices
+    remove_fraction : float
+        if greater than zero, remove fraction of the previously segmented depth
 
     Returns
     -------
@@ -688,9 +697,11 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> depth_factor = 0.1
-    >>> delta_depth = 0.01
+    >>> tolerance = 0.01
+    >>> remove_fraction = 0.75
     >>>
-    >>> segments = watershed(depths, indices, neighbor_lists, depth_factor, delta_depth)
+    >>> segments = watershed(depths, indices, neighbor_lists,
+    >>>                      depth_factor, tolerance, remove_fraction)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
@@ -705,17 +716,18 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
     print('Segment {0} vertices by a surface watershed algorithm'.
           format(len(indices)))
     verbose = False
-    merge = False
+    merge = True
     t0 = time()
 
     # Select deepest vertex as initial seed
     seed_list = [indices[np.argmax(depths[indices])]]
-    max_depth = depths[seed_list[0]]
+    #minima = [seed_list[0]]
+    max_depths = [depths[seed_list[0]]]
     basin_depths = []
     original_indices = indices[:]
 
     # Loop until all vertices segmented
-    segments = -1 * np.ones(len(neighbor_lists))
+    segments = -1 * np.ones(len(depths))
     all_regions = []
     region = []
     counter = 0
@@ -747,7 +759,7 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
             seed_neighbors = []
             for seed in old_seed_list:
                 seed_neighbors.extend([x for x in neighbor_lists[seed]
-                                       if depths[x] - delta_depth <= depths[seed]])
+                    if depths[x] - tolerance <= depths[seed]])
             seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
 
         else:
@@ -760,7 +772,7 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
             segments[region] = counter
 
             # Compute basin depth (max - min)
-            basin_depths.append(max_depth - np.min(depths[region]))
+            basin_depths.append(max_depths[-1] - np.min(depths[region]))
 
             # If vertices left to segment, re-initialize parameters
             if len(indices):
@@ -768,7 +780,8 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
                 seed_list = [indices[np.argmax(depths[indices])]]
                 # Initialize new region/basin, maximum depth, and counter
                 region = []
-                max_depth = depths[seed_list[0]]
+                max_depths.append(depths[seed_list[0]])
+                #minima.append(seed_list[0])
                 counter += 1
 
             # Display current number and size of region
@@ -798,7 +811,7 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
                                for x in pairs if index in x]
             # Store neighbors whose depth is less than a fraction of the basin's depth
             index_neighbors = [[x, index] for x in index_neighbors
-                if basin_depths[x] / basin_depths[index] < depth_factor]
+                if basin_depths[x] / basin_depths[index] < .25] #depth_factor]
             if len(index_neighbors):
                 basin_pairs.extend(index_neighbors)
 
@@ -808,10 +821,31 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1, delta_depth=0.0
             for basin_pair in basin_pairs:
                 segments[np.where(segments == basin_pair[0])] = basin_pair[1]
 
-    # Print statement
-    n_segments = len([x for x in np.unique(segments) if x > -1])
-    print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
-          format(n_segments, time() - t0))
+        # Print statement
+        n_segments = len([x for x in np.unique(segments) if x > -1])
+        print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
+              format(n_segments, time() - t0))
+
+    # Remove fraction of the previously segmented depth
+    if remove_fraction > 0:
+
+        print('  Remove {0:.2f} of each fold by depth'.format(remove_fraction))
+        new_segments = -1 * np.ones(len(segments))
+        unique_segments = [x for x in np.unique(segments) if x > -1]
+
+        # Store the deepest fraction of vertices for each segment
+        for n_segment in unique_segments:
+            Isegment = [i for i,x in enumerate(segments) if x == n_segment
+                        if depths[i] > remove_fraction * max_depths[int(x)]]
+            new_segments[Isegment] = n_segment
+        segments = new_segments
+
+        # Print statement
+        if not merge:
+            n_segments = len([x for x in np.unique(segments) if x > -1])
+        print('  ...Segmented, merged, and removed {0:.2f} of the depth of {1} '
+              'watershed regions ({1:.2f} seconds)'.
+              format(remove_fraction, n_segments, time() - t0))
 
     return segments
 
@@ -1741,26 +1775,30 @@ def extract_area(values, areas, fraction):
     return area_values
 
 #------------------------------------------------------------------------------
-# Example: watershed()
+# Example: watershed() + propagate()
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-     import os
-     import numpy as np
-     from mindboggle.utils.mesh_operations import find_neighbors, watershed
-     from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
-     data_path = os.environ['MINDBOGGLE_DATA']
-     depth_file = os.path.join(data_path, 'measures',
-                  '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-     points, faces, depths, n_vertices = load_scalars(depth_file, True)
-     indices = np.where(depths > 0.11)[0]  # high to speed up
-     neighbor_lists = find_neighbors(faces, n_vertices)
-     depth_factor = 0.1
-     delta_depth = 0.01
+    import os
+    import numpy as np
+    from mindboggle.utils.mesh_operations import find_neighbors, watershed, propagate
+    from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    data_path = os.environ['MINDBOGGLE_DATA']
+    depth_file = os.path.join(data_path, 'measures',
+              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    indices = np.where(depths > 0.11)[0]  # high to speed up
+    neighbor_lists = find_neighbors(faces, n_vertices)
 
-     segments = watershed(depths, indices, neighbor_lists, depth_factor, delta_depth)
+    segments = watershed(depths, indices, neighbor_lists,
+                         depth_factor=0.1, tolerance=0.01, remove_fraction=0.75)
 
-     # Write results to vtk file and view with mayavi2:
-     rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
-                          [segments.tolist()], ['segments'], segments)
-     os.system('mayavi2 -m Surface -d test_watershed.vtk &')
+    region = -1 * np.ones(len(points))
+    region[indices] = 1
+    segments = propagate(points, faces, region, segments, region,
+                         max_iters=1000, tol=0.001, sigma=10)
+
+    # Write results to vtk file and view with mayavi2:
+    rewrite_scalar_lists(depth_file, 'test_segment.vtk',
+                      [segments.tolist()], ['segments'], segments)
+    os.system('mayavi2 -m Surface -d test_segment.vtk &')
