@@ -172,11 +172,48 @@ def find_faces_at_vertices(faces, n_vertices):
 
     return faces_at_vertices
 
+#-----------------------------------------------------------------------------
+# find all edges on the mesh
+#-----------------------------------------------------------------------------
+def find_edges(faces):
+    """
+    Find all edges on a mesh
+    
+   Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    --------
+    edges : list of lists of integers
+        each element is a 2-tuple of vertex ids representing an edge 
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh_operations import find_edges
+    >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
+    >>> find_edges(faces)
+    [[0, 1], [1, 2], [0, 2], [1, 4], [0, 4], [2, 3], [1, 3], [2, 5], [0, 5]]
+
+    """
+    edges = [ ]
+    for face in faces:
+        for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
+            if not edge in edges: # I know that this is costly
+                edges.append(edge)
+            
+    return edges
+
+#-----------------------------------------------------------------------------
+# find all triangle faces sharing each edge
+#-----------------------------------------------------------------------------
 def find_faces_at_edges(faces):
     """
     For each edges on the mesh, find the two faces that share the edge.
     
-        Parameters
+   Parameters
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
@@ -210,6 +247,10 @@ def find_faces_at_edges(faces):
          (4, 1): [1],
          (5, 0): [3],
          (5, 2): [3]}
+
+    Notes
+    --------
+        As one can see from the source code, the faces have to be trianglar for now. 
      
     """
     
