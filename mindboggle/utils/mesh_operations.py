@@ -172,6 +172,96 @@ def find_faces_at_vertices(faces, n_vertices):
 
     return faces_at_vertices
 
+#-----------------------------------------------------------------------------
+# find all edges on the mesh
+#-----------------------------------------------------------------------------
+def find_edges(faces):
+    """
+    Find all edges on a mesh
+    
+   Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    --------
+    edges : list of lists of integers
+        each element is a 2-tuple of vertex ids representing an edge 
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh_operations import find_edges
+    >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
+    >>> find_edges(faces)
+    [[0, 1], [1, 2], [0, 2], [1, 4], [0, 4], [2, 3], [1, 3], [2, 5], [0, 5]]
+
+    """
+    edges = [ ]
+    for face in faces:
+        for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
+            if not edge in edges: # I know that this is costly
+                edges.append(edge)
+            
+    return edges
+
+#-----------------------------------------------------------------------------
+# find all triangle faces sharing each edge
+#-----------------------------------------------------------------------------
+def find_faces_at_edges(faces):
+    """
+    For each edges on the mesh, find the two faces that share the edge.
+    
+   Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    --------
+    faces_at_edges : dictionary
+        keys are tuples of two vertex IDs and values are 2-tuples of face IDs
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh_operations import find_faces_at_edges
+    >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
+    >>> find_faces_at_edges(faces)
+        {(0, 1): [0, 1],
+         (0, 2): [0, 3],
+         (0, 4): [1],
+         (0, 5): [3],
+         (1, 0): [0, 1],
+         (1, 2): [0, 2],
+         (1, 3): [2],
+         (1, 4): [1],
+         (2, 0): [0, 3],
+         (2, 1): [0, 2],
+         (2, 3): [2],
+         (2, 5): [3],
+         (3, 1): [2],
+         (3, 2): [2],
+         (4, 0): [1],
+         (4, 1): [1],
+         (5, 0): [3],
+         (5, 2): [3]}
+
+    Notes
+    --------
+        As one can see from the source code, the faces have to be trianglar for now. 
+     
+    """
+    
+    faces_at_edges = {}
+    for face_id, face in enumerate(faces):
+        for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
+            faces_at_edges.setdefault((edge[0], edge[1]), []).append(face_id)
+            faces_at_edges.setdefault((edge[1], edge[0]), []).append(face_id) # make it symmetric
+            
+    return faces_at_edges
+
 #------------------------------------------------------------------------------
 # Find special "anchor" points for constructing fundus curves
 #------------------------------------------------------------------------------
