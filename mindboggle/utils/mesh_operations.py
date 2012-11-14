@@ -172,6 +172,55 @@ def find_faces_at_vertices(faces, n_vertices):
 
     return faces_at_vertices
 
+def find_faces_at_edges(faces):
+    """
+    For each edges on the mesh, find the two faces that share the edge.
+    
+        Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    --------
+    faces_at_edges : dictionary
+        keys are tuples of two vertex IDs and values are 2-tuples of face IDs
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh_operations import find_faces_at_edges
+    >>> faces=[[0,1,2], [0,1,4], [1,2,3], [0,2,5]]
+    >>> find_faces_at_edges(faces)
+        {(0, 1): [0, 1],
+         (0, 2): [0, 3],
+         (0, 4): [1],
+         (0, 5): [3],
+         (1, 0): [0, 1],
+         (1, 2): [0, 2],
+         (1, 3): [2],
+         (1, 4): [1],
+         (2, 0): [0, 3],
+         (2, 1): [0, 2],
+         (2, 3): [2],
+         (2, 5): [3],
+         (3, 1): [2],
+         (3, 2): [2],
+         (4, 0): [1],
+         (4, 1): [1],
+         (5, 0): [3],
+         (5, 2): [3]}
+     
+    """
+    
+    faces_at_edges = {}
+    for face_id, face in enumerate(faces):
+        for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
+            faces_at_edges.setdefault((edge[0], edge[1]), []).append(face_id)
+            faces_at_edges.setdefault((edge[1], edge[0]), []).append(face_id) # make it symmetric
+            
+    return faces_at_edges
+
 #------------------------------------------------------------------------------
 # Find special "anchor" points for constructing fundus curves
 #------------------------------------------------------------------------------
@@ -770,7 +819,7 @@ def watershed(depths, indices, neighbor_lists, min_depth=0.01):
                 print("    {0} vertices remain".format(len(indices)))
 
     # Find shallow watershed catchment basins
-    print(FIX!)
+    print("FIX!")
     holes = -1 * np.ones(len(depths))
     Imin = [i for i,x in enumerate(basin_depths) if x < min_depth]
     if len(Imin):
