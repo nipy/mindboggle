@@ -22,7 +22,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=True):
+def extract_folds(depth_file, neighbor_lists, min_fold_size=50):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -49,8 +49,6 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
         each list contains indices to neighboring vertices for each vertex
     min_fold_size : int
         minimum fold size (number of vertices)
-    do_fill_holes : Boolean
-        fill holes?
 
     Returns
     -------
@@ -71,7 +69,7 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 1, True)
+    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 50)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
@@ -88,12 +86,12 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
     from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import load_scalars
     from mindboggle.utils.mesh_operations import find_neighbors, segment, \
-        fill_holes, fill_boundaries, propagate
+        fill_holes, watershed, shrink_segments, propagate
 
     print("Extract folds in surface mesh")
     t0 = time()
 
-    # Load depth and surface area values for all vertices
+    # Load depth values for all vertices
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
 
     # Find neighbors for each vertex
@@ -129,63 +127,70 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=1, do_fill_holes=Tru
     else:
         depth_threshold = np.median(depths)
 
-    # Iteratively extract vertices from deep to less deep
-    number_of_thresholds = 3
-    thresholds = np.linspace(1, depth_threshold, num=number_of_thresholds+3)[3::]
-
-    # Find the deepest vertices (depths greater than the highest depth threshold)
-    for ithreshold in range(number_of_thresholds):
-        indices_deep = [i for i,x in enumerate(depths) if x >= thresholds[ithreshold]]
-        if len(indices_deep):
-            break
+    # Find the deepest vertices
+    indices_deep = [i for i,x in enumerate(depths) if x >= depth_threshold]
     if len(indices_deep):
 
         # Segment initial set of folds
-        print("  Segment vertices deeper than {0:.2f}".format(thresholds[ithreshold]))
+        print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
         t1 = time()
         folds = segment(indices_deep, neighbor_lists)
         # Slightly slower alternative -- fill boundaries:
         #regions = -1 * np.ones(len(points))
         #regions[indices_deep] = 1
         #folds = fill_boundaries(regions, neighbor_lists)
-        print('    ...Segmented deepest vertices ({0:.2f} seconds)'.format(time() - t1))
+        print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         """
         >>> # Display resulting initial folds:
-        >>> rewrite_scalar_lists(depth_file, 'test_folds1.vtk', [folds.tolist()], 'folds', folds)
+        >>> rewrite_scalar_lists(depth_file, 'test_folds1.vtk',
+        >>>                      [folds.tolist()], 'folds', folds)
         >>> os.system('mayavi2 -m Surface -d test_folds1.vtk &')
         """
-
-        # Expand folds iteratively
-        print("  Grow folds by including shallower vertices")
-        for threshold in thresholds[ithreshold+1::]:
-
-            indices_deep = [i for i,x in enumerate(depths) if x >= threshold]
-            unique_folds = [x for x in np.unique(folds) if x > -1]
-            fold_lists = [[] for x in unique_folds]
-            for ifold, nfold in enumerate(unique_folds):
-                fold_lists[ifold] = [i for i,x in enumerate(folds) if x == nfold]
-            folds2 = segment(indices_deep, neighbor_lists, 1,
-                             fold_lists, conving=True)
-            folds[folds2 > -1] = folds2[folds2 > -1]
-            #folds = propagate(points, faces, deep_vertices, folds, folds,
-            #                  max_iters=10000, tol=0.001, sigma=5)
-
-        print('    ...Grew and segmented folds ({0:.2f} seconds)'.format(time() - t1))
-        n_folds = len([x for x in list(set(folds)) if x != -1])
-
-        # If there are any folds, find and fill holes
-        if n_folds > 0 and do_fill_holes:
-            folds = fill_holes(folds, neighbor_lists)
 
         # Remove small folds
         if min_fold_size > 1:
             print('    Remove folds smaller than {0}'.format(min_fold_size))
-            for nfold in np.unique(folds):
+            unique_folds = [x for x in np.unique(folds) if x > -1]
+            for nfold in unique_folds:
                 indices_fold = np.where(folds == nfold)[0]
                 if len(indices_fold) < min_fold_size:
                     folds[indices_fold] = -1
-            n_folds = len(np.unique(folds))
 
+        # Find and fill holes in the folds
+        print("  Find and fill holes in the folds")
+        folds = fill_holes(folds, neighbor_lists)
+
+        indices = [i for i,x in enumerate(folds) if x > -1]
+
+        # Segment folds into "watershed basins"
+        segments = watershed(depths, indices, neighbor_lists, depth_ratio=0.1,
+                             tolerance=0.01)
+
+        # Shrink segments for folds with multiple segments
+        shrunken_segments = shrink_segments(folds, segments, depths, remove_fraction=0.75,
+                                            only_multiple_segments=True)
+        print('  ...Segmented, removed small folds, filled holes, shrunk segments'
+              ' ({0:.2f} seconds)'.format(time() - t0))
+
+        # Regrow shrunken segments
+        print("  Regrow shrunken segments")
+        t2 = time()
+        indices_folds = np.where(folds > -1)[0]
+        seed_lists = []
+        unique_shrunken = [x for x in np.unique(shrunken_segments) if x > -1]
+        for n_shrunken in unique_shrunken:
+            seed_lists.append([i for i,x in enumerate(shrunken_segments)
+                               if x == n_shrunken])
+        regrown_segments = segment(indices_folds, neighbor_lists,
+                                   min_fold_size, seed_lists)
+        #regrown_segments = propagate(points, faces, folds, shrunken_segments, folds,
+        #                             max_iters=1000, tol=0.001, sigma=5)
+        folds[regrown_segments > -1] = regrown_segments[regrown_segments > -1]
+        print('    ...Segmented individual folds ({0:.2f} seconds)'.
+              format(time() - t2))
+
+        # Print statement
+        n_folds = len([x for x in list(set(folds)) if x > -1])
         print('  ...Extracted {0} folds ({1:.2f} seconds)'.
               format(n_folds, time() - t0))
     else:

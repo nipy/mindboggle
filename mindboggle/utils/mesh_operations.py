@@ -923,7 +923,8 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
 def shrink_segments(regions, segments, depths, remove_fraction=0.75,
                     only_multiple_segments=False):
     """
-    Shrink segments for regions with multiple segments.
+    Shrink segments in a segmented surface mesh by a fraction of its maximum
+    depth, for all segments or for segments in regions with multiple segments.
 
     The segment() and watershed() functions, when used alone, are influenced
     by the order of seed selection for multiple seeds within a connected
@@ -991,7 +992,7 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
 
     # Shrink only segments in regions with multiple segments
     if only_multiple_segments:
-        print('  Remove {0:.2f} of each segment by depth, for regions with '
+        print('  Remove {0:.2f} depth from each segment for regions with '
               'multiple segments'.format(remove_fraction))
 
         # For each region
