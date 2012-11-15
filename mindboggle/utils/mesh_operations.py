@@ -10,8 +10,6 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import numpy as np
-#from operator import itemgetter
 
 #------------------------------------------------------------------------------
 # Find all neighbors from faces
