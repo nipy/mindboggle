@@ -741,17 +741,19 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
-def watershed(depths, indices, neighbor_lists, depth_factor=0.1, 
-              tolerance=0.01, remove_fraction=0):
+def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     """
     Segment vertices of surface into contiguous "watershed basin" regions
     by seed growing from an iterative selection of the deepest vertices.
 
-    Note: This function, when used alone, has the same drawback as segment():
-    the order in which you select seeds impacts the result.
-    Therefore, we follow up watershed() with propagate().
-    We establish the basins with watershed() and use partially segmented basins
-    (by setting remove_fraction > 0) as seeds for the propagate() function.
+    Note: This function, when used alone, has the same drawback as segment() --
+    the order of seed selection influences the result for multiple
+    seeds within a connected set of vertices (region).
+    To ameliorate this bias, we run the shrink_segments() function
+    on the segments returned by watershed(), which shrinks segments in
+    regions with multiple segments, and use these fractional segments
+    as seeds for the propagate() function, which is slower and insensitive
+    to depth, but is not biased by seed order.
 
     Parameters
     ----------
@@ -761,13 +763,11 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1,
         indices to mesh vertices to be segmented
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    depth_factor : float
+    depth_ratio : float
         minimum fraction of depth for a neighboring deeper watershed catchment basin
         (otherwise merged with the deeper basin)
     tolerance : float
         tolerance for detecting differences in depth between vertices
-    remove_fraction : float
-        if greater than zero, remove fraction of the previously segmented depth
 
     Returns
     -------
@@ -786,12 +786,11 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1,
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> depth_factor = 0.1
+    >>> depth_ratio = 0.1
     >>> tolerance = 0.01
-    >>> remove_fraction = 0.75
     >>>
     >>> segments = watershed(depths, indices, neighbor_lists,
-    >>>                      depth_factor, tolerance, remove_fraction)
+    >>>                      depth_ratio, tolerance)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
@@ -901,7 +900,7 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1,
                                for x in pairs if index in x]
             # Store neighbors whose depth is less than a fraction of the basin's depth
             index_neighbors = [[x, index] for x in index_neighbors
-                if basin_depths[x] / basin_depths[index] < .25] #depth_factor]
+                if basin_depths[x] / basin_depths[index] < depth_ratio]
             if len(index_neighbors):
                 basin_pairs.extend(index_neighbors)
 
@@ -916,28 +915,117 @@ def watershed(depths, indices, neighbor_lists, depth_factor=0.1,
         print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
               format(n_segments, time() - t0))
 
-    # Remove fraction of the previously segmented depth
-    if remove_fraction > 0:
-
-        print('  Remove {0:.2f} of each fold by depth'.format(remove_fraction))
-        new_segments = -1 * np.ones(len(segments))
-        unique_segments = [x for x in np.unique(segments) if x > -1]
-
-        # Store the deepest fraction of vertices for each segment
-        for n_segment in unique_segments:
-            Isegment = [i for i,x in enumerate(segments) if x == n_segment
-                        if depths[i] > remove_fraction * max_depths[int(x)]]
-            new_segments[Isegment] = n_segment
-        segments = new_segments
-
-        # Print statement
-        if not merge:
-            n_segments = len([x for x in np.unique(segments) if x > -1])
-        print('  ...Segmented, merged, and removed {0:.2f} of the depth of {1} '
-              'watershed regions ({1:.2f} seconds)'.
-              format(remove_fraction, n_segments, time() - t0))
-
     return segments
+
+#------------------------------------------------------------------------------
+# Segment vertices of surface into contiguous regions by seed growing
+#------------------------------------------------------------------------------
+def shrink_segments(regions, segments, depths, remove_fraction=0.75,
+                    only_multiple_segments=False):
+    """
+    Shrink segments for regions with multiple segments.
+
+    The segment() and watershed() functions, when used alone, are influenced
+    by the order of seed selection for multiple seeds within a connected
+    set of vertices (region, such as a fold).
+    To ameliorate this bias, we run this function on the segments returned by
+    segments or watershed() to shrink segments in regions with multiple
+    segments (only_multiple_segments=True).
+    The output can be used as seeds for the propagate() function,
+    which is not biased by seed order.
+
+    Parameters
+    ----------
+    regions : numpy array of integers
+        region IDs for all vertices, indicating inclusion in a region (default -1)
+    segments : numpy array of integers
+        segment IDs for all vertices, indicating inclusion in a segment (default -1)
+    depths : numpy array of floats
+        depth values for all vertices (default -1)
+    remove_fraction : float
+        remove fraction of the previously segmented depth
+        for regions of connected vertices with multiple segments
+    only_multiple_segments : Boolean
+        shrink only segments in regions with multiple segments
+        (otherwise shrink all segments)
+
+    Returns
+    -------
+    shrunken_segments : list of integers
+        shrunken segment numbers for all vertices (default -1)
+        -- non-shrunken segments are removed
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, watershed, shrink_segments
+    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(data_path, 'results', 'features',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
+    >>> depth_file = os.path.join(data_path, 'measures',
+    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> indices = np.where(depths > 0.11)[0]  # high to speed up
+    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> segments = watershed(depths, indices, neighbor_lists,
+    >>>                      depth_ratio=0.1, tolerance=0.01)
+    >>>
+    >>> shrunken_segments = shrink_segments(folds, segments, depths,
+    >>>     remove_fraction=0.25, only_multiple_segments=True)
+    >>>
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalar_lists(depth_file, 'test_shrink_segments.vtk',
+    >>>     [shrunken_segments.tolist()], ['shrunken segments'],
+    >>>     shrunken_segments)
+    >>> os.system('mayavi2 -m Surface -d test_shrink_segments.vtk &')
+
+    """
+    import numpy as np
+
+    print('Shrink segments')
+
+    shrunken_segments = -1 * np.ones(len(depths))
+
+    # Shrink only segments in regions with multiple segments
+    if only_multiple_segments:
+        print('  Remove {0:.2f} of each segment by depth, for regions with '
+              'multiple segments'.format(remove_fraction))
+
+        # For each region
+        unique_regions = [x for x in np.unique(regions) if x > -1]
+        for n_region in unique_regions:
+
+            # Check to see if there are multiple segments in the region
+            indices_region = [i for i,x in enumerate(regions) if x == n_region]
+            segments_in_region = [x for x in np.unique(segments[indices_region])
+                                  if x > -1]
+            if len(segments_in_region) > 1:
+
+                # Shrink each segment in the region
+                for n_segment in segments_in_region:
+                    indices_segment = [i for i,x in enumerate(segments)
+                                       if x == n_segment]
+                    indices_segment = list(frozenset(indices_segment).intersection(indices_region))
+                    depth_threshold = remove_fraction * np.max(depths[indices_segment])
+                    indices_segment = [x for x in indices_segment
+                                       if depths[x] > depth_threshold]
+                    shrunken_segments[indices_segment] = n_segment
+
+    # Shrink all segments
+    else:
+        print('  Remove {0:.2f} of each segment by depth'.format(remove_fraction))
+        unique_segments = [x for x in np.unique(segments) if x > -1]
+        for n_segment in unique_segments:
+            indices_segment = [i for i,x in enumerate(segments) if x == n_segment]
+            depth_threshold = remove_fraction * np.max(depths[indices_segment])
+            indices_segment = [x for x in indices_segment
+                               if depths[x] > depth_threshold]
+            shrunken_segments[indices_segment] = n_segment
+
+    return shrunken_segments
 
 #------------------------------------------------------------------------------
 # Fill boundaries on a surface mesh to segment vertices into contiguous regions
@@ -1865,7 +1953,7 @@ def extract_area(values, areas, fraction):
     return area_values
 
 #------------------------------------------------------------------------------
-# Example: watershed() + propagate()
+# Example: watershed() segmentation
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
 
@@ -1881,12 +1969,7 @@ if __name__ == "__main__":
     neighbor_lists = find_neighbors(faces, n_vertices)
 
     segments = watershed(depths, indices, neighbor_lists,
-                         depth_factor=0.1, tolerance=0.01, remove_fraction=0.75)
-
-    region = -1 * np.ones(len(points))
-    region[indices] = 1
-    segments = propagate(points, faces, region, segments, region,
-                         max_iters=1000, tol=0.001, sigma=10)
+                         depth_ratio=0.1, tolerance=0.01, remove_fraction=0.75)
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalar_lists(depth_file, 'test_segment.vtk',
