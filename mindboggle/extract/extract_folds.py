@@ -310,6 +310,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, folds, n_vertices = load_scalars(folds_file, False)
+
+    >>> folds[folds!=9] = -1
+
     >>> points, faces, labels, n_vertices = load_scalars(labels_file, False)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
@@ -318,7 +321,6 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
     >>> label_pair_lists = sulcus_boundaries()
     >>> min_boundary = 10
-    >>> vtk_file = 'test_extract_sulci.vtk'
     >>>
     >>> # Extract sulci
     >>> sulci, n_sulci = extract_sulci(labels_file, folds, labels,
@@ -326,12 +328,12 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>>                                min_boundary, sulcus_names)
     >>>
     >>> # Finally, write points, faces and sulci to a new vtk file
-    >>> #rewrite_scalar_lists(labels_file, vtk_file,
+    >>> #rewrite_scalar_lists(labels_file, 'test_extract_sulci.vtk',
     >>> #                     [sulci.tolist()], ['sulci'], sulci.tolist())
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
-    >>> write_scalar_lists(vtk_file, points, indices,
+    >>> write_scalar_lists('test_extract_sulci.vtk', points, indices,
     >>>    inside_faces(faces, indices), [sulci.tolist()], ['sulci'])
-    >>> os.system('mayavi2 -m Surface -d ' + vtk_file + ' &')
+    >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
 
     """
     from time import time
@@ -504,13 +506,13 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     # If one or both labels in label pair is/are unique
                     unique_labels_in_pair = [x for x in pair if x in unique_labels]
                     n_unique = len(unique_labels_in_pair)
-                    if len(unique_labels_in_pair):
+                    if n_unique:
 
                         ID = [i for i,x in enumerate(label_pair_lists) if pair in x][0]
 
-                        # Construct seeds from label boundary vertices
+                        # Construct seeds from label boundary vertices (fold_pairs and pair already sorted)
                         indices_pair = [x for i,x in enumerate(indices_fold_pairs)
-                                        if list(set(fold_pairs[i])) == pair]
+                                        if fold_pairs[i] == pair]
 
                         # Identify vertices with unique label(s) in pair
                         indices_unique_labels = [fold[i]
