@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 """
-Compare images.
+Functions for comparing images.
 
 
 Authors:
@@ -14,6 +14,8 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 def compare_image_histograms(list_of_files):
     """
     Measure similarity between histograms of values from nibabel-readable images.
+
+    The images do not need to be coregistered.
 
     Parameters
     ----------
@@ -76,7 +78,7 @@ def compare_image_histograms(list_of_files):
 
 def compute_image_similarities(list_of_files, dim=3, metric=2):
     """
-    Measure similarity between nibabel-readable images.
+    Measure similarity between coregistered nibabel-readable images.
 
     From ANTS:
     "MeasureImageSimilarity ImageDimension whichmetric image1.ext image2.ext
@@ -119,7 +121,7 @@ def compute_image_similarities(list_of_files, dim=3, metric=2):
 
 def compute_image_overlaps(list_of_files, list_of_labels):
     """
-    Measure volume overlaps between nibabel-readable images.
+    Measure volume overlaps between coregistered nibabel-readable images.
 
     Parameters
     ----------
@@ -152,7 +154,7 @@ def compute_image_overlaps(list_of_files, list_of_labels):
 
 if __name__ == "__main__":
 
-    import os
+    import os, sys
     import numpy as np
     from mindboggle.evaluate.compare_images import compare_image_histograms, \
         compute_image_similarities, compute_image_overlaps
@@ -161,7 +163,8 @@ if __name__ == "__main__":
     do_compute_image_similarities = False
     do_compute_image_overlaps = False
 
-    list_of_files = ['/desk/hln1.nii.gz','/desk/hln2.nii.gz']
+    list_of_files = sys.argv()
+#    list_of_files = ['/desk/hln1.nii.gz','/desk/hln2.nii.gz']
 #    list_of_files = ['/Users/arno/Dropbox/MB/data/subjects/MMRR-21-1/labels/labels.manual.nii.gz',
 #                     '/Users/arno/Dropbox/MB/data/subjects/MMRR-21-1/labels/labels.manual.nii.gz']
 #    list_of_labels = [1002, 1003, 1005]
