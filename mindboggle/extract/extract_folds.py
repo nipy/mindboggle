@@ -14,7 +14,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, neighbor_lists, min_fold_size=50):
+def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -51,6 +51,7 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=50):
         surface mesh file in VTK format with faces and depth scalar values
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+        -- if empty list, construct from depth_file
     min_fold_size : int
         minimum fold size (number of vertices)
 
@@ -91,6 +92,8 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=50):
     from mindboggle.utils.io_vtk import load_scalars
     from mindboggle.utils.mesh_operations import segment, \
         fill_holes, watershed, shrink_segments
+    if not len(neighbor_lists):
+        from mindboggle.utils.mesh_operations import find_neighbors
 
     print("Extract folds in surface mesh")
     t0 = time()
@@ -99,7 +102,8 @@ def extract_folds(depth_file, neighbor_lists, min_fold_size=50):
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
 
     # Find neighbors for each vertex
-    #neighbor_lists = find_neighbors(faces, len(points))
+    if not len(neighbor_lists):
+        neighbor_lists = find_neighbors(faces, len(points))
 
     # Compute histogram of depth measures
     min_vertices = 10000
@@ -396,7 +400,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         #-----------------------------------------------------------------------
         elif len(unique_fold_labels) == 1:
             print("  Fold {0} ({1} vertices): "
-                  "NO MATCH -- fold has only one label ({3})".
+                  "NO MATCH -- fold has only one label ({2})".
                   format(n_fold, len_fold, unique_fold_labels[0]))
             # Ignore: sulci already initialized with -1 values
 
@@ -406,12 +410,12 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         elif unique_fold_labels in label_lists:
             if len(sulcus_names):
                 print("  Fold {0} ({1} vertices): matching label set "
-                      "in sulcus: {3} ({4})".format(n_fold, len_fold,
+                      "in sulcus: {2} ({3})".format(n_fold, len_fold,
                       sulcus_names[label_lists.index(unique_fold_labels)],
                       ', '.join([str(x) for x in unique_fold_labels])))
             else:
                 print("  Fold {0} ({1} vertices): matching label set "
-                      "in sulcus ({3})".format(n_fold, len_fold,
+                      "in sulcus ({2})".format(n_fold, len_fold,
                       ', '.join([str(x) for x in unique_fold_labels])))
             # Assign ID of the matching sulcus to all fold vertices
             sulci[fold] = label_lists.index(unique_fold_labels)
@@ -452,13 +456,13 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                 if len(superset_indices) == 1:
                     if len(sulcus_names):
                         print("  Fold {0} ({1} vertices): "
-                              "fold labels in one sulcus: {3} ({4})".
+                              "fold labels in one sulcus: {2} ({3})".
                         format(n_fold, len_fold, sulcus_names[superset_indices[0]],
                                ', '.join([str(x)
                                for x in label_lists[superset_indices[0]]])))
                     else:
                         print("  Fold {0} ({1} vertices): "
-                              "fold labels in one sulcus: ({3})".
+                              "fold labels in one sulcus: ({2})".
                             format(n_fold, len_fold,
                                    ', '.join([str(x)
                                    for x in label_lists[superset_indices[0]]])))
