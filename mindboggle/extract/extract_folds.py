@@ -247,25 +247,17 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
         **Case 3**: NO MATCH -- fold has no sulcus label pair
 
-        **Case 4**: fold labels in one sulcus
-
-          If the set of labels in the fold is a subset of labels in
-          only one of the protocol's sulcus label lists, assign the index
-          for that list to all vertices in the fold.
-          (Ex: the labels in the fold are [1,2,3] and there is only one
-           sulcus label list containing 1, 2, and 3: [1,2,3,4])
-
-        **Case 5**: ambiguous -- fold labels in more than one sulcus
+        **Case 4**: ambiguous -- fold labels in more than one sulcus
                               -- fold labels not contained by a sulcus
 
-        **Case 6**: vertex labels in only one of the fold's sulcus label pairs
+        **Case 5**: vertex labels in only one of the fold's sulcus label pairs
 
           Find vertices with labels that are in only one of the fold's
           label boundary pairs. Assign the vertices the sulcus with the
           label pair if they are connected to the label boundary for that pair,
           via label propagation or seed growing.
 
-        **Case 7**: remaining vertices connected to sulcus label boundaries
+        **Case 6**: remaining vertices connected to sulcus label boundaries
 
           If there are remaining vertices, segment into sets of vertices
           connected to label boundary seeds (remaining label boundary vertices),
@@ -375,8 +367,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     n_folds = len(fold_numbers)
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
-    for n_fold in fold_numbers:
-#    for n_fold in [9]:
+#    for n_fold in fold_numbers:
+    for n_fold in [18]:
 
         fold = [i for i,x in enumerate(folds) if x == n_fold]
         len_fold = len(fold)
@@ -420,7 +412,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
             # Assign ID of the matching sulcus to all fold vertices
             sulci[fold] = label_lists.index(unique_fold_labels)
 
-        # Cases 3-5: at least one fold label but no perfect match
+        # Cases 3-4: at least one fold label but no perfect match
         else:
 
             # Find all label boundary pairs within the fold
@@ -451,26 +443,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     unique_fold_labels, label_lists)
 
                 #---------------------------------------------------------------
-                # Cases 4: fold labels contained by one sulcus
-                #---------------------------------------------------------------
-                if len(superset_indices) == 1:
-                    if len(sulcus_names):
-                        print("  Fold {0} ({1} vertices): "
-                              "fold labels in one sulcus: {2} ({3})".
-                        format(n_fold, len_fold, sulcus_names[superset_indices[0]],
-                               ', '.join([str(x)
-                               for x in label_lists[superset_indices[0]]])))
-                    else:
-                        print("  Fold {0} ({1} vertices): "
-                              "fold labels in one sulcus: ({2})".
-                            format(n_fold, len_fold,
-                                   ', '.join([str(x)
-                                   for x in label_lists[superset_indices[0]]])))
-                    # Assign ID of matching sulcus to all fold vertices
-                    sulci[fold] = superset_indices[0]
-
-                #---------------------------------------------------------------
-                # Case 5: ambiguous  -- fold labels in more than one sulcus
+                # Case 4: ambiguous  -- fold labels in more than one sulcus
                 #                    -- fold labels not contained by a sulcus
                 #---------------------------------------------------------------
                 else:
@@ -497,7 +470,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                     nonunique_labels.append(label)
 
             #-------------------------------------------------------------------
-            # Case 6: vertices whose labels are in only one sulcus label pair
+            # Case 5: vertices whose labels are in only one sulcus label pair
             #-------------------------------------------------------------------
             # Find vertices with a label that is in only one of the fold's
             # label pairs (the other label in the pair can exist
@@ -544,7 +517,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                               format(ps1, ps2, unique_labels_in_pair))
 
             #-------------------------------------------------------------------
-            # Case 7: vertex labels shared by multiple label pairs
+            # Case 6: vertex labels shared by multiple label pairs
             #-------------------------------------------------------------------
             # Propagate labels from label boundaries to vertices with labels
             # that are shared by multiple label pairs in the fold.
