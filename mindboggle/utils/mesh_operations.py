@@ -1739,9 +1739,9 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     boundary_indices : list of integers
         indices to label boundary vertices
     boundary_label_pairs : list of lists of sorted pairs of integers
-        label pairs
-    unique_boundary_label_pairs : list of pairs of integers
-        unique label pairs
+        sorted label pairs
+    unique_boundary_label_pairs : list of sorted pairs of integers
+        unique, sorted label pairs
 
     Examples
     --------
@@ -1790,22 +1790,23 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
                         if i in region_indices]
-    boundary_label_pairs = [x for i,x in enumerate(label_lists)
+    boundary_label_pairs = [np.sort(x).tolist() for i,x in enumerate(label_lists)
                             if len(set(x)) == 2
                             if i in region_indices]
 
     if len(ignore_indices):
         Ikeep = [i for i,x in enumerate(boundary_label_pairs)
-                 if not len(set(x).intersection(ignore_indices))]
-        boundary_label_pairs = [x for i,x in enumerate(boundary_label_pairs)
+                 if not len(frozenset(x).intersection(ignore_indices))]
+        boundary_label_pairs = [np.sort(x).tolist()
+                                for i,x in enumerate(boundary_label_pairs)
                                 if i in Ikeep]
         boundary_indices = [x for i,x in enumerate(boundary_indices)
                             if i in Ikeep]
 
     unique_boundary_label_pairs = []
     for pair in boundary_label_pairs:
-        if np.sort(pair).tolist() not in unique_boundary_label_pairs:
-            unique_boundary_label_pairs.append(np.sort(pair).tolist())
+        if pair not in unique_boundary_label_pairs:
+            unique_boundary_label_pairs.append(pair)
 
     return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
 
