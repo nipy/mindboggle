@@ -60,10 +60,10 @@ def compute_likelihood(depths, curvatures):
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.extract.extract_fundi import compute_likelihood
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
     >>>                                                           True)
@@ -237,14 +237,14 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
     >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
@@ -462,14 +462,14 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_fundi import extract_fundi
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
@@ -583,17 +583,16 @@ if __name__ == "__main__" :
 
     data_path = os.environ['MINDBOGGLE_DATA']
 
-    depth_file = os.path.join(data_path, 'measures',
-                 '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-
-    mean_curvature_file = os.path.join(data_path, 'measures',
-        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-
-    min_curvature_vector_file = os.path.join(data_path, 'measures',
-        '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-
-    sulci_file = os.path.join(data_path, 'results', 'features',
-                 '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'measures', 'lh.pial.depth.vtk')
+    labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                               'labels', 'lh.labels.DKT25.manual.vtk')
+    mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'measures', 'lh.pial.curv.avg.vtk')
+    min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'measures', 'lh.pial.curv.min.dir.txt')
+    sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'features', 'sulci.vtk')
 
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
     neighbor_lists = find_neighbors(faces, len(points))
