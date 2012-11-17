@@ -228,18 +228,15 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
         A ``sulcus ID`` uniquely identifies a sulcus, as index to a sulcus label pair list.
 
-    Steps ::
-
-        For each fold (vertices with the same fold number):
-
-        NO MATCH -- fold has fewer than two labels
-        NO MATCH -- fold has no sulcus label pair
-        Vertex labels in only one of the fold's sulcus label pairs
+    Steps for each fold::
+        1. Remove fold if it has fewer than two labels
+        2. Remove fold if it has no sulcus label pair
+        3. Vertex labels in only one of the fold's sulcus label pairs:
             Find vertices with labels that are in only one of the fold's
             label boundary pairs. Assign the vertices the sulcus with the
             label pair if they are connected to the label boundary for that
             pair, via label propagation or seed growing.
-        Remaining vertices connected to sulcus label boundaries
+        4. Remaining vertices connected to sulcus label boundaries:
             If there are remaining vertices, segment into sets of vertices
             connected to label boundary seeds (remaining label boundary
             vertices), and assign a sulcus ID to each segment.
