@@ -25,11 +25,11 @@ def relabel_volume(input_file, old_labels, new_labels):
     --------
     import os
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
     >>> old_labels, new_labels = read_columns(relabel_file, 2)
-  relabel_volume(input_file, old_labels, new_labels)
+    >>> relabel_volume(input_file, old_labels, new_labels)
 
     """
     import os
@@ -76,8 +76,8 @@ def remove_volume_labels(input_file, labels_to_remove):
     --------
     >>> import os
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'labels_volume',
-    >>>              '_subject_MMRR-21-1', 'labels_manual.nii.gz')
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
     >>> remove_volume_labels(label_file, labels_to_remove)
