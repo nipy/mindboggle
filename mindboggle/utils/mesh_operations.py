@@ -47,8 +47,8 @@ def find_neighbors(faces, n_vertices):
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, scalars, n_vertices = load_scalars(depth_file, False)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> # Write results to vtk file and view with mayavi2:
@@ -293,10 +293,10 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.utils.mesh_operations import find_anchors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
+    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> points, faces, values, n_vertices = load_scalars(depth_file, True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
@@ -407,12 +407,12 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> import mindboggle.utils.kernels as kernels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'folds.vtk')
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1', 'labels',
+    >>>                           'lh.labels.DKT25.manual.vtk')
     >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
     >>>     labels, neighbor_lists)
@@ -432,7 +432,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> #rewrite_scalar_lists(label_file, 'test_propagate.vtk',
+    >>> #rewrite_scalar_lists(labels_file, 'test_propagate.vtk',
     >>> #                     [segments.tolist()], ['segments'], segments.tolist())
     >>> indices = [i for i,x in enumerate(segments) if x > -1]
     >>> write_scalar_lists('test_propagate.vtk', points, indices,
@@ -524,8 +524,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.utils.mesh_operations import find_neighbors, segment, detect_boundaries
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
@@ -534,9 +534,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
     >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1', 'labels',
+    >>>                           'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(vertices_to_segment,
     >>>     labels, neighbor_lists)
     >>> seed_lists = []
@@ -779,8 +779,8 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     >>> from mindboggle.utils.mesh_operations import find_neighbors, watershed
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
@@ -961,11 +961,11 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     >>> from mindboggle.utils.mesh_operations import find_neighbors, watershed, shrink_segments
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'folds.vtk')
+    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'lh.folds.vtk')
     >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
@@ -1062,8 +1062,8 @@ def fill_boundaries(regions, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import fill_boundaries, find_neighbors
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> regions = -1 * np.ones(len(points))
     >>> regions[depths > 0.50] = 1
@@ -1241,12 +1241,12 @@ def fill_holes(regions, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> # Select one sulcus
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> #neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> n_sulcus = 0
@@ -1469,14 +1469,14 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
     >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'measures',
-    >>>     '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.dir.txt')
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
     >>>                                                          True)
@@ -1568,14 +1568,14 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> label_pair_lists = sulcus_boundaries()
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> label_indices = [i for i,x in enumerate(labels)
     >>>                  if x in label_pair_lists[0][0]]
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(label_indices,
@@ -1681,9 +1681,9 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>>
     >>> indices_boundaries = detect_boundary(range(len(points)),
@@ -1692,7 +1692,7 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
-    >>> rewrite_scalar_lists(label_file, 'test_detect_boundary.vtk',
+    >>> rewrite_scalar_lists(labels_file, 'test_detect_boundary.vtk',
     >>>                      [IDs], ['boundaries'], IDs)
     >>> os.system('mayavi2 -m Surface -d test_detect_boundary.vtk &')
 
@@ -1761,9 +1761,9 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>>
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
@@ -1772,7 +1772,7 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
-    >>> rewrite_scalar_lists(label_file, 'test_detect_boundaries.vtk',
+    >>> rewrite_scalar_lists(labels_file, 'test_detect_boundaries.vtk',
     >>>                      [IDs], ['boundaries'], IDs)
     >>> os.system('mayavi2 -m Surface -d test_detect_boundaries.vtk &')
 
@@ -1897,10 +1897,10 @@ def extract_area(values, areas, fraction):
     >>> from mindboggle.utils.mesh_operations import extract_area
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
+    >>> vtk_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'measures', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'measures', 'lh.pial.area.vtk')
     >>> points, faces, values, n_vertices = load_scalars(vtk_file, True)
     >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
     >>> fraction = 0.50
@@ -1962,8 +1962,8 @@ if __name__ == "__main__":
     from mindboggle.utils.mesh_operations import find_neighbors, watershed, propagate
     from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     data_path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(data_path, 'measures',
-              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'measures', 'lh.pial.depth.vtk')
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
     indices = np.where(depths > 0.11)[0]  # high to speed up
     neighbor_lists = find_neighbors(faces, n_vertices)
