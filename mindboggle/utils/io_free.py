@@ -42,7 +42,10 @@ def read_surface(filename):
     Example
     -------
     >>> import readFreeSurfer as rfs
-    >>> Vrtx, Face = rfs.read_surface('lh.pial')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                        'surf', 'lh.pial')
+    >>> Vrtx, Face = rfs.read_surface(surface_file)
     >>> len(Vrtx)
       130412
     >>> len(Face)
@@ -104,7 +107,10 @@ def read_curvature(filename):
 
     Example
     -------
-    >>> Curv = read_curvature('lh.curv')
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                        'surf', 'lh.curv')
+    >>> Curv = read_curvature(surface_file)
     >>> len(Curv)
       130412
     >>> Curv[10]

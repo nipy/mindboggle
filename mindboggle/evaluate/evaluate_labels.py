@@ -39,11 +39,11 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
     >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
     >>> data_path = os.path.join(os.environ['MINDBOGGLE_DATA'], 'rescan_labels')
-    >>> file_append = '.lh.pial.labels.DKT31.manual.vtk'
+    >>> appnd = '.lh.pial.labels.DKT31.manual.vtk'
     >>> # Two misaligned label files:
-    >>> labels_file1 = os.path.join(data_path, 'MMRR-21-2' + file_append)
-    >>> labels_file2 = os.path.join(data_path, 'MMRR-21-2_rescan' + file_append)
-    >>> measure_surface_overlap(command, labels_file1, labels_file2)
+    >>> file1 = os.path.join(data_path, 'rescan_labels', 'MMRR-21-2' + appnd)
+    >>> file2 = os.path.join(data_path, 'rescan_labels', 'MMRR-21-2_rescan' + appnd)
+    >>> measure_surface_overlap(command, file1, file2)
 
     """
     import os
