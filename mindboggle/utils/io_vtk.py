@@ -401,11 +401,11 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
@@ -478,11 +478,11 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_rewrite_scalar_lists.vtk',
@@ -582,11 +582,11 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> file1 = os.path.join(data_path, 'measures',
-    >>>                      '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
+    >>> file1 = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                 'measures', 'lh.pial.depth.vtk')
     >>> # Don't have this yet:
-    >>> file2 = os.path.join(data_path, 'subjects',
-    >>>                      '_hemi_lh_subject_MMRR-21-1', 'lh.inflated.vtk')
+    >>> file2 = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                 'surf', 'lh.inflated.vtk')
     >>> file3 = 'test_copy_scalar_lists.vtk'
     >>> faces, lines, indices, scalar_lists, scalar_names = load_scalar_lists(file1)
     >>> points = load_points(file2)
@@ -659,8 +659,8 @@ def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import load_scalars, explode_scalar_list
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> output_stem = 'sulcus'
     >>> explode_scalar_list(sulci_file, output_stem)
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
@@ -723,22 +723,22 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> exclude_values = [-1]
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
-    >>> min_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                     'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                    'measures', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                   'measures', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
+    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>>                         area_file, depth_file, mean_curvature_file,
     >>>                         gauss_curvature_file,
@@ -822,30 +822,30 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> filename = 'test_write_vertex_shape_table.txt'
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
-    >>> label_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>              'label', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> mesh_indices = find_neighbors(faces, n_vertices)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
     >>>     neighbor_lists)
     >>> nonsegments = [-1]
-    >>> area_file = os.path.join(data_path, 'measures',
-    >>>             '_hemi_lh_subject_MMRR-21-1', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.max.vtk')
-    >>> min_curvature_file = os.path.join(data_path, 'measures',
-    >>>              '_hemi_lh_subject_MMRR-21-1', 'lh.pial.curv.min.vtk')
+    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                     'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                    'measures', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                   'measures', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
+    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> write_vertex_shape_table(filename, column_names, indices,
     >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
     >>>     max_curvature_file, min_curvature_file, thickness_file='',
@@ -1180,17 +1180,12 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import freeannot_to_vtk
-    >>> hemi = "lh"
-    >>> #subject = "MMRR-21-2"
-    >>> # see freesurface_to_vtk():
-    >>> #surface_file = os.path.join(os.getcwd(), 'lh.pial.vtk')
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> subject = "MMRR-21-1"
-    >>> surface_file = os.path.join(data_path, 'measures',
-    >>>                '_hemi_'+hemi+'_subject_'+subject, hemi+'.pial.depth.vtk')
+    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                        'measures', 'lh.pial.depth.vtk')
     >>> subjects_path = os.environ['SUBJECTS_DIR']
     >>> annot_name = "aparcNMMjt" #labels.DKT31.manual"
-    >>> freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name)
+    >>> freeannot_to_vtk(surface_file, "lh", MMRR-21-1, subjects_path, annot_name)
 
     """
     import os
