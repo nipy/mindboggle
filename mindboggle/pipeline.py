@@ -12,10 +12,9 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
->>> for atlas in atlases[0:20]:
->>> #  if "MMRR-21-" in atlas:
->>>       cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
->>>       print(cmd); os.system(cmd)
+>>> for atlas in atlases[80:101]:
+>>>     cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
+>>>     print(cmd); os.system(cmd)
 
 .. note::
   Mindboggle assumes a file tree like FreeSurfer's,
@@ -580,8 +579,7 @@ if run_featureFlow:
                      interface = Fn(function = extract_folds,
                                     input_names = ['depth_file',
                                                    'neighbor_lists',
-                                                   'min_fold_size',
-                                                   'do_fill_holes'],
+                                                   'min_fold_size'],
                                     output_names = ['folds',
                                                     'n_folds']))
     featureFlow.add_nodes([FoldsNode])
@@ -589,8 +587,7 @@ if run_featureFlow:
                      [('Depth.depth_file','Folds.depth_file')])])
     featureFlow.connect([(NbrNode, FoldsNode,
                           [('neighbor_lists','neighbor_lists')])])
-    FoldsNode.inputs.min_fold_size = 1
-    FoldsNode.inputs.do_fill_holes = True
+    FoldsNode.inputs.min_fold_size = 50
 
     #===========================================================================
     # Extract sulci from folds
@@ -614,25 +611,25 @@ if run_featureFlow:
                                                     'n_sulci']))
     featureFlow.add_nodes([SulciNode])
     mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','SulciNode.surface_vtk')])])
+                     [('Depth.depth_file','Sulci.surface_vtk')])])
     featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds')])])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by FreeSurfer classifier atlas
     if init_labels == 'DKatlas':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('DK_annot_to_VTK.labels','SulciNode.labels')])])
+                         [('DK_annot_to_VTK.labels','Sulci.labels')])])
     # Use initial labels assigned by Mindboggle classifier atlas
     elif init_labels == 'DKTatlas':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('DKT_annot_to_VTK.labels','SulciNode.labels')])])
+                         [('DKT_annot_to_VTK.labels','Sulci.labels')])])
     # Use initial labels assigned by multi-atlas registration
     elif init_labels == 'max':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('Label_vote.labels_max','SulciNode.labels')])])
+                         [('Label_vote.labels_max','Sulci.labels')])])
     # Use manual (atlas) labels
     elif init_labels == 'manual':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('Atlas_labels.scalars','SulciNode.labels')])])
+                         [('Atlas_labels.scalars','Sulci.labels')])])
     #---------------------------------------------------------------------------
     featureFlow.connect([(NbrNode, SulciNode,
                           [('neighbor_lists','neighbor_lists')])])
