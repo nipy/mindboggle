@@ -356,8 +356,13 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         # NO MATCH -- fold has fewer than two labels
         #-----------------------------------------------------------------------
         if len(unique_fold_labels) < 2:
-            print("  Fold {0} ({1} vertices): "
-                  "NO MATCH -- fold has fewer than two labels ({2})".
+            # Ignore: sulci already initialized with -1 values
+            if len(unique_fold_labels) == 0:
+                print("  Fold {0} ({1} vertices): NO MATCH -- fold has no labels".
+                      format(n_fold, len_fold))
+            else:
+                print("  Fold {0} ({1} vertices): "
+                  "NO MATCH -- fold has only one label ({2})".
                   format(n_fold, len_fold, unique_fold_labels[0]))
             # Ignore: sulci already initialized with -1 values
 
