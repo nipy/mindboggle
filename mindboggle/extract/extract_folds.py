@@ -25,12 +25,6 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     bin values (Gaussian), convolve to compute slopes,
     and find the depth value for the first bin with slope = 0.
 
-    The resulting separately numbered folds may have holes
-    resulting from shallower areas within a fold, so after removing small folds
-    we call fill_holes(), which removes the largest region boundary,
-    leaving smaller boundaries, presumably contours of holes within a region,
-    and calls label_holes() to fill holes with surrounding region numbers.
-
     We segment the folds into depth-based subfolds using a watershed algorithm,
     shrink watershed segments for folds that have multiple segments
     and regrow these shrunken segments.
@@ -39,11 +33,16 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         1. Compute histogram of depth measures
         2. Find the deepest vertices
         3. Segment deep vertices as an initial set of folds
-        4. Remove small folds
-        5. Find and fill holes in the folds
-        6. Segment folds into "watershed basins"
-        7. Shrink segments in folds with multiple segments
-        8. Regrow shrunken segments
+        4. Find and fill holes in the folds
+        5. Segment folds into "watershed basins"
+        6. Shrink segments in folds with multiple segments
+        7. Regrow shrunken segments
+
+    Note ::
+        The resulting separately numbered folds may have holes
+        resulting from shallower areas within a fold, but calling fill_holes()
+        at this stage can accidentally fill surfaces between folds,
+        so we perform this step later (after extract_sulci()).
 
     Parameters
     ----------
@@ -165,12 +164,15 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
                     folds[indices_fold] = -1
 
         # Find and fill holes in the folds
-        print("  Find and fill holes in the folds")
-        folds = fill_holes(folds, neighbor_lists)
-        #indices_folds = [i for i,x in enumerate(folds) if x > -1]
-        indices_folds = np.where(folds > -1)[0]
+        # Warning: Surfaces connected by folds can be mistaken for holes!
+        do_fill_holes = False
+        if do_fill_holes:
+            print("  Find and fill holes in the folds")
+            folds = fill_holes(folds, neighbor_lists)
 
         # Segment folds into "watershed basins"
+        indices_folds = [i for i,x in enumerate(folds) if x > -1]
+        #indices_folds = np.where(folds > -1)[0]
         segments = watershed(depths, indices_folds, neighbor_lists,
                              depth_ratio=0.1, tolerance=0.01)
 
