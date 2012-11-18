@@ -176,7 +176,7 @@ def find_faces_at_vertices(faces, n_vertices):
 def find_edges(faces):
     """
     Find all edges on a mesh
-    
+
    Parameters
     ----------
     faces : list of lists of three integers
@@ -185,7 +185,7 @@ def find_edges(faces):
     Returns
     --------
     edges : list of lists of integers
-        each element is a 2-tuple of vertex ids representing an edge 
+        each element is a 2-tuple of vertex ids representing an edge
 
     Examples
     --------
@@ -201,7 +201,7 @@ def find_edges(faces):
         for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
             if not edge in edges: # I know that this is costly
                 edges.append(edge)
-            
+
     return edges
 
 #-----------------------------------------------------------------------------
@@ -210,7 +210,7 @@ def find_edges(faces):
 def find_faces_at_edges(faces):
     """
     For each edges on the mesh, find the two faces that share the edge.
-    
+
    Parameters
     ----------
     faces : list of lists of three integers
@@ -248,16 +248,16 @@ def find_faces_at_edges(faces):
 
     Notes
     --------
-        As one can see from the source code, the faces have to be trianglar for now. 
-     
+        As one can see from the source code, the faces have to be trianglar for now.
+
     """
-    
+
     faces_at_edges = {}
     for face_id, face in enumerate(faces):
         for edge in [face[0:2], face[1:3], [face[0], face[2]] ]:
             faces_at_edges.setdefault((edge[0], edge[1]), []).append(face_id)
             faces_at_edges.setdefault((edge[1], edge[0]), []).append(face_id) # make it symmetric
-            
+
     return faces_at_edges
 
 #------------------------------------------------------------------------------
@@ -1206,7 +1206,7 @@ def label_holes(holes, regions, neighbor_lists):
 
     return regions
 
-def fill_holes(regions, neighbor_lists):
+def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     """
     Fill holes in regions on a surface mesh by using region boundaries.
 
@@ -1226,6 +1226,11 @@ def fill_holes(regions, neighbor_lists):
         region numbers for all vertices (default -1)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+    exclude_values : list of integers
+        hole is not filled if any of these values are within the hole
+        (prevents cases where surface connected by folds mistaken for holes)
+    values : list of integers
+        values for vertices, for use in determining which holes to remove
 
     Returns
     -------
@@ -1240,41 +1245,78 @@ def fill_holes(regions, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import inside_faces, fill_holes
     >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> # Select one sulcus
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
-    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
+    >>>
+    >>> # Select one fold
+    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'lh.folds.vtk')
+    >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
     >>> #neighbor_lists = find_neighbors(faces, n_vertices)
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> n_sulcus = 0
-    >>> sulci[sulci != n_sulcus] = -1
-    >>> # Make hole in sulcus in case there isn't one
-    >>> I = np.where(sulci==n_sulcus)[0]
-    >>> index = I[np.round(len(I)/2)]
-    >>> N = neighbor_lists[index]
-    >>> for n in N:
-    >>>     if any(sulci[neighbor_lists[n]] == -1):
-    >>>         print("Select a different index")
+    >>> vars = [0,100,200]
+    >>> n_fold = vars[0]
+    >>> folds[folds != n_fold] = -1
+    >>>
+    >>> # Make two holes in fold (values of -1 and values of 10)
+    >>> # Hole 1:
+    >>> # Find a vertex whose removal (with its neighbors) would create a hole
+    >>> I = np.where(folds==n_fold)[0]
+    >>> for index1 in I:
+    >>>     N1 = neighbor_lists[index1]
+    >>>     stop = True
+    >>>     for n in N1:
+    >>>         if any(folds[neighbor_lists[n]] == -1):
+    >>>             stop = False
+    >>>             break
+    >>>     if stop:
     >>>         break
-    >>> neighbor_lists[index] = []
-    >>> for n in N:
+    >>> neighbor_lists[index1] = []
+    >>> for n in N1:
     >>>     neighbor_lists[n] = []
-    >>> sulci[index] = -1
-    >>> sulci[N] = -1
-    >>> # Write hole to vtk file and view with mayavi2:
-    >>> indices = [i for i,x in enumerate(sulci) if x > -1]
-    >>> write_scalar_lists('test_hole.vtk', points, indices,
-    >>>     inside_faces(faces, indices), [sulci], ['holes'])
-    >>> os.system('mayavi2 -m Surface -d test_hole.vtk &')
-    >>> # Fill hole
-    >>> regions = fill_holes(sulci, neighbor_lists)
+    >>> folds[index1] = -1
+    >>> folds[N1] = -1
+    >>> # Hole 2:
+    >>> I = np.where(folds==n_fold)[0]
+    >>> for index2 in I:
+    >>>     N2 = neighbor_lists[index2]
+    >>>     stop = True
+    >>>     for n in N2:
+    >>>         if any(folds[neighbor_lists[n]] == -1):
+    >>>             stop = False
+    >>>             break
+    >>>     if stop:
+    >>>         break
+    >>> neighbor_lists[index2] = []
+    >>> for n in N2:
+    >>>     neighbor_lists[n] = []
+    >>> folds[index2] = -1
+    >>> folds[N2] = -1
+    >>> values = np.zeros(len(folds))
+    >>> values[index2] = vars[1]
+    >>> values[N2] = vars[2]
+    >>>
+    >>> # Write holes to vtk file and view with mayavi2:
+    >>> holes = folds.copy()
+    >>> holes[index1] = 10
+    >>> holes[N1] = 20
+    >>> holes[index2] = 30
+    >>> holes[N2] = 40
+    >>> indices = [i for i,x in enumerate(holes) if x > -1]
+    >>> write_scalar_lists('test_holes.vtk', points, indices,
+    >>>     inside_faces(faces, indices), [holes.tolist()], ['holes'])
+    >>> os.system('mayavi2 -m Surface -d test_holes.vtk &')
+    >>>
+    >>> # Fill Hole 1 but not Hole 2:
+    >>> # (because values has an excluded value in the hole)
+    >>> regions = np.copy(folds)
+    >>> regions = fill_holes(regions, neighbor_lists, [vars[1]], values)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_scalar_lists('test_fill_holes.vtk', points, indices,
-    >>>     inside_faces(faces, indices), [regions], ['regions'])
+    >>>     inside_faces(faces, indices), [regions.tolist()], ['regions'])
     >>> os.system('mayavi2 -m Surface -d test_fill_holes.vtk &')
 
     """
@@ -1323,8 +1365,11 @@ def fill_holes(regions, neighbor_lists):
             # Add remaining boundaries to holes array
             for n_boundary in boundary_numbers:
                 indices = [i for i,x in enumerate(boundaries) if x == n_boundary]
-                hole_boundaries[indices] = count
-                count += 1
+                if len(indices) > 2:
+                    hole_boundaries[indices] = count
+                    count += 1
+                else:
+                    boundaries[boundaries == n_boundary] = -1
 
     #--------------------------------------------------------------------------
     # Fill holes
@@ -1332,17 +1377,25 @@ def fill_holes(regions, neighbor_lists):
     # If there are any holes
     if count > 0:
         hole_numbers = [x for x in np.unique(hole_boundaries) if x > -1]
+        background = [i for i,x in enumerate(regions) if x == -1]
 
         # Grow seeds from hole boundaries to fill holes (background value -1)
-        seed_lists = []
         for n_hole in hole_numbers:
-            I = np.where(hole_boundaries == n_hole)[0]
-            seed_lists.append(I)
-        background = [i for i,x in enumerate(regions) if x == -1]
-        holes = segment(background, neighbor_lists, 1, seed_lists)
+            seed_list = np.where(hole_boundaries == n_hole)[0].tolist()
+            seed_lists = [list(frozenset(background).intersection(seed_list))]
+            hole = segment(background, neighbor_lists, 1, seed_lists)
 
-        # Label the vertices for each hole by surrounding region number
-        regions = label_holes(holes, regions, neighbor_lists)
+            # Label the vertices for each hole by surrounding region number
+            # if hole does not include any of the exclude_values
+            if len(exclude_values):
+                Ihole = np.where(hole > -1)[0]
+                print(np.unique(values[Ihole]))
+                print(frozenset(values[Ihole]).intersection(exclude_values))
+                if not len(frozenset(values[Ihole]).intersection(exclude_values)):
+                    regions = label_holes(hole, regions, neighbor_lists)
+                    print(len([x for x in regions if x > -1]))
+            else:
+                regions = label_holes(hole, regions, neighbor_lists)
 
     return regions
 
