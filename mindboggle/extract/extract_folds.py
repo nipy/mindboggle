@@ -234,14 +234,14 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
         1. Remove fold if it has fewer than two labels
         2. Remove fold if it has no sulcus label pair
         3. Vertex labels in only one of the fold's sulcus label pairs:
-            Find vertices with labels that are in only one of the fold's
-            label boundary pairs. Assign the vertices the sulcus with the
-            label pair if they are connected to the label boundary for that
-            pair, via label propagation or seed growing.
+           Find vertices with labels that are in only one of the fold's
+           label boundary pairs. Assign the vertices the sulcus with the
+           label pair if they are connected to the label boundary for that
+           pair, via label propagation or seed growing.
         4. Remaining vertices connected to sulcus label boundaries:
-            If there are remaining vertices, segment into sets of vertices
-            connected to label boundary seeds (remaining label boundary
-            vertices), and assign a sulcus ID to each segment.
+           If there are remaining vertices, segment into sets of vertices
+           connected to label boundary seeds (remaining label boundary
+           vertices), and assign a sulcus ID to each segment.
 
     Parameters
     ----------
