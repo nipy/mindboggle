@@ -12,7 +12,7 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
->>> for atlas in atlases[0:20]:
+>>> for atlas in atlases[80:101]:
 >>>     cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
 >>>     print(cmd); os.system(cmd)
 
