@@ -203,8 +203,16 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         print('    ...Segmented individual folds ({0:.2f} seconds)'.
               format(time() - t2))
 
+        # Renumber folds so they are sequential
+        renumber_folds = -1 * np.ones(len(folds))
+        fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
+        for i_fold, n_fold in enumerate(fold_numbers):
+            fold = [i for i,x in enumerate(folds) if x == n_fold]
+            renumber_folds[fold] = i_fold
+        folds = renumber_folds
+        n_folds = i_fold + 1
+
         # Print statement
-        n_folds = len([x for x in list(set(folds)) if x > -1])
         print('  ...Extracted {0} folds ({1:.2f} seconds)'.
               format(n_folds, time() - t0))
     else:
