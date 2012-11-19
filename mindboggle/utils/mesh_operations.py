@@ -1250,16 +1250,14 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.folds.vtk')
     >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
-    >>> #neighbor_lists = find_neighbors(faces, n_vertices)
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> vars = [0,100,200]
-    >>> n_fold = vars[0]
+    >>> n_fold = np.unique(folds)[1]
     >>> folds[folds != n_fold] = -1
     >>>
-    >>> # Make two holes in fold (values of -1 and values of 10)
+    >>> # Make two holes in fold (values of -1 and excluded values)
     >>> # Hole 1:
     >>> # Find a vertex whose removal (with its neighbors) would create a hole
     >>> I = np.where(folds==n_fold)[0]
@@ -1270,11 +1268,16 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>>         if any(folds[neighbor_lists[n]] == -1):
     >>>             stop = False
     >>>             break
+    >>>         else:
+    >>>             for f in neighbor_lists[n]:
+    >>>                 if any(folds[neighbor_lists[f]] == -1):
+    >>>                     stop = False
+    >>>                     break
     >>>     if stop:
     >>>         break
-    >>> neighbor_lists[index1] = []
-    >>> for n in N1:
-    >>>     neighbor_lists[n] = []
+    >>> #neighbor_lists[index1] = []
+    >>> #for n in N1:
+    >>> #    neighbor_lists[n] = []
     >>> folds[index1] = -1
     >>> folds[N1] = -1
     >>> # Hole 2:
@@ -1286,16 +1289,21 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>>         if any(folds[neighbor_lists[n]] == -1):
     >>>             stop = False
     >>>             break
+    >>>         else:
+    >>>             for f in neighbor_lists[n]:
+    >>>                 if any(folds[neighbor_lists[f]] == -1):
+    >>>                     stop = False
+    >>>                     break
     >>>     if stop:
     >>>         break
-    >>> neighbor_lists[index2] = []
-    >>> for n in N2:
-    >>>     neighbor_lists[n] = []
+    >>> #neighbor_lists[index2] = []
+    >>> #for n in N2:
+    >>> #    neighbor_lists[n] = []
     >>> folds[index2] = -1
     >>> folds[N2] = -1
     >>> values = np.zeros(len(folds))
-    >>> values[index2] = vars[1]
-    >>> values[N2] = vars[2]
+    >>> values[index2] = 100
+    >>> values[N2] = 200
     >>>
     >>> # Write holes to vtk file and view with mayavi2:
     >>> holes = folds.copy()
@@ -1311,7 +1319,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
     >>> regions = np.copy(folds)
-    >>> regions = fill_holes(regions, neighbor_lists, [vars[1]], values)
+    >>> regions = fill_holes(regions, neighbor_lists, [100], values)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
@@ -1337,12 +1345,11 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
         # Identify neighbors to these vertices and their neighbors
         N = []
         [N.extend(neighbor_lists[x]) for x in region_indices]
-        N = np.unique(N)
-        N = [x for x in N if x not in region_indices]
+        N = list(frozenset(N).difference(region_indices))
         N2 = []
-        [N2.extend(neighbor_lists[x]) for x in N if x not in region_indices]
+        [N2.extend(neighbor_lists[x]) for x in N]
         N.extend(N2)
-        N = np.unique(N)
+        N = list(frozenset(N).difference(region_indices))
         if len(N):
 
             # Segment the neighbors into connected vertices (region boundaries)
@@ -1365,11 +1372,8 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
             # Add remaining boundaries to holes array
             for n_boundary in boundary_numbers:
                 indices = [i for i,x in enumerate(boundaries) if x == n_boundary]
-                if len(indices) > 2:
-                    hole_boundaries[indices] = count
-                    count += 1
-                else:
-                    boundaries[boundaries == n_boundary] = -1
+                hole_boundaries[indices] = count
+                count += 1
 
     #--------------------------------------------------------------------------
     # Fill holes
@@ -1389,11 +1393,8 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
             # if hole does not include any of the exclude_values
             if len(exclude_values):
                 Ihole = np.where(hole > -1)[0]
-                print(np.unique(values[Ihole]))
-                print(frozenset(values[Ihole]).intersection(exclude_values))
                 if not len(frozenset(values[Ihole]).intersection(exclude_values)):
                     regions = label_holes(hole, regions, neighbor_lists)
-                    print(len([x for x in regions if x > -1]))
             else:
                 regions = label_holes(hole, regions, neighbor_lists)
 

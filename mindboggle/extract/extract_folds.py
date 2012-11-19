@@ -33,16 +33,18 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         1. Compute histogram of depth measures
         2. Find the deepest vertices
         3. Segment deep vertices as an initial set of folds
-        4. Find and fill holes in the folds
-        5. Segment folds into "watershed basins"
-        6. Shrink segments in folds with multiple segments
-        7. Regrow shrunken segments
+        4. Remove small folds
+        5. Find and fill holes in the folds
+        6. Segment folds into "watershed basins"
+        7. Shrink segments in folds with multiple segments
+        8. Regrow shrunken segments
 
-    Note ::
+    Note regarding step 5::
         The resulting separately numbered folds may have holes
         resulting from shallower areas within a fold, but calling fill_holes()
         at this stage can accidentally fill surfaces between folds,
-        so we perform this step later (after extract_sulci()).
+        so we call fill_holes() with the argument exclude_values set to zero
+        for zero-depth between folds.
 
     Parameters
     ----------
@@ -165,10 +167,11 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
 
         # Find and fill holes in the folds
         # Warning: Surfaces connected by folds can be mistaken for holes!
-        do_fill_holes = False
+        do_fill_holes = True
         if do_fill_holes:
             print("  Find and fill holes in the folds")
-            folds = fill_holes(folds, neighbor_lists)
+            folds = fill_holes(folds, neighbor_lists, exclude_values=[0],
+                               values=depths)
 
         # Segment folds into "watershed basins"
         indices_folds = [i for i,x in enumerate(folds) if x > -1]
@@ -195,7 +198,8 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
                                    min_fold_size, seed_lists)
         #regrown_segments = propagate(points, faces, folds, shrunken_segments,
         #                             folds, max_iters=1000, tol=0.001, sigma=5)
-        folds[regrown_segments > -1] = regrown_segments[regrown_segments > -1]
+        folds[regrown_segments > -1] = regrown_segments[regrown_segments > -1] + \
+                                       np.max(folds) + 1
         print('    ...Segmented individual folds ({0:.2f} seconds)'.
               format(time() - t2))
 
