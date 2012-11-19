@@ -12,7 +12,7 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
->>> for atlas in atlases[80:101]:
+>>> for atlas in atlases[0:20]:
 >>>     cmd = 'python pipeline.py /desk/output_measures {0}'.format(atlas)
 >>>     print(cmd); os.system(cmd)
 
@@ -126,7 +126,7 @@ from mindboggle.utils.io_vtk import rewrite_scalar_lists, write_mean_shapes_tabl
      vtk_to_freelabels
 from mindboggle.utils.io_file import read_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
-from mindboggle.utils.mesh_operations import find_neighbors, fill_holes
+from mindboggle.utils.mesh_operations import find_neighbors
 from mindboggle.label.multiatlas_labeling import register_template,\
      transform_atlas_labels, majority_vote_label
 from mindboggle.info.sulcus_boundaries import sulcus_boundaries
@@ -643,21 +643,6 @@ if run_featureFlow:
     SulciNode.inputs.sulcus_names = sulcus_names
 
     #===========================================================================
-    # Fill holes in sulci
-    #===========================================================================
-    fill_sulcus_holes = True
-    if fill_sulcus_holes:
-        FillHoles = Node(name='Fill_holes',
-                         interface = Fn(function = fill_holes,
-                                        input_names = ['regions',
-                                                       'neighbor_lists'],
-                                        output_names = ['regions']))
-        featureFlow.add_nodes([FillHoles])
-        featureFlow.connect([(SulciNode, FillHoles, [('sulci','regions')])])
-        featureFlow.connect([(NbrNode, FillHoles,
-                              [('neighbor_lists','neighbor_lists')])])
-
-    #===========================================================================
     # Extract fundi (curves at the bottoms of sulci)
     #===========================================================================
     do_extract_fundi = False
@@ -679,10 +664,7 @@ if run_featureFlow:
                                                         'n_fundi',
                                                         'likelihoods']))
         if fundi_from_sulci:
-            if fill_sulcus_holes:
-                featureFlow.connect([(FillHoles, FundiNode, [('regions','folds')])])
-            else:
-                featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
+            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
         else:
             featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
         featureFlow.connect([(NbrNode, FundiNode,
@@ -714,12 +696,8 @@ if run_featureFlow:
                      [('Depth.depth_file','Sulci_to_VTK.input_vtk')])])
     SulciVTK.inputs.output_vtk = 'sulci.vtk'
     SulciVTK.inputs.new_scalar_names = ['sulci']
-    if fill_sulcus_holes:
-        featureFlow.connect([(FillHoles, SulciVTK, [('regions','new_scalar_lists')])])
-        featureFlow.connect([(FillHoles, SulciVTK, [('regions','filter_scalars')])])
-    else:
-        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalar_lists')])])
-        featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
+    featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalar_lists')])])
+    featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
                      [('Sulci_to_VTK.output_vtk','features.@sulci')])])
 
