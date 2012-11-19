@@ -38,6 +38,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         6. Segment folds into "watershed basins"
         7. Shrink segments in folds with multiple segments
         8. Regrow shrunken segments
+        9. Renumber segments
 
     Note regarding step 5::
         The resulting separately numbered folds may have holes
@@ -581,7 +582,7 @@ if __name__ == "__main__":
     sulcus_names = fid.readlines()
     sulcus_names = [x.strip('\n') for x in sulcus_names]
     label_pair_lists = sulcus_boundaries()
-    min_boundary = 10
+    min_boundary = 1
 
     # Extract sulci
     sulci, n_sulci = extract_sulci(labels_file, folds, labels,
