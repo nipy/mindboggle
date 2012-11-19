@@ -378,9 +378,9 @@ def write_scalar_lists(output_vtk, points, indices, faces,
         indices of vertices
     faces : list of 3-tuples of integers
         indices to the three vertices of a face on the mesh
-    scalar_lists : list of lists of floats
+    scalar_lists : list of lists of floats (or single list or array of floats)
         each list (lookup table) contains values assigned to the vertices
-    scalar_names : list of strings
+    scalar_names : string or list of strings
         each element is the name of a lookup table
 
     Examples
@@ -405,12 +405,13 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
+    >>>
     >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices,
-    >>>     inside_faces(faces, indices), [depths], ['depths'])
+    >>>     faces, depths, 'depths')
     >>> os.system('mayavi2 -m Surface -d test_write_scalar_lists.vtk &')
 
     """
@@ -426,10 +427,19 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(scalar_lists) > 0:
-        # Make sure that scalar_lists is a list of lists
+
+        # Make sure that new_scalar_lists is a list
+        if type(scalar_lists) != list:
+            if type(scalar_lists[0]) == np.ndarray:
+                scalar_lists = scalar_lists.tolist()
+            scalar_lists = [scalar_lists]
+        # Make sure that new_scalar_lists is a list of lists
         if type(scalar_lists[0]) != list:
-            print('Error: scalar_lists should be a list of lists')
-            exit()
+            scalar_lists = [scalar_lists]
+        # Make sure that scalar_names is a list
+        if type(scalar_names) != list:
+            scalar_names = [scalar_names]
+
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
                 scalar_name = scalar_names[i]
@@ -459,9 +469,9 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
         input VTK file name
     output_vtk : string
         output VTK file name
-    new_scalar_lists : list of lists of floats
+    new_scalar_lists : list of lists of floats (or single list or array of floats)
         each list (lookup table) contains new values to assign to the vertices
-    new_scalar_names : list of strings
+    new_scalar_names : string or list of strings
         each element is the new name for a lookup table
     filter_scalars : list or numpy array (optional)
         scalar values used to filter faces (values > -1 retained)
@@ -482,15 +492,16 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, False)
     >>> # Write to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_rewrite_scalar_lists.vtk',
-    >>>                      [depths], ['depths'], sulci)
+    >>>                      depths, 'depths', sulci)
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalar_lists.vtk &')
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.mesh_operations import inside_faces
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_scalars, load_scalars
@@ -515,13 +526,19 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(new_scalar_lists) > 0:
-        # Make sure that new_scalar_lists is a list (important for nipype use)
+
+        # Make sure that new_scalar_lists is a list
         if type(new_scalar_lists) != list:
+            if type(new_scalar_lists[0]) == np.ndarray:
+                new_scalar_lists = new_scalar_lists.tolist()
             new_scalar_lists = [new_scalar_lists]
         # Make sure that new_scalar_lists is a list of lists
         if type(new_scalar_lists[0]) != list:
-            print('Error: new_scalar_lists should be a list of lists')
-            exit()
+            new_scalar_lists = [new_scalar_lists]
+        # Make sure that new_scalar_names is a list
+        if type(new_scalar_names) != list:
+            new_scalar_names = [new_scalar_names]
+
         for i, new_scalar_list in enumerate(new_scalar_lists):
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
@@ -612,10 +629,19 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
     if indices != []:
         write_vtk_vertices(Fp, indices)
     if len(scalar_lists) > 0:
-        # Make sure that scalar_lists is a list of lists
+
+        # Make sure that new_scalar_lists is a list
+        if type(scalar_lists) != list:
+            if type(scalar_lists[0]) == np.ndarray:
+                scalar_lists = scalar_lists.tolist()
+            scalar_lists = [scalar_lists]
+        # Make sure that new_scalar_lists is a list of lists
         if type(scalar_lists[0]) != list:
-            print('Error: new_scalar_lists should be a list of lists')
-            exit()
+            scalar_lists = [scalar_lists]
+        # Make sure that scalar_names is a list
+        if type(scalar_names) != list:
+            scalar_names = [scalar_names]
+
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
                 scalar_name = scalar_names[i]
