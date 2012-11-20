@@ -686,7 +686,7 @@ def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
     >>> from mindboggle.utils.io_vtk import load_scalars, explode_scalar_list
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> output_stem = 'sulcus'
     >>> explode_scalar_list(sulci_file, output_stem)
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
@@ -854,7 +854,7 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> mesh_indices = find_neighbors(faces, n_vertices)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
