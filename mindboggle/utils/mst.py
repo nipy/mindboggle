@@ -177,8 +177,8 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> import mindboggle.utils.meshlib as ml
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(data_path, 'results', 'features',
-    >>>                           '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
@@ -214,8 +214,8 @@ if __name__ == "__main__" :
     from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     import mindboggle.utils.meshlib as ml
     data_path = os.environ['MINDBOGGLE_DATA']
-    sulci_file = os.path.join(data_path, 'results', 'features',
-                           '_hemi_lh_subject_MMRR-21-1', 'sulci.vtk')
+    sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+                                         'features', 'lh.sulci.vtk')
     points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     sulcus_ID = 1
     sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]

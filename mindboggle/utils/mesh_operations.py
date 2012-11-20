@@ -408,7 +408,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> import mindboggle.utils.kernels as kernels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'folds.vtk')
+    >>>                                      'features', 'lh.folds.vtk')
     >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1', 'labels',
     >>>                           'lh.labels.DKT25.manual.vtk')
     >>> points, faces, folds, n_vertices = load_scalars(folds_file, True)
@@ -897,8 +897,9 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
             index_neighbors = [int(list(frozenset(x).difference([index]))[0])
                                for x in pairs if index in x]
             # Store neighbors whose depth is less than a fraction of the basin's depth
+            tiny = 0.000001
             index_neighbors = [[x, index] for x in index_neighbors
-                if basin_depths[x] / basin_depths[index] < depth_ratio]
+                if basin_depths[x] / (basin_depths[index] + tiny) < depth_ratio]
             if len(index_neighbors):
                 basin_pairs.extend(index_neighbors)
 
@@ -1530,7 +1531,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
     >>>                                                          True)
