@@ -244,7 +244,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, mean_curvatures, n_vertices = load_scalars(mean_curvature_file,
@@ -469,7 +469,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'sulci.vtk')
+    >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
@@ -592,7 +592,7 @@ if __name__ == "__main__" :
     min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                                          'measures', 'lh.pial.curv.min.dir.txt')
     sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-                                         'features', 'sulci.vtk')
+                                         'features', 'lh.sulci.vtk')
 
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
     neighbor_lists = find_neighbors(faces, len(points))
