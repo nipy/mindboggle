@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 //    depthComputer->WriteIntoFile(argv[2]);
 
     MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
-    depthComputer->ComputeTravelDepth(true);
+    depthComputer->ComputeTravelDepthFromClosed(true);
     depthComputer->WriteIntoFile(argv[2],(char*)"depth");
 
 

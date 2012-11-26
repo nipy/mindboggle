@@ -698,8 +698,8 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
 
     [Vrtx, Fc] = Mesh
     
-    LUT_names = [Name for Name in Maps.iterkeys()]
-    LUTs = [LUT for LUT in Maps.itervalues()]
+    scalar_names = [Name for Name in Maps.iterkeys()]
+    scalar_lists = [scalar_list for scalar_list in Maps.itervalues()]
     
     LastSlash = len(FundiVTK) - FundiVTK[::-1].find('/')
     Hemi =  FundiVTK[:FundiVTK[LastSlash:].find('.')+LastSlash]# path up to which hemisphere, e.g., /home/data/lh
@@ -708,21 +708,21 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
     FcCmpnt, VrtxCmpnt = libbasin.compnent([], [], [], ".".join([Hemi, SulciMap, str(SulciThld)]))
 
     
-    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, Maps[Extract_Fundi_on_Map]) # changed 2011-07-21 00:23
+    PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, Maps[Extract_Fundi_on_Map])
 
-    LenLUT = [0 for i in xrange(0,len(NbrLst))]
+    len_scalars = [0 for i in xrange(0,len(NbrLst))]
     for Key, Value in FundusLen.iteritems():
-        LenLUT[Key] = Value               
-    LUT_names.append('fundusLength')
-    LUTs.append(LenLUT)
+        len_scalars[Key] = Value
+    scalar_names.append('fundusLength')
+    scalar_lists.append(len_scalars)
     
-    FIDLUT = [-1 for i in xrange(0,len(NbrLst))] # value for gyri is now -1 Forrest 2011-11-01
+    FIDscalars = [-1 for i in xrange(0,len(NbrLst))] # value for gyri is now -1 Forrest 2011-11-01
     for Key, Value in FundusID.iteritems():
-        FIDLUT[Key] = Value
-    LUT_names.append('fundusID')
-    LUTs.append(FIDLUT)
+        FIDscalars[Key] = Value
+    scalar_names.append('fundusID')
+    scalar_lists.append(FIDscalars)
     
-    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, LUTs, LUT_names)
+    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, scalar_lists, scalar_names)
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -804,17 +804,17 @@ def getFeatures(InputFiles, Type, Options):
         Maps = {} 
         
         print "    Loading depth map"
-        Vertexes, Faces, Depth, N_Vertices = io_vtk.load_scalar(DepthVTK, return_arrays=0)
+        Vertexes, Faces, Depth, N_Vertices = io_vtk.load_scalars(DepthVTK, return_arrays=0)
 
         Maps['depth'] = Depth
         
         if MeanCurvVTK != "":
             print "   Loading mean curvature map"
-            Vertexes, Faces, Maps['meancurv'], N_Vertices = io_vtk.load_scalar(MeanCurvVTK, return_arrays=0)
+            Vertexes, Faces, Maps['meancurv'], N_Vertices = io_vtk.load_scalars(MeanCurvVTK, return_arrays=0)
             
         if GaussCurvVTK != "":
             print "   Loading Gaussian curvature map"
-            Vertexes, Faces, Maps['gausscurv'], N_Vertices = io_vtk.load_scalar(GaussCurvVTK, return_arrays=0)
+            Vertexes, Faces, Maps['gausscurv'], N_Vertices = io_vtk.load_scalars(GaussCurvVTK, return_arrays=0)
             
         if ThickFile != '':
             Maps['thickness'] = io_free.read_curvature(ThickFile) 
@@ -833,7 +833,7 @@ def getFeatures(InputFiles, Type, Options):
     else:
         libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=False, SulciMap =Extract_Sulci_on_Map) # by default, extract sulci and pits from depth map
         
-    Pits=io_vtk.load_vtk_vertices(PitsVTK)
+    Pits=io_vtk.load_vertices(PitsVTK)
     
     fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, Extract_Sulci_on_Map, Extract_Fundi_on_Map)
     # end of common for both FreeSurfer and vtk type
