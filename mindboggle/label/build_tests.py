@@ -13,7 +13,7 @@ Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 """
 
 import numpy as np
-from mindboggle.utils.io_vtk import write_scalars
+from mindboggle.utils.io_vtk import write_scalar_lists
 
 N = 99  # divisible by 3
 build_labels = False
@@ -70,7 +70,7 @@ if build_labels:
 
     # Write VTK file
     vtk_file = 'test_labels.vtk'
-    write_scalars(vtk_file, Points, Vertices, Faces, LUTs=Labels, LUT_names=['Labels'])
+    write_scalar_lists(vtk_file, Points, Vertices, Faces, [Labels], ['Labels'])
 
 #=======
 # Lines
@@ -107,5 +107,4 @@ if build_lines:
 
         # Write VTK file
         vtk_file = 'test_linespacing{0}.vtk'.format(itest + 1)
-        write_scalars(vtk_file, Points, Vertices, Faces,
-                      LUTs=Labels, LUT_names=['Labels'])
+        write_scalar_lists(vtk_file, Points, Vertices, Faces, [Labels], ['Labels'])
