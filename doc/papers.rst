@@ -10,6 +10,8 @@ Papers
 |                 | |title_paper7|      |
 +                 +---------------------+
 |                 | |ref_paper7|        |
++                 +---------------------+
+|                 | |www_paper7|        |
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
@@ -206,9 +208,14 @@ Conferences
 .. |title_paper7| replace::
     `101 labeled brain images and a consistent human cortical labeling protocol`_.
 .. |ref_paper7| replace::
-    *Frontiers in Brain Imaging Methods*. 6:171.  DOI: 10.3389/fnins.2012.00171
+    *Frontiers in Brain Imaging Methods*. 6:171.
+    DOI: 10.3389/fnins.2012.00171
+.. |www_paper7| replace::
+    `Data and software (supplementary website)`_
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`:
     http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/abstract
+.. _`Data and software (supplementary website)`:
+    http://mindboggle.info/data/
 
 
 .. |pic_paper6| image:: http://media.mindboggle.info/images/papers/ANTSevaluation_NeuroImage2010.png
@@ -221,6 +228,7 @@ Conferences
     *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962. 
 .. _`A reproducible evaluation of ANTs similarity metric performance in brain image registration`:
     http://mindboggle.info/papers/ANTSevaluation_NeuroImage2010.pdf
+
 
 .. |pic_paper5| image:: http://media.mindboggle.info/images/papers/SurfaceVolumeEval_NeuroImage_2009.jpg
                     :width: 300px
@@ -236,6 +244,7 @@ Conferences
 .. _`Evaluation of volume-based and surface-based brain image registration methods`:
     http://mindboggle.info/papers/evaluation_NeuroImage2010/Evaluation_Klein_NeuroImage2010.pdf
 .. _`Supplementary website for PMC2862732`: http://mindboggle.info/papers/evaluation_NeuroImage2010.php
+
 
 .. |pic_paper4| image:: http://media.mindboggle.info/images/papers/EvaluationData_NeuroImage2009_half.png
                     :width: 300px
@@ -254,6 +263,7 @@ Conferences
 .. _`Evaluation of 14 nonlinear deformation algorithms applied to human brain MRI registration`:
     http://mindboggle.info/papers/evaluation_NeuroImage2009/Evaluation_Klein_NeuroImage2009.pdf
 
+
 .. |pic_paper3| image:: http://media.mindboggle.info/images/papers/coregistration_SPIE_2009.png
                     :width: 300px
 .. |authors_paper3| replace::
@@ -264,6 +274,7 @@ Conferences
     *Proc. SPIE - Medical Imaging*. 7259, 72592W.
 .. _`A new method for assessing PET-MRI coregistration`:
     http://mindboggle.info/papers/CoregistrationPETtoMRI_SPIE_2009.pdf
+
 
 .. |pic_paper2| image:: http://media.mindboggle.info/images/papers/Mindboggle_BMCMedicalImaging_2005.png
                     :width: 300px
@@ -276,6 +287,7 @@ Conferences
 .. _`PMCID: PMC1283974`: http://www.ncbi.nlm.nih.gov/pmc/articles/PMC1283974/
 .. _`Mindboggle: Automated brain labeling with multiple atlases`:
     http://www.biomedcentral.com/1471-2342/5/7/abstract
+
 
 .. |pic_paper1| image:: http://media.mindboggle.info/images/papers/Mindboggle_NeuroImage_2005.png
                     :width: 300px
