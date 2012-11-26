@@ -521,13 +521,59 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     vtkPolyDataWriter* writer=vtkPolyDataWriter::New();
     writer->SetFileName(fileName);
 
-    if(strcmp("geoDist",prop)==0) this->mesh->GetPointData()->SetScalars(this->geoDistRing);
-    else if(strcmp("depth",prop)==0) this->mesh->GetPointData()->SetScalars(this->depth);
-    else if(strcmp("euclideanDepth",prop)==0) this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
-    else if(strcmp("curv",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv);
-    else if(strcmp("gCurv",prop)==0) this->mesh->GetPointData()->SetScalars(this->gCurv);
-    else if(strcmp("test",prop)==0) this->mesh->GetPointData()->SetScalars(this->test);
-    else if(strcmp("surf",prop)==0) this->mesh->GetPointData()->SetScalars(this->pointSurf);
+    if(strcmp("geoDist",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->geoDistRing);
+        writer->SetInput(this->mesh);
+    }
+    else if(strcmp("depth",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->depth);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("euclideanDepth",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("curv",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->curv);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("gCurv",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->gCurv);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("curv1",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->curv1);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("curv2",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->curv2);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("test",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->test);
+        writer->SetInput(this->mesh);
+    }
+
+    else if(strcmp("surf",prop)==0)
+    {
+        this->mesh->GetPointData()->SetScalars(this->pointSurf);
+        writer->SetInput(this->mesh);
+    }
+
     else if(strcmp("1color",prop)==0)
     {
         vtkDoubleArray* value=vtkDoubleArray::New();
@@ -538,26 +584,12 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         }
         this->mesh->GetPointData()->SetScalars(value);
         value->Delete();
-
+        writer->SetInput(this->mesh);
     }
-    //If no valid code is used, the index of the point is the scalar
-    else
+    else if(strcmp("simple",prop)==0)
     {
-/*
-        vtkDoubleArray* noValue=vtkDoubleArray::New();
-
-        for(int i=0;i<this->nbPoints;i++)
-        {
-            noValue->InsertNextValue(i);
-        }
-        this->mesh->GetPointData()->SetScalars(noValue);
-        noValue->Delete();
-*/
+        writer->SetInput(this->simpl);
     }
-
-
-    this->mesh->Update();
-    if(strcmp("simple",prop)==0) writer->SetInput(this->simpl);
     else if(strcmp("geoDistSimple",prop)==0)
     {
         Simplify(500);
@@ -566,9 +598,22 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         this->simpl->Update();
         writer->SetInput(this->simpl);
     }
-    else if(strcmp("closed",prop)==0) writer->SetInput(this->closedMesh);
-    else if(strcmp("medial",prop)==0) writer->SetInput(this->medialSurface);
-    else writer->SetInput(this->mesh);
+    else if(strcmp("closed",prop)==0)
+    {
+        writer->SetInput(this->closedMesh);
+    }
+    else if(strcmp("medial",prop)==0)
+    {
+        writer->SetInput(this->medialSurface);
+    }
+    else
+    {
+        writer->SetInput(this->mesh);
+        cout<<"WARNING: "<< prop <<" is not a valid keyword for WriteIntoFile"<<endl;
+    }
+
+    this->mesh->Update();
+
     writer->Update();
     writer->Write();
     writer->Delete();
