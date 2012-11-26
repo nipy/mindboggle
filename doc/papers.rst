@@ -206,8 +206,7 @@ Conferences
 .. |title_paper7| replace::
     `101 labeled brain images and a consistent human cortical labeling protocol`_.
 .. |ref_paper7| replace::
-    *Frontiers in Brain Imaging Methods*. --Accepted--
-    DOI: 10.3389/fnins.2012.00171
+    *Frontiers in Brain Imaging Methods*. 6:171.  DOI: 10.3389/fnins.2012.00171
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`:
     http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/abstract
 
