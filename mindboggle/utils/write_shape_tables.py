@@ -24,7 +24,7 @@ exclude_values = [-1]
 fid = open(list_file, 'r')
 subjects = fid.readlines()
 subjects = [''.join(x.split()) for x in subjects]
-for subject in subjects[85::]: #['MMRR-21-5']:
+for subject in ['OASIS-TRT-20-11']: #subjects[90::]: #['MMRR-21-5']:
     print(subject)
     for hemi in hemis:
 
