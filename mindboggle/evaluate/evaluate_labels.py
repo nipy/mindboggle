@@ -16,10 +16,6 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import os
-#import numpy as np
-#import nibabel as nb
-#from nipype.interfaces.base import CommandLine
 
 def measure_surface_overlap(command, labels_file1, labels_file2):
     """
@@ -31,6 +27,24 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     labels_file1 : ``vtk file`` with index labels for scalar values
     labels_file2 : ``vtk file`` with index labels for scalar values
 
+    Returns
+    -------
+    overlap_file : string
+        name of output text file with overlap results
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
+    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
+    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
+    >>> data_path = os.path.join(os.environ['MINDBOGGLE_DATA'], 'rescan_labels')
+    >>> appnd = '.lh.pial.labels.DKT31.manual.vtk'
+    >>> # Two misaligned label files:
+    >>> file1 = os.path.join(data_path, 'rescan_labels', 'MMRR-21-2' + appnd)
+    >>> file2 = os.path.join(data_path, 'rescan_labels', 'MMRR-21-2_rescan' + appnd)
+    >>> measure_surface_overlap(command, file1, file2)
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -41,6 +55,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([labels_file1, labels_file2, overlap_file])
     cli.cmdline
+    cli.run()
 
     return overlap_file
 
@@ -55,6 +70,13 @@ def measure_volume_overlap(labels, atlas_file, input_file):
     labels : list of label indices
     atlas_file : source image, consisting of index-labeled pixels/voxels
     input_file : target image, consisting of index-labeled pixels/voxels
+
+    Returns
+    -------
+    overlaps : numpy array
+        overlap values
+    out_file : string
+        output text file name with overlap values
 
     """
     import os
