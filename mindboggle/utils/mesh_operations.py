@@ -446,38 +446,44 @@ def propagate(points, faces, region, seeds, labels,
     import mindboggle.label.rebound as rb
 
     indices_region = [i for i,x in enumerate(region) if x > -1]
-    local_indices_region = -1 * np.ones(len(region))
-    local_indices_region[indices_region] = range(len(indices_region))
-    points = np.asarray(points)
+    if len(indices_region) and len(points) and len(faces):
+        local_indices_region = -1 * np.ones(len(region))
+        local_indices_region[indices_region] = range(len(indices_region))
+        points = np.asarray(points)
 
-    n_sets = len(np.unique([x for x in seeds if x > -1]))
-    if n_sets == 1:
-        print('Segment {0} vertices from 1 set of seed vertices'.
-              format(len(indices_region)))
+        n_sets = len(np.unique([x for x in seeds if x > -1]))
+        if n_sets == 1:
+            print('Segment {0} vertices from 1 set of seed vertices'.
+                  format(len(indices_region)))
+        else:
+            print('Segment {0} vertices from {1} sets of seed vertices'.
+                  format(len(indices_region), n_sets))
+
+        # Set up rebound Bounds class instance
+        B = rb.Bounds()
+        B.Faces = inside_faces(faces, indices_region)
+        if len(B.Faces):
+            B.Indices = local_indices_region
+            B.Points = points[indices_region, :]
+            B.Labels = labels[indices_region]
+            B.seed_labels = seeds[indices_region]
+            B.num_points = len(B.Points)
+
+            # Propagate seed IDs from seeds
+            B.graph_based_learning(method='propagate_labels', realign=False,
+                                   kernel=kernels.rbf_kernel, sigma=sigma,
+                                   max_iters=max_iters, tol=tol, vis=False)
+        else:
+            print("  No faces")
+
+        # Assign maximum probability seed IDs to each point of region
+        max_prob_labels = B.assign_max_prob_label()
+
+        # Return segment IDs in original vertex array
+        segments = -1 * np.ones(len(points))
+        segments[indices_region] = max_prob_labels
     else:
-        print('Segment {0} vertices from {1} sets of seed vertices'.
-              format(len(indices_region), n_sets))
-
-    # Set up rebound Bounds class instance
-    B = rb.Bounds()
-    B.Indices = local_indices_region
-    B.Points = points[indices_region, :]
-    B.Faces = inside_faces(faces, indices_region)
-    B.Labels = labels[indices_region]
-    B.seed_labels = seeds[indices_region]
-    B.num_points = len(B.Points)
-
-    # Propagate seed IDs from seeds
-    B.graph_based_learning(method='propagate_labels', realign=False,
-                           kernel=kernels.rbf_kernel, sigma=sigma,
-                           max_iters=max_iters, tol=tol, vis=False)
-
-    # Assign maximum probability seed IDs to each point of region
-    max_prob_labels = B.assign_max_prob_label()
-
-    # Return segment IDs in original vertex array
-    segments = -1 * np.ones(len(points))
-    segments[indices_region] = max_prob_labels
+        segments = -1 * np.ones(len(points))
 
     return segments
 

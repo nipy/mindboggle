@@ -749,22 +749,23 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> subject = 'MMRR-21-1'
+    >>> labels_file = os.path.join(data_path, 'subjects', subject,
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> exclude_values = [-1]
-    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> area_file = os.path.join(data_path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> depth_file = os.path.join(data_path, 'subjects', subject,
     >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                    'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> max_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                   'measures', 'lh.pial.curv.max.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
-    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
     >>> write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>>                         area_file, depth_file, mean_curvature_file,
     >>>                         gauss_curvature_file,
@@ -812,7 +813,7 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
 
     return means_file, norm_means_file
 
-def write_vertex_shape_table(filename, column_names, indices, area_file,
+def write_vertex_shapes_table(filename, column_names, indices, area_file,
                              depth_file, mean_curvature_file, gauss_curvature_file,
                              max_curvature_file, min_curvature_file,
                              thickness_file='', convexity_file='',
@@ -848,30 +849,31 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
     >>> filename = 'test_write_vertex_shape_table.txt'
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> subject = 'MMRR-21-1'
+    >>> labels_file = os.path.join(data_path, 'subjects', subject,
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> mesh_indices = find_neighbors(faces, n_vertices)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> sulci_file = os.path.join(data_path, 'subjects', subject,
     >>>                                      'features', 'lh.sulci.vtk')
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
     >>>     neighbor_lists)
     >>> nonsegments = [-1]
-    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> area_file = os.path.join(data_path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> depth_file = os.path.join(data_path, 'subjects', subject,
     >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> mean_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                    'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> max_curvature_file = os.path.join(data_path, 'subjects', subject,
     >>>                                   'measures', 'lh.pial.curv.max.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
-    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
     >>> write_vertex_shape_table(filename, column_names, indices,
     >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
     >>>     max_curvature_file, min_curvature_file, thickness_file='',
@@ -912,7 +914,6 @@ def write_vertex_shape_table(filename, column_names, indices, area_file,
                 depths[indices_segment] = depths[indices_segment] / max_depth_segment
         column_names.append('norm_depth')
         columns.append(depths[indices])
-    print(len(column_names), len(columns))
     shape_table = os.path.join(os.getcwd(), filename)
     write_table(segments[indices], columns, column_names, shape_table)
 
