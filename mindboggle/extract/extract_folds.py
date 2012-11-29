@@ -18,17 +18,6 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     """
     Use depth to extract folds from a triangular surface mesh.
 
-    To extract an initial set of deep vertices from the surface mesh,
-    we anticipate that there will be a rapidly decreasing distribution
-    of low depth values (on the outer surface) with a long tail
-    of higher depth values (in the folds), so we smooth the histogram's
-    bin values (Gaussian), convolve to compute slopes,
-    and find the depth value for the first bin with slope = 0.
-
-    We segment the folds into depth-based subfolds using a watershed algorithm,
-    shrink watershed segments for folds that have multiple segments
-    and regrow these shrunken segments.
-
     Steps ::
         1. Compute histogram of depth measures
         2. Find the deepest vertices
@@ -40,12 +29,30 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         8. Regrow shrunken segments
         9. Renumber segments
 
-    Note regarding step 5::
+    Step 2::
+        To extract an initial set of deep vertices from the surface mesh,
+        we anticipate that there will be a rapidly decreasing distribution
+        of low depth values (on the outer surface) with a long tail
+        of higher depth values (in the folds), so we smooth the histogram's
+        bin values (Gaussian), convolve to compute slopes,
+        and find the depth value for the first bin with slope = 0.
+
+    Step 5::
         The resulting separately numbered folds may have holes
         resulting from shallower areas within a fold, but calling fill_holes()
         at this stage can accidentally fill surfaces between folds,
         so we call fill_holes() with the argument exclude_values set to zero
         for zero-depth between folds.
+
+    Steps 6-8::
+        The watershed() function has the same drawback as the segment() function
+        -- the order of seed selection influences the result for multiple
+        seeds within a connected set of vertices (region).
+        To ameliorate this bias, we run the shrink_segments() function
+        on the segments returned by watershed(), which shrinks segments in
+        regions with multiple segments, and use these fractional segments
+        as seeds for the propagate() function, which is slower and insensitive
+        to depth, but is not biased by seed order.
 
     Parameters
     ----------
@@ -102,11 +109,6 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
 
     # Load depth values for all vertices
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
-
-    # Normalize depth values [0-1]
-#    if min(depths) < 0:
-#        depths = depths - min(depths)
-#        depths = depths / max(depths)
 
     # Find neighbors for each vertex
     if not len(neighbor_lists):
@@ -189,7 +191,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         shrunken_segments = shrink_segments(folds, segments, depths,
                                             remove_fraction=0.75,
                                             only_multiple_segments=True)
-        print('  ...Segmented, removed small folds, filled holes, shrunk segments'
+        print('  ...Segmented, removed small folds, filled holes, shrank segments'
               ' ({0:.2f} seconds)'.format(time() - t0))
 
         # Regrow shrunken segments
