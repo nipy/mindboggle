@@ -106,6 +106,54 @@ def compute_vector_distance(vector1, vector2):
         print("Vectors have to be of equal size to compute distance.")
         return None
 
+def pairwise_vector_distances(list_of_vectors, outfile=''):
+    """
+    Compare every pair of equal-sized vectors.
+
+    Parameters
+    ----------
+    list_of_vectors : list of 1-D numpy arrays of floats
+
+    Returns
+    -------
+    vector_distances : numpy array of floats
+        distances between each pair of vectors
+    outfile : string [optional]
+        output filename for pairwise_vector_distances
+
+    Examples
+    --------
+    >>> from mindboggle.measure.measure_functions import pairwise_vector_distances
+    >>> pairwise_vector_distances([np.array([1,2,3]), np.array([0,3,5])])
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.measure.measure_functions import compute_vector_distance
+
+    # Initialize output
+    vectors = np.asarray(list_of_vectors)
+    vector_distances = np.zeros((len(list_of_vectors), len(list_of_vectors)))
+
+    #---------------------------------------------------------------------------
+    # Compute distance between each pair of vectors
+    #---------------------------------------------------------------------------
+    # Loop through every pair of vectors
+    for ihist1 in range(len(list_of_vectors)):
+        for ihist2 in range(len(list_of_vectors)):
+            if ihist2 >= ihist1:
+
+                # Store pairwise distances between histogram values
+                d = compute_vector_distance(vectors[ihist1], vectors[ihist2])
+                vector_distances[ihist1, ihist2] = d
+
+    if len(outfile):
+        outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
+        np.savetxt(outfile, vector_distances,
+                   fmt=len(list_of_vectors) * '%.4f ', delimiter='\t', newline='\n')
+
+    return vector_distances, outfile
+
 def compute_area(command, surface_file):
     """
     Measure Joachim Giard's "travel area" for a surface mesh.
