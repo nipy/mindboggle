@@ -14,9 +14,10 @@ int main(int argc, char** argv)
 //    depthComputer->WriteIntoFile(argv[2]);
 
     MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
-//    depthComputer->ComputeTravelDepthFromClosed(true);
-      depthComputer->ComputePrincipalCurvatures();
-    depthComputer->WriteIntoFile(argv[2],(char*)"curv2");
+    depthComputer->ComputeTravelDepthFromClosed(true);
+    depthComputer->WriteIntoFile(argv[2],(char*)"depth");
+//   depthComputer->ComputePrincipalCurvatures();
+//   depthComputer->WriteIntoFile(argv[2],(char*)"curv2");
 
 
 
