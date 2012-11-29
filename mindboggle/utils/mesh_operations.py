@@ -1872,62 +1872,6 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
 
 #------------------------------------------------------------------------------
-# Compute distance
-#------------------------------------------------------------------------------
-def compute_distance(point, points):
-    """
-    Estimate the Euclidean distance from one point to a second (set) of points.
-
-    Parameters
-    ----------
-    point : list of three floats
-        coordinates for a single point
-    points : list with one or more lists of three floats
-        coordinates for a second point (or multiple points)
-
-    Returns
-    -------
-    min_distance : float
-        Euclidean distance between two points,
-        or the minimum distance between a point and a set of points
-    min_index : int
-        index of closest of the points (zero if only one)
-
-    Examples
-    --------
-    >>> from mindboggle.utils.mesh_operations import compute_distance
-    >>> point = [1,2,3]
-    >>> points = [[10,2.0,3], [0,1.5,2]]
-    >>> compute_distance(point, points)
-      (1.5, 1)
-
-    """
-    import numpy as np
-
-    # If points is a single point
-    if np.ndim(points) == 1:
-        return np.sqrt((point[0] - points[0]) ** 2 + \
-                       (point[1] - points[1]) ** 2 + \
-                       (point[2] - points[2]) ** 2), 0
-
-    # If points is a set of multiple points
-    elif np.ndim(points) == 2:
-        min_distance = np.Inf
-        min_index = 0
-        for index, point2 in enumerate(points):
-            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
-                               (point[1] - point2[1]) ** 2 + \
-                               (point[2] - point2[2]) ** 2)
-            if distance < min_distance:
-                min_distance = distance
-                min_index = index
-        return min_distance, min_index
-
-    # Else return None
-    else:
-        return None, None
-
-#------------------------------------------------------------------------------
 # Find vertices with highest values within a fraction of the surface
 #------------------------------------------------------------------------------
 def extract_area(values, areas, fraction):
