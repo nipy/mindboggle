@@ -18,6 +18,94 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #   Surface calculations
 ##############################################################################
 
+#------------------------------------------------------------------------------
+# Compute distance
+#------------------------------------------------------------------------------
+def compute_point_distance(point, points):
+    """
+    Compute the Euclidean distance from one point to a second (set) of points.
+
+    Parameters
+    ----------
+    point : list of three floats
+        coordinates for a single point
+    points : list with one or more lists of three floats
+        coordinates for a second point (or multiple points)
+
+    Returns
+    -------
+    min_distance : float
+        Euclidean distance between two points,
+        or the minimum distance between a point and a set of points
+    min_index : int
+        index of closest of the points (zero if only one)
+
+    Examples
+    --------
+    >>> from mindboggle.measure.measure_functions import compute_point_distance
+    >>> point = [1,2,3]
+    >>> points = [[10,2.0,3], [0,1.5,2]]
+    >>> compute_distance(point, points)
+      (1.5, 1)
+
+    """
+    import numpy as np
+
+    # If points is a single point
+    if np.ndim(points) == 1:
+        return np.sqrt((point[0] - points[0]) ** 2 + \
+                       (point[1] - points[1]) ** 2 + \
+                       (point[2] - points[2]) ** 2), 0
+
+    # If points is a set of multiple points
+    elif np.ndim(points) == 2:
+        min_distance = np.Inf
+        min_index = 0
+        for index, point2 in enumerate(points):
+            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
+                               (point[1] - point2[1]) ** 2 + \
+                               (point[2] - point2[2]) ** 2)
+            if distance < min_distance:
+                min_distance = distance
+                min_index = index
+        return min_distance, min_index
+
+    # Else return None
+    else:
+        return None, None
+
+def compute_vector_distance(vector1, vector2):
+    """
+    Compute the Euclidean distance between two equal-sized vectors.
+
+    Parameters
+    ----------
+    vector1 : numpy array of floats
+        vector of values
+    vector2 : numpy array of floats
+        vector of values
+
+    Returns
+    -------
+    distance : float
+        Euclidean distance between two vectors
+
+    Examples
+    --------
+    >>> from mindboggle.measure.measure_functions import compute_vector_distance
+    >>> vector1 = [1,2,3]
+    >>> vector2 = [0,1,5]
+    >>> compute_vector_distance(vector1, vector2)
+
+    """
+    import numpy as np
+
+    if len(vector1) == len(vector2):
+        return np.sqrt(sum((vector1 - vector2)**2)) / len(vector1)
+    else:
+        print("Vectors have to be of equal size to compute distance.")
+        return None
+
 def compute_area(command, surface_file):
     """
     Measure Joachim Giard's "travel area" for a surface mesh.

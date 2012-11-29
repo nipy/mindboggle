@@ -17,12 +17,6 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import sys
-#import numpy as np
-#from mindboggle.utils.mesh_operations import compute_distance
-#from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
-#from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-#from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
 
 def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi):
@@ -42,7 +36,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     """
     import numpy as np
-    from mindboggle.utils.mesh_operations import compute_distance
+    from mindboggle.measure.measure_functions import compute_point_distance
 
     n_points = len(points)
 
@@ -62,8 +56,8 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
                                if folds[i] == folds[i_label_point]]
 
             # Find the closest fundus point to the label boundary fundus point
-            d, i = compute_distance(points[i_label_point],
-                                    points[I_fundus_points])
+            d, i = compute_point_distance(points[i_label_point],
+                                          points[I_fundus_points])
             distances[i_label_point] = d
             distance_matrix[i_label_point, fundus_ID - 1] = d
 
