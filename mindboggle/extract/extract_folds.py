@@ -103,6 +103,11 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     # Load depth values for all vertices
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
 
+    # Normalize depth values [0-1]
+#    if min(depths) < 0:
+#        depths = depths - min(depths)
+#        depths = depths / max(depths)
+
     # Find neighbors for each vertex
     if not len(neighbor_lists):
         neighbor_lists = find_neighbors(faces, len(points))
