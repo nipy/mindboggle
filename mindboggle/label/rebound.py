@@ -155,7 +155,7 @@ class Bounds:
 
         return self.label_matrix
 
-    def graph_based_learning(self,method='propagate_labels', realign=False,
+    def graph_based_learning(self, method='propagate_labels', realign=False,
                          kernel=kernels.rbf_kernel,
                          sigma=10, max_iters=200, tol=.001, vis=False):
         """
@@ -181,9 +181,13 @@ class Bounds:
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        self.affinity_matrix = go.weight_graph(self.Points, self.Indices, self.Faces,
-                                                  kernel=kernel, sigma=sigma,
-                                                  add_to_graph=False)
+        if len(self.Points) and len(self.Indices) and len(self.Faces):
+            self.affinity_matrix = go.weight_graph(self.Points, self.Indices,
+                self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False)
+        else:
+            print("  Missing data!")
+            import os
+            os.error()
 
         # Step 2. Transform column of labels into n x C matrix, one column per label
         if not realign:

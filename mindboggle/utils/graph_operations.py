@@ -115,7 +115,8 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
             G.add_weighted_edges_from(weighted_edges)
 
         # Construct affinity matrix
-        print('Construct sparse affinity matrix')
+        print('Construct sparse affinity matrix of size {0}'.
+              format(Nodes.shape[0]))
         affinity_matrix = lil_matrix((Nodes.shape[0], Nodes.shape[0]))
         for [i, j, edge_weight] in weighted_edges:
             affinity_matrix[i, j] = affinity_matrix[j, i] = edge_weight

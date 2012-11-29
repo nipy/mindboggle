@@ -515,18 +515,20 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                         label_array = -1 * np.ones(len(points))
                         indices_label = [fold[i] for i,x in enumerate(fold_labels)
                                          if x == label]
-                        label_array[indices_label] = 1
+                        if len(indices_label):
+                            label_array[indices_label] = 1
 
-                        # Propagate from seeds to vertices with label
-                        #indices_seeds = []
-                        #for seed in range(int(max(seeds))+1):
-                        #    indices_seeds.append([i for i,x in enumerate(seeds)
-                        #                          if x == seed])
-                        #sulci2 = segment(indices_label, neighbor_lists,
-                        #                 50, indices_seeds, False, True, labels)
-                        sulci2 = propagate(points, faces, label_array, seeds, sulci,
-                                           max_iters=10000, tol=0.001, sigma=5)
-                        sulci[sulci2 > -1] = sulci2[sulci2 > -1]
+                            # Propagate from seeds to vertices with label
+                            #indices_seeds = []
+                            #for seed in range(int(max(seeds))+1):
+                            #    indices_seeds.append([i for i,x in enumerate(seeds)
+                            #                          if x == seed])
+                            #sulci2 = segment(indices_label, neighbor_lists,
+                            #                 50, indices_seeds, False, True, labels)
+                            sulci2 = propagate(points, faces, label_array,
+                                               seeds, sulci, max_iters=10000,
+                                               tol=0.001, sigma=5)
+                            sulci[sulci2 > -1] = sulci2[sulci2 > -1]
 
     # Print out assigned sulci
     sulcus_numbers = [int(x) for x in np.unique(sulci) if x > -1]
