@@ -492,7 +492,7 @@ def propagate(points, faces, region, seeds, labels,
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False,
-            spread_within_labels=False, labels=[], label_lists=[]):
+            spread_within_labels=False, labels=[], label_lists=[], values=[]):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -516,6 +516,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     label_lists : list of lists of integers (required only if spread_within_labels)
         List of unique labels for each seed list to grow into
         (If empty, set to unique labels for each seed list)
+    values : list or array of floats (default empty)
+        values for all vertices for use in preferentially directed segmentation
+        (segment in direction of lower values)
 
     Returns
     -------
@@ -554,14 +557,14 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> #              vertices_to_segment[range(10000,12000)]]
     >>>
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 50,
-    >>>                 seed_lists, True, True, labels, label_lists)
+    >>>                 seed_lists, True, True, labels, label_lists, values=[])
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment.vtk',
     >>>                      [sulci.tolist()], ['sulci'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment.vtk &')
     >>>
-    >>> # Example 2: without seed lists
+    >>> # Example 2: without seed lists or values
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
@@ -627,14 +630,25 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
                 if len(vertices_to_segment):
 
-                    # Identify neighbors of seeds
-                    neighbors = []
-                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+                    # Find neighbors of each seed with lower values than the seed
+                    if len(values):
+                        neighbors = []
+                        for seed in seed_list:
+                            seed_neighbors = neighbor_lists[seed]
+                            seed_neighbors = [x for x in seed_neighbors]
+#                                              if values[x] <= values[seed]]
+                            if len(seed_neighbors):
+                                neighbors.extend(seed_neighbors)
+                    else:
+                        # Find neighbors of seeds
+                        neighbors = []
+                        [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
                     # Select neighbors that have not been previously selected
                     # and are among the vertices to segment
                     seed_list = list(frozenset(neighbors).intersection(vertices_to_segment))
                     seed_list = list(frozenset(seed_list).difference(all_regions))
+
                 else:
                     seed_list = []
 
@@ -743,7 +757,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 #------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions by seed growing
+# Segment vertices of surface into contiguous regions by a watershed algorithm
 #------------------------------------------------------------------------------
 def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     """
@@ -935,7 +949,7 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     by the order of seed selection for multiple seeds within a connected
     set of vertices (region, such as a fold).
     To ameliorate this bias, we run this function on the segments returned by
-    segments or watershed() to shrink segments in regions with multiple
+    segment() or watershed() to shrink segments in regions with multiple
     segments (only_multiple_segments=True).
     The output can be used as seeds for the propagate() function,
     which is not biased by seed order.
