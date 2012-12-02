@@ -53,9 +53,9 @@ hemis = ['lh','rh']
 #-----------------------------------------------------------------------------
 # Subjects to process
 #-----------------------------------------------------------------------------
-import utils.io_file as iof
+from mindboggle.utils.io_file import read_columns
 atlas_list_file = os.path.join(info_path, 'atlases101.txt')
-subjects = iof.read_columns(atlas_list_file, 1)[0]
+subjects = read_columns(atlas_list_file, 1)[0]
 subjects = ['OASIS-TRT-20-11']
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
