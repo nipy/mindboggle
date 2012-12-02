@@ -536,7 +536,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # high to speed up
+    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>>
     >>> # Example 1: with seed lists
@@ -552,11 +552,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> for label_pair_list in label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries)
     >>>         if np.sort(label_pairs[i]).tolist() in label_pair_list])
-    >>> #seed_lists = [vertices_to_segment[range(2000)],
-    >>> #              vertices_to_segment[range(2000,4000)],
-    >>> #              vertices_to_segment[range(10000,12000)]]
     >>>
-    >>> sulci = segment(vertices_to_segment, neighbor_lists, 50,
+    >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
     >>>                 seed_lists, True, True, labels, label_lists, values=[])
     >>>
     >>> # Write results to vtk file and view with mayavi2:
@@ -564,7 +561,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>>                      [sulci.tolist()], ['sulci'], sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment.vtk &')
     >>>
-    >>> # Example 2: without seed lists or values
+    >>> # Example 2: without seed lists
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment2.vtk',
@@ -635,8 +632,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                         neighbors = []
                         for seed in seed_list:
                             seed_neighbors = neighbor_lists[seed]
-                            seed_neighbors = [x for x in seed_neighbors]
-#                                              if values[x] <= values[seed]]
+                            seed_neighbors = [x for x in seed_neighbors
+                                              if values[x] <= values[seed]]
                             if len(seed_neighbors):
                                 neighbors.extend(seed_neighbors)
                     else:
