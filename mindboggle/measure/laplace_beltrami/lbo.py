@@ -2,8 +2,8 @@
 """
 Computing the Laplace-Beltrami Spectrum of a given structure. 
 
-1. Geometric Laplacians 
-2. FEM Laplacians (to be implemented)
+1. Geometric Laplacians (Desburn et al.'s, using cotangent kernel and area-based masses) 
+2. FEM Laplacians (linear FEM version. Cubic FEM version later.)
 
 Authors:
     - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
@@ -12,16 +12,33 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 We follow the definitions and steps given in Reuter et al.'s 
-Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation
+Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation (2009)
 
-Since Reuters et al. did not give explicit equations/algorithm to compute 
-FEM Laplacian, Forrest derived derived the computation steps according to the paper.
-No mathematician has verified that his steps.  
-Oh, and this is a free software. So, use at your own risk.   
+Since Reuter et al. (2009) did not give explicit equations/algorithm to compute 
+FEM Laplacian, Forrest derived the computation steps according to the paper.
+No mathematician has verified his steps. 
+And, this is free software. So, use at your own risk.   
 
 I just realize that PEP 8 says Capitalized_Letters_with_Underscores look UGLY!
+This is contrary to what I remembered before. 
 So I am replacing variable names gradually.  
 
+Known things that you need to pay attention (not to be considered as bugs):
+1. In fem_laplacian(), converting the lil_matrix A to array could cause dramatic 
+change to the spectrum. Please try to (un)comment the two lines above and below 
+the line ``A = A.toarray()'' and you will see the change. Without the line, the 
+LBS is a list of complex numbers. With it, a list of real numbers.  
+This really puzzles me. 
+Currently, I keep that line in the code. 
+
+2. In ``nodes``, do NOT provide coordinates of vertices that do NOT appear on 
+the 3-D structure whose LBS is to be calculated. 
+For example, do not use coordinates of all POINTS from a VTK file as ``nodes`` 
+and some of the faces (e.g., sulcus fold) as ``faces``. 
+This will cause singular matrix error when inverting matrixes because some rows 
+are all zeros. 
+You can observe this error by removing the [0,1,7] face from ``faces`` in 
+the example at the end. 
 """
 
 def gen_V(Meshes, W, Neighbor):
@@ -85,41 +102,6 @@ def area(Nodes, Meshes):
         i += 1
     return Area
 
-def masses(Nodes, Areas, Faces_at_Nodes):
-    """Computer the mass matrix D = diag(d_1, ..., d_n) where 
-       d_i = a(i)/3 and a(i) is the area of all triangles at node i 
-       (Here we adopt Eq. (4) of Reuter's paper)    
-
-    Parameters
-    -----------
-    
-    Nodes : 2-D numpy array 
-        Nodes[i] is the 3-D coordinates of nodes on a mesh 
-    Meshes : 2-D numpy array
-        Meshes[i] is a 3-element array containing the indexes of nodes 
-    Area: A 1-D numpy array
-        Area[i] is the area of the i-th triangle 
-    Faces_at_Nodes: a 2-D list
-        Faces_at_Nodes[i] is a list of IDs of faces at node i.
-    d: a list of floats
-        The sequence d_i, ..., d_n in Eq.(4)
-    
-    Returns
-    ---------
-    D: a sparse diagonal matrix
-        The mass matrix
-    
-    """
-#    import numpy as np
-    from scipy.sparse import lil_matrix
-    num_nodes = Nodes.shape[0]
-    
-    d = [sum([Areas[j] for j in Faces_at_Nodes[i]]) for i in range(num_nodes)]
-    D = lil_matrix((num_nodes, num_nodes))
-    D.setdiag(d)
-    D /= 3 
-    return D
-
 def geometric_laplacian(Nodes, Faces):
     """The portal function to compute geometric laplacian
     
@@ -150,6 +132,46 @@ def geometric_laplacian(Nodes, Faces):
     5. L = inv(D)*A
     
     """
+    
+    def masses(Nodes, Areas, Faces_at_Nodes):
+        """Computer the mass matrix D = diag(d_1, ..., d_n) where 
+           d_i = a(i)/3 and a(i) is the area of all triangles at node i 
+           (Here we adopt Eq. (4) of Reuter's paper)    
+    
+        Parameters
+        -----------
+        
+        Nodes : 2-D numpy array 
+            Nodes[i] is the 3-D coordinates of nodes on a mesh 
+        Meshes : 2-D numpy array
+            Meshes[i] is a 3-element array containing the indexes of nodes 
+        Area: A 1-D numpy array
+            Area[i] is the area of the i-th triangle 
+        Faces_at_Nodes: a 2-D list
+            Faces_at_Nodes[i] is a list of IDs of faces at node i.
+        d: a list of floats
+            The sequence d_i, ..., d_n in Eq.(4)
+        
+        Returns
+        ---------
+        D: a sparse diagonal matrix
+            The mass matrix
+        
+        """
+    #    import numpy as np
+        from scipy.sparse import lil_matrix
+        
+        num_nodes = Nodes.shape[0]
+
+        d = [sum([Areas[j] for j in Faces_at_Nodes[i]]) for i in range(num_nodes)]
+        D = lil_matrix((num_nodes, num_nodes))
+        D.setdiag(d)
+        
+        D /= 3 
+        return D
+
+    import numpy
+        
     import mindboggle.utils.kernels
     W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
     W /= 2
@@ -162,9 +184,10 @@ def geometric_laplacian(Nodes, Faces):
     Area = area(Nodes, Faces)
     
     Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertices(Faces, len(Nodes))
-    D = masses(Nodes, Area, Faces_at_Nodes)
-    
-    import numpy
+    D = masses(Nodes, Area, Faces_at_Nodes)    
+  
+    D = D.toarray()
+
     L = numpy.linalg.inv(D)*A
     eigenvalues, eigenfunctions = numpy.linalg.eig(L)
     
@@ -224,22 +247,35 @@ def fem_laplacian(Nodes, Faces):
     def gen_P(edges, faces_at_edges, Area, num_nodes):
         """Generate the P mentioned in pseudocode above
         """
+       
         from scipy.sparse import lil_matrix
-        P = lil_matrix(num_nodes, num_nodes)
+        P = lil_matrix((num_nodes, num_nodes))
+#        P = numpy.zeros((num_nodes, num_nodes))
         for [i,j] in edges:
-            [t1, t2] = faces_at_edges[(i,j)]
-            P[i,j] = Area[t1] + Area[t2]
-            
+            P[i,j] = sum([Area[face] for face in faces_at_edges[(i,j)]]) # this line replaces the block commented below
+            # =-------------------
+#            facing_edges = faces_at_edges[(i,j)]
+#            if len(facing_edges) == 1:  
+#                [t1]= facing_edges
+#                P[i,j] = Area[t1] 
+#            else:
+#                [t1,t2]= facing_edges
+#                P[i,j] = Area[t1] + Area[t2]
+            #=---------------------------------
+    
         return P/12
         
     def gen_Q(edges, faces_at_edges, Area, num_nodes, Neighbor, Faces_at_Nodes):
         """Generate the Q mentioned in pseudocode above
         """
         from scipy.sparse import lil_matrix
-        Q = lil_matrix(num_nodes, num_nodes)
+        Q = lil_matrix((num_nodes, num_nodes))
         q = [sum([Area[k] for k in Faces_at_Nodes[i]]) for i in range(num_nodes)]
-        Q.setdiag(q)
+        Q.setdiag(q)        
+
         return Q/6
+    
+    import numpy
         
     num_nodes = len(Nodes)
     
@@ -258,14 +294,38 @@ def fem_laplacian(Nodes, Faces):
     # up to this point, the computation is the same as in geometric Laplacian
     
     faces_at_edges = mindboggle.utils.mesh_operations.find_faces_at_edges(Faces)
-    edges = mindboggle.utils.mesh_operations.find_edges(Faces)
+    edges = mindboggle.utils.mesh_operations.find_edges(Faces.tolist())
     
     P = gen_P(edges, faces_at_edges, Area, num_nodes)
     Q = gen_Q(edges, faces_at_edges, Area, num_nodes, Neighbor, Faces_at_Nodes)
     B = P + Q
+    B = B.toarray()   
+
+#    L = numpy.linalg.inv(B)*A
+#    print L
+    A = A.toarray()
+#    L = numpy.linalg.inv(B)*A    
+#    print L
     
-    import numpy
     L = numpy.linalg.inv(B)*A
     eigenvalues, eigenfunctions = numpy.linalg.eig(L)
-    
     return eigenvalues
+
+if __name__ == "__main__":
+    import numpy as np
+    # You should get different output if you only change the coordinates of nodes.
+    # If you do NOT see the changes, you are computing graph laplacian.
+    
+
+    # Use some vertices on a cube. First, define a cube.  
+    nodes = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
+    nodes = np.array(nodes)
+    # Then, pick some faces. 
+    faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]] # note, all points must be on faces. O/w, you get singular matrix error when inverting D
+    faces = np.array(faces)
+    geometric_LBS = geometric_laplacian(nodes, faces)
+    fem_LBS = fem_laplacian(nodes, faces)
+    
+    print "the geometric LBS is:", list(geometric_LBS)
+    print "the FEM LBS is:", list(fem_LBS)
+    
