@@ -14,7 +14,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
+def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfolds=True):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -24,10 +24,11 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         3. Segment deep vertices as an initial set of folds
         4. Remove small folds
         5. Find and fill holes in the folds
-        6. Segment folds into "watershed basins"
-        7. Shrink segments in folds with multiple segments
-        8. Regrow shrunken segments
-        9. Renumber segments
+        6. Optional: segment into subfolds
+            a. Segment folds into "watershed basins"
+            b. Shrink segments in folds with multiple segments
+            c. Regrow shrunken segments
+        7. Renumber segments
 
     Step 2::
         To extract an initial set of deep vertices from the surface mesh,
@@ -44,7 +45,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         so we call fill_holes() with the argument exclude_values set to zero
         for zero-depth between folds.
 
-    Steps 6-8::
+    Step 6::
         The watershed() function has the same drawback as the segment() function
         -- the order of seed selection influences the result for multiple
         seeds within a connected set of vertices (region).
@@ -63,6 +64,8 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         -- if empty list, construct from depth_file
     min_fold_size : int
         minimum fold size (number of vertices)
+    extract_subfolds : Boolean
+        segment folds into subfolds?
 
     Returns
     -------
@@ -83,7 +86,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 50)
+    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 50, True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
@@ -99,22 +102,28 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import load_scalars
-    from mindboggle.utils.mesh_operations import segment, \
-        fill_holes, watershed, shrink_segments
+    from mindboggle.utils.mesh_operations import segment, fill_holes, \
+        watershed, shrink_segments
     if not len(neighbor_lists):
         from mindboggle.utils.mesh_operations import find_neighbors
 
     print("Extract folds in surface mesh")
     t0 = time()
 
+    #---------------------------------------------------------------------------
     # Load depth values for all vertices
+    #---------------------------------------------------------------------------
     points, faces, depths, n_vertices = load_scalars(depth_file, True)
 
+    #---------------------------------------------------------------------------
     # Find neighbors for each vertex
+    #---------------------------------------------------------------------------
     if not len(neighbor_lists):
         neighbor_lists = find_neighbors(faces, len(points))
 
+    #---------------------------------------------------------------------------
     # Compute histogram of depth measures
+    #---------------------------------------------------------------------------
     min_vertices = 10000
     if n_vertices > min_vertices:
         nbins = np.round(n_vertices / 100.0)
@@ -127,10 +136,12 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     >>> a,b,c = hist(depths, bins=nbins)
     """
 
+    #---------------------------------------------------------------------------
     # Anticipating that there will be a rapidly decreasing distribution
     # of low depth values (on the outer surface) with a long tail of higher
     # depth values (in the folds), smooth the bin values (Gaussian), convolve
     # to compute slopes, and find the depth for the first bin with slope = 0.
+    #---------------------------------------------------------------------------
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
     """
     >>> # Plot smoothed histogram:
@@ -144,11 +155,15 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     else:
         depth_threshold = np.median(depths)
 
+    #---------------------------------------------------------------------------
     # Find the deepest vertices
+    #---------------------------------------------------------------------------
     indices_deep = [i for i,x in enumerate(depths) if x >= depth_threshold]
     if len(indices_deep):
 
+        #-----------------------------------------------------------------------
         # Segment deep vertices as an initial set of folds
+        #-----------------------------------------------------------------------
         print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
         t1 = time()
         folds = segment(indices_deep, neighbor_lists)
@@ -164,7 +179,9 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
         >>> os.system('mayavi2 -m Surface -d test_folds1.vtk &')
         """
 
+        #-----------------------------------------------------------------------
         # Remove small folds
+        #-----------------------------------------------------------------------
         if min_fold_size > 1:
             print('    Remove folds smaller than {0}'.format(min_fold_size))
             unique_folds = [x for x in np.unique(folds) if x > -1]
@@ -173,45 +190,61 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
                 if len(indices_fold) < min_fold_size:
                     folds[indices_fold] = -1
 
+        #-----------------------------------------------------------------------
         # Find and fill holes in the folds
-        # Warning: Surfaces connected by folds can be mistaken for holes!
+        # Note: Surfaces surrounded by folds can be mistaken for holes,
+        #       so exclude_values equals outer surface value of zero.
+        #-----------------------------------------------------------------------
         do_fill_holes = True
         if do_fill_holes:
             print("  Find and fill holes in the folds")
             folds = fill_holes(folds, neighbor_lists, exclude_values=[0],
                                values=depths)
 
-        # Segment folds into "watershed basins"
-        indices_folds = [i for i,x in enumerate(folds) if x > -1]
-        #indices_folds = np.where(folds > -1)[0]
-        segments = watershed(depths, indices_folds, neighbor_lists,
-                             depth_ratio=0.1, tolerance=0.01)
+        #-----------------------------------------------------------------------
+        # Extract subfolds
+        #-----------------------------------------------------------------------
+        if extract_subfolds:
 
-        # Shrink segments in folds with multiple segments
-        shrunken_segments = shrink_segments(folds, segments, depths,
-                                            remove_fraction=0.75,
-                                            only_multiple_segments=True)
-        print('  ...Segmented, removed small folds, filled holes, shrank segments'
-              ' ({0:.2f} seconds)'.format(time() - t0))
+            #-------------------------------------------------------------------
+            # Segment folds into "watershed basins"
+            #-------------------------------------------------------------------
+            indices_folds = [i for i,x in enumerate(folds) if x > -1]
+            #indices_folds = np.where(folds > -1)[0]
+            segments = watershed(depths, indices_folds, neighbor_lists,
+                                 depth_ratio=0.1, tolerance=0.01)
 
-        # Regrow shrunken segments
-        print("  Regrow shrunken segments")
-        t2 = time()
-        seed_lists = []
-        unique_shrunken = [x for x in np.unique(shrunken_segments) if x > -1]
-        for n_shrunken in unique_shrunken:
-            seed_lists.append([i for i,x in enumerate(shrunken_segments)
-                               if x == n_shrunken])
-        regrown_segments = segment(indices_folds, neighbor_lists,
-                                   min_fold_size, seed_lists)
-        #regrown_segments = propagate(points, faces, folds, shrunken_segments,
-        #                             folds, max_iters=1000, tol=0.001, sigma=5)
-        folds[regrown_segments > -1] = regrown_segments[regrown_segments > -1] + \
-                                       np.max(folds) + 1
-        print('    ...Segmented individual folds ({0:.2f} seconds)'.
-              format(time() - t2))
+            #-------------------------------------------------------------------
+            # Shrink segments in folds with multiple segments
+            #-------------------------------------------------------------------
+            shrunken_segments = shrink_segments(folds, segments, depths,
+                                                remove_fraction=0.75,
+                                                only_multiple_segments=True)
+            print('  ...Segmented, removed small folds, filled holes, shrank segments'
+                  ' ({0:.2f} seconds)'.format(time() - t0))
 
+            #-------------------------------------------------------------------
+            # Regrow shrunken segments
+            #-------------------------------------------------------------------
+            print("  Regrow shrunken segments")
+            t2 = time()
+            seed_lists = []
+            unique_shrunken = [x for x in np.unique(shrunken_segments) if x > -1]
+            for n_shrunken in unique_shrunken:
+                seed_lists.append([i for i,x in enumerate(shrunken_segments)
+                                   if x == n_shrunken])
+            regrown_segments = segment(indices_folds, neighbor_lists,
+                                       min_fold_size, seed_lists)
+            #regrown_segments = propagate(points, faces, folds, shrunken_segments,
+            #                             folds, max_iters=1000, tol=0.001, sigma=5)
+            folds[regrown_segments > -1] = regrown_segments[regrown_segments > -1] + \
+                                           np.max(folds) + 1
+            print('    ...Segmented individual folds ({0:.2f} seconds)'.
+                  format(time() - t2))
+
+        #-----------------------------------------------------------------------
         # Renumber folds so they are sequential
+        #-----------------------------------------------------------------------
         renumber_folds = -1 * np.ones(len(folds))
         fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
         for i_fold, n_fold in enumerate(fold_numbers):
@@ -226,7 +259,9 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=50):
     else:
         print('  No deep vertices')
 
+    #---------------------------------------------------------------------------
     # Return folds, number of folds
+    #---------------------------------------------------------------------------
     return folds, n_folds
 
 #===============================================================================
@@ -239,16 +274,13 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     protocol that includes a list of label pairs defining each sulcus.
 
     Definitions ::
-
-        A ``fold`` is a group of connected, deep vertices.
-
-        A ``label list`` is the list of labels used to define a single sulcus.
-
-        A ``label pair list`` contains pairs of labels, where each pair
-        defines a boundary between two labeled regions.
-        No two label pair lists share a label pair.
-
-        A ``sulcus ID`` uniquely identifies a sulcus, as index to a sulcus label pair list.
+        ``fold``: a group of connected, deep vertices
+        ``label list``: list of labels used to define a single sulcus
+        ``label pair list``: list of pairs of labels, where each pair
+                             defines a boundary between two labeled regions;
+                             no two label pair lists share a label pair
+        ``sulcus ID``: ID to uniquely identify a sulcus,
+                       as index to a sulcus label pair list
 
     Steps for each fold::
         1. Remove fold if it has fewer than two labels.
@@ -533,7 +565,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
                                                tol=0.001, sigma=5)
                             sulci[sulci2 > -1] = sulci2[sulci2 > -1]
 
+    #---------------------------------------------------------------------------
     # Print out assigned sulci
+    #---------------------------------------------------------------------------
     sulcus_numbers = [int(x) for x in np.unique(sulci) if x > -1]
     n_sulci = len(sulcus_numbers)
     print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
@@ -544,7 +578,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     else:
         print("  " + ", ".join([str(x) for x in sulcus_numbers]))
 
+    #---------------------------------------------------------------------------
     # Print out unresolved sulci
+    #---------------------------------------------------------------------------
     unresolved = [i for i in range(len(label_pair_lists))
                   if i not in sulcus_numbers]
     if len(unresolved) == 1:
@@ -560,7 +596,9 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     return sulci, n_sulci
 
 
-# Extract_sulci()
+#===============================================================================
+# Example: etract_sulci()
+#===============================================================================
 if __name__ == "__main__":
 
     import os
