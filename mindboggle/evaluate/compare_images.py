@@ -11,9 +11,8 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-"""
-def rotate_volume(infile, axis, nrotations, outfile):
-    ""
+def rotate_image_volume(infile, axis, nrotations, outfile):
+    """
     Rotate image volume.
 
     Parameters
@@ -27,7 +26,8 @@ def rotate_volume(infile, axis, nrotations, outfile):
     outfile : string
         output file name
 
-    ""
+    """
+    import os
     import numpy as np
     import nibabel as nb
 
@@ -36,82 +36,49 @@ def rotate_volume(infile, axis, nrotations, outfile):
     data = img.get_data()
 
     # Rotate image
-    if nrotations1 > 0:
-        data = np.rot90(data, nrotations1)
-    if nrotations2 > 0:
-        data = np.rot90(data, nrotations2)
+    if nrotations > 0:
+        data = np.rot90(data, nrotations)
 
     # Save output
     img = nb.Nifti1Image(data, img.get_affine())
-    img.to_filename(outfile)
-"""
+    img.to_filename(os.path.join(os.getcwd(), outfile))
 
-def compare_image_histograms(files):
+def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
     """
-    Measure similarity between histograms of values from nibabel-readable images.
-
-    The images do not need to be coregistered.
+    Compute histogram values from nibabel-readable image.
 
     Parameters
     ----------
-    files : list of strings
-        file names
+    infile : string
+        input file name
+    nbins : integer
+        number of bins
 
     Returns
     -------
-    all_bins : numpy array of integers
+    histogram_values : numpy array
         histogram bin values
-    pairwise_hist_distances : numpy array of floats
-        distances between each pair of histograms
 
     """
     import numpy as np
     import nibabel as nb
-    from pylab import plot #, hist
-
-    plot_histograms = False
-
-    # Initialize output
-    nbins = 100
-    remove_nbins = 1
-    all_bins = np.zeros((len(files), nbins - remove_nbins))
-    pairwise_hist_distances = np.zeros((len(files), len(files)))
+    #from pylab import plot #, hist
 
     #---------------------------------------------------------------------------
-    # Compute histogram for each image
+    # Compute histogram
     #---------------------------------------------------------------------------
-    # For each image
-    for ifile, file in enumerate(files):
+    # Load image
+    data = nb.load(infile).get_data().ravel()
 
-        # Load image
-        data = nb.load(file).get_data().ravel()
+    # Compute histogram
+    histogram_values, bin_edges = np.histogram(data, bins=nbins)
 
-        # Compute histogram
-        bins, bin_edges = np.histogram(data, bins=nbins)
-        if remove_nbins > 0:
-            bins = bins[remove_nbins::]
-        all_bins[ifile, :] = bins
+    # plot(range(len(histogram_values)), histogram_values, '-')
+    ##a,b,c = hist(data, bins=nbins)
 
-        # Plot histogram:
-        if plot_histograms:
-            #a,b,c = hist(data, bins=nbins)
-            plot(range(len(bins)), bins, '-')
+    return histogram_values[remove_first_nelements::]
 
-    #---------------------------------------------------------------------------
-    # Compute distance between each pair of histograms
-    #---------------------------------------------------------------------------
-    # Loop through every pair of images
-    for ifile1 in range(len(files)):
-        for ifile2 in range(len(files)):
-            if ifile2 >= ifile1:
-
-                # Store pairwise distances between histogram values
-                pairwise_hist_distances[ifile1, ifile2] = np.sqrt(
-                    sum((all_bins[ifile1] - all_bins[ifile2])**2)) / len(data)
-
-    return all_bins, pairwise_hist_distances
-
-def register_images(files):
+def register_images_to_first_image(files):
     """
     Register all images to the first image.
 
@@ -166,7 +133,7 @@ def register_images(files):
 
 def threshold_images(files, threshold_value=0.2):
     """
-    Mask images.
+    Threshold images.
 
     Parameters
     ----------
@@ -303,101 +270,4 @@ def compute_image_overlaps(files, list_of_labels):
             pairwise_overlaps[isource1, isource2, :] = pairwise_dice
 
     return pairwise_overlaps
-
-
-if __name__ == "__main__":
-
-    import os, sys
-    import numpy as np
-    from mindboggle.evaluate.compare_images import compare_image_histograms, \
-        compute_image_similarities, compute_image_overlaps
-
-    do_compare_image_histograms = True
-    do_register_images = True
-    do_threshold_images = True
-    do_compute_image_similarities = True
-    do_compute_image_overlaps = True
-
-    dir = '/Users/arno/Dropbox/phantoms/DTI_Phantom'
-    files = [os.path.join(dir,'CUDP01CUMR2R1_20120712/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'CUDP01CUMR3R1_20120806/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'CUDP01CUMR4R1_20120915/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'CUDP01CUMR5R1_20121013/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'MGDP01MGMR1R1MGMR1R1_20120801/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'MGDP01MGMR2R1MGMR1R1_20120905/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'MGDP01MGMR3R1MGMR1R1_20121003/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'TXDP01TXMR2R1_20120911/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'TXDP01TXMR3R1_20121002/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'TXDP01TXMR4R1_20121102/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'UMDP01UMMR1R1_20120706/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'UMDP01UMMR2R1_20120803/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'UMDP01UMMR3R1_20120907/DTI_Tensor_FA.nii.gz'),
-        os.path.join(dir,'UMDP01UMMR5R1_20121105/DTI_Tensor_FA.nii.gz')]
-
-    dir = '/Users/arno/Dropbox/phantoms/Structural_ADNI_Phantom'
-    files = [os.path.join(dir,'CU_SP/CUSP01CUMR2R1_20120711/s003a1001.nii.gz'),
-        os.path.join(dir,'CU_SP/CUSP01CUMR3R1_20120806/s003a1001.nii.gz'),
-        os.path.join(dir,'CU_SP/CUSP01CUMR4R1_20120915/s003a1001.nii.gz'),
-        os.path.join(dir,'CU_SP/CUSP01CUMR5R1_20121013/s003a1001.nii.gz'),
-        os.path.join(dir,'MG_SP/MGSP01MGMR1R1_20120627/s021a1001.nii.gz'),
-        os.path.join(dir,'MG_SP/MGSP01MGMR1R1MGMR1R1_20120801/s004a1001.nii.gz'),
-        os.path.join(dir,'MG_SP/MGSP01MGMR2R1MGMR1R1_20120905/s004a1001.nii.gz'),
-        os.path.join(dir,'MG_SP/MGSP01MGMR3R1MGMR1R1_20121003/s004a1001.nii.gz'),
-        os.path.join(dir,'TX_SP/TXSP01TXMR2R1_20120907/s401a1004.nii.gz'),
-        os.path.join(dir,'TX_SP/TXSP01TXMR3R1_20121002/s601a1006.nii.gz'),
-        os.path.join(dir,'TX_SP/TXSP01TXMR4R1_20121108/s501a1005.nii.gz'),
-        os.path.join(dir,'UM_SP/UMSP01UMMR1R1_20120706/s1001a1010.nii.gz'),
-        os.path.join(dir,'UM_SP/UMSP01UMMR2R1_20120803/s301a1003.nii.gz'),
-        os.path.join(dir,'UM_SP/UMSP01UMMR3R1_20120907/s301a1003.nii.gz'),
-        os.path.join(dir,'UM_SP/UMSP01UMMR4R1_20121002/s401a1004.nii.gz'),
-        os.path.join(dir,'UM_SP/UMSP01UMMR5R1_20121105/s401a1004.nii.gz')]
-
-    if do_compare_image_histograms:
-        all_bins, pairwise_hist_distances = compare_image_histograms(files)
-        out_file = os.path.join(os.getcwd(), 'pairwise_hist_distances.txt')
-        np.savetxt(out_file, pairwise_hist_distances,
-                   fmt=len(files) * '%.4f ', delimiter='\t', newline='\n')
-
-    if do_register_images:
-        register_images(files)
-
-    if do_threshold_images:
-        threshold_images(files, threshold_value=0.2)
-
-    if do_compute_image_similarities:
-        pairwise_similarities = compute_image_similarities(files, metric='cc')
-        out_file = os.path.join(os.getcwd(), 'output', 'pairwise_similarities.txt')
-        np.savetxt(out_file, pairwise_similarities,
-                   fmt=len(files) * '%.4f ', delimiter='\t', newline='\n')
-
-    if do_compute_image_overlaps:
-        list_of_labels = [1]
-        pairwise_overlaps = compute_image_overlaps(files, list_of_labels)
-        pairwise_overlap_averages = np.mean(pairwise_overlaps, axis=2)
-        out_file = os.path.join(os.getcwd(), 'output', 'pairwise_overlap_averages.txt')
-        np.savetxt(out_file, pairwise_overlap_averages,
-                   fmt=len(files) * '%.4f ', delimiter='\t', newline='\n')
-
-
-"""
-# Anticipating that there will be a rapidly decreasing distribution
-# of low intensity values with a long tail of higher values,
-# smooth the bin values (Gaussian), convolve to compute slopes,
-# and find the value for the first bin with slope = 0.
-from scipy.ndimage.filters import gaussian_filter1d
-bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-window = [-1, 0, 1]
-bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
-ibin = np.where(bin_slopes == 0)[0]
-if len(ibin):
-    threshold = bin_edges[ibin[0]]
-else:
-    threshold = np.median(data)
-
-# Plot histograms:
-plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
-
-# Remove first lobe of low values in the data
-indices = [i for i,x in enumerate(bins) if x >= threshold]
-"""
 
