@@ -473,10 +473,12 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> neighbor_lists = find_neighbors(faces, len(points))
     >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
+    >>>
     >>> fundi, n_fundi, likelihoods = extract_fundi(sulci,
     >>>     neighbor_lists, depth_file, mean_curvature_file,
     >>>     min_curvature_vector_file, min_distance=5, thr=0.5,
     >>>     use_only_endpoints=True)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_extract_fundi.vtk',
     >>>                      [fundi], ['fundi'], sulci)
