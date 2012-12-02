@@ -433,6 +433,7 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_scalars
 
@@ -639,6 +640,7 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points,\
         write_vtk_faces, write_vtk_lines, write_vtk_vertices, write_vtk_scalars
 
