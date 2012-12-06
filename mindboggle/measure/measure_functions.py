@@ -45,7 +45,7 @@ def compute_point_distance(point, points):
     >>> from mindboggle.measure.measure_functions import compute_point_distance
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
-    >>> compute_distance(point, points)
+    >>> compute_point_distance(point, points)
       (1.5, 1)
 
     """
@@ -92,39 +92,53 @@ def compute_vector_distance(vector1, vector2):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.measure.measure_functions import compute_vector_distance
-    >>> vector1 = [1,2,3]
-    >>> vector2 = [0,1,5]
+    >>> vector1 = np.array([1.,2.,3.])
+    >>> vector2 = np.array([0,1,5])
     >>> compute_vector_distance(vector1, vector2)
+      0.81649658092772592
 
     """
     import numpy as np
 
-    if len(vector1) == len(vector2):
-        return np.sqrt(sum((vector1 - vector2)**2)) / len(vector1)
+    if np.size(vector1) == np.size(vector2):
+        if type(vector1) != np.ndarray:
+            vector1 = np.asarray(vector1)
+        if type(vector2) != np.ndarray:
+            vector2 = np.asarray(vector2)
+        return np.sqrt(sum((vector1 - vector2)**2)) / np.size(vector1)
     else:
         print("Vectors have to be of equal size to compute distance.")
         return None
 
-def pairwise_vector_distances(list_of_vectors, outfile=''):
+def pairwise_vector_distances(vectors, save_file=False):
     """
     Compare every pair of equal-sized vectors.
 
     Parameters
     ----------
-    list_of_vectors : list of 1-D numpy arrays of floats
+    vectors : list or array of 1-D lists or arrays of integers or floats
+    save_file : Boolean
+        save file?
 
     Returns
     -------
-    vector_distances : numpy array of floats
+    vector_distances : numpy array of integers or floats
         distances between each pair of vectors
     outfile : string [optional]
         output filename for pairwise_vector_distances
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.measure.measure_functions import pairwise_vector_distances
-    >>> pairwise_vector_distances([np.array([1,2,3]), np.array([0,3,5])])
+    >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
+        (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
+               [ 0.        ,  0.        ,  0.16666667,  1.52752523],
+               [ 0.        ,  0.        ,  0.        ,  1.60727513],
+               [ 0.        ,  0.        ,  0.        ,  0.        ]]),
+         '')
 
     """
     import os
@@ -132,25 +146,26 @@ def pairwise_vector_distances(list_of_vectors, outfile=''):
     from mindboggle.measure.measure_functions import compute_vector_distance
 
     # Initialize output
-    vectors = np.asarray(list_of_vectors)
-    vector_distances = np.zeros((len(list_of_vectors), len(list_of_vectors)))
+    vector_distances = np.zeros((len(vectors), len(vectors)))
 
     #---------------------------------------------------------------------------
     # Compute distance between each pair of vectors
     #---------------------------------------------------------------------------
     # Loop through every pair of vectors
-    for ihist1 in range(len(list_of_vectors)):
-        for ihist2 in range(len(list_of_vectors)):
+    for ihist1 in range(len(vectors)):
+        for ihist2 in range(len(vectors)):
             if ihist2 >= ihist1:
 
                 # Store pairwise distances between histogram values
-                d = compute_vector_distance(vectors[ihist1], vectors[ihist2])
+                d = compute_vector_distance(1.0*vectors[ihist1], 1.0*vectors[ihist2])
                 vector_distances[ihist1, ihist2] = d
 
-    if len(outfile):
+    if save_file:
         outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
         np.savetxt(outfile, vector_distances,
-                   fmt=len(list_of_vectors) * '%.4f ', delimiter='\t', newline='\n')
+                   fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
+    else:
+        outfile = ''
 
     return vector_distances, outfile
 
