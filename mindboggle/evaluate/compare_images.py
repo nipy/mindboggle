@@ -119,9 +119,9 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_ne
 
     return histogram_values_list
 
-def register_images_to_first_image(files, directory='', save_files=False, run_ants=False):
+def register_images_to_first_image(files, directory=''):
     """
-    Register all images to the first image.
+    Compute registration transforms from each image to the first image.
 
     Parameters
     ----------
@@ -129,22 +129,18 @@ def register_images_to_first_image(files, directory='', save_files=False, run_an
         input file names
     directory : string
         path to input files
-    save_files : Boolean
-        save files?
-    run_ants : Boolean
-        run ANTs registration (or Reuter's robust method)?
 
     Returns
     -------
     outfiles : list of strings
-        output file names
-    #outxfms : list of strings
-    #    output registration transform file names
+        output transform file names
 
     """
     import os
 
+    run_ants = True
     if run_ants:
+        """
         from nipype.interfaces.ants import Registration
         reg = Registration()
         reg.inputs.transforms = ['Affine']
@@ -153,18 +149,18 @@ def register_images_to_first_image(files, directory='', save_files=False, run_an
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
-        reg.inputs.metric = ['Mattes']*2
-        reg.inputs.metric_weight = [1]*2 # Default (value ignored currently by ANTs)
-        reg.inputs.radius_or_number_of_bins = [32]*2
+        reg.inputs.metric = ['Mattes']
+        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+        reg.inputs.radius_or_number_of_bins = [32]
         reg.inputs.sampling_strategy = ['Random']
         reg.inputs.sampling_percentage = [0.05]
         reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.convergence_window_size = [20]*2
+        reg.inputs.convergence_window_size = [20]
         reg.inputs.smoothing_sigmas = [[1,0]]
         reg.inputs.shrink_factors = [[2,1]]
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
-        reg.inputs.collapse_output_transforms = True
+        """
     else:
         from nipype.interfaces.freesurfer import RobustRegister
         reg = RobustRegister()
@@ -175,37 +171,89 @@ def register_images_to_first_image(files, directory='', save_files=False, run_an
     target_file = os.path.join(directory, files[0])
 
     outfiles = []
-    #outxfms = []
-    istart = 1
-    for isource, source_file in enumerate(files[istart::]):
+    for isource, source_filename in enumerate(files[1::]):
 
-        source_file = os.path.join(directory, source_file)
+        source_file = os.path.join(directory, source_filename)
 
-        # Save registered image
-        prefix = 'registered' + str(isource + istart) + '_'
-        outfile = os.path.join(os.getcwd(),
-                  prefix + os.path.basename(files[isource + istart]))
-        outfiles.append(outfile)
-        print('Save registered image: {0}'.format(outfile))
         # Save transformation matrix
-        #outxfm = outfile + '.mat'
-        #outxfms.append(outxfm)
+        prefix = 'registered' + str(isource + 1) + '_'
+        out_prefix = os.path.join(os.getcwd(), prefix)
+        outfile = out_prefix + 'Affine.txt'
+        outfiles.append(outfile)
+        print('Save registration transform: {0}'.format(outfile))
+        print(target_file,source_file,outfile)
 
         if run_ants:
+            """
             reg.inputs.fixed_image = [target_file]
             reg.inputs.moving_image = [source_file]
             #reg.inputs.output_transform_prefix = prefix
             #reg.inputs.initial_moving_transform = outxfm
             reg.inputs.output_warped_image = outfile
+            reg.run()
+            """
+            #cmd = ' '.join(['sh antsaffine.sh 3', target_file, source_file, prefix, 'PURELY-RIGID'])
+            iterations = '10000x10000x10000x10000x10000'
+            cmd = ' '.join(['ANTS 3',
+                '-m  MI[' + target_file + ',' + source_file + ',1,32]',
+                '-o', out_prefix, '-i 0 --use-Histogram-Matching',
+                '--number-of-affine-iterations', iterations,
+                '--rigid-affine true',
+                '--affine-gradient-descent-option  0.5x0.95x1.e-4x1.e-4'])
+            print(cmd)
+            os.system(cmd)
         else:
             reg.inputs.source_file = source_file
             reg.inputs.target_file = target_file
             #reg.inputs.out_reg_file = outxfm
             reg.inputs.registered_file = outfile
-        reg.aggregate_outputs()
-        reg.run()
+            reg.run()
 
-    return outfiles #, outxfms
+    return outfiles
+
+def apply_transforms(image_files, transform_files, directory=''):
+    """
+    Apply transforms to register all images to the first image.
+
+    Parameters
+    ----------
+    image_files : list of strings
+        input image file names
+    transform_files : list of strings
+        input transform file names
+    directory : string
+        path to image files
+
+    Returns
+    -------
+    outfiles : list of strings
+        output registered image file names
+
+    """
+    import os
+
+    # Get data
+    target_file = os.path.join(directory, image_files[0])
+
+    outfiles = []
+    for isource, source_filename in enumerate(image_files[1::]):
+
+        source_file = os.path.join(directory, source_filename)
+        transform_file = transform_files[isource]
+
+        # Save registered image
+        prefix = 'registered' + str(isource + 1) + '_'
+        outfile = os.path.join(os.getcwd(),
+                  prefix + os.path.basename(image_files[isource + 1]))
+        outfiles.append(outfile)
+        print('Save registered image: {0}'.format(outfile))
+
+        cmd = ' '.join(['WarpImageMultiTransform 3',
+            source_file, outfile, '-R', target_file, transform_file])
+        print(cmd)
+        os.system(cmd)
+
+    return outfiles
 
 def threshold_images(files, threshold_value=0.2, save_files=False):
     """
@@ -295,6 +343,7 @@ def compute_image_similarities(files, masks, metric='cc', save_file=False):
     from nipype.interfaces.nipy.utils import Similarity
 
     # Initialize output
+    print(files)
     pairwise_similarities = np.zeros((len(files), len(files)))
 
     # Loop through every pair of images
