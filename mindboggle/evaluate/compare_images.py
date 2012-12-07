@@ -256,7 +256,7 @@ def apply_transforms(image_files, transform_files, directory=''):
 
     return outfiles
 
-def threshold_images(files, threshold_value=0.2, save_files=False):
+def threshold_images(files, threshold_value=0.1, save_files=False):
     """
     Threshold images.
 
@@ -357,7 +357,9 @@ def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
             mask1 = mask1.get_data().ravel()
 
         for i2, volume2 in enumerate(files):
-            if i2 > i1:
+            if i2 == i1:
+                pairwise_similarities[i1, i2] = 1
+            elif i2 > i1:
                 volume2 = nb.load(volume2)
                 volume2 = volume2.get_data().ravel()
                 if len(masks):
@@ -426,6 +428,8 @@ def compute_image_overlaps(files, list_of_labels, save_file=False):
     coreg_dir = "output"
     for ifile1, file1 in enumerate(files):
         for ifile2, file2 in enumerate(files):
+            if ifile1 == ifile2:
+                pairwise_overlaps[ifile1, ifile2, :] = 1
             if ifile2 > ifile1:
 
                 # Compute and store pairwise overlaps
