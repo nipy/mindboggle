@@ -17,9 +17,9 @@ import os
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-run_test_retest_humans = 0#True
-run_structural_phantoms = 0#False
-run_DTI_phantoms = 1#False
+run_test_retest_humans = True
+run_structural_phantoms = False
+run_DTI_phantoms = False
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
@@ -32,26 +32,28 @@ do_compute_image_overlaps = True
 # Paths and images to process
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
+base_path = '/drop/'
 if run_test_retest_humans:
-    output_path = '/desk/output_humans'
-    images_path = '/drop/EMBARC/Test_Retest'
-    image_list = '/drop/EMBARC/Test_Retest.txt'
+    output_path = 'results_humans'
+    images_path = 'EMBARC/Test_Retest'
+    image_list = 'EMBARC/Test_Retest.txt'
 elif run_structural_phantoms:
-    output_path = '/desk/output_structural_phantoms'
-    images_path = '/drop/EMBARC/ADNI_phantom'
-    image_list = '/drop/EMBARC/ADNI_phantom.txt'
+    output_path = 'results_structural_phantoms'
+    images_path = 'EMBARC/ADNI_phantom'
+    image_list = 'EMBARC/ADNI_phantom.txt'
 elif run_DTI_phantoms:
-    output_path = '/desk/output_DTI_phantoms'
-    images_path = '/drop/EMBARC/DTI_phantom'
-    image_list = '/drop/EMBARC/DTI_phantom.txt'
+    output_path = 'results_DTI_phantoms'
+    images_path = 'EMBARC/DTI_phantom'
+    image_list = 'EMBARC/DTI_phantom.txt'
+    image_list_ref = 'EMBARC/DTI_phantom_ref.txt'
 temp_path = os.path.join(output_path, 'workspace')
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
 from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.utility import Function as Fn
-#from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataSink
+#from nipype.interfaces.utility import IdentityInterface
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
@@ -69,6 +71,15 @@ if not os.path.isdir(temp_path):
 #-----------------------------------------------------------------------------
 # Inputs and Outputs
 #-----------------------------------------------------------------------------
+if run_test_retest_humans:
+    pass
+elif run_structural_phantoms:
+    pass
+elif run_DTI_phantoms:
+    fid_ref = open(image_list_ref)
+    file_list_ref = fid_ref.read()
+    file_list_ref = file_list_ref.splitlines()
+    file_list_ref = [x.strip() for x in file_list_ref if len(x)]
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
@@ -126,9 +137,14 @@ if do_register_images_to_first_image:
                                                   'directory'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([register])
-    register.inputs.files = file_list
+    if run_test_retest_humans:
+        register.inputs.files = file_list
+    elif run_structural_phantoms:
+        register.inputs.files = file_list
+    elif run_DTI_phantoms:
+        register.inputs.files = file_list_ref
     register.inputs.directory = images_path
-    Flow.connect([(register, Sink, [('outfiles', 'registrations.@transforms')])])
+    #Flow.connect([(register, Sink, [('outfiles', 'registrations.@transforms')])])
 
     transform = Node(name = 'Transform',
                     interface = Fn(function = apply_transforms,
@@ -189,7 +205,7 @@ if do_compute_image_overlaps:
                                     output_names = ['pairwise_overlaps',
                                                     'outfile']))
     Flow.add_nodes([overlaps])
-    Flow.connect([(transform, overlaps, [('outfiles', 'files')])])
+    Flow.connect([(threshold, overlaps, [('outfiles', 'files')])])
     overlaps.inputs.list_of_labels = [1]
     overlaps.inputs.save_file = True
     Flow.connect([(overlaps, Sink, [('outfile', 'overlaps')])])
