@@ -11,200 +11,435 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def compare_image_histograms(list_of_files):
+def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
     """
-    Measure similarity between histograms of values from nibabel-readable images.
-
-    The images do not need to be coregistered.
+    Compute histogram values from nibabel-readable image.
 
     Parameters
     ----------
-    list_of_files : list of strings
-        file names
+    infile : string
+        input file name
+    nbins : integer
+        number of bins
+    remove_first_nelements : integer
+        start from nelement + 1
 
     Returns
     -------
-    all_bins : numpy array of integers
+    histogram_values : numpy array
         histogram bin values
-    pairwise_hist_distances : numpy array of floats
-        distances between each pair of histograms
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.compare_images import compute_image_histogram
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> infile = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                  'labels', 'labels.manual.nii.gz')
+    >>> compute_image_histogram(infile, nbins=100, remove_first_nelements=1)
+        array([  6921, 321220,   3102,    269,      0,      0,      0,      0,
+                    0,      0,      0,   3594,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+               113871, 110275,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,      0,      0,      0,      0,      0,      0,      0,
+                    0,  94348, 127303])
 
     """
     import numpy as np
     import nibabel as nb
-    from pylab import plot #, hist
-
-    plot_histograms = False
-
-    # Initialize output
-    nbins = 100
-    remove_nbins = 1
-    all_bins = np.zeros((len(list_of_files), nbins - remove_nbins))
-    pairwise_hist_distances = np.zeros((len(list_of_files), len(list_of_files)))
+    #from pylab import plot #, hist
 
     #---------------------------------------------------------------------------
-    # Compute histogram for each image
+    # Compute histogram
     #---------------------------------------------------------------------------
-    # For each image
-    for ifile, file in enumerate(list_of_files):
+    # Load image
+    data = nb.load(infile).get_data().ravel()
 
-        # Load image
-        data = nb.load(file).get_data().ravel()
+    # Compute histogram
+    histogram_values, bin_edges = np.histogram(data, bins=nbins)
 
-        # Compute histogram
-        bins, bin_edges = np.histogram(data, bins=nbins)
-        if remove_nbins > 0:
-            bins = bins[remove_nbins::]
-        all_bins[ifile, :] = bins
+    # plot(range(len(histogram_values)), histogram_values, '-')
+    ##a,b,c = hist(data, bins=nbins)
 
-        # Plot histogram:
-        if plot_histograms:
-            #a,b,c = hist(data, bins=nbins)
-            plot(range(len(bins)), bins, '-')
+    return histogram_values[remove_first_nelements::]
 
-    #---------------------------------------------------------------------------
-    # Compute distance between each pair of histograms
-    #---------------------------------------------------------------------------
-    # Loop through every pair of images
-    for ifile1 in range(len(list_of_files)):
-        for ifile2 in range(len(list_of_files)):
-            if ifile2 > ifile1:
-
-                # Store pairwise distances between histogram values
-                pairwise_hist_distances[ifile1, ifile2] = np.sqrt(
-                    sum((all_bins[ifile1] - all_bins[ifile2])**2)) / len(data)
-
-    return all_bins, pairwise_hist_distances
-
-def compute_image_similarities(list_of_files, dim=3, metric=2):
+def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_nelements=0):
     """
-    Measure similarity between coregistered nibabel-readable images.
-
-    From ANTS:
-    "MeasureImageSimilarity ImageDimension whichmetric image1.ext image2.ext
-        {logfile} {outimage.ext}  {target-value}   {epsilon-tolerance}
-    outimage (Not Implemented for MI yet)  and logfile are optional
-    target-value and epsilon-tolerance set goals for the metric value --
-    if the metric value is within epsilon-tolerance of the target-value,
-        then the test succeeds"
+    Compute histogram values from multiple nibabel-readable images.
 
     Parameters
     ----------
-    list_of_files : list of strings
-        file names
-    dim : integer
-        dimensions of image (e.g., 3 for 3-D)
-    metric: integer
-        0 - MeanSquareDifference
-        1 - Cross-Correlation
-        2 - Mutual Information
-        3 - SMI
+    infiles : list of strings
+        input file names
+    indirectory : string
+        path to input files
+    nbins : integer
+        number of bins
+    remove_first_nelements : integer
+        start from nelement + 1
+
+    Returns
+    -------
+    histogram_values_list : list of numpy arrays
+        histogram bin values for each file
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.evaluate.compare_images import compute_image_histogram
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> infiles = [os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                    'labels', 'labels.manual.nii.gz'),
+    >>>            os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                    'labels', 'labels.manual.nii.gz')]
+    >>> compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_nelements=1)
 
     """
     import os
-    #import numpy as np
+    from mindboggle.evaluate.compare_images import compute_image_histogram
 
-    # Initialize output
-#    pairwise_similarities = np.zeros((len(list_of_files), len(list_of_files)))
+    histogram_values_list = []
+
+    #---------------------------------------------------------------------------
+    # Compute histograms
+    #---------------------------------------------------------------------------
+    for infile in infiles:
+
+        infile_path = os.path.join(indirectory, infile)
+        histogram_values = compute_image_histogram(infile_path, nbins, remove_first_nelements)
+
+        histogram_values_list.append(histogram_values[remove_first_nelements::])
+
+    return histogram_values_list
+
+def register_images_to_first_image(files, directory=''):
+    """
+    Compute registration transforms from each image to the first image.
+
+    Parameters
+    ----------
+    files : list of strings
+        input file names
+    directory : string
+        path to input files
+
+    Returns
+    -------
+    outfiles : list of strings
+        output transform file names
+
+    """
+    import os
+
+    run_ants = True
+    if run_ants:
+        """
+        from nipype.interfaces.ants import Registration
+        reg = Registration()
+        reg.inputs.transforms = ['Affine']
+        reg.inputs.transform_parameters = [(2.0,)]
+        reg.inputs.number_of_iterations = [[1500, 200]]
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.metric = ['Mattes']
+        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
+        reg.inputs.radius_or_number_of_bins = [32]
+        reg.inputs.sampling_strategy = ['Random']
+        reg.inputs.sampling_percentage = [0.05]
+        reg.inputs.convergence_threshold = [1.e-8]
+        reg.inputs.convergence_window_size = [20]
+        reg.inputs.smoothing_sigmas = [[1,0]]
+        reg.inputs.shrink_factors = [[2,1]]
+        reg.inputs.use_estimate_learning_rate_once = [True]
+        reg.inputs.use_histogram_matching = [True] # This is the default
+        """
+    else:
+        from nipype.interfaces.freesurfer import RobustRegister
+        reg = RobustRegister()
+        reg.inputs.auto_sens = True
+        reg.inputs.init_orient = True
+
+    # Get data
+    target_file = os.path.join(directory, files[0])
+
+    outfiles = []
+    for isource, source_filename in enumerate(files[1::]):
+
+        source_file = os.path.join(directory, source_filename)
+
+        # Save transformation matrix
+        prefix = 'registered' + str(isource + 1) + '_'
+        out_prefix = os.path.join(os.getcwd(), prefix)
+        outfile = out_prefix + 'Affine.txt'
+        outfiles.append(outfile)
+        print('Save registration transform: {0}'.format(outfile))
+        print(target_file,source_file,outfile)
+
+        if run_ants:
+            """
+            reg.inputs.fixed_image = [target_file]
+            reg.inputs.moving_image = [source_file]
+            #reg.inputs.output_transform_prefix = prefix
+            #reg.inputs.initial_moving_transform = outxfm
+            reg.inputs.output_warped_image = outfile
+            reg.run()
+            """
+            #cmd = ' '.join(['sh antsaffine.sh 3', target_file, source_file, prefix, 'PURELY-RIGID'])
+#            iterations = '1000'
+            iterations = '10000x10000x10000x10000x10000'
+#            iterations = '1000x1000x1000'
+            cmd = ' '.join(['ANTS 3',
+                '-m  MI[' + target_file + ',' + source_file + ',1,32]',
+                '-o', out_prefix, '-i 0 --use-Histogram-Matching',
+                '--number-of-affine-iterations', iterations])
+#                '--rigid-affine true'])
+            print(cmd)
+            os.system(cmd)
+        else:
+            reg.inputs.source_file = source_file
+            reg.inputs.target_file = target_file
+            #reg.inputs.out_reg_file = outxfm
+            reg.inputs.registered_file = outfile
+            reg.run()
+
+    return outfiles
+
+def apply_transforms(image_files, transform_files, directory=''):
+    """
+    Apply transforms to register all images to the first image.
+
+    Parameters
+    ----------
+    image_files : list of strings
+        input image file names
+    transform_files : list of strings
+        input transform file names
+    directory : string
+        path to image files
+
+    Returns
+    -------
+    outfiles : list of strings
+        output registered image file names
+
+    """
+    import os
+
+    # Get data
+    target_file = os.path.join(directory, image_files[0])
+
+    outfiles = []
+    for isource, source_filename in enumerate(image_files[1::]):
+
+        source_file = os.path.join(directory, source_filename)
+        transform_file = transform_files[isource]
+
+        # Save registered image
+        prefix = 'registered' + str(isource + 1) + '_'
+        outfile = os.path.join(os.getcwd(),
+                  prefix + os.path.basename(image_files[isource + 1]))
+        outfiles.append(outfile)
+        print('Save registered image: {0}'.format(outfile))
+
+        cmd = ' '.join(['WarpImageMultiTransform 3',
+            source_file, outfile, '-R', target_file, transform_file])
+        print(cmd)
+        os.system(cmd)
+
+    return outfiles
+
+def threshold_images(files, threshold_value=0.2, save_files=False):
+    """
+    Threshold images.
+
+    Parameters
+    ----------
+    files : list of strings
+        file names of coregistered files
+    threshold_value : float
+        threshold value
+    save_files : Boolean
+        save files?
+
+    Returns
+    -------
+    outfiles : list of strings
+        output file names
+
+    """
+    import os
+    import nibabel as nb
+    #import nipype.interfaces.mrtrix as mrt
 
     # Loop through every pair of images
-    for ifile1 in range(len(list_of_files)):
-        for ifile2 in range(len(list_of_files)):
-            # Assume symmetry and only calculate one direction per pair
-            if ifile2 > ifile1:
+    ref_file = files[0]
+    coreg_dir = "output"
+    outfiles = []
+    for ifile, file in enumerate(files):
+
+        #thresh = mrt.Threshold()
+        #thresh.inputs.in_file = infile
+        #thresh.inputs.out_filename = outfile
+        #thresh.inputs.absolute_threshold_value = threshold_value
+        #thresh.run()
+        img = nb.load(file)
+        data = img.get_data()
+        data[data < threshold_value] = 0
+        data[data >= threshold_value] = 1
+        img = nb.Nifti1Image(data, img.get_affine())
+
+        if save_files:
+            outfile = os.path.join(os.getcwd(),
+                      'thresholded_' + os.path.basename(files[ifile]))
+            outfiles.append(outfile)
+            img.to_filename(outfile)
+
+    return outfiles
+
+def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
+    """
+    Measure similarity between coregistered nibabel-readable images.
+
+    Parameters
+    ----------
+    files : list of strings
+        file names of coregistered files
+    masks : list of strings
+        file names of thresholded (mask) files
+    metric: integer
+        Cost-function for assessing image similarity. If a string,
+        one of 'cc': correlation coefficient, 'cr': correlation
+        ratio, 'crl1': L1-norm based correlation ratio, 'mi': mutual
+        information, 'nmi': normalized mutual information, 'slr':
+        supervised log-likelihood ratio. If a callable, it should
+        take a two-dimensional array representing the image joint
+        histogram as an input and return a float.
+    save_file : Boolean
+        save file?
+
+    Returns
+    -------
+    pairwise_similarities : array of floats
+        pairwise similarity measures
+    outfile : string [optional]
+        output filename
+
+    Examples
+    --------
+    >>> # Missing: include image files and masks
+    >>> from mindboggle.evaluate.compare_images import compute_image_similarities
+    >>> compute_image_similarities([file1,file2], [mask1,mask2], 'cc', False)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+    #from nipype.interfaces.nipy.utils import Similarity
+
+    # Initialize output
+    pairwise_similarities = np.zeros((len(files), len(files)))
+
+    # Loop through every pair of images
+    for i1, volume1 in enumerate(files):
+        volume1 = nb.load(volume1)
+        volume1 = volume1.get_data().ravel()
+        if len(masks):
+            mask1 = masks[i1]
+            mask1 = nb.load(mask1)
+            mask1 = mask1.get_data().ravel()
+
+        for i2, volume2 in enumerate(files):
+            if i2 > i1:
+                volume2 = nb.load(volume2)
+                volume2 = volume2.get_data().ravel()
+                if len(masks):
+                    mask2 = masks[i2]
+                    mask2 = nb.load(mask2)
+                    mask2 = mask2.get_data().ravel()
 
                 # Store pairwise similarities
-                cmd = "MeasureImageSimilarity {0} {1} {2}".format(
-                      dim, metric, ' '.join(list_of_files))
-                print(cmd); os.system(cmd)
-#                pairwise_similarities[ifile, ifile2] = similarity
+                """
+                similarity = Similarity()
+                similarity.inputs.volume1 = volume1
+                similarity.inputs.volume2 = volume2
+                similarity.inputs.mask1 = mask1
+                similarity.inputs.mask2 = mask2
+                similarity.inputs.metric = metric
+                res = similarity.run()
+                pairwise_similarities[i1, i2] = res.outputs.similarity
+                """
 
-def compute_image_overlaps(list_of_files, list_of_labels):
+                if len(masks):
+                    volume1 = mask1 * volume1
+                    volume2 = mask2 * volume2
+                similarity = np.corrcoef(volume1,volume2)[0,1]
+                pairwise_similarities[i1, i2] = similarity
+
+    if save_file:
+        outfile = os.path.join(os.getcwd(), 'pairwise_similarities.txt')
+        np.savetxt(outfile, pairwise_similarities,
+                   fmt=len(files) * '%.4f ', delimiter='\t', newline='\n')
+    else:
+        outfile = ''
+
+    return pairwise_similarities, outfile
+
+def compute_image_overlaps(files, list_of_labels, save_file=False):
     """
     Measure volume overlaps between coregistered nibabel-readable images.
 
     Parameters
     ----------
-    list_of_files : list of strings
-        file names
+    files : list of strings
+        file names of coregistered files
     list_of_labels : list of integers
         label numbers to compute overlap on
+    save_file : Boolean
+        save file?
+
+    Returns
+    -------
+    pairwise_overlaps : array of floats
+        pairwise overlap measures
+    outfile : string [optional]
+        output filename
 
     """
+    import os
     import numpy as np
     from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
 
     # Initialize output
-    pairwise_overlaps = np.zeros((len(list_of_files), len(list_of_files),
+    pairwise_overlaps = np.zeros((len(files), len(files),
                                   len(list_of_labels)))
 
     # Loop through every pair of images
-    for ifile1 in range(len(list_of_files)):
-        for ifile2 in range(len(list_of_files)):
+    ref_file = files[0]
+    coreg_dir = "output"
+    for ifile1, file1 in enumerate(files):
+        for ifile2, file2 in enumerate(files):
             if ifile2 > ifile1:
 
                 # Compute and store pairwise overlaps
-                overlaps, out_file = measure_volume_overlap(list_of_labels,
-                    list_of_files[ifile1], list_of_files[ifile2])
+                overlaps, out_file = measure_volume_overlap(list_of_labels, file1, file2)
                 pairwise_dice = [x[1] for x in overlaps]
                 pairwise_overlaps[ifile1, ifile2, :] = pairwise_dice
 
-    return pairwise_overlaps
+    if save_file:
+        #average_pairwise_overlaps = np.mean(pairwise_overlaps, axis=2)
+        outfile = os.path.join(os.getcwd(), 'pairwise_overlaps.txt')
+        np.savetxt(outfile, pairwise_overlaps,
+                   fmt=len(files) * '%.4f ', delimiter='\t', newline='\n')
+    else:
+        outfile = ''
 
-
-if __name__ == "__main__":
-
-    import os, sys
-    import numpy as np
-    from mindboggle.evaluate.compare_images import compare_image_histograms, \
-        compute_image_similarities, compute_image_overlaps
-
-    do_compare_image_histograms = True
-    do_compute_image_similarities = False
-    do_compute_image_overlaps = False
-
-    list_of_files = sys.argv()
-#    list_of_files = ['/desk/hln1.nii.gz','/desk/hln2.nii.gz']
-#    list_of_files = ['/Users/arno/Dropbox/MB/data/subjects/MMRR-21-1/labels/labels.manual.nii.gz',
-#                     '/Users/arno/Dropbox/MB/data/subjects/MMRR-21-1/labels/labels.manual.nii.gz']
-#    list_of_labels = [1002, 1003, 1005]
-
-    if do_compare_image_histograms:
-        all_bins, pairwise_hist_distances = compare_image_histograms(list_of_files)
-        out_file = os.path.join(os.getcwd(), 'pairwise_hist_distances.txt')
-        np.savetxt(out_file, pairwise_hist_distances,
-                   fmt=len(list_of_files) * '%.4f ', delimiter='\t', newline='\n')
-
-    if do_compute_image_similarities:
-        compute_image_similarities(list_of_files, metric=2)
-
-    if do_compute_image_overlaps:
-        pairwise_overlaps = compute_image_overlaps(list_of_files, list_of_labels)
-        pairwise_overlap_averages = np.mean(pairwise_overlaps, axis=2)
-        out_file = os.path.join(os.getcwd(), 'pairwise_overlap_averages.txt')
-        np.savetxt(out_file, pairwise_overlap_averages,
-                   fmt=len(list_of_files) * '%.4f ', delimiter='\t', newline='\n')
-
-
-"""
-# Anticipating that there will be a rapidly decreasing distribution
-# of low intensity values with a long tail of higher values,
-# smooth the bin values (Gaussian), convolve to compute slopes,
-# and find the value for the first bin with slope = 0.
-from scipy.ndimage.filters import gaussian_filter1d
-bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-window = [-1, 0, 1]
-bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
-ibin = np.where(bin_slopes == 0)[0]
-if len(ibin):
-    threshold = bin_edges[ibin[0]]
-else:
-    threshold = np.median(data)
-
-# Plot histograms:
-plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
-
-# Remove first lobe of low values in the data
-indices = [i for i,x in enumerate(bins) if x >= threshold]
-"""
+    return pairwise_overlaps, outfile
 
