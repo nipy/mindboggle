@@ -213,7 +213,7 @@ Conferences
 .. |www_paper7| replace::
     `Data and software (supplementary website)`_
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`:
-    http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/abstract
+	http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 .. _`Data and software (supplementary website)`:
     http://mindboggle.info/data/
 
