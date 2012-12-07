@@ -72,7 +72,7 @@ if not os.path.isdir(temp_path):
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
-file_list = [x for x in file_list if len(x)]
+file_list = [x.strip() for x in file_list if len(x)]
 #Info = Node(name = 'Inputs',
 #            interface = IdentityInterface(fields=['files']))
 #Info.iterables = ([('files', file_list)])
