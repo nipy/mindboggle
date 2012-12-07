@@ -193,13 +193,14 @@ def register_images_to_first_image(files, directory=''):
             reg.run()
             """
             #cmd = ' '.join(['sh antsaffine.sh 3', target_file, source_file, prefix, 'PURELY-RIGID'])
+#            iterations = '1000'
             iterations = '10000x10000x10000x10000x10000'
+#            iterations = '1000x1000x1000'
             cmd = ' '.join(['ANTS 3',
                 '-m  MI[' + target_file + ',' + source_file + ',1,32]',
                 '-o', out_prefix, '-i 0 --use-Histogram-Matching',
-                '--number-of-affine-iterations', iterations,
-                '--rigid-affine true'])
-#                '--affine-gradient-descent-option  0.5x0.95x1.e-4x1.e-4'])
+                '--number-of-affine-iterations', iterations])
+#                '--rigid-affine true'])
             print(cmd)
             os.system(cmd)
         else:
@@ -303,7 +304,7 @@ def threshold_images(files, threshold_value=0.2, save_files=False):
 
     return outfiles
 
-def compute_image_similarities(files, masks, metric='cc', save_file=False):
+def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
     """
     Measure similarity between coregistered nibabel-readable images.
 
@@ -340,30 +341,47 @@ def compute_image_similarities(files, masks, metric='cc', save_file=False):
     """
     import os
     import numpy as np
-    from nipype.interfaces.nipy.utils import Similarity
+    import nibabel as nb
+    #from nipype.interfaces.nipy.utils import Similarity
 
     # Initialize output
-    print(files)
     pairwise_similarities = np.zeros((len(files), len(files)))
 
     # Loop through every pair of images
-    ref_file = files[0]
-    coreg_dir = "output"
-    for ifile1, file1 in enumerate(files):
-        mask1 = masks[ifile1]
-        for ifile2, file2 in enumerate(files):
-            if ifile2 > ifile1:
-                mask2 = masks[ifile2]
+    for i1, volume1 in enumerate(files):
+        volume1 = nb.load(volume1)
+        volume1 = volume1.get_data().ravel()
+        if len(masks):
+            mask1 = masks[i1]
+            mask1 = nb.load(mask1)
+            mask1 = mask1.get_data().ravel()
+
+        for i2, volume2 in enumerate(files):
+            if i2 > i1:
+                volume2 = nb.load(volume2)
+                volume2 = volume2.get_data().ravel()
+                if len(masks):
+                    mask2 = masks[i2]
+                    mask2 = nb.load(mask2)
+                    mask2 = mask2.get_data().ravel()
 
                 # Store pairwise similarities
+                """
                 similarity = Similarity()
-                similarity.inputs.volume1 = file1
-                similarity.inputs.volume2 = file2
+                similarity.inputs.volume1 = volume1
+                similarity.inputs.volume2 = volume2
                 similarity.inputs.mask1 = mask1
                 similarity.inputs.mask2 = mask2
                 similarity.inputs.metric = metric
                 res = similarity.run()
-                pairwise_similarities[ifile1, ifile2] = res.outputs.similarity
+                pairwise_similarities[i1, i2] = res.outputs.similarity
+                """
+
+                if len(masks):
+                    volume1 = mask1 * volume1
+                    volume2 = mask2 * volume2
+                similarity = np.corrcoef(volume1,volume2)[0,1]
+                pairwise_similarities[i1, i2] = similarity
 
     if save_file:
         outfile = os.path.join(os.getcwd(), 'pairwise_similarities.txt')
