@@ -88,8 +88,8 @@ def write_vtk_points(Fp, points, dataType="float"):
 
 def write_vtk_faces(Fp, faces):
     """
-    Write indices to vertices forming triangular meshes,
-    the POLYGONS section in DATASET POLYDATA section::
+    Write indices to vertices forming triangular meshes or lines,
+    the POLYGONS section in DATASET POLYDATA section:
 
         POLYGONS 301978 1207912
         3 0 1 4
@@ -356,8 +356,8 @@ def load_scalar_lists(filename):
 
     return faces, lines, indices, scalar_lists, scalar_names
 
-def write_scalar_lists(output_vtk, points, indices, faces,
-                       scalar_lists, scalar_names=['scalars']):
+def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
+                       scalar_lists=[], scalar_names=['scalars']):
     """
     Save lists of scalars into the lookup table of a VTK-format file.
 
@@ -375,26 +375,43 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     indices : list of integers
-        indices of vertices
+        indices of vertices, default=[]
+    lines : list of 2-tuples of integers
+        Each element is an edge on the mesh, consisting of 2 integers
+        representing the 2 vertices of the edge
+        default=[]
     faces : list of 3-tuples of integers
-        indices to the three vertices of a face on the mesh
+        indices to the three vertices of a face on the mesh, default=[]
     scalar_lists : list of lists of floats (or single list or array of floats)
-        each list (lookup table) contains values assigned to the vertices
+        each list (lookup table) contains values assigned to the vertices, default=[]
     scalar_names : string or list of strings
-        each element is the name of a lookup table
+        each element is the name of a lookup table, default=['scalars']
+        if only one string is given for this field, the program will convert
+        it into a list of only this string. 
+        
+    Notes 
+    --------
+    
+    If you do not have all 7 parameters, it's safer to use syntax like 
+    ...``indices=indices, faces=faces``... (as in Toy example) 
+    than syntax like ...``indices, faces``... alone to 
+    ensure that your variables are aligned with their orders 
+    in parameter definition.   
 
     Examples
     --------
     >>> # Toy example
-    >>> import random
+    >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_scalar_lists
-    >>> points = [[random.random() for i in [1,2,3]] for j in xrange(0,4)]
+    >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
     >>> indices = [1,2,3,0]
+    >>> lines = [[1,2],[3,4]]
     >>> faces = [[1,2,3],[0,1,3]]
     >>> scalar_names = ['curv','depth']
-    >>> scalar_lists = [[random.random() for i in xrange(1,5)] for j in [1,2]]
-    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices, faces,
-    >>>                    scalar_lists, scalar_names)
+    >>> scalar_lists = [[random.random() for i in xrange(4)] for j in [1,2]]
+    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices=indices, lines=lines, 
+    >>>             faces=faces, scalar_lists=scalar_lists, scalar_names=scalar_names)
+    >>> os.system('mayavi2 -m Surface -d test_write_scalar_lists.vtk &')
     >>>
     >>> # Write vtk file with depth values on sulci
     >>> import os
@@ -410,12 +427,13 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     >>> # Write to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
     >>>
-    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices,
-    >>>     faces, depths, 'depths')
+    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices=indices, 
+    >>>     faces=faces, scalar_lists=depths, scalar_names='depths')
     >>> os.system('mayavi2 -m Surface -d test_write_scalar_lists.vtk &')
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_scalars
 
@@ -424,8 +442,16 @@ def write_scalar_lists(output_vtk, points, indices, faces,
     Fp = open(output_vtk,'w')
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
-    write_vtk_vertices(Fp, indices)
-    write_vtk_faces(Fp, faces)
+    
+    if indices != []:
+        write_vtk_vertices(Fp, indices)
+    if lines != []:
+        for i in xrange(0,len(lines)):
+            lines[i] = [lines[i][0], lines[i][1]]
+        write_vtk_faces(Fp, lines) # write_vtk_faces can write either lines or faces
+    if faces != []:
+        write_vtk_faces(Fp, faces)
+        
     if len(scalar_lists) > 0:
 
         # Make sure that new_scalar_lists is a list
@@ -614,6 +640,7 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points,\
         write_vtk_faces, write_vtk_lines, write_vtk_vertices, write_vtk_scalars
 
@@ -1059,61 +1086,6 @@ def load_lines(Filename):
     scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
 
     return lines, scalars
-
-def write_lines(output_vtk, points, indices, lines, scalar_lists=[], scalar_names=[]):
-    """
-    Save connected line segments to a VTK file.
-
-    Parameters
-    ----------
-    output_vtk : string
-        path of the output VTK file
-    points :  list of 3-tuples of floats
-        each element has 3 numbers representing the coordinates of the points
-    indices : list of integers
-        indices of vertices
-    lines : list of 2-tuples of integers
-        Each element is an edge on the mesh, consisting of 2 integers
-        representing the 2 vertices of the edge
-    scalar_lists : list of lists of floats
-        each list contains values assigned to the vertices
-    scalar_names : list of strings
-        each element is the name of a lookup table of scalars
-
-    Examples
-    --------
-    >>> import random
-    >>> points = [[random.random() for i in range(3)] for j in xrange(5)]
-    >>> indices = [0,1,2,3,4]
-    >>> lines = [[1,2],[3,4]]  # ?
-    >>> scalar_names = ['curv','depth']
-    >>> scalar_lists=[[random.random() for i in range(6)] for j in range(2)]
-    >>> write_lines('test_write_lines.vtk', points, indices, lines,
-    >>>             scalar_lists, scalar_names)
-
-    """
-    import os
-    from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
-         write_vtk_vertices, write_vtk_faces, write_vtk_scalars
-
-    output_vtk = os.path.join(os.getcwd(), output_vtk)
-
-    Fp = open(output_vtk,'w')
-    write_vtk_header(Fp)
-    write_vtk_points(Fp, points)
-    write_vtk_vertices(Fp, indices)
-    for i in xrange(0,len(lines)):
-#        lines[i] = str(lines[i][0]) + " " + str(lines[i][1]) + "\n"
-        lines[i] = [lines[i][0], lines[i][1]]
-    write_vtk_faces(Fp, lines)
-    if len(scalar_lists) > 0:
-        for i, scalar_list in enumerate(scalar_lists):
-            if i == 0:
-                write_vtk_scalars(Fp, scalar_list, scalar_names[0])
-            else:
-                write_vtk_scalars(Fp, scalar_list, scalar_names[i], begin_scalars=False)
-    Fp.close()
-
 
 #=============================================================================
 # Functions for converting FreeSurfer files to VTK format

@@ -15,7 +15,6 @@ data_path = '/Users/arno/Desktop/output_measures/results'
 column_names = ['labels', 'area', 'depth', 'mean_curvature',
                 'gauss_curvature', 'max_curvature', 'min_curvature',
                 'freesurfer_thickness', 'freesurfer_convexity']
-hemis = ['rh'] #lh','rh']
 hemis = ['lh','rh']
 list_file = os.path.join(os.environ['MINDBOGGLE'], 'info', 'atlases101.txt')
 exclude_values = [-1]
@@ -24,7 +23,7 @@ exclude_values = [-1]
 fid = open(list_file, 'r')
 subjects = fid.readlines()
 subjects = [''.join(x.split()) for x in subjects]
-for subject in ['OASIS-TRT-20-11']: #subjects[90::]: #['MMRR-21-5']:
+for subject in subjects: #['OASIS-TRT-20-11']: #subjects[90::]:
     print(subject)
     for hemi in hemis:
 

@@ -492,7 +492,7 @@ def propagate(points, faces, region, seeds, labels,
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False,
-            spread_within_labels=False, labels=[], label_lists=[]):
+            spread_within_labels=False, labels=[], label_lists=[], values=[]):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -516,6 +516,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     label_lists : list of lists of integers (required only if spread_within_labels)
         List of unique labels for each seed list to grow into
         (If empty, set to unique labels for each seed list)
+    values : list or array of floats (default empty)
+        values for all vertices for use in preferentially directed segmentation
+        (segment in direction of lower values)
 
     Returns
     -------
@@ -533,7 +536,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # high to speed up
+    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>>
     >>> # Example 1: with seed lists
@@ -549,12 +552,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> for label_pair_list in label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries)
     >>>         if np.sort(label_pairs[i]).tolist() in label_pair_list])
-    >>> #seed_lists = [vertices_to_segment[range(2000)],
-    >>> #              vertices_to_segment[range(2000,4000)],
-    >>> #              vertices_to_segment[range(10000,12000)]]
     >>>
-    >>> sulci = segment(vertices_to_segment, neighbor_lists, 50,
-    >>>                 seed_lists, True, True, labels, label_lists)
+    >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
+    >>>                 seed_lists, True, True, labels, label_lists, values=[])
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_segment.vtk',
@@ -627,14 +627,25 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
                 if len(vertices_to_segment):
 
-                    # Identify neighbors of seeds
-                    neighbors = []
-                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+                    # Find neighbors of each seed with lower values than the seed
+                    if len(values):
+                        neighbors = []
+                        for seed in seed_list:
+                            seed_neighbors = neighbor_lists[seed]
+                            seed_neighbors = [x for x in seed_neighbors
+                                              if values[x] <= values[seed]]
+                            if len(seed_neighbors):
+                                neighbors.extend(seed_neighbors)
+                    else:
+                        # Find neighbors of seeds
+                        neighbors = []
+                        [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
                     # Select neighbors that have not been previously selected
                     # and are among the vertices to segment
                     seed_list = list(frozenset(neighbors).intersection(vertices_to_segment))
                     seed_list = list(frozenset(seed_list).difference(all_regions))
+
                 else:
                     seed_list = []
 
@@ -743,7 +754,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 #------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions by seed growing
+# Segment vertices of surface into contiguous regions by a watershed algorithm
 #------------------------------------------------------------------------------
 def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     """
@@ -935,7 +946,7 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     by the order of seed selection for multiple seeds within a connected
     set of vertices (region, such as a fold).
     To ameliorate this bias, we run this function on the segments returned by
-    segments or watershed() to shrink segments in regions with multiple
+    segment() or watershed() to shrink segments in regions with multiple
     segments (only_multiple_segments=True).
     The output can be used as seeds for the propagate() function,
     which is not biased by seed order.
@@ -1870,62 +1881,6 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
             unique_boundary_label_pairs.append(pair)
 
     return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
-
-#------------------------------------------------------------------------------
-# Compute distance
-#------------------------------------------------------------------------------
-def compute_distance(point, points):
-    """
-    Estimate the Euclidean distance from one point to a second (set) of points.
-
-    Parameters
-    ----------
-    point : list of three floats
-        coordinates for a single point
-    points : list with one or more lists of three floats
-        coordinates for a second point (or multiple points)
-
-    Returns
-    -------
-    min_distance : float
-        Euclidean distance between two points,
-        or the minimum distance between a point and a set of points
-    min_index : int
-        index of closest of the points (zero if only one)
-
-    Examples
-    --------
-    >>> from mindboggle.utils.mesh_operations import compute_distance
-    >>> point = [1,2,3]
-    >>> points = [[10,2.0,3], [0,1.5,2]]
-    >>> compute_distance(point, points)
-      (1.5, 1)
-
-    """
-    import numpy as np
-
-    # If points is a single point
-    if np.ndim(points) == 1:
-        return np.sqrt((point[0] - points[0]) ** 2 + \
-                       (point[1] - points[1]) ** 2 + \
-                       (point[2] - points[2]) ** 2), 0
-
-    # If points is a set of multiple points
-    elif np.ndim(points) == 2:
-        min_distance = np.Inf
-        min_index = 0
-        for index, point2 in enumerate(points):
-            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
-                               (point[1] - point2[1]) ** 2 + \
-                               (point[2] - point2[2]) ** 2)
-            if distance < min_distance:
-                min_distance = distance
-                min_index = index
-        return min_distance, min_index
-
-    # Else return None
-    else:
-        return None, None
 
 #------------------------------------------------------------------------------
 # Find vertices with highest values within a fraction of the surface
