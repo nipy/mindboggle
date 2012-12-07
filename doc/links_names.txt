@@ -23,12 +23,12 @@
 .. _docutils: http://docutils.sourceforge.net
 
 .. Licenses
-.. _`Apache v2.0`: http://www.opensource.org/licenses/Apache-2.0
+.. _`Apache v2.0`: http://www.apache.org/licenses/LICENSE-2.0
 .. _GPL: http://www.gnu.org/licenses/gpl.html
 .. _BSD: http://www.opensource.org/licenses/bsd-license.php
 .. _LGPL: http://www.gnu.org/copyleft/lesser.html
 .. _MIT License: http://www.opensource.org/licenses/mit-license.php
-.. _`Creative Commons Attribution 3.0 License`: http://http://creativecommons.org/licenses/by/3.0/
+.. _`Creative Commons Attribution 3.0 License`: http://creativecommons.org/licenses/by/3.0/
 
 .. Operating systems and distributions
 
