@@ -198,8 +198,8 @@ def register_images_to_first_image(files, directory=''):
                 '-m  MI[' + target_file + ',' + source_file + ',1,32]',
                 '-o', out_prefix, '-i 0 --use-Histogram-Matching',
                 '--number-of-affine-iterations', iterations,
-                '--rigid-affine true',
-                '--affine-gradient-descent-option  0.5x0.95x1.e-4x1.e-4'])
+                '--rigid-affine true'])
+#                '--affine-gradient-descent-option  0.5x0.95x1.e-4x1.e-4'])
             print(cmd)
             os.system(cmd)
         else:
