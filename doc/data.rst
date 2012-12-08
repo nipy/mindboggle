@@ -26,8 +26,6 @@ Manually labeled brain surfaces and volumes
       20 subjects from the Nathan Klein Institute / Test-Retest Sample |NKI-TRT www|_
   - **OASIS-TRT-20** [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
       All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
-  - **OASIS-TRT-20 subcortex** [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_subcortex_BrainCOLORcortex_volumes.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_:
-      These 20 volumes were also labeled according to the `BrainCOLOR <http://braincolor.org>`_ protocol
   - **Extra-18** [`nii <http://mindboggle.info/data/mindboggle101/Extra-18_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/Extra-18_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/Extra-18_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/Extra-18_freesurfer.tar.gz>`_]:
       - **HLN-12**:  All 12 subjects from the Human Language Network study
       - **MMRR-3T7T-2**:  2 subjects acquired like MMRR-21
@@ -37,6 +35,11 @@ Manually labeled brain surfaces and volumes
       - **Afterthought-1**:  1 brain imager, SG
   - **fsaverage** [nii and mgh `DKT-labeled fsaverage <http://mindboggle.info/data/atlases/fsaverage.tar.gz>`_]:
       The figures below show the DKT cortical labeling protocol on FreeSurfer's fsaverage surface:
+
+..
+      - **OASIS-TRT-20 subcortex** [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_subcortex_BrainCOLORcortex_volumes.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_:
+          These 20 volumes were also labeled according to the `BrainCOLOR <http://braincolor.org>`_ protocol
+
 
 | 
 |
