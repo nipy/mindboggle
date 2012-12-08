@@ -19,15 +19,17 @@ import os
 #-----------------------------------------------------------------------------
 run_test_retest_humans = True
 run_structural_phantoms = False
+# Not as useful
 run_DTI_phantoms = False
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
-do_compare_image_histograms = True
 do_register_images_to_first_image = True
 do_threshold_images = True
 do_compute_image_similarities = True
-do_compute_image_overlaps = True
+# Not as useful
+do_compare_image_histograms = False
+do_compute_image_overlaps = False
 #-----------------------------------------------------------------------------
 # Paths and images to process
 #-----------------------------------------------------------------------------
@@ -170,7 +172,7 @@ if do_threshold_images:
                                     output_names = ['outfiles']))
     Flow.add_nodes([threshold])
     Flow.connect([(transform, threshold, [('outfiles', 'files')])])
-    threshold.inputs.threshold_value = 0.2
+    threshold.inputs.threshold_value = 0.1
     threshold.inputs.save_files = True
     Flow.connect([(threshold, Sink, [('outfiles', 'thresholds')])])
 
