@@ -356,6 +356,78 @@ def load_scalar_lists(filename):
 
     return faces, lines, indices, scalar_lists, scalar_names
 
+def scalar_lists_names_checker(scalar_lists, scalar_names):
+    """Check whether input scalar_lists and scalar_names are in acceptable format. If not, reformat. 
+    
+    Parameters
+    ============
+    
+    scalar_lists : list of lists of floats (or single list or 1-/2-D array of floats)
+    scalar_names : string or list of strings
+
+    Examples
+    =========
+    >>> import io_vtk
+    >>> io_vtk.scalar_lists_names_checker([[1,2],[3,4]], "")
+    >>> ([[1, 2], [3, 4]], [''])
+    >>> io_vtk.scalar_lists_names_checker([1,2,3,4], ["123"])
+    >>> ([[1, 2, 3, 4]], ['123'])
+    >>> io_vtk.scalar_lists_names_checker(1, ["123"])
+         Error: scalar_lists is neither a list nor a numpy array.
+    >>> % You will be kicked out from Python shell after the command above
+    >>> import io_vtk
+    >>> import numpy as np
+    >>> io_vtk.scalar_lists_names_checker(np.array([1,2,3]), ["123"])
+         Warning: the new_scalar_lists is a 1-D numpy array. Conversion done but may have problems in final VTK. 
+    >>> ([[1, 2, 3]], ['123'])
+    >>> io_vtk.scalar_lists_names_checker(np.array([[1,2,3]]), ["123"])
+    >>> ([[1, 2, 3]], ['123'])
+    >>> io_vtk.scalar_lists_names_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
+    >>> ([[1, 2, 3], [4, 5, 6]], ['123'])
+    >>> io_vtk.scalar_lists_names_checker(np.array([[[1,2,3]]]), ["123"])
+        Error: Dimension of new_scalar_lists is too high.
+    >>> kicked out again
+    
+    Notes 
+    ======
+    This function does not check all possible cases of scalar_lists and scalar_names,
+    but only those could happen in our use.  
+    
+    """
+    import numpy as np
+    if type(scalar_lists) != list:
+        if type(scalar_lists) == np.ndarray:
+            if len(scalar_lists.shape) < 2: # this is a 1-D array
+                scalar_lists = np.array([scalar_lists]) # increase dimension by 1
+                print "Warning: scalar_lists is a 1-D numpy array. Conversion done but may have problems in final VTK. "
+                scalar_lists = scalar_lists.tolist()
+            elif len(scalar_lists.shape) == 2: # 2-D numpy array
+                scalar_lists = scalar_lists.tolist()
+            else:
+                print "Error: Dimension of new_scalar_lists is too high."
+                exit()
+        else:
+            print "Error: scalar_lists is neither a list nor a numpy array. "
+            exit()
+    else:  # a list, but may be 1-D
+        if type(scalar_lists[0]) == int or type(scalar_lists[0]) == float: # this is an acceptable 1-D list
+            scalar_lists = [scalar_lists]
+        elif type(scalar_lists[0]) == list:
+            pass 
+        else:
+            print "Error: scalar_lists is a 1-D list containing unacceptable elements. "
+            exit()
+
+    if type(scalar_names) == str:
+        scalar_names = [scalar_names]
+    elif  type(scalar_names) == list:
+        pass
+    else:
+        print "Error: scalar_names is neither a list nor a string"
+        exit()
+        
+    return scalar_lists, scalar_names
+
 def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
                        scalar_lists=[], scalar_names=['scalars']):
     """
@@ -454,17 +526,19 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
         
     if len(scalar_lists) > 0:
 
-        # Make sure that new_scalar_lists is a list
-        if type(scalar_lists) != list:
-            if type(scalar_lists[0]) == np.ndarray:
-                scalar_lists = scalar_lists.tolist()
-            scalar_lists = [scalar_lists]
-        # Make sure that new_scalar_lists is a list of lists
-        if type(scalar_lists[0]) != list:
-            scalar_lists = [scalar_lists]
-        # Make sure that scalar_names is a list
-        if type(scalar_names) != list:
-            scalar_names = [scalar_names]
+#        # Make sure that new_scalar_lists is a list
+#        if type(scalar_lists) != list:
+#            if type(scalar_lists[0]) == np.ndarray:
+#                scalar_lists = scalar_lists.tolist()
+#            scalar_lists = [scalar_lists]
+#        # Make sure that new_scalar_lists is a list of lists
+#        if type(scalar_lists[0]) != list:
+#            scalar_lists = [scalar_lists]
+#        # Make sure that scalar_names is a list
+#        if type(scalar_names) != list:
+#            scalar_names = [scalar_names]
+
+        scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
 
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
@@ -553,17 +627,19 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     write_vtk_faces(Fp, faces)
     if len(new_scalar_lists) > 0:
 
-        # Make sure that new_scalar_lists is a list
-        if type(new_scalar_lists) != list:
-            if type(new_scalar_lists[0]) == np.ndarray:
-                new_scalar_lists = new_scalar_lists.tolist()
-            new_scalar_lists = [new_scalar_lists]
-        # Make sure that new_scalar_lists is a list of lists
-        if type(new_scalar_lists[0]) != list:
-            new_scalar_lists = [new_scalar_lists]
-        # Make sure that new_scalar_names is a list
-        if type(new_scalar_names) != list:
-            new_scalar_names = [new_scalar_names]
+#        # Make sure that new_scalar_lists is a list
+#        if type(new_scalar_lists) != list:
+#            if type(new_scalar_lists[0]) == np.ndarray:
+#                new_scalar_lists = new_scalar_lists.tolist()
+#            new_scalar_lists = [new_scalar_lists]
+#        # Make sure that new_scalar_lists is a list of lists
+#        if type(new_scalar_lists[0]) != list:
+#            new_scalar_lists = [new_scalar_lists]
+#        # Make sure that new_scalar_names is a list
+#        if type(new_scalar_names) != list:
+#            new_scalar_names = [new_scalar_names]
+
+        new_scalar_lists, new_scalar_names = scalar_lists_names_checker(new_scalar_lists, new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalar_lists):
             if i == 0:
@@ -657,17 +733,19 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
         write_vtk_vertices(Fp, indices)
     if len(scalar_lists) > 0:
 
-        # Make sure that new_scalar_lists is a list
-        if type(scalar_lists) != list:
-            if type(scalar_lists[0]) == np.ndarray:
-                scalar_lists = scalar_lists.tolist()
-            scalar_lists = [scalar_lists]
-        # Make sure that new_scalar_lists is a list of lists
-        if type(scalar_lists[0]) != list:
-            scalar_lists = [scalar_lists]
-        # Make sure that scalar_names is a list
-        if type(scalar_names) != list:
-            scalar_names = [scalar_names]
+#        # Make sure that new_scalar_lists is a list
+#        if type(scalar_lists) != list:
+#            if type(scalar_lists[0]) == np.ndarray:
+#                scalar_lists = scalar_lists.tolist()
+#            scalar_lists = [scalar_lists]
+#        # Make sure that new_scalar_lists is a list of lists
+#        if type(scalar_lists[0]) != list:
+#            scalar_lists = [scalar_lists]
+#        # Make sure that scalar_names is a list
+#        if type(scalar_names) != list:
+#            scalar_names = [scalar_names]
+
+        scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
 
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
