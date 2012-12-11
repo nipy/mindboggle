@@ -17,8 +17,8 @@ import os
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-run_test_retest_humans = True
-run_structural_phantoms = False
+run_test_retest_humans = 0#True
+run_structural_phantoms = 1#False
 # Not as useful
 run_DTI_phantoms = False
 #-----------------------------------------------------------------------------
@@ -34,21 +34,28 @@ do_compute_image_overlaps = False
 # Paths and images to process
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
-base_path = '/drop/'
+data_path = '/drop/EMBARC/Data'
+results_path = '/drop/EMBARC/Results'
+temp_path = '/desk'
 if run_test_retest_humans:
-    output_path = 'results_humans'
-    images_path = 'EMBARC/Test_Retest'
-    image_list = 'EMBARC/Test_Retest.txt'
+    output_path = 'Human_retests'
+    images_path = 'Human_retests'
+    image_list = 'Human_retests.txt'
+    temp_path = os.path.join(temp_path, 'workspace_humans')
 elif run_structural_phantoms:
-    output_path = 'results_structural_phantoms'
-    images_path = 'EMBARC/ADNI_phantom'
-    image_list = 'EMBARC/ADNI_phantom.txt'
+    output_path = 'ADNI_phantoms'
+    images_path = 'ADNI_phantoms'
+    image_list = 'ADNI_phantoms.txt'
+    temp_path = os.path.join(temp_path, 'workspace_ADNI')
 elif run_DTI_phantoms:
-    output_path = 'results_DTI_phantoms'
-    images_path = 'EMBARC/DTI_phantom'
-    image_list = 'EMBARC/DTI_phantom.txt'
-    image_list_ref = 'EMBARC/DTI_phantom_ref.txt'
-temp_path = os.path.join(output_path, 'workspace')
+    output_path = 'DTI_phantoms'
+    images_path = 'DTI_phantoms'
+    image_list = 'DTI_phantoms.txt'
+    image_list_ref = 'DTI_phantoms_ref.txt'
+    temp_path = os.path.join(temp_path, 'workspace_DTI')
+images_path = os.path.join(data_path, images_path)
+image_list = os.path.join(data_path, image_list)
+output_path = os.path.join(results_path, output_path)
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
@@ -91,7 +98,7 @@ file_list = [x.strip() for x in file_list if len(x)]
 #Info.iterables = ([('files', file_list)])
 Sink = Node(DataSink(), name = 'Results')
 Sink.inputs.base_directory = output_path
-Sink.inputs.container = 'results'
+Sink.inputs.container = 'Results'
 if not os.path.isdir(output_path):  os.makedirs(output_path)
 
 #=============================================================================
