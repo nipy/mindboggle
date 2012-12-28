@@ -22,7 +22,8 @@ Dependencies:
 from numpy import mean, std, median, array, zeros, eye, flatnonzero, sign, matrix, zeros_like
 import os.path
 import cPickle
-import io_vtk  # Assummng io_vtk is in PYTHONPATH
+#import io_vtk  # Assummng io_vtk is in PYTHONPATH
+from mindboggle.utils import io_vtk
 import sys
 
 
@@ -489,7 +490,7 @@ def getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = 0, PitsThld = 0
                 if Count == 0 :
                     io_vtk.write_vtk_scalars(Fp, LUT, LUT_name)
                 else:
-                    io_vtk.write_vtk_scalars(Fp, LUT, LUT_name, at_LUT_begin=False)
+                    io_vtk.write_vtk_scalars(Fp, LUT, LUT_name, begin_scalars=False)
                 Count += 1
         Fp.close()
         return None
@@ -510,7 +511,7 @@ def getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = 0, PitsThld = 0
     [Vertexes, Faces] = Mesh
         
     MapBasin = Maps[SulciMap]   
-    Basin, Gyri = basin(Faces, Maps[SulciMap], Threshold = SulciThld) 
+    Basin, Gyri = basin(Faces, Maps[SulciMap], Threshold = SulciThld)
 
     if not Quick:
         LastSlash = len(SulciVTK) - SulciVTK[::-1].find('/')
