@@ -1,7 +1,9 @@
 # This file contains all functions to extract fundus curves from per-vertex-value (e.g., curvature) map
 # Last updated: 2011-08-09 Forrest Sheng Bao 
 
-import io_file, libbasin, io_vtk, io_free
+#import io_file, io_vtk, io_free
+from mindboggle.utils import io_file, io_vtk, io_free
+import libbasin
 #import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin, median
 import sys
@@ -517,8 +519,8 @@ def mst(Adjs, VrtxCmpnts, SpecialGroup, NbrLst, Coordinates):
             print "\t MST on component",i+1, ",",
             if len(SpecialGroup[i]) < 2 :  # This compnent has no more than two vertexes to be connected
                 print "\t Skipped. Too few Special vertexes."
-#            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
-#                print "\t Skipped. Too many vertexes (all kinds). "
+            elif len(VrtxCmpnts[i]) >200: # For quick debugging ONLY. Forrest 2011-09-29 16:56 
+                print "\t Skipped. Too many vertexes (all kinds). "
             else:
 #                print "\t # of special points", len(SpecialGroup[i]) , 
                 Root = VrtxCmpnts[i].index(SpecialGroup[i][0])  # always start MST from a special vertex 
@@ -706,7 +708,6 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
     NbrLst = libbasin.vrtxNbrLst(len(Vrtx), Fc, Hemi)
     
     FcCmpnt, VrtxCmpnt = libbasin.compnent([], [], [], ".".join([Hemi, SulciMap, str(SulciThld)]))
-
     
     PSegs, NodeColor, FundusLen, FundusID = lineUp(Pits, NbrLst, VrtxCmpnt, Vrtx, Maps[Extract_Fundi_on_Map])
 
@@ -722,7 +723,9 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
     scalar_names.append('fundusID')
     scalar_lists.append(FIDscalars)
     
-    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, scalar_lists, scalar_names)
+#    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, scalar_lists, scalar_names)
+    io_vtk.write_scalar_lists(FundiVTK, Vrtx, indices=Pits, lines=PSegs, 
+     scalar_lists=scalar_lists, scalar_names=scalar_names)
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
