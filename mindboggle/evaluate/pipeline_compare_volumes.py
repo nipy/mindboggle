@@ -17,19 +17,17 @@ import os
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-run_test_retest_humans = 0#True
-run_structural_phantoms = 1#False
-# Not as useful
-run_DTI_phantoms = False
+run_test_retest_humans = False
+run_structural_phantoms = True
+run_DTI_phantoms = 0 #True
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
-do_register_images_to_first_image = True
-do_threshold_images = True
-do_compute_image_similarities = True
-# Not as useful
-do_compare_image_histograms = False
-do_compute_image_overlaps = False
+do_register_images_to_first_image = 0#True
+do_threshold_images = 0#True
+do_compute_image_similarities = 0#True
+do_compare_image_histograms = True
+do_compute_image_overlaps = False  # Not as useful
 #-----------------------------------------------------------------------------
 # Paths and images to process
 #-----------------------------------------------------------------------------
@@ -44,14 +42,14 @@ if run_test_retest_humans:
     temp_path = os.path.join(temp_path, 'workspace_humans')
 elif run_structural_phantoms:
     output_path = 'ADNI_phantoms'
-    images_path = 'ADNI_phantoms'
-    image_list = 'ADNI_phantoms.txt'
+    images_path = 'Phantom_ADNI_Updated20121213'
+    image_list = os.path.join(images_path,'Phantom_ADNI.txt')
     temp_path = os.path.join(temp_path, 'workspace_ADNI')
 elif run_DTI_phantoms:
     output_path = 'DTI_phantoms'
-    images_path = 'DTI_phantoms'
-    image_list = 'DTI_phantoms.txt'
-    image_list_ref = 'DTI_phantoms_ref.txt'
+    images_path = 'Phantom_DTI_Updated20121214'
+    image_list = os.path.join(images_path,'Phantom_DTI_FA.txt')
+    image_list_ref = os.path.join(images_path,'Phantom_DTI_1stVol.txt')
     temp_path = os.path.join(temp_path, 'workspace_DTI')
 images_path = os.path.join(data_path, images_path)
 image_list = os.path.join(data_path, image_list)
@@ -81,14 +79,15 @@ if not os.path.isdir(temp_path):
 # Inputs and Outputs
 #-----------------------------------------------------------------------------
 if run_test_retest_humans:
-    pass
+    threshold_value = 0.1
 elif run_structural_phantoms:
-    pass
+    threshold_value = 0.1
 elif run_DTI_phantoms:
     fid_ref = open(image_list_ref)
     file_list_ref = fid_ref.read()
     file_list_ref = file_list_ref.splitlines()
     file_list_ref = [x.strip() for x in file_list_ref if len(x)]
+    threshold_value = 0.3
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
@@ -115,13 +114,15 @@ if do_compare_image_histograms:
                                              input_names = ['infiles',
                                                             'indirectory',
                                                             'nbins',
-                                                            'remove_first_nelements'],
+                                                            'threshold'],
                                              output_names = ['histogram_values']))
     Flow.add_nodes([compute_histograms])
     compute_histograms.inputs.infiles = file_list
     compute_histograms.inputs.indirectory = images_path
     compute_histograms.inputs.nbins = 100
-    compute_histograms.inputs.remove_first_nelements = 1
+    compute_histograms.inputs.threshold = threshold_value
+
+    print(histogram_values)
 
     compare_histograms = Node(name = 'Compare_histograms',
                               interface = Fn(function = pairwise_vector_distances,
@@ -179,7 +180,7 @@ if do_threshold_images:
                                     output_names = ['outfiles']))
     Flow.add_nodes([threshold])
     Flow.connect([(transform, threshold, [('outfiles', 'files')])])
-    threshold.inputs.threshold_value = 0.1
+    threshold.inputs.threshold_value = threshold_value
     threshold.inputs.save_files = True
     Flow.connect([(threshold, Sink, [('outfiles', 'thresholds')])])
 

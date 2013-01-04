@@ -11,7 +11,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
+def compute_image_histogram(infile, nbins=100, threshold=0.0):
     """
     Compute histogram values from nibabel-readable image.
 
@@ -21,8 +21,8 @@ def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
         input file name
     nbins : integer
         number of bins
-    remove_first_nelements : integer
-        start from nelement + 1
+    threshold : float
+        remove values lower than threshold
 
     Returns
     -------
@@ -36,20 +36,7 @@ def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> infile = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                  'labels', 'labels.manual.nii.gz')
-    >>> compute_image_histogram(infile, nbins=100, remove_first_nelements=1)
-        array([  6921, 321220,   3102,    269,      0,      0,      0,      0,
-                    0,      0,      0,   3594,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-               113871, 110275,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,      0,      0,      0,      0,      0,      0,      0,
-                    0,  94348, 127303])
+    >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
 
     """
     import numpy as np
@@ -62,15 +49,20 @@ def compute_image_histogram(infile, nbins=100, remove_first_nelements=0):
     # Load image
     data = nb.load(infile).get_data().ravel()
 
+    # Threshold image
+#    if threshold > 0:
+#        data = data / max(data)
+#        data = data[data >= threshold]
+
     # Compute histogram
     histogram_values, bin_edges = np.histogram(data, bins=nbins)
 
     # plot(range(len(histogram_values)), histogram_values, '-')
     ##a,b,c = hist(data, bins=nbins)
 
-    return histogram_values[remove_first_nelements::]
+    return histogram_values
 
-def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_nelements=0):
+def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
     """
     Compute histogram values from multiple nibabel-readable images.
 
@@ -82,8 +74,8 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_ne
         path to input files
     nbins : integer
         number of bins
-    remove_first_nelements : integer
-        start from nelement + 1
+    threshold : float
+        remove values lower than threshold
 
     Returns
     -------
@@ -99,7 +91,7 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_ne
     >>>                                    'labels', 'labels.manual.nii.gz'),
     >>>            os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                    'labels', 'labels.manual.nii.gz')]
-    >>> compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_nelements=1)
+    >>> compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.1)
 
     """
     import os
@@ -113,9 +105,9 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, remove_first_ne
     for infile in infiles:
 
         infile_path = os.path.join(indirectory, infile)
-        histogram_values = compute_image_histogram(infile_path, nbins, remove_first_nelements)
+        histogram_values = compute_image_histogram(infile_path, nbins, threshold)
 
-        histogram_values_list.append(histogram_values[remove_first_nelements::])
+        histogram_values_list.append(histogram_values)
 
     return histogram_values_list
 
@@ -171,12 +163,12 @@ def register_images_to_first_image(files, directory=''):
     target_file = os.path.join(directory, files[0])
 
     outfiles = []
-    for isource, source_filename in enumerate(files[1::]):
+    for isource, source_filename in enumerate(files):  #(files[1::]):
 
         source_file = os.path.join(directory, source_filename)
 
         # Save transformation matrix
-        prefix = 'registered' + str(isource + 1) + '_'
+        prefix = 'registered' + str(isource) + '_'
         out_prefix = os.path.join(os.getcwd(), prefix)
         outfile = out_prefix + 'Affine.txt'
         outfiles.append(outfile)
@@ -237,15 +229,15 @@ def apply_transforms(image_files, transform_files, directory=''):
     target_file = os.path.join(directory, image_files[0])
 
     outfiles = []
-    for isource, source_filename in enumerate(image_files[1::]):
+    for isource, source_filename in enumerate(image_files):  #(image_files[1::]):
 
         source_file = os.path.join(directory, source_filename)
         transform_file = transform_files[isource]
 
         # Save registered image
-        prefix = 'registered' + str(isource + 1) + '_'
+        prefix = 'registered' + str(isource) + '_'
         outfile = os.path.join(os.getcwd(),
-                  prefix + os.path.basename(image_files[isource + 1]))
+                  prefix + os.path.basename(image_files[isource]))
         outfiles.append(outfile)
         print('Save registered image: {0}'.format(outfile))
 
@@ -292,8 +284,10 @@ def threshold_images(files, threshold_value=0.1, save_files=False):
         #thresh.run()
         img = nb.load(file)
         data = img.get_data()
-        data[data < threshold_value] = 0
-        data[data >= threshold_value] = 1
+        if threshold_value > 0:
+            data = data / max(data.ravel())
+            data[data < threshold_value] = 0
+            data[data >= threshold_value] = 1
         img = nb.Nifti1Image(data, img.get_affine())
 
         if save_files:
