@@ -1,11 +1,9 @@
 #!/usr/bin/python
 """
-Operations on surface mesh vertices.
+Operations on volume matrices.
 
 Authors:
-    - Yrjo Hame  (yrjo.hame@gmail.com)
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
-    - Forrest Bao  (forrest.bao@gmail.com)
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -72,7 +70,7 @@ def flip_axes(input_file, flipx=True, flipy=True, flipz=False):
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
 
-    from mindboggle.utils.volume_operations import flip_axes
+    from mindboggle.utils.matrix_operations import flip_axes
 
     input_file = 'PhStr_MG_20120801.nii.gz'
     flip_axes(input_file)
