@@ -12,7 +12,8 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #------------------------------------------------------------------------------
 # Find all neighbors from faces
 #------------------------------------------------------------------------------
-def flip_axes(input_file, flipx=True, flipy=True, flipz=False):
+def flip_axes(input_file, flipx=True, flipy=True, flipz=False,
+              use_matrix=False, use_header=True):
     """
     Flip image volume data about x, y, and/or z axes
     without regard to the file header. The default is to flip
@@ -27,6 +28,10 @@ def flip_axes(input_file, flipx=True, flipy=True, flipz=False):
         flip about y-axis?
     flipz : Boolean
         flip about z-axis?
+    use_matrix : Boolean
+        use input file's affine matrix?
+    use_header : Boolean
+        use input file's header?
 
     Returns
     -------
@@ -39,28 +44,42 @@ def flip_axes(input_file, flipx=True, flipy=True, flipz=False):
     import nibabel as nb
 
     # Load image volume
-    data = nb.load(input_file).get_data()
-    lenx, leny, lenz = np.shape(data)
-    data_new = np.zeros((lenx, leny, lenz))
+    img = nb.load(input_file)
+    dat = img.get_data()
+    if use_matrix:
+        mat = img.get_affine()
+    if use_header:
+        hdr = img.get_header()
+    lenx, leny, lenz = np.shape(dat)
+    dat_new = np.zeros((lenx, leny, lenz))
 
     # Flip x
     if flipx:
         for x in range(lenx):
-            data_new[lenx-1-x,:,:] = data[x,:,:]
+            dat_new[lenx-1-x,:,:] = dat[x,:,:]
 
     # Flip y
     if flipy:
         for y in range(leny):
-            data_new[:,leny-1-y,:] = data[:,y,:]
+            dat_new[:,leny-1-y,:] = dat[:,y,:]
 
     # Flip z
     if flipz:
         for z in range(lenz):
-            data_new[:,:,lenz-1-z] = data[z,:,:]
+            dat_new[:,:,lenz-1-z] = dat[:,:,z]
 
     # Save output
     out_file = 'reorient_' + os.path.basename(input_file)
-    img = nb.Nifti1Image(data_new, np.eye(4))
+    if use_matrix:
+        if use_header:
+            img = nb.Nifti1Image(dat_new, mat, hdr)
+        else:
+            img = nb.Nifti1Image(dat_new, mat)
+    elif use_header:
+        img = nb.Nifti1Image(dat_new, np.eye(4,4), hdr)
+    else:
+        img = nb.Nifti1Image(dat_new, np.eye(4,4))
+
     img.to_filename(out_file)
 
     return out_file

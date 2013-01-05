@@ -130,7 +130,7 @@ def register_images_to_first_image(files, directory=''):
     """
     import os
 
-    run_ants = True
+    run_ants = False
     if run_ants:
         """
         from nipype.interfaces.ants import Registration
@@ -153,11 +153,13 @@ def register_images_to_first_image(files, directory=''):
         reg.inputs.use_estimate_learning_rate_once = [True]
         reg.inputs.use_histogram_matching = [True] # This is the default
         """
+    """
     else:
         from nipype.interfaces.freesurfer import RobustRegister
         reg = RobustRegister()
         reg.inputs.auto_sens = True
         reg.inputs.init_orient = True
+    """
 
     # Get data
     target_file = os.path.join(directory, files[0])
@@ -184,23 +186,27 @@ def register_images_to_first_image(files, directory=''):
             reg.inputs.output_warped_image = outfile
             reg.run()
             """
-            #cmd = ' '.join(['sh antsaffine.sh 3', target_file, source_file, prefix, 'PURELY-RIGID'])
-#            iterations = '1000'
             iterations = '10000x10000x10000x10000x10000'
-#            iterations = '1000x1000x1000'
             cmd = ' '.join(['ANTS 3',
                 '-m  MI[' + target_file + ',' + source_file + ',1,32]',
                 '-o', out_prefix, '-i 0 --use-Histogram-Matching',
                 '--number-of-affine-iterations', iterations])
-#                '--rigid-affine true'])
             print(cmd)
             os.system(cmd)
         else:
+            cmd = ' '.join(['flirt -in', source_file,
+                            '-ref', target_file,
+                            '-dof 7',
+                            '-omat', outfile])
+            print(cmd)
+            os.system(cmd)
+            """
             reg.inputs.source_file = source_file
             reg.inputs.target_file = target_file
             #reg.inputs.out_reg_file = outxfm
             reg.inputs.registered_file = outfile
             reg.run()
+            """
 
     return outfiles
 
@@ -225,6 +231,8 @@ def apply_transforms(image_files, transform_files, directory=''):
     """
     import os
 
+    run_ants = False
+
     # Get data
     target_file = os.path.join(directory, image_files[0])
 
@@ -241,8 +249,14 @@ def apply_transforms(image_files, transform_files, directory=''):
         outfiles.append(outfile)
         print('Save registered image: {0}'.format(outfile))
 
-        cmd = ' '.join(['WarpImageMultiTransform 3',
-            source_file, outfile, '-R', target_file, transform_file])
+        if run_ants:
+            cmd = ' '.join(['WarpImageMultiTransform 3',
+                source_file, outfile, '-R', target_file, transform_file])
+        else:
+            cmd = ' '.join(['flirt -in', source_file,
+                            '-ref', target_file,
+                            '-applyxfm -init', transform_file,
+                            '-out', outfile])
         print(cmd)
         os.system(cmd)
 
