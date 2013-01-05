@@ -18,7 +18,7 @@ import os
 # Data to run
 #-----------------------------------------------------------------------------
 run_test_retest_humans = False
-run_structural_phantoms = 1 #False #True
+run_structural_phantoms = True
 run_DTI_phantoms = 0 #True
 #-----------------------------------------------------------------------------
 # Steps to run
@@ -83,6 +83,16 @@ if not os.path.isdir(temp_path):
 #-----------------------------------------------------------------------------
 # Inputs and Outputs
 #-----------------------------------------------------------------------------
+if run_test_retest_humans:
+    threshold_value = 0.1
+elif run_structural_phantoms:
+    threshold_value = 0.1
+elif run_DTI_phantoms:
+    fid_ref = open(image_list_ref)
+    file_list_ref = fid_ref.read()
+    file_list_ref = file_list_ref.splitlines()
+    file_list_ref = [x.strip() for x in file_list_ref if len(x)]
+    threshold_value = 0.3
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
