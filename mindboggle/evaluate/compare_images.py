@@ -50,9 +50,9 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     data = nb.load(infile).get_data().ravel()
 
     # Threshold image
-#    if threshold > 0:
-#        data = data / max(data)
-#        data = data[data >= threshold]
+    if threshold > 0:
+        data = data / max(data)
+        data = data[data >= threshold]
 
     # Compute histogram
     histogram_values, bin_edges = np.histogram(data, bins=nbins)
@@ -194,9 +194,14 @@ def register_images_to_first_image(files, directory=''):
             print(cmd)
             os.system(cmd)
         else:
+            min_angle = '-15'
+            max_angle = '15'
             cmd = ' '.join(['flirt -in', source_file,
                             '-ref', target_file,
                             '-dof 7',
+                            '-searchrx', min_angle, max_angle,
+                            '-searchry', min_angle, max_angle,
+                            '-searchrz', min_angle, max_angle,
                             '-omat', outfile])
             print(cmd)
             os.system(cmd)
@@ -299,7 +304,7 @@ def threshold_images(files, threshold_value=0.1, save_files=False):
         img = nb.load(file)
         data = img.get_data()
         if threshold_value > 0:
-            data = data / max(data.ravel())
+            #data = data / max(data.ravel())
             data[data < threshold_value] = 0
             data[data >= threshold_value] = 1
         img = nb.Nifti1Image(data, img.get_affine())
@@ -454,3 +459,99 @@ def compute_image_overlaps(files, list_of_labels, save_file=False):
         outfile = ''
 
     return pairwise_overlaps, outfile
+
+def dot_plot_no_overlaps(table_file, number_within_each_category,
+                         category_labels=[], no_ones=False, no_zeros=True):
+    """
+    Create a dot plot for multiple categories, without overlapping dots.
+    Modified after:
+    http://stackoverflow.com/questions/8671808/matplotlib-preventing-
+                                               overlaying-datapoints
+
+    Parameters
+    ----------
+    table_file : string
+        text file containing space-delimited NxN table of values
+    number_within_each_category : list of integers
+        each integer indicates the number of members (rows/columns) per category
+    category_labels : list of strings
+        names of categories
+    no_ones : Boolean
+        ignore ones in data?
+    no_zeros : Boolean
+        ignore zeros in data?
+
+    """
+    import numpy as np
+    from matplotlib import pyplot as plt
+    from itertools import groupby
+
+    # Load file
+    data = np.loadtxt(table_file)
+
+    # Collect all within-category data into separate lists
+    data_lists = []
+    c = 0
+    for n in number_within_each_category:
+        data_list = []
+        for irow in range(n):
+            data_list.extend(data[irow + c, irow + c : irow + c + n - irow])
+        c += n
+        data_lists.append(data_list)
+    means = [np.mean(x) for x in data_lists]
+    stds = [np.std(x) for x in data_lists]
+    print("Means = {0}".format(means))
+    print("SDs = {0}".format(stds))
+
+    # Remove ones and zeros from data if specified
+    if no_ones or no_zeros:
+        new_data_lists = []
+        for data_list in data_lists:
+            if no_ones:
+                if no_zeros:
+                    new_data_list = [x for x in data_list if x !=0 if x != 1]
+                else:
+                    new_data_list = [x for x in data_list if x != 1]
+            elif no_zeros:
+                new_data_list = [x for x in data_list if x != 0]
+            new_data_lists.append(new_data_list)
+        data_lists = new_data_lists
+
+
+    # Plot dots in vertical lines for each category,
+    # offsetting otherwise overlapping dots
+    x = []
+    y = []
+    for indx, klass in enumerate(data_lists):
+        klass = groupby(sorted(klass))
+        for item, objt in klass:
+            objt = list(objt)
+            points = len(objt)
+            pos = 1 + indx + (1 - points) / 50.
+            for item in objt:
+                x.append(pos)
+                y.append(item)
+                pos += 0.04
+    plt.plot(x, y, 'o')
+    plt.xlim((0,len(data_lists) + 1))
+    #plt.ylim((0,1))
+    plt.title('Category dot plot')
+    if category_labels:
+        locs, labels = plt.xticks()
+        labels = ['']
+        labels.extend(category_labels)
+        plt.xticks(locs, labels)
+
+    plt.show()
+
+#------------------------------------------------------------------------------
+# Example
+#------------------------------------------------------------------------------
+if __name__ == "__main__":
+
+    from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
+
+    table_file = '/drop/EMBARC/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
+#    table_file = '/drop/EMBARC/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
+    dot_plot_no_overlaps(table_file, [6,6,5,6], ['CU','MG','TX','UM'],
+                         no_ones=True, no_zeros=True)
