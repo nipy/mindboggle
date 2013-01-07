@@ -130,18 +130,20 @@ if do_compare_image_histograms:
     compute_histograms.inputs.infiles = file_list
     compute_histograms.inputs.indirectory = images_path
     compute_histograms.inputs.nbins = 100
-    compute_histograms.inputs.threshold = threshold_value
+    compute_histograms.inputs.threshold = 0
 
     compare_histograms = Node(name = 'Compare_histograms',
                               interface = Fn(function = pairwise_vector_distances,
                                              input_names = ['vectors',
-                                                            'save_file'],
+                                                            'save_file',
+                                                            'normalize'],
                                              output_names = ['vector_distances',
                                                              'outfile']))
     Flow.add_nodes([compare_histograms])
     Flow.connect([(compute_histograms, compare_histograms,
                    [('histogram_values','vectors')])])
     compare_histograms.inputs.save_file = True
+    compare_histograms.inputs.normalize = True
 
     Flow.connect([(compare_histograms, Sink, [('outfile', 'histograms')])])
 
