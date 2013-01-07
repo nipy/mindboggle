@@ -74,7 +74,7 @@ def compute_point_distance(point, points):
     else:
         return None, None
 
-def compute_vector_distance(vector1, vector2):
+def compute_vector_distance(vector1, vector2, normalize=False):
     """
     Compute the Euclidean distance between two equal-sized vectors.
 
@@ -84,6 +84,8 @@ def compute_vector_distance(vector1, vector2):
         vector of values
     vector2 : numpy array of floats
         vector of values
+    normalize : Boolean
+        normalize each element of the vectors?
 
     Returns
     -------
@@ -107,12 +109,20 @@ def compute_vector_distance(vector1, vector2):
             vector1 = np.asarray(vector1)
         if type(vector2) != np.ndarray:
             vector2 = np.asarray(vector2)
-        return np.sqrt(sum((vector1 - vector2)**2)) / np.size(vector1)
+        if normalize:
+            vector_diff = np.zeros(len(vector1))
+            for i in range(len(vector1)):
+                max_v1v2 = max([vector1[i], vector2[i]])
+                if max_v1v2 > 0:
+                    vector_diff[i] = (vector1[i] - vector2[i]) / max_v1v2
+        else:
+            vector_diff = vector1 - vector2
+        return np.sqrt(sum((vector_diff)**2)) / np.size(vector1)
     else:
         print("Vectors have to be of equal size to compute distance.")
         return None
 
-def pairwise_vector_distances(vectors, save_file=False):
+def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     """
     Compare every pair of equal-sized vectors.
 
@@ -121,6 +131,8 @@ def pairwise_vector_distances(vectors, save_file=False):
     vectors : list or array of 1-D lists or arrays of integers or floats
     save_file : Boolean
         save file?
+    normalize : Boolean
+        normalize each element of the vectors?
 
     Returns
     -------
@@ -157,7 +169,9 @@ def pairwise_vector_distances(vectors, save_file=False):
             if ihist2 >= ihist1:
 
                 # Store pairwise distances between histogram values
-                d = compute_vector_distance(1.0*vectors[ihist1], 1.0*vectors[ihist2])
+                d = compute_vector_distance(1.0*vectors[ihist1],
+                                            1.0*vectors[ihist2],
+                                            normalize=normalize)
                 vector_distances[ihist1, ihist2] = d
 
     if save_file:
