@@ -32,6 +32,7 @@ fid = open(list_file, 'r')
 subjects = fid.readlines()
 subjects = [''.join(x.split()) for x in subjects]
 for subject in subjects:
+
     print(">>> Process subject: {0}...".format(subject))
     subject_path = mb101_path + 'subjects/' + subject + '/mri/'
 
@@ -55,8 +56,11 @@ for subject in subjects:
 
     # Convert label volume from FreeSurfer to original space
     print("Convert label volume from FreeSurfer to original space...")
-    cmd = ' '.join(['mri_convert -rl', head, '-rt nearest',
-                    full_labels_orig, full_labels])
+    #if 'OASIS-TRT-20-' in subject or 'NKI-TRT-20-' in subject:
+    cmd = ' '.join(['mri_vol2vol --mov', full_labels_orig, '--targ', head,
+                    '--regheader --o', full_labels])
+    #cmd = ' '.join(['mri_convert -rl', head, '-rt nearest',
+    #                full_labels_orig, full_labels])
     print(cmd); os.system(cmd)
 
     # Extract brain by masking with labels using FreeSurfer
