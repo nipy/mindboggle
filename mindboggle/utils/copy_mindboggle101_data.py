@@ -85,7 +85,6 @@ subjects = [''.join(x.split()) for x in subjects]
 #subjects = ['Afterthought-1']
 #subjects = ['OASIS-TRT-20-11']
 for subject in subjects:
-  if 'NKI-TRT' in subject:
     print(subject)
     tgt_path = os.path.join(tgts_path, subject)
     if not os.path.exists(tgt_path):
