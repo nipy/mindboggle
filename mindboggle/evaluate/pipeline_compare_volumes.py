@@ -18,8 +18,8 @@ import os
 # Data to run
 #-----------------------------------------------------------------------------
 run_test_retest_humans = False
-run_structural_phantoms = True
-run_DTI_phantoms = 0 #True
+run_structural_phantoms = False
+run_DTI_phantoms = True
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
@@ -27,7 +27,7 @@ do_register_images_to_first_image = True
 do_threshold_images = True
 do_compute_image_similarities = True
 do_compare_image_histograms = True
-do_compute_image_overlaps = False  # Not as useful
+do_compute_image_overlaps = True  # Not as useful
 #-----------------------------------------------------------------------------
 # Paths and images to process
 #-----------------------------------------------------------------------------
