@@ -20,7 +20,7 @@ run_this = 5 # 1 = Mindboggle-101-volumes
 # Subjects file and source and target directories
 #------------------------------------------------
 list_file = '/projects/Mindboggle/mindboggle/mindboggle/info/atlases101.txt'
-srcs_path = 'subjects'
+srcs_path = '/hd2/Lab/Brains/Mindboggle101/subjects'
 maindir = '/projects/Mindboggle/Mindboggle-101'
 if run_this == 1:
     tgts_path = os.path.join(maindir, 'volumes')
@@ -85,6 +85,7 @@ subjects = [''.join(x.split()) for x in subjects]
 #subjects = ['Afterthought-1']
 #subjects = ['OASIS-TRT-20-11']
 for subject in subjects:
+  if 'NKI-TRT' in subject:
     print(subject)
     tgt_path = os.path.join(tgts_path, subject)
     if not os.path.exists(tgt_path):
