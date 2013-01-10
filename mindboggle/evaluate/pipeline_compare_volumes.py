@@ -23,11 +23,16 @@ run_DTI_phantoms = True
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
-do_register_images_to_first_image = True
+do_register_images_to_ref_image = True
+if run_structural_phantoms:
+    max_angle = 15
+else:
+    max_angle = 90
 do_threshold_images = True
+threshold_value = 0.1
 do_compute_image_similarities = True
 do_compare_image_histograms = True
-do_compute_image_overlaps = True  # Not as useful
+do_compute_image_overlaps = False  # Not as useful
 #-----------------------------------------------------------------------------
 # Paths and images to process
 #-----------------------------------------------------------------------------
@@ -37,27 +42,27 @@ results_path = '/drop/EMBARC/Results'
 temp_path = '/desk'
 if run_test_retest_humans:
     output_path = 'Human_retests'
-    images_path = 'Human_retests'
+    images_path = os.path.join(data_path, 'Human_retests')
     image_list = 'Human_retests.txt'
+    ref_images_path = images_path
+    ref_image_list = 'Human_retests_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_humans')
-    threshold_value = 0.1
 elif run_structural_phantoms:
     output_path = 'ADNI_phantoms'
-    images_path = 'Phantom_ADNI_Updated20121213'
+    images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
     image_list = 'Phantom_ADNI.txt'
+    ref_images_path = images_path
+    ref_image_list = 'Phantom_ADNI_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_ADNI')
-    threshold_value = 0.1
 elif run_DTI_phantoms:
     output_path = 'DTI_phantoms'
-    images_path = 'Phantom_DTI_Updated20121214'
-    image_list = 'Phantom_DTI_FA.txt'
-    image_list_ref = 'Phantom_DTI_1stVol.txt'
+    images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
+    image_list = 'Phantom_DTI_1stVol_renamed.txt'
+    ref_images_path = os.path.join(data_path, 'Phantom_DTI_Manufacturer_Updated20130108')
+    ref_image_list = 'Phantom_DTI_MFR_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_DTI')
-    threshold_value = 0.3
-images_path = os.path.join(data_path, images_path)
 image_list = os.path.join(images_path, image_list)
-if run_DTI_phantoms:
-    image_list_ref = os.path.join(images_path, image_list_ref)
+ref_image_list = os.path.join(images_path, ref_image_list)
 output_path = os.path.join(results_path, output_path)
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
@@ -72,7 +77,7 @@ from nipype.interfaces.io import DataSink
 from mindboggle.measure.measure_functions import pairwise_vector_distances
 from mindboggle.evaluate.compare_images import compute_image_histograms, \
     compute_image_similarities, compute_image_overlaps, \
-    register_images_to_first_image, apply_transforms, threshold_images
+    register_images_to_ref_images, apply_transforms, threshold_images
 #-------------------------------------------------------------------------------
 # Initialize workflows
 #-------------------------------------------------------------------------------
@@ -83,25 +88,14 @@ if not os.path.isdir(temp_path):
 #-----------------------------------------------------------------------------
 # Inputs and Outputs
 #-----------------------------------------------------------------------------
-if run_test_retest_humans:
-    threshold_value = 0.1
-elif run_structural_phantoms:
-    threshold_value = 0.1
-elif run_DTI_phantoms:
-    fid_ref = open(image_list_ref)
-    file_list_ref = fid_ref.read()
-    file_list_ref = file_list_ref.splitlines()
-    file_list_ref = [x.strip() for x in file_list_ref if len(x)]
-    threshold_value = 0.3
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
 file_list = [x.strip() for x in file_list if len(x)]
-if run_DTI_phantoms:
-    fid_ref = open(image_list_ref)
-    file_list_ref = fid_ref.read()
-    file_list_ref = file_list_ref.splitlines()
-    file_list_ref = [x.strip() for x in file_list_ref if len(x)]
+fid_ref = open(ref_image_list)
+ref_file_list = fid_ref.read()
+ref_file_list = ref_file_list.splitlines()
+ref_file_list = [x.strip() for x in ref_file_list if len(x)]
 #Info = Node(name = 'Inputs',
 #            interface = IdentityInterface(fields=['files']))
 #Info.iterables = ([('files', file_list)])
@@ -148,22 +142,23 @@ if do_compare_image_histograms:
     Flow.connect([(compare_histograms, Sink, [('outfile', 'histograms')])])
 
 #-------------------------------------------------------------------------------
-# Register images to first_image
+# Register each image to a reference image
 #-------------------------------------------------------------------------------
-if do_register_images_to_first_image:
+if do_register_images_to_ref_image:
     register = Node(name = 'Register',
-                    interface = Fn(function = register_images_to_first_image,
+                    interface = Fn(function = register_images_to_ref_images,
                                    input_names = ['files',
-                                                  'directory'],
+                                                  'ref_files',
+                                                  'max_angle',
+                                                  'directory',
+                                                  'ref_directory'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([register])
-    if run_test_retest_humans:
-        register.inputs.files = file_list
-    elif run_structural_phantoms:
-        register.inputs.files = file_list
-    elif run_DTI_phantoms:
-        register.inputs.files = file_list_ref
+    register.inputs.files = file_list
+    register.inputs.ref_files = ref_file_list
+    register.inputs.max_angle = max_angle
     register.inputs.directory = images_path
+    register.inputs.ref_directory = ref_images_path
     #Flow.connect([(register, Sink, [('outfiles', 'registrations.@transforms')])])
 
     transform = Node(name = 'Transform',
