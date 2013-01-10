@@ -106,21 +106,27 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
 
         infile_path = os.path.join(indirectory, infile)
         histogram_values = compute_image_histogram(infile_path, nbins, threshold)
-
         histogram_values_list.append(histogram_values)
 
     return histogram_values_list
 
-def register_images_to_first_image(files, directory=''):
+def register_images_to_ref_images(files, ref_files, max_angle=90,
+                                  directory='', ref_directory=''):
     """
-    Compute registration transforms from each image to the first image.
+    Compute registration transforms from each image to its reference image.
 
     Parameters
     ----------
     files : list of strings
-        input file names
+        input image file names
+    ref_files : list of strings
+        input reference image file names
+    max_angle : integer
+        maximum search angle
     directory : string
         path to input files
+    ref_directory : string
+        path to input reference image files
 
     Returns
     -------
@@ -161,13 +167,11 @@ def register_images_to_first_image(files, directory=''):
         reg.inputs.init_orient = True
     """
 
-    # Get data
-    target_file = os.path.join(directory, files[0])
-
     outfiles = []
     for isource, source_filename in enumerate(files):  #(files[1::]):
 
         source_file = os.path.join(directory, source_filename)
+        target_file = os.path.join(ref_directory, ref_files[isource])
 
         # Save transformation matrix
         prefix = 'registered' + str(isource) + '_'
@@ -175,7 +179,6 @@ def register_images_to_first_image(files, directory=''):
         outfile = out_prefix + 'Affine.txt'
         outfiles.append(outfile)
         print('Save registration transform: {0}'.format(outfile))
-        print(target_file,source_file,outfile)
 
         if run_ants:
             """
@@ -194,8 +197,8 @@ def register_images_to_first_image(files, directory=''):
             print(cmd)
             os.system(cmd)
         else:
-            min_angle = '-15'
-            max_angle = '15'
+            min_angle = '-' + str(max_angle)
+            max_angle = str(max_angle)
             cmd = ' '.join(['flirt -in', source_file,
                             '-ref', target_file,
                             '-dof 7',
@@ -551,7 +554,11 @@ if __name__ == "__main__":
 
     from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
 
-    table_file = '/drop/EMBARC/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
 #    table_file = '/drop/EMBARC/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
-    dot_plot_no_overlaps(table_file, [6,6,5,6], ['CU','MG','TX','UM'],
-                         no_ones=True, no_zeros=True)
+#    dot_plot_no_overlaps(table_file, [6,6,5,6], ['CU','MG','TX','UM'],
+#        no_ones=True, no_zeros=True)
+
+#    table_file = '/Users/arno/Desktop/workspace_DTI/Image_comparison_workflow/Compare_histograms/vector_distances.txt'
+    table_file = '/Users/arno/Desktop/workspace_DTI/Image_comparison_workflow/Similarity/pairwise_similarities.txt'
+    dot_plot_no_overlaps(table_file, [7,5,5,5], ['CU','MG','TX','UM'],
+        no_ones=True, no_zeros=True)
