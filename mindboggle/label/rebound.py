@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Python module for adjusting label boundaries on a surface mesh.
 
