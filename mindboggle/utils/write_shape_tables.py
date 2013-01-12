@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Save a shape table for the fundus label boundary vertices
 in each subject hemisphere.

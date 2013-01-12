@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 """
 Evaluate fundi by computing closest distances from label boundary vertices
