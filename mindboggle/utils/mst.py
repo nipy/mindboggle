@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 def prune(Path, Degree, TreeNbr, Terminal, Branching, Special, Vertices):
     """

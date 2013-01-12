@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
