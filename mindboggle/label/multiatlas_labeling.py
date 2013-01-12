@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Atlas-based functions for surface registration-based labeling:
 

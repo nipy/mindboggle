@@ -1,5 +1,4 @@
-#!/usr/bin/python
-
+#!/usr/bin/env python
 """
 Functions for reading surfaces and converting between FreeSurfer formats.
 

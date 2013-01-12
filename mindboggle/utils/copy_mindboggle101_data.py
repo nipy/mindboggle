@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Copy FreeSurfer and manually labeled files to populate
 Mindboggle's data directory or the Mindboggle-101 distribution.

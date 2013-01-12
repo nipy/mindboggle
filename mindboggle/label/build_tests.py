@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Build simple VTK files to test realignment of label boundaries to polylines.
 
