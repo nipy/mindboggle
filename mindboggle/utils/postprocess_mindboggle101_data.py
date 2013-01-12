@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 Post-process Mindboggle-101 volume images for distribution,
 using Mindboggle, FreeSurfer, and FSL tools:
