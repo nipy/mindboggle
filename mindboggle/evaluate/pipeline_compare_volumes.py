@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 This is a Nipype pipeline for comparing nibabel-readable image volumes.
 
@@ -43,6 +43,7 @@ temp_path = '/desk'
 if run_test_retest_humans:
     output_path = 'Human_retests'
     images_path = os.path.join(data_path, 'Human_retests')
+    reg_image_list = 'Human_retests.txt'
     image_list = 'Human_retests.txt'
     ref_images_path = images_path
     ref_image_list = 'Human_retests_references.txt'
@@ -50,6 +51,7 @@ if run_test_retest_humans:
 elif run_structural_phantoms:
     output_path = 'ADNI_phantoms'
     images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
+    reg_image_list = 'Phantom_ADNI.txt'
     image_list = 'Phantom_ADNI.txt'
     ref_images_path = images_path
     ref_image_list = 'Phantom_ADNI_references.txt'
@@ -57,11 +59,13 @@ elif run_structural_phantoms:
 elif run_DTI_phantoms:
     output_path = 'DTI_phantoms'
     images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
-    image_list = 'Phantom_DTI_1stVol_renamed.txt'
+    reg_image_list = 'Phantom_DTI_1stvol_register.txt'
+    image_list = 'Phantom_DTI_FA_transform.txt'
     ref_images_path = os.path.join(data_path, 'Phantom_DTI_Manufacturer_Updated20130108')
     ref_image_list = 'Phantom_DTI_MFR_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_DTI')
 image_list = os.path.join(images_path, image_list)
+reg_image_list = os.path.join(images_path, reg_image_list)
 ref_image_list = os.path.join(images_path, ref_image_list)
 output_path = os.path.join(results_path, output_path)
 #-----------------------------------------------------------------------------
@@ -92,6 +96,10 @@ fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
 file_list = [x.strip() for x in file_list if len(x)]
+fid_reg = open(reg_image_list)
+reg_file_list = fid_reg.read()
+reg_file_list = reg_file_list.splitlines()
+reg_file_list = [x.strip() for x in reg_file_list if len(x)]
 fid_ref = open(ref_image_list)
 ref_file_list = fid_ref.read()
 ref_file_list = ref_file_list.splitlines()
@@ -154,7 +162,7 @@ if do_register_images_to_ref_image:
                                                   'ref_directory'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([register])
-    register.inputs.files = file_list
+    register.inputs.files = reg_file_list
     register.inputs.ref_files = ref_file_list
     register.inputs.max_angle = max_angle
     register.inputs.directory = images_path

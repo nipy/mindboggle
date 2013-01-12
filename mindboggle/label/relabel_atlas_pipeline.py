@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 This is a Nipype pipeline for combining brain surface atlas labels.
 

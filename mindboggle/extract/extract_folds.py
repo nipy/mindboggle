@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 """
 Functions to extract folds, sulci, or identify sulci from folds.
 
