@@ -8,12 +8,9 @@
 
 .. sudo apt-get install python-setuptools
 
-.. 2. I saw the follows on my Shell: 
+.. 2. [in the mindboggle directory]: python setup.py install
 
-.. package init file 'mindboggle/info/__init__.py' not found (or not a regular file)
-.. package init file 'mindboggle/extract/fundi_from_pits/__init__.py' not found (or not a regular file)
-
-.. 3. Now mindboggle is by default installed into my Python's ``root'' path, i.e., /usr/local/lib/python2.7/dist-packages/
+.. 3. Now mindboggle is by default installed into my Python's ``root'' path, i.e., /usr/local/lib/python2.7/site-packages/
 
 .. is there anyway that users can specify the installation path if they do not have root privilege? 
 
@@ -66,9 +63,7 @@ Alternatively, instead of "`>> cmake ..`", it may be better to run::
     ccmake ..
 
 and select the appropriate architecture.  For example, on a Mac
-you might not be able to compile x86_64 (particularly if using
-the free academic version of the Enthought Python Distribution),
-so in ccmake one would set::
+you might not be able to compile x86_64, so in ccmake an alternatively::
 
     CMAKE_OSX_ARCHITECTURES=i386
 
