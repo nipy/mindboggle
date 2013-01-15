@@ -210,7 +210,13 @@ def load_scalars(filename, return_arrays=False):
 
     Examples
     --------
-    >>> points, faces, scalars, n_vertices = load_scalars('lh.pial.depth.vtk')
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> points, faces, scalars, n_vertices = load_scalars(depth_file)
 
     """
     import os
@@ -294,7 +300,13 @@ def load_scalar_lists(filename):
 
     Examples
     --------
-    >>> faces, lines, indices, scalar_lists, scalar_names = load_scalar_lists('lh.pial.depth.vtk')
+    >>> import os
+    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, scalar_lists, scalar_names = load_scalar_lists(depth_file)
 
     """
     import os
@@ -357,41 +369,39 @@ def load_scalar_lists(filename):
     return faces, lines, indices, scalar_lists, scalar_names
 
 def scalar_lists_names_checker(scalar_lists, scalar_names):
-    """Check whether input scalar_lists and scalar_names are in acceptable format. If not, reformat. 
+    """
+    Check whether input scalar_lists and scalar_names are in acceptable format. If not, reformat.
     
     Parameters
-    ============
-    
+    ----------
     scalar_lists : list of lists of floats (or single list or 1-/2-D array of floats)
     scalar_names : string or list of strings
 
     Examples
-    =========
-    >>> import io_vtk
-    >>> io_vtk.scalar_lists_names_checker([[1,2],[3,4]], "")
+    --------
+    >>> from mindboggle.utils.io_vtk import scalar_lists_names_checker
+    >>> scalar_lists_names_checker([[1,2],[3,4]], "")
     >>> ([[1, 2], [3, 4]], [''])
-    >>> io_vtk.scalar_lists_names_checker([1,2,3,4], ["123"])
+    >>> scalar_lists_names_checker([1,2,3,4], ["123"])
     >>> ([[1, 2, 3, 4]], ['123'])
-    >>> io_vtk.scalar_lists_names_checker(1, ["123"])
+    >>> scalar_lists_names_checker(1, ["123"])
          Error: scalar_lists is neither a list nor a numpy array.
     >>> % You will be kicked out from Python shell after the command above
-    >>> import io_vtk
     >>> import numpy as np
-    >>> io_vtk.scalar_lists_names_checker(np.array([1,2,3]), ["123"])
+    >>> scalar_lists_names_checker(np.array([1,2,3]), ["123"])
          Warning: the new_scalar_lists is a 1-D numpy array. Conversion done but may have problems in final VTK. 
     >>> ([[1, 2, 3]], ['123'])
-    >>> io_vtk.scalar_lists_names_checker(np.array([[1,2,3]]), ["123"])
+    >>> scalar_lists_names_checker(np.array([[1,2,3]]), ["123"])
     >>> ([[1, 2, 3]], ['123'])
-    >>> io_vtk.scalar_lists_names_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
+    >>> scalar_lists_names_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
     >>> ([[1, 2, 3], [4, 5, 6]], ['123'])
-    >>> io_vtk.scalar_lists_names_checker(np.array([[[1,2,3]]]), ["123"])
+    >>> scalar_lists_names_checker(np.array([[[1,2,3]]]), ["123"])
         Error: Dimension of new_scalar_lists is too high.
-    >>> kicked out again
-    
+
     Notes 
-    ======
+    -----
     This function does not check all possible cases of scalar_lists and scalar_names,
-    but only those could happen in our use.  
+    but only those that are likely to happen when using Mindboggle.
     
     """
     import numpy as np
@@ -505,7 +515,6 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
 
     """
     import os
-    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_scalars
 
@@ -515,28 +524,19 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
     
-    if indices != []:
+    if len(indices) != []:
         write_vtk_vertices(Fp, indices)
-    if lines != []:
+    if len(lines):
         for i in xrange(0,len(lines)):
             lines[i] = [lines[i][0], lines[i][1]]
         write_vtk_faces(Fp, lines) # write_vtk_faces can write either lines or faces
-    if faces != []:
+    if len(faces):
         write_vtk_faces(Fp, faces)
         
     if len(scalar_lists) > 0:
 
-#        # Make sure that new_scalar_lists is a list
-#        if type(scalar_lists) != list:
-#            if type(scalar_lists[0]) == np.ndarray:
-#                scalar_lists = scalar_lists.tolist()
-#            scalar_lists = [scalar_lists]
-#        # Make sure that new_scalar_lists is a list of lists
-#        if type(scalar_lists[0]) != list:
-#            scalar_lists = [scalar_lists]
-#        # Make sure that scalar_names is a list
-#        if type(scalar_names) != list:
-#            scalar_names = [scalar_names]
+        print(len(scalar_lists))
+        print(len(scalar_lists[0]))
 
         scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
 
@@ -601,7 +601,6 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
 
     """
     import os
-    import numpy as np
     from mindboggle.utils.mesh_operations import inside_faces
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
          write_vtk_vertices, write_vtk_faces, write_vtk_scalars, load_scalars
@@ -626,18 +625,6 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     write_vtk_vertices(Fp, indices)
     write_vtk_faces(Fp, faces)
     if len(new_scalar_lists) > 0:
-
-#        # Make sure that new_scalar_lists is a list
-#        if type(new_scalar_lists) != list:
-#            if type(new_scalar_lists[0]) == np.ndarray:
-#                new_scalar_lists = new_scalar_lists.tolist()
-#            new_scalar_lists = [new_scalar_lists]
-#        # Make sure that new_scalar_lists is a list of lists
-#        if type(new_scalar_lists[0]) != list:
-#            new_scalar_lists = [new_scalar_lists]
-#        # Make sure that new_scalar_names is a list
-#        if type(new_scalar_names) != list:
-#            new_scalar_names = [new_scalar_names]
 
         new_scalar_lists, new_scalar_names = scalar_lists_names_checker(new_scalar_lists, new_scalar_names)
 
@@ -716,7 +703,6 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
 
     """
     import os
-    import numpy as np
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points,\
         write_vtk_faces, write_vtk_lines, write_vtk_vertices, write_vtk_scalars
 
