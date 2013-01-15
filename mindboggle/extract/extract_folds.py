@@ -597,7 +597,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
 
 #===============================================================================
-# Example: etract_sulci()
+# Example: extract_sulci()
 #===============================================================================
 if __name__ == "__main__":
 
