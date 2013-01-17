@@ -149,15 +149,15 @@ def flip_axes(input_file, flipx=True, flipy=True, flipz=False,
 def rotate90(input_file, rotations=[1,0,0],
              use_matrix=True, use_header=True):
     """
-    Rotate image volume data 90 degrees about x, y, and/or z axes
+    Rotate image volume data 90 degrees about the x, y, or z axis
     without regard to the file header.  Assumes isometric voxels.
 
     Parameters
     ----------
     input_file : string
         nibabel-readable image volume file
-    rotations : list of integers in {-1,0,1}
-        rotate -90, 0, and/or +90 degrees about x-, y-, or z-axis (in order)
+    rotations : list of integers in {0,1}
+        rotate 0, or +90 degrees about x-, y-, or z-axis
     use_matrix : Boolean
         use input file's affine matrix?
     use_header : Boolean
@@ -202,33 +202,37 @@ def rotate90(input_file, rotations=[1,0,0],
 
     # Rotate about x-axis
     if rotations[0] != 0:
+        print('Rotate about x-axis')
         pixdims = '{0} {1} {2}'.format(pixdims[0], pixdims[2], pixdims[1])
         for y in range(lenx):
             if rotations[0]==1:
                 dat_new[:, :, y] = dat[:, y, :]
-            elif rotations[0]==-1:
-                dat_new[:, :, leny-1-y] = dat[:, y, :]
+            #elif rotations[0]==-1:
+            #    dat_new[:, :, lenx-1-y] = dat[:, y, :]
 
     # Rotate about y-axis
-    if rotations[1] != 0:
+    elif rotations[1] != 0:
+        print('Rotate about y-axis')
         pixdims = '{0} {1} {2}'.format(pixdims[2], pixdims[1], pixdims[0])
         for z in range(lenx):
             if rotations[1]==1:
                 dat_new[z, :, :] = dat[:, :, z]
-            elif rotations[1]==-1:
-                dat_new[lenz-1-z, :, :] = dat[:, :, z]
+            #elif rotations[1]==-1:
+            #    dat_new[lenx-1-z, :, :] = dat[:, :, z]
 
     # Rotate about z-axis
-    if rotations[2] != 0:
+    elif rotations[2] != 0:
+        print('Rotate about z-axis')
         pixdims = '{0} {1} {2}'.format(pixdims[1], pixdims[0], pixdims[2])
         for x in range(lenx):
-            if rotations[1]==1:
+            if rotations[2]==1:
                 dat_new[:, x, :] = dat[x, :, :]
-            elif rotations[1]==-1:
-                dat_new[:, lenx-1-x, :] = dat[x, :, :]
+            #elif rotations[2]==-1:
+            #    dat_new[:, lenx-1-x, :] = dat[x, :, :]
 
     # Save output
-    out_file = 'reorient_' + os.path.basename(input_file)
+    out_file = 'rot'+''.join([str(x) for x in rotations])\
+                 + '_' + os.path.basename(input_file)
     if use_matrix:
         if use_header:
             img = nb.Nifti1Image(dat_new, mat, hdr)
@@ -242,6 +246,7 @@ def rotate90(input_file, rotations=[1,0,0],
     img.to_filename(out_file)
 
     # Swap pixel dimensions
+    print('Swap pixel dimensions')
     c=' '.join(['fslchpixdim', out_file, pixdims])
     print(c); os.system(c)
 
