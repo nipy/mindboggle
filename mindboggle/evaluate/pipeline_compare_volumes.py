@@ -27,9 +27,9 @@ do_register_images_to_ref_image = True
 if run_structural_phantoms:
     max_angle = 15
 else:
-    max_angle = 90
+    max_angle = 15
 do_threshold_images = True
-threshold_value = 0.1
+threshold_value = 0.1 # 0.3 # 0.9
 do_compute_image_similarities = True
 do_compare_image_histograms = True
 do_compute_image_overlaps = False  # Not as useful
@@ -48,6 +48,7 @@ if run_test_retest_humans:
     ref_images_path = images_path
     ref_image_list = 'Human_retests_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_humans')
+    interp = 'trilinear'
 elif run_structural_phantoms:
     output_path = 'ADNI_phantoms'
     images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
@@ -56,14 +57,16 @@ elif run_structural_phantoms:
     ref_images_path = images_path
     ref_image_list = 'Phantom_ADNI_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_ADNI')
+    interp = 'trilinear'
 elif run_DTI_phantoms:
     output_path = 'DTI_phantoms'
     images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
-    reg_image_list = 'Phantom_DTI_1stvol_register.txt'
-    image_list = 'Phantom_DTI_FA_transform.txt'
+    reg_image_list = 'Phantom_DTI_1stvol_rotated.txt'
+    image_list = 'Phantom_DTI_FA_rotated.txt'
     ref_images_path = os.path.join(data_path, 'Phantom_DTI_Manufacturer_Updated20130108')
     ref_image_list = 'Phantom_DTI_MFR_references.txt'
     temp_path = os.path.join(temp_path, 'workspace_DTI')
+    interp = 'nearestneighbour'
 image_list = os.path.join(images_path, image_list)
 reg_image_list = os.path.join(images_path, reg_image_list)
 ref_image_list = os.path.join(images_path, ref_image_list)
@@ -171,14 +174,20 @@ if do_register_images_to_ref_image:
 
     transform = Node(name = 'Transform',
                     interface = Fn(function = apply_transforms,
-                                   input_names = ['image_files',
+                                   input_names = ['files',
+                                                  'ref_files',
                                                   'transform_files',
-                                                  'directory'],
+                                                  'directory',
+                                                  'ref_directory',
+                                                  'interp'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([transform])
-    transform.inputs.image_files = file_list
+    transform.inputs.files = file_list
+    transform.inputs.ref_files = ref_file_list
     Flow.connect([(register, transform, [('outfiles', 'transform_files')])])
     transform.inputs.directory = images_path
+    transform.inputs.ref_directory = ref_images_path
+    transform.inputs.interp = interp
     Flow.connect([(transform, Sink, [('outfiles', 'registrations.@images')])])
 
 #-------------------------------------------------------------------------------
