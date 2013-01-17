@@ -218,18 +218,27 @@ def register_images_to_ref_images(files, ref_files, max_angle=90,
 
     return outfiles
 
-def apply_transforms(image_files, transform_files, directory=''):
+def apply_transforms(files, ref_files, transform_files,
+                     directory='', ref_directory='',
+                     interp='trilinear'):
     """
-    Apply transforms to register all images to the first image.
+    Apply transforms to register all images to a reference image
+    (else the first of the image files).
 
     Parameters
     ----------
-    image_files : list of strings
+    files : list of strings
         input image file names
+    ref_files : list of strings
+        input reference image file names
     transform_files : list of strings
         input transform file names
     directory : string
         path to image files
+    ref_directory : string
+        path to input reference image files
+    interp : string
+        interpolation {'trilinear', 'nearestneighbour', 'sinc', 'spline'}
 
     Returns
     -------
@@ -241,19 +250,20 @@ def apply_transforms(image_files, transform_files, directory=''):
 
     run_ants = False
 
-    # Get data
-    target_file = os.path.join(directory, image_files[0])
-
     outfiles = []
-    for isource, source_filename in enumerate(image_files):  #(image_files[1::]):
+    for isource, source_filename in enumerate(files):  #(files[1::]):
 
         source_file = os.path.join(directory, source_filename)
+        if ref_files and ref_directory:
+            target_file = os.path.join(ref_directory, ref_files[isource])
+        else:
+            target_file = os.path.join(directory, os.path.basename(files[0]))
         transform_file = transform_files[isource]
 
         # Save registered image
         prefix = 'registered' + str(isource) + '_'
         outfile = os.path.join(os.getcwd(),
-                  prefix + os.path.basename(image_files[isource]))
+                  prefix + os.path.basename(files[isource]))
         outfiles.append(outfile)
         print('Save registered image: {0}'.format(outfile))
 
@@ -264,6 +274,7 @@ def apply_transforms(image_files, transform_files, directory=''):
             cmd = ' '.join(['flirt -in', source_file,
                             '-ref', target_file,
                             '-applyxfm -init', transform_file,
+                            '-interp', interp,
                             '-out', outfile])
         print(cmd)
         os.system(cmd)
@@ -449,7 +460,8 @@ def compute_image_overlaps(files, list_of_labels, save_file=False):
             if ifile2 > ifile1:
 
                 # Compute and store pairwise overlaps
-                overlaps, out_file = measure_volume_overlap(list_of_labels, file1, file2)
+                overlaps, out_file = measure_volume_overlap(list_of_labels,
+                                                            file1, file2)
                 pairwise_dice = [x[1] for x in overlaps]
                 pairwise_overlaps[ifile1, ifile2, :] = pairwise_dice
 
@@ -544,6 +556,8 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
         labels = ['']
         labels.extend(category_labels)
         plt.xticks(locs, labels)
+        #plot_file = 'dotplot.png'
+        #plt.savefig(plot_file, bbox_inches=0)
 
     plt.show()
 
@@ -554,11 +568,15 @@ if __name__ == "__main__":
 
     from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
 
-#    table_file = '/drop/EMBARC/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
-#    dot_plot_no_overlaps(table_file, [6,6,5,6], ['CU','MG','TX','UM'],
-#        no_ones=True, no_zeros=True)
+    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.3.txt'
+    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.9.txt'
+    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.3.txt'
+    table = '/drop/EMBARC/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.9.txt'
+    number_in_each_category = [7,5,5,5]
+    categories = ['CU','MG','TX','UM']
+    #table = '/drop/EMBARC/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
+    #table = '/drop/EMBARC/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
 
-#    table_file = '/Users/arno/Desktop/workspace_DTI/Image_comparison_workflow/Compare_histograms/vector_distances.txt'
-    table_file = '/Users/arno/Desktop/workspace_DTI/Image_comparison_workflow/Similarity/pairwise_similarities.txt'
-    dot_plot_no_overlaps(table_file, [7,5,5,5], ['CU','MG','TX','UM'],
-        no_ones=True, no_zeros=True)
+    dot_plot_no_overlaps(table, number_in_each_category, categories,
+                         no_ones=True, no_zeros=True)
+
