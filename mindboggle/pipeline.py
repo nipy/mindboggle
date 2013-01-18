@@ -12,9 +12,14 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
->>> for atlas in atlases[0:20]:
->>>     cmd = 'python pipeline.py /desk/output {0}'.format(atlas)
->>>     print(cmd); os.system(cmd)
+>>> for atlas in atlases:
+>>> #    if 'MMRR' in atlas:
+>>> #    if 'OASIS' in atlas:
+>>> #    if 'NKI-RS' in atlas:
+>>>     if 'NKI-TRT' in atlas:
+>>> #    if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
+>>>         cmd = 'python pipeline.py /desk/output {0}'.format(atlas)
+>>>         print(cmd); os.system(cmd)
 
 .. note::
   Mindboggle assumes a file tree like FreeSurfer's,
