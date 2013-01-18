@@ -520,7 +520,8 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     """
     import os
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
-         write_vtk_vertices, write_vtk_faces, write_vtk_scalars
+         write_vtk_vertices, write_vtk_faces, write_vtk_scalars, \
+         scalar_lists_names_checker
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
@@ -539,7 +540,7 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
 
     if len(scalar_lists) > 0:
 
-       scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
+        scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
 
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
@@ -604,7 +605,8 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     import os
     from mindboggle.utils.mesh_operations import inside_faces
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points, \
-         write_vtk_vertices, write_vtk_faces, write_vtk_scalars, load_scalars
+         write_vtk_vertices, write_vtk_faces, write_vtk_scalars, load_scalars, \
+         scalar_lists_names_checker
 
     # Output VTK file to current working directory
     output_vtk = os.path.join(os.getcwd(), output_vtk)
@@ -705,7 +707,8 @@ def copy_scalar_lists(output_vtk, points, faces, lines, indices, scalar_lists,
     """
     import os
     from mindboggle.utils.io_vtk import write_vtk_header, write_vtk_points,\
-        write_vtk_faces, write_vtk_lines, write_vtk_vertices, write_vtk_scalars
+        write_vtk_faces, write_vtk_lines, write_vtk_vertices, write_vtk_scalars,\
+        scalar_lists_names_checker
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
