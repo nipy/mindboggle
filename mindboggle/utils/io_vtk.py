@@ -425,7 +425,10 @@ def scalar_lists_names_checker(scalar_lists, scalar_names):
         elif type(scalar_lists[0]) == list:
             pass 
         else:
-            print "Error: scalar_lists is a 1-D list containing unacceptable elements. "
+            print "io_vtk.py: Error: scalar_lists is a 1-D list containing unacceptable elements. "
+            print "io_vtk.py: scalar_lists type is:", type(scalar_lists)
+            print "io_vtk,py: scalar length is:", len(scalar_lists)
+            print "io_vtk.py: scalar_lists[0] type is:", type(scalar_lists[0])
             exit()
 
     if type(scalar_names) == str:
