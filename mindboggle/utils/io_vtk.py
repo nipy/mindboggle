@@ -371,7 +371,7 @@ def load_scalar_lists(filename):
 def scalar_lists_names_checker(scalar_lists, scalar_names):
     """
     Check whether input scalar_lists and scalar_names are in acceptable format. If not, reformat.
-    
+
     Parameters
     ----------
     scalar_lists : list of lists of floats (or single list or 1-/2-D array of floats)
@@ -389,7 +389,7 @@ def scalar_lists_names_checker(scalar_lists, scalar_names):
     >>> % You will be kicked out from Python shell after the command above
     >>> import numpy as np
     >>> scalar_lists_names_checker(np.array([1,2,3]), ["123"])
-         Warning: the new_scalar_lists is a 1-D numpy array. Conversion done but may have problems in final VTK. 
+         Warning: the new_scalar_lists is a 1-D numpy array. Conversion done but may have problems in final VTK.
     >>> ([[1, 2, 3]], ['123'])
     >>> scalar_lists_names_checker(np.array([[1,2,3]]), ["123"])
     >>> ([[1, 2, 3]], ['123'])
@@ -398,11 +398,11 @@ def scalar_lists_names_checker(scalar_lists, scalar_names):
     >>> scalar_lists_names_checker(np.array([[[1,2,3]]]), ["123"])
         Error: Dimension of new_scalar_lists is too high.
 
-    Notes 
+    Notes
     -----
     This function does not check all possible cases of scalar_lists and scalar_names,
     but only those that are likely to happen when using Mindboggle.
-    
+
     """
     import numpy as np
     if type(scalar_lists) != list:
@@ -423,7 +423,7 @@ def scalar_lists_names_checker(scalar_lists, scalar_names):
         if type(scalar_lists[0]) == int or type(scalar_lists[0]) == float: # this is an acceptable 1-D list
             scalar_lists = [scalar_lists]
         elif type(scalar_lists[0]) == list:
-            pass 
+            pass
         else:
             print "io_vtk.py: Error: scalar_lists is a 1-D list containing unacceptable elements. "
             print "io_vtk.py: scalar_lists type is:", type(scalar_lists)
@@ -438,7 +438,7 @@ def scalar_lists_names_checker(scalar_lists, scalar_names):
     else:
         print "Error: scalar_names is neither a list nor a string"
         exit()
-        
+
     return scalar_lists, scalar_names
 
 def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
@@ -472,16 +472,16 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     scalar_names : string or list of strings
         each element is the name of a lookup table, default=['scalars']
         if only one string is given for this field, the program will convert
-        it into a list of only this string. 
-        
-    Notes 
+        it into a list of only this string.
+
+    Notes
     --------
-    
-    If you do not have all 7 parameters, it's safer to use syntax like 
-    ...``indices=indices, faces=faces``... (as in Toy example) 
-    than syntax like ...``indices, faces``... alone to 
-    ensure that your variables are aligned with their orders 
-    in parameter definition.   
+
+    If you do not have all 7 parameters, it's safer to use syntax like
+    ...``indices=indices, faces=faces``... (as in Toy example)
+    than syntax like ...``indices, faces``... alone to
+    ensure that your variables are aligned with their orders
+    in parameter definition.
 
     Examples
     --------
@@ -494,8 +494,9 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     >>> faces = [[1,2,3],[0,1,3]]
     >>> scalar_names = ['curv','depth']
     >>> scalar_lists = [[random.random() for i in xrange(4)] for j in [1,2]]
-    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices=indices, lines=lines, 
-    >>>             faces=faces, scalar_lists=scalar_lists, scalar_names=scalar_names)
+    >>> write_scalar_lists('test_write_scalar_lists.vtk', points,
+    >>>          indices=indices, lines=lines, faces=faces,
+    >>>          scalar_lists=scalar_lists, scalar_names=scalar_names)
     >>> os.system('mayavi2 -m Surface -d test_write_scalar_lists.vtk &')
     >>>
     >>> # Write vtk file with depth values on sulci
@@ -512,7 +513,7 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Write to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
     >>>
-    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices=indices, 
+    >>> write_scalar_lists('test_write_scalar_lists.vtk', points, indices=indices,
     >>>     faces=faces, scalar_lists=depths, scalar_names='depths')
     >>> os.system('mayavi2 -m Surface -d test_write_scalar_lists.vtk &')
 
@@ -526,7 +527,7 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
     Fp = open(output_vtk,'w')
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
-    
+
     if len(indices) != []:
         write_vtk_vertices(Fp, indices)
     if len(lines):
@@ -535,13 +536,10 @@ def write_scalar_lists(output_vtk, points, indices=[], lines=[], faces=[],
         write_vtk_faces(Fp, lines) # write_vtk_faces can write either lines or faces
     if len(faces):
         write_vtk_faces(Fp, faces)
-        
+
     if len(scalar_lists) > 0:
 
-        print(len(scalar_lists))
-        print(len(scalar_lists[0]))
-
-        scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
+       scalar_lists, scalar_names = scalar_lists_names_checker(scalar_lists, scalar_names)
 
         for i, scalar_list in enumerate(scalar_lists):
             if i == 0:
@@ -1224,7 +1222,8 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
 
     scalar_lists = [curvature_values]
     scalar_names = [file_string]
-    write_scalar_lists(output_vtk, points, range(n_vertices), faces, scalar_lists, scalar_names)
+    write_scalar_lists(output_vtk, points, indices=range(n_vertices), lines=[],
+        faces=faces, scalar_lists=scalar_lists, scalar_names=scalar_names)
 
     return output_vtk
 
@@ -1276,7 +1275,9 @@ def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
 
     scalar_lists = [labels.tolist()]
     scalar_names = ['Labels']
-    write_scalar_lists(output_vtk, points, range(n_vertices), faces, scalar_lists, scalar_names)
+    write_scalar_lists(output_vtk, points, indices=range(n_vertices),
+                       faces=faces, scalar_lists=scalar_lists,
+                       scalar_names=scalar_names)
 
     return labels, output_vtk
 
