@@ -64,7 +64,6 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
     Examples
     --------
     $ mris_ca_label MMRR-21-1 lh sphere ../lh.DKTatlas40.gcs ../out.annot
-
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -72,8 +71,9 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
     logger = logging.getLogger('interface')
 
     classifier_file = os.path.join(classifier_path, hemi + '.' + classifier_atlas)
-    annot_name = classifier_atlas + '.annot'
-    annot_file = os.path.join(subjects_path, subject, 'label', hemi + '.' + annot_name)
+    annot_name = classifier_atlas
+    annot_file = os.path.join(subjects_path, subject, 'label',
+                              hemi + '.' + annot_name + '.annot')
     cli = CommandLine(command='mris_ca_label')
     cli.inputs.args = ' '.join([subject, hemi, sphere_file,
                                 classifier_file, annot_file])
