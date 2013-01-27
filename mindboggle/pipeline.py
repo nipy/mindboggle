@@ -78,7 +78,7 @@ else:
 #  User settings
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
-fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
+fill_volume = True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 #-------------------------------------------------------------------------------
@@ -94,7 +94,7 @@ protocol = 'DKT25'
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
 #-------------------------------------------------------------------------------
-init_labels = 'manual'
+init_labels = 'DKTatlas'
 #-------------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
