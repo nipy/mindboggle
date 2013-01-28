@@ -206,10 +206,11 @@ def labels_to_annot(hemi, subjects_path, subject, label_files,
 
         return annot_name, annot_file
 
-def labels_to_volume(subject, annot_name):
+def labels_to_volume(subject, annot_name, original_space, reference):
     """
     Propagate surface labels through a gray matter volume
-    using FreeSurfer's mri_aparc2aseg.
+    and convert label volume from FreeSurfer 'unconformed' to original space
+    using FreeSurfer's mri_aparc2aseg and mri_vol2vol.
 
     Note
     ----
@@ -220,22 +221,57 @@ def labels_to_volume(subject, annot_name):
     mris_anatomical_stats will be more accurate than the volumes from the
     aparc+aseg volume.
 
+    Parameters
+    ----------
+    subject : string
+        subject name
+    annot_name: string
+        FreeSurfer annot filename without the hemisphere prepend or .annot append
+    original_space: Boolean
+        convert from FreeSurfer unconformed to original space?
+    reference : string
+        file in original space
+
+    Returns
+    -------
+    output_file : string
+        name of output file
+
     """
     import os
     from nipype.interfaces.base import CommandLine
 
+    # Fill gray matter volume with surface labels using FreeSurfer
     print("Fill gray matter volume with surface labels using FreeSurfer...")
 
-    output_file = os.path.join(os.getcwd(), annot_name + '.nii.gz')
+    output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
 
     args = ['--s', subject,
             '--annot', annot_name,
-            '--o', output_file]
+            '--o', output_file1]
 
     cli = CommandLine(command='mri_aparc2aseg')
     cli.inputs.args = ' '.join(args)
     cli.cmdline
     cli.run()
+
+    # Convert label volume from FreeSurfer to original space
+    if original_space:
+        print("Convert label volume from FreeSurfer 'unconformed' to original space...")
+
+        output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
+
+        args = ['--mov', output_file1,
+                '--targ', reference,
+                '--regheader --o', output_file2]
+
+        cli = CommandLine(command='mri_vol2vol')
+        cli.inputs.args = ' '.join(args)
+        cli.cmdline
+        cli.run()
+        output_file = output_file2
+    else:
+        output_file = output_file1
 
     return output_file
 
