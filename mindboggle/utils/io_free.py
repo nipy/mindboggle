@@ -248,6 +248,7 @@ def labels_to_volume(subject, annot_name, original_space, reference):
 
     args = ['--s', subject,
             '--annot', annot_name,
+            '--nearest',
             '--o', output_file1]
 
     cli = CommandLine(command='mri_aparc2aseg')
