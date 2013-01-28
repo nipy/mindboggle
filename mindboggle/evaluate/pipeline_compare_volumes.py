@@ -15,62 +15,82 @@ import os
 # Setup: import libraries, set file paths, and initialize main workflow
 #=============================================================================
 #-----------------------------------------------------------------------------
+# Paths
+#-----------------------------------------------------------------------------
+# images_path is the beginning of the path not in the text of image_list file
+data_path = '/Users/arno/Data'
+results_path = '/desk/Results'
+temp_path = '/desk'
+#-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-run_test_retest_humans = False
-run_structural_phantoms = False
-run_DTI_phantoms = True
+process_phantoms = False  # phantom or human data?
+process_DTI = True  # structural or diffusion data?
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
-do_register_images_to_ref_image = True
-if run_structural_phantoms:
+do_register_images_to_ref_images = True
+if process_phantoms:
     max_angle = 15
+    if process_DTI:
+        temp_path = os.path.join(temp_path, 'workspace_DTI_phantoms')
+    else:
+        temp_path = os.path.join(temp_path, 'workspace_phantoms')
 else:
-    max_angle = 15
+    max_angle = 45
+    if process_DTI:
+        temp_path = os.path.join(temp_path, 'workspace_DTI_humans')
+    else:
+        temp_path = os.path.join(temp_path, 'workspace_humans')
+if process_DTI:
+    threshold_value = 0.3
+    interp = 'nearestneighbour'
+else:
+    threshold_value = 0.1
+    interp = 'trilinear'
 do_threshold_images = True
-threshold_value = 0.1 # 0.3 # 0.9
 do_compute_image_similarities = True
 do_compare_image_histograms = True
 do_compute_image_overlaps = False  # Not as useful
 #-----------------------------------------------------------------------------
-# Paths and images to process
+# Lists of images to process
 #-----------------------------------------------------------------------------
-# images_path is the beginning of the path not in the text of image_list file
-data_path = '/drop/EMBARC/Data'
-results_path = '/drop/EMBARC/Results'
-temp_path = '/desk'
-if run_test_retest_humans:
-    output_path = 'Human_retests'
-    images_path = os.path.join(data_path, 'Human_retests')
-    reg_image_list = 'Human_retests.txt'
-    image_list = 'Human_retests.txt'
-    ref_images_path = images_path
-    ref_image_list = 'Human_retests_references.txt'
-    temp_path = os.path.join(temp_path, 'workspace_humans')
-    interp = 'trilinear'
-elif run_structural_phantoms:
-    output_path = 'ADNI_phantoms'
-    images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
-    reg_image_list = 'Phantom_ADNI.txt'
-    image_list = 'Phantom_ADNI.txt'
-    ref_images_path = images_path
-    ref_image_list = 'Phantom_ADNI_references.txt'
-    temp_path = os.path.join(temp_path, 'workspace_ADNI')
-    interp = 'trilinear'
-elif run_DTI_phantoms:
-    output_path = 'DTI_phantoms'
-    images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
-    reg_image_list = 'Phantom_DTI_1stvol_rotated.txt'
-    image_list = 'Phantom_DTI_FA_rotated.txt'
-    ref_images_path = os.path.join(data_path, 'Phantom_DTI_Manufacturer_Updated20130108')
-    ref_image_list = 'Phantom_DTI_MFR_references.txt'
-    temp_path = os.path.join(temp_path, 'workspace_DTI')
-    interp = 'nearestneighbour'
+if process_phantoms:
+    if process_DTI:
+        output_path = 'DTI_phantoms'
+        images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
+        reg_image_list = 'Phantom_DTI_1stvol_rotated.txt'
+        image_list = 'Phantom_DTI_FA_rotated.txt'
+        ref_images_path = os.path.join(data_path, 'Phantom_DTI_Manufacturer_Updated20130108')
+        ref_image_list = 'Phantom_DTI_MFR_references.txt'
+    else:
+        output_path = 'ADNI_phantoms'
+        images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
+        reg_image_list = 'Phantom_ADNI.txt'
+        image_list = 'Phantom_ADNI.txt'
+        ref_images_path = images_path
+        ref_image_list = 'Phantom_ADNI_references.txt'
+else:
+    if process_DTI:
+        output_path = 'Human_retests'
+        images_path = os.path.join(data_path, 'Human_DTI_Updated20130123')
+        reg_image_list = 'Human_retests_1stvol.txt'
+        image_list = 'Human_retests_FA.txt'
+        ref_images_path = images_path
+        ref_image_list = 'Human_retests_DTI_references.txt'
+    else:
+        output_path = 'Human_retests'
+        images_path = os.path.join(data_path, 'Human_STR_Updated20130123')
+        reg_image_list = 'Human_retests.txt'
+        image_list = 'Human_retests.txt'
+        ref_images_path = images_path
+        ref_image_list = 'Human_retests_references.txt'
 image_list = os.path.join(images_path, image_list)
 reg_image_list = os.path.join(images_path, reg_image_list)
 ref_image_list = os.path.join(images_path, ref_image_list)
 output_path = os.path.join(results_path, output_path)
+
+
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
@@ -155,7 +175,7 @@ if do_compare_image_histograms:
 #-------------------------------------------------------------------------------
 # Register each image to a reference image
 #-------------------------------------------------------------------------------
-if do_register_images_to_ref_image:
+if do_register_images_to_ref_images:
     register = Node(name = 'Register',
                     interface = Fn(function = register_images_to_ref_images,
                                    input_names = ['files',
