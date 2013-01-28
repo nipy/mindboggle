@@ -55,8 +55,8 @@ for subject in subjects:
     xfm_DKT31 = subject_path+'labels.DKT31.manual.MNI152.nii.gz'
     xfm_DKT31aseg = subject_path+'labels.DKT31.manual+aseg.MNI152.nii.gz'
 
-    # Convert label volume from FreeSurfer to original space
-    print("Convert label volume from FreeSurfer to original space...")
+    # Convert label volume from FreeSurfer 'unconformed' to original space
+    print("Convert label volume from FreeSurfer 'unconformed' to original space...")
     #if 'OASIS-TRT-20-' in subject or 'NKI-TRT-20-' in subject:
     cmd = ' '.join(['mri_vol2vol --mov', full_labels_orig, '--targ', head,
                     '--regheader --o', full_labels])

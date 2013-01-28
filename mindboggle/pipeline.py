@@ -193,6 +193,16 @@ if include_convexity:
     Surf.inputs.template_args['convexity_files'] = [['subject', 'hemi', 'sulc']]
 mbFlow.connect([(Info, Surf, [('subject','subject'), ('hemi','hemi')])])
 #-------------------------------------------------------------------------------
+# Location and structure of the volume inputs
+#-------------------------------------------------------------------------------
+if fill_volume:
+    Vol = Node(name = 'Volumes',
+        interface = DataGrabber(infields=['subject'],
+                                outfields=['original_volume']))
+    Vol.inputs.base_directory = subjects_path
+    Vol.inputs.template = '%s/mri/orig/001.mgz'
+    Vol.inputs.template_args['original_volume'] = [['subject']]
+#-------------------------------------------------------------------------------
 # Outputs
 #-------------------------------------------------------------------------------
 Sink = Node(DataSink(), name = 'Results')
@@ -1019,18 +1029,24 @@ Info2.iterables = ([('subject', subjects)])
 Sink2 = Sink.clone('Results2')
 
 #-------------------------------------------------------------------------------
-# Fill volume mask with surface vertex labels from .annot file
+# Fill volume mask with surface vertex labels from .annot file.
+# Convert label volume from FreeSurfer 'unconformed' to original space.
 #-------------------------------------------------------------------------------
 if fill_volume:
 
     FillVolume = Node(name='Fill_volume',
                       interface = Fn(function = labels_to_volume,
                                      input_names = ['subject',
-                                                    'annot_name'],
+                                                    'annot_name',
+                                                    'original_space',
+                                                    'reference'],
                                      output_names = ['output_file']))
     mbFlow2.add_nodes([FillVolume])
-    FillVolume.inputs.annot_name = 'labels.' + init_labels
     mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
+    FillVolume.inputs.annot_name = 'labels.' + init_labels
+    FillVolume.inputs.original_space = True
+    mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
+    mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
     #---------------------------------------------------------------------------
     # Relabel file, replacing colortable labels with real labels
     #---------------------------------------------------------------------------
