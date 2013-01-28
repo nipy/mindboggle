@@ -568,14 +568,19 @@ if __name__ == "__main__":
 
     from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
 
-    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.3.txt'
-    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.9.txt'
-    #table = '/drop/EMBARC/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.3.txt'
-    table = '/drop/EMBARC/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.9.txt'
+    #table = '/desk/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.3.txt'
+    #table = '/desk/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.9.txt'
+    #table = '/desk/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.3.txt'
+    #table = '/desk/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.9.txt'
+    #number_in_each_category = [7,5,5,5]
+    table = '/desk/Results/Human_retests/Results/similarities/vector_distances_threshold0.1.txt'
+    table = '/desk/Results/Human_retests/Results/similarities/pairwise_similarities_threshold0.1.txt'
+    table = '/desk/Results/Human_retests_DTI/Results/similarities/vector_distances_threshold0.1.txt'
+    table = '/desk/Results/Human_retests_DTI/Results/similarities/pairwise_similarities_threshold0.1.txt'
     number_in_each_category = [7,5,5,5]
     categories = ['CU','MG','TX','UM']
-    #table = '/drop/EMBARC/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
-    #table = '/drop/EMBARC/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
+    #table = '/desk/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
+    #table = '/desk/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
 
     dot_plot_no_overlaps(table, number_in_each_category, categories,
                          no_ones=True, no_zeros=True)
