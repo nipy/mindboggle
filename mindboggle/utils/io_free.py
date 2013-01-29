@@ -248,7 +248,6 @@ def labels_to_volume(subject, annot_name, original_space, reference):
 
     args = ['--s', subject,
             '--annot', annot_name,
-            '--nearest',
             '--o', output_file1]
 
     cli = CommandLine(command='mri_aparc2aseg')
@@ -262,8 +261,10 @@ def labels_to_volume(subject, annot_name, original_space, reference):
 
         output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
 
+        interp = 'nearest'
         args = ['--mov', output_file1,
                 '--targ', reference,
+                '--interp', interp,
                 '--regheader --o', output_file2]
 
         cli = CommandLine(command='mri_vol2vol')
