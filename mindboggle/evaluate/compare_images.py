@@ -47,6 +47,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     # Compute histogram
     #---------------------------------------------------------------------------
     # Load image
+    print(infile)
     data = nb.load(infile).get_data().ravel()
 
     # Threshold image
@@ -110,8 +111,7 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
 
     return histogram_values_list
 
-def register_images_to_ref_images(files, ref_files, max_angle=90,
-                                  directory='', ref_directory=''):
+def register_images_to_ref_images(files, ref_file_index=1, max_angle=90, directory=''):
     """
     Compute registration transforms from each image to its reference image.
 
@@ -119,14 +119,12 @@ def register_images_to_ref_images(files, ref_files, max_angle=90,
     ----------
     files : list of strings
         input image file names
-    ref_files : list of strings
-        input reference image file names
+    ref_file_index : integer
+        index to reference input image file
     max_angle : integer
         maximum search angle
     directory : string
         path to input files
-    ref_directory : string
-        path to input reference image files
 
     Returns
     -------
@@ -168,10 +166,10 @@ def register_images_to_ref_images(files, ref_files, max_angle=90,
     """
 
     outfiles = []
+    target_file = os.path.join(directory, files[ref_file_index])
     for isource, source_filename in enumerate(files):  #(files[1::]):
 
         source_file = os.path.join(directory, source_filename)
-        target_file = os.path.join(ref_directory, ref_files[isource])
 
         # Save transformation matrix
         prefix = 'registered' + str(isource) + '_'
@@ -218,9 +216,8 @@ def register_images_to_ref_images(files, ref_files, max_angle=90,
 
     return outfiles
 
-def apply_transforms(files, ref_files, transform_files,
-                     directory='', ref_directory='',
-                     interp='trilinear'):
+def apply_transforms(files, ref_file_index, transform_files,
+                     directory='', interp='trilinear'):
     """
     Apply transforms to register all images to a reference image
     (else the first of the image files).
@@ -229,14 +226,12 @@ def apply_transforms(files, ref_files, transform_files,
     ----------
     files : list of strings
         input image file names
-    ref_files : list of strings
-        input reference image file names
+    ref_file_index : integer
+        index to reference input image file
     transform_files : list of strings
         input transform file names
     directory : string
         path to image files
-    ref_directory : string
-        path to input reference image files
     interp : string
         interpolation {'trilinear', 'nearestneighbour', 'sinc', 'spline'}
 
@@ -251,13 +246,10 @@ def apply_transforms(files, ref_files, transform_files,
     run_ants = False
 
     outfiles = []
+    target_file = os.path.join(directory, files[ref_file_index])
     for isource, source_filename in enumerate(files):  #(files[1::]):
 
         source_file = os.path.join(directory, source_filename)
-        if ref_files and ref_directory:
-            target_file = os.path.join(ref_directory, ref_files[isource])
-        else:
-            target_file = os.path.join(directory, os.path.basename(files[0]))
         transform_file = transform_files[isource]
 
         # Save registered image
@@ -475,8 +467,10 @@ def compute_image_overlaps(files, list_of_labels, save_file=False):
 
     return pairwise_overlaps, outfile
 
-def dot_plot_no_overlaps(table_file, number_within_each_category,
-                         category_labels=[], no_ones=False, no_zeros=True):
+def dot_plot_no_overlaps(table_file, pairs_to_process,
+                         category_labels=[], no_ones=False, no_zeros=True,
+                         plot_xlabel='', plot_ylabel='', plot_title='',
+                         figsize=4, dpi=150):
     """
     Create a dot plot for multiple categories, without overlapping dots.
     Modified after:
@@ -487,8 +481,9 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
     ----------
     table_file : string
         text file containing space-delimited NxN table of values
-    number_within_each_category : list of integers
-        each integer indicates the number of members (rows/columns) per category
+    pairs_to_process : list of lists of pairs of integers
+        each list if for a category, and each pair contains the indices
+        to the (rows/columns of the) table to be compared
     category_labels : list of strings
         names of categories
     no_ones : Boolean
@@ -504,15 +499,24 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
     # Load file
     data = np.loadtxt(table_file)
 
-    # Collect all within-category data into separate lists
+    # Collect all within-category data as a separate list
     data_lists = []
     c = 0
-    for n in number_within_each_category:
+    for pairs in pairs_to_process:
         data_list = []
-        for irow in range(n):
-            data_list.extend(data[irow + c, irow + c : irow + c + n - irow])
-        c += n
+        for pair in pairs:
+            data_pair = data[pair[0],pair[1]]
+            # Remove ones and zeros from data if specified
+            test = True
+            if no_ones and data_pair == 1:
+                test = False
+            if no_zeros and data_pair == 0:
+                test = False
+            if test:
+                data_list.append(data_pair)
         data_lists.append(data_list)
+
+    # Compute means and standard deviations for each list
     means = [np.mean(x) for x in data_lists]
     stds = [np.std(x) for x in data_lists]
     print("Means = {0}".format(means))
@@ -547,10 +551,12 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
                 x.append(pos)
                 y.append(item)
                 pos += 0.04
+    plt.figure(figsize=[figsize,figsize], dpi=dpi, facecolor='white', edgecolor=None,
+        linewidth=0.0, frameon=True, subplotpars=None, tight_layout=None)
+
     plt.plot(x, y, 'o')
     plt.xlim((0,len(data_lists) + 1))
     #plt.ylim((0,1))
-    plt.title('Category dot plot')
     if category_labels:
         locs, labels = plt.xticks()
         labels = ['']
@@ -558,7 +564,9 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
         plt.xticks(locs, labels)
         #plot_file = 'dotplot.png'
         #plt.savefig(plot_file, bbox_inches=0)
-
+    plt.xlabel = plot_xlabel
+    plt.ylabel = plot_ylabel
+    plt.title = plot_title
     plt.show()
 
 #------------------------------------------------------------------------------
@@ -566,22 +574,80 @@ def dot_plot_no_overlaps(table_file, number_within_each_category,
 #------------------------------------------------------------------------------
 if __name__ == "__main__":
 
+    import os
     from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
 
-    #table = '/desk/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.3.txt'
-    #table = '/desk/Results/DTI_phantoms/Results/histograms/vector_distances_threshold0.9.txt'
-    #table = '/desk/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.3.txt'
-    #table = '/desk/Results/DTI_phantoms/Results/similarities/pairwise_similarities_threshold0.9.txt'
-    #number_in_each_category = [7,5,5,5]
-    table = '/desk/Results/Human_retests/Results/similarities/vector_distances_threshold0.1.txt'
-    table = '/desk/Results/Human_retests/Results/similarities/pairwise_similarities_threshold0.1.txt'
-    table = '/desk/Results/Human_retests_DTI/Results/similarities/vector_distances_threshold0.1.txt'
-    table = '/desk/Results/Human_retests_DTI/Results/similarities/pairwise_similarities_threshold0.1.txt'
-    number_in_each_category = [7,5,5,5]
-    categories = ['CU','MG','TX','UM']
-    #table = '/desk/Results/ADNI_phantoms/Results/histograms/vector_distances.txt'
-    #table = '/desk/Results/ADNI_phantoms/Results/similarities/pairwise_similarities.txt'
+    #-----------------------------------------------------------------------------
+    # Data to run
+    #-----------------------------------------------------------------------------
+    process_phantoms = False  # use phantom (or human) data?
+    process_DTI = False  # use diffusion (or structural) data?
+    do_similarity = True  # use image similarity (or histogram) table?
+    # Choose one:
+    pairs_type = 1  # {1,2,3}
+                    # 1: different_subject_pairs_per_site
+                    # 2: same_subject_pairs_per_site
+                    # 3: same_subject_intersite_pairs_per_site
+    site_names = ['CU','MG','TX','UM']
 
-    dot_plot_no_overlaps(table, number_in_each_category, categories,
-                         no_ones=True, no_zeros=True)
+    if process_phantoms:
+        if process_DTI:
+            base_path = '/desk/workspace_DTI_phantoms/Image_comparison_workflow'
+            pairs_file = '/Users/arno/Data/Phantom_DTI/Human_retest_pairs.py'
+        else:
+            base_path = '/desk/workspace_phantoms/Image_comparison_workflow'
+            pairs_file = '/Users/arno/Data/Phantom_STR/Human_retest_pairs.py'
+    else:
+        if process_DTI:
+            base_path = '/desk/workspace_DTI_humans/Image_comparison_workflow'
+            pairs_file = '/Users/arno/Data/Human_DTI_Updated20130123/Human_retest_pairs.py'
+
+            pairs_type1 = [[[0,1],[0,2],[0,3],[0,5],[0,7]],
+                           [[8,9]],
+                           [[10,11],[10,12],[10,13],[10,14],[10,15]],
+                           []]
+            pairs_type2 = [[],[],[],[]]
+            pairs_type3 = [[[3,4],[5,6]],[],[],[]]
+
+        else:
+            base_path = '/desk/workspace_humans/Image_comparison_workflow'
+            pairs_file = '/Users/arno/Data/Human_STR_Updated20130123/Human_retest_pairs.py'
+
+            pairs_type1 = [[[0,2],[0,4],[0,7],[0,10],[0,13],[0,15],
+                            [0,17],[0,19],[0,21]],
+                           [[23,24],[23,26],[23,28],[23,30],[23,32]],
+                           [[33,35],[33,37],[33,39],[33,41],[33,43],
+                            [33,45],[33,48],[33,51],[33,53]],
+                           [[55,58],[55,61],[55,64],[55,65],[55,66]]]
+            pairs_type2 = [[[0,1],[2,3],[4,5],[7,8],[10,11],[13,14],
+                            [15,16],[17,18],[19,20],[21,22]],
+                           [[24,25],[26,27],[28,29],[30,31]],
+                           [[33,34],[35,36],[37,38],[39,40],[41,42],
+                            [43,44],[45,46],[48,49],[51,52],[53,54]],
+                           [[55,56],[58,59],[61,62],[66,67]]]
+            pairs_type3 = [[[4,6],[7,9],[10,12]],
+                [],
+                           [[45,47],[48,50]],
+                           [[55,57],[58,60],[61,63]]]
+
+    if pairs_type == 1:
+        pairs = pairs_type1
+    elif pairs_type == 2:
+        pairs = pairs_type2
+    elif pairs_type == 3:
+        pairs = pairs_type3
+
+    if do_similarity:
+        table = os.path.join(base_path, 'Similarity', 'pairwise_similarities.txt')
+        plot_ylabel = 'Image similarity (correlation coefficient)'
+        plot_title = 'Similarities per site'
+    else:
+        table = os.path.join(base_path, 'Compare_histograms', 'vector_distances.txt')
+        plot_ylabel = 'Normalized histogram distance'
+        plot_title = 'Histogram distances per site'
+
+
+    dot_plot_no_overlaps(table, pairs, site_names, no_ones=True, no_zeros=True,
+        plot_xlabel='Sites', plot_ylabel=plot_ylabel, plot_title=plot_title,
+        figsize=4, dpi=150)
 
