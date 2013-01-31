@@ -5,9 +5,9 @@ Welcome to Mindboggle!
 ======================
 
 We are developing Mindboggle to improve the accuracy, precision, and consistency
-of labeling and shape analysis of human brain imaging data, 
+of automated labeling and shape analysis of human brain imaging data, 
 and to promote open science by making all data, software, and documentation
-freely and openly available.
+freely and openly available.  We are currently preparing for our first release!
 
 |
 
@@ -19,8 +19,6 @@ freely and openly available.
   <div id='r' style='width:400px; height:300px; margin:20px; align:center; background-color:black'></div>
 
 |
-
-We are finalizing two main resources that will both be available soon on this website:
 
 Software
 --------
