@@ -25,7 +25,7 @@ temp_path = '/desk'
 # Data to run
 #-----------------------------------------------------------------------------
 process_phantoms = False  # phantom or human data?
-process_DTI = True  # structural or diffusion data?
+process_DTI = False  # structural or diffusion data?
 #-----------------------------------------------------------------------------
 # Steps to run
 #-----------------------------------------------------------------------------
