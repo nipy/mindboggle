@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 """
 Post-process Mindboggle-101 volume images for distribution,
-using Mindboggle, FreeSurfer, and FSL tools:
+using Mindboggle, FreeSurfer, and ANTS tools:
 
     # Convert label volume from FreeSurfer to original space
     # Extract brain by masking with manual cortical
@@ -26,6 +26,7 @@ mb101_path = '/hd2/Lab/Brains/Mindboggle101/'
 mb_info_path = '/projects/Mindboggle/mindboggle/mindboggle/info/'
 template = mb101_path+'MNI152space/MNI152_T1_1mm_brain.nii.gz'
 relabel_file = os.path.join(mb_info_path, 'labels.volume.DKT31to25.txt')
+app = '.nii.gz'
 
 # Loop through subjects
 list_file = mb_info_path + 'atlases101.txt'
@@ -91,33 +92,43 @@ for subject in subjects:
     cmd = ' '.join(['mv', local_labels, DKT25_labels])
     print(cmd); os.system(cmd)
 
-    # Affine register T1-weighted brain to MNI152 brain using FSL's flirt
-    print("Affine register T1-weighted brain to MNI152 brain using FSL's flirt...")
-    cmd = ' '.join(['flirt', '-in', brain, '-ref', template,
-                    '-out', xfm_brain, '-omat', xfm_matrix])
+    # Affine register T1-weighted brain to MNI152 brain using ANTS
+    # Warp: ANTS 3 -m CC[target.nii.gz, source.nii.gz, 1, 2] -o output_transform.nii.gz
+    #       -r Gauss[2,0] -t SyN[0.5] -i 30x99x11 --use-Histogram-Matching
+    #       --number-of-affine-iterations 10000x10000x10000x10000x10000
+    # Reslice: WarpImageMultiTransform 3 labeled_source.nii.gz output_labels.nii.gz
+    #          -R target.nii.gz output_transformAffine.txt -use-NN
+    print("Affine register T1-weighted brain to MNI152 brain using ANTS...")
+    c1 = 'ANTS 3 -m CC['
+    c2 = ', 1,2] -o '
+    c3 = ' -r Gauss[2,0] -t SyN[0.5] -i 0x0x0 --use-Histogram-Matching'
+    c4 = ' --number-of-affine-iterations 10000x10000x10000x10000x10000'
+    cmd = c1 + template + ', ' + brain + c2 + xfm_brain + c3 + c4
+    print(cmd); os.system(cmd)
+    xfm = xfm_brain.strip(app) + 'Affine.txt'
+
+    # Transfer brain and whole-head images with affine transform
+    print("Transfer brain images with affine transform...")
+    cmd = ' '.join(['WarpImageMultiTransform 3', brain, xfm_brain, '-R',
+                    template, xfm]) # --use-NN
     print(cmd); os.system(cmd)
 
-    # Transfer whole-head images with affine transform using FSL's flirt
-    print("Transfer whole-head images with affine transform using FSL's flirt...")
-    cmd = ' '.join(['flirt', '-in', head, '-ref', template,
-                    '-applyxfm -init', xfm_matrix, '-out', xfm_head])
+    print("Transfer whole-head images with affine transform...")
+    cmd = ' '.join(['WarpImageMultiTransform 3', head, xfm_head, '-R',
+                    template, xfm]) # --use-NN
     print(cmd); os.system(cmd)
 
-    # Transfer labeled images with affine transform (and nearest neighbor interpolation)
+    # Transfer labeled images with affine transform (nearest neighbor interpolation)
     print("Transfer labeled images with affine transform "
           "(and nearest neighbor interpolation)...")
-    cmd = ' '.join(['flirt', '-in', DKT25_labels, '-ref', template,
-                    '-applyxfm -init', xfm_matrix,
-                    '-interp nearestneighbour -out', xfm_DKT25])
+    cmd = ' '.join(['WarpImageMultiTransform 3', DKT25_labels, xfm_DKT25, '-R',
+                    template, xfm, '--use-NN'])
     print(cmd); os.system(cmd)
 
-    cmd = ' '.join(['flirt', '-in', DKT31_labels, '-ref', template,
-                    '-applyxfm -init', xfm_matrix,
-                    '-interp nearestneighbour -out', xfm_DKT31])
+    cmd = ' '.join(['WarpImageMultiTransform 3', DKT31_labels, xfm_DKT31, '-R',
+                    template, xfm, '--use-NN'])
     print(cmd); os.system(cmd)
 
-    cmd = ' '.join(['flirt', '-in', full_labels, '-ref', template,
-                    '-applyxfm -init', xfm_matrix,
-                    '-interp nearestneighbour -out', xfm_DKT31aseg])
+    cmd = ' '.join(['WarpImageMultiTransform 3', full_labels, xfm_DKT31aseg, '-R',
+                    template, xfm, '--use-NN'])
     print(cmd); os.system(cmd)
-
