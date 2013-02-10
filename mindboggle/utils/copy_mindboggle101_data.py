@@ -69,7 +69,7 @@ elif run_this == 4:
 elif run_this == 5:
     src_dirs = ['mri']
     tgt_dirs = []
-    copy_files = [['t1weighted_brain.MNI152.nii.gz','t1weighted_brain.MNI152.mat',
+    copy_files = [['t1weighted_brain.MNI152.nii.gz','t1weighted_brain.MNI152Affine.txt',
                    'labels.DKT25.manual.MNI152.nii.gz','labels.DKT31.manual.MNI152.nii.gz']]
 
 #---------------------------------------------
@@ -101,6 +101,5 @@ for subject in subjects:
         # For each file to copy
         for copy_file in copy_files[i]:
             os.system(' '.join(['cp', os.path.join(src_path, copy_file), tgt_path]))
-        #print(' '.join(['rm', os.path.join(src_path, 't1weighted.MNI152Affine.txt')]))
-        #os.system(' '.join(['rm', os.path.join(src_path, 't1weighted.MNI152.nii.gz')]))
+        #os.system(' '.join(['rm', os.path.join(src_path, 't1weighted_brain.MNI152.mat')]))
 
