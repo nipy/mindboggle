@@ -1096,7 +1096,7 @@ def fill_boundaries(regions, neighbor_lists):
 
     """
     import numpy as np
-    from mindboggle.utils.mesh_operations import detect_boundary, segment
+    from mindboggle.utils.mesh_operations import detect_boundary_indices, segment
 
     include_boundary = False
 
@@ -1104,7 +1104,7 @@ def fill_boundaries(regions, neighbor_lists):
 
     # Extract region boundaries (assumed to be closed contours)
     print('  Extract region boundaries (assumed to be closed contours)')
-    indices_boundaries = detect_boundary(range(len(regions)),
+    indices_boundaries = detect_boundary_indices(range(len(regions)),
                                          regions, neighbor_lists)
     # Extract background
     indices_background = list(frozenset(range(len(regions))).
@@ -1713,7 +1713,7 @@ def inside_faces(faces, indices):
 #------------------------------------------------------------------------------
 # Detect region boundary
 #------------------------------------------------------------------------------
-def detect_boundary(region_indices, labels, neighbor_lists):
+def detect_boundary_indices(region_indices, labels, neighbor_lists):
     """
     Detect the boundary or boundaries in a collection of vertices
     such as a region (with labels > -1).
@@ -1738,18 +1738,18 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     Examples
     --------
     >>> # Small example:
-    >>> from mindboggle.utils.mesh_operations import detect_boundary
+    >>> from mindboggle.utils.mesh_operations import detect_boundary_indices
     >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
     >>> region_indices = [0,1,2,4,5,8,9]
-    >>> detect_boundary(region_indices, labels, neighbor_lists)
+    >>> detect_boundary_indices(region_indices, labels, neighbor_lists)
       ([1, 4], [[10, 90], [40, 30]])
 
     >>> Real example -- extract sulcus label boundaries:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.utils.mesh_operations import detect_boundary
+    >>> from mindboggle.utils.mesh_operations import detect_boundary_indices
     >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -1758,15 +1758,15 @@ def detect_boundary(region_indices, labels, neighbor_lists):
     >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
     >>> neighbor_lists = find_neighbors(faces, n_vertices)
     >>>
-    >>> indices_boundaries = detect_boundary(range(len(points)),
+    >>> indices_boundaries = detect_boundary_indices(range(len(points)),
     >>>     labels, neighbor_lists)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
-    >>> rewrite_scalar_lists(labels_file, 'test_detect_boundary.vtk',
+    >>> rewrite_scalar_lists(labels_file, 'test_detect_boundary_indices.vtk',
     >>>                      [IDs], ['boundaries'], IDs)
-    >>> os.system('mayavi2 -m Surface -d test_detect_boundary.vtk &')
+    >>> os.system('mayavi2 -m Surface -d test_detect_boundary_indices.vtk &')
 
     """
     import numpy as np
@@ -1869,11 +1869,11 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     if len(ignore_indices):
         Ikeep = [i for i,x in enumerate(boundary_label_pairs)
                  if not len(frozenset(x).intersection(ignore_indices))]
+        boundary_indices = [x for i,x in enumerate(boundary_indices)
+                            if i in Ikeep]
         boundary_label_pairs = [np.sort(x).tolist()
                                 for i,x in enumerate(boundary_label_pairs)
                                 if i in Ikeep]
-        boundary_indices = [x for i,x in enumerate(boundary_indices)
-                            if i in Ikeep]
 
     unique_boundary_label_pairs = []
     for pair in boundary_label_pairs:
