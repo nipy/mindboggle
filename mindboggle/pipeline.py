@@ -79,8 +79,8 @@ else:
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
-include_thickness = 0#True  # Include FreeSurfer's thickness measure
-include_convexity = 0#True  # Include FreeSurfer's convexity measure (sulc.pial)
+include_thickness = True  # Include FreeSurfer's thickness measure
+include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 #-------------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -94,7 +94,7 @@ protocol = 'DKT25'
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
 #-------------------------------------------------------------------------------
-init_labels = 'DKTatlas'
+init_labels = 'manual' #'DKTatlas'
 #-------------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
@@ -221,7 +221,7 @@ if not input_vtk:
 #-------------------------------------------------------------------------------
 # Evaluation inputs: location and structure of atlas surfaces
 #-------------------------------------------------------------------------------
-if evaluate_surface_labels or init_labels == 'manual' and run_atlasFlow == True:
+if evaluate_surface_labels or init_labels == 'manual' or run_atlasFlow:
     Atlas = Node(name = 'Atlases',
                  interface = DataGrabber(infields=['subject','hemi'],
                                          outfields=['atlas_file']))
@@ -275,6 +275,8 @@ if run_atlasFlow:
                           ('subject', 'DK_annot_to_VTK.subject')])])
         FreeLabels.inputs.subjects_path = subjects_path
         FreeLabels.inputs.annot_name = 'aparc.annot'
+        mbFlow.connect([(atlasFlow, Sink,
+                         [('DK_annot_to_VTK.vtk_file', 'labels.@DKsurface')])])
     #===========================================================================
     #   Initialize labels with the DKT classifier atlas
     #===========================================================================
@@ -328,6 +330,8 @@ if run_atlasFlow:
         Classifier2vtk.inputs.subjects_path = subjects_path
         atlasFlow.connect([(Classifier, Classifier2vtk,
                             [('annot_name', 'annot_name')])])
+        mbFlow.connect([(atlasFlow, Sink,
+                         [('Classifier2vtk.vtk_file', 'labels.@DKTsurface')])])
     #===========================================================================
     #   Initialize labels using multi-atlas registration
     #===========================================================================
