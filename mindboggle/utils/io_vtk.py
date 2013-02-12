@@ -1412,5 +1412,82 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
     return label_files, colortable  #relabel_file
 
 
-#if __name__ == "__main__" :
+# Run the Mindboggle pipeline on the Mindboggle-101 labeled brains,
+# or extract borders between their labels (everywhere or just in sulcus folds).
+if __name__ == "__main__" :
 
+    import os
+    import numpy as np
+    from mindboggle.utils.io_file import read_columns
+    from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    from mindboggle.utils.mesh_operations import find_neighbors, detect_boundary_indices
+    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
+    labels_path = '/data/Brains/Mindboggle101/subjects/'
+    features_path = '/desk/output/results/features'
+    measures_path = '/desk/output/results/measures'
+    atlases_file = os.path.join(os.environ['MINDBOGGLE_DATA'], 'info', 'atlases101.txt')
+    atlases = read_columns(atlases_file, n_columns=1)[0]
+    run_mb = True
+
+    atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
+    for atlas in atlases:
+#       if atlas_strings[3] in atlas:
+#       if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
+#       if 'Afterthought' in atlas:
+
+            print(atlas)
+            if run_mb:
+                cmd = 'python pipeline.py /desk/output {0}'.format(atlas)
+                print(cmd); os.system(cmd)
+            else:
+                for h in ['lh','rh']:
+
+                    # Input files
+                    labels_file = os.path.join(labels_path + atlas,
+                                    'label/'+h+'.labels.DKT25.manual.vtk')
+                    sulci_file = os.path.join(features_path,
+                                    '_hemi_'+h+'_subject_'+atlas, 'sulci.vtk')
+                    depth_file = os.path.join(measures_path,
+                                    '_hemi_'+h+'_subject_'+atlas, h+'.pial.depth.vtk')
+                    curv_file = os.path.join(measures_path,
+                                    '_hemi_'+h+'_subject_'+atlas, h+'.pial.curv.avg.vtk')
+                    # Output files
+                    border_file = os.path.join(features_path,
+                                    '_hemi_'+h+'_subject_'+atlas, 'label_borders.vtk')
+                    border_sulci_file = os.path.join(features_path,
+                                    '_hemi_'+h+'_subject_'+atlas, 'label_borders_sulci.vtk')
+                    border_sulci_depth_file = os.path.join(features_path,
+                                    '_hemi_'+h+'_subject_'+atlas, 'label_borders_sulci_depths.vtk')
+                    border_sulci_curv_file = os.path.join(features_path,
+                                    '_hemi_'+h+'_subject_'+atlas, 'label_borders_sulci_curvatures.vtk')
+
+                    print('Load files')
+                    points, faces, labels, n_vertices = load_scalars(labels_file, True)
+                    points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
+                    points, faces, curvs, n_vertices = load_scalars(curv_file, True)
+                    points, faces, depths, n_vertices = load_scalars(depth_file, True)
+
+                    print('Detect boundaries')
+                    neighbor_lists = find_neighbors(faces, n_vertices)
+                    indices_boundaries = detect_boundary_indices(range(len(points)),
+                        labels, neighbor_lists)
+
+                    print('Filter measures with label boundaries')
+                    IDs = -1 * np.ones(len(points))
+                    sdepths = -1 * np.ones(len(points))
+                    scurvs = -1 * np.ones(len(points))
+                    IDs[indices_boundaries] = 1
+                    sdepths[indices_boundaries] = depths[indices_boundaries]
+                    scurvs[indices_boundaries] = curvs[indices_boundaries]
+
+                    print('Write out label boundary vtk file')
+                    rewrite_scalar_lists(labels_file, border_file,
+                                         IDs, 'label_borders', IDs)
+
+                    print('Write out sulcus label boundary vtk files')
+                    rewrite_scalar_lists(depth_file, border_sulci_file,
+                                         IDs, 'label_borders_in_sulci', sulci)
+                    rewrite_scalar_lists(depth_file, border_sulci_depth_file,
+                                         sdepths, 'depths_of_label_borders_in_sulci', sulci)
+                    rewrite_scalar_lists(depth_file, border_sulci_curv_file,
+                                         scurvs, 'curvatures_of_label_borders_in_sulci', sulci)
