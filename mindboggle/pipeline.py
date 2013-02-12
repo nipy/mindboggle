@@ -110,7 +110,7 @@ evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
 evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
 run_atlasFlow = True
 run_measureFlow = True
-run_featureFlow = 0#True
+run_featureFlow = True
 run_shapeFlow = 0#True
 
 #===============================================================================

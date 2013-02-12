@@ -618,6 +618,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     indices = range(n_vertices)
     if len(filter_scalars):
         indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
+        indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
         # Remove surface mesh faces whose three vertices are not all in indices
         faces = inside_faces(faces, indices_filter)
 
@@ -632,6 +633,8 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
         new_scalar_lists, new_scalar_names = scalar_lists_names_checker(new_scalar_lists, new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalar_lists):
+            for iremove in indices_remove:
+                new_scalar_list[iremove] = -1
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_vtk_scalars(Fp, new_scalar_list, new_scalar_name)
