@@ -939,6 +939,7 @@ def write_vertex_shapes_table(table_file, column_names,
     table_file : output filename (without path)
     column_names : names of columns [list of strings]
     *vtk_files : arbitrary number of vtk files with per-vertex scalar values
+                 (set each missing file to an empty string)
 
     Returns
     -------
