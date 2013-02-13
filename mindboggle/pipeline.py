@@ -82,6 +82,8 @@ input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
+vertex_shape_tables = True
+extract_label_borders = True
 #-------------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -113,7 +115,6 @@ run_atlasFlow = True
 run_measureFlow = True
 run_featureFlow = True
 run_shapeFlow = True
-vertex_shape_tables = True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
