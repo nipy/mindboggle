@@ -625,8 +625,13 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     Fp = open(output_vtk,'w')
     write_vtk_header(Fp)
     write_vtk_points(Fp, points)
-    write_vtk_vertices(Fp, indices)
-    write_vtk_faces(Fp, faces)
+    
+    if len(indices) != []:
+        write_vtk_vertices(Fp, indices)
+
+    if len(faces):
+        write_vtk_faces(Fp, faces)
+    
     if len(new_scalar_lists) > 0:
 
         new_scalar_lists, new_scalar_names = scalar_lists_names_checker(new_scalar_lists, new_scalar_names)
