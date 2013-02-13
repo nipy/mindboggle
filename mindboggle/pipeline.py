@@ -7,17 +7,18 @@ Examples
 python pipeline.py <output path> <1 or more subject names>
 python pipeline.py output HLN-12-1 HLN-12-2
 
+>>> # Example: Run Mindboggle on the the Mindboggle-101 brain images
 >>> import os
 >>> from mindboggle.utils.io_file import read_columns
 >>> data_path = os.environ['MINDBOGGLE_DATA']
 >>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
+>>> atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
 >>> for atlas in atlases:
->>> #    if 'MMRR' in atlas:
->>> #    if 'OASIS' in atlas:
->>> #    if 'NKI-RS' in atlas:
->>>     if 'NKI-TRT' in atlas:
+>>> #    if atlas_strings[3] in atlas:
 >>> #    if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
+>>>     if 'Afterthought' in atlas:
+>>>         print(atlas)
 >>>         cmd = 'python pipeline.py /desk/output {0}'.format(atlas)
 >>>         print(cmd); os.system(cmd)
 
@@ -112,6 +113,7 @@ run_atlasFlow = True
 run_measureFlow = True
 run_featureFlow = True
 run_shapeFlow = True
+vertex_shape_tables = True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -126,7 +128,8 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalar_lists, write_mean_shapes_table, \
+from mindboggle.utils.io_vtk import rewrite_scalar_lists, \
+     write_mean_shapes_table, write_vertex_shapes_table, \
      load_scalars, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
      vtk_to_freelabels
 from mindboggle.utils.io_file import read_columns
@@ -567,13 +570,13 @@ if run_featureFlow:
     # Load surface and find all vertex neighbors
     #===========================================================================
     LoadSurf = Node(name = 'Load_surface',
-                        interface = Fn(function = load_scalars,
-                                       input_names = ['filename',
-                                                      'return_arrays'],
-                                       output_names = ['points',
-                                                       'faces',
-                                                       'scalars',
-                                                       'n_vertices']))
+                    interface = Fn(function = load_scalars,
+                                   input_names = ['filename',
+                                                  'return_arrays'],
+                                   output_names = ['points',
+                                                   'faces',
+                                                   'scalars',
+                                                   'n_vertices']))
     featureFlow.add_nodes([LoadSurf])
     if input_vtk:
         mbFlow.connect([(Surf, featureFlow,
@@ -584,9 +587,9 @@ if run_featureFlow:
     LoadSurf.inputs.return_arrays = True  # 0: return lists instead of arrays
 
     NbrNode = Node(name='Neighbors',
-                     interface = Fn(function = find_neighbors,
-                                    input_names = ['faces', 'n_vertices'],
-                                    output_names = ['neighbor_lists']))
+                   interface = Fn(function = find_neighbors,
+                                  input_names = ['faces', 'n_vertices'],
+                                  output_names = ['neighbor_lists']))
     featureFlow.add_nodes([NbrNode])
     featureFlow.connect([(LoadSurf, NbrNode,
                           [('faces','faces'), ('n_vertices','n_vertices')])])
@@ -753,15 +756,12 @@ if run_featureFlow:
 if run_shapeFlow:
 
     shapeFlow = Workflow(name='Shape_analysis')
-    column_names = ['labels', 'area', 'depth', 'mean_curvature',
-                    'gauss_curvature', 'max_curvature', 'min_curvature']
-    if include_thickness:
-        column_names.append('thickness')
-    if include_convexity:
-        column_names.append('convexity')
-    shape_files = [x + '_file' for x in column_names[2::]]
-    input_names = ['filename', 'column_names', 'labels', 'exclude_values', 'area_file']
-    input_names.extend(shape_files)
+    column_names = ['depth', 'mean_curvature', 'gauss_curvature',
+                    'max_curvature', 'min_curvature', 'thickness', 'convexity']
+    vtk_files = [x + '_file' for x in column_names]
+    input_names = ['table_file', 'column_names', 'labels']
+    input_names.extend(vtk_files)
+    input_names.extend(['norm_vtk_file', 'exclude_labels'])
 
     #===========================================================================
     # Labeled surface patch shapes
@@ -772,7 +772,7 @@ if run_shapeFlow:
                                      output_names = ['means_file',
                                                      'norm_means_file']))
     shapeFlow.add_nodes([LabelTable])
-    LabelTable.inputs.filename = 'label_shapes.txt'
+    LabelTable.inputs.table_file = 'label_shapes.txt'
     LabelTable.inputs.column_names = column_names
     #---------------------------------------------------------------------------
     # Use initial labels assigned by FreeSurfer classifier atlas
@@ -792,9 +792,6 @@ if run_shapeFlow:
         mbFlow.connect([(atlasFlow, shapeFlow,
                          [('Atlas_labels.scalars','Label_table.labels')])])
     #---------------------------------------------------------------------------
-    LabelTable.inputs.exclude_values = [-1,0]
-    mbFlow.connect([(measureFlow, shapeFlow,
-                     [('Area.area_file','Label_table.area_file')])])
     mbFlow.connect([(measureFlow, shapeFlow,
                      [('Depth.depth_file','Label_table.depth_file')])])
     mbFlow.connect([(measureFlow, shapeFlow,
@@ -817,6 +814,10 @@ if run_shapeFlow:
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Convexity_to_VTK.vtk_file',
                            'Label_table.convexity_file')])])
+    #---------------------------------------------------------------------------
+    mbFlow.connect([(measureFlow, shapeFlow,
+                     [('Area.area_file','Label_table.norm_vtk_file')])])
+    LabelTable.inputs.exclude_labels = [-1, 0]
     # Save results
     mbFlow.connect([(shapeFlow, Sink,
                      [('Label_table.means_file', 'shapes.@labels'),
@@ -828,13 +829,11 @@ if run_shapeFlow:
     if run_featureFlow:
         SulcusTable = LabelTable.clone('Sulcus_table')
         shapeFlow.add_nodes([SulcusTable])
-        SulcusTable.inputs.filename = 'sulcus_shapes.txt'
+        SulcusTable.inputs.table_file = 'sulcus_shapes.txt'
         SulcusTable.inputs.column_names = column_names
         mbFlow.connect([(featureFlow, shapeFlow,
                          [('Sulci.sulci','Sulcus_table.labels')])])
-        SulcusTable.inputs.exclude_values = [-1]
-        mbFlow.connect([(measureFlow, shapeFlow,
-                         [('Area.area_file','Sulcus_table.area_file')])])
+        #-----------------------------------------------------------------------
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Sulcus_table.depth_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
@@ -857,6 +856,11 @@ if run_shapeFlow:
             mbFlow.connect([(measureFlow, shapeFlow,
                              [('Convexity_to_VTK.vtk_file',
                                'Sulcus_table.convexity_file')])])
+        #-----------------------------------------------------------------------
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Area.area_file','Sulcus_table.norm_vtk_file')])])
+        SulcusTable.inputs.exclude_labels = [-1, 0]
+
         # Save results
         mbFlow.connect([(shapeFlow, Sink,
                          [('Sulcus_table.means_file', 'shapes.@sulci'),
@@ -868,13 +872,11 @@ if run_shapeFlow:
     if run_featureFlow and do_extract_fundi:
         FundusTable = LabelTable.clone('Fundus_table')
         shapeFlow.add_nodes([FundusTable])
-        FundusTable.inputs.filename = 'fundus_shapes.txt'
+        FundusTable.inputs.table_file = 'fundus_shapes.txt'
         FundusTable.inputs.column_names = column_names
         mbFlow.connect([(featureFlow, shapeFlow,
                          [('Fundi.fundi','Fundus_table.labels')])])
-        FundusTable.inputs.exclude_values = [-1]
-        mbFlow.connect([(measureFlow, shapeFlow,
-                         [('Area.area_file','Fundus_table.area_file')])])
+        #-----------------------------------------------------------------------
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Fundus_table.depth_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
@@ -897,10 +899,99 @@ if run_shapeFlow:
             mbFlow.connect([(measureFlow, shapeFlow,
                              [('Convexity_to_VTK.vtk_file',
                                'Fundus_table.convexity_file')])])
+        #-----------------------------------------------------------------------
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Area.area_file','Fundus_table.norm_vtk_file')])])
+        FundusTable.inputs.exclude_labels = [-1, 0]
+
         # Save results
         mbFlow.connect([(shapeFlow, Sink,
                          [('Fundus_table.means_file', 'shapes.@fundi'),
                           ('Fundus_table.norm_means_file', 'shapes.@fundi_norm')])])
+
+    ############################################################################
+    #   Per-vertex shape analysis
+    ############################################################################
+    if vertex_shape_tables:
+
+        column_names2 = ['labels', 'sulci', 'fundi', 'area', 'depth',
+                         'mean_curvature', 'gauss_curvature', 'max_curvature',
+                         'min_curvature', 'thickness', 'convexity']
+        input_names2 = ['table_file', 'column_names']
+        input_names2.extend([x + '_file' for x in column_names2])
+
+        #=======================================================================
+        # Labeled surface patch shapes
+        #=======================================================================
+        Vertices = Node(name='Vertex_table',
+                        interface = Fn(function = write_vertex_shapes_table,
+                                       input_names = input_names2,
+                                       output_names = ['shape_table']))
+        shapeFlow.add_nodes([Vertices])
+        Vertices.inputs.table_file = 'vertex_shapes.txt'
+        Vertices.inputs.column_names = column_names2
+        #-----------------------------------------------------------------------
+        # Use initial labels assigned by FreeSurfer classifier atlas
+        if init_labels == 'DKatlas':
+            mbFlow.connect([(atlasFlow, shapeFlow,
+                             [('DK_annot_to_VTK.vtk_file',
+                               'Vertex_table.labels_file')])])
+        # Use initial labels assigned by Mindboggle classifier atlas
+        elif init_labels == 'DKTatlas':
+            mbFlow.connect([(atlasFlow, shapeFlow,
+                             [('Classifier2vtk.vtk_file',
+                               'Vertex_table.labels_file')])])
+        # Use initial labels assigned by multi-atlas registration
+        elif init_labels == 'max':
+            mbFlow.connect([(atlasFlow, shapeFlow,
+                             [('Label_vote.maxlabel_file',
+                               'Vertex_table.labels_file')])])
+        # Use manual (atlas) labels
+        elif init_labels == 'manual':
+            mbFlow.connect([(Atlas, shapeFlow,
+                             [('atlas_file', 'Vertex_table.labels_file')])])
+        #-----------------------------------------------------------------------
+        if run_featureFlow:
+            mbFlow.connect([(featureFlow, shapeFlow,
+                             [('Sulci_to_VTK.output_vtk',
+                               'Vertex_table.sulci_file')])])
+        else:
+            Vertices.inputs.sulci_file = ''
+        if run_featureFlow and do_extract_fundi:
+            mbFlow.connect([(featureFlow, shapeFlow,
+                             [('Fundi_to_VTK.output_vtk',
+                               'Vertex_table.fundi_file')])])
+        else:
+            Vertices.inputs.fundi_file = ''
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Area.area_file','Vertex_table.area_file')])])
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Depth.depth_file','Vertex_table.depth_file')])])
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Curvature.mean_curvature_file',
+                           'Vertex_table.mean_curvature_file')])])
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Curvature.gauss_curvature_file',
+                           'Vertex_table.gauss_curvature_file')])])
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Curvature.max_curvature_file',
+                           'Vertex_table.max_curvature_file')])])
+        mbFlow.connect([(measureFlow, shapeFlow,
+                         [('Curvature.min_curvature_file',
+                           'Vertex_table.min_curvature_file')])])
+        if include_thickness:
+            mbFlow.connect([(measureFlow, shapeFlow,
+                             [('Thickness_to_VTK.vtk_file',
+                               'Vertex_table.thickness_file')])])
+        if include_convexity:
+            mbFlow.connect([(measureFlow, shapeFlow,
+                             [('Convexity_to_VTK.vtk_file',
+                               'Vertex_table.convexity_file')])])
+        #-----------------------------------------------------------------------
+        mbFlow.connect([(shapeFlow, Sink,
+                         [('Vertex_table.shape_table',
+                           'shapes.@vertex_table')])])
+
 
 ################################################################################
 #
