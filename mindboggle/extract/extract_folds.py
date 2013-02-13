@@ -595,7 +595,6 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
 
     return sulci, n_sulci
 
-
 #===============================================================================
 # Example: extract_sulci()
 #===============================================================================
