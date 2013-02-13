@@ -19,26 +19,27 @@ FEM Laplacian, Forrest derived the computation steps according to the paper.
 No mathematician has verified his steps. 
 And, this is free software. So, use at your own risk.   
 
+The information about using SciPy to solve generalized eigenvalue problem is
+at: http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html
+
+Requires Scipy 0.10 or later to solve generalized eigenvalue problem. 
+
 I just realize that PEP 8 says Capitalized_Letters_with_Underscores look UGLY!
 This is contrary to what I remembered before. 
 So I am replacing variable names gradually.  
 
 Known things that you need to pay attention (not to be considered as bugs):
-1. In fem_laplacian(), converting the lil_matrix A to array could cause dramatic 
-change to the spectrum. Please try to (un)comment the two lines above and below 
-the line ``A = A.toarray()'' and you will see the change. Without the line, the 
-LBS is a list of complex numbers. With it, a list of real numbers.  
-This really puzzles me. 
-Currently, I keep that line in the code. 
-
-2. In ``nodes``, do NOT provide coordinates of vertices that do NOT appear on 
+1. In ``nodes``, do NOT provide coordinates of vertices that do NOT appear on 
 the 3-D structure whose LBS is to be calculated. 
 For example, do not use coordinates of all POINTS from a VTK file as ``nodes`` 
 and some of the faces (e.g., sulcus fold) as ``faces``. 
 This will cause singular matrix error when inverting matrixes because some rows 
 are all zeros. 
-You can observe this error by removing the [0,1,7] face from ``faces`` in 
-the example at the end. 
+
+Acknowledgments:
+    - Dr. Martin Reuter, MIT, http://reuter.mit.edu/ 
+    - Dr. Eric You Xu, Google, http://www.youxu.info/
+
 """
 
 def gen_V(Meshes, W, Neighbor):
@@ -129,7 +130,8 @@ def geometric_laplacian(Nodes, Faces):
     4. Compute the mass matrix D = diag(d_1, ..., d_n) where 
        d_i = a(i)/3 and a(i) is the area of all triangles at node i 
        (Here we adopt Eq. (4) of Reuter's paper)
-    5. L = inv(D)*A
+    5. Solve the generalized eigenvalue problems Af = \lambda D f where \lambda 
+       represents the reciprocal of eigenvalues we want.  
     
     """
     
@@ -171,25 +173,36 @@ def geometric_laplacian(Nodes, Faces):
         return D
 
     import numpy
+
+    num_nodes = len(Nodes)
+
+    if num_nodes < 5: # too small
+        print "The input size is too small. Skipped."
+        return numpy.array([-1,-1,-1, -1, -1])
         
     import mindboggle.utils.kernels
     W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
     W /= 2
     
     import mindboggle.utils.mesh_operations
-    Neighbor = mindboggle.utils.mesh_operations.find_neighbors(Faces, len(Nodes))
+    Neighbor = mindboggle.utils.mesh_operations.find_neighbors(Faces, num_nodes)
      
     V = gen_V(Faces, W, Neighbor)
     A = V - W # the stiffness matrix
     Area = area(Nodes, Faces)
     
-    Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertices(Faces, len(Nodes))
-    D = masses(Nodes, Area, Faces_at_Nodes)    
-  
+    Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertices(Faces, num_nodes)
+    D = masses(Nodes, Area, Faces_at_Nodes)  
     D = D.toarray()
 
-    L = numpy.linalg.inv(D)*A
-    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
+#    L = numpy.dot(numpy.linalg.inv(D), A)
+#    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
+
+    from scipy.sparse.linalg import eigsh, eigs 
+    # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
+    
+    eigenvalues, eigenvectors = eigs(A, k=3, M=D)
+    eigenvalues = 1/eigenvalues
     
     return eigenvalues
 
@@ -276,8 +289,12 @@ def fem_laplacian(Nodes, Faces):
         return Q/6
     
     import numpy
-        
+          
     num_nodes = len(Nodes)
+    
+    if num_nodes < 5: # too small
+        print "The input size is too small. Skipped."
+        return numpy.array([-1,-1,-1, -1, -1])
     
     import mindboggle.utils.kernels
     W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
@@ -301,14 +318,17 @@ def fem_laplacian(Nodes, Faces):
     B = P + Q
     B = B.toarray()   
 
-#    L = numpy.linalg.inv(B)*A
-#    print L
     A = A.toarray()
-#    L = numpy.linalg.inv(B)*A    
-#    print L
     
-    L = numpy.linalg.inv(B)*A
-    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
+#    L = numpy.dot(numpy.linalg.inv(B),A)
+#    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
+
+    from scipy.sparse.linalg import eigsh, eigs 
+    # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
+    
+    eigenvalues, eigenvectors = eigs(A, k=3, M=B)
+    eigenvalues = 1/eigenvalues
+    
     return eigenvalues
 
 if __name__ == "__main__":
