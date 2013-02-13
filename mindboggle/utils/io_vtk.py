@@ -156,6 +156,30 @@ def write_vtk_vertices(Fp, indices):
     [Fp.write('{0} '.format(i)) for i in indices]
     Fp.write('\n')
 
+def remove_vtk_vertices(vtk_file):
+    """
+    Remove VERTICES section of a vtk file::
+
+        VERTICES 130631 130632
+        130631 1 2 3 4 5 6 7 8 9 10 11 12 ...
+
+    """
+
+    iline = 0
+    lines = open(vtk_file).readlines()
+    for i,line in enumerate(lines):
+        if "VERTICES" in line:
+            iline = i
+
+    if iline > 0:
+        open(vtk_file, 'w').writelines(lines[0:iline-1])
+
+
+    Fp.write('VERTICES {0} {1}\n{2} '.format(
+             len(indices), len(indices) + 1, len(indices)))
+    [Fp.write('{0} '.format(i)) for i in indices]
+    Fp.write('\n')
+
 def write_vtk_scalars(Fp, scalars, scalar_name, begin_scalars=True):
     """
     Write per-VERTEX values as a scalar lookup table into a VTK file::
@@ -618,6 +642,7 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
     indices = range(n_vertices)
     if len(filter_scalars):
         indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
+        indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
         # Remove surface mesh faces whose three vertices are not all in indices
         faces = inside_faces(faces, indices_filter)
 
@@ -637,6 +662,8 @@ def rewrite_scalar_lists(input_vtk, output_vtk, new_scalar_lists,
         new_scalar_lists, new_scalar_names = scalar_lists_names_checker(new_scalar_lists, new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalar_lists):
+            for iremove in indices_remove:
+                new_scalar_list[iremove] = -1
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_vtk_scalars(Fp, new_scalar_list, new_scalar_name)
@@ -819,11 +846,11 @@ def explode_scalar_list(input_vtk, output_stem, exclude_values=[-1],
         #                     [new_scalars.tolist()], [output_scalar_name],
         #                     filter_scalars=[scalar])
 
-def write_mean_shapes_table(filename, column_names, labels, exclude_values,
-                            area_file, depth_file, mean_curvature_file,
-                            gauss_curvature_file,
+def write_mean_shapes_table(table_file, column_names, labels, depth_file,
+                            mean_curvature_file, gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
-                            thickness_file='', convexity_file=''):
+                            thickness_file='', convexity_file='',
+                            norm_vtk_file='', exclude_labels=[]):
     """
     Make a table of mean values per label per measure.
 
@@ -832,9 +859,10 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
     filename :  output filename (without path)
     column_names :  names of columns [list of strings]
     labels :  list (same length as values)
-    exclude_values : list of integer labels to be excluded
-    area_file :  name of file containing per-vertex surface areas
     *shape_files :  arbitrary number of vtk files with scalar values
+    norm_vtk_file :  name of file containing per-vertex normalization values
+                     (e.g., surface areas)
+    exclude_labels : list of integer labels to be excluded
 
     Returns
     -------
@@ -845,7 +873,7 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import load_scalars, write_mean_shapes_table
-    >>> filename = 'test_write_mean_shapes_table.txt'
+    >>> table_file = 'test_write_mean_shapes_table.txt'
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -866,74 +894,80 @@ def write_mean_shapes_table(filename, column_names, labels, exclude_values,
     >>>                                   'measures', 'lh.pial.curv.max.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
     >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> write_mean_shapes_table(filename, column_names, labels, exclude_values,
-    >>>                         area_file, depth_file, mean_curvature_file,
+    >>> write_mean_shapes_table(table_file, column_names, labels,
+    >>>                         depth_file, mean_curvature_file,
     >>>                         gauss_curvature_file,
     >>>                         max_curvature_file, min_curvature_file,
-    >>>                         thickness_file='', convexity_file='')
+    >>>                         thickness_file='', convexity_file='',
+    >>>                         area_file, exclude_values)
 
     """
     import os
-    from mindboggle.utils.io_file import write_table
-    from mindboggle.measure.measure_functions import mean_value_per_label
+    import numpy as np
     from mindboggle.utils.io_vtk import load_scalars
+    from mindboggle.measure.measure_functions import mean_value_per_label
+    from mindboggle.utils.io_file import write_table
 
-    shape_files = [depth_file, mean_curvature_file, gauss_curvature_file,
-                   max_curvature_file, min_curvature_file]
-    if len(thickness_file) > 0:
-        shape_files.append(thickness_file)
-    if len(convexity_file) > 0:
-        shape_files.append(convexity_file)
+    # Load per-vertex labels and normalization vtk files
+    if type(labels) == str:
+        points, faces, labels, n_vertices = load_scalars(labels, True)
+    if len(norm_vtk_file):
+        points, faces, norms, n_vertices = load_scalars(norm_vtk_file, True)
+    else:
+        norms = np.ones(len(points)).tolist()
 
-    # Load per-vertex surface area file
-    points, faces, areas, n_vertices = load_scalars(area_file, True)
-    mean_values, norm_mean_values, surface_areas, \
-        label_list = mean_value_per_label(areas, areas, labels, exclude_values)
+    # List files
+    vtk_files = [depth_file, mean_curvature_file, gauss_curvature_file,
+                 max_curvature_file, min_curvature_file,
+                 thickness_file, convexity_file]
 
+    # Append columns of values to table
     columns = []
     norm_columns = []
-    columns.append(surface_areas)
-    norm_columns.append(surface_areas)
+    for i, vtk_file in enumerate(vtk_files):
+        if len(vtk_file):
+            points, faces, values, n_vertices = load_scalars(vtk_file, True)
 
-    for shape_file in shape_files:
+            mean_values, norm_mean_values, norm_values, \
+                label_list = mean_value_per_label(values, norms, labels,
+                                                  exclude_labels)
 
-        points, faces, values, n_vertices = load_scalars(shape_file, True)
+            columns.append(mean_values)
+            norm_columns.append(norm_mean_values)
+        else:
+            del(column_names[i])
 
-        mean_values, norm_mean_values, surface_areas, \
-            label_list = mean_value_per_label(values, areas, labels, exclude_values)
+    # Prepend with column of normalization values
+    columns.insert(0, norm_values)
+    norm_columns.insert(0, norm_values)
+    column_names.insert(0, 'area')
 
-        columns.append(mean_values)
-        norm_columns.append(norm_mean_values)
+    # Prepend with column of labels and write tables
+    column_names.insert(0, 'label')
 
-    means_file = os.path.join(os.getcwd(), filename)
+    means_file = os.path.join(os.getcwd(), table_file)
     write_table(label_list, columns, column_names, means_file)
 
-    norm_means_file = os.path.join(os.getcwd(), 'norm_' + filename)
+    norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
     write_table(label_list, norm_columns, column_names, norm_means_file)
 
     return means_file, norm_means_file
 
-def write_vertex_shapes_table(filename, column_names, indices, area_file,
-                             depth_file, mean_curvature_file, gauss_curvature_file,
-                             max_curvature_file, min_curvature_file,
-                             thickness_file='', convexity_file='',
-                             segments=[], nonsegments=[]):
+def write_vertex_shapes_table(table_file, column_names,
+                              labels_file, sulci_file, fundi_file,
+                              area_file, depth_file,
+                              mean_curvature_file, gauss_curvature_file,
+                              max_curvature_file, min_curvature_file,
+                              thickness_file='', convexity_file=''):
     """
-    Make a table of shape values per vertex per label per measure.
+    Make a table of shape values per vertex.
 
     Parameters
     ----------
-    filename : output filename (without path)
+    table_file : output filename (without path)
     column_names : names of columns [list of strings]
-    indices : list of integers
-        indices to vertices to compute shapes
-    area_file : name of file containing per-vertex surface areas
-    *shape_files : arbitrary number of vtk files with scalar values
-    segments : numpy array of integers (optional)
-        IDs assigning all vertices to segments
-        (depth is normalized by the maximum depth value in a segment)
-    nonsegments : list of integers
-        segment numbers to be excluded
+    *vtk_files : arbitrary number of vtk files with per-vertex scalar values
+                 (set each missing file to an empty string)
 
     Returns
     -------
@@ -946,22 +980,14 @@ def write_vertex_shapes_table(filename, column_names, indices, area_file,
     >>> from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> filename = 'test_write_vertex_shape_table.txt'
-    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
+    >>> table_file = 'test_write_vertex_shape_table.txt'
+    >>> column_names = ['sulci', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
     >>> subject = 'MMRR-21-1'
-    >>> labels_file = os.path.join(data_path, 'subjects', subject,
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, labels, n_vertices = load_scalars(labels_file, True)
-    >>> mesh_indices = find_neighbors(faces, n_vertices)
-    >>> neighbor_lists = find_neighbors(faces, n_vertices)
+    >>> labels_file = ''
+    >>> fundi_file = ''
     >>> sulci_file = os.path.join(data_path, 'subjects', subject,
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
-    >>> sulcus_indices = [i for i,x in enumerate(sulci) if x > -1]
-    >>> indices, label_pairs, foo = detect_boundaries(sulcus_indices, labels,
-    >>>     neighbor_lists)
-    >>> nonsegments = [-1]
     >>> area_file = os.path.join(data_path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(data_path, 'subjects', subject,
@@ -974,48 +1000,37 @@ def write_vertex_shapes_table(filename, column_names, indices, area_file,
     >>>                                   'measures', 'lh.pial.curv.max.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
     >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> write_vertex_shape_table(filename, column_names, indices,
-    >>>     area_file, depth_file, mean_curvature_file, gauss_curvature_file,
-    >>>     max_curvature_file, min_curvature_file, thickness_file='',
-    >>>     convexity_file='', segments=sulci, nonsegments=nonsegments)
+    >>> write_vertex_shape_table(table_file, column_names,
+    >>>     labels_file, sulci_file, fundi_file, area_file, depth_file,
+    >>>     mean_curvature_file, gauss_curvature_file,
+    >>>     max_curvature_file, min_curvature_file, '', '')
 
     """
     import os
-    import numpy as np
-    from mindboggle.utils.io_file import write_table
     from mindboggle.utils.io_vtk import load_scalars
+    from mindboggle.utils.io_file import write_table
 
-    shape_files = [area_file, depth_file, mean_curvature_file,
-                   gauss_curvature_file, max_curvature_file, min_curvature_file]
-    if len(thickness_file):
-        shape_files.append(thickness_file)
-    if len(convexity_file):
-        shape_files.append(convexity_file)
+    # List files
+    vtk_files = [labels_file, sulci_file, fundi_file, area_file, depth_file,
+                 mean_curvature_file, gauss_curvature_file,
+                 max_curvature_file, min_curvature_file,
+                 thickness_file, convexity_file]
 
+    # Append columns of values to table
     columns = []
-    for i, shape_file in enumerate(shape_files):
+    for i, vtk_file in enumerate(vtk_files):
+        if len(vtk_file):
+            points, faces, values, n_vertices = load_scalars(vtk_file, True)
+            if len(columns) == 0:
+                indices = range(len(points))
+            columns.append(values)
+        else:
+            del(column_names[i])
 
-        points, faces, values, n_vertices = load_scalars(shape_file, True)
-        columns.append(values[indices])
-
-        # Store depths to normalize
-        if shape_files[i] == depth_file:
-            depths = values
-
-    # Normalize depth values by maximum depth per segment
-    unique_segments = np.unique(segments)
-    unique_segments = [x for x in unique_segments if x not in nonsegments]
-    if len(unique_segments):
-        for segment_ID in unique_segments:
-            indices_segment = [i for i,x in enumerate(segments)
-                               if x == segment_ID]
-            if len(indices_segment):
-                max_depth_segment = max(depths[indices_segment])
-                depths[indices_segment] = depths[indices_segment] / max_depth_segment
-        column_names.append('norm_depth')
-        columns.append(depths[indices])
-    shape_table = os.path.join(os.getcwd(), filename)
-    write_table(segments[indices], columns, column_names, shape_table)
+    # Prepend with column of indices and write table
+    column_names.insert(0, 'index')
+    shape_table = os.path.join(os.getcwd(), table_file)
+    write_table(indices, columns, column_names, shape_table)
 
     return shape_table
 
@@ -1415,4 +1430,3 @@ def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
 
 
 #if __name__ == "__main__" :
-
