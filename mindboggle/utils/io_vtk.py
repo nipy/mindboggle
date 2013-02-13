@@ -156,6 +156,30 @@ def write_vtk_vertices(Fp, indices):
     [Fp.write('{0} '.format(i)) for i in indices]
     Fp.write('\n')
 
+def remove_vtk_vertices(vtk_file):
+    """
+    Remove VERTICES section of a vtk file::
+
+        VERTICES 130631 130632
+        130631 1 2 3 4 5 6 7 8 9 10 11 12 ...
+
+    """
+
+    iline = 0
+    lines = open(vtk_file).readlines()
+    for i,line in enumerate(lines):
+        if "VERTICES" in line:
+            iline = i
+
+    if iline > 0:
+        open(vtk_file, 'w').writelines(lines[0:iline-1])
+
+
+    Fp.write('VERTICES {0} {1}\n{2} '.format(
+             len(indices), len(indices) + 1, len(indices)))
+    [Fp.write('{0} '.format(i)) for i in indices]
+    Fp.write('\n')
+
 def write_vtk_scalars(Fp, scalars, scalar_name, begin_scalars=True):
     """
     Write per-VERTEX values as a scalar lookup table into a VTK file::
@@ -908,15 +932,14 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
         else:
             del(column_names[i])
 
-    # Prepend with column of labels and normalization values
+    # Prepend with column of normalization values
     columns.insert(0, norm_values)
     norm_columns.insert(0, norm_values)
     column_names.insert(0, 'area')
-    columns.insert(0, label_list)
-    norm_columns.insert(0, label_list)
+
+    # Prepend with column of labels and write tables
     column_names.insert(0, 'label')
 
-    # Write tables
     means_file = os.path.join(os.getcwd(), table_file)
     write_table(label_list, columns, column_names, means_file)
 
@@ -1000,6 +1023,7 @@ def write_vertex_shapes_table(table_file, column_names,
             del(column_names[i])
 
     # Prepend with column of indices and write table
+    column_names.insert(0, 'index')
     shape_table = os.path.join(os.getcwd(), table_file)
     write_table(indices, columns, column_names, shape_table)
 
