@@ -149,10 +149,15 @@ def write_vtk_vertices(Fp, indices):
         ...
         numPoints_[n-1] i_[n-1] j_[n-1] k_[n-1]
 
+    Notes
+    -------
+
+    Currently we write all vertices in one line. 
+
     """
 
     Fp.write('VERTICES {0} {1}\n{2} '.format(
-             len(indices), len(indices) + 1, len(indices)))
+             1, len(indices) + 1, len(indices)))
     [Fp.write('{0} '.format(i)) for i in indices]
     Fp.write('\n')
 
