@@ -131,9 +131,9 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalar_lists, \
+from mindboggle.utils.io_vtk import rewrite_scalars, \
      write_mean_shapes_table, write_vertex_shapes_table, \
-     load_scalars, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
+     read_vtk, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
      vtk_to_freelabels
 from mindboggle.utils.io_file import read_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
@@ -419,13 +419,16 @@ if run_atlasFlow:
     #===========================================================================
     elif init_labels == 'manual':
         AtlasLabels = Node(name = 'Atlas_labels',
-                           interface = Fn(function = load_scalars,
+                           interface = Fn(function = read_vtk,
                                           input_names = ['filename',
                                                          'return_arrays'],
-                                          output_names = ['points',
-                                                          'faces',
+                                          output_names = ['faces',
+                                                          'lines',
+                                                          'indices',
+                                                          'points',
+                                                          'npoints',
                                                           'scalars',
-                                                          'n_vertices']))
+                                                          'scalar_names']))
         atlasFlow.add_nodes([AtlasLabels])
         mbFlow.connect([(Atlas, atlasFlow,
                          [('atlas_file', 'Atlas_labels.filename')])])
@@ -573,13 +576,16 @@ if run_featureFlow:
     # Load surface and find all vertex neighbors
     #===========================================================================
     LoadSurf = Node(name = 'Load_surface',
-                    interface = Fn(function = load_scalars,
+                    interface = Fn(function = read_vtk,
                                    input_names = ['filename',
                                                   'return_arrays'],
-                                   output_names = ['points',
-                                                   'faces',
+                                   output_names = ['faces',
+                                                   'lines',
+                                                   'indices',
+                                                   'points',
+                                                   'npoints',
                                                    'scalars',
-                                                   'n_vertices']))
+                                                   'scalar_names']))
     featureFlow.add_nodes([LoadSurf])
     if input_vtk:
         mbFlow.connect([(Surf, featureFlow,
@@ -591,11 +597,11 @@ if run_featureFlow:
 
     NbrNode = Node(name='Neighbors',
                    interface = Fn(function = find_neighbors,
-                                  input_names = ['faces', 'n_vertices'],
+                                  input_names = ['faces', 'npoints'],
                                   output_names = ['neighbor_lists']))
     featureFlow.add_nodes([NbrNode])
     featureFlow.connect([(LoadSurf, NbrNode,
-                          [('faces','faces'), ('n_vertices','n_vertices')])])
+                          [('faces','faces'), ('npoints','npoints')])])
 
     #===========================================================================
     # Extract folds
@@ -710,7 +716,7 @@ if run_featureFlow:
     # Write folds, sulci, fundi, and likelihoods to VTK files
     #---------------------------------------------------------------------------
     SulciVTK = Node(name='Sulci_to_VTK',
-                    interface = Fn(function = rewrite_scalar_lists,
+                    interface = Fn(function = rewrite_scalars,
                                    input_names = ['input_vtk',
                                                   'output_vtk',
                                                   'new_scalar_lists',
