@@ -82,7 +82,16 @@ input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-vertex_shape_tables = True
+vertex_shape_tables = True  # Create per-vertex shape tables
+evaluate_surface_labels = False  # Surface overlap: auto vs. manual labels
+evaluate_volume_labels = False  # Volume overlap: auto vs. manual labels
+#-------------------------------------------------------------------------------
+# Mindboggle workflows
+#-------------------------------------------------------------------------------
+run_atlasFlow = True
+run_measureFlow = True
+run_featureFlow = True
+run_shapeFlow = True
 #-------------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -108,12 +117,6 @@ hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
-evaluate_surface_labels = 0 #False  # Surface overlap: auto vs. manual labels
-evaluate_volume_labels = 0 #False  # Volume overlap: auto vs. manual labels
-run_atlasFlow = True
-run_measureFlow = True
-run_featureFlow = True
-run_shapeFlow = True
 
 #===============================================================================
 #  Setup: import libraries, set file paths, and initialize main workflow
@@ -681,7 +684,8 @@ if run_featureFlow:
                                                        'min_curvature_vector_file',
                                                        'min_distance',
                                                        'thr',
-                                                       'use_only_endpoints'],
+                                                       'use_only_endpoints',
+                                                       'compute_local_depth'],
                                         output_names = ['fundi',
                                                         'n_fundi',
                                                         'likelihoods']))
@@ -700,6 +704,7 @@ if run_featureFlow:
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
+        FundiNode.inputs.compute_local_depth = True
 
     #---------------------------------------------------------------------------
     # Write folds, sulci, fundi, and likelihoods to VTK files
