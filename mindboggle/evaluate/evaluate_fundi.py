@@ -38,10 +38,10 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
     import numpy as np
     from mindboggle.measure.measure_functions import compute_point_distance
 
-    n_points = len(points)
+    npoints = len(points)
 
-    distances = np.zeros(n_points)
-    distance_matrix = -1 * np.ones((n_points, n_fundi))
+    distances = np.zeros(npoints)
+    distance_matrix = -1 * np.ones((npoints, n_fundi))
 
     sum_distances = 0
     num_distances = 0
@@ -65,7 +65,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
             num_distances += 1
 
             if i_label_point % 1000 == 0 and num_distances > 0:
-                percent_done = 100.0 * float(i_label_point) / float(n_points)
+                percent_done = 100.0 * float(i_label_point) / float(npoints)
                 mean_distance = sum_distances / num_distances
                 print('Done: {0} pct, mean dist {1}, {2}'.format(
                       percent_done, mean_distance, i_label_point))
@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
     import sys
     import numpy as np
-    from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    from mindboggle.utils.io_vtk import load_vtk, write_scalars
     from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
 
@@ -95,17 +95,16 @@ if __name__ == "__main__":
     print('***')
 
     # Load fundi, folds, labels
-    points, faces, fundi, n_vertices = load_scalars(fundi_file, return_arrays=True)
-    points, faces, folds, n_vertices = load_scalars(folds_file, return_arrays=True)
-    points, faces, labels, n_vertices = load_scalars(labels_file, return_arrays=True)
-    n_points = len(points)
+    faces, lines, indices, points, npoints, fundi, scalar_names = load_vtk(fundi_file, return_arrays=True)
+    faces, lines, indices, points, npoints, folds, scalar_names = load_vtk(folds_file, return_arrays=True)
+    faces, lines, indices, points, npoints, labels, scalar_names = load_vtk(labels_file, return_arrays=True)
 
     # List of indices to fold vertices
     fold_indices = [i for i,x in enumerate(folds) if x > 0]
 
     # Calculate neighbor lists for all points
     print('Find neighbors to all vertices...')
-    neighbor_lists = find_neighbors(faces, n_points)
+    neighbor_lists = find_neighbors(faces, npoints)
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     print('Prepare a list of unique, sorted label pairs in the protocol...')
@@ -122,7 +121,7 @@ if __name__ == "__main__":
     # Initialize an array of label boundaries fundus IDs
     # (label boundary vertices that define sulci in the labeling protocol)
     print('Build an array of label boundary fundus IDs...')
-    label_boundary_fundi = np.zeros(n_points)
+    label_boundary_fundi = np.zeros(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus)
     for isulcus, label_pairs in enumerate(label_pair_lists):
@@ -157,5 +156,5 @@ if __name__ == "__main__":
 
     # Write resulting fundus-label boundary distances to VTK file
     print('Write distances to a VTK file for visualization...')
-    write_scalar_lists('evaluate_fundi.vtk', points, range(n_points), faces,
+    write_scalars('evaluate_fundi.vtk', points, range(npoints), faces,
                        [distances], ['fundus-label boundary distances'])
