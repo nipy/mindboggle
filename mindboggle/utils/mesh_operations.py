@@ -779,8 +779,8 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     depth_ratio : float
-        minimum fraction of depth for a neighboring deeper watershed catchment basin
-        (otherwise merged with the deeper basin)
+        minimum fraction of depth for a neighboring shallower watershed
+        catchment basin (otherwise merged with the deeper basin)
     tolerance : float
         tolerance for detecting differences in depth between vertices
 
@@ -809,7 +809,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalar_lists(depth_file, 'test_watershed.vtk',
-    >>>                      [segments.tolist()], ['segments'], segments)
+    >>>                      segments.tolist(), 'segments', segments)
     >>> os.system('mayavi2 -m Surface -d test_watershed.vtk &')
 
     """
