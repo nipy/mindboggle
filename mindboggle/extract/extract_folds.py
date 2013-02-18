@@ -90,7 +90,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
-    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', [folds], ['folds'], folds)
+    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
     >>> #points, faces, depths, n_vertices = load_scalars(depth_file, True)
     >>> #indices = [i for i,x in enumerate(folds) if x > -1]
     >>> #write_scalar_lists('test_extract_folds.vtk', points, indices,

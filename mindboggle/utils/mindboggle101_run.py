@@ -14,11 +14,11 @@ command = 'python ../pipeline.py'
 output_path = '/desk/output'
 atlases_file = os.path.join(os.environ['MINDBOGGLE_DATA'], 'info', 'atlases101.txt')
 atlases = read_columns(atlases_file, n_columns=1)[0]
-#atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
+atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
 
 for atlas in atlases:
 
-#    if atlas_strings[0] in atlas:
+    if atlas_strings[3] in atlas:
 #    if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
 #    if 'Afterthought' in atlas:
 
