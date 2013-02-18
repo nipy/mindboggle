@@ -286,7 +286,7 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalars
+    >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.measure.measure_functions import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
@@ -295,9 +295,9 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     >>>                                      'measures', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file, True)
-    >>> points, faces, areas, n_vertices = load_scalars(area_file, True)
-    >>> points, faces, labels, n_vertices = load_scalars(label_file, True)
+    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
+    >>> faces, lines, indices, points, npoints, areas, scalar_names = read_vtk(area_file, True)
+    >>> faces, lines, indices, points, npoints, labels, scalar_names = read_vtk(label_file, True)
     >>> exclude_labels = [-1,0]
     >>> mean_values, norm_mean_values, surface_areas, \
     >>>     label_list = mean_value_per_label(depths, areas, labels, exclude_labels)
