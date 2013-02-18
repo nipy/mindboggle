@@ -174,13 +174,13 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> import os
     >>> import numpy as np
     >>> import networkx as nx
-    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> import mindboggle.utils.meshlib as ml
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
+    >>> faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     >>> sulcus_faces = inside_faces(faces, sulcus_indices)
@@ -195,7 +195,7 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> # Write results to vtk file and view with mayavi2:
     >>> MST = np.zeros(len(points))
     >>> MST[W] = 1
-    >>> rewrite_scalar_lists(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
+    >>> rewrite_scalars(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
     >>> os.system('mayavi2 -m Surface -d test_mst.vtk &')
 
     """
@@ -211,13 +211,13 @@ def mst(adjacency_matrix, indices_to_connect):
 if __name__ == "__main__" :
     import os
     import networkx as nx
-    from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     import mindboggle.utils.meshlib as ml
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                                          'features', 'lh.sulci.vtk')
-    points, faces, sulci, n_vertices = load_scalars(sulci_file, True)
+    faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
     sulcus_ID = 1
     sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     sulcus_faces = inside_faces(faces, sulcus_indices)
@@ -233,7 +233,7 @@ if __name__ == "__main__" :
     # Write results to vtk file and view with mayavi2:
     MST = np.zeros(len(points))
     MST[W] = 1
-    rewrite_scalar_lists(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
+    rewrite_scalars(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
     os.system('mayavi2 -m Surface -d test_mst.vtk &')
 
     Terminal, Branching = [], []
