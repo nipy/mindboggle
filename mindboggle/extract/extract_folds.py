@@ -7,7 +7,7 @@ Authors:
     - Yrjo Hame  (yrjo.hame@gmail.com)
     - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -77,23 +77,23 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import load_scalars, rewrite_scalar_lists
+    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_vtk
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> from mindboggle.extract.extract_folds import extract_folds
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> points, faces, depths, n_vertices = load_scalars(depth_file, False)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, False)
+    >>> neighbor_lists = find_neighbors(faces, npoints)
     >>>
     >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 50, True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> folds = folds.tolist()
-    >>> rewrite_scalar_lists(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
-    >>> #points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    >>> rewrite_vtk(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
+    >>> #faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
     >>> #indices = [i for i,x in enumerate(folds) if x > -1]
-    >>> #write_scalar_lists('test_extract_folds.vtk', points, indices,
+    >>> #write_vtk('test_extract_folds.vtk', points, indices,
     >>> #    inside_faces(faces, indices), [folds], ['folds'])
     >>> os.system('mayavi2 -m Surface -d test_extract_folds.vtk &')
 
@@ -101,7 +101,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     import numpy as np
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
-    from mindboggle.utils.io_vtk import load_scalars
+    from mindboggle.utils.io_vtk import read_vtk
     from mindboggle.utils.mesh_operations import segment, fill_holes, \
         watershed, shrink_segments
     if not len(neighbor_lists):
@@ -113,13 +113,13 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     #---------------------------------------------------------------------------
     # Load depth values for all vertices
     #---------------------------------------------------------------------------
-    points, faces, depths, n_vertices = load_scalars(depth_file, True)
+    faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
 
     #---------------------------------------------------------------------------
     # Find neighbors for each vertex
     #---------------------------------------------------------------------------
     if not len(neighbor_lists):
-        neighbor_lists = find_neighbors(faces, len(points))
+        neighbor_lists = find_neighbors(faces, npoints)
 
     #---------------------------------------------------------------------------
     # Compute histogram of depth measures
@@ -174,7 +174,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         """
         >>> # Display resulting initial folds:
-        >>> rewrite_scalar_lists(depth_file, 'test_folds1.vtk',
+        >>> rewrite_vtk(depth_file, 'test_folds1.vtk',
         >>>                      [folds.tolist()], 'folds', folds)
         >>> os.system('mayavi2 -m Surface -d test_folds1.vtk &')
         """
@@ -321,8 +321,8 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>> import os
     >>> from time import time
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import load_points_faces
-    >>> from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    >>> from mindboggle.utils.io_vtk import read_points_faces
+    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> from mindboggle.extract.extract_folds import extract_sulci
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
@@ -333,10 +333,10 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>>                                      'features', 'lh.folds.vtk')
     >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> points, faces, folds, n_vertices = load_scalars(folds_file, False)
+    >>> faces, lines, indices, points, npoints, folds, scalar_names = read_vtk(folds_file, False)
 
-    >>> points, faces, labels, n_vertices = load_scalars(labels_file, False)
-    >>> neighbor_lists = find_neighbors(faces, len(points))
+    >>> faces, lines, indices, points, npoints, labels, scalar_names = read_vtk(labels_file, False)
+    >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
     >>> fid = open(sulcus_names_file, 'r')
     >>> sulcus_names = fid.readlines()
@@ -350,17 +350,17 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
     >>>                                min_boundary, sulcus_names)
     >>>
     >>> # Finally, write points, faces and sulci to a new vtk file
-    >>> #rewrite_scalar_lists(labels_file, 'test_extract_sulci.vtk',
+    >>> #rewrite_vtk(labels_file, 'test_extract_sulci.vtk',
     >>> #                     [sulci.tolist()], ['sulci'], sulci.tolist())
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
-    >>> write_scalar_lists('test_extract_sulci.vtk', points, indices,
+    >>> write_vtk('test_extract_sulci.vtk', points, indices,
     >>>    inside_faces(faces, indices), [sulci.tolist()], ['sulci'])
     >>> os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
 
     """
     from time import time
     import numpy as np
-    from mindboggle.utils.io_vtk import load_points_faces
+    from mindboggle.utils.io_vtk import read_vtk
     from mindboggle.utils.mesh_operations import detect_boundaries, propagate, segment
 
     #---------------------------------------------------------------------------
@@ -383,7 +383,7 @@ def extract_sulci(surface_vtk, folds, labels, neighbor_lists, label_pair_lists,
      for x in lst if np.unique(x).tolist() not in protocol_pairs]
 
     # Load points, faces
-    points, faces = load_points_faces(surface_vtk)
+    faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(surface_vtk)
 
     #---------------------------------------------------------------------------
     # Loop through folds
@@ -603,8 +603,7 @@ if __name__ == "__main__":
     import os
     from time import time
     import numpy as np
-    from mindboggle.utils.io_vtk import load_points_faces
-    from mindboggle.utils.io_vtk import load_scalars, write_scalar_lists
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
     from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     from mindboggle.extract.extract_folds import extract_sulci
     from mindboggle.info.sulcus_boundaries import sulcus_boundaries
@@ -615,10 +614,10 @@ if __name__ == "__main__":
                                         'features', 'lh.folds.vtk')
     labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                               'labels', 'lh.labels.DKT25.manual.vtk')
-    points, faces, folds, n_vertices = load_scalars(folds_file, False)
+    faces, lines, indices, points, npoints, folds, scalar_names = read_vtk(folds_file, False)
 
-    points, faces, labels, n_vertices = load_scalars(labels_file, False)
-    neighbor_lists = find_neighbors(faces, len(points))
+    faces, lines, indices, points, npoints, labels, scalar_names = read_vtk(labels_file, False)
+    neighbor_lists = find_neighbors(faces, npoints)
     sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
     fid = open(sulcus_names_file, 'r')
     sulcus_names = fid.readlines()
@@ -632,9 +631,9 @@ if __name__ == "__main__":
                                   min_boundary, sulcus_names)
 
     # Finally, write points, faces and sulci to a new vtk file
-    #rewrite_scalar_lists(labels_file, 'test_extract_sulci.vtk',
+    #rewrite_vtk(labels_file, 'test_extract_sulci.vtk',
     #    [sulci.tolist()], ['sulci'], sulci.tolist())
     indices = [i for i,x in enumerate(sulci) if x > -1]
-    write_scalar_lists('test_extract_sulci.vtk', points, indices,
+    write_vtk('test_extract_sulci.vtk', points, indices,
         inside_faces(faces, indices), [sulci.tolist()], ['sulci'])
     os.system('mayavi2 -m Surface -d test_extract_sulci.vtk &')
