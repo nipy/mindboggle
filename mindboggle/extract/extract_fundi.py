@@ -419,7 +419,8 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 #==================
 def extract_fundi(folds, neighbor_lists, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
-                  min_distance=5, thr=0.5, use_only_endpoints=True):
+                  min_distance=5, thr=0.5, use_only_endpoints=True,
+                  compute_local_depth=True):
     """
     Extract all fundi.
 
@@ -440,11 +441,13 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     min_fold_size : int
         minimum fold size (number of vertices)
     min_distance :  int
-        minimum distance
+        minimum distance between "anchor points"
     thr :  float
         likelihood threshold
     use_only_endpoints : Boolean
-        use endpoints to construct fundi (or all anchor points)?
+        use only endpoints to construct fundi (or all anchor points)?
+    compute_local_depth : Boolean
+        normalize depth for each fold?
 
     Returns
     -------
@@ -520,7 +523,10 @@ def extract_fundi(folds, neighbor_lists, depth_file,
             print('  Region {0}:'.format(fold_ID))
 
             # Compute fundus likelihood values
-            fold_likelihoods = compute_likelihood(depths[indices_fold],
+            local_depths = depths[indices_fold]
+            if compute_local_depth:
+                local_depths = local_depths / np.max(local_depths)
+            fold_likelihoods = compute_likelihood(local_depths,
                                                   mean_curvatures[indices_fold])
             likelihoods[indices_fold] = fold_likelihoods
 
