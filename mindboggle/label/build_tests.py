@@ -70,7 +70,7 @@ if build_labels:
 
     # Write VTK file
     vtk_file = 'test_labels.vtk'
-    write_vtk(vtk_file, Points, Vertices, Faces, [Labels], ['Labels'])
+    write_vtk(vtk_file, Points, Vertices, [], Faces, [Labels], ['Labels'])
 
 #=======
 # Lines
@@ -107,4 +107,4 @@ if build_lines:
 
         # Write VTK file
         vtk_file = 'test_linespacing{0}.vtk'.format(itest + 1)
-        write_vtk(vtk_file, Points, Vertices, Faces, [Labels], ['Labels'])
+        write_vtk(vtk_file, Points, Vertices, [], Faces, [Labels], ['Labels'])
