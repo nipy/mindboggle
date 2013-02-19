@@ -129,36 +129,37 @@ def extract_borders(labels_file, mask_file='', values_file=''):
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh_operations import find_neighbors, detect_boundary_indices
 
     # Load labeled surface file
-    faces, lines, indices, points, npoints, labels, scalar_names = read_vtk(labels_file, True)
+    faces, lines, indices, points, npoints, labels, \
+        name = read_vtk(labels_file, return_first=True, return_array=True)
 
     # Detect boundaries
     neighbor_lists = find_neighbors(faces, npoints)
-    indices_boundaries = detect_boundary_indices(range(len(points)),
-        labels, neighbor_lists)
+    indices_boundaries = detect_boundary_indices(range(npoints), labels, \
+                                                 neighbor_lists)
 
     # Filter values with label boundaries
     border_values = -1 * np.ones(len(points))
     if values_file:
-        faces, lines, indices, points, npoints, values, scalar_names = read_vtk(values_file, True)
+        values, name = read_scalars(values_file)
         border_values[indices_boundaries] = values[indices_boundaries]
     else:
         border_values[indices_boundaries] = 1
 
     # Mask values (for mask >-1)
     if mask_file:
-        faces, lines, indices, points, npoints, mask_values, scalar_names = read_vtk(mask_file, True)
+        mask_values, name = read_scalars(mask_file)
     else:
         mask_values = []
 
     # Write out label boundary vtk file
-    border_file = os.path.join(os.getcwd(),
+    border_file = os.path.join(os.getcwd(), \
                                'borders_' + os.path.basename(labels_file))
-    rewrite_scalars(labels_file, border_file,
-                         border_values, 'label_borders_in_mask', mask_values)
+    rewrite_scalars(labels_file, border_file, border_values, \
+                    'label_borders_in_mask', mask_values)
 
     return border_file, border_values
 

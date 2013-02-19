@@ -286,7 +286,7 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.measure.measure_functions import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
@@ -295,9 +295,9 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     >>>                                      'measures', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
-    >>> faces, lines, indices, points, npoints, areas, scalar_names = read_vtk(area_file, True)
-    >>> faces, lines, indices, points, npoints, labels, scalar_names = read_vtk(label_file, True)
+    >>> depths, name = read_scalars(depth_file, True, True)
+    >>> areas, name = read_scalars(area_file, True, True)
+    >>> labels, name = read_scalars(label_file)
     >>> exclude_labels = [-1,0]
     >>> mean_values, norm_mean_values, surface_areas, \
     >>>     label_list = mean_value_per_label(depths, areas, labels, exclude_labels)
@@ -308,6 +308,9 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     def avg_by_area(values_label, areas_label):
         return sum(areas_label * values_label) / sum(areas_label)
 
+    if type(labels) != np.ndarray:
+        labels = np.asarray(labels)
+
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     mean_values = []
@@ -315,7 +318,6 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     surface_areas = []
 
     for label in label_list:
-
         I = [i for i,x in enumerate(labels) if x == label]
         mean_value = np.mean(values[I])
         norm_mean_value = avg_by_area(values[I], areas[I])

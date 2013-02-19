@@ -724,8 +724,8 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
     scalar_lists.append(FIDscalars)
 
 #    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, scalar_lists, scalar_names)
-    io_vtk.write_vtk(FundiVTK, Vrtx, indices=Pits, lines=PSegs,
-     scalar_lists=scalar_lists, scalar_names=scalar_names)
+    io_vtk.write_vtk(FundiVTK, Vrtx, indices=Pits, lines=PSegs, faces=[],
+     scalars=scalar_lists, scalar_names=scalar_names)
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction
@@ -807,16 +807,16 @@ def getFeatures(InputFiles, Type, Options):
         Maps = {}
 
         print "    Loading depth map"
-        Faces, Lines, Vertexes, Points, nPoints, Depth, scalar_names = io_vtk.read_vtk(DepthVTK, return_arrays=0)
+        Faces, Lines, Vertexes, Points, nPoints, Depth, name = io_vtk.read_vtk(DepthVTK)
 
         Maps['depth'] = Depth
 
         if MeanCurvVTK != "":
             print "   Loading mean curvature map"
-            Faces, Lines, Vertexes, Points, nPoints, Maps['meancurv'], scalar_names = io_vtk.read_vtk(MeanCurvVTK, return_arrays=0)
+            Faces, Lines, Vertexes, Points, nPoints, Maps['meancurv'], name = io_vtk.read_vtk(MeanCurvVTK)
         if GaussCurvVTK != "":
             print "   Loading Gaussian curvature map"
-            Faces, Lines, Vertexes, Points, nPoints, Maps['gausscurv'], scalar_names = io_vtk.read_vtk(GaussCurvVTK, return_arrays=0)
+            Faces, Lines, Vertexes, Points, nPoints, Maps['gausscurv'], name = io_vtk.read_vtk(GaussCurvVTK)
 
         if ThickFile != '':
             Maps['thickness'] = io_free.read_curvature(ThickFile)
@@ -835,7 +835,7 @@ def getFeatures(InputFiles, Type, Options):
     else:
         libbasin.getBasin_and_Pits(Maps, Mesh, SulciVTK, PitsVTK, SulciThld = SulciThld, PitsThld =0, Quick=False, Clouchoux=False, SulciMap =Extract_Sulci_on_Map) # by default, extract sulci and pits from depth map
 
-    Pits=io_vtk.read_vtk_vertices(PitsVTK)
+    Pits=io_vtk.read_vertices(PitsVTK)
 
     fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, Extract_Sulci_on_Map, Extract_Fundi_on_Map)
     # end of common for both FreeSurfer and vtk type
