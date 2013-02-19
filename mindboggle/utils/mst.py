@@ -180,11 +180,11 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
+    >>> faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     >>> sulcus_faces = inside_faces(faces, sulcus_indices)
-    >>> sulcus_neighbor_lists = find_neighbors(sulcus_faces, len(points))
+    >>> sulcus_neighbor_lists = find_neighbors(sulcus_faces, npoints)
     >>> G=nx.Graph()
     >>> G.add_nodes_from(sulcus_indices)
     >>> for i, sulcus_neighbor_list in enumerate(sulcus_neighbor_lists):
@@ -217,7 +217,7 @@ if __name__ == "__main__" :
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                                          'features', 'lh.sulci.vtk')
-    faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
+    faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
     sulcus_ID = 1
     sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     sulcus_faces = inside_faces(faces, sulcus_indices)

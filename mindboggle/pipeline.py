@@ -421,7 +421,8 @@ if run_atlasFlow:
         AtlasLabels = Node(name = 'Atlas_labels',
                            interface = Fn(function = read_vtk,
                                           input_names = ['filename',
-                                                         'return_arrays'],
+                                                         'return_first',
+                                                         'return_array'],
                                           output_names = ['faces',
                                                           'lines',
                                                           'indices',
@@ -432,8 +433,8 @@ if run_atlasFlow:
         atlasFlow.add_nodes([AtlasLabels])
         mbFlow.connect([(Atlas, atlasFlow,
                          [('atlas_file', 'Atlas_labels.filename')])])
-        AtlasLabels.inputs.return_arrays = True  # 0: return lists instead of arrays
-
+        AtlasLabels.inputs.return_first = 'True'
+        AtlasLabels.inputs.return_array = 'True'
 
 ################################################################################
 #
@@ -578,7 +579,8 @@ if run_featureFlow:
     LoadSurf = Node(name = 'Load_surface',
                     interface = Fn(function = read_vtk,
                                    input_names = ['filename',
-                                                  'return_arrays'],
+                                                  'return_first',
+                                                  'return_array'],
                                    output_names = ['faces',
                                                    'lines',
                                                    'indices',
@@ -586,6 +588,7 @@ if run_featureFlow:
                                                    'npoints',
                                                    'scalars',
                                                    'scalar_names']))
+
     featureFlow.add_nodes([LoadSurf])
     if input_vtk:
         mbFlow.connect([(Surf, featureFlow,
@@ -593,7 +596,9 @@ if run_featureFlow:
     else:
         mbFlow.connect([(ConvertSurf, featureFlow,
                          [('vtk_file', 'Load_surface.filename')])])
-    LoadSurf.inputs.return_arrays = True  # 0: return lists instead of arrays
+
+    LoadSurf.inputs.return_first = 'True'
+    LoadSurf.inputs.return_array = 'True'
 
     NbrNode = Node(name='Neighbors',
                    interface = Fn(function = find_neighbors,

@@ -9,14 +9,6 @@ Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import numpy as np
-#from time import time
-#from utils.mesh_operations import simple_test, skeletonize, find_anchors,
-#                                  extract_endpoints
-#from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
-#from mindboggle.utils.mesh_operations import find_anchors, extract_endpoints,
-#                                             simple_test, skeletonize
-#from mindboggle.utils.io_vtk import read_vtk
 
 #-----------------
 # Sigmoid function
@@ -64,9 +56,10 @@ def compute_likelihood(depths, curvatures):
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'measures', 'lh.pial.curv.avg.vtk')
-    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
-    >>> faces, lines, indices, points, npoints, mean_curvatures, scalar_names = read_vtk(mean_curvature_file,
-    >>>                                                           True)
+    >>> faces, lines, indices, points, npoints, \
+    >>>     depths, name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, \
+    >>>     mean_curvatures, name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
     >>> L = compute_likelihood(depths, mean_curvatures)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk',
@@ -245,11 +238,13 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
+    >>> faces, lines, indices, points, npoints, \
+    >>>     depths, name = read_vtk(depth_file, return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> faces, lines, indices, points, npoints, mean_curvatures, scalar_names = read_vtk(mean_curvature_file,
-    >>>                                                           True)
-    >>> faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
+    >>> faces, lines, indices, points, npoints, mean_curvatures, \
+    >>>     name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, sulci, \
+    >>>     name = read_vtk(sulci_file, return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> sulcus_ID = 1
     >>> indices_fold = [i for i,x in enumerate(sulci) if x == sulcus_ID]
@@ -301,7 +296,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     # likelihood values (except 0) normalized to the interval (0.5, 1.0]
     # (to guarantee correct topology). Assign a 1 for each anchor point.
     # Note: 0.5 is the class boundary threshold for the HMMF values.
-    n_vertices = len(indices)
+    npoints = len(indices)
     C = np.zeros(len(L))
     H = C.copy()
     H_init = (L + 1.000001) / 2
@@ -374,7 +369,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
-            delta_cost = (costs_previous - costs) / n_vertices
+            delta_cost = (costs_previous - costs) / npoints
             delta_points = n_points_previous - n_points
             if delta_points == 0:
                 if delta_cost < min_cost_change:
@@ -461,7 +456,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_faces_points, read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_fundi import extract_fundi
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -473,9 +468,10 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
+    >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
+    >>> faces, lines, indices, points, npoints, sulci, \
+    >>>     name = read_vtk(sulci_file, return_first=True, return_array=True)
     >>>
     >>> fundi, n_fundi, likelihoods = extract_fundi(sulci,
     >>>     neighbor_lists, depth_file, mean_curvature_file,
@@ -500,17 +496,18 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     from mindboggle.utils.io_vtk import read_vtk
 
     # Load depth and curvature values from VTK and text files
-    faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
-    faces, lines, indices, points, npoints, mean_curvatures, scalar_names = read_vtk(mean_curvature_file,
-                                                              True)
+    faces, lines, indices, points, npoints, depths, \
+        name = read_vtk(depth_file, return_first=True, return_array=True)
+    faces, lines, indices, points, npoints, mean_curvatures, \
+        name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
     n_folds = len([x for x in np.unique(folds) if x > -1])
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
-    Z = np.zeros(n_vertices)
-    fundi = -1 * np.ones(n_vertices)
+    Z = np.zeros(npoints)
+    fundi = -1 * np.ones(npoints)
     likelihoods = np.copy(fundi)
 
     unique_fold_IDs = np.unique(folds)
@@ -585,7 +582,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 # Example
 if __name__ == "__main__" :
     import os
-    from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_faces_points, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh_operations import find_neighbors
     from mindboggle.extract.extract_fundi import extract_fundi
 
@@ -602,10 +599,11 @@ if __name__ == "__main__" :
     sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
                                          'features', 'lh.sulci.vtk')
 
-    faces, lines, indices, points, npoints, depths, scalar_names = read_vtk(depth_file, True)
+    faces, points, npoints = read_faces_points(depth_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
-    faces, lines, indices, points, npoints, sulci, scalar_names = read_vtk(sulci_file, True)
+    faces, lines, indices, points, npoints, sulci, \
+        name = read_vtk(sulci_file, return_first=True, return_array=True)
 
     fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
