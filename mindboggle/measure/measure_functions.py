@@ -127,7 +127,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     Parameters
     ----------
-    vectors : list or array of 1-D lists or arrays of integers or floats
+    vectors : array of 1-D lists or arrays of integers or floats
     save_file : Boolean
         save file?
     normalize : Boolean
@@ -142,7 +142,6 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     Examples
     --------
-    >>> import numpy as np
     >>> from mindboggle.measure.measure_functions import pairwise_vector_distances
     >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
         (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
@@ -155,6 +154,9 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     import os
     import numpy as np
     from mindboggle.measure.measure_functions import compute_vector_distance
+
+    if type(vectors) != np.ndarray:
+        vectors = np.array(vectors)
 
     # Initialize output
     vector_distances = np.zeros((len(vectors), len(vectors)))
@@ -289,18 +291,15 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.measure.measure_functions import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.area.vtk')
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> depth_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
-    >>> labels, name = read_scalars(label_file)
+    >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1,0]
-    >>> mean_values, norm_mean_values, surface_areas, \
-    >>>     label_list = mean_value_per_label(depths, areas, labels, exclude_labels)
+    >>> mean_values, norm_mean_values, surface_areas, label_list = mean_value_per_label(depths,
+    >>>     areas, labels, exclude_labels)
 
     """
     import numpy as np
@@ -351,6 +350,14 @@ def compute_percentile(N, percent, key=lambda x:x):
     Returns
     -------
     percentile : percentile of the values
+
+    Examples
+    --------
+    >>> from mindboggle.measure.measure_functions import compute_percentile
+    >>> N = [2,3,4,8,9,10]
+    >>> percent = 0.5
+    >>> compute_percentile(N, percent)
+      6.0
 
     """
     import numpy as np
