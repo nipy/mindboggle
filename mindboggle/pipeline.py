@@ -79,6 +79,9 @@ else:
 #  User settings
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
+do_save_folds = True
+do_extract_fundi = True
+do_save_likelihoods = True
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -636,9 +639,8 @@ if run_featureFlow:
 
     SulciNode = Node(name='Sulci',
                      interface = Fn(function = extract_sulci,
-                                    input_names = ['surface_vtk',
+                                    input_names = ['labels_file',
                                                    'folds',
-                                                   'labels',
                                                    'neighbor_lists',
                                                    'label_pair_lists',
                                                    'min_boundary',
@@ -646,27 +648,25 @@ if run_featureFlow:
                                     output_names = ['sulci',
                                                     'n_sulci']))
     featureFlow.add_nodes([SulciNode])
-    mbFlow.connect([(measureFlow, featureFlow,
-                     [('Depth.depth_file','Sulci.surface_vtk')])])
-    featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds')])])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by FreeSurfer classifier atlas
     if init_labels == 'DKatlas':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('DK_annot_to_VTK.labels','Sulci.labels')])])
+                         [('DK_annot_to_VTK.vtk_file','Sulci.labels_file')])])
     # Use initial labels assigned by Mindboggle classifier atlas
     elif init_labels == 'DKTatlas':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('DKT_annot_to_VTK.labels','Sulci.labels')])])
+                         [('DKT_annot_to_VTK.vtk_file','Sulci.labels_file')])])
     # Use initial labels assigned by multi-atlas registration
     elif init_labels == 'max':
         mbFlow.connect([(atlasFlow, featureFlow,
-                         [('Label_vote.labels_max','Sulci.labels')])])
+                         [('Label_vote.maxlabel_file','Sulci.labels_file')])])
     # Use manual (atlas) labels
     elif init_labels == 'manual':
-        mbFlow.connect([(atlasFlow, featureFlow,
-                         [('Atlas_labels.scalars','Sulci.labels')])])
+        mbFlow.connect([(Atlas, featureFlow,
+                         [('atlas_file','Sulci.labels_file')])])
     #---------------------------------------------------------------------------
+    featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds')])])
     featureFlow.connect([(NbrNode, SulciNode,
                           [('neighbor_lists','neighbor_lists')])])
     featureFlow.connect([(LabelPairs, SulciNode,
@@ -681,11 +681,10 @@ if run_featureFlow:
     #===========================================================================
     # Extract fundi (curves at the bottoms of sulci)
     #===========================================================================
-    do_extract_fundi = True
     if do_extract_fundi:
         thr = 0.5
         min_distance = 5.0
-        fundi_from_sulci = True
+        fundi_from_sulci = False
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
                                         input_names = ['folds',
@@ -739,6 +738,19 @@ if run_featureFlow:
     mbFlow.connect([(featureFlow, Sink,
                      [('Sulci_to_VTK.output_vtk','features.@sulci')])])
 
+    # Save folds
+    if do_save_folds:
+        FoldsVTK = SulciVTK.clone('Folds_to_VTK')
+        featureFlow.add_nodes([FoldsVTK])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Folds_to_VTK.input_vtk')])])
+        FoldsVTK.inputs.output_vtk = 'folds.vtk'
+        FoldsVTK.inputs.new_scalar_names = ['folds']
+        featureFlow.connect([(FoldsNode, FoldsVTK, [('folds','new_scalars')])])
+        featureFlow.connect([(FoldsNode, FoldsVTK, [('folds','filter_scalars')])])
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Folds_to_VTK.output_vtk','features.@folds')])])
+
     # Save fundi
     if do_extract_fundi:
         FundiVTK = SulciVTK.clone('Fundi_to_VTK')
@@ -753,16 +765,17 @@ if run_featureFlow:
                          [('Fundi_to_VTK.output_vtk','features.@fundi')])])
 
         # Save likelihoods values in sulci (or in folds if fundi_from_sulci==False)
-        LikelihoodsVTK = SulciVTK.clone('Likelihoods_to_VTK')
-        featureFlow.add_nodes([LikelihoodsVTK])
-        mbFlow.connect([(measureFlow, featureFlow,
-                         [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
-        LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
-        LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
-        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
-        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
-        mbFlow.connect([(featureFlow, Sink,
-                         [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
+        if do_save_likelihoods:
+            LikelihoodsVTK = SulciVTK.clone('Likelihoods_to_VTK')
+            featureFlow.add_nodes([LikelihoodsVTK])
+            mbFlow.connect([(measureFlow, featureFlow,
+                             [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
+            LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
+            LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
+            featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
+            featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
+            mbFlow.connect([(featureFlow, Sink,
+                             [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
 
 ################################################################################
 #
@@ -1201,8 +1214,8 @@ if evaluate_volume_labels:
     EvalVolLabels = Node(name='Evaluate_volume_labels',
                            interface = Fn(function = measure_volume_overlap,
                                           input_names = ['labels',
-                                                         'atlas_file',
-                                                         'input_file'],
+                                                         'file2',
+                                                         'file1'],
                                           output_names = ['overlaps',
                                                           'out_file']))
     labels_file = os.path.join(info_path, 'labels.volume.' + protocol + '.txt')
@@ -1210,9 +1223,9 @@ if evaluate_volume_labels:
     EvalVolLabels.inputs.labels = labels
     mbFlow2.add_nodes([EvalVolLabels])
     mbFlow2.connect([(AtlasVol, EvalVolLabels,
-                      [('atlas_vol_file','atlas_file')])])
+                      [('atlas_vol_file','file2')])])
     mbFlow2.connect([(Relabel, EvalVolLabels,
-                      [('output_file', 'input_file')])])
+                      [('output_file', 'file1')])])
     mbFlow2.connect([(EvalVolLabels, Sink2,
                       [('out_file', 'evaluate_labels_volume')])])
 

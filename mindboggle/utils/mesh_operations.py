@@ -324,42 +324,46 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     max_distance = 2 * min_distance
 
     # Sort likelihood values and find indices for values above the threshold
-    L_table = [[i,x] for i,x in enumerate(L)]
-    L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
-    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
-          if x > thr]
+    if len(L):
+        L_table = [[i,x] for i,x in enumerate(L)]
+        L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+        IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+              if x > thr]
 
-    # Initialize anchors list with the index of the maximum likelihood value,
-    # remove this value, and loop through the remaining high likelihoods
-    anchors = [IL.pop(0)]
-    for imax in IL:
+        # Initialize anchors list with the index of the maximum likelihood value,
+        # remove this value, and loop through the remaining high likelihoods
+        if len(IL):
+            anchors = [IL.pop(0)]
+            for imax in IL:
 
-        # Determine if there are any anchor points
-        # near to the current maximum likelihood vertex
-        i = 0
-        found = 0
-        while i < len(anchors) and found == 0:
+                # Determine if there are any anchor points
+                # near to the current maximum likelihood vertex
+                i = 0
+                found = 0
+                while i < len(anchors) and found == 0:
 
-            # Compute Euclidean distance between points
-            D = np.linalg.norm(points[anchors[i]] - points[imax])
+                    # Compute Euclidean distance between points
+                    D = np.linalg.norm(points[anchors[i]] - points[imax])
 
-            # If distance less than threshold, consider the point found
-            if D < min_distance:
-                found = 1
-            # Compute directional distance between points if they are close
-            elif D < max_distance:
-                dirV = np.dot(points[anchors[i]] - points[imax],
-                              min_directions[anchors[i]])
-                # If distance less than threshold, consider the point found
-                if np.linalg.norm(dirV) < min_distance:
-                    found = 1
+                    # If distance less than threshold, consider the point found
+                    if D < min_distance:
+                        found = 1
+                    # Compute directional distance between points if they are close
+                    elif D < max_distance:
+                        dirV = np.dot(points[anchors[i]] - points[imax],
+                                      min_directions[anchors[i]])
+                        # If distance less than threshold, consider the point found
+                        if np.linalg.norm(dirV) < min_distance:
+                            found = 1
 
-            i += 1
+                    i += 1
 
-        # If there are no nearby anchor points,
-        # assign the maximum likelihood vertex as an anchor point
-        if not found:
-            anchors.append(imax)
+                # If there are no nearby anchor points,
+                # assign the maximum likelihood vertex as an anchor point
+                if not found:
+                    anchors.append(imax)
+        else:
+            anchors = []
 
     return anchors
 
@@ -1350,7 +1354,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> # Write results to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
-    >>>           inside_faces(faces, indices), [regions.tolist()], ['regions'])
+    >>>           inside_faces(faces, indices), regions.tolist(), 'regions')
     >>> os.system('mayavi2 -m Surface -d test_fill_holes.vtk &')
 
     """
@@ -1546,49 +1550,31 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
-    >>> from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
-    >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
+    >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
+    >>> likelihoods_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'features', 'lh.likelihoods.vtk')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
+    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>>                                      'measures', 'lh.min_curvature_vectors.txt')
+    >>> faces, lines, indices, points, npoints, L, \
+    >>>     name = read_vtk(likelihoods_file, return_first=True, return_array=True)
+    >>> points = np.array(points)
     >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
-    >>> mean_curvatures, name = read_scalars(mean_curvature_file,
-    >>>                                      return_first=True, return_array=True)
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> n_sulcus = max(sulci)
     >>> sulci[sulci != n_sulcus] = -1
     >>> indices_sulcus = [i for i,x in enumerate(sulci) if x == n_sulcus]
-    >>> sulcus_likelihoods = compute_likelihood(depths[indices_sulcus],
-    >>>                                       mean_curvatures[indices_sulcus])
     >>> thr = 0.5
-    >>> L = np.zeros(len(points))
-    >>> L[indices_sulcus] = sulcus_likelihoods
-    >>> sulcus_indices_anchors = find_anchors(points[indices_sulcus, :],
+    >>> sulcus_indices_anchors = find_anchors(points[indices_sulcus],
     >>>     sulcus_likelihoods, min_directions[indices_sulcus], 5, thr)
     >>> indices_anchors = [indices_sulcus[x] for x in sulcus_indices_anchors]
-    >>> L[L > thr] = 1
-    >>> L[L <= thr] = 0
-    >>> anchor_skeleton = skeletonize(L, indices_anchors, neighbor_lists)
-    >>> indices_skeleton = [i for i,x in enumerate(anchor_skeleton) if x > 0]
-    >>> indices_endpoints = extract_endpoints(indices_skeleton, neighbor_lists)
-    >>> indices_endpoints = [x for x in indices_endpoints if x in indices_anchors]
-    >>> skeleton = skeletonize(L, indices_endpoints, neighbor_lists)
-    >>> indices_endpoint_skel = [x for x in skeleton if x > 0]
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> skeleton[indices_anchors] = 3
-    >>> skeleton[indices_endpoints] = 5
+    >>> skeleton = skeletonize(L, indices_anchors, neighbor_lists)
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> write_vtk('test_skeletonize.vtk', points, indices, lines,
-    >>>           inside_faces(faces, indices), [skeleton], ['skeleton'])
+    >>>           inside_faces(faces, indices), skeleton, 'skeleton')
     >>> os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
 
     """
@@ -1894,7 +1880,7 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
 #------------------------------------------------------------------------------
 # Find vertices with highest values within a fraction of the surface
 #------------------------------------------------------------------------------
-def extract_area(values, areas, fraction):
+def extract_high_values(values, areas, fraction):
     """
     Find the highest-valued vertices in a surface whose collective area
     is a given fraction of the total surface area of the mesh.
@@ -1919,7 +1905,7 @@ def extract_area(values, areas, fraction):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import extract_area
+    >>> from mindboggle.utils.mesh_operations import extract_high_values
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
@@ -1930,12 +1916,12 @@ def extract_area(values, areas, fraction):
     >>> areas, name = read_scalars(area_file, return_first=True, return_array=True)
     >>> fraction = 0.50
     >>>
-    >>> area_values = extract_area(values, areas, fraction)
+    >>> area_values = extract_high_values(values, areas, fraction)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(vtk_file, 'test_extract_area.vtk',
+    >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
     >>>                      [area_values.tolist()], ['area values'], area_values)
-    >>> os.system('mayavi2 -m Surface -d test_extract_area.vtk &')
+    >>> os.system('mayavi2 -m Surface -d test_extract_high_values.vtk &')
 
     """
     import numpy as np
