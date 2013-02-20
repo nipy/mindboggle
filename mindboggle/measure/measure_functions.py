@@ -312,6 +312,8 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
         labels = np.asarray(labels)
     if type(values) != np.ndarray:
         values = np.asarray(values)
+    if type(areas) != np.ndarray:
+        areas = np.asarray(areas)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]

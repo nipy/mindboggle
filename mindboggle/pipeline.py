@@ -724,7 +724,7 @@ if run_featureFlow:
                     interface = Fn(function = rewrite_scalars,
                                    input_names = ['input_vtk',
                                                   'output_vtk',
-                                                  'new_scalar_lists',
+                                                  'new_scalars',
                                                   'new_scalar_names',
                                                   'filter_scalars'],
                                    output_names = ['output_vtk']))
@@ -734,7 +734,7 @@ if run_featureFlow:
                      [('Depth.depth_file','Sulci_to_VTK.input_vtk')])])
     SulciVTK.inputs.output_vtk = 'sulci.vtk'
     SulciVTK.inputs.new_scalar_names = ['sulci']
-    featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalar_lists')])])
+    featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalars')])])
     featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
                      [('Sulci_to_VTK.output_vtk','features.@sulci')])])
@@ -747,7 +747,7 @@ if run_featureFlow:
                          [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
         FundiVTK.inputs.output_vtk = 'fundi.vtk'
         FundiVTK.inputs.new_scalar_names = ['fundi']
-        featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalar_lists')])])
+        featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalars')])])
         featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
                          [('Fundi_to_VTK.output_vtk','features.@fundi')])])
@@ -759,7 +759,7 @@ if run_featureFlow:
                          [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
         LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
         LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
-        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalar_lists')])])
+        featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
         featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
                          [('Likelihoods_to_VTK.output_vtk','features.@likelihoods')])])
