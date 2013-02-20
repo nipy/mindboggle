@@ -197,7 +197,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 
         ``wN``: weight influence of neighbors on the cost function
 
-        ``H_step``: the amount that the HMMF values are H_steped
+        ``H_step``: the amount that the HMMF values are H_step'd
 
     Parameters to speed up optimization and terminate the algorithm:
 
@@ -226,7 +226,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
     >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -238,13 +238,12 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
-    >>> faces, lines, indices, points, npoints, \
-    >>>     depths, name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
+    >>> points = np.array(points)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> faces, lines, indices, points, npoints, mean_curvatures, \
-    >>>     name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
-    >>> faces, lines, indices, points, npoints, sulci, \
-    >>>     name = read_vtk(sulci_file, return_first=True, return_array=True)
+    >>> mean_curvatures, name = read_scalars(mean_curvature_file, True, True)
+    >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> sulcus_ID = 1
     >>> indices_fold = [i for i,x in enumerate(sulci) if x == sulcus_ID]
@@ -252,7 +251,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>>                                       mean_curvatures[indices_fold])
     >>> likelihoods = np.zeros(len(points))
     >>> likelihoods[indices_fold] = fold_likelihoods
-    >>> fold_indices_anchors = find_anchors(points[indices_fold, :],
+    >>> fold_indices_anchors = find_anchors(points[indices_fold],
     >>>     fold_likelihoods, min_directions[indices_fold], 5, 0.5)
     >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
     >>> likelihoods_fold = np.zeros(len(points))
@@ -328,7 +327,7 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
             if index not in anchors:
 
                 # Continue if the HMMF value is greater than a minimum value
-                # (to fix when at very low values, to speed up optimization)
+                # (fix at very low values to speed up optimization)
                 if H[index] > H_min:
 
                     # Compute the cost gradient for the HMMF value
@@ -468,21 +467,21 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
     >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                      'features', 'lh.sulci.vtk')
+    >>> sulci, name = read_scalars(sulci_file, True, True)
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
     >>>
     >>> fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
     >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
     >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-    >>>                      [fundi], ['fundi'], sulci)
+    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk', fundi, 'fundi', sulci)
     >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
-    >>> # Write and view manual labels restricted to sulci:
+    >>>
+    >>> # Write and view manual labels in sulci:
     >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
-    >>>                      [labels], ['sulcus labels'], sulci)
+    >>>                 labels, 'sulcus_labels', sulci)
     >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
 
     """
