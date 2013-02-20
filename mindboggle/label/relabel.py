@@ -22,11 +22,12 @@ def relabel_volume(input_file, old_labels, new_labels):
 
     Examples
     --------
-    import os
     >>> # Convert DKT31 to DKT25 labels
+    >>> import os
+    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.label.relabel import relabel_volume
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
     >>> old_labels, new_labels = read_columns(relabel_file, 2)
     >>> relabel_volume(input_file, old_labels, new_labels)
@@ -76,12 +77,12 @@ def remove_volume_labels(input_file, labels_to_remove):
     --------
     >>> # Remove subcortical labels
     >>> import os
+    >>> from mindboggle.label.relabel import remove_volume_labels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
-    >>> remove_volume_labels(label_file, labels_to_remove)
+    >>> remove_volume_labels(input_file, labels_to_remove)
 
     """
     import os
