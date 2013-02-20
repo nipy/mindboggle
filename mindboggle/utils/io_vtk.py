@@ -1047,7 +1047,7 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     norm_columns = []
     for i, vtk_file in enumerate(vtk_files):
         if len(vtk_file):
-            values, name = read_scalars(vtk_file)
+            values, name = read_scalars(vtk_file, return_first=True, return_array=True)
             mean_values, norm_mean_values, norm_values, \
                 label_list = mean_value_per_label(values, norms, labels,
                                                   exclude_labels)
