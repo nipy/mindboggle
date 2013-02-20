@@ -40,19 +40,19 @@ def read_surface(filename):
 
     Example
     -------
-    >>> import readFreeSurfer as rfs
+    >>> import os
+    >>> from mindboggle.utils.io_free import read_surface
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                        'surf', 'lh.pial')
-    >>> Vrtx, Face = rfs.read_surface(surface_file)
+    >>> surface_file = os.path.join(data_path, 'arno', 'freesurfer', 'lh.pial')
+    >>> Vrtx, Face = read_surface(surface_file)
     >>> len(Vrtx)
-      130412
+      145069
     >>> len(Face)
-      260820
+      290134
     >>> Vrtx[10]
-      [-7.902474880218506, -95.6839370727539, -21.856534957885742]
+      [-16.585412979125977, -101.663330078125, 3.4243862628936768]
     >>> Face[10]
-      [2, 39, 3]
+      [2, 50, 54]
 
     """
     import os
@@ -106,14 +106,15 @@ def read_curvature(filename):
 
     Example
     -------
+    >>> import os
+    >>> from mindboggle.utils.io_free import read_curvature
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                        'surf', 'lh.curv')
+    >>> surface_file = os.path.join(data_path, 'arno', 'freesurfer', 'lh.curv')
     >>> Curv = read_curvature(surface_file)
     >>> len(Curv)
-      130412
+      145069
     >>> Curv[10]
-      -0.37290969491004944
+      -0.27393144369125366
 
     """
     import os
