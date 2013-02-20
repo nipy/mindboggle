@@ -7,7 +7,7 @@ Functions for comparing images.
 Authors:
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -33,9 +33,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
     --------
     >>> import os
     >>> from mindboggle.evaluate.compare_images import compute_image_histogram
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> infile = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                  'labels', 'labels.manual.nii.gz')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> infile = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
     >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
 
     """
@@ -84,12 +83,10 @@ def compute_image_histograms(infiles, nbins=100, threshold=0.0):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.evaluate.compare_images import compute_image_histogram
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> infiles = [os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                    'labels', 'labels.manual.nii.gz'),
-    >>>            os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                    'labels', 'labels.manual.nii.gz')]
+    >>> from mindboggle.evaluate.compare_images import compute_image_histograms
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> infiles = [os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz'),
+    >>>            os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')]
     >>> compute_image_histograms(infiles, nbins=100, threshold=0.1)
 
     """
@@ -287,8 +284,11 @@ def compute_image_similarities(files, intersect_masks=False,
 
     Examples
     --------
-    >>> # Missing: include image files and masks
     >>> from mindboggle.evaluate.compare_images import compute_image_similarities
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> file1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> #file2 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> compute_image_similarities([file1,file2], False, 'cc', False)
 
     """
