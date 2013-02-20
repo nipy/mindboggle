@@ -456,7 +456,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points, read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_fundi import extract_fundi
     >>> data_path = os.environ['MINDBOGGLE_DATA']
@@ -470,13 +470,11 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>                                      'features', 'lh.sulci.vtk')
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> faces, lines, indices, points, npoints, sulci, \
-    >>>     name = read_vtk(sulci_file, return_first=True, return_array=True)
+    >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
     >>>
-    >>> fundi, n_fundi, likelihoods = extract_fundi(sulci,
-    >>>     neighbor_lists, depth_file, mean_curvature_file,
-    >>>     min_curvature_vector_file, min_distance=5, thr=0.5,
-    >>>     use_only_endpoints=True)
+    >>> fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
+    >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
+    >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
@@ -493,13 +491,14 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
     from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
-    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk
 
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
         name = read_vtk(depth_file, return_first=True, return_array=True)
-    faces, lines, indices, points, npoints, mean_curvatures, \
-        name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
+    points = np.array(points)
+    mean_curvatures, name = read_scalars(mean_curvature_file,
+                                         return_first=True, return_array=True)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
@@ -528,7 +527,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
             likelihoods[indices_fold] = fold_likelihoods
 
             # Find fundus points
-            fold_indices_anchors = find_anchors(points[indices_fold, :],
+            fold_indices_anchors = find_anchors(points[indices_fold],
                                                 fold_likelihoods,
                                                 min_directions[indices_fold],
                                                 min_distance, thr)
@@ -582,7 +581,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 # Example
 if __name__ == "__main__" :
     import os
-    from mindboggle.utils.io_vtk import read_faces_points, read_vtk, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
     from mindboggle.utils.mesh_operations import find_neighbors
     from mindboggle.extract.extract_fundi import extract_fundi
 
@@ -602,12 +601,11 @@ if __name__ == "__main__" :
     faces, points, npoints = read_faces_points(depth_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
-    faces, lines, indices, points, npoints, sulci, \
-        name = read_vtk(sulci_file, return_first=True, return_array=True)
+    sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
 
     fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
-        min_distance=5, thr=0.5, use_only_endpoints=True)
+        min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
