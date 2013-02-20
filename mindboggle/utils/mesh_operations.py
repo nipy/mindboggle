@@ -297,8 +297,8 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>>                                      'measures', 'lh.pial.depth.vtk')
     >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
     >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
@@ -306,8 +306,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(min_directions))
     >>> IDs[anchors] = 1
-    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk',
-    >>>                      [IDs], ['anchors'], IDs)
+    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', IDs, 'anchors', IDs)
     >>> os.system('mayavi2 -m Surface -d test_find_anchors.vtk &')
 
     """
@@ -342,15 +341,15 @@ def find_anchors(points, L, min_directions, min_distance, thr):
         while i < len(anchors) and found == 0:
 
             # Compute Euclidean distance between points
-            D = np.linalg.norm(points[anchors[i], :] - points[imax, :])
+            D = np.linalg.norm(points[anchors[i]] - points[imax])
 
             # If distance less than threshold, consider the point found
             if D < min_distance:
                 found = 1
             # Compute directional distance between points if they are close
             elif D < max_distance:
-                dirV = np.dot(points[anchors[i], :] - points[imax, :],
-                              min_directions[anchors[i], :])
+                dirV = np.dot(points[anchors[i]] - points[imax],
+                              min_directions[anchors[i]])
                 # If distance less than threshold, consider the point found
                 if np.linalg.norm(dirV) < min_distance:
                     found = 1

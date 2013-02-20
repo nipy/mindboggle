@@ -63,7 +63,7 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
     return histogram_values
 
-def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
+def compute_image_histograms(infiles, nbins=100, threshold=0.0):
     """
     Compute histogram values from multiple nibabel-readable images.
 
@@ -71,8 +71,6 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
     ----------
     infiles : list of strings
         input file names
-    indirectory : string
-        path to input files
     nbins : integer
         number of bins
     threshold : float
@@ -92,7 +90,7 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
     >>>                                    'labels', 'labels.manual.nii.gz'),
     >>>            os.path.join(data_path, 'subjects', 'MMRR-21-1',
     >>>                                    'labels', 'labels.manual.nii.gz')]
-    >>> compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.1)
+    >>> compute_image_histograms(infiles, nbins=100, threshold=0.1)
 
     """
     import os
@@ -105,13 +103,12 @@ def compute_image_histograms(infiles, indirectory='', nbins=100, threshold=0.0):
     #---------------------------------------------------------------------------
     for infile in infiles:
 
-        infile_path = os.path.join(indirectory, infile)
-        histogram_values = compute_image_histogram(infile_path, nbins, threshold)
+        histogram_values = compute_image_histogram(infile, nbins, threshold)
         histogram_values_list.append(histogram_values)
 
     return histogram_values_list
 
-def register_images_to_ref_images(files, ref_file_index=1, max_angle=90, directory=''):
+def register_images_to_ref_images(files, ref_file_index=1, max_angle=90):
     """
     Compute registration transforms from each image to its reference image.
 
@@ -123,8 +120,6 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90, directo
         index to reference input image file
     max_angle : integer
         maximum search angle
-    directory : string
-        path to input files
 
     Returns
     -------
@@ -134,42 +129,9 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90, directo
     """
     import os
 
-    run_ants = False
-    if run_ants:
-        """
-        from nipype.interfaces.ants import Registration
-        reg = Registration()
-        reg.inputs.transforms = ['Affine']
-        reg.inputs.transform_parameters = [(2.0,)]
-        reg.inputs.number_of_iterations = [[1500, 200]]
-        reg.inputs.dimension = 3
-        reg.inputs.write_composite_transform = True
-        reg.inputs.collapse_output_transforms = False
-        reg.inputs.metric = ['Mattes']
-        reg.inputs.metric_weight = [1] # Default (value ignored currently by ANTs)
-        reg.inputs.radius_or_number_of_bins = [32]
-        reg.inputs.sampling_strategy = ['Random']
-        reg.inputs.sampling_percentage = [0.05]
-        reg.inputs.convergence_threshold = [1.e-8]
-        reg.inputs.convergence_window_size = [20]
-        reg.inputs.smoothing_sigmas = [[1,0]]
-        reg.inputs.shrink_factors = [[2,1]]
-        reg.inputs.use_estimate_learning_rate_once = [True]
-        reg.inputs.use_histogram_matching = [True] # This is the default
-        """
-    """
-    else:
-        from nipype.interfaces.freesurfer import RobustRegister
-        reg = RobustRegister()
-        reg.inputs.auto_sens = True
-        reg.inputs.init_orient = True
-    """
-
     outfiles = []
-    target_file = os.path.join(directory, files[ref_file_index])
-    for isource, source_filename in enumerate(files):  #(files[1::]):
-
-        source_file = os.path.join(directory, source_filename)
+    target_file = files[ref_file_index]
+    for isource, source_file in enumerate(files):  #(files[1::]):
 
         # Save transformation matrix
         prefix = 'registered' + str(isource) + '_'
@@ -178,46 +140,21 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90, directo
         outfiles.append(outfile)
         print('Save registration transform: {0}'.format(outfile))
 
-        if run_ants:
-            """
-            reg.inputs.fixed_image = [target_file]
-            reg.inputs.moving_image = [source_file]
-            #reg.inputs.output_transform_prefix = prefix
-            #reg.inputs.initial_moving_transform = outxfm
-            reg.inputs.output_warped_image = outfile
-            reg.run()
-            """
-            iterations = '10000x10000x10000x10000x10000'
-            cmd = ' '.join(['ANTS 3',
-                '-m  MI[' + target_file + ',' + source_file + ',1,32]',
-                '-o', out_prefix, '-i 0 --use-Histogram-Matching',
-                '--number-of-affine-iterations', iterations])
-            print(cmd)
-            os.system(cmd)
-        else:
-            min_angle = '-' + str(max_angle)
-            max_angle = str(max_angle)
-            cmd = ' '.join(['flirt -in', source_file,
-                            '-ref', target_file,
-                            '-dof 7',
-                            '-searchrx', min_angle, max_angle,
-                            '-searchry', min_angle, max_angle,
-                            '-searchrz', min_angle, max_angle,
-                            '-omat', outfile])
-            print(cmd)
-            os.system(cmd)
-            """
-            reg.inputs.source_file = source_file
-            reg.inputs.target_file = target_file
-            #reg.inputs.out_reg_file = outxfm
-            reg.inputs.registered_file = outfile
-            reg.run()
-            """
+        min_angle = '-' + str(max_angle)
+        max_angle = str(max_angle)
+        cmd = ' '.join(['flirt -in', source_file,
+                        '-ref', target_file,
+                        '-dof 7',
+                        '-searchrx', min_angle, max_angle,
+                        '-searchry', min_angle, max_angle,
+                        '-searchrz', min_angle, max_angle,
+                        '-omat', outfile])
+        print(cmd)
+        os.system(cmd)
 
     return outfiles
 
-def apply_transforms(files, ref_file_index, transform_files,
-                     directory='', interp='trilinear'):
+def apply_transforms(files, ref_file_index, transform_files, interp='trilinear'):
     """
     Apply transforms to register all images to a reference image
     (else the first of the image files).
@@ -230,8 +167,6 @@ def apply_transforms(files, ref_file_index, transform_files,
         index to reference input image file
     transform_files : list of strings
         input transform file names
-    directory : string
-        path to image files
     interp : string
         interpolation {'trilinear', 'nearestneighbour', 'sinc', 'spline'}
 
@@ -246,10 +181,9 @@ def apply_transforms(files, ref_file_index, transform_files,
     run_ants = False
 
     outfiles = []
-    target_file = os.path.join(directory, files[ref_file_index])
-    for isource, source_filename in enumerate(files):  #(files[1::]):
+    target_file = files[ref_file_index]
+    for isource, source_file in enumerate(files):  #(files[1::]):
 
-        source_file = os.path.join(directory, source_filename)
         transform_file = transform_files[isource]
 
         # Save registered image
@@ -309,10 +243,9 @@ def threshold_images(files, threshold_value=0.1, save_files=False):
         #thresh.run()
         img = nb.load(file)
         data = img.get_data()
-        if threshold_value > 0:
-            #data = data / max(data.ravel())
-            data[data < threshold_value] = 0
-            data[data >= threshold_value] = 1
+        #data = data / max(data.ravel())
+        data[data < threshold_value] = 0
+        data[data >= threshold_value] = 1
         img = nb.Nifti1Image(data, img.get_affine())
 
         if save_files:
@@ -323,7 +256,8 @@ def threshold_images(files, threshold_value=0.1, save_files=False):
 
     return outfiles
 
-def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
+def compute_image_similarities(files, intersect_masks=False,
+                               metric='cc', save_file=False):
     """
     Measure similarity between coregistered nibabel-readable images.
 
@@ -331,8 +265,8 @@ def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
     ----------
     files : list of strings
         file names of coregistered files
-    masks : list of strings
-        file names of thresholded (mask) files
+    intersect_masks : Boolean
+        compute similarity just on intersection?
     metric: integer
         Cost-function for assessing image similarity. If a string,
         one of 'cc': correlation coefficient, 'cr': correlation
@@ -355,7 +289,7 @@ def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
     --------
     >>> # Missing: include image files and masks
     >>> from mindboggle.evaluate.compare_images import compute_image_similarities
-    >>> compute_image_similarities([file1,file2], [mask1,mask2], 'cc', False)
+    >>> compute_image_similarities([file1,file2], False, 'cc', False)
 
     """
     import os
@@ -370,21 +304,23 @@ def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
     for i1, volume1 in enumerate(files):
         volume1 = nb.load(volume1)
         volume1 = volume1.get_data().ravel()
-        if len(masks):
-            mask1 = masks[i1]
-            mask1 = nb.load(mask1)
-            mask1 = mask1.get_data().ravel()
-
         for i2, volume2 in enumerate(files):
             if i2 == i1:
                 pairwise_similarities[i1, i2] = 1
             elif i2 > i1:
                 volume2 = nb.load(volume2)
                 volume2 = volume2.get_data().ravel()
-                if len(masks):
-                    mask2 = masks[i2]
-                    mask2 = nb.load(mask2)
-                    mask2 = mask2.get_data().ravel()
+
+                if intersect_masks:
+                    #volume1[volume1 < threshold_value] = 0
+                    #volume2[volume2 < threshold_value] = 0
+                    mask = volume1 * volume2
+                    mask[mask > 0] = 1
+                    volume1 = mask * volume1
+                    volume2 = mask * volume2
+
+                similarity = np.corrcoef(volume1,volume2)[0,1]
+                pairwise_similarities[i1, i2] = similarity
 
                 # Store pairwise similarities
                 """
@@ -397,12 +333,6 @@ def compute_image_similarities(files, masks=[], metric='cc', save_file=False):
                 res = similarity.run()
                 pairwise_similarities[i1, i2] = res.outputs.similarity
                 """
-
-                if len(masks):
-                    volume1 = mask1 * volume1
-                    volume2 = mask2 * volume2
-                similarity = np.corrcoef(volume1,volume2)[0,1]
-                pairwise_similarities[i1, i2] = similarity
 
     if save_file:
         outfile = os.path.join(os.getcwd(), 'pairwise_similarities.txt')
@@ -470,7 +400,7 @@ def compute_image_overlaps(files, list_of_labels, save_file=False):
 def dot_plot_no_overlaps(table_file, pairs_to_process,
                          category_labels=[], no_ones=False, no_zeros=True,
                          plot_xlabel='', plot_ylabel='', plot_title='',
-                         figsize=4, dpi=150):
+                         yrange=[], figsize=4, dpi=150):
     """
     Create a dot plot for multiple categories, without overlapping dots.
     Modified after:
@@ -556,7 +486,8 @@ def dot_plot_no_overlaps(table_file, pairs_to_process,
 
     plt.plot(x, y, 'o')
     plt.xlim((0,len(data_lists) + 1))
-    #plt.ylim((0,1))
+    if len(yrange) > 0:
+        plt.ylim((yrange[0],yrange[1]))
     if category_labels:
         locs, labels = plt.xticks()
         labels = ['']
@@ -578,59 +509,69 @@ if __name__ == "__main__":
     from mindboggle.evaluate.compare_images import dot_plot_no_overlaps
 
     #-----------------------------------------------------------------------------
+    # Pairs of indices to file lists:
+    # type 1: different_subject_pairs_per_site
+    # type 2: same_subject_pairs_per_site
+    # type 3: same_subject_intersite_pairs_per_site
+    #-----------------------------------------------------------------------------
+    def pairs_types_mri():
+
+        pairs_type1 = [[[0,2],[0,4],[0,7],[0,10],[0,13],[0,15],
+                        [0,17],[0,19],[0,21]],
+                       [[23,25],[23,27],[23,29],[23,31],[23,33]],
+                       [[34,36],[34,38],[34,40],[34,42],[34,44],
+                        [34,45],[34,47],[34,50],[34,53],[34,55]],
+                       [[57,60],[57,63],[57,66],[57,68],[57,69],[57,70]]]
+        pairs_type2 = [[[0,1],[2,3],[4,5],[7,8],[10,11],[13,14],
+                        [15,16],[17,18],[19,20],[21,22]],
+                       [[23,24],[25,26],[27,28],[29,30],[31,32]],
+                       [[34,35],[36,37],[38,39],[40,41],[42,43],
+                        [44,45],[47,48],[50,51],[53,54],[55,56]],
+                       [[57,58],[60,61],[63,64],[70,71]]]
+        pairs_type3 = [[[4,6],[7,9],[10,12]],
+            [],
+                       [[44,46],[47,49],[50,52]],
+                       [[57,59],[60,62],[63,65]]]
+
+        return pairs_type1, pairs_type2, pairs_type3
+
+
+    def pairs_types_dmri():
+
+        pairs_type1 = [[[0,1],[0,2],[0,4],[0,6],[0,8]],
+                       [[9,10],[9,11],[9,12],[9,13]],
+                       [[14,15],[14,16],[14,17],[14,18],[14,19],
+                        [14,21],[14,23]],
+                       [[25,27],[25,29]]]
+        pairs_type2 = [[],[],[],[]]
+        pairs_type3 = [[[2,3],[4,5],[6,7]],[],[[19,20],[21,22],
+                                               [23,24]],[[25,26],[27,28],[29,30]]]
+
+        return pairs_type1, pairs_type2, pairs_type3
+
+    #-----------------------------------------------------------------------------
     # Data to run
     #-----------------------------------------------------------------------------
     process_phantoms = False  # use phantom (or human) data?
     process_DTI = False  # use diffusion (or structural) data?
     do_similarity = True  # use image similarity (or histogram) table?
     # Choose one:
-    pairs_type = 1  # {1,2,3}
+    pairs_type = 3  # {1,2,3}
                     # 1: different_subject_pairs_per_site
                     # 2: same_subject_pairs_per_site
                     # 3: same_subject_intersite_pairs_per_site
     site_names = ['CU','MG','TX','UM']
+    base_path = '/Users/arno/Data/EMBARC/retest'
 
     if process_phantoms:
-        if process_DTI:
-            base_path = '/desk/workspace_DTI_phantoms/Image_comparison_workflow'
-            pairs_file = '/Users/arno/Data/Phantom_DTI/Human_retest_pairs.py'
-        else:
-            base_path = '/desk/workspace_phantoms/Image_comparison_workflow'
-            pairs_file = '/Users/arno/Data/Phantom_STR/Human_retest_pairs.py'
-
+        pass
     else:
         if process_DTI:
-            base_path = '/desk/workspace_DTI_humans/Image_comparison_workflow'
-            pairs_file = '/Users/arno/Data/Human_DTI_Updated20130123/Human_retest_pairs.py'
-
-            pairs_type1 = [[[0,1],[0,2],[0,4],[0,6],[0,8]],
-                           [[9,10],[9,11],[9,12],[9,13]],
-                           [[14,15],[14,16],[14,17],[14,18],[14,19],[14,21],[14,23]],
-                           [[25,27],[25,29]]]
-            pairs_type2 = [[],[],[],[]]
-            pairs_type3 = [[[2,3],[4,5],[6,7]],[],[[19,20],[21,22],[23,24]],[[25,26],[27,28],[29,30]]]
-
+            base_path = os.path.join(base_path, 'Scratch_dmri/Image_comparison_workflow')
+            pairs_type1, pairs_type2, pairs_type3 = pairs_types_dmri()
         else:
-            base_path = '/desk/workspace_humans/Image_comparison_workflow'
-            pairs_file = '/Users/arno/Data/Human_STR_Updated20130123/Human_retest_pairs.py'
-
-            pairs_type1 = [[[0,2],[0,4],[0,7],[0,10],[0,13],[0,15],
-                            [0,17],[0,19],[0,21]],
-                           [[23,25],[23,27],[23,29],[23,31],[23,33]],
-                           [[34,36],[34,38],[34,40],[34,42],[34,44],
-                            [34,45],[34,47],[34,50],[34,53],[34,55]],
-                           [[57,60],[57,63],[57,66],[57,68],[57,69],[57,70]]]
-            pairs_type2 = [[[0,1],[2,3],[4,5],[7,8],[10,11],[13,14],
-                           [15,16],[17,18],[19,20],[21,22]],
-                           [[23,24],[25,26],[27,28],[29,30],[31,32]],
-                           [[34,35],[36,37],[38,39],[40,41],[42,43],
-                            [44,45],[47,48],[50,51],[53,54],[55,56]],
-                           [[57,58],[60,61],[63,64],[70,71]]]
-            pairs_type3 = [[[4,6],[7,9],[10,12]],
-                           [],
-                           [[44,46],[47,49],[50,52]],
-                           [[57,59],[60,62],[63,65]]]
-
+            base_path = os.path.join(base_path, 'Scratch/Image_comparison_workflow')
+            pairs_type1, pairs_type2, pairs_type3 = pairs_types_mri()
     if pairs_type == 1:
         pairs = pairs_type1
     elif pairs_type == 2:
@@ -639,10 +580,12 @@ if __name__ == "__main__":
         pairs = pairs_type3
 
     if do_similarity:
+        yrange = [0.75,1.0]
         table = os.path.join(base_path, 'Similarity', 'pairwise_similarities.txt')
         plot_ylabel = 'Image similarity (correlation coefficient)'
         plot_title = 'Similarities per site'
     else:
+        yrange = [0,0.25]
         table = os.path.join(base_path, 'Compare_histograms', 'vector_distances.txt')
         plot_ylabel = 'Normalized histogram distance'
         plot_title = 'Histogram distances per site'
@@ -650,5 +593,5 @@ if __name__ == "__main__":
 
     dot_plot_no_overlaps(table, pairs, site_names, no_ones=True, no_zeros=True,
         plot_xlabel='Sites', plot_ylabel=plot_ylabel, plot_title=plot_title,
-        figsize=4, dpi=150)
+        yrange=yrange, figsize=4, dpi=150)
 
