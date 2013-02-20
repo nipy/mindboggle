@@ -18,8 +18,8 @@ atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
 
 for atlas in atlases:
 
-    if atlas_strings[0] in atlas:
-#    if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
+#   if atlas_strings[3] in atlas:
+    if 'HLN' in atlas or 'Twins' in atlas or 'Afterthought' in atlas or 'Colin27' in atlas:
 #    if 'Afterthought' in atlas:
 
         cmd = '{0} {1} {2}'.format(command, output_path, atlas)
