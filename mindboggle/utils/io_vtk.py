@@ -1033,9 +1033,9 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     if type(labels) == str:
         labels, name = read_scalars(labels, return_first=True, return_array=True)
     if len(norm_vtk_file):
-        norms, name = read_scalars(norm_vtk_file)
+        norms, name = read_scalars(norm_vtk_file, return_first=True, return_array=True)
     else:
-        norms = [1 for x in labels]
+        norms = np.ones(len(labels))
 
     # List files
     vtk_files = [depth_file, mean_curvature_file, gauss_curvature_file,
