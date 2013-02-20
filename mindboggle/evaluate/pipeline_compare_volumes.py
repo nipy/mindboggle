@@ -18,82 +18,76 @@ import os
 # Paths
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
-data_path = '/Users/arno/Data'
-results_path = '/desk/Results'
-temp_path = '/desk'
+data_path = '/Users/arno/Data/EMBARC/retest'
+results_path = '/Users/arno/Data/EMBARC/retest/Results'
+temp_path = '/Users/arno/Data/EMBARC/retest'
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-process_phantoms = False  # phantom or human data?
-process_DTI = False  # structural or diffusion data?
-#-----------------------------------------------------------------------------
-# Steps to run
-#-----------------------------------------------------------------------------
-do_register_images_to_ref_images = True
-do_threshold_images = True
-do_compute_image_similarities = True
-do_compare_image_histograms = True
-do_compute_image_overlaps = False  # Not as useful
+process_dmri = True  # structural or diffusion data?
 #-----------------------------------------------------------------------------
 # Settings
 #-----------------------------------------------------------------------------
 run_bet = False
+process_phantoms = False  # phantom or human data?
 if process_phantoms:
-    max_angle = 15
-    if process_DTI:
-        temp_path = os.path.join(temp_path, 'workspace_DTI_phantoms')
-    else:
-        temp_path = os.path.join(temp_path, 'workspace_phantoms')
+    path #max_angle = 15
 else:
-    max_angle = 45
-    if process_DTI:
-        temp_path = os.path.join(temp_path, 'workspace_DTI_humans')
+    max_angle = 90
+    if process_dmri:
+        temp_path = os.path.join(temp_path, 'Scratch_dmri')
     else:
-        run_bet = True
-        temp_path = os.path.join(temp_path, 'workspace_humans')
-if process_DTI:
-    threshold_value = 0.3
+        #run_bet = True
+        temp_path = os.path.join(temp_path, 'Scratch')
+if process_dmri:
+    threshold_value = 0  #0.3
     interp = 'nearestneighbour'
 else:
-    threshold_value = 0.1
+    threshold_value = 0
     interp = 'trilinear'
 #-----------------------------------------------------------------------------
 # Lists of images to process
 #-----------------------------------------------------------------------------
 if process_phantoms:
-    if process_DTI:
-        output_path = 'DTI_phantoms'
-        images_path = os.path.join(data_path, 'Phantom_DTI_Updated20121214')
-        reg_image_list = 'Phantom_DTI_1stvol_rotated.txt'
-        image_list = 'Phantom_DTI_FA_rotated.txt'
+    if process_dmri:
+        output_path = 'dmri_phantoms'
+        images_path = os.path.join(data_path, 'Phantom_dmri_Updated20121214')
+        reg_image_list = 'Phantom_dmri_1stvol_rotated.txt'
+        image_list = 'Phantom_dmri_FA_rotated.txt'
     else:
         output_path = 'ADNI_phantoms'
         images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
         reg_image_list = 'Phantom_ADNI.txt'
         image_list = 'Phantom_ADNI.txt'
 else:
-    if process_DTI:
-        output_path = 'Human_DTI_retests'
-        images_path = os.path.join(data_path, 'Human_DTI_Updated20130123')
-        reg_image_list = 'Human_retest_1stvol_files.txt'
-        image_list = 'Human_retest_FA_files.txt'
+    if process_dmri:
+        images_path = os.path.join(data_path, 'dmri_FA_20130123')
+        image_list = os.path.join(data_path, 'dmri_FA_file_list.txt')
+        reg_images_path = os.path.join(data_path, 'dmri_1stvol_20130123')
+        reg_image_list = os.path.join(data_path, 'dmri_1stvol_file_list.txt')
+        output_path = os.path.join(results_path, 'dmri')
     else:
-        output_path = 'Human_retests'
-        images_path = os.path.join(data_path, 'Human_STR_Updated20130123')
-        reg_image_list = 'Human_retest_files.txt'
-        image_list = 'Human_retest_files.txt'
-image_list = os.path.join(images_path, image_list)
-reg_image_list = os.path.join(images_path, reg_image_list)
-output_path = os.path.join(results_path, output_path)
+        images_path = os.path.join(data_path, 'brains_n3_20130131')
+        image_list = os.path.join(data_path, 'brain_file_list.txt')
+        reg_images_path = images_path
+        reg_image_list = image_list
+        output_path = os.path.join(results_path, 'mri')
 
 
+#-----------------------------------------------------------------------------
+# Steps to run
+#-----------------------------------------------------------------------------
+do_register_images_to_ref_images = True
+do_compute_image_similarities = True
+do_compare_image_histograms = True
+do_threshold_images = False
+do_compute_image_overlaps = False
 #-----------------------------------------------------------------------------
 # Import system and nipype Python libraries
 #-----------------------------------------------------------------------------
 from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.io import DataSink
-#from nipype.interfaces.utility import IdentityInterface
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
@@ -114,14 +108,11 @@ if not os.path.isdir(temp_path):
 fid = open(image_list)
 file_list = fid.read()
 file_list = file_list.splitlines()
-file_list = [x.strip() for x in file_list if len(x)]
+file_list = [os.path.join(images_path, x.strip()) for x in file_list if len(x)]
 fid_reg = open(reg_image_list)
 reg_file_list = fid_reg.read()
 reg_file_list = reg_file_list.splitlines()
-reg_file_list = [x.strip() for x in reg_file_list if len(x)]
-#Info = Node(name = 'Inputs',
-#            interface = IdentityInterface(fields=['files']))
-#Info.iterables = ([('files', file_list)])
+reg_file_list = [os.path.join(reg_images_path, x.strip()) for x in reg_file_list if len(x)]
 Sink = Node(DataSink(), name = 'Results')
 Sink.inputs.base_directory = output_path
 Sink.inputs.container = 'Results'
@@ -130,7 +121,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #=============================================================================
 #   Preprocessing
 #=============================================================================
-def run_bet_on_files(infiles, indirectory, f_value=0.5):
+def run_bet_on_files(infiles, f_value=0.5):
     """
     Run FSL's bet (brain extraction tool).
 
@@ -150,8 +141,7 @@ def run_bet_on_files(infiles, indirectory, f_value=0.5):
         outfiles.append(outfile)
 
         cli = CommandLine(command = 'bet2')
-        file = os.path.join(indirectory, infile)
-        cli.inputs.args = ' '.join([file, outfile, 'f_value' + str(f_value)])
+        cli.inputs.args = ' '.join([infile, outfile, 'f_value' + str(f_value)])
         cli.cmdline
         cli.run()
 
@@ -163,12 +153,10 @@ if run_bet:
                interface = Fn(function = run_bet_on_files,
                               iterfield=['infiles'],
                               input_names = ['infiles',
-                                             'indirectory',
                                              'f_value'],
                               output_names = ['outfiles']))
     Flow.add_nodes([bet])
     bet.inputs.infiles = file_list
-    bet.inputs.indirectory = images_path
     bet.inputs.f_value = 0.25
     Flow.connect([(bet, Sink, [('outfiles', 'brains')])])
 
@@ -184,7 +172,6 @@ if do_compare_image_histograms:
                               interface = Fn(function = compute_image_histograms,
                                              iterfield=['infiles'],
                                              input_names = ['infiles',
-                                                            'indirectory',
                                                             'nbins',
                                                             'threshold'],
                                              output_names = ['histogram_values']))
@@ -193,7 +180,6 @@ if do_compare_image_histograms:
         Flow.connect([(bet, compute_histograms, [('outfiles','infiles')])])
     else:
         compute_histograms.inputs.infiles = file_list
-    compute_histograms.inputs.indirectory = images_path
     compute_histograms.inputs.nbins = 100
     compute_histograms.inputs.threshold = 0
 
@@ -220,8 +206,7 @@ if do_register_images_to_ref_images:
                     interface = Fn(function = register_images_to_ref_images,
                                    input_names = ['files',
                                                   'ref_file_index',
-                                                  'max_angle',
-                                                  'directory'],
+                                                  'max_angle'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([register])
     if run_bet:
@@ -230,7 +215,6 @@ if do_register_images_to_ref_images:
         register.inputs.files = reg_file_list
     register.inputs.ref_file_index = 1
     register.inputs.max_angle = max_angle
-    register.inputs.directory = images_path
     #Flow.connect([(register, Sink, [('outfiles', 'registrations.@transforms')])])
 
     transform = Node(name = 'Transform',
@@ -238,14 +222,15 @@ if do_register_images_to_ref_images:
                                    input_names = ['files',
                                                   'ref_file_index',
                                                   'transform_files',
-                                                  'directory',
                                                   'interp'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([transform])
-    transform.inputs.files = file_list
+    if run_bet:
+        Flow.connect([(bet, transform, [('outfiles','files')])])
+    else:
+        transform.inputs.files = file_list
     transform.inputs.ref_file_index = 1
     Flow.connect([(register, transform, [('outfiles', 'transform_files')])])
-    transform.inputs.directory = images_path
     transform.inputs.interp = interp
     Flow.connect([(transform, Sink, [('outfiles', 'registrations.@images')])])
 
@@ -272,14 +257,17 @@ if do_compute_image_similarities:
     similarity = Node(name = 'Similarity',
                       interface = Fn(function = compute_image_similarities,
                                     input_names = ['files',
-                                                   'masks',
+                                                   'intersect_masks',
                                                    'metric',
                                                    'save_file'],
                                     output_names = ['pairwise_similarities',
                                                     'outfile']))
     Flow.add_nodes([similarity])
-    Flow.connect([(transform, similarity, [('outfiles', 'files')])])
-    Flow.connect([(threshold, similarity, [('outfiles', 'masks')])])
+    if do_threshold_images:
+        Flow.connect([(threshold, similarity, [('outfiles', 'files')])])
+    else:
+        Flow.connect([(transform, similarity, [('outfiles', 'files')])])
+    similarity.inputs.intersect_masks = True
     similarity.inputs.metric = 'cc'
     similarity.inputs.save_file = True
     Flow.connect([(similarity, Sink, [('outfile', 'similarities')])])
