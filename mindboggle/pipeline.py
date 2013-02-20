@@ -681,7 +681,7 @@ if run_featureFlow:
     #===========================================================================
     # Extract fundi (curves at the bottoms of sulci)
     #===========================================================================
-    do_extract_fundi = False
+    do_extract_fundi = True
     if do_extract_fundi:
         thr = 0.5
         min_distance = 5.0
