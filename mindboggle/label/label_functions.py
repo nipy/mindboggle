@@ -111,19 +111,16 @@ def extract_borders(labels_file, mask_file='', values_file=''):
 
     Examples
     --------
+    >>> # Extract depth values along label boundaries in sulci (mask):
     >>> import os
-    >>> from mindboggle.extract.extract_folds import extract_borders
+    >>> from mindboggle.label.label_functions import extract_borders
     >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> mask_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
+    >>> values_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>>
-    >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> mask_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                     'features', 'lh.sulci.vtk')
-    >>> values_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                       'measures', 'lh.pial.depth.vtk')
-    >>> border_file, border_values = extract_borders(labels_file,
-    >>>                                              mask_file, values_file)
+    >>> border_file, border_values = extract_borders(labels_file, mask_file, values_file)
+    >>>
     >>> os.system('mayavi2 -m Surface -d ' + border_file + ' &')
 
     """
@@ -133,18 +130,17 @@ def extract_borders(labels_file, mask_file='', values_file=''):
     from mindboggle.utils.mesh_operations import find_neighbors, detect_boundary_indices
 
     # Load labeled surface file
-    faces, lines, indices, points, npoints, labels, \
-        name = read_vtk(labels_file, return_first=True, return_array=True)
+    faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+        return_first=True, return_array=True)
 
     # Detect boundaries
     neighbor_lists = find_neighbors(faces, npoints)
-    indices_boundaries = detect_boundary_indices(range(npoints), labels, \
-                                                 neighbor_lists)
+    indices_boundaries = detect_boundary_indices(range(npoints), labels, neighbor_lists)
 
     # Filter values with label boundaries
-    border_values = -1 * np.ones(len(points))
+    border_values = -1 * np.ones(npoints)
     if values_file:
-        values, name = read_scalars(values_file)
+        values, name = read_scalars(values_file, return_first=True, return_array=True)
         border_values[indices_boundaries] = values[indices_boundaries]
     else:
         border_values[indices_boundaries] = 1
@@ -156,8 +152,7 @@ def extract_borders(labels_file, mask_file='', values_file=''):
         mask_values = []
 
     # Write out label boundary vtk file
-    border_file = os.path.join(os.getcwd(), \
-                               'borders_' + os.path.basename(labels_file))
+    border_file = os.path.join(os.getcwd(), 'borders_' + os.path.basename(labels_file))
     rewrite_scalars(labels_file, border_file, border_values, \
                     'label_borders_in_mask', mask_values)
 
@@ -184,12 +179,13 @@ def find_superset_subset_lists(labels, label_lists):
 
     Example
     -------
+    >>> from mindboggle.label.label_functions import find_superset_subset_lists
     >>> find_superset_subset_lists([1,2],[[1,2],[3,4]])
-    >>> [0]
+      [0]
     >>> find_superset_subset_lists([1,2],[[1,2,3],[1,2,5]])
-    >>> [0, 1]
+      [0, 1]
     >>> find_superset_subset_lists([1,2],[[2,3],[1,2,5]])
-    >>> [1]
+      [1]
 
     """
 
