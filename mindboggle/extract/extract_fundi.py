@@ -48,22 +48,18 @@ def compute_likelihood(depths, curvatures):
     Examples
     --------
     >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.extract.extract_fundi import compute_likelihood
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
-    >>> faces, lines, indices, points, npoints, \
-    >>>     depths, name = read_vtk(depth_file, return_first=True, return_array=True)
-    >>> faces, lines, indices, points, npoints, \
-    >>>     mean_curvatures, name = read_vtk(mean_curvature_file, return_first=True, return_array=True)
-    >>> L = compute_likelihood(depths, mean_curvatures)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> depths, name = read_scalars(depth_file, return_first=True, return_array=True)
+    >>> mean_curvs, name = read_scalars(mean_curv_file, return_first=True, return_array=True)
+    >>>
+    >>> L = compute_likelihood(depths, mean_curvs)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk',
-    >>>                      [L], ['likelihoods']) #, L)
+    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L, 'likelihoods')
     >>> os.system('mayavi2 -m Surface -d test_compute_likelihood.vtk &')
 
     """
@@ -158,10 +154,10 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     """
 
-#    # Make sure argument is a numpy array
-#    import numpy as np
-#    if type(hmmf_neighbors) != np.ndarray:
-#        hmmf_neighbors = np.array(hmmf_neighbors)
+    # Make sure argument is a numpy array
+    import numpy as np
+    if type(hmmf_neighbors) != np.ndarray:
+        hmmf_neighbors = np.array(hmmf_neighbors)
 
     if len(hmmf_neighbors):
         cost = hmmf * (1 - likelihood) +\
@@ -224,44 +220,43 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 
     Examples
     --------
+    >>> # Connect vertices according to likelihood values in a single fold
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
     >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.sulci.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> # Get neighbor_lists, scalars
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> points = np.array(points)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> mean_curvatures, name = read_scalars(mean_curvature_file, True, True)
-    >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
-    >>> sulcus_ID = 1
-    >>> indices_fold = [i for i,x in enumerate(sulci) if x == sulcus_ID]
+    >>> # Select a single fold
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+    >>> fold_ID = 10
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    >>> fold_array = -1 * np.ones(npoints)
+    >>> fold_array[indices_fold] = 1
     >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
     >>>                                       mean_curvatures[indices_fold])
-    >>> likelihoods = np.zeros(len(points))
-    >>> likelihoods[indices_fold] = fold_likelihoods
     >>> fold_indices_anchors = find_anchors(points[indices_fold],
     >>>     fold_likelihoods, min_directions[indices_fold], 5, 0.5)
     >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
     >>> likelihoods_fold = np.zeros(len(points))
     >>> likelihoods_fold[indices_fold] = fold_likelihoods
-    >>> H = connect_points(indices_anchors, faces, indices_fold,
-    >>>     likelihoods_fold, neighbor_lists)
+    >>>
+    >>> H = connect_points(indices_anchors, faces, indices_fold, likelihoods_fold, neighbor_lists)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> H[indices_anchors] = 2
-    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk',
-    >>>                      [H], ['connected points'], H)
+    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk', H, 'connected_points', fold_array)
     >>> os.system('mayavi2 -m Surface -d test_connect_points.vtk &')
 
     """
@@ -454,35 +449,33 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     Examples
     --------
+    >>> # Extract fundus from a single fold:
     >>> import os
+    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.extract.extract_fundi import extract_fundi
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.curv.min.dir.txt')
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.sulci.vtk')
-    >>> sulci, name = read_scalars(sulci_file, True, True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> min_curv_vec_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> # Select a single fold
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+    >>> fold_ID = 10
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    >>> fold_array = -1 * np.ones(npoints)
+    >>> fold_array[indices_fold] = 1
     >>>
-    >>> fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
-    >>>     depth_file, mean_curvature_file, min_curvature_vector_file,
+    >>> fundi, n_fundi, likelihoods = extract_fundi(fold_array, neighbor_lists,
+    >>>     depth_file, mean_curv_file, min_curv_vec_file,
     >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk', fundi, 'fundi', sulci)
+    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk', fundi, 'fundi', folds)
     >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
-    >>>
-    >>> # Write and view manual labels in sulci:
-    >>> rewrite_scalars(depth_file, 'test_extract_sulci_labels.vtk',
-    >>>                 labels, 'sulcus_labels', sulci)
-    >>> os.system('mayavi2 -m Surface -d test_extract_sulci_labels.vtk &')
 
     """
     import numpy as np
@@ -584,17 +577,17 @@ if __name__ == "__main__" :
     from mindboggle.utils.mesh_operations import find_neighbors
     from mindboggle.extract.extract_fundi import extract_fundi
 
-    data_path = os.environ['MINDBOGGLE_DATA']
+    path = os.environ['MINDBOGGLE_DATA']
 
-    depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    depth_file = os.path.join(path, 'arno',
                                          'measures', 'lh.pial.depth.vtk')
-    labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    labels_file = os.path.join(path, 'arno',
                                'labels', 'lh.labels.DKT25.manual.vtk')
-    mean_curvature_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    mean_curvature_file = os.path.join(path, 'arno',
                                          'measures', 'lh.pial.curv.avg.vtk')
-    min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    min_curvature_vector_file = os.path.join(path, 'arno',
                                          'measures', 'lh.pial.curv.min.dir.txt')
-    sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    sulci_file = os.path.join(path, 'arno',
                                          'features', 'lh.sulci.vtk')
 
     faces, points, npoints = read_faces_points(depth_file)

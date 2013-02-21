@@ -49,9 +49,9 @@ def find_neighbors(faces, npoints):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, points, npoints = read_faces_points(depth_file)
-    >>>
+    >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> index = 0
     >>> IDs = -1 * np.ones(npoints)
@@ -299,9 +299,9 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
-    >>>
+    >>> #
     >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(min_directions))
     >>> IDs[anchors] = 1
@@ -432,9 +432,9 @@ def propagate(points, faces, region, seeds, labels,
     >>> for ilist,label_pair_list in enumerate(label_pair_lists):
     >>>     I = [x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
-    >>>
+    >>> #
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(labels_file, 'test_propagate.vtk',
     >>>                 segments, 'segments', segments)
@@ -539,13 +539,13 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>>     return_first=True, return_array=True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0]  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> # Example 1: without seed lists
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment.vtk', folds, 'folds', folds)
     >>> os.system('mayavi2 -m Surface -d test_segment.vtk &')
-    >>>
+    >>> #
     >>> # Example 2: with seed lists
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
@@ -558,10 +558,10 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> seed_lists = []
     >>> for label_pair_list in label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list])
-    >>>
+    >>> #
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
     >>>                 seed_lists, True, True, labels, label_lists, values=[])
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_segment_seeds.vtk', sulci, 'sulci', sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment_seeds.vtk &')
@@ -802,10 +802,10 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
-    >>>
+    >>> #
     >>> segments = watershed(depths, indices, neighbor_lists,
     >>>                      depth_ratio, tolerance)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_watershed.vtk',
     >>>                 segments, 'segments', segments)
@@ -989,10 +989,10 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> segments = watershed(depths, indices, neighbor_lists,
     >>>                      depth_ratio=0.1, tolerance=0.01)
-    >>>
+    >>> #
     >>> shrunken_segments = shrink_segments(folds, segments, depths,
     >>>     remove_fraction=0.25, only_multiple_segments=True)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_shrink_segments.vtk',
     >>>     shrunken_segments, 'shrunken_segments', shrunken_segments)
@@ -1086,9 +1086,9 @@ def fill_boundaries(regions, neighbor_lists):
     >>> regions = -1 * np.ones(npoints)
     >>> regions[depths > 0.50] = 1
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> folds = fill_boundaries(regions, neighbor_lists)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_fill_boundaries.vtk', folds, 'folds', folds)
     >>> os.system('mayavi2 -m Surface -d test_fill_boundaries.vtk &')
@@ -1262,7 +1262,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> from mindboggle.utils.mesh_operations import inside_faces, fill_holes
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>>
+    >>> #
     >>> # Select one fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
@@ -1272,7 +1272,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
     >>> folds[folds != n_fold] = -1
-    >>>
+    >>> #
     >>> # Make two holes in fold (values of -1 and excluded values)
     >>> # Hole 1:
     >>> # Find a vertex whose removal (with its neighbors) would create a hole
@@ -1314,7 +1314,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> values = np.zeros(len(folds))
     >>> values[index2] = 100
     >>> values[N2] = 200
-    >>>
+    >>> #
     >>> # Write holes to vtk file and view with mayavi2:
     >>> holes = folds.copy()
     >>> holes[index1] = 10
@@ -1325,12 +1325,12 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> write_vtk('test_holes.vtk', points, indices, lines,
     >>>           inside_faces(faces, indices), [holes.tolist()], ['holes'])
     >>> os.system('mayavi2 -m Surface -d test_holes.vtk &')
-    >>>
+    >>> #
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
     >>> regions = np.copy(folds)
     >>> regions = fill_holes(regions, neighbor_lists, [100], values)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
@@ -1511,7 +1511,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
     This does not necessarily find a smooth skeleton.
-    It simply removes simple points (see simple_test()) iteratively.
+    It just iteratively removes simple points (see simple_test()).
 
     Parameters
     ----------
@@ -1542,9 +1542,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> indices_fold = [i for i,x in enumerate(folds) if x > -1]
     >>> indices = [indices_fold[0], indices_fold[-1]]
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> skeleton = skeletonize(folds, indices, neighbor_lists)
-    >>>
+    >>> #
     >>> rewrite_scalars(folds_file, 'test_skeletonize.vtk',
     >>>                 skeleton, 'skeleton', skeleton)
     >>> os.system('mayavi2 -m Surface -d test_skeletonize.vtk &')
@@ -1615,9 +1615,9 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> label_indices = [i for i,x in enumerate(labels) if x in label_pair_lists[0][0]]
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(label_indices,
     >>>                                               labels, neighbor_lists)
-    >>>
+    >>> #
     >>> indices_endpoints = extract_endpoints(indices_boundaries, neighbor_lists)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> end_IDs = -1 * np.ones(len(points))
     >>> end_IDs[indices_boundaries] = 1
@@ -1722,10 +1722,10 @@ def detect_boundary_indices(region_indices, labels, neighbor_lists):
     >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> indices_boundaries = detect_boundary_indices(range(npoints),
     >>>     labels, neighbor_lists)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
@@ -1802,10 +1802,10 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>>
+    >>> #
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(npoints),
     >>>     labels, neighbor_lists)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[indices_boundaries] = 1
@@ -1884,9 +1884,9 @@ def extract_high_values(values, areas, fraction):
     >>> values, name = read_scalars(vtk_file, return_first=True, return_array=True)
     >>> areas, name = read_scalars(area_file, return_first=True, return_array=True)
     >>> fraction = 0.50
-    >>>
+    >>> #
     >>> area_values = extract_high_values(values, areas, fraction)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
     >>>                      area_values, 'area values', area_values)
