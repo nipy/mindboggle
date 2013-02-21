@@ -176,9 +176,9 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> import networkx as nx
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
-    >>> import mindboggle.utils.meshlib as ml
+    >>> from mindboggle.utils.mst import mst
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(data_path, 'arno', 'features', 'lh.sulci.vtk')
+    >>> sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     >>> faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
@@ -190,7 +190,7 @@ def mst(adjacency_matrix, indices_to_connect):
     >>>     G.add_edges_from([[i,x] for x in sulcus_neighbor_list])
     >>> adjacency_matrix = nx.adjacency_matrix(G, nodelist=None, weight='weight')
     >>> indices_to_connect = [0, len(sulcus_indices)-1]
-    >>> adjacency_matrix2, W, Path, Degree, TreeNbr = ml.mst(adjacency_matrix, indices_to_connect)
+    >>> adjacency_matrix2, W, Path, Degree, TreeNbr = mst(adjacency_matrix, indices_to_connect)
     >>> # Write results to vtk file and view with mayavi2:
     >>> MST = np.zeros(len(points))
     >>> MST[W] = 1
