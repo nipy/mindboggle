@@ -46,18 +46,18 @@ def find_neighbors(faces, npoints):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors
     >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, points, npoints = read_faces_points(depth_file)
+    >>>
     >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> index = 0
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(depth_file, 'test_find_neighbors.vtk',
-    >>>                      [IDs], ['neighbors'], IDs)
+    >>> rewrite_scalars(depth_file, 'test_find_neighbors.vtk', IDs, 'neighbors', IDs)
     >>> os.system('mayavi2 -m Surface -d test_find_neighbors.vtk &')
 
     """
@@ -292,17 +292,17 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import find_anchors
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
-    >>>     'MMRR-21-1', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
+    >>>
     >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
+    >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> IDs = -1 * np.ones(len(min_directions))
     >>> IDs[anchors] = 1
@@ -405,43 +405,36 @@ def propagate(points, faces, region, seeds, labels,
     >>> import os
     >>> import numpy as np
     >>> import mindboggle.label.rebound as rb
-    >>> from mindboggle.utils.mesh_operations import find_neighbors,\
-    >>>     inside_faces, propagate, detect_boundaries
-    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.utils.mesh_operations import detect_boundaries, propagate
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> import mindboggle.utils.kernels as kernels
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.folds.vtk')
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1', 'labels',
-    >>>                           'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, folds, name = read_vtk(folds_file)
-    >>> faces, lines, indices, points, npoints, labels, \
-    >>>     name = read_vtk(labels_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(len(points)),
+    >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(npoints),
     >>>     labels, neighbor_lists)
     >>> label_pair_lists = sulcus_boundaries()
     >>> fold_ID = 2
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    >>> fold_array = -1 * np.ones(len(points))
+    >>> fold_array = -1 * np.ones(npoints)
     >>> fold_array[indices_fold] = 1
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(indices_fold,
     >>>     labels, neighbor_lists)
-    >>> seeds = -1 * np.ones(len(points))
+    >>> seeds = -1 * np.ones(npoints)
     >>> for ilist,label_pair_list in enumerate(label_pair_lists):
-    >>>     I = [x for i,x in enumerate(indices_boundaries)
-    >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
+    >>>     I = [x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
     >>>
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> #rewrite_scalars(labels_file, 'test_propagate.vtk',
-    >>> #                     [segments.tolist()], ['segments'], segments.tolist())
-    >>> indices = [i for i,x in enumerate(segments) if x > -1]
-    >>> write_vtk('test_propagate.vtk', points, indices, lines,
-    >>>           inside_faces(faces, indices), [segments.tolist()], ['segments'])
+    >>> rewrite_scalars(labels_file, 'test_propagate.vtk',
+    >>>                 segments, 'segments', segments)
     >>> os.system('mayavi2 -m Surface -d test_propagate.vtk &')
 
     """
@@ -537,11 +530,10 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors, segment, detect_boundaries
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0]  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>>
@@ -549,10 +541,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
     >>> label_pair_lists = sulcus_boundaries()
     >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1', 'labels',
-    >>>                           'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, \
-    >>>     name = read_vtk(labels_file, return_first=True, return_array=True)
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>>     return_first=True, return_array=True)
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(vertices_to_segment,
     >>>     labels, neighbor_lists)
     >>> seed_lists = []
@@ -564,15 +555,13 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>>                 seed_lists, True, True, labels, label_lists, values=[])
     >>>
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_segment.vtk',
-    >>>                      [sulci.tolist()], ['sulci'], sulci)
+    >>> rewrite_scalars(depth_file, 'test_segment.vtk', sulci, 'sulci', sulci)
     >>> os.system('mayavi2 -m Surface -d test_segment.vtk &')
     >>>
     >>> # Example 2: without seed lists
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_segment2.vtk',
-    >>>                      [folds], ['folds'], folds)
+    >>> rewrite_scalars(depth_file, 'test_segment2.vtk', folds, 'folds', folds)
     >>> os.system('mayavi2 -m Surface -d test_segment2.vtk &')
 
     """
@@ -802,11 +791,10 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors, watershed
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> depth_ratio = 0.1
@@ -817,7 +805,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_watershed.vtk',
-    >>>                      segments.tolist(), 'segments', segments)
+    >>>                 segments, 'segments', segments)
     >>> os.system('mayavi2 -m Surface -d test_watershed.vtk &')
 
     """
@@ -986,15 +974,14 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors, watershed, shrink_segments
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(path, 'arno',
     >>>                                      'features', 'lh.folds.vtk')
-    >>> faces, lines, indices, points, npoints, folds, \
-    >>>     name = read_vtk(folds_file, return_first=True, return_array=True)
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, folds, name = read_vtk(folds_file,
+    >>>     return_first=True, return_array=True)
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> segments = watershed(depths, indices, neighbor_lists,
@@ -1005,8 +992,7 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_shrink_segments.vtk',
-    >>>     [shrunken_segments.tolist()], ['shrunken segments'],
-    >>>     shrunken_segments)
+    >>>     shrunken_segments, 'shrunken segments', shrunken_segments)
     >>> os.system('mayavi2 -m Surface -d test_shrink_segments.vtk &')
 
     """
@@ -1089,11 +1075,10 @@ def fill_boundaries(regions, neighbor_lists):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import fill_boundaries, find_neighbors
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> regions = -1 * np.ones(npoints)
     >>> regions[depths > 0.50] = 1
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -1102,7 +1087,7 @@ def fill_boundaries(regions, neighbor_lists):
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(depth_file, 'test_fill_boundaries.vtk',
-    >>>                      [folds.tolist()], ['folds'], folds.tolist())
+    >>>                      folds, 'folds', folds)
     >>> os.system('mayavi2 -m Surface -d test_fill_boundaries.vtk &')
 
     """
@@ -1273,16 +1258,14 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> from mindboggle.utils.mesh_operations import find_neighbors, segment
     >>> from mindboggle.utils.mesh_operations import inside_faces, fill_holes
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> path = os.environ['MINDBOGGLE_DATA']
     >>>
     >>> # Select one fold
-    >>> folds_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.folds.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'lh.folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, \
-    >>>     name = read_vtk(depth_file, return_first=True, return_array=True)
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
     >>> folds[folds != n_fold] = -1
@@ -1551,15 +1534,12 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
     >>> from mindboggle.utils.mesh_operations import find_anchors, skeletonize
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> likelihoods_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.likelihoods.vtk')
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.sulci.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.min_curvature_vectors.txt')
-    >>> faces, lines, indices, points, npoints, L, \
-    >>>     name = read_vtk(likelihoods_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> likelihoods_file = os.path.join(path, 'arno', 'features', 'lh.likelihoods.vtk')
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'lh.sulci.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.min_curvature_vectors.txt')
+    >>> faces, lines, indices, points, npoints, L, name = read_vtk(likelihoods_file,
+    >>>     return_first=True, return_array=True)
     >>> points = np.array(points)
     >>> sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -1571,7 +1551,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> sulcus_indices_anchors = find_anchors(points[indices_sulcus],
     >>>     sulcus_likelihoods, min_directions[indices_sulcus], 5, thr)
     >>> indices_anchors = [indices_sulcus[x] for x in sulcus_indices_anchors]
+    >>>
     >>> skeleton = skeletonize(L, indices_anchors, neighbor_lists)
+    >>>
     >>> indices = [i for i,x in enumerate(sulci) if x > -1]
     >>> write_vtk('test_skeletonize.vtk', points, indices, lines,
     >>>           inside_faces(faces, indices), skeleton, 'skeleton')
@@ -1634,12 +1616,11 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import detect_boundaries, extract_endpoints
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_pair_lists = sulcus_boundaries()
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, \
-    >>>     name = read_vtk(labels_file, return_first=True, return_array=True)
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> label_indices = [i for i,x in enumerate(labels)
     >>>                  if x in label_pair_lists[0][0]]
@@ -1651,7 +1632,7 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> end_IDs[indices_boundaries] = 1
     >>> end_IDs[indices_endpoints] = 2
     >>> rewrite_scalars(depth_file, 'test_extract_endpoints.vtk',
-    >>>                      [end_IDs], ['endpoints'], end_IDs)
+    >>>                 end_IDs, 'endpoints', end_IDs)
     >>> os.system('mayavi2 -m Surface -d test_extract_endpoints.vtk &')
 
     """
@@ -1745,11 +1726,10 @@ def detect_boundary_indices(region_indices, labels, neighbor_lists):
     >>> from mindboggle.utils.mesh_operations import detect_boundary_indices
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, \
-    >>>      name = read_vtk(labels_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>>
     >>> indices_boundaries = detect_boundary_indices(range(npoints),
@@ -1759,7 +1739,7 @@ def detect_boundary_indices(region_indices, labels, neighbor_lists):
     >>> IDs = -1 * np.ones(len(points))
     >>> IDs[indices_boundaries] = 1
     >>> rewrite_scalars(labels_file, 'test_detect_boundary_indices.vtk',
-    >>>                      [IDs], ['boundaries'], IDs)
+    >>>                 IDs, 'boundaries', IDs)
     >>> os.system('mayavi2 -m Surface -d test_detect_boundary_indices.vtk &')
 
     """
@@ -1826,11 +1806,10 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     >>> from mindboggle.utils.mesh_operations import detect_boundaries
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, \
-    >>>     name = read_vtk(labels_file, return_first=True, return_array=True)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>>
     >>> indices_boundaries, label_pairs, foo = detect_boundaries(range(npoints),
@@ -1840,7 +1819,7 @@ def detect_boundaries(region_indices, labels, neighbor_lists, ignore_indices=[])
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[indices_boundaries] = 1
     >>> rewrite_scalars(labels_file, 'test_detect_boundaries.vtk',
-    >>>                 [IDs], ['boundaries'], IDs)
+    >>>                 IDs, 'boundaries', IDs)
     >>> os.system('mayavi2 -m Surface -d test_detect_boundaries.vtk &')
 
     """
@@ -1907,11 +1886,9 @@ def extract_high_values(values, areas, fraction):
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh_operations import extract_high_values
     >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'measures', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                            'measures', 'lh.pial.area.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
     >>> values, name = read_scalars(vtk_file, return_first=True, return_array=True)
     >>> areas, name = read_scalars(area_file, return_first=True, return_array=True)
     >>> fraction = 0.50
@@ -1920,7 +1897,7 @@ def extract_high_values(values, areas, fraction):
     >>>
     >>> # Write results to vtk file and view with mayavi2:
     >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
-    >>>                      [area_values.tolist()], ['area values'], area_values)
+    >>>                      area_values, 'area values', area_values)
     >>> os.system('mayavi2 -m Surface -d test_extract_high_values.vtk &')
 
     """
@@ -1972,11 +1949,10 @@ if __name__ == "__main__":
     import numpy as np
     from mindboggle.utils.mesh_operations import find_neighbors, watershed, propagate
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    data_path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-                                         'measures', 'lh.pial.depth.vtk')
-    faces, lines, indices, points, npoints, depths, \
-        name = read_vtk(depth_file, return_first=True, return_array=True)
+    path = os.environ['MINDBOGGLE_DATA']
+    depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+        return_first=True, return_array=True)
 
     indices = np.where(depths > 0.11)[0]  # high to speed up
     neighbor_lists = find_neighbors(faces, npoints)
@@ -1986,5 +1962,5 @@ if __name__ == "__main__":
 
     # Write results to vtk file and view with mayavi2:
     rewrite_scalars(depth_file, 'test_segment.vtk',
-                      [segments.tolist()], ['segments'], segments)
+                    segments, 'segments', segments)
     os.system('mayavi2 -m Surface -d test_segment.vtk &')
