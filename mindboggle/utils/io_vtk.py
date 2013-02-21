@@ -186,9 +186,8 @@ def read_scalars(filename, return_first=True, return_array=False):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> depths, name = read_scalars(depth_file)
 
     """
@@ -284,9 +283,8 @@ def read_vtk(filename, return_first=True, return_array=False):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
 
     """
@@ -584,12 +582,13 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> import os
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
-    >>> # Write to vtk file and view with mayavi2:
+    >>>
     >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
+    >>>
+    >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
 
     """
@@ -661,16 +660,16 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> # Write vtk file with depth values on sulci
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'measures', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> depths, name = read_scalars(depth_file)
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.sulci.vtk')
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
-    >>> # Write to vtk file and view with mayavi2:
+    >>>
     >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
-    >>>                      depths, 'depths', sulci)
+    >>>                 depths, 'depths', sulci)
+    >>>
+    >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalars.vtk &')
 
     """
@@ -706,8 +705,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         new_scalars, new_scalar_names = scalars_checker(new_scalars, new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalars):
-            for iremove in indices_remove:
-                new_scalar_list[iremove] = -1
+            if len(filter_scalars):
+                for iremove in indices_remove:
+                    new_scalar_list[iremove] = -1
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name)
@@ -719,112 +719,6 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                 write_scalars(Fp, new_scalar_list, new_scalar_name, begin_scalars=False)
     else:
         print('Error: new_scalars is empty')
-        exit()
-
-    Fp.close()
-
-    return output_vtk
-
-def copy_scalars(output_vtk, points, faces, lines, indices, scalars,
-                 scalar_names=['scalars'], header="Created by MindBoggle"):
-    """
-    Copy the scalars of one surface to another surface (same number of vertices).
-
-    Scalar definition includes specification of a lookup table.
-    The definition of a lookup table is optional. If not specified,
-    the default VTK table will be used (and tableName should be "default").
-
-    SCALARS dataName dataType numComp
-    LOOKUP_TABLE tableName
-
-    Parameters
-    ----------
-    output_vtk : string
-        path of the output VTK file
-    points :  list of 3-tuples of floats
-        each element has 3 numbers representing the coordinates of the points
-    indices : list of integers
-        indices of vertices. they are called VERTICES in VTK format though
-    faces : list of 3-tuples of integers
-        indices to the three vertices of a face on the mesh
-    lines : list of 2-tuples of integers
-        Each element contains two indices  of the two mesh vertexes forming a line on the mesh
-    scalars : list of lists of floats
-        each list contains values assigned to the vertices
-    scalar_names : list of strings
-        each element is the name of a lookup table of scalars values
-    header : string
-        title for the target VTK file
-
-    Returns
-    -------
-    output_vtk : string
-        output VTK file name
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh_operations import inside_faces
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> file1 = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                 'measures', 'lh.pial.depth.vtk')
-    >>> # Don't have this yet:
-    >>> file2 = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                 'surf', 'lh.inflated.vtk')
-    >>> file3 = 'test_copy_scalars.vtk'
-    >>> faces, lines, indices, points, npoints, scalars, \
-    >>>     scalar_names = read_vtk(file1, return_first=False, return_array=False)
-    >>> output_vtk = copy_scalars(file3, points, faces, lines, indices,
-    >>>                           scalars, scalar_names, header)
-    >>> # View with mayavi2:
-    >>> os.system('mayavi2 -m Surface -d test_copy_scalars.vtk &')
-
-    """
-    import os
-    from mindboggle.utils.io_vtk import write_header, write_points,\
-        write_faces, write_lines, write_vertices, write_scalars,\
-        scalars_checker
-
-    output_vtk = os.path.join(os.getcwd(), output_vtk)
-
-    Fp = open(output_vtk,'w')
-    write_header(Fp, header)
-    write_points(Fp, points)
-    if len(faces):
-        write_faces(Fp, faces)
-    if len(lines):
-        write_lines(Fp, lines)
-    if len(indices):
-        write_vertices(Fp, indices)
-    if len(scalars) > 0:
-
-#        # Make sure that new_scalars is a list
-#        if type(scalars) != list:
-#            if type(scalars[0]) == np.ndarray:
-#                scalars = scalars.tolist()
-#            scalars = [scalars]
-#        # Make sure that new_scalars is a list of lists
-#        if type(scalars[0]) != list:
-#            scalars = [scalars]
-#        # Make sure that scalar_names is a list
-#        if type(scalar_names) != list:
-#            scalar_names = [scalar_names]
-
-        scalars, scalar_names = scalars_checker(scalars, scalar_names)
-
-        for i, scalar_list in enumerate(scalars):
-            if i == 0:
-                scalar_name = scalar_names[i]
-                write_scalars(Fp, scalar_list, scalar_name)
-            else:
-                if len(scalar_names) < i + 1:
-                    scalar_name = scalar_names[0]
-                else:
-                    scalar_name  = scalar_names[i]
-                write_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
-    else:
-        print('Error: scalars is empty')
         exit()
 
     Fp.close()
@@ -853,13 +747,13 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     Examples
     --------
     >>> import os
-    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import explode_scalars
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                      'features', 'lh.sulci.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> output_stem = 'sulcus'
+    >>>
     >>> explode_scalars(sulci_file, output_stem)
+    >>>
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> os.system('mayavi2 -m Surface -d ' + example_vtk + ' &')
 
@@ -902,24 +796,22 @@ def scalars_checker(scalars, scalar_names):
 
     Examples
     --------
+    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import scalars_checker
     >>> scalars_checker([[1,2],[3,4]], "")
-    >>> ([[1, 2], [3, 4]], [''])
+      ([[1, 2], [3, 4]], [''])
     >>> scalars_checker([1,2,3,4], ["123"])
-    >>> ([[1, 2, 3, 4]], ['123'])
+      ([[1, 2, 3, 4]], ['123'])
     >>> scalars_checker(1, ["123"])
-         Error: scalars is neither a list nor a numpy array.
-    >>> % You will be kicked out from Python shell after the command above
-    >>> import numpy as np
+      Error: scalars is neither a list nor a numpy array.
     >>> scalars_checker(np.array([1,2,3]), ["123"])
-         Warning: the new_scalars is a 1-D numpy array. Conversion done but may have problems in final VTK.
-    >>> ([[1, 2, 3]], ['123'])
+      Warning: the new_scalars is a 1-D numpy array. Conversion done but may have problems in final VTK.
     >>> scalars_checker(np.array([[1,2,3]]), ["123"])
     >>> ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
     >>> ([[1, 2, 3], [4, 5, 6]], ['123'])
     >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
-        Error: Dimension of new_scalars is too high.
+      Error: Dimension of new_scalars is too high.
 
     Notes
     -----
@@ -927,7 +819,9 @@ def scalars_checker(scalars, scalar_names):
     but only those that are likely to happen when using Mindboggle.
 
     """
+    import sys
     import numpy as np
+
     if type(scalars) != list:
         if type(scalars) == np.ndarray:
             if len(scalars.shape) < 2: # this is a 1-D array
@@ -938,10 +832,10 @@ def scalars_checker(scalars, scalar_names):
                 scalars = scalars.tolist()
             else:
                 print "Error: Dimension of new_scalars is too high."
-                exit()
+                sys.exit()
         else:
             print "Error: scalars is neither a list nor a numpy array. "
-            exit()
+            sys.exit()
     else:  # a list, but may be 1-D
         if type(scalars[0]) == int or type(scalars[0]) == float: # this is an acceptable 1-D list
             scalars = [scalars]
@@ -952,7 +846,7 @@ def scalars_checker(scalars, scalar_names):
             print "io_vtk.py: scalars type is:", type(scalars)
             print "io_vtk,py: scalar length is:", len(scalars)
             print "io_vtk.py: scalars[0] type is:", type(scalars[0])
-            exit()
+            sys.exit()
 
     if type(scalar_names) == str:
         scalar_names = [scalar_names]
@@ -960,7 +854,7 @@ def scalars_checker(scalars, scalar_names):
         pass
     else:
         print "Error: scalar_names is neither a list nor a string"
-        exit()
+        sys.exit()
 
     return scalars, scalar_names
 
@@ -998,23 +892,23 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     >>> table_file = 'test_write_mean_shapes_table.txt'
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> path = os.environ['MINDBOGGLE_DATA']
     >>> subject = 'MMRR-21-1'
-    >>> labels_file = os.path.join(data_path, 'subjects', subject,
+    >>> labels_file = os.path.join(path, 'subjects', subject,
     >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
     >>> exclude_values = [-1]
-    >>> area_file = os.path.join(data_path, 'subjects', subject,
+    >>> area_file = os.path.join(path, 'subjects', subject,
     >>>                                     'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'subjects', subject,
+    >>> depth_file = os.path.join(path, 'subjects', subject,
     >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', subject,
+    >>> mean_curvature_file = os.path.join(path, 'subjects', subject,
     >>>                                    'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', subject,
+    >>> gauss_curvature_file = os.path.join(path, 'arno,
     >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                   'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
-    >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> max_curvature_file = os.path.join(path, 'arno', 'measures',
+    >>>                                   'lh.pial.curv.max.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures',
+    >>>                                          'lh.pial.curv.min.dir.txt')
     >>> write_mean_shapes_table(table_file, column_names, labels_file,
     >>>                         depth_file, mean_curvature_file,
     >>>                         gauss_curvature_file,
@@ -1096,34 +990,25 @@ def write_vertex_shapes_table(table_file, column_names,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import write_vertex_shape_table
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, detect_boundaries
-    >>> from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> from mindboggle.utils.io_vtk import write_vertex_shapes_table
+    >>>
+    >>> path = os.environ['MINDBOGGLE_DATA']
     >>> table_file = 'test_write_vertex_shape_table.txt'
     >>> column_names = ['sulci', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
-    >>> subject = 'MMRR-21-1'
     >>> labels_file = ''
     >>> fundi_file = ''
-    >>> sulci_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                      'features', 'lh.sulci.vtk')
-    >>> area_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                     'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                    'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(data_path, 'subjects', subject,
-    >>>                                   'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curvature_vector_file = os.path.join(data_path, 'subjects',
-    >>>     subject, 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> write_vertex_shape_table(table_file, column_names,
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
+    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
+    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
+    >>>
+    >>> write_vertex_shapes_table(table_file, column_names,
     >>>     labels_file, sulci_file, fundi_file, area_file, depth_file,
-    >>>     mean_curvature_file, gauss_curvature_file,
-    >>>     max_curvature_file, min_curvature_file, '', '')
+    >>>     mean_curv_file, gauss_curv_file, max_curv_file, min_curv_file, '', '')
 
     """
     import os
@@ -1166,9 +1051,12 @@ def freesurface_to_vtk(surface_file):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import freesurface_to_vtk
-    >>> subjects_path = os.environ['SUBJECTS_DIR']
-    >>> surface_file = os.path.join(subjects_path, 'MMRR-21-2', 'surf', 'lh.pial')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
+    >>>
     >>> freesurface_to_vtk(surface_file)
+    >>>
+    >>> os.system('mayavi2 -m Surface -d lh.pial.vtk &')
 
     """
     import os
@@ -1187,20 +1075,14 @@ def freesurface_to_vtk(surface_file):
 
     return output_vtk
 
-def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path):
+def freecurvature_to_vtk(surface_file, vtk_file):
     """
     Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
 
     Parameters
     ----------
-    file_string : string
-        string for FreeSurfer file: 'curv', 'thickness', 'sulc.pial'
-    surface_file : string  (name of VTK surface file)
-    hemi : string indicating left or right hemisphere
-    subject : string
-        name of subject directory
-    subjects_path: string
-        path to subject directory
+    surface_file : string  (name of FreeSurfer surface file)
+    vtk_file : string  (name of VTK surface file)
 
     Returns
     -------
@@ -1208,75 +1090,75 @@ def freecurvature_to_vtk(file_string, surface_file, hemi, subject, subjects_path
         name of output VTK file, where each vertex is assigned
         the corresponding shape value.
 
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import freecurvature_to_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
+    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>>
+    >>> freecurvature_to_vtk(surface_file, vtk_file)
+    >>>
+    >>> # View with mayavi2:
+    >>> os.system('mayavi2 -m Surface -d lh.thickness.vtk &')
+
     """
     import os
     from mindboggle.utils.io_free import read_curvature
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.utils.io_vtk import rewrite_scalars
 
-    filename = os.path.join(subjects_path, subject, 'surf',
-                            hemi + '.' + file_string)
-    output_vtk = os.path.join(os.getcwd(), file_string + '.vtk')
+    output_vtk = os.path.join(os.getcwd(), os.path.basename(surface_file)+'.vtk')
+    curvature_values = read_curvature(surface_file)
+    scalar_names = os.path.basename(surface_file)
 
-    curvature_values = read_curvature(filename)
-
-    # Load VTK surface
-    faces, lines, indices, points, npoints, scalars, name = read_vtk(surface_file)
-
-    scalars = [curvature_values]
-    scalar_names = [file_string]
-    write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
+    rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
 
     return output_vtk
 
-def freeannot_to_vtk(surface_file, hemi, subject, subjects_path, annot_name):
+def freeannot_to_vtk(annot_file, vtk_file):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
     Parameters
     ----------
-    surface_file : string  (name of VTK surface file)
-    annot_file : strings  (name of FreeSurfer .annot file)
+    annot_file : string
+        name of FreeSurfer .annot file
+    vtk_file : string
+        name of VTK surface file
 
     Returns
     -------
-    labels : list of integers (one label per vertex)
-    output_vtk : output VTK file
+    labels : list
+        integers (one label per vertex)
+    output_vtk : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value.
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import freeannot_to_vtk
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(data_path, 'subjects', 'MMRR-21-1',
-    >>>                                        'measures', 'lh.pial.depth.vtk')
-    >>> subjects_path = os.environ['SUBJECTS_DIR']
-    >>> annot_name = "aparcNMMjt" #labels.DKT31.manual"
-    >>> freeannot_to_vtk(surface_file, "lh", MMRR-21-1, subjects_path, annot_name)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
+    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>>
+    >>> labels, output_vtk = freeannot_to_vtk(annot_file, vtk_file)
+    >>>
+    >>> # View with mayavi2:
+    >>> os.system('mayavi2 -m Surface -d lh.aparc.vtk &')
 
     """
     import os
     import nibabel as nb
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
-
-    annot_file = os.path.join(subjects_path, subject, 'label',
-                              hemi + '.' + annot_name + '.annot')
+    from mindboggle.utils.io_vtk import rewrite_scalars
 
     labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
-    # Load FreeSurfer surface
-    #from utils.io_file import read_surface
-    #points, faces = read_surface(surface_file)
+    output_vtk = os.path.join(os.getcwd(),
+                              os.path.basename(annot_file).strip('.annot') + '.vtk')
 
-    # Load VTK surface
-    faces, lines, indices, points, npoints, scalars, name = read_vtk(surface_file)
-
-    output_stem = os.path.join(os.getcwd(),
-                  os.path.basename(surface_file.strip('.vtk')))
-    output_vtk = output_stem + '.' + annot_name.strip('.annot') + '.vtk'
-
-    scalars = [labels.tolist()]
-    scalar_names = ['Labels']
-    write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
+    rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 
     return labels, output_vtk
 
