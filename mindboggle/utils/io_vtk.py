@@ -574,21 +574,20 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> faces = [[1,2,3],[0,1,3]]
     >>> scalar_names = ['curv','depth']
     >>> scalars = [[random.random() for i in xrange(4)] for j in [1,2]]
+    >>> #
     >>> write_vtk('test_write_vtk.vtk', points,
     >>>          indices, lines, faces, scalars, scalar_names)
+    >>> #
+    >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
-    >>>
-    >>> # Write vtk file with depth values on sulci
-    >>> import os
+    >>> #
+    >>> # Write vtk file with depth values on sulci and view with mayavi2:
     >>> from mindboggle.utils.mesh_operations import inside_faces
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
-    >>>
     >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
-    >>>
-    >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
 
     """
@@ -665,10 +664,10 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> depths, name = read_scalars(depth_file)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
-    >>>
+    >>> #
     >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
     >>>                 depths, 'depths', sulci)
-    >>>
+    >>> #
     >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d test_rewrite_scalars.vtk &')
 
@@ -751,9 +750,9 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> output_stem = 'sulcus'
-    >>>
+    >>> #
     >>> explode_scalars(sulci_file, output_stem)
-    >>>
+    >>> #
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> os.system('mayavi2 -m Surface -d ' + example_vtk + ' &')
 
@@ -891,30 +890,23 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     >>> from mindboggle.utils.io_vtk import write_mean_shapes_table
     >>> table_file = 'test_write_mean_shapes_table.txt'
     >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
-    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
+    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature',
+    >>>                 'thickness', 'convexity']
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> subject = 'MMRR-21-1'
-    >>> labels_file = os.path.join(path, 'subjects', subject,
-    >>>                            'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> exclude_values = [-1]
-    >>> area_file = os.path.join(path, 'subjects', subject,
-    >>>                                     'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(path, 'subjects', subject,
-    >>>                                      'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'subjects', subject,
-    >>>                                    'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curvature_file = os.path.join(path, 'arno,
-    >>>                                     'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curvature_file = os.path.join(path, 'arno', 'measures',
-    >>>                                   'lh.pial.curv.max.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures',
-    >>>                                          'lh.pial.curv.min.dir.txt')
+    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
+    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
+    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
+    >>> #
     >>> write_mean_shapes_table(table_file, column_names, labels_file,
-    >>>                         depth_file, mean_curvature_file,
-    >>>                         gauss_curvature_file,
-    >>>                         max_curvature_file, min_curvature_file,
+    >>>                         depth_file, mean_curv_file, gauss_curv_file,
+    >>>                         max_curv_file, min_curv_file,
     >>>                         thickness_file='', convexity_file='',
-    >>>                         area_file, exclude_values)
+    >>>                         norm_vtk_file=area_file, exclude_labels=exclude_values)
 
     """
     import os
@@ -949,7 +941,7 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
             columns.append(mean_values)
             norm_columns.append(norm_mean_values)
         else:
-            del(column_names[i])
+            column_names[i] = ''
 
     # Prepend with column of normalization values
     columns.insert(0, norm_values)
@@ -994,8 +986,9 @@ def write_vertex_shapes_table(table_file, column_names,
     >>>
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> table_file = 'test_write_vertex_shape_table.txt'
-    >>> column_names = ['sulci', 'area', 'depth', 'mean_curvature',
-    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature']
+    >>> column_names = ['labels', 'sulcus', 'fundus', 'area', 'depth',
+    >>>                 'mean_curvature', 'gauss_curvature', 'max_curvature',
+    >>>                 'min_curvature', 'thickness', 'convexity']
     >>> labels_file = ''
     >>> fundi_file = ''
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -1005,7 +998,7 @@ def write_vertex_shapes_table(table_file, column_names,
     >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
     >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
     >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
-    >>>
+    >>> #
     >>> write_vertex_shapes_table(table_file, column_names,
     >>>     labels_file, sulci_file, fundi_file, area_file, depth_file,
     >>>     mean_curv_file, gauss_curv_file, max_curv_file, min_curv_file, '', '')
@@ -1030,7 +1023,7 @@ def write_vertex_shapes_table(table_file, column_names,
                 indices = range(len(values))
             columns.append(values)
         else:
-            del(column_names[i])
+            column_names[i] = ''
 
     # Prepend with column of indices and write table
     column_names.insert(0, 'index')
@@ -1053,9 +1046,9 @@ def freesurface_to_vtk(surface_file):
     >>> from mindboggle.utils.io_vtk import freesurface_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
-    >>>
+    >>> #
     >>> freesurface_to_vtk(surface_file)
-    >>>
+    >>> #
     >>> os.system('mayavi2 -m Surface -d lh.pial.vtk &')
 
     """
@@ -1066,7 +1059,7 @@ def freesurface_to_vtk(surface_file):
     points, faces = read_surface(surface_file)
 
     output_vtk = os.path.join(os.getcwd(),
-                            os.path.basename(surface_file + '.vtk'))
+                              os.path.basename(surface_file + '.vtk'))
     Fp = open(output_vtk, 'w')
     write_header(Fp, Title='vtk output from ' + surface_file)
     write_points(Fp, points)
@@ -1097,9 +1090,9 @@ def freecurvature_to_vtk(surface_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
     >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>>
+    >>> #
     >>> freecurvature_to_vtk(surface_file, vtk_file)
-    >>>
+    >>> #
     >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d lh.thickness.vtk &')
 
@@ -1142,9 +1135,9 @@ def freeannot_to_vtk(annot_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
     >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>>
+    >>> #
     >>> labels, output_vtk = freeannot_to_vtk(annot_file, vtk_file)
-    >>>
+    >>> #
     >>> # View with mayavi2:
     >>> os.system('mayavi2 -m Surface -d lh.aparc.vtk &')
 
