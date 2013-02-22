@@ -582,7 +582,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
     >>> #
     >>> # Write vtk file with depth values on sulci and view with mayavi2:
-    >>> from mindboggle.utils.mesh_operations import inside_faces
+    >>> from mindboggle.utils.mesh_operations import remove_faces
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
@@ -673,7 +673,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     """
     import os
-    from mindboggle.utils.mesh_operations import inside_faces
+    from mindboggle.utils.mesh_operations import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
          write_vertices, write_faces, write_scalars, read_vtk, \
          scalars_checker
@@ -690,7 +690,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
         indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
         # Remove surface mesh faces whose three vertices are not all in indices
-        faces = inside_faces(faces, indices_filter)
+        faces = remove_faces(faces, indices_filter)
 
     # Write VTK file
     Fp = open(output_vtk,'w')
