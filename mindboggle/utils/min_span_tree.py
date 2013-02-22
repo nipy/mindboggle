@@ -158,7 +158,7 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
 
 def mst(adjacency_matrix, indices_to_connect):
     """
-    Using Prim algorithm to connect vertices within surface region
+    Use Prim algorithm to connect vertices within surface region
 
     Parameters
     ----------
@@ -175,14 +175,14 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> import numpy as np
     >>> import networkx as nx
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
+    >>> from mindboggle.utils.mesh_operations import find_neighbors, remove_faces
     >>> from mindboggle.utils.mst import mst
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     >>> faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
-    >>> sulcus_faces = inside_faces(faces, sulcus_indices)
+    >>> sulcus_faces = remove_faces(faces, sulcus_indices)
     >>> sulcus_neighbor_lists = find_neighbors(sulcus_faces, npoints)
     >>> G=nx.Graph()
     >>> G.add_nodes_from(sulcus_indices)
@@ -211,14 +211,14 @@ if __name__ == "__main__" :
     import os
     import networkx as nx
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    from mindboggle.utils.mesh_operations import find_neighbors, inside_faces
+    from mindboggle.utils.mesh_operations import find_neighbors, remove_faces
     import mindboggle.utils.meshlib as ml
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
     sulcus_ID = 1
     sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
-    sulcus_faces = inside_faces(faces, sulcus_indices)
+    sulcus_faces = remove_faces(faces, sulcus_indices)
     sulcus_neighbor_lists = find_neighbors(sulcus_faces, len(points))
     G=nx.Graph()
     G.add_nodes_from(sulcus_indices)
