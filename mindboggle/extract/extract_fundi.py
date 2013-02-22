@@ -167,6 +167,112 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     return cost
 
+#------------------------------------------------------------------------------
+# Find special "anchor" points for constructing fundus curves
+#------------------------------------------------------------------------------
+def find_anchors(points, L, min_directions, min_distance, thr):
+    """
+    Find special "anchor" points for constructing fundus curves.
+
+    Assign maximum likelihood points as "anchor points"
+    while ensuring that the anchor points are not close to one another.
+
+    Parameters
+    ----------
+    points : numpy array of floats
+        coordinates for all vertices
+    L : numpy array of integers
+        fundus likelihood values for all vertices (default -1)
+    min_directions : numpy array of floats
+        minimum directions for all vertices
+    min_distance : minimum distance
+    thr : likelihood threshold
+
+    Returns
+    -------
+    anchors : list of subset of surface mesh vertex indices
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.extract.extract_fundi import find_anchors
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
+    >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> min_distance = 5
+    >>> thr = 0.5
+    >>> #
+    >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
+    >>> #
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> IDs = -1 * np.ones(len(min_directions))
+    >>> IDs[anchors] = 1
+    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', IDs, 'anchors', IDs)
+    >>> os.system('mayavi2 -m Surface -d test_find_anchors.vtk &')
+
+    """
+    import numpy as np
+    from operator import itemgetter
+
+    # Make sure arguments are numpy arrays
+    if type(points) != np.ndarray:
+        points = np.array(points)
+    if type(L) != np.ndarray:
+        L = np.array(L)
+    if type(min_directions) != np.ndarray:
+        min_directions = np.array(min_directions)
+
+    max_distance = 2 * min_distance
+
+    # Sort likelihood values and find indices for values above the threshold
+    if len(L):
+        L_table = [[i,x] for i,x in enumerate(L)]
+        L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+        IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+              if x > thr]
+
+        # Initialize anchors list with the index of the maximum likelihood value,
+        # remove this value, and loop through the remaining high likelihoods
+        if len(IL):
+            anchors = [IL.pop(0)]
+            for imax in IL:
+
+                # Determine if there are any anchor points
+                # near to the current maximum likelihood vertex
+                i = 0
+                found = 0
+                while i < len(anchors) and found == 0:
+
+                    # Compute Euclidean distance between points
+                    D = np.linalg.norm(points[anchors[i]] - points[imax])
+
+                    # If distance less than threshold, consider the point found
+                    if D < min_distance:
+                        found = 1
+                    # Compute directional distance between points if they are close
+                    elif D < max_distance:
+                        dirV = np.dot(points[anchors[i]] - points[imax],
+                                      min_directions[anchors[i]])
+                        # If distance less than threshold, consider the point found
+                        if np.linalg.norm(dirV) < min_distance:
+                            found = 1
+
+                    i += 1
+
+                # If there are no nearby anchor points,
+                # assign the maximum likelihood vertex as an anchor point
+                if not found:
+                    anchors.append(imax)
+        else:
+            anchors = []
+
+    return anchors
+
 #---------------
 # Connect points
 #---------------
@@ -224,8 +330,8 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, find_anchors
-    >>> from mindboggle.extract.extract_fundi import connect_points, compute_likelihood
+    >>> from mindboggle.utils.mesh_operations import find_neighbors
+    >>> from mindboggle.extract.extract_fundi import find_anchors, connect_points, compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
@@ -481,8 +587,8 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     import numpy as np
     from time import time
 
-    from mindboggle.extract.extract_fundi import compute_likelihood, connect_points
-    from mindboggle.utils.mesh_operations import find_anchors, skeletonize, extract_endpoints
+    from mindboggle.extract.extract_fundi import compute_likelihood, find_anchors, connect_points
+    from mindboggle.utils.mesh_operations import skeletonize, extract_endpoints
     from mindboggle.utils.io_vtk import read_scalars, read_vtk
 
     # Load depth and curvature values from VTK and text files
