@@ -166,7 +166,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         # Slightly slower alternative -- fill boundaries:
         #regions = -1 * np.ones(len(points))
         #regions[indices_deep] = 1
-        #folds = fill_boundaries(regions, neighbor_lists)
+        #folds = segment_by_filling_boundaries(regions, neighbor_lists)
         print('    ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
         """
         >>> # Display resulting initial folds:

@@ -261,110 +261,43 @@ def find_faces_at_edges(faces):
     return faces_at_edges
 
 #------------------------------------------------------------------------------
-# Find special "anchor" points for constructing fundus curves
+# Filter faces
 #------------------------------------------------------------------------------
-def find_anchors(points, L, min_directions, min_distance, thr):
+def remove_faces(faces, indices):
     """
-    Find special "anchor" points for constructing fundus curves.
-
-    Assign maximum likelihood points as "anchor points"
-    while ensuring that the anchor points are not close to one another.
+    Remove surface mesh faces whose three vertices are not all in "indices"
 
     Parameters
     ----------
-    points : numpy array of floats
-        coordinates for all vertices
-    L : numpy array of integers
-        fundus likelihood values for all vertices (default -1)
-    min_directions : numpy array of floats
-        minimum directions for all vertices
-    min_distance : minimum distance
-    thr : likelihood threshold
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+    indices : vertex indices to mesh
 
     Returns
     -------
-    anchors : list of subset of surface mesh vertex indices
+    faces : reduced array of faces
 
     Examples
     --------
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_anchors
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
-    >>> min_directions = np.loadtxt(min_curvature_vector_file)
-    >>> min_distance = 5
-    >>> thr = 0.5
-    >>> #
-    >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
-    >>> #
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> IDs = -1 * np.ones(len(min_directions))
-    >>> IDs[anchors] = 1
-    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', IDs, 'anchors', IDs)
-    >>> os.system('mayavi2 -m Surface -d test_find_anchors.vtk &')
+    >>> from mindboggle.utils.mesh_operations import remove_faces
+    >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> indices = [0,1,2,3,4,5]
+    >>> remove_faces(faces, indices)
+      Reduced 4 to 2 triangular faces.
+      array([[1, 2, 3],
+             [3, 2, 5]])
 
     """
     import numpy as np
-    from operator import itemgetter
 
-    # Make sure arguments are numpy arrays
-    if type(points) != np.ndarray:
-        points = np.array(points)
-    if type(L) != np.ndarray:
-        L = np.array(L)
-    if type(min_directions) != np.ndarray:
-        min_directions = np.array(min_directions)
+    len_faces = len(faces)
+    fs = frozenset(indices)
+    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
+    faces = np.reshape(np.ravel(faces), (-1, 3))
+    if len(faces) < len_faces:
+        print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
-    max_distance = 2 * min_distance
-
-    # Sort likelihood values and find indices for values above the threshold
-    if len(L):
-        L_table = [[i,x] for i,x in enumerate(L)]
-        L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
-        IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
-              if x > thr]
-
-        # Initialize anchors list with the index of the maximum likelihood value,
-        # remove this value, and loop through the remaining high likelihoods
-        if len(IL):
-            anchors = [IL.pop(0)]
-            for imax in IL:
-
-                # Determine if there are any anchor points
-                # near to the current maximum likelihood vertex
-                i = 0
-                found = 0
-                while i < len(anchors) and found == 0:
-
-                    # Compute Euclidean distance between points
-                    D = np.linalg.norm(points[anchors[i]] - points[imax])
-
-                    # If distance less than threshold, consider the point found
-                    if D < min_distance:
-                        found = 1
-                    # Compute directional distance between points if they are close
-                    elif D < max_distance:
-                        dirV = np.dot(points[anchors[i]] - points[imax],
-                                      min_directions[anchors[i]])
-                        # If distance less than threshold, consider the point found
-                        if np.linalg.norm(dirV) < min_distance:
-                            found = 1
-
-                    i += 1
-
-                # If there are no nearby anchor points,
-                # assign the maximum likelihood vertex as an anchor point
-                if not found:
-                    anchors.append(imax)
-        else:
-            anchors = []
-
-    return anchors
+    return faces
 
 #------------------------------------------------------------------------------
 # Propagate labels to segment surface into contiguous regions
@@ -442,7 +375,7 @@ def propagate(points, faces, region, seeds, labels,
 
     """
     import numpy as np
-    from mindboggle.utils.mesh_operations import inside_faces
+    from mindboggle.utils.mesh_operations import remove_faces
     import mindboggle.utils.kernels as kernels
     import mindboggle.label.rebound as rb
 
@@ -462,7 +395,7 @@ def propagate(points, faces, region, seeds, labels,
 
         # Set up rebound Bounds class instance
         B = rb.Bounds()
-        B.Faces = inside_faces(faces, indices_region)
+        B.Faces = remove_faces(faces, indices_region)
         if len(B.Faces):
             B.Indices = local_indices_region
             B.Points = points[indices_region, :]
@@ -752,6 +685,144 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 #------------------------------------------------------------------------------
+# Fill boundaries on a surface mesh to segment vertices into contiguous regions
+#------------------------------------------------------------------------------
+def segment_by_filling_boundaries(regions, neighbor_lists):
+    """
+    Fill boundaries (contours) on a surface mesh
+    to segment vertices into contiguous regions.
+
+    Steps ::
+        1. Extract region boundaries (assumed to be closed contours)
+        2. Segment boundaries into separate, contiguous boundaries
+        3. For each boundary
+            4. Find the neighbors to either side of the boundary
+            5. Segment the neighbors into exterior and interior sets of neighbors
+            6. Find the interior (smaller) sets of neighbors
+            7. Fill the contours formed by the interior neighbors
+
+    Parameters
+    ----------
+    regions : numpy array of integers
+        region numbers for all vertices (default -1)
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    segments : numpy array of integers
+        region numbers for all vertices (default -1)
+
+    Examples
+    --------
+    >>> # Segment folds by extracting their boundaries and filling them in separately:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh_operations import segment_by_filling_boundaries, find_neighbors
+    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
+    >>> regions = -1 * np.ones(npoints)
+    >>> regions[depths > 0.50] = 1
+    >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> #
+    >>> folds = segment_by_filling_boundaries(regions, neighbor_lists)
+    >>> #
+    >>> # Write results to vtk file and view with mayavi2:
+    >>> rewrite_scalars(depth_file, 'test_segment_by_filling_boundaries.vtk', folds, 'folds', folds)
+    >>> os.system('mayavi2 -m Surface -d test_segment_by_filling_boundaries.vtk &')
+
+    """
+    import numpy as np
+    from mindboggle.utils.mesh_operations import detect_boundary_indices, segment
+
+    include_boundary = False
+
+    print('Segment vertices using region boundaries')
+
+    # Extract region boundaries (assumed to be closed contours)
+    print('  Extract region boundaries (assumed to be closed contours)')
+    indices_boundaries = detect_boundary_indices(range(len(regions)),
+                                                 regions, neighbor_lists)
+    # Extract background
+    indices_background = list(frozenset(range(len(regions))).
+    difference(indices_boundaries))
+
+    # Segment boundaries into separate, contiguous boundaries
+    print('  Segment boundaries into separate, contiguous boundaries')
+    boundaries = segment(indices_boundaries, neighbor_lists, 1)
+
+    # For each boundary
+    unique_boundaries = [x for x in np.unique(boundaries) if x > -1]
+    segments = -1 * np.ones(len(regions))
+    for boundary_number in unique_boundaries:
+
+        print('  Boundary {0} of {1}:'.format(int(boundary_number),
+                                              len(unique_boundaries)))
+        boundary_indices = [i for i,x in enumerate(boundaries)
+                            if x == boundary_number]
+        # Find the neighbors to either side of the boundary
+        indices_neighbors = []
+        [indices_neighbors.extend(neighbor_lists[i]) for i in boundary_indices]
+        #indices_neighbors2 = indices_neighbors[:]
+        #[indices_neighbors2.extend(neighbor_lists[i]) for i in indices_neighbors]
+        indices_neighbors = list(frozenset(indices_neighbors).
+        difference(indices_boundaries))
+
+        # Segment the neighbors into exterior and interior sets of neighbors
+        print('    Segment the neighbors into exterior and interior sets of neighbors')
+        neighbors = segment(indices_neighbors, neighbor_lists, 1)
+
+        # Find the interior (smaller) sets of neighbors
+        print('    Find the interior (smaller) sets of neighbors')
+        seed_lists = []
+        unique_neighbors = [x for x in np.unique(neighbors) if x > -1]
+        max_neighbor = 0
+        max_len = 0
+        for ineighbor, neighbor in enumerate(unique_neighbors):
+            indices_neighbor = [i for i,x in enumerate(neighbors)
+                                if x == neighbor]
+            seed_lists.append(indices_neighbor)
+            if len(indices_neighbor) > max_len:
+                max_len = len(indices_neighbor)
+                max_neighbor = ineighbor
+        seed_lists = [x for i,x in enumerate(seed_lists) if i != max_neighbor]
+        seed_list = []
+        [seed_list.extend(x) for x in seed_lists if len(x) > 2]
+        """
+        >>> test = -1 * np.ones(len(regions))
+        >>> test[boundary_indices] = 10
+        >>> test[indices_neighbors] = 20
+        >>> test[seed_list] = 30
+        >>> rewrite_scalars(depth_file, 'test.vtk', [test.tolist()],['test'],test)
+        >>> os.system('mayavi2 -m Surface -d test.vtk &')
+        """
+
+        # Fill the contours formed by the interior neighbors
+        print('    Fill the contour formed by the interior neighbors')
+        vertices_to_segment = list(frozenset(indices_background).
+        difference(indices_boundaries))
+        segment_region = segment(vertices_to_segment, neighbor_lists, 1, [seed_list])
+
+        if include_boundary:
+            segment_region[boundary_indices] = 1
+        """
+        >>> indices = [i for i,x in enumerate(segment_region) if x > -1]
+        >>> segment_region[boundary_indices] = 10
+        >>> segment_region[seed_list] = 20
+        >>> segment_region[indices] = 30
+        >>> rewrite_scalars(depth_file, 'test.vtk', \
+        >>>     [segment_region.tolist()],['test'],segment_region)
+        >>> os.system('mayavi2 -m Surface -d test.vtk &')
+        """
+
+        segments[segment_region > -1] = boundary_number
+
+    return segments
+
+#------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by a watershed algorithm
 #------------------------------------------------------------------------------
 def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
@@ -862,7 +933,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
             seed_neighbors = []
             for seed in old_seed_list:
                 seed_neighbors.extend([x for x in neighbor_lists[seed]
-                    if depths[x] - tolerance <= depths[seed]])
+                                       if depths[x] - tolerance <= depths[seed]])
             seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
 
         else:
@@ -915,7 +986,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
             # Store neighbors whose depth is less than a fraction of the basin's depth
             tiny = 0.000001
             index_neighbors = [[x, index] for x in index_neighbors
-                if basin_depths[x] / (basin_depths[index] + tiny) < depth_ratio]
+                               if basin_depths[x] / (basin_depths[index] + tiny) < depth_ratio]
             if len(index_neighbors):
                 basin_pairs.extend(index_neighbors)
 
@@ -1044,144 +1115,6 @@ def shrink_segments(regions, segments, depths, remove_fraction=0.75,
     return shrunken_segments
 
 #------------------------------------------------------------------------------
-# Fill boundaries on a surface mesh to segment vertices into contiguous regions
-#------------------------------------------------------------------------------
-def fill_boundaries(regions, neighbor_lists):
-    """
-    Fill boundaries (contours) on a surface mesh
-    to segment vertices into contiguous regions.
-
-    Steps ::
-        1. Extract region boundaries (assumed to be closed contours)
-        2. Segment boundaries into separate, contiguous boundaries
-        3. For each boundary
-            4. Find the neighbors to either side of the boundary
-            5. Segment the neighbors into exterior and interior sets of neighbors
-            6. Find the interior (smaller) sets of neighbors
-            7. Fill the contours formed by the interior neighbors
-
-    Parameters
-    ----------
-    regions : numpy array of integers
-        region numbers for all vertices (default -1)
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-
-    Returns
-    -------
-    segments : numpy array of integers
-        region numbers for all vertices (default -1)
-
-    Examples
-    --------
-    >>> # Segment folds by extracting their boundaries and filling them in separately:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.mesh_operations import fill_boundaries, find_neighbors
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
-    >>> regions = -1 * np.ones(npoints)
-    >>> regions[depths > 0.50] = 1
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> #
-    >>> folds = fill_boundaries(regions, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view with mayavi2:
-    >>> rewrite_scalars(depth_file, 'test_fill_boundaries.vtk', folds, 'folds', folds)
-    >>> os.system('mayavi2 -m Surface -d test_fill_boundaries.vtk &')
-
-    """
-    import numpy as np
-    from mindboggle.utils.mesh_operations import detect_boundary_indices, segment
-
-    include_boundary = False
-
-    print('Segment vertices using region boundaries')
-
-    # Extract region boundaries (assumed to be closed contours)
-    print('  Extract region boundaries (assumed to be closed contours)')
-    indices_boundaries = detect_boundary_indices(range(len(regions)),
-                                         regions, neighbor_lists)
-    # Extract background
-    indices_background = list(frozenset(range(len(regions))).
-                              difference(indices_boundaries))
-
-    # Segment boundaries into separate, contiguous boundaries
-    print('  Segment boundaries into separate, contiguous boundaries')
-    boundaries = segment(indices_boundaries, neighbor_lists, 1)
-
-    # For each boundary
-    unique_boundaries = [x for x in np.unique(boundaries) if x > -1]
-    segments = -1 * np.ones(len(regions))
-    for boundary_number in unique_boundaries:
-
-        print('  Boundary {0} of {1}:'.format(int(boundary_number),
-                                              len(unique_boundaries)))
-        boundary_indices = [i for i,x in enumerate(boundaries)
-                            if x == boundary_number]
-        # Find the neighbors to either side of the boundary
-        indices_neighbors = []
-        [indices_neighbors.extend(neighbor_lists[i]) for i in boundary_indices]
-        #indices_neighbors2 = indices_neighbors[:]
-        #[indices_neighbors2.extend(neighbor_lists[i]) for i in indices_neighbors]
-        indices_neighbors = list(frozenset(indices_neighbors).
-                                 difference(indices_boundaries))
-
-        # Segment the neighbors into exterior and interior sets of neighbors
-        print('    Segment the neighbors into exterior and interior sets of neighbors')
-        neighbors = segment(indices_neighbors, neighbor_lists, 1)
-
-        # Find the interior (smaller) sets of neighbors
-        print('    Find the interior (smaller) sets of neighbors')
-        seed_lists = []
-        unique_neighbors = [x for x in np.unique(neighbors) if x > -1]
-        max_neighbor = 0
-        max_len = 0
-        for ineighbor, neighbor in enumerate(unique_neighbors):
-            indices_neighbor = [i for i,x in enumerate(neighbors)
-                                if x == neighbor]
-            seed_lists.append(indices_neighbor)
-            if len(indices_neighbor) > max_len:
-                max_len = len(indices_neighbor)
-                max_neighbor = ineighbor
-        seed_lists = [x for i,x in enumerate(seed_lists) if i != max_neighbor]
-        seed_list = []
-        [seed_list.extend(x) for x in seed_lists if len(x) > 2]
-        """
-        >>> test = -1 * np.ones(len(regions))
-        >>> test[boundary_indices] = 10
-        >>> test[indices_neighbors] = 20
-        >>> test[seed_list] = 30
-        >>> rewrite_scalars(depth_file, 'test.vtk', [test.tolist()],['test'],test)
-        >>> os.system('mayavi2 -m Surface -d test.vtk &')
-        """
-
-        # Fill the contours formed by the interior neighbors
-        print('    Fill the contour formed by the interior neighbors')
-        vertices_to_segment = list(frozenset(indices_background).
-                                   difference(indices_boundaries))
-        segment_region = segment(vertices_to_segment, neighbor_lists, 1, [seed_list])
-
-        if include_boundary:
-            segment_region[boundary_indices] = 1
-        """
-        >>> indices = [i for i,x in enumerate(segment_region) if x > -1]
-        >>> segment_region[boundary_indices] = 10
-        >>> segment_region[seed_list] = 20
-        >>> segment_region[indices] = 30
-        >>> rewrite_scalars(depth_file, 'test.vtk', \
-        >>>     [segment_region.tolist()],['test'],segment_region)
-        >>> os.system('mayavi2 -m Surface -d test.vtk &')
-        """
-
-        segments[segment_region > -1] = boundary_number
-
-    return segments
-
-#------------------------------------------------------------------------------
 # Fill holes
 #------------------------------------------------------------------------------
 def label_holes(holes, regions, neighbor_lists):
@@ -1259,7 +1192,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh_operations import find_neighbors, segment
-    >>> from mindboggle.utils.mesh_operations import inside_faces, fill_holes
+    >>> from mindboggle.utils.mesh_operations import remove_faces, fill_holes
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
@@ -1323,7 +1256,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> holes[N2] = 40
     >>> indices = [i for i,x in enumerate(holes) if x > -1]
     >>> write_vtk('test_holes.vtk', points, indices, lines,
-    >>>           inside_faces(faces, indices), [holes.tolist()], ['holes'])
+    >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
     >>> os.system('mayavi2 -m Surface -d test_holes.vtk &')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
@@ -1334,7 +1267,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> # Write results to vtk file and view with mayavi2:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
-    >>>           inside_faces(faces, indices), regions.tolist(), 'regions')
+    >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
     >>> os.system('mayavi2 -m Surface -d test_fill_holes.vtk &')
 
     """
@@ -1635,45 +1568,6 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
             indices_endpoints.append(index)
 
     return indices_endpoints
-
-#------------------------------------------------------------------------------
-# Filter faces
-#------------------------------------------------------------------------------
-def inside_faces(faces, indices):
-    """
-    Remove surface mesh faces whose three vertices are not all in "indices"
-
-    Parameters
-    ----------
-    faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
-    indices : vertex indices to mesh
-
-    Returns
-    -------
-    faces : reduced array of faces
-
-    Examples
-    --------
-    >>> from mindboggle.utils.mesh_operations import inside_faces
-    >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> indices = [0,1,2,3,4,5]
-    >>> inside_faces(faces, indices)
-      Reduced 4 to 2 triangular faces.
-      array([[1, 2, 3],
-             [3, 2, 5]])
-
-    """
-    import numpy as np
-
-    len_faces = len(faces)
-    fs = frozenset(indices)
-    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-    faces = np.reshape(np.ravel(faces), (-1, 3))
-    if len(faces) < len_faces:
-        print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
-
-    return faces
 
 #------------------------------------------------------------------------------
 # Detect region boundary
