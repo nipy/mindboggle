@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Use FreeSurfer's tksurfer to visualize .annot surface mesh data
+Use mayavi2 to visualize .vtk surface mesh data
 
 Input: VTK surface mesh file name
 

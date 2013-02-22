@@ -12,10 +12,12 @@ import sys
 import numpy as np
 from matplotlib import pyplot as plt
 
+print('NOTE: ')
+print('Comment out the top line (below the header) of the .label file')
+print('containing the number of rows, to load an appropriately sized numpy array.')
+
 if len(sys.argv) < 2:
-    #sys.exit('Usage: %s label-file-name' %sys.argv[0])
-    label_file = '/projects/Mindboggle/output/workspace/Mindboggle/Fill_volume_prep/_hemi_lh_subject_HLN-12-3/Write_label_files/mapflow/_Write_label_files6/lh.inferiortemporal.label'
-    #label_file = '/projects/Mindboggle/output/workspace/Mindboggle/Fill_volume_prep/_hemi_lh_subject_HLN-12-3/Write_label_files/mapflow/_Write_label_files30/lh.insula.label'
+    sys.exit('Usage: %s label_file' %sys.argv[0])
 else:
     label_file = sys.argv[1]
 

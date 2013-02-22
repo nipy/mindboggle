@@ -658,7 +658,7 @@ if run_featureFlow:
     SulciNode.inputs.sulcus_names = sulcus_names
 
     #===========================================================================
-    # Extract fundi (curves at the bottoms of sulci)
+    # Extract fundi (curves at the bottoms of folds/sulci)
     #===========================================================================
     if do_extract_fundi:
         thr = 0.5
@@ -682,6 +682,39 @@ if run_featureFlow:
             featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
         else:
             featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+        featureFlow.connect([(NbrNode, FundiNode,
+                              [('neighbor_lists','neighbor_lists')])])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Fundi.depth_file'),
+                          ('Curvature.mean_curvature_file',
+                           'Fundi.mean_curvature_file'),
+                          ('Curvature.min_curvature_vector_file',
+                           'Fundi.min_curvature_vector_file')])])
+        FundiNode.inputs.min_distance = min_distance
+        FundiNode.inputs.thr = thr
+        FundiNode.inputs.use_only_endpoints = True
+        FundiNode.inputs.compute_local_depth = True
+
+    #===========================================================================
+    # Segment fundi by sulcus divisions
+    #===========================================================================
+    if do_extract_fundi and not fundi_from_sulci:
+
+        SegmentFundi = Node(name='Segment_fundi',
+                            interface = Fn(function = extract_fundi,
+                                           input_names = ['folds',
+                                                       'neighbor_lists',
+                                                       'depth_file',
+                                                       'mean_curvature_file',
+                                                       'min_curvature_vector_file',
+                                                       'min_distance',
+                                                       'thr',
+                                                       'use_only_endpoints',
+                                                       'compute_local_depth'],
+                                           output_names = ['fundi',
+                                                        'n_fundi',
+                                                        'likelihoods']))
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
         featureFlow.connect([(NbrNode, FundiNode,
                               [('neighbor_lists','neighbor_lists')])])
         mbFlow.connect([(measureFlow, featureFlow,
