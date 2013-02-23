@@ -186,7 +186,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     ----------
     points : numpy array of floats
         coordinates for all vertices
-    L : list of integers
+    L : list (or array) of integers
         fundus likelihood values for all vertices (default -1)
     min_directions : numpy array of floats
         minimum directions for all vertices
