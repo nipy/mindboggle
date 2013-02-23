@@ -45,7 +45,8 @@ def compute_likelihood(depths, curvatures):
 
     Returns
     -------
-    likelihoods : likelihood values [#sulcus vertices x 1] numpy array
+    likelihoods : numpy array of floats
+        likelihood values for all vertices
 
     Examples
     --------
@@ -162,7 +163,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     if not isinstance(hmmf_neighbors, np.ndarray):
         hmmf_neighbors = np.array(hmmf_neighbors)
 
-    if len(hmmf_neighbors):
+    if hmmf_neighbors:
         cost = hmmf * (1 - likelihood) +\
                wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
     else:
@@ -233,7 +234,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     max_distance = 2 * min_distance
 
     # Sort likelihood values and find indices for values above the threshold
-    if len(L):
+    if L:
         L_table = [[i,x] for i,x in enumerate(L)]
         L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
         IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
@@ -241,7 +242,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 
         # Initialize anchors list with the index of the maximum likelihood value,
         # remove this value, and loop through the remaining high likelihoods
-        if len(IL):
+        if IL:
             anchors = [IL.pop(0)]
             for imax in IL:
 
@@ -618,7 +619,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     count = 0
     for fold_ID in unique_fold_IDs:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-        if len(indices_fold):
+        if indices_fold:
 
             print('  Region {0}:'.format(fold_ID))
 
@@ -648,7 +649,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
                 # to extract the endpoints, then slow, to get fundi
                 if not use_only_endpoints:
                     print('    Connect {0} fundus points...'.format(n_anchors))
-                    B = connect_points(indices_anchors, faces, indices_fold,
+                    B = connect_points(indices_anchors, indices_fold,
                         likelihoods_fold, neighbor_lists)
                     indices_skeleton = [i for i,x in enumerate(B) if x > 0]
                 else:
@@ -664,7 +665,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
                     if len(indices_endpoints) > 1:
                         print('    Connect {0} fundus endpoints...'.
                               format(len(indices_endpoints)))
-                        B = connect_points(indices_endpoints, faces, indices_fold,
+                        B = connect_points(indices_endpoints, indices_fold,
                                            likelihoods_fold, neighbor_lists)
                         indices_skeleton = [i for i,x in enumerate(B) if x > 0]
                     else:
