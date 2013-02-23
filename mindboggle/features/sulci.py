@@ -95,7 +95,8 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     from time import time
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.labels.label import extract_borders, propagate, segment
+    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.segment import propagate, segment
 
     #---------------------------------------------------------------------------
     # Prepare data
@@ -138,7 +139,7 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
         #-----------------------------------------------------------------------
         if len(unique_fold_labels) < 2:
             # Ignore: sulci already initialized with -1 values
-            if len(unique_fold_labels) == 0:
+            if not unique_fold_labels:
                 print("  Fold {0} ({1} vertices): NO MATCH -- fold has no labels".
                       format(n_fold, len_fold))
             else:
