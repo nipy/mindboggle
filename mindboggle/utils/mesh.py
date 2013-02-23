@@ -293,7 +293,8 @@ def remove_faces(faces, indices):
 
     Returns
     -------
-    faces : reduced array of faces
+    faces : list of lists of three integers
+        reduced number of faces
 
     Examples
     --------
@@ -302,8 +303,7 @@ def remove_faces(faces, indices):
     >>> indices = [0,1,2,3,4,5]
     >>> remove_faces(faces, indices)
       Reduced 4 to 2 triangular faces.
-      array([[1, 2, 3],
-             [3, 2, 5]])
+      [[1, 2, 3], [3, 2, 5]]
 
     """
     import numpy as np
@@ -315,7 +315,7 @@ def remove_faces(faces, indices):
     if len(faces) < len_faces:
         print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
-    return faces
+    return faces.tolist()
 
 #------------------------------------------------------------------------------
 # Fill holes
