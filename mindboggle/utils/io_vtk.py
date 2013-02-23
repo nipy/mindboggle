@@ -8,8 +8,8 @@ Functions related to reading and writing VTK format files.
 
 
 Authors:
-    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -568,6 +568,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
+    >>> from mindboggle.utils.mesh import plot_vtk
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
@@ -578,17 +579,17 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> write_vtk('test_write_vtk.vtk', points,
     >>>          indices, lines, faces, scalars, scalar_names)
     >>> #
-    >>> # View with mayavi2:
-    >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
+    >>> # View:
+    >>> plot_vtk('test_write_vtk.vtk')
     >>> #
-    >>> # Write vtk file with depth values on sulci and view with mayavi2:
-    >>> from mindboggle.utils.mesh_operations import remove_faces
+    >>> # Write vtk file with depth values on sulci and view:
+    >>> from mindboggle.utils.mesh import remove_faces
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
     >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
-    >>> os.system('mayavi2 -m Surface -d test_write_vtk.vtk &')
+    >>> plot_vtk('test_write_vtk.vtk')
 
     """
     import os
@@ -668,12 +669,13 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
     >>>                 depths, 'depths', sulci)
     >>> #
-    >>> # View with mayavi2:
-    >>> os.system('mayavi2 -m Surface -d test_rewrite_scalars.vtk &')
+    >>> # View:
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_rewrite_scalars.vtk')
 
     """
     import os
-    from mindboggle.utils.mesh_operations import remove_faces
+    from mindboggle.utils.mesh import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
          write_vertices, write_faces, write_scalars, read_vtk, \
          scalars_checker
@@ -753,8 +755,10 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     >>> #
     >>> explode_scalars(sulci_file, output_stem)
     >>> #
+    >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> os.system('mayavi2 -m Surface -d ' + example_vtk + ' &')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk(example_vtk)
 
     """
     import os
@@ -856,428 +860,6 @@ def scalars_checker(scalars, scalar_names):
         sys.exit()
 
     return scalars, scalar_names
-
-#=============================================================================
-# Functions for writing tables
-#=============================================================================
-
-def write_mean_shapes_table(table_file, column_names, labels, depth_file,
-                            mean_curvature_file, gauss_curvature_file,
-                            max_curvature_file, min_curvature_file,
-                            thickness_file='', convexity_file='',
-                            norm_vtk_file='', exclude_labels=[]):
-    """
-    Make a table of mean values per label per measure.
-
-    Parameters
-    ----------
-    filename :  output filename (without path)
-    column_names :  names of columns [list of strings]
-    labels :  name of label file or list of labels (same length as values)
-    *shape_files :  arbitrary number of vtk files with scalar values
-    norm_vtk_file :  name of file containing per-vertex normalization values
-                     (e.g., surface areas)
-    exclude_labels : list of integer labels to be excluded
-
-    Returns
-    -------
-    means_file : table file name for mean shape values
-    norm_means_file : table file name for mean shape values normalized by area
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import write_mean_shapes_table
-    >>> table_file = 'test_write_mean_shapes_table.txt'
-    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
-    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature',
-    >>>                 'thickness', 'convexity']
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> exclude_values = [-1]
-    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
-    >>> #
-    >>> write_mean_shapes_table(table_file, column_names, labels_file,
-    >>>                         depth_file, mean_curv_file, gauss_curv_file,
-    >>>                         max_curv_file, min_curv_file,
-    >>>                         thickness_file='', convexity_file='',
-    >>>                         norm_vtk_file=area_file, exclude_labels=exclude_values)
-
-    """
-    import os
-    import numpy as np
-    from mindboggle.measure.measure_functions import mean_value_per_label
-    from mindboggle.utils.io_vtk import read_scalars
-    from mindboggle.utils.io_file import write_table
-
-    # Load per-vertex labels and normalization vtk files
-    if type(labels) == str:
-        labels, name = read_scalars(labels, return_first=True, return_array=True)
-    if len(norm_vtk_file):
-        norms, name = read_scalars(norm_vtk_file, return_first=True, return_array=True)
-    else:
-        norms = np.ones(len(labels))
-
-    # List files
-    vtk_files = [depth_file, mean_curvature_file, gauss_curvature_file,
-                 max_curvature_file, min_curvature_file,
-                 thickness_file, convexity_file]
-
-    # Append columns of values to table
-    columns = []
-    norm_columns = []
-    for i, vtk_file in enumerate(vtk_files):
-        if len(vtk_file):
-            values, name = read_scalars(vtk_file, return_first=True, return_array=True)
-            mean_values, norm_mean_values, norm_values, \
-                label_list = mean_value_per_label(values, norms, labels,
-                                                  exclude_labels)
-
-            columns.append(mean_values)
-            norm_columns.append(norm_mean_values)
-        else:
-            column_names[i] = ''
-
-    # Prepend with column of normalization values
-    columns.insert(0, norm_values)
-    norm_columns.insert(0, norm_values)
-    column_names.insert(0, 'area')
-
-    # Prepend with column of labels and write tables
-    column_names.insert(0, 'label')
-
-    means_file = os.path.join(os.getcwd(), table_file)
-    write_table(label_list, columns, column_names, means_file)
-
-    norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
-    write_table(label_list, norm_columns, column_names, norm_means_file)
-
-    return means_file, norm_means_file
-
-def write_vertex_shapes_table(table_file, column_names,
-                              labels_file, sulci_file, fundi_file,
-                              area_file, depth_file,
-                              mean_curvature_file, gauss_curvature_file,
-                              max_curvature_file, min_curvature_file,
-                              thickness_file='', convexity_file=''):
-    """
-    Make a table of shape values per vertex.
-
-    Parameters
-    ----------
-    table_file : output filename (without path)
-    column_names : names of columns [list of strings]
-    *vtk_files : arbitrary number of vtk files with per-vertex scalar values
-                 (set each missing file to an empty string)
-
-    Returns
-    -------
-    shape_table : table file name for vertex shape values
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import write_vertex_shapes_table
-    >>>
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> table_file = 'test_write_vertex_shape_table.txt'
-    >>> column_names = ['labels', 'sulcus', 'fundus', 'area', 'depth',
-    >>>                 'mean_curvature', 'gauss_curvature', 'max_curvature',
-    >>>                 'min_curvature', 'thickness', 'convexity']
-    >>> labels_file = ''
-    >>> fundi_file = ''
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
-    >>> #
-    >>> write_vertex_shapes_table(table_file, column_names,
-    >>>     labels_file, sulci_file, fundi_file, area_file, depth_file,
-    >>>     mean_curv_file, gauss_curv_file, max_curv_file, min_curv_file, '', '')
-
-    """
-    import os
-    from mindboggle.utils.io_vtk import read_scalars
-    from mindboggle.utils.io_file import write_table
-
-    # List files
-    vtk_files = [labels_file, sulci_file, fundi_file, area_file, depth_file,
-                 mean_curvature_file, gauss_curvature_file,
-                 max_curvature_file, min_curvature_file,
-                 thickness_file, convexity_file]
-
-    # Append columns of values to table
-    columns = []
-    for i, vtk_file in enumerate(vtk_files):
-        if len(vtk_file):
-            values, name = read_scalars(vtk_file)
-            if len(columns) == 0:
-                indices = range(len(values))
-            columns.append(values)
-        else:
-            column_names[i] = ''
-
-    # Prepend with column of indices and write table
-    column_names.insert(0, 'index')
-    shape_table = os.path.join(os.getcwd(), table_file)
-    write_table(indices, columns, column_names, shape_table)
-
-    return shape_table
-
-#=============================================================================
-# Functions for converting FreeSurfer files to VTK format
-#=============================================================================
-
-def freesurface_to_vtk(surface_file):
-    """
-    Convert FreeSurfer surface file to VTK format.
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import freesurface_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
-    >>> #
-    >>> freesurface_to_vtk(surface_file)
-    >>> #
-    >>> os.system('mayavi2 -m Surface -d lh.pial.vtk &')
-
-    """
-    import os
-    from mindboggle.utils.io_free import read_surface
-    from mindboggle.utils.io_vtk import write_header, write_points, write_faces
-
-    points, faces = read_surface(surface_file)
-
-    output_vtk = os.path.join(os.getcwd(),
-                              os.path.basename(surface_file + '.vtk'))
-    Fp = open(output_vtk, 'w')
-    write_header(Fp, Title='vtk output from ' + surface_file)
-    write_points(Fp, points)
-    write_faces(Fp, faces)
-    Fp.close()
-
-    return output_vtk
-
-def freecurvature_to_vtk(surface_file, vtk_file):
-    """
-    Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
-
-    Parameters
-    ----------
-    surface_file : string  (name of FreeSurfer surface file)
-    vtk_file : string  (name of VTK surface file)
-
-    Returns
-    -------
-    output_vtk : string
-        name of output VTK file, where each vertex is assigned
-        the corresponding shape value.
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import freecurvature_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> #
-    >>> freecurvature_to_vtk(surface_file, vtk_file)
-    >>> #
-    >>> # View with mayavi2:
-    >>> os.system('mayavi2 -m Surface -d lh.thickness.vtk &')
-
-    """
-    import os
-    from mindboggle.utils.io_free import read_curvature
-    from mindboggle.utils.io_vtk import rewrite_scalars
-
-    output_vtk = os.path.join(os.getcwd(), os.path.basename(surface_file)+'.vtk')
-    curvature_values = read_curvature(surface_file)
-    scalar_names = os.path.basename(surface_file)
-
-    rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
-
-    return output_vtk
-
-def freeannot_to_vtk(annot_file, vtk_file):
-    """
-    Load a FreeSurfer .annot file and save as a VTK format file.
-
-    Parameters
-    ----------
-    annot_file : string
-        name of FreeSurfer .annot file
-    vtk_file : string
-        name of VTK surface file
-
-    Returns
-    -------
-    labels : list
-        integers (one label per vertex)
-    output_vtk : string
-        name of output VTK file, where each vertex is assigned
-        the corresponding shape value.
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import freeannot_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> #
-    >>> labels, output_vtk = freeannot_to_vtk(annot_file, vtk_file)
-    >>> #
-    >>> # View with mayavi2:
-    >>> os.system('mayavi2 -m Surface -d lh.aparc.vtk &')
-
-    """
-    import os
-    import nibabel as nb
-    from mindboggle.utils.io_vtk import rewrite_scalars
-
-    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
-
-    output_vtk = os.path.join(os.getcwd(),
-                              os.path.basename(annot_file).strip('.annot') + '.vtk')
-
-    rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
-
-    return labels, output_vtk
-
-def vtk_to_freelabels(hemi, surface_file, label_numbers, label_names,
-                      RGBs, scalar_name):
-    """
-    Write FreeSurfer .label files from a labeled VTK surface mesh.
-
-    From https://surfer.nmr.mgh.harvard.edu/fswiki/LabelsClutsAnnotationFiles:
-
-        "A label file is a text file capturing a list of vertices belonging to a region,
-        including their spatial positions(using R,A,S coordinates). A label file
-        corresponds only to a single label, thus contains only a single list of vertices"::
-
-            1806
-            7  -22.796  -66.405  -29.582 0.000000
-            89  -22.273  -43.118  -24.069 0.000000
-            138  -14.142  -81.495  -30.903 0.000000
-            [...]
-
-    Parameters
-    ----------
-    hemi :  hemisphere [string]
-    surface_file :  vtk surface mesh file with labels [string]
-    label_numbers :  label numbers [list of strings]
-    label_names :  label names [list of strings]
-    RGBs :  list of label RGB values for later conversion to a .annot file
-    scalar_name :  name of scalar values in vtk file [string]
-
-    Returns
-    -------
-    label_files :  list of .label file names (order must match label list)
-    colortable :  file with list of labels and RGB values
-                 NOTE: labels are identified by the colortable's RGB values
-
-    """
-    import os
-    import numpy as np
-    import vtk
-
-    def string_vs_list_check(var):
-        """
-        Check type to make sure it is a string.
-
-        (if a list, return the first element)
-        """
-
-        # Check type:
-        if type(var) == str:
-            return var
-        elif type(var) == list:
-            return var[0]
-        else:
-            os.error("Check format of " + var)
-
-    # Check type to make sure the filename is a string
-    # (if a list, return the first element)
-    surface_file = string_vs_list_check(surface_file)
-
-    # Initialize list of label files and output colortable file
-    label_files = []
-    #relabel_file = os.path.join(os.getcwd(), 'relabel_annot.txt')
-    #f_relabel = open(relabel_file, 'w')
-    colortable = os.path.join(os.getcwd(), 'colortable.ctab')
-    f_rgb = open(colortable, 'w')
-
-    # Loop through labels
-    irgb = 0
-    for ilabel, label_number in enumerate(label_numbers):
-
-        # Check type to make sure the number is an int
-        label_number = int(label_number)
-        label_name = label_names[ilabel]
-
-        # Load surface
-        reader = vtk.vtkDataSetReader()
-        reader.SetFileName(surface_file)
-        reader.ReadAllScalarsOn()
-        reader.Update()
-        data = reader.GetOutput()
-        d = data.GetPointData()
-        labels = d.GetArray(scalar_name)
-
-        # Write vertex index, coordinates, and 0
-        count = 0
-        npoints = data.GetNumberOfPoints()
-        L = np.zeros((npoints,5))
-        for i in range(npoints):
-            label = labels.GetValue(i)
-            if label == label_number:
-                L[count,0] = i
-                L[count,1:4] = data.GetPoint(i)
-                count += 1
-
-        # Save the label file
-        if count > 0:
-            irgb += 1
-
-            # Write to relabel_file
-            #if irgb != label_number:
-            #    f_relabel.writelines('{0} {1}\n'.format(irgb, label_number))
-
-            # Write to colortable
-            f_rgb.writelines('{0} {1} {2}\n'.format(
-                             irgb, label_name, RGBs[ilabel]))
-
-            # Store in list of .label files
-            label_file = hemi + '.' + label_name + '.label'
-            label_file = os.path.join(os.getcwd(), label_file)
-            label_files.append(label_file)
-
-            # Write to .label file
-            f = open(label_file, 'w')
-            f.writelines('#!ascii label\n' + str(count) + '\n')
-            for i in range(npoints):
-                if any(L[i,:]):
-                    pr = '{0} {1} {2} {3} 0\n'.format(
-                         np.int(L[i,0]), L[i,1], L[i,2], L[i,3])
-                    f.writelines(pr)
-                else:
-                    break
-            f.close()
-    f_rgb.close()
-    #f_relabel.close()
-
-    return label_files, colortable  #relabel_file
 
 
 #if __name__ == "__main__" :
