@@ -790,7 +790,8 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
 
 def scalars_checker(scalars, scalar_names):
     """
-    Check whether input scalars and scalar_names are in acceptable format. If not, reformat.
+    Check whether input scalars and scalar_names are in acceptable format.
+    If not, reformat.
 
     Parameters
     ----------
@@ -825,8 +826,8 @@ def scalars_checker(scalars, scalar_names):
     import sys
     import numpy as np
 
-    if type(scalars) != list:
-        if type(scalars) == np.ndarray:
+    if not isinstance(scalars, list):
+        if isinstance(scalars, np.ndarray):
             if len(scalars.shape) < 2: # this is a 1-D array
                 scalars = np.array([scalars]) # increase dimension by 1
                 print "Warning: scalars is a 1-D numpy array. Conversion done but may have problems in final VTK. "
@@ -840,9 +841,11 @@ def scalars_checker(scalars, scalar_names):
             print "Error: scalars is neither a list nor a numpy array. "
             sys.exit()
     else:  # a list, but may be 1-D
-        if type(scalars[0]) == int or type(scalars[0]) == float: # this is an acceptable 1-D list
+
+        # this is an acceptable 1-D list
+        if isinstance(scalars[0], int) or isinstance(scalars[0], float)
             scalars = [scalars]
-        elif type(scalars[0]) == list:
+        elif isinstance(scalars[0], list):
             pass
         else:
             print "io_vtk.py: Error: scalars is a 1-D list containing unacceptable elements. "
@@ -851,9 +854,9 @@ def scalars_checker(scalars, scalar_names):
             print "io_vtk.py: scalars[0] type is:", type(scalars[0])
             sys.exit()
 
-    if type(scalar_names) == str:
+    if isinstance(scalar_names, str):
         scalar_names = [scalar_names]
-    elif  type(scalar_names) == list:
+    elif isinstance(scalar_names, list):
         pass
     else:
         print "Error: scalar_names is neither a list nor a string"
