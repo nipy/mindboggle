@@ -675,10 +675,18 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     """
     import os
+    import numpy as np
+
     from mindboggle.utils.mesh import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
          write_vertices, write_faces, write_scalars, read_vtk, \
          scalars_checker
+
+    # Convert numpy arrays to lists
+    if isinstance(new_scalars, np.ndarray):
+        new_scalars = new_scalars.tolist()
+    if isinstance(filter_scalars, np.ndarray):
+        filter_scalars = filter_scalars.tolist()
 
     # Output VTK file to current working directory
     output_vtk = os.path.join(os.getcwd(), output_vtk)
@@ -842,8 +850,8 @@ def scalars_checker(scalars, scalar_names):
             sys.exit()
     else:  # a list, but may be 1-D
 
-        # this is an acceptable 1-D list
-        if isinstance(scalars[0], int) or isinstance(scalars[0], float)
+        # This is an acceptable 1-D list
+        if isinstance(scalars[0], int) or isinstance(scalars[0], float):
             scalars = [scalars]
         elif isinstance(scalars[0], list):
             pass
