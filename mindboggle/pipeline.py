@@ -147,7 +147,7 @@ from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
-from mindboggle.features.folds import extract_folds
+from mindboggle.features.folds import extract_folds, normalize_fold_depths
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -608,6 +608,22 @@ if run_featureFlow:
     FoldsNode.inputs.min_fold_size = 50
 
     #===========================================================================
+    # Normalize depth in folds
+    #===========================================================================
+    FoldDepths = Node(name='Fold_depths',
+                      interface = Fn(function = normalize_fold_depths,
+                                     input_names = ['depth_file',
+                                                    'folds'],
+                                     output_names = ['norm_depth_file']))
+    featureFlow.add_nodes([FoldDepths])
+    mbFlow.connect([(measureFlow, featureFlow,
+                     [('Depth.depth_file','Fold_depths.depth_file')])])
+    featureFlow.connect([(FoldsNode, FoldDepths, [('folds','folds')])])
+    #mbFlow.connect([(featureFlow, Sink,
+    #                 [('FoldDepths.norm_depth_file','features.@folds_normdepth')])])
+    #from mindboggle.measure.measure_functions import normalize_fold_depths
+
+    #===========================================================================
     # Extract sulci from folds
     #===========================================================================
     LabelPairs = Node(name='Label_pairs',
@@ -798,7 +814,7 @@ if run_featureFlow:
 if run_shapeFlow:
 
     shapeFlow = Workflow(name='Shape_analysis')
-    column_names = ['depth', 'mean_curvature', 'gauss_curvature',
+    column_names = ['depth', 'norm_depth', 'mean_curvature', 'gauss_curvature',
                     'max_curvature', 'min_curvature', 'thickness', 'convexity']
     vtk_files = [x + '_file' for x in column_names]
     input_names = ['table_file', 'column_names', 'labels']
