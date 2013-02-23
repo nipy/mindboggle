@@ -15,10 +15,10 @@ Transform atlas labels
 
 
 Authors:
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
-    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -62,12 +62,18 @@ def transform_atlas_labels(hemi, subject, transform,
 
     Parameters
     ----------
-    hemi : ``string``: hemisphere
-    subject : ``string``: subject, corresponding to FreeSurfer subject directory
-    transform : ``string``: FreeSurfer spherical surface registration transform
-    subjects_path : ``string``: FreeSurfer subjects directory
-    atlas : ``string``: name of atlas
-    atlas_string : ``string``: name of atlas labeling protocol
+    hemi : string
+        hemisphere ['lh' or 'rh']
+    subject : string
+        subject corresponding to FreeSurfer subject directory
+    transform : string
+        name of FreeSurfer spherical surface registration transform file
+    subjects_path : string
+        name of FreeSurfer subjects directory
+    atlas : string
+        name of atlas
+    atlas_string : string
+        name of atlas labeling protocol
 
     """
     from os import path, getcwd
@@ -106,15 +112,17 @@ def vote_labels(label_lists):
 
     Parameters
     ----------
-    label_lists : list of lists of integers  (vertex labels assigned by each atlas)
-    n_atlases : integer  (number of atlases / lists of labels)
-    npoints : integer  (number of vertices / elements in each list)
+    label_lists : list of lists of integers
+        vertex labels assigned by each atlas
 
     Returns
     -------
-    labels_max : list of integers  (majority labels for vertices)
-    label_counts : list of integers  (number of different labels for vertices)
-    label_votes : list of integers  (number of votes for the majority labels)
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
 
     Examples
     --------
@@ -162,24 +170,33 @@ def majority_vote_label(surface_file, annot_files):
 
     Parameters
     ----------
-    surface_file : string  (name of VTK surface file)
-    annot_files : list of strings  (names of FreeSurfer annot files)
+    surface_file : string
+        name of VTK surface file
+    annot_files : list of strings
+        names of FreeSurfer annot files
 
     Returns
     -------
-    labels_max : list of integers  (majority labels for vertices)
-    label_counts : list of integers  (number of different labels for vertices)
-    label_votes : list of integers  (number of votes for the majority labels)
-    consensus_vertices : list of integers  (indicating which are consensus labels)
-    maxlabel_file : VTK file containing majority vote labels
-    labelcounts_file : VTK file containing number of different label counts
-    labelvotes_file : VTK file containing number of votes per majority label
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
+    consensus_vertices : list of integers
+        indicating which are consensus labels
+    maxlabel_file : string
+        name of VTK file containing majority vote labels
+    labelcounts_file : string
+        name of VTK file containing number of different label counts
+    labelvotes_file : string
+        name of VTK file containing number of votes per majority label
 
     """
     from os import path, getcwd
     import nibabel as nb
     import pyvtk
-    from mindboggle.label.multiatlas_labeling import vote_labels
+    from mindboggle.labels.multiatlas import vote_labels
     from mindboggle.utils.io_file import string_vs_list_check
 
     # Load multiple label sets
