@@ -67,7 +67,7 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     # Load per-vertex labels and normalization vtk files
     if type(labels) == str:
         labels, name = read_scalars(labels, return_first=True, return_array=True)
-    if len(norm_vtk_file):
+    if norm_vtk_file:
         norms, name = read_scalars(norm_vtk_file, return_first=True, return_array=True)
     else:
         norms = np.ones(len(labels))
@@ -81,7 +81,7 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     columns = []
     norm_columns = []
     for i, vtk_file in enumerate(vtk_files):
-        if len(vtk_file):
+        if vtk_file:
             values, name = read_scalars(vtk_file, return_first=True, return_array=True)
             mean_values, norm_mean_values, norm_values, \
             label_list = mean_value_per_label(values, norms, labels,
@@ -166,9 +166,9 @@ def write_vertex_shapes_table(table_file, column_names,
     # Append columns of values to table
     columns = []
     for i, vtk_file in enumerate(vtk_files):
-        if len(vtk_file):
+        if vtk_file:
             values, name = read_scalars(vtk_file)
-            if len(columns) == 0:
+            if not columns:
                 indices = range(len(values))
             columns.append(values)
         else:

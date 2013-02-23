@@ -352,7 +352,7 @@ def label_holes(holes, regions, neighbor_lists):
 
         # Identify neighbors to these vertices
         N=[]; [N.extend(neighbor_lists[i]) for i in I]
-        if len(N):
+        if N:
 
             # Assign the hole the maximum region ID number of its neighbors
             regions[I] = max([regions[x] for x in N])
@@ -503,7 +503,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
         [N2.extend(neighbor_lists[x]) for x in N]
         N.extend(N2)
         N = list(frozenset(N).difference(region_indices))
-        if len(N):
+        if N:
 
             # Segment the neighbors into connected vertices (region boundaries)
             boundaries = segment(N, neighbor_lists)
@@ -544,7 +544,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
 
             # Label the vertices for each hole by surrounding region number
             # if hole does not include any of the exclude_values
-            if len(exclude_values):
+            if exclude_values:
                 Ihole = np.where(hole > -1)[0]
                 if not len(frozenset(values[Ihole]).intersection(exclude_values)):
                     regions = label_holes(hole, regions, neighbor_lists)
@@ -631,7 +631,7 @@ def topo_test(index, values, neighbor_lists):
                         # Assign the two subsets the same label
                         # if they share at least one vertex,
                         # and continue looping
-                        if len(frozenset(N[i]).intersection(N[j])) > 0:
+                        if frozenset(N[i]).intersection(N[j])):
                             labels[i] = max([labels[i], labels[j]])
                             labels[j] = labels[i]
                             change = True
