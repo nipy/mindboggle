@@ -631,7 +631,7 @@ def topo_test(index, values, neighbor_lists):
                         # Assign the two subsets the same label
                         # if they share at least one vertex,
                         # and continue looping
-                        if frozenset(N[i]).intersection(N[j])):
+                        if frozenset(N[i]).intersection(N[j]):
                             labels[i] = max([labels[i], labels[j]])
                             labels[j] = labels[i]
                             change = True
