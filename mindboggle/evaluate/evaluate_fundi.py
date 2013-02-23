@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-
 """
 Evaluate fundi by computing closest distances from label boundary vertices
 corresponding to fundi in the Desikan-Killiany-Tourville cortical labeling
@@ -11,8 +10,8 @@ $ python evaluate_fundi.py fundi.vtk folds.vtk lh.labels.DKT25.manual.vtk
 
 
 Authors:
-    - Yrjo Hame  (yrjo.hame@gmail.com)
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Yrjo Hame, 2012  (yrjo.hame@gmail.com)
+    - Arno Klein, 2012  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -27,6 +26,19 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
     to a fundus in the Desikan-Killiany-Tourville cortical labeling protocol
     to all of the fundus vertices in the same fold.
 
+    Parameters
+    ----------
+    label_boundary_fundi : list or array of integers
+        indices to fundi in sulcus protocol
+    fundi : list or array of integers
+        indices of vertices
+    folds : list or array of integers
+        indices to vertices
+    points : list of lists of three floats
+        coordinates
+    n_fundi : int
+        number of fundi
+
     Returns
     -------
     distances : numpy array
@@ -36,7 +48,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     """
     import numpy as np
-    from mindboggle.measure.measure_functions import compute_point_distance
+    from mindboggle.shapes.measure import point_distance
 
     npoints = len(points)
 
@@ -56,7 +68,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
                                if folds[i] == folds[i_label_point]]
 
             # Find the closest fundus point to the label boundary fundus point
-            d, i = compute_point_distance(points[i_label_point],
+            d, i = point_distance(points[i_label_point],
                                           points[I_fundus_points])
             distances[i_label_point] = d
             distance_matrix[i_label_point, fundus_ID - 1] = d
@@ -81,8 +93,8 @@ if __name__ == "__main__":
     import sys
     import numpy as np
     from mindboggle.utils.io_vtk import load_vtk, write_scalars
-    from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-    from mindboggle.utils.mesh_operations import detect_boundaries, find_neighbors
+    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    from mindboggle.labels.label import extract_borders, find_neighbors
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]
@@ -114,7 +126,7 @@ if __name__ == "__main__":
     # Find label boundary points in any of the folds
     print('Find label boundary points in any of the folds...')
     boundary_indices, boundary_label_pairs, unique_boundary_label_pairs = \
-        detect_boundaries(fold_indices, labels, neighbor_lists)
+        extract_borders(fold_indices, labels, neighbor_lists)
     if not len(boundary_indices):
         sys.exit('There are no label boundary points!')
 
