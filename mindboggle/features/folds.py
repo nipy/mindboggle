@@ -281,14 +281,15 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.features.folds import normalize_fold_depths
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'lh.folds.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> normalize_fold_depths(depth_file, folds, save_file=True)
     >>> # View:
-
-    >>> norm_depth_file = os.path.join(os.getcwd(), os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
+    >>> norm_depth_file = os.path.join(os.getcwd(),
+    >>>     os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
     >>> os.system('mayavi2 -m Surface -d ' + norm_depth_file + '&')
 
     """
