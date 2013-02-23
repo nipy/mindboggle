@@ -5,13 +5,7 @@ Computing the Laplace-Beltrami Spectrum of a given structure.
 1. Geometric Laplacians (Desburn et al.'s, using cotangent kernel and area-based masses) 
 2. FEM Laplacians (linear FEM version. Cubic FEM version later.)
 
-Authors:
-    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
-    - Eliezer Stavsky  (eli.stavsky@gmail.com)
-
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
-
-We follow the definitions and steps given in Reuter et al.'s 
+We follow the definitions and steps given in Reuter et al.'s
 Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation (2009)
 
 Since Reuter et al. (2009) did not give explicit equations/algorithm to compute 
@@ -40,6 +34,11 @@ Acknowledgments:
     - Dr. Martin Reuter, MIT, http://reuter.mit.edu/ 
     - Dr. Eric You Xu, Google, http://www.youxu.info/
 
+Authors:
+    - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
+    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
+
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def gen_V(Meshes, W, Neighbor):
@@ -184,14 +183,14 @@ def geometric_laplacian(Nodes, Faces):
     W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
     W /= 2
     
-    import mindboggle.utils.mesh_operations
-    Neighbor = mindboggle.utils.mesh_operations.find_neighbors(Faces, num_nodes)
+    import mindboggle.utils.mesh
+    Neighbor = mindboggle.utils.mesh.find_neighbors(Faces, num_nodes)
      
     V = gen_V(Faces, W, Neighbor)
     A = V - W # the stiffness matrix
     Area = area(Nodes, Faces)
     
-    Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertices(Faces, num_nodes)
+    Faces_at_Nodes = mindboggle.utils.mesh.find_faces_at_vertices(Faces, num_nodes)
     D = masses(Nodes, Area, Faces_at_Nodes)  
     D = D.toarray()
 
@@ -300,18 +299,18 @@ def fem_laplacian(Nodes, Faces):
     W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
     W /= 2
     
-    import mindboggle.utils.mesh_operations
-    Neighbor = mindboggle.utils.mesh_operations.find_neighbors(Faces, num_nodes)
+    import mindboggle.utils.mesh
+    Neighbor = mindboggle.utils.mesh.find_neighbors(Faces, num_nodes)
      
     V = gen_V(Faces, W, Neighbor)
     A = V - W # the stiffness matrix
     
     Area = area(Nodes, Faces)
-    Faces_at_Nodes = mindboggle.utils.mesh_operations.find_faces_at_vertices(Faces, num_nodes)
+    Faces_at_Nodes = mindboggle.utils.mesh.find_faces_at_vertices(Faces, num_nodes)
     # up to this point, the computation is the same as in geometric Laplacian
     
-    faces_at_edges = mindboggle.utils.mesh_operations.find_faces_at_edges(Faces)
-    edges = mindboggle.utils.mesh_operations.find_edges(Faces.tolist())
+    faces_at_edges = mindboggle.utils.mesh.find_faces_at_edges(Faces)
+    edges = mindboggle.utils.mesh.find_edges(Faces.tolist())
     
     P = gen_P(edges, faces_at_edges, Area, num_nodes)
     Q = gen_Q(edges, faces_at_edges, Area, num_nodes, Neighbor, Faces_at_Nodes)
