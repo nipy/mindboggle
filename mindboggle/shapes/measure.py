@@ -270,7 +270,7 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     ----------
     values : numpy array of integer or float values
     areas : numpy array of surface areas
-    labels : array or list of integer labels (same length as values)
+    labels : list or array of integer labels (same length as values)
     exclude_labels : list of integer labels to be excluded
 
     Returns

@@ -23,11 +23,11 @@ def propagate(points, faces, region, seeds, labels,
 
     Parameters
     ----------
-    points : array or list of lists of three integers
+    points : array (or list) of lists of three integers
         coordinates for all vertices
     faces : list of lists of three integers
         indices to three vertices per face (indices start from zero)
-    region : list or array of integers
+    region : list of integers
         values > -1 indicate inclusion in a region for all vertices
     seeds : numpy array of integers
         seed numbers for all vertices (default -1 for not a seed)
@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     import mindboggle.labels.rebound as rb
 
     indices_region = [i for i,x in enumerate(region) if x > -1]
-    if indices_region and points and faces:
+    if indices_region and faces:
         local_indices_region = -1 * np.ones(len(region))
         local_indices_region[indices_region] = range(len(indices_region))
 
@@ -106,37 +106,39 @@ def propagate(points, faces, region, seeds, labels,
         if not isinstance(points, np.ndarray):
             points = np.array(points)
 
-        n_sets = len(np.unique([x for x in seeds if x > -1]))
-        if n_sets == 1:
-            print('Segment {0} vertices from 1 set of seed vertices'.
-                  format(len(indices_region)))
-        else:
-            print('Segment {0} vertices from {1} sets of seed vertices'.
-                  format(len(indices_region), n_sets))
+        if points.size:
 
-        # Set up rebound Bounds class instance
-        B = rb.Bounds()
-        B.Faces = remove_faces(faces, indices_region)
-        if B.Faces:
-            B.Indices = local_indices_region
-            B.Points = points[indices_region]
-            B.Labels = labels[indices_region]
-            B.seed_labels = seeds[indices_region]
-            B.num_points = len(B.Points)
+            n_sets = len(np.unique([x for x in seeds if x > -1]))
+            if n_sets == 1:
+                print('Segment {0} vertices from 1 set of seed vertices'.
+                      format(len(indices_region)))
+            else:
+                print('Segment {0} vertices from {1} sets of seed vertices'.
+                      format(len(indices_region), n_sets))
 
-            # Propagate seed IDs from seeds
-            B.graph_based_learning(method='propagate_labels', realign=False,
-                                   kernel=kernels.rbf_kernel, sigma=sigma,
-                                   max_iters=max_iters, tol=tol, vis=False)
-        else:
-            print("  No faces")
+            # Set up rebound Bounds class instance
+            B = rb.Bounds()
+            B.Faces = remove_faces(faces, indices_region)
+            if B.Faces:
+                B.Indices = local_indices_region
+                B.Points = points[indices_region]
+                B.Labels = labels[indices_region]
+                B.seed_labels = seeds[indices_region]
+                B.num_points = len(B.Points)
 
-        # Assign maximum probability seed IDs to each point of region
-        max_prob_labels = B.assign_max_prob_label()
+                # Propagate seed IDs from seeds
+                B.graph_based_learning(method='propagate_labels', realign=False,
+                                       kernel=kernels.rbf_kernel, sigma=sigma,
+                                       max_iters=max_iters, tol=tol, vis=False)
+            else:
+                print("  No faces")
 
-        # Return segment IDs in original vertex array
-        segments = -1 * np.ones(len(points))
-        segments[indices_region] = max_prob_labels
+            # Assign maximum probability seed IDs to each point of region
+            max_prob_labels = B.assign_max_prob_label()
+
+            # Return segment IDs in original vertex array
+            segments = -1 * np.ones(len(points))
+            segments[indices_region] = max_prob_labels
     else:
         segments = -1 * np.ones(len(points))
 
@@ -154,7 +156,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     Parameters
     ----------
-    vertices_to_segment : list or array of integers
+    vertices_to_segment : list of integers
         indices to mesh vertices to be segmented
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
@@ -166,7 +168,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         grow from new seeds even after all seed lists have fully grown
     spread_within_labels : Boolean
         grow seeds only by vertices with labels in the seed labels?
-    labels : list or array of integers (required only if spread_within_labels)
+    labels : list of integers (required only if spread_within_labels)
         label numbers for all vertices, with -1s for unlabeled vertices
     label_lists : list of lists of integers (required only if spread_within_labels)
         List of unique labels for each seed list to grow into
