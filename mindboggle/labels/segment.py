@@ -27,7 +27,7 @@ def propagate(points, faces, region, seeds, labels,
         coordinates for all vertices
     faces : list of lists of three integers
         indices to three vertices per face (indices start from zero)
-    region : list of integers
+    region : numpy array of integers
         values > -1 indicate inclusion in a region for all vertices
     seeds : numpy array of integers
         seed numbers for all vertices (default -1 for not a seed)
@@ -95,7 +95,7 @@ def propagate(points, faces, region, seeds, labels,
 
     indices_region = [i for i,x in enumerate(region) if x > -1]
     if indices_region and faces:
-        local_indices_region = -1 * np.ones(len(region))
+        local_indices_region = -1 * np.ones(region.size)
         local_indices_region[indices_region] = range(len(indices_region))
 
         # Make sure arguments are numpy arrays
@@ -196,7 +196,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
-    >>> vertices_to_segment = np.where(depths > 0.50)[0]  # higher to speed up
+    >>> vertices_to_segment = np.where(depths > 0.50)[0].tolist()  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
     >>> # Example 1: without seed lists
