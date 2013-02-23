@@ -171,7 +171,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     label_lists : list of lists of integers (required only if spread_within_labels)
         List of unique labels for each seed list to grow into
         (If empty, set to unique labels for each seed list)
-    values : list or array of floats (default empty)
+    values : list of floats (default empty)
         values for all vertices for use in preferentially directed segmentation
         (segment in direction of lower values)
 
