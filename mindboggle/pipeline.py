@@ -80,6 +80,7 @@ else:
 #===============================================================================
 input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 do_save_folds = True
+do_save_norm_depth_folds = True
 do_extract_fundi = True
 do_save_likelihoods = True
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
@@ -147,7 +148,6 @@ from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
-from mindboggle.features.folds import extract_folds, normalize_fold_depths
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -613,15 +613,15 @@ if run_featureFlow:
     FoldDepths = Node(name='Fold_depths',
                       interface = Fn(function = normalize_fold_depths,
                                      input_names = ['depth_file',
-                                                    'folds'],
-                                     output_names = ['norm_depth_file']))
+                                                    'folds',
+                                                    'save_file'],
+                                     output_names = ['norm_depth_folds']))
+
     featureFlow.add_nodes([FoldDepths])
     mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Fold_depths.depth_file')])])
     featureFlow.connect([(FoldsNode, FoldDepths, [('folds','folds')])])
-    #mbFlow.connect([(featureFlow, Sink,
-    #                 [('FoldDepths.norm_depth_file','features.@folds_normdepth')])])
-    #from mindboggle.measure.measure_functions import normalize_fold_depths
+    FoldDepths.inputs.save_file = 'False'
 
     #===========================================================================
     # Extract sulci from folds
@@ -761,7 +761,7 @@ if run_featureFlow:
     mbFlow.connect([(measureFlow, featureFlow,
                      [('Depth.depth_file','Sulci_to_VTK.input_vtk')])])
     SulciVTK.inputs.output_vtk = 'sulci.vtk'
-    SulciVTK.inputs.new_scalar_names = ['sulci']
+    SulciVTK.inputs.new_scalar_names = 'sulci'
     featureFlow.connect([(SulciNode, SulciVTK, [('sulci','new_scalars')])])
     featureFlow.connect([(SulciNode, SulciVTK, [('sulci','filter_scalars')])])
     mbFlow.connect([(featureFlow, Sink,
@@ -774,11 +774,24 @@ if run_featureFlow:
         mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Folds_to_VTK.input_vtk')])])
         FoldsVTK.inputs.output_vtk = 'folds.vtk'
-        FoldsVTK.inputs.new_scalar_names = ['folds']
+        FoldsVTK.inputs.new_scalar_names = 'folds'
         featureFlow.connect([(FoldsNode, FoldsVTK, [('folds','new_scalars')])])
         featureFlow.connect([(FoldsNode, FoldsVTK, [('folds','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
                          [('Folds_to_VTK.output_vtk','features.@folds')])])
+
+    # Save folds with normalized depth values per fold
+    if do_save_norm_depth_folds:
+        FoldDepthsVTK = SulciVTK.clone('Norm_depth_folds_to_VTK')
+        featureFlow.add_nodes([FoldDepthsVTK])
+        mbFlow.connect([(measureFlow, featureFlow,
+                         [('Depth.depth_file','Norm_depth_folds_to_VTK.input_vtk')])])
+        FoldDepthsVTK.inputs.output_vtk = 'norm_depth_folds.vtk'
+        FoldDepthsVTK.inputs.new_scalar_names = 'norm_depth_folds'
+        featureFlow.connect([(FoldDepths, FoldDepthsVTK, [('norm_depth_folds','new_scalars')])])
+        featureFlow.connect([(FoldDepths, FoldDepthsVTK, [('norm_depth_folds','filter_scalars')])])
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Norm_depth_folds_to_VTK.output_vtk','features.@folds_normdepth')])])
 
     # Save fundi
     if do_extract_fundi:
@@ -787,7 +800,7 @@ if run_featureFlow:
         mbFlow.connect([(measureFlow, featureFlow,
                          [('Depth.depth_file','Fundi_to_VTK.input_vtk')])])
         FundiVTK.inputs.output_vtk = 'fundi.vtk'
-        FundiVTK.inputs.new_scalar_names = ['fundi']
+        FundiVTK.inputs.new_scalar_names = 'fundi'
         featureFlow.connect([(FundiNode, FundiVTK, [('fundi','new_scalars')])])
         featureFlow.connect([(FundiNode, FundiVTK, [('fundi','filter_scalars')])])
         mbFlow.connect([(featureFlow, Sink,
@@ -800,7 +813,7 @@ if run_featureFlow:
             mbFlow.connect([(measureFlow, featureFlow,
                              [('Depth.depth_file','Likelihoods_to_VTK.input_vtk')])])
             LikelihoodsVTK.inputs.output_vtk = 'likelihoods.vtk'
-            LikelihoodsVTK.inputs.new_scalar_names = ['likelihoods']
+            LikelihoodsVTK.inputs.new_scalar_names = 'likelihoods'
             featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','new_scalars')])])
             featureFlow.connect([(FundiNode, LikelihoodsVTK, [('likelihoods','filter_scalars')])])
             mbFlow.connect([(featureFlow, Sink,
@@ -852,6 +865,9 @@ if run_shapeFlow:
     #---------------------------------------------------------------------------
     mbFlow.connect([(measureFlow, shapeFlow,
                      [('Depth.depth_file','Label_table.depth_file')])])
+    mbFlow.connect([(featureFlow, shapeFlow,
+                     [('Norm_depth_folds_to_VTK.output_vtk',
+                       'Label_table.norm_depth_file')])])
     mbFlow.connect([(measureFlow, shapeFlow,
                      [('Curvature.mean_curvature_file',
                        'Label_table.mean_curvature_file')])])
@@ -894,6 +910,9 @@ if run_shapeFlow:
         #-----------------------------------------------------------------------
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Sulcus_table.depth_file')])])
+        mbFlow.connect([(featureFlow, shapeFlow,
+                         [('Norm_depth_folds_to_VTK.output_vtk',
+                           'Sulcus_table.norm_depth_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.mean_curvature_file',
                            'Sulcus_table.mean_curvature_file')])])
@@ -937,6 +956,9 @@ if run_shapeFlow:
         #-----------------------------------------------------------------------
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Fundus_table.depth_file')])])
+        mbFlow.connect([(featureFlow, shapeFlow,
+                         [('Norm_depth_folds_to_VTK.output_vtk',
+                           'Fundus_table.norm_depth_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.mean_curvature_file',
                            'Fundus_table.mean_curvature_file')])])
@@ -972,7 +994,7 @@ if run_shapeFlow:
     ############################################################################
     if vertex_shape_tables:
 
-        column_names2 = ['labels', 'sulci', 'fundi', 'area', 'depth',
+        column_names2 = ['labels', 'sulci', 'fundi', 'area', 'depth', 'norm_depth',
                          'mean_curvature', 'gauss_curvature', 'max_curvature',
                          'min_curvature', 'thickness', 'convexity']
         input_names2 = ['table_file', 'column_names']
@@ -1025,6 +1047,9 @@ if run_shapeFlow:
                          [('Area.area_file','Vertex_table.area_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Depth.depth_file','Vertex_table.depth_file')])])
+        mbFlow.connect([(featureFlow, shapeFlow,
+                         [('Norm_depth_folds_to_VTK.output_vtk',
+                           'Vertex_table.norm_depth_file')])])
         mbFlow.connect([(measureFlow, shapeFlow,
                          [('Curvature.mean_curvature_file',
                            'Vertex_table.mean_curvature_file')])])
