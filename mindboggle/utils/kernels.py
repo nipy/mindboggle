@@ -3,13 +3,11 @@
 Kernels.
 
 Authors:
-    - Eliezer Stavsky  (eli.stavsky@gmail.com)
+    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import numpy as np
-#from scipy.sparse import lil_matrix
 
 ###############################################################################
 # -----------------------------------------------------------------------------
