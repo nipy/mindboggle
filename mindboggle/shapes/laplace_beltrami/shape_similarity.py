@@ -27,6 +27,11 @@ Returns:	Nodes: numpy array
 
 			evecs: array of eigenvectors
 ---------------------------------------------------------			
+
+Authors:
+    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
+
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 from laplace_beltrami import *
 from scipy.special import zeta

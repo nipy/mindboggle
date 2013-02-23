@@ -1,7 +1,6 @@
 # This file contains all functions to extract fundus curves from per-vertex-value (e.g., curvature) map
 # Last updated: 2011-08-09 Forrest Sheng Bao
 
-#import io_file, io_vtk, io_free
 from mindboggle.utils import io_file, io_vtk, io_free
 import libbasin
 #import libfundifc as libskel

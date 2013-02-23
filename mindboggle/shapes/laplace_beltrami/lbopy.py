@@ -1,5 +1,9 @@
 """ Python Module for the Spectral Analysis of Shapes:
-###################################################
+
+Authors:
+    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
+
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 ###########################
