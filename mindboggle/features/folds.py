@@ -101,6 +101,8 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     if not len(neighbor_lists):
         from mindboggle.utils.mesh import find_neighbors
 
+    do_fill_holes = True
+
     print("Extract folds in surface mesh")
     t0 = time()
 
@@ -113,7 +115,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     #---------------------------------------------------------------------------
     # Find neighbors for each vertex
     #---------------------------------------------------------------------------
-    if not len(neighbor_lists):
+    if not neighbor_lists:
         neighbor_lists = find_neighbors(faces, npoints)
 
     #---------------------------------------------------------------------------
@@ -126,10 +128,8 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         error("  Expecting at least {0} vertices to create depth histogram".
         format(min_vertices))
     bins, bin_edges = np.histogram(depths, bins=nbins)
-    """
-    >>> # Plot histogram:
-    >>> a,b,c = hist(depths, bins=nbins)
-    """
+    #>>> # Plot histogram:
+    #>>> a,b,c = hist(depths, bins=nbins)
 
     #---------------------------------------------------------------------------
     # Anticipating that there will be a rapidly decreasing distribution
@@ -138,15 +138,13 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     # to compute slopes, and find the depth for the first bin with slope = 0.
     #---------------------------------------------------------------------------
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
-    """
-    >>> # Plot smoothed histogram:
-    >>> plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
-    """
+    #>>> # Plot smoothed histogram:
+    #>>> plot(range(len(bins)), bins, '.', range(len(bins)), bins_smooth,'-')
     window = [-1, 0, 1]
     bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
-    ibin = np.where(bin_slopes == 0)[0]
-    if ibin:
-        depth_threshold = bin_edges[ibin[0]]
+    ibins0 = np.where(bin_slopes == 0)[0]
+    if ibins0.size:
+        depth_threshold = bin_edges[ibins0[0]]
     else:
         depth_threshold = np.median(depths)
 
@@ -184,7 +182,6 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         # Note: Surfaces surrounded by folds can be mistaken for holes,
         #       so exclude_values equals outer surface value of zero.
         #-----------------------------------------------------------------------
-        do_fill_holes = True
         if do_fill_holes:
             print("  Find and fill holes in the folds")
             folds = fill_holes(folds, neighbor_lists, exclude_values=[0],
