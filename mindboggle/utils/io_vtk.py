@@ -274,8 +274,8 @@ def read_vtk(filename, return_first=True, return_array=False):
         each element has 3 numbers representing the coordinates of the points
     npoints : int
         number of vertices in the mesh
-    scalars : array or list or list of lists of integers or floats
-        array or list(s) of scalar values for the vertices of a mesh
+    scalars : list or list of lists of floats or integers
+        scalar values for the vertices of a mesh
     scalar_names : string or list of strings
         name(s) of lookup table(s)
 
@@ -547,7 +547,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         default=[]
     faces : list of 3-tuples of integers
         indices to the three vertices of a face on the mesh, default=[]
-    scalars : list of lists of floats (or single list or array of floats)
+    scalars : list of lists of floats (or single list of floats)
         each list (lookup table) contains values assigned to the vertices, default=[]
     scalar_names : string or list of strings
         each element is the name of a lookup table, default=['scalars']
