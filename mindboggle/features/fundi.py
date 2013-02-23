@@ -529,7 +529,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     Parameters
     ----------
-    folds : list or numpy array
+    folds : list or array of integers
         fold IDs (default = -1)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
