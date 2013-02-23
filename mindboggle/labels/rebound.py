@@ -4,10 +4,10 @@ Python module for adjusting label boundaries on a surface mesh.
 
 
 Authors:
-Eliezer Stavsky  .  eli.stavsky@gmail.com
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Eliezer Stavsky, 2012  .  eli.stavsky@gmail.com
+Arno Klein, 2012-2013  .  arno@mindboggle.info  .  www.binarybottle.com
 
-(c) 2012  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
+(c) 2013  Mindbogglers (www.mindboggle.info), under Apache License Version 2.0
 
 """
 
@@ -20,7 +20,7 @@ from time import time
 from scipy.sparse import csr_matrix, lil_matrix
 
 from mindboggle.utils.io_vtk import write_vtk
-import mindboggle.utils.graph_operations as go
+import mindboggle.utils.graph as go
 import mindboggle.utils.kernels as kernels
 
 #-----------------------------------------------------------------------------

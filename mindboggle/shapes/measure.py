@@ -4,23 +4,17 @@ Shape calculations.
 
 
 Authors:
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import os
-#import numpy as np
-#from nipype.interfaces.base import CommandLine
-
-##############################################################################
-#   Surface calculations
-##############################################################################
 
 #------------------------------------------------------------------------------
 # Compute distance
 #------------------------------------------------------------------------------
-def compute_point_distance(point, points):
+def point_distance(point, points):
     """
     Compute the Euclidean distance from one point to a second (set) of points.
 
@@ -41,10 +35,10 @@ def compute_point_distance(point, points):
 
     Examples
     --------
-    >>> from mindboggle.measure.measure_functions import compute_point_distance
+    >>> from mindboggle.shapes.measure import point_distance
     >>> point = [1,2,3]
     >>> points = [[10,2.0,3], [0,1.5,2]]
-    >>> compute_point_distance(point, points)
+    >>> point_distance(point, points)
       (1.5, 1)
 
     """
@@ -73,7 +67,7 @@ def compute_point_distance(point, points):
     else:
         return None, None
 
-def compute_vector_distance(vector1, vector2, normalize=False):
+def vector_distance(vector1, vector2, normalize=False):
     """
     Compute the Euclidean distance between two equal-sized vectors.
 
@@ -94,19 +88,20 @@ def compute_vector_distance(vector1, vector2, normalize=False):
     Examples
     --------
     >>> import numpy as np
-    >>> from mindboggle.measure.measure_functions import compute_vector_distance
+    >>> from mindboggle.shapes.measure import vector_distance
     >>> vector1 = np.array([1.,2.,3.])
     >>> vector2 = np.array([0,1,5])
-    >>> compute_vector_distance(vector1, vector2)
+    >>> vector_distance(vector1, vector2)
       0.81649658092772592
 
     """
     import numpy as np
 
     if np.size(vector1) == np.size(vector2):
-        if type(vector1) != np.ndarray:
+    # Make sure arguments are numpy arrays
+        if not isinstance(vector1, np.ndarray):
             vector1 = np.asarray(vector1)
-        if type(vector2) != np.ndarray:
+        if not isinstance(vector2, np.ndarray):
             vector2 = np.asarray(vector2)
         if normalize:
             vector_diff = np.zeros(len(vector1))
@@ -142,7 +137,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     Examples
     --------
-    >>> from mindboggle.measure.measure_functions import pairwise_vector_distances
+    >>> from mindboggle.shapes.measure import pairwise_vector_distances
     >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
         (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
                [ 0.        ,  0.        ,  0.16666667,  1.52752523],
@@ -153,9 +148,10 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     """
     import os
     import numpy as np
-    from mindboggle.measure.measure_functions import compute_vector_distance
+    from mindboggle.shapes.measure import vector_distance
 
-    if type(vectors) != np.ndarray:
+    # Make sure argument is a numpy array
+    if not isinstance(vectors, np.ndarray):
         vectors = np.array(vectors)
 
     # Initialize output
@@ -170,7 +166,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
             if ihist2 >= ihist1:
 
                 # Store pairwise distances between histogram values
-                d = compute_vector_distance(1.0*vectors[ihist1],
+                d = vector_distance(1.0*vectors[ihist1],
                                             1.0*vectors[ihist2],
                                             normalize=normalize)
                 vector_distances[ihist1, ihist2] = d
@@ -184,9 +180,10 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     return vector_distances, outfile
 
-def compute_area(command, surface_file):
+def area(command, surface_file):
     """
-    Measure Joachim Giard's "travel area" for a surface mesh.
+    Measure area of each vertex in a surface mesh.
+    (Calls Joachim Giard's C++ code)
 
     Parameters
     ----------
@@ -206,9 +203,10 @@ def compute_area(command, surface_file):
 
     return area_file
 
-def compute_depth(command, surface_file):
+def depth(command, surface_file):
     """
-    Measure Joachim Giard's "travel depth" for a surface mesh.
+    Measure "travel depth" of each vertex in a surface mesh.
+    (Calls Joachim Giard's C++ code)
 
     Parameters
     ----------
@@ -228,9 +226,10 @@ def compute_depth(command, surface_file):
 
     return depth_file
 
-def compute_curvature(command, surface_file):
+def curvature(command, surface_file):
     """
-    Measure curvatures for a surface mesh.
+    Measure curvature values of each vertex in a surface mesh.
+    (Calls Joachim Giard's C++ code)
 
     command : curvature C++ executable command
     surface_file : ``vtk file``
@@ -289,7 +288,7 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.measure.measure_functions import mean_value_per_label
+    >>> from mindboggle.shapes.measure import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.area.vtk')
@@ -307,11 +306,10 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     def avg_by_area(values_label, areas_label):
         return sum(areas_label * values_label) / sum(areas_label)
 
-    if type(labels) != np.ndarray:
-        labels = np.asarray(labels)
-    if type(values) != np.ndarray:
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
         values = np.asarray(values)
-    if type(areas) != np.ndarray:
+    if not isinstance(areas, np.ndarray):
         areas = np.asarray(areas)
 
     label_list = np.unique(labels)
@@ -331,7 +329,7 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
 
     return mean_values, norm_mean_values, surface_areas, label_list
 
-def compute_percentile(N, percent, key=lambda x:x):
+def percentile(N, percent, key=lambda x:x):
     """
     Find the percentile of a list of values.
 
@@ -353,10 +351,10 @@ def compute_percentile(N, percent, key=lambda x:x):
 
     Examples
     --------
-    >>> from mindboggle.measure.measure_functions import compute_percentile
+    >>> from mindboggle.shapes.measure import percentile
     >>> N = [2,3,4,8,9,10]
     >>> percent = 0.5
-    >>> compute_percentile(N, percent)
+    >>> percentile(N, percent)
       6.0
 
     """

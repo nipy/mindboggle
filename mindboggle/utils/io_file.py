@@ -3,8 +3,8 @@
 This Python library reads and writes different file types.
 
 Authors:
-    - Forrest Sheng Bao  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein, 2012  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -109,7 +109,7 @@ def write_table_means(filename, column_names, labels, *values):
 
     ""
     import os
-    from measure.measure_functions import mean_value_per_label
+    from shapes.measure import mean_value_per_label
 
     columns = []
     for value_list in values:
