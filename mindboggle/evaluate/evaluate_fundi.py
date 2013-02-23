@@ -28,11 +28,11 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     Parameters
     ----------
-    label_boundary_fundi : list or array of integers
+    label_boundary_fundi : list of integers
         indices to fundi in sulcus protocol
-    fundi : list or array of integers
+    fundi : list of integers
         indices of vertices
-    folds : list or array of integers
+    folds : list of integers
         indices to vertices
     points : list of lists of three floats
         coordinates
