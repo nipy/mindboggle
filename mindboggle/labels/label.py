@@ -179,7 +179,7 @@ def extract_borders(region_indices, labels, neighbor_lists,
     else:
         boundary_label_pairs = []
 
-    if len(ignore_indices):
+    if ignore_indices:
         Ikeep = [i for i,x in enumerate(boundary_label_pairs)
                  if not len(frozenset(x).intersection(ignore_indices))]
         boundary_indices = [x for i,x in enumerate(boundary_indices)

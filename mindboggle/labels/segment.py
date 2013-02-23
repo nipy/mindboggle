@@ -94,7 +94,7 @@ def propagate(points, faces, region, seeds, labels,
     import mindboggle.labels.rebound as rb
 
     indices_region = [i for i,x in enumerate(region) if x > -1]
-    if len(indices_region) and len(points) and len(faces):
+    if indices_region and points and faces:
         local_indices_region = -1 * np.ones(len(region))
         local_indices_region[indices_region] = range(len(indices_region))
 
@@ -117,7 +117,7 @@ def propagate(points, faces, region, seeds, labels,
         # Set up rebound Bounds class instance
         B = rb.Bounds()
         B.Faces = remove_faces(faces, indices_region)
-        if len(B.Faces):
+        if B.Faces:
             B.Indices = local_indices_region
             B.Points = points[indices_region]
             B.Labels = labels[indices_region]
@@ -229,7 +229,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     # If seed_lists is empty, select first vertex from vertices_to_segment
     # (single vertex selection does not affect result -- see below*)
-    if len(seed_lists):
+    if seed_lists:
         select_single_seed = False
         if len(seed_lists) == 1:
             print('    Segment {0} vertices using seed vertices'.
@@ -279,16 +279,16 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                 vertices_to_segment = list(frozenset(vertices_to_segment).
                 difference(seed_list))
 
-                if len(vertices_to_segment):
+                if vertices_to_segment:
 
                     # Find neighbors of each seed with lower values than the seed
-                    if len(values):
+                    if values:
                         neighbors = []
                         for seed in seed_list:
                             seed_neighbors = neighbor_lists[seed]
                             seed_neighbors = [x for x in seed_neighbors
                                               if values[x] <= values[seed]]
-                            if len(seed_neighbors):
+                            if seed_neighbors:
                                 neighbors.extend(seed_neighbors)
                     else:
                         # Find neighbors of seeds
@@ -304,7 +304,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                     seed_list = []
 
                 # If there are seeds remaining
-                if len(seed_list):
+                if seed_list:
 
                     # Select neighbors with the same labels
                     # as the initial seed labels
@@ -335,7 +335,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                         # Display current number and size of region
                         if verbose and size_region > 1:
                             if len(seed_lists) == 1:
-                                if len(vertices_to_segment):
+                                if vertices_to_segment:
                                     print("      {0} vertices remain".
                                           format(len(vertices_to_segment)))
                             else:
@@ -371,7 +371,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             # Remove seeds from vertices to segment
             vertices_to_segment = list(frozenset(vertices_to_segment).
             difference(seed_list))
-            if len(vertices_to_segment):
+            if vertices_to_segment:
 
                 # Identify neighbors of seeds
                 neighbors = []
@@ -631,7 +631,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
 
         # Remove seeds from vertices to segment
         indices = list(frozenset(indices).difference(seed_list))
-        if len(indices):
+        if indices:
 
             # Identify neighbors of seeds
             neighbors = []
@@ -663,7 +663,7 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
             basin_depths.append(max_depths[-1] - np.min(depths[region]))
 
             # If vertices left to segment, re-initialize parameters
-            if len(indices):
+            if indices:
                 # Select deepest unsegmented vertex as new seed
                 seed_list = [indices[np.argmax(depths[indices])]]
                 # Initialize new region/basin, maximum depth, and counter
@@ -701,11 +701,11 @@ def watershed(depths, indices, neighbor_lists, depth_ratio=0.1, tolerance=0.01):
             tiny = 0.000001
             index_neighbors = [[x, index] for x in index_neighbors
                                if basin_depths[x] / (basin_depths[index] + tiny) < depth_ratio]
-            if len(index_neighbors):
+            if index_neighbors:
                 basin_pairs.extend(index_neighbors)
 
         # Merge shallow watershed catchment basins
-        if len(basin_pairs):
+        if basin_pairs:
             print('    Merge basins with deeper neighboring basins')
             for basin_pair in basin_pairs:
                 segments[np.where(segments == basin_pair[0])] = basin_pair[1]
