@@ -159,12 +159,13 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     """
     import numpy as np
 
-    # Make sure arguments are numpy arrays
-    if not isinstance(hmmf_neighbors, np.ndarray):
-        hmmf_neighbors = np.array(hmmf_neighbors)
+    if hmmf_neighbors.size:
 
-    if hmmf_neighbors:
-        cost = hmmf * (1 - likelihood) +\
+        # Make sure arguments are numpy arrays
+        if not isinstance(hmmf_neighbors, np.ndarray):
+            hmmf_neighbors = np.array(hmmf_neighbors)
+
+        cost = hmmf * (1 - likelihood) + \
                wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
     else:
         exit('ERROR: No HMMF neighbors to compute cost.')
@@ -185,7 +186,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     ----------
     points : numpy array of floats
         coordinates for all vertices
-    L : list or array of integers
+    L : list of integers
         fundus likelihood values for all vertices (default -1)
     min_directions : numpy array of floats
         minimum directions for all vertices
@@ -234,46 +235,45 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     max_distance = 2 * min_distance
 
     # Sort likelihood values and find indices for values above the threshold
-    if L:
-        L_table = [[i,x] for i,x in enumerate(L)]
-        L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
-        IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
-              if x > thr]
+    L_table = [[i,x] for i,x in enumerate(L)]
+    L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+          if x > thr]
 
-        # Initialize anchors list with the index of the maximum likelihood value,
-        # remove this value, and loop through the remaining high likelihoods
-        if IL:
-            anchors = [IL.pop(0)]
-            for imax in IL:
+    # Initialize anchors list with the index of the maximum likelihood value,
+    # remove this value, and loop through the remaining high likelihoods
+    if IL:
+        anchors = [IL.pop(0)]
+        for imax in IL:
 
-                # Determine if there are any anchor points
-                # near to the current maximum likelihood vertex
-                i = 0
-                found = 0
-                while i < len(anchors) and found == 0:
+            # Determine if there are any anchor points
+            # near to the current maximum likelihood vertex
+            i = 0
+            found = 0
+            while i < len(anchors) and found == 0:
 
-                    # Compute Euclidean distance between points
-                    D = np.linalg.norm(points[anchors[i]] - points[imax])
+                # Compute Euclidean distance between points
+                D = np.linalg.norm(points[anchors[i]] - points[imax])
 
+                # If distance less than threshold, consider the point found
+                if D < min_distance:
+                    found = 1
+                # Compute directional distance between points if they are close
+                elif D < max_distance:
+                    dirV = np.dot(points[anchors[i]] - points[imax],
+                                  min_directions[anchors[i]])
                     # If distance less than threshold, consider the point found
-                    if D < min_distance:
+                    if np.linalg.norm(dirV) < min_distance:
                         found = 1
-                    # Compute directional distance between points if they are close
-                    elif D < max_distance:
-                        dirV = np.dot(points[anchors[i]] - points[imax],
-                                      min_directions[anchors[i]])
-                        # If distance less than threshold, consider the point found
-                        if np.linalg.norm(dirV) < min_distance:
-                            found = 1
 
-                    i += 1
+                i += 1
 
-                # If there are no nearby anchor points,
-                # assign the maximum likelihood vertex as an anchor point
-                if not found:
-                    anchors.append(imax)
-        else:
-            anchors = []
+            # If there are no nearby anchor points,
+            # assign the maximum likelihood vertex as an anchor point
+            if not found:
+                anchors.append(imax)
+    else:
+        anchors = []
 
     return anchors
 
