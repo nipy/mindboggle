@@ -181,7 +181,7 @@ class Bounds:
         """
 
         # Step 1. Construct affinity matrix - compute edge weights
-        if len(self.Points) and len(self.Indices) and len(self.Faces):
+        if self.Points and self.Indices and self.Faces:
             self.affinity_matrix = go.weight_graph(self.Points, self.Indices,
                 self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False)
         else:
