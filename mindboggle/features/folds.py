@@ -249,3 +249,61 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     # Return folds, number of folds
     #---------------------------------------------------------------------------
     return folds, n_folds
+
+def normalize_fold_depths(depth_file, folds):
+    """
+    Normalize depths in each fold.
+
+    Parameters
+    ----------
+    depth_file : string
+        name of VTK file with a depth value for each vertex
+    folds : list
+        fold ID for each vertex
+
+    Returns
+    -------
+    norm_depth_file : string
+        name of output VTK file with normalized depth values in each fold
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> depths, name = read_scalars(depth_file, True, True)
+    >>> norm_depth_file = os.path.join(os.getcwd(), os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
+    >>> norm_depths = -1 * np.ones(len(folds))
+    >>> unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
+    >>> for fold_ID in unique_fold_IDs:
+    >>>     indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    >>>     if indices_fold:
+    >>>         # Normalize fold depth values
+    >>>         norm_depths[indices_fold] = depths[indices_fold] / np.max(depths[indices_fold])
+    >>> rewrite_scalars(depth_file, norm_depth_file, norm_depths, 'norm_depths', norm_depths)
+    >>> os.system('mayavi2 -m Surface -d ' + norm_depth_file + '&')
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+
+    depths, name = read_scalars(depth_file, True, True)
+
+    norm_depth_file = os.path.join(os.getcwd(),
+                                   os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
+
+    norm_depths = -1 * np.ones(len(folds))
+    unique_fold_IDs = np.unique(folds)
+    unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
+
+    for fold_ID in unique_fold_IDs:
+        indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+        if indices_fold:
+
+            # Normalize fold depth values
+            norm_depths[indices_fold] = depths[indices_fold] / np.max(depths[indices_fold])
+
+    rewrite_scalars(depth_file, norm_depth_file, norm_depths, 'norm_depths', norm_depths)
+
+    return norm_depth_file
