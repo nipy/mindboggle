@@ -486,7 +486,7 @@ def dot_plot_no_overlaps(table_file, pairs_to_process,
 
     plt.plot(x, y, 'o')
     plt.xlim((0,len(data_lists) + 1))
-    if len(yrange) > 0:
+    if yrange:
         plt.ylim((yrange[0],yrange[1]))
     if category_labels:
         locs, labels = plt.xticks()

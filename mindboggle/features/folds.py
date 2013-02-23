@@ -145,7 +145,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     window = [-1, 0, 1]
     bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
     ibin = np.where(bin_slopes == 0)[0]
-    if len(ibin):
+    if ibin:
         depth_threshold = bin_edges[ibin[0]]
     else:
         depth_threshold = np.median(depths)
@@ -154,7 +154,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
     # Find the deepest vertices
     #---------------------------------------------------------------------------
     indices_deep = [i for i,x in enumerate(depths) if x >= depth_threshold]
-    if len(indices_deep):
+    if indices_deep:
 
         #-----------------------------------------------------------------------
         # Segment deep vertices as an initial set of folds
