@@ -228,11 +228,11 @@ def read_scalars(filename, return_first=True, return_array=False):
             scalar_names.append(scalar_name)
 
     if return_first:
-        if len(scalars):
+        if scalars:
             scalars = scalars[0]
         if return_array:
             scalars = np.array(scalars)
-        if len(scalar_names):
+        if scalar_names:
             scalar_names = scalar_names[0]
         else:
             scalar_names = ''
@@ -348,11 +348,11 @@ def read_vtk(filename, return_first=True, return_array=False):
                 scalar_names.append(scalar_name)
 
     if return_first:
-        if len(scalars):
+        if scalars:
             scalars = scalars[0]
         if return_array:
             scalars = np.array(scalars)
-        if len(scalar_names):
+        if scalar_names:
             scalar_names = scalar_names[0]
         else:
             scalar_names = ''
@@ -603,15 +603,15 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     write_header(Fp)
     write_points(Fp, points)
 
-    if len(indices):
+    if indices:
         write_vertices(Fp, indices)
-    if len(lines):
+    if lines:
         for i in xrange(0,len(lines)):
             lines[i] = [lines[i][0], lines[i][1]]
         write_faces(Fp, lines) # write_faces can write either lines or faces
-    if len(faces):
+    if faces:
         write_faces(Fp, faces)
-    if len(scalars) > 0:
+    if scalars:
         scalars, scalar_names = scalars_checker(scalars, scalar_names)
 
         for i, scalar_list in enumerate(scalars):
@@ -688,7 +688,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     # Find indices to nonzero values
     indices = range(npoints)
-    if len(filter_scalars):
+    if filter_scalars:
         indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
         indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
         # Remove surface mesh faces whose three vertices are not all in indices
@@ -698,15 +698,15 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     Fp = open(output_vtk,'w')
     write_header(Fp)
     write_points(Fp, points)
-    if len(indices):
+    if indices:
         write_vertices(Fp, indices)
-    if len(faces):
+    if faces:
         write_faces(Fp, faces)
-    if len(new_scalars) > 0:
+    if new_scalars:
         new_scalars, new_scalar_names = scalars_checker(new_scalars, new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalars):
-            if len(filter_scalars):
+            if filter_scalars:
                 for iremove in indices_remove:
                     new_scalar_list[iremove] = -1
             if i == 0:

@@ -33,7 +33,7 @@ def read_columns(filename, n_columns=1, trail=False):
     lines = Fp.readlines()
     columns = [[] for x in range(n_columns)]
     for line in lines:
-        if len(line) > 0:
+        if line:
             row = re.findall(r'\S+', line)
             if len(row) >= n_columns:
                 for icolumn in range(n_columns):
@@ -63,7 +63,7 @@ def write_table(labels, columns, column_names, table_file):
 
     Fp = open(table_file, 'w')
 
-    if len(column_names):
+    if column_names:
         Fp.write("\t".join(column_names) + "\n")
 
     for irow, label in enumerate(labels):
@@ -81,7 +81,7 @@ def write_list(table_file, List, header=""):
 
     Fp = open(filename,'w')
 
-    if len(header):
+    if header:
         Fp.write(header + '\n')
 
     for Element in List:
