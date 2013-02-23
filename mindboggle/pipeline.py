@@ -148,8 +148,9 @@ from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
-from mindboggle.features.sulci import extract_sulci
+from mindboggle.features.folds import extract_folds, normalize_fold_depths
 from mindboggle.features.fundi import extract_fundi
+from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
 
