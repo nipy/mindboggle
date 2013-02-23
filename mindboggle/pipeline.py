@@ -11,7 +11,7 @@ python pipeline.py output HLN-12-1 HLN-12-2
 >>> import os
 >>> from mindboggle.utils.io_file import read_columns
 >>> data_path = os.environ['MINDBOGGLE_DATA']
->>> atlases_file = os.path.join(data_path, 'info', 'atlases101.txt')
+>>> atlases_file = os.path.join(data_path, 'x', 'mindboggle101_atlases.txt')
 >>> atlases = read_columns(atlases_file, n_columns=1)[0]
 >>> atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
 >>> for atlas in atlases:
@@ -36,10 +36,10 @@ For information on Nipype (http://www.nipy.org/nipype/):
 http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 
-Authors of this pipeline:
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+Authors:
+    - Arno Klein, 2011-2013  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -134,22 +134,22 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-------------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalars, \
-     write_mean_shapes_table, write_vertex_shapes_table, \
-     read_vtk, freesurface_to_vtk, freecurvature_to_vtk, freeannot_to_vtk, \
-     vtk_to_freelabels
+from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
 from mindboggle.utils.io_file import read_columns
-from mindboggle.utils.io_free import labels_to_annot, labels_to_volume
-from mindboggle.utils.mesh_operations import find_neighbors
-from mindboggle.label.multiatlas_labeling import register_template,\
+from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
+    surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
+from mindboggle.utils.mesh import find_neighbors
+from mindboggle.labels.multiatlas import register_template,\
      transform_atlas_labels, majority_vote_label
-from mindboggle.info.sulcus_boundaries import sulcus_boundaries
-from mindboggle.label.relabel import relabel_volume
-from mindboggle.label.label_functions import label_with_classifier
-from mindboggle.measure.measure_functions import compute_area, compute_depth, \
-     compute_curvature
-from mindboggle.extract.extract_folds import extract_folds, extract_sulci
-from mindboggle.extract.extract_fundi import extract_fundi
+from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+from mindboggle.labels.relabel import relabel_volume
+from mindboggle.labels.label import label_with_classifier
+from mindboggle.shapes.measure import area, depth, curvature
+from mindboggle.shapes.tabulate import write_mean_shapes_table, \
+    write_vertex_shapes_table
+from mindboggle.features.folds import extract_folds
+from mindboggle.features.sulci import extract_sulci
+from mindboggle.features.fundi import extract_fundi
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
      measure_volume_overlap
 
@@ -161,8 +161,8 @@ subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 ccode_path = os.environ['MINDBOGGLE_TOOLS']
-#info_path = os.path.join(get_info()['pkg_path'], 'info')
-info_path = os.path.join(os.environ['MINDBOGGLE'], 'info')
+#protocol_path = os.path.join(get_info()['pkg_path'], 'labels', 'protocol')
+protocol_path = os.path.join(os.environ['MINDBOGGLE'], 'labels', 'protocol')
 atlases_path = subjects_path
 # Label with classifier atlas
 templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
@@ -232,7 +232,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-------------------------------------------------------------------------------
 if not input_vtk:
     ConvertSurf = Node(name = 'Surf_to_VTK',
-                       interface = Fn(function = freesurface_to_vtk,
+                       interface = Fn(function = surface_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
     mbFlow.connect([(Surf, ConvertSurf, [('surface_files','surface_file')])])
@@ -253,7 +253,7 @@ if evaluate_surface_labels or init_labels == 'manual' or run_atlasFlow:
 #-------------------------------------------------------------------------------
 # Load data
 #-------------------------------------------------------------------------------
-ctx_labels_file = os.path.join(info_path, 'labels.surface.' + protocol + '.txt')
+ctx_labels_file = os.path.join(protocol_path, 'labels.surface.' + protocol + '.txt')
 ctx_label_numbers, ctx_label_names, RGBs = read_columns(ctx_labels_file,
                                                 n_columns=3, trail=True)
 
@@ -271,7 +271,7 @@ if run_atlasFlow:
     #===========================================================================
     if init_labels == 'DKatlas':
         FreeLabels = Node(name = 'DK_annot_to_VTK',
-                          interface = Fn(function = freeannot_to_vtk,
+                          interface = Fn(function = annot_to_vtk,
                                          input_names = ['annot_file',
                                                         'vtk_file'],
                                          output_names = ['labels',
@@ -314,7 +314,7 @@ if run_atlasFlow:
 
         # Convert .annot file to .vtk format
         Classifier2vtk = Node(name = 'DKT_annot_to_VTK',
-                              interface = Fn(function = freeannot_to_vtk,
+                              interface = Fn(function = annot_to_vtk,
                                              input_names = ['surface_file',
                                                             'hemi',
                                                             'subject',
@@ -367,7 +367,7 @@ if run_atlasFlow:
         # Register atlases to subject via template
         #-----------------------------------------------------------------------
         # Load atlas list
-        atlas_list_file = os.path.join(info_path, 'atlases.txt')
+        atlas_list_file = os.path.join(protocol_path, 'atlases.txt')
         atlas_list = read_columns(atlas_list_file, 1)[0]
 
         Transform = MapNode(name = 'Transform_labels',
@@ -453,7 +453,7 @@ if run_measureFlow:
     # Measure surface area
     #---------------------------------------------------------------------------
     AreaNode = Node(name='Area',
-                interface = Fn(function = compute_area,
+                interface = Fn(function = area,
                                input_names = ['command',
                                               'surface_file'],
                                output_names = ['area_file']))
@@ -463,7 +463,7 @@ if run_measureFlow:
     # Measure surface depth
     #---------------------------------------------------------------------------
     DepthNode = Node(name='Depth',
-                     interface = Fn(function = compute_depth,
+                     interface = Fn(function = depth,
                                     input_names = ['command',
                                                    'surface_file'],
                                     output_names = ['depth_file']))
@@ -473,7 +473,7 @@ if run_measureFlow:
     # Measure surface curvature
     #---------------------------------------------------------------------------
     CurvNode = Node(name='Curvature',
-                    interface = Fn(function = compute_curvature,
+                    interface = Fn(function = curvature,
                                    input_names = ['command',
                                                   'surface_file'],
                                    output_names = ['mean_curvature_file',
@@ -488,7 +488,7 @@ if run_measureFlow:
     #---------------------------------------------------------------------------
     if include_thickness:
         ThickNode = Node(name = 'Thickness_to_VTK',
-                         interface = Fn(function = freecurvature_to_vtk,
+                         interface = Fn(function = curvature_to_vtk,
                                         input_names = ['surface_file',
                                                        'vtk_file'],
                                         output_names = ['output_vtk']))
@@ -501,7 +501,7 @@ if run_measureFlow:
                          [('Thickness_to_VTK.output_vtk', 'measures.@thickness')])])
     if include_convexity:
         ConvexNode = Node(name = 'Convexity_to_VTK',
-                          interface = Fn(function = freecurvature_to_vtk,
+                          interface = Fn(function = curvature_to_vtk,
                                          input_names = ['surface_file',
                                                         'vtk_file'],
                                          output_names = ['output_vtk']))
@@ -698,6 +698,7 @@ if run_featureFlow:
     #===========================================================================
     # Segment fundi by sulcus divisions
     #===========================================================================
+    """
     if do_extract_fundi and not fundi_from_sulci:
 
         SegmentFundi = Node(name='Segment_fundi',
@@ -727,7 +728,7 @@ if run_featureFlow:
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
         FundiNode.inputs.compute_local_depth = True
-
+    """
     #---------------------------------------------------------------------------
     # Write folds, sulci, fundi, and likelihoods to VTK files
     #---------------------------------------------------------------------------
@@ -1087,7 +1088,7 @@ if fill_volume:
     # Write .label files for surface vertices
     #---------------------------------------------------------------------------
     WriteLabels = Node(name='Write_label_files',
-                       interface = Fn(function = vtk_to_freelabels,
+                       interface = Fn(function = vtk_to_labels,
                                       input_names = ['hemi',
                                                      'surface_file',
                                                      'label_numbers',
@@ -1195,8 +1196,8 @@ if fill_volume:
     mbFlow2.add_nodes([Relabel])
     mbFlow2.connect([(FillVolume, Relabel,
                           [('output_file', 'input_file')])])
-    relabel_file = os.path.join(info_path,
-                                'label_volume_errors.' + protocol + '.txt')
+    relabel_file = os.path.join(protocol_path,
+                                'labels.volume.annot_errors.' + protocol + '.txt')
     old_labels, new_labels = read_columns(relabel_file, 2)
     Relabel.inputs.old_labels = old_labels
     Relabel.inputs.new_labels = new_labels
@@ -1230,7 +1231,7 @@ if evaluate_volume_labels:
                                                          'file1'],
                                           output_names = ['overlaps',
                                                           'out_file']))
-    labels_file = os.path.join(info_path, 'labels.volume.' + protocol + '.txt')
+    labels_file = os.path.join(protocol_path, 'labels.volume.' + protocol + '.txt')
     labels = read_columns(labels_file, 1)[0]
     EvalVolLabels.inputs.labels = labels
     mbFlow2.add_nodes([EvalVolLabels])
