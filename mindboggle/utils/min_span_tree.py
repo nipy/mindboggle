@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+"""
+Minimum spanning tree functions.
+
+Authors:
+    - Forrest Bao, 2012  (forrest.bao@gmail.com)
+
+Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+"""
+
 
 def prune(Path, Degree, TreeNbr, Terminal, Branching, Special, Vertices):
     """
@@ -156,7 +166,7 @@ class Prim:  # modified from the code without license @http://hurring.com/scott/
                 vfrom = v
         return (vfrom, vto, vcost)
 
-def mst(adjacency_matrix, indices_to_connect):
+def min_span_tree(adjacency_matrix, indices_to_connect):
     """
     Use Prim algorithm to connect vertices within surface region
 
@@ -175,8 +185,8 @@ def mst(adjacency_matrix, indices_to_connect):
     >>> import numpy as np
     >>> import networkx as nx
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors, remove_faces
-    >>> from mindboggle.utils.mst import mst
+    >>> from mindboggle.utils.mesh import find_neighbors, remove_faces
+    >>> from mindboggle.utils.min_span_tree import min_span_tree
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     >>> faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
@@ -190,12 +200,13 @@ def mst(adjacency_matrix, indices_to_connect):
     >>>     G.add_edges_from([[i,x] for x in sulcus_neighbor_list])
     >>> adjacency_matrix = nx.adjacency_matrix(G, nodelist=None, weight='weight')
     >>> indices_to_connect = [0, len(sulcus_indices)-1]
-    >>> adjacency_matrix2, W, Path, Degree, TreeNbr = mst(adjacency_matrix, indices_to_connect)
-    >>> # Write results to vtk file and view with mayavi2:
+    >>> adjacency_matrix2, W, Path, Degree, TreeNbr = min_span_tree(adjacency_matrix, indices_to_connect)
+    >>> # Write results to vtk file and view:
     >>> MST = np.zeros(len(points))
     >>> MST[W] = 1
-    >>> rewrite_scalars(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
-    >>> os.system('mayavi2 -m Surface -d test_mst.vtk &')
+    >>> rewrite_scalars(sulci_file, 'test_min_span_tree.vtk', MST, 'MST', MST)
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_min_span_tree.vtk')
 
     """
 
@@ -207,12 +218,14 @@ def mst(adjacency_matrix, indices_to_connect):
 
         return W, Path, Degree, TreeNbr
 
+# Example use of the minimum spanning tree algorithm
 if __name__ == "__main__" :
     import os
     import networkx as nx
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    from mindboggle.utils.mesh_operations import find_neighbors, remove_faces
-    import mindboggle.utils.meshlib as ml
+    from mindboggle.utils.mesh import find_neighbors, remove_faces
+    from mindboggle.utils.mesh import min_span_tree
+    from mindboggle.utils.mesh import plot_vtk
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
@@ -226,13 +239,13 @@ if __name__ == "__main__" :
         G.add_edges_from([[i,x] for x in sulcus_neighbor_list])
     adjacency_matrix = nx.adjacency_matrix(G, nodelist=None, weight='weight')
     indices_to_connect = [0, len(sulcus_indices)-1]
-    adjacency_matrix2, W, Path, Degree, TreeNbr = ml.mst(adjacency_matrix, indices_to_connect)
+    adjacency_matrix2, W, Path, Degree, TreeNbr = min_span_tree(adjacency_matrix,
+                                                                indices_to_connect)
 
-    # Write results to vtk file and view with mayavi2:
+    # Write results to vtk file and view:
     MST = np.zeros(len(points))
     MST[W] = 1
-    rewrite_scalars(sulci_file, 'test_mst.vtk', [MST], ['MST'], MST)
-    os.system('mayavi2 -m Surface -d test_mst.vtk &')
+    rewrite_scalars(sulci_file, 'test_min_span_tree.vtk', MST, 'MST', MST)
 
     Terminal, Branching = [], []
     for vtx in xrange(0,Num):

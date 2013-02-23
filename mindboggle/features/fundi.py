@@ -3,8 +3,8 @@
 Extract fundus curves from surface mesh patches (folds).
 
 Authors:
-Yrjo Hame  .  yrjo.hame@gmail.com
-Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
+Yrjo Hame, 2012-2013  .  yrjo.hame@gmail.com
+Arno Klein, 2012-2013  .  arno@mindboggle.info  .  www.binarybottle.com
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -38,8 +38,10 @@ def compute_likelihood(depths, curvatures):
 
     Parameters
     ----------
-    depths : depth values in [0,1]: [#sulcus vertices x 1] numpy array
-    curvatures : mean curvature values in [-1,1] [#sulcus vertices x 1] array
+    depths : numpy array of floats
+        depth values in [0,1] for all vertices
+    curvatures : numpy array of floats
+        mean curvature values in [-1,1] for all vertives
 
     Returns
     -------
@@ -49,7 +51,7 @@ def compute_likelihood(depths, curvatures):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.extract.extract_fundi import compute_likelihood
+    >>> from mindboggle.features.fundi import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
@@ -58,17 +60,18 @@ def compute_likelihood(depths, curvatures):
     >>>
     >>> L = compute_likelihood(depths, mean_curvs)
     >>>
-    >>> # Write results to vtk file and view with mayavi2:
+    >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L, 'likelihoods')
-    >>> os.system('mayavi2 -m Surface -d test_compute_likelihood.vtk &')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_compute_likelihood.vtk')
 
     """
     import numpy as np
 
     # Make sure arguments are numpy arrays
-    if type(depths) != np.ndarray:
+    if not isinstance(depths, np.ndarray):
         depths = np.array(depths)
-    if type(curvatures) != np.ndarray:
+    if not isinstance(curvatures, np.ndarray):
         curvatures = np.array(curvatures)
 
     #==========================================
@@ -143,7 +146,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
         likelihood value in interval [0,1]
     hmmf : float
         HMMF value
-    hmmf_neighbors : numpy array
+    hmmf_neighbors : numpy array of floats
         HMMF values of neighboring vertices
     wN : float
         weight influence of neighbors on cost (term 2)
@@ -153,10 +156,10 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     cost : ``float``
 
     """
-
-    # Make sure argument is a numpy array
     import numpy as np
-    if type(hmmf_neighbors) != np.ndarray:
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(hmmf_neighbors, np.ndarray):
         hmmf_neighbors = np.array(hmmf_neighbors)
 
     if len(hmmf_neighbors):
@@ -181,12 +184,14 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     ----------
     points : numpy array of floats
         coordinates for all vertices
-    L : numpy array of integers
+    L : list or array of integers
         fundus likelihood values for all vertices (default -1)
     min_directions : numpy array of floats
         minimum directions for all vertices
-    min_distance : minimum distance
-    thr : likelihood threshold
+    min_distance : integer
+        minimum distance
+    thr : float
+        likelihood threshold in [0,1]
 
     Returns
     -------
@@ -197,34 +202,32 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.extract.extract_fundi import find_anchors
+    >>> from mindboggle.features.fundi import find_anchors
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
     >>> #
     >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
     >>> #
-    >>> # Write results to vtk file and view with mayavi2:
+    >>> # Write results to vtk file and view:
     >>> IDs = -1 * np.ones(len(min_directions))
     >>> IDs[anchors] = 1
     >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', IDs, 'anchors', IDs)
-    >>> os.system('mayavi2 -m Surface -d test_find_anchors.vtk &')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_find_anchors.vtk')
 
     """
     import numpy as np
     from operator import itemgetter
 
     # Make sure arguments are numpy arrays
-    if type(points) != np.ndarray:
+    if not isinstance(points, np.ndarray):
         points = np.array(points)
-    if type(L) != np.ndarray:
-        L = np.array(L)
-    if type(min_directions) != np.ndarray:
+    if not isinstance(min_directions, np.ndarray):
         min_directions = np.array(min_directions)
 
     max_distance = 2 * min_distance
@@ -276,7 +279,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 #---------------
 # Connect points
 #---------------
-def connect_points(anchors, faces, indices, L, neighbor_lists):
+def connect_points(anchors, indices, L, neighbor_lists):
     """
     Connect vertices in a surface mesh to create a curve.
 
@@ -313,16 +316,19 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
 
     Parameters
     ----------
-    anchors : list of indices of vertices to connect (should contain > 1)
-    faces : indices of triangular mesh vertices: [#faces x 3] numpy array
-    indices : list of indices of vertices
-    L : likelihood values: [#vertices in mesh x 1] numpy array
+    anchors : list of integers
+        indices of vertices to connect (should contain > 1)
+    indices : list of integers
+        indices of vertices
+    L : numpy array of floats
+        likelihood values: #vertices in mesh x 1
     neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
+        indices to neighboring vertices for each vertex
 
     Returns
     -------
-    skeleton : [#vertices x 1] numpy array
+    skeleton : numpy array of integers
+        indices to vertices
 
     Examples
     --------
@@ -330,8 +336,8 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.extract.extract_fundi import find_anchors, connect_points, compute_likelihood
+    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.features.fundi import find_anchors, connect_points, compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
@@ -358,24 +364,23 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
     >>> likelihoods_fold = np.zeros(len(points))
     >>> likelihoods_fold[indices_fold] = fold_likelihoods
     >>>
-    >>> H = connect_points(indices_anchors, faces, indices_fold, likelihoods_fold, neighbor_lists)
+    >>> H = connect_points(indices_anchors, indices_fold, likelihoods_fold, neighbor_lists)
     >>>
-    >>> # Write results to vtk file and view with mayavi2:
+    >>> # Write results to vtk file and view:
     >>> H[indices_anchors] = 2
     >>> rewrite_scalars(depth_file, 'test_connect_points.vtk', H, 'connected_points', fold_array)
-    >>> os.system('mayavi2 -m Surface -d test_connect_points.vtk &')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_connect_points.vtk')
 
     """
     import numpy as np
-    from mindboggle.utils.mesh_operations import simple_test, skeletonize
+    from mindboggle.utils.mesh import topo_test, skeletonize
 
-    # Make sure arguments are numpy arrays
-    if type(faces) != np.ndarray:
-        faces = np.array(faces)
-    if type(L) != np.ndarray:
+    # Make sure argument is a numpy array
+    if not isinstance(L, np.ndarray):
         L = np.array(L)
 
-    #-----------
+    #-------------------------------------------------------------------------
     # Parameters
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters
@@ -440,11 +445,11 @@ def connect_points(anchors, faces, indices, L, neighbor_lists):
                     # such that a step makes it cross the threshold,
                     # and the vertex is a "simple point"
                     # Note: H_new[index] is not changed yet since
-                    #       simple_test() only considers its neighbors
+                    #       topo_test() only considers its neighbors
                     if H[index] >= 0.5 >= H_test:
-                        update, n_in = simple_test(index, H_new, N)
+                        update, n_in = topo_test(index, H_new, N)
                     elif H[index] <= 0.5 <= H_test:
-                        update, n_in = simple_test(index, 1 - H_new, N)
+                        update, n_in = topo_test(index, 1 - H_new, N)
 
                     # Update the HMMF value if far from the threshold
                     else:
@@ -527,11 +532,11 @@ def extract_fundi(folds, neighbor_lists, depth_file,
         fold IDs (default = -1)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices
-    depth_file : str
+    depth_file : string
         surface mesh file in VTK format with faces and scalar values
-    mean_curvature_file : str
+    mean_curvature_file : string
         surface mesh file in VTK format with scalar values
-    min_curvature_vector_file : str
+    min_curvature_vector_file : string
         surface mesh file in VTK format with scalar values
     min_fold_size : int
         minimum fold size (number of vertices)
@@ -559,8 +564,8 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh_operations import find_neighbors
-    >>> from mindboggle.extract.extract_fundi import extract_fundi
+    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
@@ -579,16 +584,17 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>>     depth_file, mean_curv_file, min_curv_vec_file,
     >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
     >>>
-    >>> # Write results to vtk file and view with mayavi2:
+    >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk', fundi, 'fundi', folds)
-    >>> os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_extract_fundi.vtk')
 
     """
     import numpy as np
     from time import time
 
-    from mindboggle.extract.extract_fundi import compute_likelihood, find_anchors, connect_points
-    from mindboggle.utils.mesh_operations import skeletonize, extract_endpoints
+    from mindboggle.features.fundi import compute_likelihood, find_anchors, connect_points
+    from mindboggle.utils.mesh import skeletonize, extract_endpoints
     from mindboggle.utils.io_vtk import read_scalars, read_vtk
 
     # Load depth and curvature values from VTK and text files
@@ -680,8 +686,9 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 if __name__ == "__main__" :
     import os
     from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh_operations import find_neighbors
-    from mindboggle.extract.extract_fundi import extract_fundi
+    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.features.fundi import extract_fundi
+    from mindboggle.utils.mesh import plot_vtk
 
     path = os.environ['MINDBOGGLE_DATA']
 
@@ -705,7 +712,7 @@ if __name__ == "__main__" :
         depth_file, mean_curvature_file, min_curvature_vector_file,
         min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
 
-    # Write results to vtk file and view with mayavi2:
+    # Write results to vtk file and view:
     rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
                          [fundi], ['fundi'], sulci)
-    os.system('mayavi2 -m Surface -d test_extract_fundi.vtk &')
+    plot_vtk('test_extract_fundi.vtk')
