@@ -4,9 +4,9 @@ Relabel surface or volume or annot files.
 
 
 Authors:
-    - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -16,16 +16,19 @@ def relabel_volume(input_file, old_labels, new_labels):
 
     Parameters
     ----------
-    input_file : labeled nibabel-readable (e.g., nifti) file
-    old_labels : list of old labels
-    new_labels : list of new labels
+    input_file : string
+        labeled nibabel-readable (e.g., nifti) file
+    old_labels : list of integers
+        old labels
+    new_labels : list of integers
+        new labels
 
     Examples
     --------
     >>> # Convert DKT31 to DKT25 labels
     >>> import os
     >>> from mindboggle.utils.io_file import read_columns
-    >>> from mindboggle.label.relabel import relabel_volume
+    >>> from mindboggle.labels.relabel import relabel_volume
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
@@ -70,14 +73,16 @@ def remove_volume_labels(input_file, labels_to_remove):
 
     Parameters
     ----------
-    input_file : labeled nibabel-readable (e.g., nifti) file
-    labels_to_remove : list of labels to remove
+    input_file : string
+        labeled nibabel-readable (e.g., nifti) file
+    labels_to_remove : list of integers
+        labels to remove
 
     Examples
     --------
     >>> # Remove subcortical labels
     >>> import os
-    >>> from mindboggle.label.relabel import remove_volume_labels
+    >>> from mindboggle.labels.relabel import remove_volume_labels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
@@ -119,10 +124,13 @@ def relabel_surface(vtk_file, relabel_list, new_string):
 
     Parameters
     ----------
-    vtk_file : input labeled VTK file
-    relabel_list : text file with two columns of label numbers --
-                   all regions receive the 2nd label per row.
-    new_string : new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
+    vtk_file : string
+        input labeled VTK file
+    relabel_list : string
+        text file with two columns of label numbers --
+        all regions receive the 2nd label per row.
+    new_string : string
+        new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
 
     """
     import os
@@ -169,11 +177,16 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
 
     Parameters
     ----------
-    hemi : hemisphere [string]
-    subject : subject name
-    annot_name : name of .annot file (without pre- or post-pends)
-    relabel_file : text file with old and new RGB values
-    new_annot_name : new .annot name
+    hemi : string
+        hemisphere ['lh' or 'rh']
+    subject : string
+        subject name
+    annot_name : string
+        name of .annot file (without pre- or post-pends)
+    relabel_file : string
+        text file with old and new RGB values
+    new_annot_name : string
+        new .annot name
 
     """
     from nipype.interfaces.base import CommandLine
