@@ -99,7 +99,7 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     import os
     from time import time
     import numpy as np
-    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     from mindboggle.labels.label import extract_borders
     from mindboggle.labels.segment import propagate, segment
 
