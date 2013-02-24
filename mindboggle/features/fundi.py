@@ -596,6 +596,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> plot_vtk('test_extract_fundi.vtk')
 
     """
+    import os
     import numpy as np
     from time import time
 
