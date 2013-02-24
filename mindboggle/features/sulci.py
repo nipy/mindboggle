@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Extract sulci
 #===============================================================================
 def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
-                  min_boundary=1, sulcus_names=[]):
+                  min_boundary=1, sulcus_names=[], save_file=False):
     """
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
@@ -52,13 +52,17 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
         minimum number of vertices for a sulcus label boundary segment
     sulcus_names : list of strings (optional)
         names of sulci
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
     sulci : array of integers
-        sulcus numbers for all vertices, with -1s for non-sulcus vertices
+        sulcus numbers for all vertices (-1 for non-sulcus vertices)
     n_sulci : integers
         number of sulci
+    sulci_file : string (if save_file)
+        name of output VTK file with sulcus numbers (-1 for non-sulcus vertices)
 
     Examples
     --------
@@ -86,7 +90,7 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     >>> sulci, n_sulci = extract_sulci(labels_file, folds, neighbor_lists,
     >>>                                label_pair_lists, min_boundary, sulcus_names)
     >>>
-    >>> # Finally, write points, faces and sulci to a new vtk file and view:
+    >>> # Write sulci to a new VTK file and view:
     >>> rewrite_scalars(labels_file, 'test_extract_sulci.vtk', sulci, 'sulci', sulci)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_extract_sulci.vtk')
@@ -327,7 +331,18 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     else:
         print("  " + ", ".join([str(x) for x in unresolved]))
 
-    return sulci, n_sulci
+    #---------------------------------------------------------------------------
+    # Return sulci, number of sulci, and file name
+    #---------------------------------------------------------------------------
+    if save_file:
+
+        sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
+        rewrite_scalars(depth_file, sulci_file, sulci, 'sulci', sulci)
+
+    else:
+        sulci_file = None
+
+    return sulci, n_sulci, sulci_file
 
 #===============================================================================
 # Example: extract_sulci()
