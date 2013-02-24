@@ -101,7 +101,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
     import numpy as np
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
-    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
     from mindboggle.utils.mesh import fill_holes
     from mindboggle.labels.segment import segment, watershed, shrink_segments
     if not len(neighbor_lists):
