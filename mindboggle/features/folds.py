@@ -97,6 +97,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
     >>> plot_vtk('test_extract_folds.vtk')
 
     """
+    import os
     import numpy as np
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
