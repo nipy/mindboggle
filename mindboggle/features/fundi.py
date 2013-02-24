@@ -602,7 +602,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     from mindboggle.features.fundi import compute_likelihood, find_anchors, connect_points
     from mindboggle.utils.mesh import skeletonize, extract_endpoints
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
 
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
