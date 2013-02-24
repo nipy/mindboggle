@@ -521,7 +521,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 def extract_fundi(folds, neighbor_lists, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
                   min_distance=5, thr=0.5, use_only_endpoints=True,
-                  compute_local_depth=True):
+                  compute_local_depth=True, save_file=False):
     """
     Extract all fundi.
 
@@ -549,15 +549,20 @@ def extract_fundi(folds, neighbor_lists, depth_file,
         use only endpoints to construct fundi (or all anchor points)?
     compute_local_depth : Boolean
         normalize depth for each fold?
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
     fundi : array of integers
-        fundus IDs for all vertices, with -1s for non-fundus vertices
+        fundus numbers for all vertices (-1 for non-fundus vertices)
     n_fundi :  int
-        number of sulcus fundi
+        number of fundi
     likelihoods : array of floats
         fundus likelihood values for all vertices (zero outside folds)
+    fundi_file : string (if save_file)
+        name of output VTK file with fundus numbers (-1 for non-fundus vertices)
+        and likelihood values for sulcus vertices (separate scalars)
 
     Examples
     --------
@@ -680,7 +685,19 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
-    return fundi, n_fundi, likelihoods
+    #---------------------------------------------------------------------------
+    # Return fundi, number of fundi, likelihood values, and file name
+    #---------------------------------------------------------------------------
+    if save_file:
+
+        fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
+        rewrite_scalars(depth_file, fundi_file, [fundi, likelihoods],
+                        'fundi_likelihoods', fundi)
+
+    else:
+        fundi_file = None
+
+    return fundi, n_fundi, likelihoods, fundi_file
 
 
 # Example
