@@ -12,7 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfolds=True):
+def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
+                  extract_subfolds=True, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -64,13 +65,17 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         minimum fold size (number of vertices)
     extract_subfolds : Boolean
         segment folds into subfolds?
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
     folds : array of integers
-        fold numbers for all vertices (default -1 for non-fold vertices)
+        fold numbers for all vertices (-1 for non-fold vertices)
     n_folds :  int
         number of folds
+    folds_file : string (if save_file)
+        name of output VTK file with fold IDs (-1 for non-fold vertices)
 
     Examples
     --------
@@ -246,9 +251,17 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1, extract_subfol
         print('  No deep vertices')
 
     #---------------------------------------------------------------------------
-    # Return folds, number of folds
+    # Return folds, number of folds, file name
     #---------------------------------------------------------------------------
-    return folds, n_folds
+    if save_file:
+
+        folds_file = os.path.join(os.getcwd(), 'folds.vtk')
+        rewrite_scalars(depth_file, folds_file, folds, 'folds', folds)
+
+    else:
+        folds_file = None
+
+    return folds, n_folds, folds_file
 
 
 #===============================================================================
@@ -265,15 +278,14 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
         name of VTK file with a depth value for each vertex
     folds : list
         fold ID for each vertex
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
-    norm_depth_folds : list of floats
-        depth values for fold IDs >-1, normalized for each fold
-    save_file : Boolean
-        save output VTK file?
-    norm_depth_file : string (if save_file)
-
+    depth_folds : list of floats
+        depth values for fold numbers >-1, normalized for each fold
+    depth_folds_file : string (if save_file)
         name of output VTK file with normalized depth values in each fold
 
     Examples
@@ -288,9 +300,9 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     >>> #
     >>> normalize_fold_depths(depth_file, folds, save_file=True)
     >>> # View:
-    >>> norm_depth_file = os.path.join(os.getcwd(),
+    >>> depth_folds_file = os.path.join(os.getcwd(),
     >>>     os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
-    >>> os.system('mayavi2 -m Surface -d ' + norm_depth_file + '&')
+    >>> os.system('mayavi2 -m Surface -d ' + depth_folds_file + '&')
 
     """
     import os
@@ -299,8 +311,7 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
 
     depths, name = read_scalars(depth_file, True, True)
 
-
-    norm_depth_folds = -1 * np.ones(len(folds))
+    depth_folds = -1 * np.ones(len(folds))
 
     unique_fold_IDs = np.unique(folds)
     unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
@@ -310,15 +321,19 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
         if indices_fold:
 
             # Normalize fold depth values
-            norm_depth_folds[indices_fold] = depths[indices_fold] / np.max(depths[indices_fold])
+            depth_folds[indices_fold] = depths[indices_fold] / np.max(depths[indices_fold])
 
+    #---------------------------------------------------------------------------
+    # Return folds with normalized depth, number of folds, file name
+    #---------------------------------------------------------------------------
     if save_file:
 
-        norm_depth_file = os.path.join(os.getcwd(),
-                                       os.path.basename(depth_file).strip('vtk') + 'norm.vtk')
-        rewrite_scalars(depth_file, norm_depth_file,
-                        norm_depth_folds, 'norm_depths', norm_depth_folds)
+        depth_folds_file = os.path.join(os.getcwd(),
+            os.path.basename(depth_file).strip('vtk') + 'norm.folds.vtk')
+        rewrite_scalars(depth_file, depth_folds_file,
+                        depth_folds, 'depth_folds', depth_folds)
 
-        return norm_depth_folds, norm_depth_file
     else:
-        return norm_depth_folds
+        depth_folds_file = None
+
+    return depth_folds, depth_folds_file
