@@ -218,12 +218,7 @@ def read_scalars(filename, return_first=True, return_array=False):
                       format(scalar_name, n_scalars, os.path.basename(filename)))
 
             scalar_array = PointData.GetArray(scalar_name)
-            if scalar_array:
-                scalar = [scalar_array.GetValue(i)
-                          for i in xrange(scalar_array.GetSize())]
-            else:
-                print "Empty scalar -- Please check the source VTK"
-                exit()
+            scalar = [scalar_array.GetValue(i) for i in range(scalar_array.GetSize())]
             scalars.append(scalar)
             scalar_names.append(scalar_name)
 
@@ -662,9 +657,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> depths, name = read_scalars(depth_file)
+    >>> depths, name = read_scalars(depth_file, True,True)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> sulci, name = read_scalars(sulci_file)
+    >>> sulci, name = read_scalars(sulci_file, True,True)
     >>> #
     >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
     >>>                 depths, 'depths', sulci)
