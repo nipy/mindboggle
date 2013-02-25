@@ -338,7 +338,7 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     if save_file:
 
         sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
-        rewrite_scalars(depth_file, sulci_file, sulci, 'sulci', sulci)
+        rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', sulci)
 
     else:
         sulci_file = None
