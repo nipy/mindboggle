@@ -12,7 +12,7 @@ from mindboggle.utils.io_file import read_columns
 
 command = 'python ../pipeline.py'
 output_path = '/desk/output'
-atlases_file = os.path.join(os.environ['MINDBOGGLE_DATA'], 'info', 'atlases101.txt')
+atlases_file = os.path.join(os.environ['MINDBOGGLE_DATA'], 'x', 'mindboggle101_atlases.txt')
 atlases = read_columns(atlases_file, n_columns=1)[0]
 atlas_strings = ['MMRR','OASIS','NKI-RS','NKI-TRT']
 

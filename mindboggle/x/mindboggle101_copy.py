@@ -19,7 +19,7 @@ run_this = 5 # 1 = Mindboggle-101-volumes
 #------------------------------------------------
 # Subjects file and source and target directories
 #------------------------------------------------
-list_file = '/projects/Mindboggle/mindboggle/mindboggle/info/atlases101.txt'
+list_file = '/projects/Mindboggle/mindboggle/mindboggle/x/mindboggle101_atlases.txt'
 srcs_path = '/hd2/Lab/Brains/Mindboggle101/subjects'
 maindir = '/projects/Mindboggle/Mindboggle-101'
 if run_this == 1:

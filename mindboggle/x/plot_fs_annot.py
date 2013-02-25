@@ -8,7 +8,7 @@ Use FreeSurfer's tksurfer to visualize .annot surface mesh data
     hemisphere = 'lh'
     surface = 'pial'
     annotname = 'labels.DKT25.manual'
-    colortable = '../info/labels.surface.DKT31.txt'
+    colortable = '../labels/protocols/labels.surface.DKT31.txt'
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
