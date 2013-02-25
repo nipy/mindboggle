@@ -182,6 +182,16 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     Assign maximum likelihood points as "anchor points"
     while ensuring that the anchor points are not close to one another.
 
+    Steps ::
+
+        1. Sort likelihood values and find values above the threshold.
+
+        2. Initialize anchors with the maximum likelihood value,
+           remove this value, and loop through the remaining high likelihoods.
+
+        3. If there are no nearby anchor points,
+           assign the maximum likelihood vertex as an anchor point.
+
     Parameters
     ----------
     points : numpy array of floats
@@ -527,6 +537,19 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 
     A fundus is a connected set of high-likelihood vertices in a surface mesh.
 
+    Steps ::
+
+        1. Compute fundus likelihood values from normalized depth
+           and mean curvature.
+
+        2. Find fundus ("anchor") points from likelihood and
+           minimum distance values and minimum directions.
+
+        3. Connect fundus points and extract fundi.
+           If using endpoints to connect fundus vertices, run in two stages:
+           fast, to get a rough skeleton to extract the endpoints, then
+           slow, to get fundi.
+
     Parameters
     ----------
     folds : list or array of integers
@@ -649,7 +672,7 @@ def extract_fundi(folds, neighbor_lists, depth_file,
                 likelihoods_fold = Z.copy()
                 likelihoods_fold[indices_fold] = fold_likelihoods
 
-                # Connect fundus points and extract fundus.
+                # Connect fundus points and extract fundi.
                 # If using only endpoints to connect fundus vertices,
                 # run in two stages -- fast, to get a rough skeleton
                 # to extract the endpoints, then slow, to get fundi
