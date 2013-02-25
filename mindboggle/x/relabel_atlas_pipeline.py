@@ -44,7 +44,7 @@ output_path = '/projects/Mindboggle/output'  # Where to save processing output
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
 copy_path = subjects_path
 base_path = '/projects/Mindboggle/mindboggle'  # Mindboggle home directory
-info_path = '/projects/Mindboggle/mindboggle/mindboggle/info'  # info directory
+info_path = '/projects/Mindboggle/mindboggle/mindboggle/x'  # info directory
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 label_string_old = 'labels.DKT31.manual'
 label_string = 'labels.DKT25.manual'
@@ -54,7 +54,7 @@ hemis = ['lh','rh']
 # Subjects to process
 #-----------------------------------------------------------------------------
 from mindboggle.utils.io_file import read_columns
-atlas_list_file = os.path.join(info_path, 'atlases101.txt')
+atlas_list_file = os.path.join(info_path, 'mindboggle101_atlases.txt')
 subjects = read_columns(atlas_list_file, 1)[0]
 subjects = ['OASIS-TRT-20-11']
 #-----------------------------------------------------------------------------
@@ -67,8 +67,8 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import freeannot_to_vtk, freesurface_to_vtk
-from mindboggle.label.relabel import relabel_annot_file
+from mindboggle.utils.io_free import annot_to_vtk, surface_to_vtk
+from mindboggle.labels.relabel import relabel_annot_file
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -109,7 +109,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 #-------------------------------------------------------------------------------
 if not do_load_vtk_surfaces:
     convertsurf = Node(name = 'Surf_to_VTK',
-                       interface = Fn(function = freesurface_to_vtk,
+                       interface = Fn(function = surface_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
     flow.connect([(surf, convertsurf, [('surface_files','surface_file')])])
@@ -144,7 +144,7 @@ if do_combine_atlas_labels:
 #-----------------------------------------------------------------------------
 if do_convert_atlas_annot:
     atlas_vtk = Node(name = 'Convert_atlas_labels',
-                     interface = Fn(function = freeannot_to_vtk,
+                     interface = Fn(function = annot_to_vtk,
                                     input_names = ['surface_file',
                                                    'hemi',
                                                    'subject',
@@ -170,7 +170,7 @@ if do_convert_atlas_annot:
 
 if do_convert_original_atlas_annot:
     orig_atlas_vtk = Node(name = 'Convert_original_atlas_labels',
-                     interface = Fn(function = freeannot_to_vtk,
+                     interface = Fn(function = annot_to_vtk,
                                     input_names = ['surface_file',
                                                    'hemi',
                                                    'subject',
