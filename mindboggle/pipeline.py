@@ -233,7 +233,7 @@ if not os.path.isdir(output_path):  os.makedirs(output_path)
 # Convert surfaces to VTK
 #-------------------------------------------------------------------------------
 if not input_vtk:
-    ConvertSurf = Node(name = 'Surf_to_VTK',
+    ConvertSurf = Node(name = 'Surface_to_VTK',
                        interface = Fn(function = surface_to_vtk,
                                       input_names = ['surface_file'],
                                       output_names = ['vtk_file']))
@@ -266,7 +266,7 @@ ctx_label_numbers, ctx_label_names, RGBs = read_columns(ctx_labels_file,
 ################################################################################
 if run_atlasFlow:
 
-    atlasFlow = Workflow(name='Label_initialization')
+    atlasFlow = Workflow(name='Labels')
 
     #===========================================================================
     #   Initialize labels with FreeSurfer's standard DK classifier atlas
@@ -446,7 +446,7 @@ if run_atlasFlow:
 ################################################################################
 if run_measureFlow:
 
-    measureFlow = Workflow(name='Surface_measurement')
+    measureFlow = Workflow(name='Shapes')
 
     #===========================================================================
     #   Surface measurements
@@ -555,7 +555,7 @@ if run_measureFlow:
 ################################################################################
 if run_featureFlow:
 
-    featureFlow = Workflow(name='Feature_extraction')
+    featureFlow = Workflow(name='Features')
 
     #===========================================================================
     # Load surface and find all vertex neighbors
@@ -780,7 +780,7 @@ if run_featureFlow:
 ################################################################################
 if run_shapeFlow:
 
-    shapeFlow = Workflow(name='Shape_analysis')
+    shapeFlow = Workflow(name='Tables')
     column_names = ['depth', 'depth_folds', 'mean_curvature', 'gauss_curvature',
                     'max_curvature', 'min_curvature', 'thickness', 'convexity']
     vtk_files = [x + '_file' for x in column_names]
