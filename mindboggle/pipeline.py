@@ -1251,7 +1251,7 @@ if __name__== '__main__':
 
     run_flow1 = True
     run_flow2 = True
-    generate_graphs = True
+    generate_graphs = 0#True
     if generate_graphs:
         if run_flow1:
             mbFlow.write_graph(graph2use='flat')

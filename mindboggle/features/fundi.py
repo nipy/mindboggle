@@ -21,11 +21,13 @@ def sigmoid(values, gain, shift):
     """
     import numpy as np
 
+    tiny = 0.000000001
+
     # Make sure argument is a numpy array
     if type(values) != np.ndarray:
         values = np.array(values)
 
-    return 1.0 / (1.0 + np.exp(-gain * (values - shift)))
+    return 1.0 / (1.0 + np.exp(-gain * (values - shift)) + tiny)
 
 #--------------------
 # Likelihood function
@@ -69,6 +71,8 @@ def compute_likelihood(depths, curvatures):
     """
     import numpy as np
 
+    tiny = 0.0000000001
+
     # Make sure arguments are numpy arrays
     if not isinstance(depths, np.ndarray):
         depths = np.array(depths)
@@ -80,7 +84,7 @@ def compute_likelihood(depths, curvatures):
     # Curvature values retain their values
     # Compute the means and std. deviations
     #=========================================
-    depths_norm = depths / max(depths)
+    depths_norm = depths / (max(depths)+tiny)
     depth_avg = np.mean(depths_norm)
     depth_std = np.std(depths_norm)
     curve_avg = np.mean(curvatures)
@@ -92,8 +96,8 @@ def compute_likelihood(depths, curvatures):
     # Factor influencing "gain" or "sharpness" of the sigmoidal function below
     # slope_factor = abs(np.log((1. / x) - 1))  # 2.197224577 for x = 0.9
     # gain_depth = slope_factor / (2 * depth_std)
-    gain_depth = 1 / depth_std
-    gain_curve = 1 / curve_std
+    gain_depth = 1 / (depth_std+tiny)
+    gain_curve = 1 / (curve_std+tiny)
     shift_depth = depth_avg - depth_std
     shift_curve = curve_avg
 
@@ -159,14 +163,13 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     """
     import numpy as np
 
+    # Make sure arguments are numpy arrays
+    if not isinstance(hmmf_neighbors, np.ndarray):
+        hmmf_neighbors = np.array(hmmf_neighbors)
+
     if hmmf_neighbors.size:
-
-        # Make sure arguments are numpy arrays
-        if not isinstance(hmmf_neighbors, np.ndarray):
-            hmmf_neighbors = np.array(hmmf_neighbors)
-
         cost = hmmf * (1 - likelihood) + \
-               wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+               wN * sum(abs(hmmf - hmmf_neighbors)) / hmmf_neighbors.size
     else:
         exit('ERROR: No HMMF neighbors to compute cost.')
 
@@ -481,12 +484,12 @@ def connect_points(anchors, indices, L, neighbor_lists):
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag.
         costs = sum(C)
-        n_points = sum([1 for x in H if x > 0.5])
+        npoints_thr = sum([1 for x in H if x > 0.5])
 
         # Terminate the loop if there are insufficient changes
         if count > 0:
             delta_cost = (costs_previous - costs) / npoints
-            delta_points = n_points_previous - n_points
+            delta_points = npoints_thr_previous - npoints_thr
             if delta_points == 0:
                 if delta_cost < min_cost_change:
                     end_flag += 1
@@ -506,7 +509,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 
         # Reset for next iteration
         costs_previous = costs
-        n_points_previous = n_points
+        npoints_thr_previous = npoints_thr
         H = H_new
 
         count += 1
@@ -516,12 +519,12 @@ def connect_points(anchors, indices, L, neighbor_lists):
     # Threshold the resulting array
     H[H > 0.5] = 1
     H[H <= 0.5] = 0
-    n_points = sum(H)
+    npoints_thr = sum(H)
 
     # Skeletonize
     skeleton = skeletonize(H, anchors, N)
     print('      Removed {0} points to create one-vertex-thin skeletons'.
-          format(int(n_points - sum(skeleton))))
+          format(int(npoints_thr - sum(skeleton))))
 
     return skeleton
 
