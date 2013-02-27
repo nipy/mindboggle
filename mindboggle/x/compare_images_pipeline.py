@@ -18,20 +18,22 @@ import os
 # Paths
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
-data_path = '/Users/arno/Data/EMBARC/retest'
-results_path = '/Users/arno/Data/EMBARC/retest/Results'
-temp_path = '/Users/arno/Data/EMBARC/retest'
+data_path = '/homedir/Data/EMBARC/Data'
+results_path = '/homedir/Data/EMBARC/Data/Results_dmri'
+results_path_name = 'Results_dmri'
+temp_path = '/homedir/Data/EMBARC/Data'
+scratch = 'Image_comparison_workflow_dmri'
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-process_dmri = True  # structural or diffusion data?
+process_dmri = 0 #True  # structural or diffusion data?
 #-----------------------------------------------------------------------------
 # Settings
 #-----------------------------------------------------------------------------
 run_bet = False
-process_phantoms = False  # phantom or human data?
+process_phantoms = 1#False  # phantom or human data?
 if process_phantoms:
-    path #max_angle = 15
+    max_angle = 90 #15
 else:
     max_angle = 90
     if process_dmri:
@@ -50,24 +52,26 @@ else:
 #-----------------------------------------------------------------------------
 if process_phantoms:
     if process_dmri:
-        output_path = 'dmri_phantoms'
-        images_path = os.path.join(data_path, 'Phantom_dmri_Updated20121214')
-        reg_image_list = 'Phantom_dmri_1stvol_rotated.txt'
-        image_list = 'Phantom_dmri_FA_rotated.txt'
+        images_path = os.path.join(data_path, 'phantoms_dmri')
+        image_list = os.path.join(data_path, 'phantoms_dmri_FA_rotated.txt')
+        reg_images_path = os.path.join(data_path, 'phantoms_dmri_1stvol_rotated')
+        reg_image_list = os.path.join(data_path, 'phantoms_dmri_1stvol_rotated.txt')
+        output_path = os.path.join(results_path, 'phantoms_dmri')
     else:
-        output_path = 'ADNI_phantoms'
-        images_path = os.path.join(data_path, 'Phantom_ADNI_Updated20121213')
-        reg_image_list = 'Phantom_ADNI.txt'
-        image_list = 'Phantom_ADNI.txt'
+        images_path = os.path.join(data_path, 'phantoms_adni')
+        image_list = os.path.join(data_path, 'phantoms_adni.txt')
+        reg_images_path = images_path
+        reg_image_list = image_list
+        output_path = os.path.join(results_path, 'phantoms_adni')
 else:
     if process_dmri:
-        images_path = os.path.join(data_path, 'dmri_FA_20130123')
+        images_path = os.path.join(data_path, 'dmri_FA')
         image_list = os.path.join(data_path, 'dmri_FA_file_list.txt')
-        reg_images_path = os.path.join(data_path, 'dmri_1stvol_20130123')
+        reg_images_path = os.path.join(data_path, 'dmri_1stvol')
         reg_image_list = os.path.join(data_path, 'dmri_1stvol_file_list.txt')
         output_path = os.path.join(results_path, 'dmri')
     else:
-        images_path = os.path.join(data_path, 'brains_n3_20130131')
+        images_path = os.path.join(data_path, 'brains_n3')
         image_list = os.path.join(data_path, 'brain_file_list.txt')
         reg_images_path = images_path
         reg_image_list = image_list
@@ -91,14 +95,14 @@ from nipype.interfaces.io import DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.measure.measure_functions import pairwise_vector_distances
+from mindboggle.shapes.measure import pairwise_vector_distances
 from mindboggle.evaluate.compare_images import compute_image_histograms, \
     compute_image_similarities, compute_image_overlaps, \
     register_images_to_ref_images, apply_transforms, threshold_images
 #-------------------------------------------------------------------------------
 # Initialize workflows
 #-------------------------------------------------------------------------------
-Flow = Workflow(name='Image_comparison_workflow')
+Flow = Workflow(name=scratch)
 Flow.base_dir = temp_path
 if not os.path.isdir(temp_path):
     os.makedirs(temp_path)
@@ -113,9 +117,9 @@ fid_reg = open(reg_image_list)
 reg_file_list = fid_reg.read()
 reg_file_list = reg_file_list.splitlines()
 reg_file_list = [os.path.join(reg_images_path, x.strip()) for x in reg_file_list if len(x)]
-Sink = Node(DataSink(), name = 'Results')
+Sink = Node(DataSink(), name = results_path_name)
 Sink.inputs.base_directory = output_path
-Sink.inputs.container = 'Results'
+Sink.inputs.container = results_path_name
 if not os.path.isdir(output_path):  os.makedirs(output_path)
 
 #=============================================================================
@@ -206,7 +210,8 @@ if do_register_images_to_ref_images:
                     interface = Fn(function = register_images_to_ref_images,
                                    input_names = ['files',
                                                   'ref_file_index',
-                                                  'max_angle'],
+                                                  'max_angle',
+                                                  'flirt_command'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([register])
     if run_bet:
@@ -215,6 +220,7 @@ if do_register_images_to_ref_images:
         register.inputs.files = reg_file_list
     register.inputs.ref_file_index = 1
     register.inputs.max_angle = max_angle
+    register.inputs.flirt_command = 'flirt.fsl'
     #Flow.connect([(register, Sink, [('outfiles', 'registrations.@transforms')])])
 
     transform = Node(name = 'Transform',
@@ -222,7 +228,8 @@ if do_register_images_to_ref_images:
                                    input_names = ['files',
                                                   'ref_file_index',
                                                   'transform_files',
-                                                  'interp'],
+                                                  'interp',
+                                                  'flirt_command'],
                                    output_names = ['outfiles']))
     Flow.add_nodes([transform])
     if run_bet:
@@ -232,6 +239,7 @@ if do_register_images_to_ref_images:
     transform.inputs.ref_file_index = 1
     Flow.connect([(register, transform, [('outfiles', 'transform_files')])])
     transform.inputs.interp = interp
+    transform.inputs.flirt_command = 'flirt.fsl'
     Flow.connect([(transform, Sink, [('outfiles', 'registrations.@images')])])
 
 #-------------------------------------------------------------------------------
