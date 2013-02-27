@@ -105,7 +105,8 @@ def compute_image_histograms(infiles, nbins=100, threshold=0.0):
 
     return histogram_values_list
 
-def register_images_to_ref_images(files, ref_file_index=1, max_angle=90):
+def register_images_to_ref_images(files, ref_file_index=1, max_angle=90,
+                                  flirt_command='flirt'):
     """
     Compute registration transforms from each image to its reference image.
 
@@ -139,7 +140,7 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90):
 
         min_angle = '-' + str(max_angle)
         max_angle = str(max_angle)
-        cmd = ' '.join(['flirt -in', source_file,
+        cmd = ' '.join([flirt_command, '-in', source_file,
                         '-ref', target_file,
                         '-dof 7',
                         '-searchrx', min_angle, max_angle,
@@ -151,7 +152,8 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90):
 
     return outfiles
 
-def apply_transforms(files, ref_file_index, transform_files, interp='trilinear'):
+def apply_transforms(files, ref_file_index, transform_files,
+                     interp='trilinear', flirt_command='flirt'):
     """
     Apply transforms to register all images to a reference image
     (else the first of the image files).
@@ -194,7 +196,7 @@ def apply_transforms(files, ref_file_index, transform_files, interp='trilinear')
             cmd = ' '.join(['WarpImageMultiTransform 3',
                 source_file, outfile, '-R', target_file, transform_file])
         else:
-            cmd = ' '.join(['flirt -in', source_file,
+            cmd = ' '.join([flirt_command, '-in', source_file,
                             '-ref', target_file,
                             '-applyxfm -init', transform_file,
                             '-interp', interp,
