@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract sulci
 #===============================================================================
-def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
+def extract_sulci(labels_file, folds, label_pair_lists,
                   min_boundary=1, sulcus_names=[], save_file=False):
     """
     Identify sulci from folds in a brain surface according to a labeling
@@ -43,8 +43,6 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
         file name for surface mesh vtk containing labels for all vertices
     folds : list or array of integers
         fold IDs for all vertices
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
     label_pair_lists : list of sublists of subsublists of integers
         each subsublist contains a pair of labels, and the sublist of these
         label pairs represents the label boundaries defining a sulcus
@@ -67,18 +65,16 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_faces_points, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
-    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.sulci import extract_sulci
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>>
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> faces, points, npoints = read_faces_points(labels_file)
     >>> folds, name = read_scalars(folds_file)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> label_pair_lists = sulcus_boundaries()
     >>> min_boundary = 10
     >>> sulcus_names_file = os.path.join(path, 'info', 'sulcus_names.txt')
@@ -87,8 +83,8 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
     >>>
     >>> # Extract sulci
-    >>> sulci, n_sulci = extract_sulci(labels_file, folds, neighbor_lists,
-    >>>                                label_pair_lists, min_boundary, sulcus_names)
+    >>> sulci, n_sulci = extract_sulci(labels_file, folds, label_pair_lists,
+    >>>                                min_boundary, sulcus_names)
     >>>
     >>> # Write sulci to a new VTK file and view:
     >>> rewrite_scalars(labels_file, 'test_extract_sulci.vtk', sulci, 'sulci', sulci)
@@ -100,17 +96,10 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     from time import time
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors
     from mindboggle.labels.label import extract_borders
     from mindboggle.labels.segment import propagate, segment
 
-    #---------------------------------------------------------------------------
-    # Prepare data
-    #---------------------------------------------------------------------------
-    # Array of sulcus IDs for fold vertices, initialized as -1.
-    # Since we do not touch gyral vertices and vertices whose labels
-    # are not in the label list, or vertices having only one label,
-    # their sulcus IDs will remain -1.
-    sulci = -1 * np.ones(len(neighbor_lists))
 
     # Prepare list of sulcus label lists (labels within a sulcus)
     label_lists = []
@@ -122,8 +111,15 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
     [protocol_pairs.append(np.unique(x).tolist()) for lst in label_pair_lists
      for x in lst if np.unique(x).tolist() not in protocol_pairs]
 
-    # Load points, faces
+    # Load points, faces, and neighbors
     faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file)
+    neighbor_lists = find_neighbors(faces, npoints)
+
+    # Array of sulcus IDs for fold vertices, initialized as -1.
+    # Since we do not touch gyral vertices and vertices whose labels
+    # are not in the label list, or vertices having only one label,
+    # their sulcus IDs will remain -1.
+    sulci = -1 * np.ones(npoints)
 
     #---------------------------------------------------------------------------
     # Loop through folds
@@ -351,9 +347,9 @@ def extract_sulci(labels_file, folds, neighbor_lists, label_pair_lists,
 if __name__ == "__main__":
 
     import os
-    from mindboggle.utils.io_vtk import read_scalars, read_faces_points, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.features.sulci import extract_sulci
     from mindboggle.utils.mesh import plot_vtk
     path = os.environ['MINDBOGGLE_DATA']
@@ -361,9 +357,8 @@ if __name__ == "__main__":
     # Load labels, folds, neighbor lists, and sulcus names and label pairs
     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    faces, points, npoints = read_faces_points(labels_file)
     folds, name = read_scalars(folds_file)
-    neighbor_lists = find_neighbors(faces, npoints)
+    neighbor_lists = find_neighbors(labels_file)
     label_pair_lists = sulcus_boundaries()
     min_boundary = 10
     sulcus_names_file = os.path.join(path, 'info', 'sulcus_names.txt')
