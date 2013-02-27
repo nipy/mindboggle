@@ -537,16 +537,11 @@ if run_shapeFlow:
     mbFlow.connect([(shapeFlow, Sink,
                      [('Depth.depth_file', 'shapes.@depth')])])
     mbFlow.connect([(shapeFlow, Sink,
-                     [('Curvature.mean_curvature_file',
-                       'shapes.@mean_curvature'),
-                      ('Curvature.gauss_curvature_file',
-                       'shapes.@gauss_curvature'),
-                      ('Curvature.max_curvature_file',
-                       'shapes.@max_curvature'),
-                      ('Curvature.min_curvature_file',
-                       'shapes.@min_curvature'),
-                      ('Curvature.min_curvature_vector_file',
-                       'shapes.@min_curvature_vectors')])])
+         [('Curvature.mean_curvature_file', 'shapes.@mean_curvature'),
+          ('Curvature.gauss_curvature_file', 'shapes.@gauss_curvature'),
+          ('Curvature.max_curvature_file', 'shapes.@max_curvature'),
+          ('Curvature.min_curvature_file', 'shapes.@min_curvature'),
+          ('Curvature.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
 
 ################################################################################
 #
@@ -556,46 +551,6 @@ if run_shapeFlow:
 if run_featureFlow:
 
     featureFlow = Workflow(name='Features')
-
-    #===========================================================================
-    # Load surface
-    #===========================================================================
-    #LoadSurf = Node(name = 'Load_surface',
-    #                interface = Fn(function = read_vtk,
-    #                               input_names = ['filename',
-    #                                              'return_first',
-    #                                              'return_array'],
-    #                               output_names = ['faces',
-    #                                               'lines',
-    #                                               'indices',
-    #                                               'points',
-    #                                               'npoints',
-    #                                               'scalars',
-    #                                               'scalar_names']))
-    #featureFlow.add_nodes([LoadSurf])
-    #if input_vtk:
-    #    mbFlow.connect([(Surf, featureFlow,
-    #                     [('surface_files','Load_surface.filename')])])
-    #else:
-    #    mbFlow.connect([(ConvertSurf, featureFlow,
-    #                     [('vtk_file', 'Load_surface.filename')])])
-    #LoadSurf.inputs.return_first = 'True'
-    #LoadSurf.inputs.return_array = 'True'
-    #
-    #===========================================================================
-    # Find all vertex neighbors in a surface
-    #===========================================================================
-    #NbrNode = Node(name='Neighbors',
-    #               interface = Fn(function = find_neighbors_from_file,
-    #                              input_names = ['input_vtk'],
-    #                              output_names = ['neighbor_lists']))
-    #featureFlow.add_nodes([NbrNode])
-    #if input_vtk:
-    #    mbFlow.connect([(Surf, shapeFlow,
-    #                     [('surface_files','NbrNode.input_vtk')])])
-    #else:
-    #    mbFlow.connect([(ConvertSurf, shapeFlow,
-    #                     [('vtk_file', 'NbrNode.input_vtk')])])
 
     #===========================================================================
     # Extract folds
