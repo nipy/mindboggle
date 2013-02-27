@@ -12,7 +12,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
+def extract_folds(depth_file, min_fold_size=1,
                   extract_subfolds=True, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
@@ -58,9 +58,6 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
     ----------
     depth_file : string
         surface mesh file in VTK format with faces and depth scalar values
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-        -- if empty list, construct from depth_file
     min_fold_size : int
         minimum fold size (number of vertices)
     extract_subfolds : Boolean
@@ -81,14 +78,13 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> faces, points, npoints = read_faces_points(depth_file)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, neighbor_lists, 50, True)
+    >>> folds, n_folds = extract_folds(depth_file, 50, True)
     >>>
     >>> # Write results to vtk file and view:
     >>> folds = folds.tolist()
@@ -121,8 +117,7 @@ def extract_folds(depth_file, neighbor_lists=[], min_fold_size=1,
     #---------------------------------------------------------------------------
     # Find neighbors for each vertex
     #---------------------------------------------------------------------------
-    if not neighbor_lists:
-        neighbor_lists = find_neighbors(faces, npoints)
+    neighbor_lists = find_neighbors(faces, npoints)
 
     #---------------------------------------------------------------------------
     # Compute histogram of depth measures
