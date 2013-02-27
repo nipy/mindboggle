@@ -30,6 +30,54 @@ def plot_vtk(vtk_file):
     print(c); os.system(c)
 
 #------------------------------------------------------------------------------
+# Find all neighbors from faces in a VTK mesh file
+#------------------------------------------------------------------------------
+def find_neighbors_from_file(input_vtk):
+    """
+    Generate the list of unique, sorted indices of neighboring vertices
+    for all vertices in the faces of a triangular mesh in a VTK file.
+
+    Parameters
+    ----------
+    input_vtk : string
+        name of input VTK file containing surface mesh
+
+    Returns
+    -------
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> #
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> index = 0
+    >>> IDs = -1 * np.ones(npoints)
+    >>> IDs[index] = 1
+    >>> IDs[neighbor_lists[index]] = 2
+    >>> rewrite_scalars(depth_file, 'test_find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_find_neighbors_from_file.vtk')
+
+    """
+    from mindboggle.utils.io_vtk import read_faces_points
+    from mindboggle.utils.mesh import find_neighbors
+
+    faces, points, npoints = read_faces_points(input_vtk)
+
+    neighbor_lists = find_neighbors(faces, npoints)
+
+    return neighbor_lists
+
+#------------------------------------------------------------------------------
 # Find all neighbors from faces
 #------------------------------------------------------------------------------
 def find_neighbors(faces, npoints):
