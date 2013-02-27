@@ -19,10 +19,10 @@ import os
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
 data_path = '/homedir/Data/EMBARC/Data'
-results_path = '/homedir/Data/EMBARC/Data/Results_dmri'
-results_path_name = 'Results_dmri'
+results_path = '/homedir/Data/EMBARC/Data/Results'
+results_path_name = 'Results'
 temp_path = '/homedir/Data/EMBARC/Data'
-scratch = 'Image_comparison_workflow_dmri'
+scratch = 'Image_comparison_workflow'
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
@@ -31,9 +31,9 @@ process_dmri = 0 #True  # structural or diffusion data?
 # Settings
 #-----------------------------------------------------------------------------
 run_bet = False
-process_phantoms = 1#False  # phantom or human data?
+process_phantoms = True  #False  # phantom or human data?
 if process_phantoms:
-    max_angle = 90 #15
+    max_angle = 90  #15
 else:
     max_angle = 90
     if process_dmri:
