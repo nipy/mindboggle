@@ -190,6 +190,9 @@ def rotate90(input_file, rotations=[1,0,0],
         mat = img.get_affine()
     if use_header:
         hdr = img.get_header()
+        pixdims = hdr.get_zooms()
+    else:
+        pixdims = [1,1,1]
     dims = img.get_shape()
     if dims[0] != dims[1] or \
        dims[0] != dims[2] or \
@@ -198,7 +201,6 @@ def rotate90(input_file, rotations=[1,0,0],
 
     dat_new = np.zeros(dims)
     lenx = dims[0]
-    pixdims = hdr.get_zooms()
 
     # Rotate about x-axis
     if rotations[0] != 0:
@@ -258,9 +260,9 @@ def rotate90(input_file, rotations=[1,0,0],
 if __name__ == "__main__":
 
     import os
-    from mindboggle.utils.matrix_operations import rotate90
+    from mindboggle.utils.matrix import rotate90
 
-    input_dir = '/drop/EMBARC/Data/Phantom_DTI_Updated20121214'
+    input_dir = '/drop/phantoms_dmri'
     input_files = ['isometric_PhDif_1stvol_CU_20120607.nii.gz',
                    'isometric_PhDif_1stvol_CU_20120711.nii.gz',
                    'isometric_PhDif_1stvol_CU_20120915.nii.gz',
@@ -268,6 +270,9 @@ if __name__ == "__main__":
                    'isometric_PhDif_1stvol_UM_20120803.nii.gz',
                    'isometric_PhDif_1stvol_UM_20121105.nii.gz',
                    'isometric_PhDif_1stvol_UM_20121204.nii.gz']
+    input_dir = '/drop/phantoms_adni'
+    input_files = ['PhStr_CU_20121130.nii.gz',
+                   'PhStr_raw_CU_20130204.nii.gz']
 
     for input_file in input_files:
         input_file = os.path.join(input_dir, input_file)
