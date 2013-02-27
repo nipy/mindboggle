@@ -272,8 +272,8 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     ----------
     depth_file : string
         name of VTK file with a depth value for each vertex
-    folds : list
-        fold ID for each vertex
+    folds : list or string
+        fold ID for each vertex or name of folds file containing folds scalars
     save_file : Boolean
         save output VTK file?
 
@@ -304,6 +304,9 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+
+    if isinstance(folds, str):
+        folds, name = read_scalars(folds)
 
     depths, name = read_scalars(depth_file, True, True)
 
