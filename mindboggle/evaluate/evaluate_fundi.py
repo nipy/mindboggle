@@ -92,7 +92,7 @@ if __name__ == "__main__":
 
     import sys
     import numpy as np
-    from mindboggle.utils.io_vtk import load_vtk, write_scalars
+    from mindboggle.utils.io_vtk import load_vtk, read_scalars, write_scalars
     from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     from mindboggle.labels.label import extract_borders, find_neighbors
 
@@ -107,8 +107,8 @@ if __name__ == "__main__":
     print('***')
 
     # Load fundi, folds, labels
-    faces, lines, indices, points, npoints, fundi, scalar_names = load_vtk(fundi_file, return_arrays=True)
-    faces, lines, indices, points, npoints, folds, scalar_names = load_vtk(folds_file, return_arrays=True)
+    fundi, name = read_scalars(fundi_file, return_arrays=True)
+    folds, name = read_scalars(folds_file, return_arrays=True)
     faces, lines, indices, points, npoints, labels, scalar_names = load_vtk(labels_file, return_arrays=True)
 
     # List of indices to fold vertices
