@@ -19,28 +19,25 @@ import os
 #-----------------------------------------------------------------------------
 # images_path is the beginning of the path not in the text of image_list file
 data_path = '/homedir/Data/EMBARC/Data'
-results_path = '/homedir/Data/EMBARC/Data/Results'
-results_path_name = 'Results'
-temp_path = '/homedir/Data/EMBARC/Data'
-scratch = 'Image_comparison_workflow'
+results_path = data_path
+temp_path = data_path
+scratch = 'Scratch'
 #-----------------------------------------------------------------------------
 # Data to run
 #-----------------------------------------------------------------------------
-process_dmri = 0 #True  # structural or diffusion data?
+process_dmri = True  # structural or diffusion data?
 #-----------------------------------------------------------------------------
 # Settings
 #-----------------------------------------------------------------------------
 run_bet = False
 process_phantoms = True  #False  # phantom or human data?
-if process_phantoms:
-    max_angle = 90  #15
+max_angle = 90
+if process_dmri:
+    temp_path = os.path.join(temp_path, 'Scratch_dmri')
+    results_path_name = 'Results_dmri'
 else:
-    max_angle = 90
-    if process_dmri:
-        temp_path = os.path.join(temp_path, 'Scratch_dmri')
-    else:
-        #run_bet = True
-        temp_path = os.path.join(temp_path, 'Scratch')
+    temp_path = os.path.join(temp_path, 'Scratch')
+    results_path_name = 'Results_adni'
 if process_dmri:
     threshold_value = 0  #0.3
     interp = 'nearestneighbour'
@@ -53,9 +50,9 @@ else:
 if process_phantoms:
     if process_dmri:
         images_path = os.path.join(data_path, 'phantoms_dmri')
-        image_list = os.path.join(data_path, 'phantoms_dmri_FA_rotated.txt')
-        reg_images_path = os.path.join(data_path, 'phantoms_dmri_1stvol_rotated')
-        reg_image_list = os.path.join(data_path, 'phantoms_dmri_1stvol_rotated.txt')
+        image_list = os.path.join(data_path, 'phantoms_dmri_FA.txt')
+        reg_images_path = os.path.join(data_path, 'phantoms_dmri')
+        reg_image_list = os.path.join(data_path, 'phantoms_dmri_1stvol.txt')
         output_path = os.path.join(results_path, 'phantoms_dmri')
     else:
         images_path = os.path.join(data_path, 'phantoms_adni')
