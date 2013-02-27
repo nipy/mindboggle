@@ -868,7 +868,6 @@ def extract_high_values(values, areas, fraction):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.labels.segment import extract_high_values
-    >>> from mindboggle.utils.mesh import find_neighbors
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')

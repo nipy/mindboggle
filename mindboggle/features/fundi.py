@@ -531,7 +531,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(folds, neighbor_lists, depth_file,
+def extract_fundi(folds, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
                   min_distance=5, thr=0.5, use_only_endpoints=True,
                   compute_local_depth=True, save_file=False):
@@ -557,8 +557,6 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     ----------
     folds : list or array of integers
         fold IDs (default = -1)
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices
     depth_file : string
         surface mesh file in VTK format with faces and scalar values
     mean_curvature_file : string
@@ -595,24 +593,22 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     >>> # Extract fundus from a single fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
     >>> min_curv_vec_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> faces, points, npoints = read_faces_points(depth_file)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> fold_ID = 10
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    >>> fold_array = -1 * np.ones(npoints)
+    >>> fold_array = -1 * np.ones(len(folds))
     >>> fold_array[indices_fold] = 1
     >>>
-    >>> fundi, n_fundi, likelihoods = extract_fundi(fold_array, neighbor_lists,
+    >>> fundi, n_fundi, likelihoods = extract_fundi(fold_array,
     >>>     depth_file, mean_curv_file, min_curv_vec_file,
     >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
     >>>
@@ -627,12 +623,14 @@ def extract_fundi(folds, neighbor_lists, depth_file,
     from time import time
 
     from mindboggle.features.fundi import compute_likelihood, find_anchors, connect_points
-    from mindboggle.utils.mesh import skeletonize, extract_endpoints
+    from mindboggle.utils.mesh import find_neighbors, skeletonize, extract_endpoints
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
 
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
         name = read_vtk(depth_file, return_first=True, return_array=True)
+
+    neighbor_lists = find_neighbors(faces, npoints)
     points = np.array(points)
     mean_curvatures, name = read_scalars(mean_curvature_file,
                                          return_first=True, return_array=True)
@@ -730,8 +728,8 @@ def extract_fundi(folds, neighbor_lists, depth_file,
 # Example
 if __name__ == "__main__" :
     import os
-    from mindboggle.utils.io_vtk import read_faces_points, read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.features.fundi import extract_fundi
     from mindboggle.utils.mesh import plot_vtk
 
@@ -748,8 +746,7 @@ if __name__ == "__main__" :
     sulci_file = os.path.join(path, 'arno',
                                          'features', 'lh.sulci.vtk')
 
-    faces, points, npoints = read_faces_points(depth_file)
-    neighbor_lists = find_neighbors(faces, npoints)
+    neighbor_lists = find_neighbors_from_file(depth_file)
 
     sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
 
