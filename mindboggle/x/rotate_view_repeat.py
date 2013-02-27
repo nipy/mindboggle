@@ -5,23 +5,32 @@ Rotate an image volume in every 90 degree orientation and view.
 Authors:
     - Arno Klein  (arno@mindboggle.info)  http://binarybottle.com
 
-Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
 import os
 import numpy as np
 import nibabel as nb
-from mindboggle.utils.matrix_operations import make_voxels_isometric, rotate90
 
 # Inputs
-dir = '/drop/EMBARC/Data/Phantom_DTI_Updated20121214/'
-file_list = os.path.join(dir, 'Phantom_DTI_1stVol.txt')
-file_list2 = os.path.join(dir, 'Phantom_DTI_FA.txt')
-ref_file = '/drop/EMBARC/Data/Phantom_DTI_Manufacturer_Updated20130108/PhDifMFR_1stvol_CU_20120530.nii.gz'
-new_file_list = os.path.join(dir, 'Phantom_DTI_1stVol_rotated.txt')
-new_file_list2 = os.path.join(dir, 'Phantom_DTI_FA_rotated.txt')
+dir = '/homedir/Data/EMBARC/Data'
+#images_dir = os.path.join(dir, 'phantoms_dmri')
+#file_list = os.path.join(dir, 'phantoms_dmri_1stvol.txt')
+#file_list2 = os.path.join(dir, 'phantoms_dmri_FA.txt')
+#ref_file = os.path.join(dir, 'phantoms_dmri_manufacturer/PhDifMFR_1stvol_CU_20120530.nii.gz')
+#new_file_list = os.path.join(dir, 'phantoms_dmri_1stvol_rotated.txt')
+#new_file_list2 = os.path.join(dir, 'phantoms_dmri_FA_rotated.txt')
+images_dir = os.path.join(dir, 'phantoms_adni')
+file_list = os.path.join(dir, 'phantoms_adni.txt')
+file_list2 = os.path.join(dir, 'phantoms_adni.txt')
+ref_file = os.path.join(dir, 'phantoms_adni/PhStr_CU_20120711.nii.gz')
+new_file_list = os.path.join(dir, 'phantoms_adni_rotated.txt')
+new_file_list2 = os.path.join(dir, 'phantoms_adni_rotated.txt')
 interp = 'nearestneighbour'
+
+view_command = 'itksnap'  # 'fslview'
+flirt_command = 'flirt.fsl'  # 'flirt'
 
 # Rotation matrices
 rotations = np.array([[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]],
@@ -64,12 +73,9 @@ fid_write = open(new_file_list, 'w')
 
 # Process each file
 for iline, line in enumerate(lines):
-#for iline, line in enumerate(lines[0::]):
-#    iline=0
+#  if 'CU_20121130' in line:
     file = line.strip()
-    full_path = os.path.join(dir, file)
-    #file = os.path.basename(line)
-    #dir = '/'.join(line.split('/')[0:-1])
+    full_path = os.path.join(images_dir, file)
 
     # Rotate 90 degrees in each direction
     print('Rotate 90 degrees in each direction')
@@ -80,8 +86,6 @@ for iline, line in enumerate(lines):
 
         # Construct and save rotation matrix with translation about center of mass
         img = nb.load(full_path)
-        #dims = img.get_shape()
-        #halfdims = np.array(dims) / 2
         hdr = img.get_header()
         pixdims = hdr.get_zooms()
         dat = img.get_data()
@@ -100,13 +104,13 @@ for iline, line in enumerate(lines):
         # Apply rotation matrix and save and view output
         out_file = 'rot' + str(irot) + '_' + os.path.basename(file)
         print('Apply rotation matrix, save to file ' + out_file + ', and view')
-        cmd = ' '.join(['flirt -in', os.path.join(dir, file),
+        cmd = ' '.join([flirt_command, '-in', os.path.join(images_dir, file),
                         '-ref', ref_file,
                         '-applyxfm -init', matrix_file,
                         '-interp', interp,
                         '-out', out_file])
         print(cmd); os.system(cmd)
-        cmd = 'fslview ' + out_file + ' &'
+        cmd = ' '.join([view_command, out_file, '&'])
         print(cmd); os.system(cmd)
 
         # Skip to the next file if this is the correct rotation
@@ -115,7 +119,7 @@ for iline, line in enumerate(lines):
             file2 = lines2[iline].strip()
             out_file2 = 'rot' + str(irot) + '_' + os.path.basename(file2)
             print('Apply rotation matrix, save to file ' + out_file2)
-            cmd = ' '.join(['flirt -in', os.path.join(dir, file2),
+            cmd = ' '.join([flirt_command, '-in', os.path.join(images_dir, file2),
                             '-ref', ref_file,
                             '-applyxfm -init', matrix_file,
                             '-interp', interp,
