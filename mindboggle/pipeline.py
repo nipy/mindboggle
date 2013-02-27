@@ -82,7 +82,7 @@ input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 do_save_folds = True
 do_save_fold_depths = True
 do_save_sulci = True
-do_save_fundi = True
+do_save_fundi = False
 do_extract_fundi = True
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
@@ -500,7 +500,7 @@ if run_measureFlow:
         mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Thickness_to_VTK.vtk_file')])])
         mbFlow.connect([(measureFlow, Sink,
-                         [('Thickness_to_VTK.output_vtk', 'measures.@thickness')])])
+                         [('Thickness_to_VTK.output_vtk', 'shapes.@thickness')])])
     if include_convexity:
         ConvexNode = Node(name = 'Convexity_to_VTK',
                           interface = Fn(function = curvature_to_vtk,
@@ -513,7 +513,7 @@ if run_measureFlow:
         mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Convexity_to_VTK.vtk_file')])])
         mbFlow.connect([(measureFlow, Sink,
-                         [('Convexity_to_VTK.output_vtk', 'measures.@convexity')])])
+                         [('Convexity_to_VTK.output_vtk', 'shapes.@convexity')])])
     #---------------------------------------------------------------------------
     # Add and connect nodes, save output files
     #---------------------------------------------------------------------------
@@ -533,20 +533,20 @@ if run_measureFlow:
         mbFlow.connect([(ConvertSurf, measureFlow,
                          [('vtk_file', 'Curvature.surface_file')])])
     mbFlow.connect([(measureFlow, Sink,
-                     [('Area.area_file', 'measures.@area')])])
+                     [('Area.area_file', 'shapes.@area')])])
     mbFlow.connect([(measureFlow, Sink,
-                     [('Depth.depth_file', 'measures.@depth')])])
+                     [('Depth.depth_file', 'shapes.@depth')])])
     mbFlow.connect([(measureFlow, Sink,
                      [('Curvature.mean_curvature_file',
-                       'measures.@mean_curvature'),
+                       'shapes.@mean_curvature'),
                       ('Curvature.gauss_curvature_file',
-                       'measures.@gauss_curvature'),
+                       'shapes.@gauss_curvature'),
                       ('Curvature.max_curvature_file',
-                       'measures.@max_curvature'),
+                       'shapes.@max_curvature'),
                       ('Curvature.min_curvature_file',
-                       'measures.@min_curvature'),
+                       'shapes.@min_curvature'),
                       ('Curvature.min_curvature_vector_file',
-                       'measures.@min_curvature_vectors')])])
+                       'shapes.@min_curvature_vectors')])])
 
 ################################################################################
 #
@@ -848,8 +848,8 @@ if run_shapeFlow:
     LabelTable.inputs.exclude_labels = [-1, 0]
     # Save results
     mbFlow.connect([(shapeFlow, Sink,
-                     [('Label_table.means_file', 'shapes.@labels'),
-                      ('Label_table.norm_means_file', 'shapes.@labels_norm')])])
+                     [('Label_table.means_file', 'tables.@labels'),
+                      ('Label_table.norm_means_file', 'tables.@labels_norm')])])
 
     #===========================================================================
     # Sulcus fold shapes
@@ -894,8 +894,8 @@ if run_shapeFlow:
 
         # Save results
         mbFlow.connect([(shapeFlow, Sink,
-                         [('Sulcus_table.means_file', 'shapes.@sulci'),
-                          ('Sulcus_table.norm_means_file', 'shapes.@sulci_norm')])])
+                         [('Sulcus_table.means_file', 'tables.@sulci'),
+                          ('Sulcus_table.norm_means_file', 'tables.@sulci_norm')])])
 
     #===========================================================================
     # Fundus shapes
@@ -940,8 +940,8 @@ if run_shapeFlow:
 
         # Save results
         mbFlow.connect([(shapeFlow, Sink,
-                         [('Fundus_table.means_file', 'shapes.@fundi'),
-                          ('Fundus_table.norm_means_file', 'shapes.@fundi_norm')])])
+                         [('Fundus_table.means_file', 'tables.@fundi'),
+                          ('Fundus_table.norm_means_file', 'tables.@fundi_norm')])])
 
     ############################################################################
     #   Per-vertex shape analysis
@@ -1027,7 +1027,7 @@ if run_shapeFlow:
         #-----------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, Sink,
                          [('Vertex_table.shape_table',
-                           'shapes.@vertex_table')])])
+                           'tables.@vertex_table')])])
 
 
 ################################################################################
