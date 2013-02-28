@@ -579,7 +579,7 @@ if run_featureFlow:
     FoldDepths = Node(name='Fold_depths',
                       interface = Fn(function = normalize_fold_depths,
                                      input_names = ['depth_file',
-                                                    'folds',
+                                                    'folds_or_file',
                                                     'save_file'],
                                      output_names = ['depth_folds',
                                                      'depth_folds_file']))
@@ -587,7 +587,7 @@ if run_featureFlow:
     featureFlow.add_nodes([FoldDepths])
     mbFlow.connect([(shapeFlow, featureFlow,
                      [('Depth.depth_file','Fold_depths.depth_file')])])
-    featureFlow.connect([(FoldsNode, FoldDepths, [('folds','folds')])])
+    featureFlow.connect([(FoldsNode, FoldDepths, [('folds','folds_or_file')])])
     FoldDepths.inputs.save_file = do_save_fold_depths
     # Save folds with normalized depth values per fold
     if do_save_fold_depths:
@@ -607,7 +607,7 @@ if run_featureFlow:
     SulciNode = Node(name='Sulci',
                      interface = Fn(function = extract_sulci,
                                     input_names = ['labels_file',
-                                                   'folds',
+                                                   'folds_or_file',
                                                    'label_pair_lists',
                                                    'min_boundary',
                                                    'sulcus_names',
@@ -634,7 +634,7 @@ if run_featureFlow:
         mbFlow.connect([(Atlas, featureFlow,
                          [('atlas_file','Sulci.labels_file')])])
     #---------------------------------------------------------------------------
-    featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds')])])
+    featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds_or_file')])])
     featureFlow.connect([(LabelPairs, SulciNode,
                           [('label_pair_lists','label_pair_lists')])])
     SulciNode.inputs.min_boundary = 1
@@ -658,7 +658,7 @@ if run_featureFlow:
         fundi_from_sulci = False
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
-                                        input_names = ['folds',
+                                        input_names = ['folds_or_file',
                                                        'depth_file',
                                                        'mean_curvature_file',
                                                        'min_curvature_vector_file',
@@ -672,9 +672,9 @@ if run_featureFlow:
                                                         'likelihoods',
                                                         'fundi_file']))
         if fundi_from_sulci:
-            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds')])])
+            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
         else:
-            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
                           ('Curvature.mean_curvature_file',
