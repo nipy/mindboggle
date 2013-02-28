@@ -531,7 +531,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(folds, depth_file,
+def extract_fundi(folds_or_file, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
                   min_distance=5, thr=0.5, use_only_endpoints=True,
                   compute_local_depth=True, save_file=False):
@@ -555,8 +555,8 @@ def extract_fundi(folds, depth_file,
 
     Parameters
     ----------
-    folds : list or array of integers
-        fold IDs (default = -1)
+    folds_or_file : list or string
+        fold number for each vertex or name of VTK file containing folds scalars
     depth_file : string
         surface mesh file in VTK format with faces and scalar values
     mean_curvature_file : string
@@ -578,7 +578,7 @@ def extract_fundi(folds, depth_file,
 
     Returns
     -------
-    fundi : array of integers
+    fundi : list of integers
         fundus numbers for all vertices (-1 for non-fundus vertices)
     n_fundi :  int
         number of fundi
@@ -602,7 +602,7 @@ def extract_fundi(folds, depth_file,
     >>> min_curv_vec_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> # Select a single fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+    >>> folds, name = read_scalars(folds_file)
     >>> fold_ID = 10
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     >>> fold_array = -1 * np.ones(len(folds))
@@ -625,6 +625,12 @@ def extract_fundi(folds, depth_file,
     from mindboggle.features.fundi import compute_likelihood, find_anchors, connect_points
     from mindboggle.utils.mesh import find_neighbors, skeletonize, extract_endpoints
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+
+    # Load fold numbers if folds_or_file is a string
+    if isinstance(folds_or_file, str):
+        folds, name = read_scalars(folds_or_file)
+    elif isinstance(folds_or_file, list):
+        folds = folds_or_file
 
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
@@ -722,7 +728,7 @@ def extract_fundi(folds, depth_file,
     else:
         fundi_file = None
 
-    return fundi, n_fundi, likelihoods, fundi_file
+    return fundi.tolist(), n_fundi, likelihoods, fundi_file
 
 
 # Example
