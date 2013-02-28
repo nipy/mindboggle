@@ -67,7 +67,7 @@ def extract_folds(depth_file, min_fold_size=1,
 
     Returns
     -------
-    folds : array of integers
+    folds : list of integers
         fold numbers for all vertices (-1 for non-fold vertices)
     n_folds :  int
         number of folds
@@ -98,10 +98,8 @@ def extract_folds(depth_file, min_fold_size=1,
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-    from mindboggle.utils.mesh import fill_holes
+    from mindboggle.utils.mesh import find_neighbors, fill_holes
     from mindboggle.labels.segment import segment, watershed, shrink_segments
-    if not len(neighbor_lists):
-        from mindboggle.utils.mesh import find_neighbors
 
     do_fill_holes = True
 
@@ -257,13 +255,13 @@ def extract_folds(depth_file, min_fold_size=1,
     else:
         folds_file = None
 
-    return folds, n_folds, folds_file
+    return folds.tolist(), n_folds, folds_file
 
 
 #===============================================================================
 # Normalize depths in each fold
 #===============================================================================
-def normalize_fold_depths(depth_file, folds, save_file=False):
+def normalize_fold_depths(depth_file, folds_or_file, save_file=False):
 
     """
     Normalize depths in each fold.
@@ -272,8 +270,8 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     ----------
     depth_file : string
         name of VTK file with a depth value for each vertex
-    folds : list or string
-        fold ID for each vertex or name of folds file containing folds scalars
+    folds_or_file : list or string
+        fold number for each vertex or name of VTK file containing folds scalars
     save_file : Boolean
         save output VTK file?
 
@@ -305,8 +303,11 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
 
-    if isinstance(folds, str):
-        folds, name = read_scalars(folds)
+    # Load fold numbers if folds_or_file is a string
+    if isinstance(folds_or_file, str):
+        folds, name = read_scalars(folds_or_file)
+    elif isinstance(folds_or_file, list):
+        folds = folds_or_file
 
     depths, name = read_scalars(depth_file, True, True)
 
@@ -335,4 +336,4 @@ def normalize_fold_depths(depth_file, folds, save_file=False):
     else:
         depth_folds_file = None
 
-    return depth_folds, depth_folds_file
+    return depth_folds.tolist(), depth_folds_file
