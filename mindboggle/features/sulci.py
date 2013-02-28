@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract sulci
 #===============================================================================
-def extract_sulci(labels_file, folds, label_pair_lists,
+def extract_sulci(labels_file, folds_or_file, label_pair_lists,
                   min_boundary=1, sulcus_names=[], save_file=False):
     """
     Identify sulci from folds in a brain surface according to a labeling
@@ -40,9 +40,9 @@ def extract_sulci(labels_file, folds, label_pair_lists,
     Parameters
     ----------
     labels_file : string
-        file name for surface mesh vtk containing labels for all vertices
-    folds : list or string
-        fold ID for each vertex or name of folds file containing folds scalars
+        file name for surface mesh VTK containing labels for all vertices
+    folds_or_file : list or string
+        fold number for each vertex or name of VTK file containing folds scalars
     label_pair_lists : list of sublists of subsublists of integers
         each subsublist contains a pair of labels, and the sublist of these
         label pairs represents the label boundaries defining a sulcus
@@ -55,7 +55,7 @@ def extract_sulci(labels_file, folds, label_pair_lists,
 
     Returns
     -------
-    sulci : array of integers
+    sulci : list of integers
         sulcus numbers for all vertices (-1 for non-sulcus vertices)
     n_sulci : integers
         number of sulci
@@ -101,8 +101,11 @@ def extract_sulci(labels_file, folds, label_pair_lists,
     from mindboggle.labels.segment import propagate, segment
 
 
-    if isinstance(folds, str):
-        folds, name = read_scalars(folds)
+    # Load fold numbers if folds_or_file is a string
+    if isinstance(folds_or_file, str):
+        folds, name = read_scalars(folds_or_file)
+    elif isinstance(folds_or_file, list):
+        folds = folds_or_file
 
     # Prepare list of sulcus label lists (labels within a sulcus)
     label_lists = []
@@ -342,7 +345,7 @@ def extract_sulci(labels_file, folds, label_pair_lists,
     else:
         sulci_file = None
 
-    return sulci, n_sulci, sulci_file
+    return sulci.tolist(), n_sulci, sulci_file
 
 #===============================================================================
 # Example: extract_sulci()
