@@ -830,6 +830,8 @@ def scalars_checker(scalars, scalar_names):
       ([[1, 2, 3], [4, 5, 6]], ['123', '123'])
     >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
       Error: Dimension of new_scalars is too high.
+    >>> scalars_checker(np.array([np.array([0,7,9]),[1,2,3]]), ["123"])
+      ([[0, 7, 9], [1, 2, 3]], ['123', '123'])
 
     Notes
     -----
@@ -840,6 +842,7 @@ def scalars_checker(scalars, scalar_names):
     import sys
     import numpy as np
 
+    # If not a list, convert to a list.
     if not isinstance(scalars, list):
         if isinstance(scalars, np.ndarray):
             if len(scalars.shape) < 2: # this is at most a 1-D array
@@ -852,18 +855,28 @@ def scalars_checker(scalars, scalar_names):
         else:
             print "Error: scalars is neither a list nor a numpy array. "
             sys.exit()
+
+    # If the list contains integers or floats, put in a list.
+    if isinstance(scalars[0], int) or isinstance(scalars[0], float):
+        scalars = [scalars]
+    # If the list contains all lists, accept format.
+    elif all([isinstance(x, list) for x in scalars]):
+        pass
+    # If the list contains arrays (and optionally lists), convert arrays to lists.
+    elif all([isinstance(x, list) or isinstance(x, np.ndarray) for x in scalars]):
+        scalars2 = []
+        for x in scalars:
+            if isinstance(x, list):
+                scalars2.append(x)
+            else:
+                scalars2.append(x.tolist())
+        scalars = scalars2
     else:
-        # This is an acceptable 1-D list
-        if isinstance(scalars[0], int) or isinstance(scalars[0], float):
-            scalars = [scalars]
-        elif isinstance(scalars[0], list):
-            pass
-        else:
-            print "io_vtk.py: Error: scalars is a 1-D list containing unacceptable elements. "
-            print "io_vtk.py: scalars type is:", type(scalars)
-            print "io_vtk,py: scalar length is:", len(scalars)
-            print "io_vtk.py: scalars[0] type is:", type(scalars[0])
-            sys.exit()
+        print "io_vtk.py: Error: scalars is a 1-D list containing unacceptable elements. "
+        print "io_vtk.py: scalars type is:", type(scalars)
+        print "io_vtk,py: scalar length is:", len(scalars)
+        print "io_vtk.py: scalars[0] type is:", type(scalars[0])
+        sys.exit()
 
     # If scalar_names is a string, create a list containing
     # as many of this string as there are scalar lists.
