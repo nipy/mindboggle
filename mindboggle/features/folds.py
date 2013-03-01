@@ -84,7 +84,7 @@ def extract_folds(depth_file, min_fold_size=1,
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>>
-    >>> folds, n_folds = extract_folds(depth_file, 50, True)
+    >>> folds, n_folds = extract_folds(depth_file, 50, True, False)
     >>>
     >>> # Write results to vtk file and view:
     >>> folds = folds.tolist()
