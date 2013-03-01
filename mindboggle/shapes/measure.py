@@ -320,12 +320,17 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
-        mean_value = np.mean(values[I])
-        norm_mean_value = avg_by_area(values[I], areas[I])
-        mean_values.append(mean_value)
-        norm_mean_values.append(norm_mean_value)
-        surface_area = sum(areas[I])
-        surface_areas.append(surface_area)
+        if I:
+            mean_value = np.mean(values[I])
+            norm_mean_value = avg_by_area(values[I], areas[I])
+            mean_values.append(mean_value)
+            norm_mean_values.append(norm_mean_value)
+            surface_area = sum(areas[I])
+            surface_areas.append(surface_area)
+        else:
+            mean_values.append(0)
+            norm_mean_values.append(0)
+            surface_areas.append(0)
 
     return mean_values, norm_mean_values, surface_areas, label_list
 
