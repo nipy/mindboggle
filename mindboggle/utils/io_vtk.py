@@ -659,10 +659,10 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> depths, name = read_scalars(depth_file, True,True)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> sulci, name = read_scalars(sulci_file, True,True)
+    >>> sulci, name = read_scalars(sulci_file)
     >>> #
     >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
-    >>>                 depths, 'depths', sulci)
+    >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.mesh import plot_vtk
@@ -801,22 +801,33 @@ def scalars_checker(scalars, scalar_names):
     scalars : list of lists of floats (or single list or 1-/2-D array of floats)
     scalar_names : string or list of strings
 
+    Returns
+    -------
+    scalars : list of lists of floats
+    scalar_names : list of strings
+
     Examples
     --------
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import scalars_checker
+    >>> scalars_checker([[1,2],[3,4]], ["list1", "list2"])
+      ([[1, 2], [3, 4]], ['list1', 'list2'])
     >>> scalars_checker([[1,2],[3,4]], "")
-      ([[1, 2], [3, 4]], [''])
+      ([[1, 2], [3, 4]], ['', ''])
+    >>> scalars_checker([[1,2],[3,4]], ["list1", "list2", "list3"])
+      ([[1, 2], [3, 4]], ['list1', 'list2', 'list3'])
+    >>> scalars_checker([[1,2],[3,4]], "list1")
+      ([[1, 2], [3, 4]], ['list1', 'list1'])
     >>> scalars_checker([1,2,3,4], ["123"])
       ([[1, 2, 3, 4]], ['123'])
     >>> scalars_checker(1, ["123"])
       Error: scalars is neither a list nor a numpy array.
     >>> scalars_checker(np.array([1,2,3]), ["123"])
-      Warning: the new_scalars is a 1-D numpy array. Conversion done but may have problems in final VTK.
+      ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3]]), ["123"])
-    >>> ([[1, 2, 3]], ['123'])
+      ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
-    >>> ([[1, 2, 3], [4, 5, 6]], ['123'])
+      ([[1, 2, 3], [4, 5, 6]], ['123', '123'])
     >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
       Error: Dimension of new_scalars is too high.
 
@@ -831,10 +842,8 @@ def scalars_checker(scalars, scalar_names):
 
     if not isinstance(scalars, list):
         if isinstance(scalars, np.ndarray):
-            if len(scalars.shape) < 2: # this is a 1-D array
-                scalars = np.array([scalars]) # increase dimension by 1
-                print "Warning: scalars is a 1-D numpy array. Conversion done but may have problems in final VTK. "
-                scalars = scalars.tolist()
+            if len(scalars.shape) < 2: # this is at most a 1-D array
+                scalars = [scalars.tolist()]
             elif len(scalars.shape) == 2: # 2-D numpy array
                 scalars = scalars.tolist()
             else:
@@ -843,8 +852,7 @@ def scalars_checker(scalars, scalar_names):
         else:
             print "Error: scalars is neither a list nor a numpy array. "
             sys.exit()
-    else:  # a list, but may be 1-D
-
+    else:
         # This is an acceptable 1-D list
         if isinstance(scalars[0], int) or isinstance(scalars[0], float):
             scalars = [scalars]
@@ -857,10 +865,15 @@ def scalars_checker(scalars, scalar_names):
             print "io_vtk.py: scalars[0] type is:", type(scalars[0])
             sys.exit()
 
+    # If scalar_names is a string, create a list containing
+    # as many of this string as there are scalar lists.
     if isinstance(scalar_names, str):
-        scalar_names = [scalar_names]
+        scalar_names = [scalar_names for x in scalars]
     elif isinstance(scalar_names, list):
-        pass
+        if len(scalar_names) < len(scalars):
+            scalar_names = [scalar_names[0] for x in scalars]
+        else:
+            pass
     else:
         print "Error: scalar_names is neither a list nor a string"
         sys.exit()
