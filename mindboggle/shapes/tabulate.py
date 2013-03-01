@@ -83,12 +83,11 @@ def write_mean_shapes_table(table_file, column_names, labels,
     columns = []
     norm_columns = []
     for i, vtk_file in enumerate(vtk_files):
-        if vtk_file:
-            values, name = read_scalars(vtk_file, return_first=True, return_array=True)
+        values, name = read_scalars(vtk_file, return_first=True, return_array=True)
+        if values.size:
             mean_values, norm_mean_values, norm_values, \
-            label_list = mean_value_per_label(values, norms, labels,
-                                              exclude_labels)
-
+                label_list = mean_value_per_label(values, norms, labels,
+                                                  exclude_labels)
             columns.append(mean_values)
             norm_columns.append(norm_mean_values)
         else:
@@ -171,9 +170,10 @@ def write_vertex_shapes_table(table_file, column_names,
     for i, vtk_file in enumerate(vtk_files):
         if vtk_file:
             values, name = read_scalars(vtk_file)
-            if not columns:
-                indices = range(len(values))
-            columns.append(values)
+            if values:
+                if not columns:
+                    indices = range(len(values))
+                columns.append(values)
         else:
             column_names[i] = ''
 
