@@ -533,6 +533,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 #==================
 def extract_fundi(folds_or_file, depth_file,
                   mean_curvature_file, min_curvature_vector_file,
+                  likelihoods_or_file=[],
                   min_distance=5, thr=0.5, use_only_endpoints=True,
                   compute_local_depth=True, save_file=False):
     """
@@ -563,6 +564,8 @@ def extract_fundi(folds_or_file, depth_file,
         surface mesh file in VTK format with scalar values
     min_curvature_vector_file : string
         surface mesh file in VTK format with scalar values
+    likelihoods_or_file : list or string (optional)
+        fundus likelihood values (if empty, compute within function)
     min_fold_size : int
         minimum fold size (number of vertices)
     min_distance :  int
@@ -608,14 +611,14 @@ def extract_fundi(folds_or_file, depth_file,
     >>> fold_array = -1 * np.ones(len(folds))
     >>> fold_array[indices_fold] = 1
     >>>
-    >>> fundi, n_fundi, likelihoods = extract_fundi(fold_array,
-    >>>     depth_file, mean_curv_file, min_curv_vec_file,
-    >>>     min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
+    >>> fundi, n_fundi, likelihoods, fundi_file = extract_fundi(fold_array,
+    >>>     depth_file, mean_curv_file, min_curv_vec_file, likelihoods_or_file=[],
+    >>>     min_distance=5, thr=0.5, use_only_endpoints=True,
+    >>>     compute_local_depth=True, save_file=True)
     >>>
-    >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_extract_fundi.vtk', fundi, 'fundi', folds)
+    >>> # View:
     >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_extract_fundi.vtk')
+    >>> plot_vtk('fundi.vtk')
 
     """
     import os
@@ -634,6 +637,19 @@ def extract_fundi(folds_or_file, depth_file,
     elif isinstance(folds_or_file, np.ndarray):
         folds = folds_or_file.tolist()
 
+    # Load likelihood values as array if likelihoods_or_file is a non-empty string
+    compute_likelihoods = True
+    if likelihoods_or_file:
+        if isinstance(likelihoods_or_file, str):
+            likelihoods, name = read_scalars(likelihoods_or_file, True, True)
+            compute_likelihoods = False
+        elif isinstance(likelihoods_or_file, list):
+            likelihoods = np.array(likelihoods_or_file)
+            compute_likelihoods = False
+        elif isinstance(likelihoods_or_file, np.ndarray):
+            likelihoods = likelihoods_or_file
+            compute_likelihoods = False
+
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
         name = read_vtk(depth_file, return_first=True, return_array=True)
@@ -645,15 +661,15 @@ def extract_fundi(folds_or_file, depth_file,
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # For each fold region...
-    n_folds = len([x for x in np.unique(folds) if x > -1])
+    unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
+    n_folds = len(unique_fold_IDs)
     print("Extract a fundus from each of {0} regions...".format(n_folds))
     t1 = time()
     Z = np.zeros(npoints)
     fundi = -1 * np.ones(npoints)
-    likelihoods = np.copy(fundi)
+    if compute_likelihoods:
+        likelihoods = np.copy(fundi)
 
-    unique_fold_IDs = np.unique(folds)
-    unique_fold_IDs = [x for x in unique_fold_IDs if x >= 0]
     count = 0
     for fold_ID in unique_fold_IDs:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
@@ -665,9 +681,12 @@ def extract_fundi(folds_or_file, depth_file,
             local_depths = depths[indices_fold]
             if compute_local_depth:
                 local_depths = local_depths / np.max(local_depths)
-            fold_likelihoods = compute_likelihood(local_depths,
-                                                  mean_curvatures[indices_fold])
-            likelihoods[indices_fold] = fold_likelihoods
+            if compute_likelihoods:
+                fold_likelihoods = compute_likelihood(local_depths,
+                                       mean_curvatures[indices_fold])
+                likelihoods[indices_fold] = fold_likelihoods
+            else:
+                fold_likelihoods = likelihoods[indices_fold]
 
             # Find fundus points
             fold_indices_anchors = find_anchors(points[indices_fold],
@@ -721,16 +740,20 @@ def extract_fundi(folds_or_file, depth_file,
     #---------------------------------------------------------------------------
     # Return fundi, number of fundi, likelihood values, and file name
     #---------------------------------------------------------------------------
+    likelihoods = likelihoods.tolist()
+    fundi = fundi.tolist()
+
     if save_file:
 
         fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-        rewrite_scalars(depth_file, fundi_file, [fundi.tolist(), likelihoods.tolist()],
-                        'fundi_likelihoods', fundi)
+        #rewrite_scalars(depth_file, fundi_file, fundi, 'fundi', folds)
+        rewrite_scalars(depth_file, fundi_file, [fundi, likelihoods],
+                        ['fundi', 'likelihoods'], folds)
 
     else:
         fundi_file = None
 
-    return fundi.tolist(), n_fundi, likelihoods, fundi_file
+    return fundi, n_fundi, likelihoods, fundi_file
 
 
 # Example
@@ -758,11 +781,10 @@ if __name__ == "__main__" :
 
     sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
 
-    fundi, n_fundi, likelihoods = extract_fundi(sulci, neighbor_lists,
+    fundi, n_fundi, likelihoods, fundi_file = extract_fundi(sulci, neighbor_lists,
         depth_file, mean_curvature_file, min_curvature_vector_file,
-        min_distance=5, thr=0.5, use_only_endpoints=True, compute_local_depth=True)
+        min_distance=5, thr=0.5, use_only_endpoints=True,
+        compute_local_depth=True, save_file=True)
 
     # Write results to vtk file and view:
-    rewrite_scalars(depth_file, 'test_extract_fundi.vtk',
-                         [fundi], ['fundi'], sulci)
-    plot_vtk('test_extract_fundi.vtk')
+    plot_vtk('fundi.vtk')

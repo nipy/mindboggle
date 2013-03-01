@@ -82,8 +82,8 @@ input_vtk = False  # Load my VTK surfaces directly (not FreeSurfer surfaces)
 do_save_folds = True
 do_save_fold_depths = True
 do_save_sulci = True
-do_save_fundi = False
-do_extract_fundi = False
+do_save_fundi = True
+do_extract_fundi = True
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -118,7 +118,7 @@ init_labels = 'manual' #'DKTatlas'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-------------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
+hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
@@ -664,6 +664,7 @@ if run_featureFlow:
                                                        'depth_file',
                                                        'mean_curvature_file',
                                                        'min_curvature_vector_file',
+                                                       'likelihoods_or_file',
                                                        'min_distance',
                                                        'thr',
                                                        'use_only_endpoints',
@@ -671,7 +672,7 @@ if run_featureFlow:
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
-                                                        'likelihoods',
+                                                        'likelihoods_or_file',
                                                         'fundi_file']))
         if fundi_from_sulci:
             featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
@@ -683,10 +684,15 @@ if run_featureFlow:
                            'Fundi.mean_curvature_file'),
                           ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
+        Like = read_columns('/Users/arno/Desktop/likelihoods_3subj/likelihood_HLN_12_1.txt')
+        import numpy as np
+        Like = [np.float(x) for x in Like[0]]
+        FundiNode.inputs.likelihoods_or_file = Like
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
         FundiNode.inputs.compute_local_depth = True
+        FundiNode.inputs.save_file = True
         # Save VTK file with fundi and likelihood values
         if do_save_fundi:
             mbFlow.connect([(featureFlow, Sink,
