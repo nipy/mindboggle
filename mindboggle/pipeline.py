@@ -83,7 +83,7 @@ do_save_folds = True
 do_save_fold_depths = True
 do_save_sulci = True
 do_save_fundi = False
-do_extract_fundi = True
+do_extract_fundi = False
 fill_volume = 0#True  # Fill (gray matter) volumes with surface labels
 include_thickness = True  # Include FreeSurfer's thickness measure
 include_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -93,10 +93,10 @@ evaluate_volume_labels = False  # Volume overlap: auto vs. manual labels
 #-------------------------------------------------------------------------------
 # Mindboggle workflows
 #-------------------------------------------------------------------------------
-run_labelFlow = True
+run_labelFlow = 0 #True
 run_shapeFlow = True
 run_featureFlow = True
-run_tableFlow = True
+run_tableFlow = 0 #True
 #-------------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -537,11 +537,11 @@ if run_shapeFlow:
     mbFlow.connect([(shapeFlow, Sink,
                      [('Depth.depth_file', 'shapes.@depth')])])
     mbFlow.connect([(shapeFlow, Sink,
-         [('Curvature.mean_curvature_file', 'shapes.@mean_curvature'),
-          ('Curvature.gauss_curvature_file', 'shapes.@gauss_curvature'),
-          ('Curvature.max_curvature_file', 'shapes.@max_curvature'),
-          ('Curvature.min_curvature_file', 'shapes.@min_curvature'),
-          ('Curvature.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
+     [('Curvature.mean_curvature_file', 'shapes.@mean_curvature'),
+      ('Curvature.gauss_curvature_file', 'shapes.@gauss_curvature'),
+      ('Curvature.max_curvature_file', 'shapes.@max_curvature'),
+      ('Curvature.min_curvature_file', 'shapes.@min_curvature'),
+      ('Curvature.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
 
 ################################################################################
 #
@@ -558,7 +558,8 @@ if run_featureFlow:
     FoldsNode = Node(name='Folds',
                      interface = Fn(function = extract_folds,
                                     input_names = ['depth_file',
-                                                   'min_fold_size'
+                                                   'min_fold_size',
+                                                   'extract_subfolds',
                                                    'save_file'],
                                     output_names = ['folds',
                                                     'n_folds',
@@ -567,6 +568,7 @@ if run_featureFlow:
     mbFlow.connect([(shapeFlow, featureFlow,
                      [('Depth.depth_file','Folds.depth_file')])])
     FoldsNode.inputs.min_fold_size = 50
+    FoldsNode.inputs.extract_subfolds = True
     FoldsNode.inputs.save_file = do_save_folds
     # Save folds
     if do_save_folds:
