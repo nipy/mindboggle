@@ -631,6 +631,8 @@ def extract_fundi(folds_or_file, depth_file,
         folds, name = read_scalars(folds_or_file)
     elif isinstance(folds_or_file, list):
         folds = folds_or_file
+    elif isinstance(folds_or_file, np.ndarray):
+        folds = folds_or_file.tolist()
 
     # Load depth and curvature values from VTK and text files
     faces, lines, indices, points, npoints, depths, \
@@ -722,7 +724,7 @@ def extract_fundi(folds_or_file, depth_file,
     if save_file:
 
         fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-        rewrite_scalars(depth_file, fundi_file, [fundi, likelihoods],
+        rewrite_scalars(depth_file, fundi_file, [fundi.tolist(), likelihoods.tolist()],
                         'fundi_likelihoods', fundi)
 
     else:
