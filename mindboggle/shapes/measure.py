@@ -334,6 +334,57 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
 
     return mean_values, norm_mean_values, surface_areas, label_list
 
+def volume_per_label(labels, input_file):
+    """
+    Compute volume per labeled region in a nibabel-readable (e.g., nifti) image.
+
+    Parameters
+    ----------
+    labels : list of integers
+        label numbers for image volumes
+    input_file : string
+        name of image file, consisting of index-labeled pixels/voxels
+
+    Returns
+    -------
+    volumes : list of floats
+        volume for each labeled region
+    labels : list of integers
+        label numbers for image volumes
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.shapes.measure import volume_per_label
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> labels_file = os.path.join(path, 'info', 'labels.volume.DKT25.txt')
+    >>> labels = read_columns(labels_file, 1)[0]
+    >>> volumes = volume_per_label(labels, input_file)
+    >>> print(volumes)
+
+    """
+    import numpy as np
+    import nibabel as nb
+
+    # Load labeled image volumes
+    data = nb.load(input_file).get_data().ravel()
+
+    # Initialize output
+    volumes = np.zeros((len(labels), 1))
+
+    # Loop through labels
+    for ilabel, label in enumerate(labels):
+        label = int(label)
+        volumes[ilabel, 0] = label
+
+        # Find which voxels contain the label in each volume
+        indices = np.where(data==label)[0]
+        volumes[ilabel] = len(indices)
+
+    return volumes, labels
+
 def percentile(N, percent, key=lambda x:x):
     """
     Find the percentile of a list of values.

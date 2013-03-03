@@ -671,7 +671,7 @@ def extract_fundi(folds_or_file, depth_file,
         likelihoods = np.copy(fundi)
 
     count = 0
-    for fold_ID in unique_fold_IDs:
+    for fold_ID in unique_fold_IDs[0:2]:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
 
