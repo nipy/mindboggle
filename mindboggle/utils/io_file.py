@@ -55,12 +55,63 @@ def write_table(labels, columns, column_names, table_file):
 
     Parameters
     ----------
-    labels :  list (same length as values)
-    columns :  list of lists of values (each list is a column of values)
-    column_names :  names of columns [list of strings]
+    labels :  list of integers
+        label numbers (same length as values)
+    columns :  list of lists of floats or integers
+        values (each list is a column of values)
+    column_names :  list of strings
+        names of columns
+    table_file : string
+        name of output table file
+
+    Returns
+    -------
+    table_file : string
+        name of output table file
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_file import write_table
+    >>> labels = [0,1,3,5]
+    >>> columns = [0.12,0.36,0.75,0.03]
+    >>> column_names = ['label', 'volume']
+    >>> table_file = 'label_volume_shapes.txt'
+    >>> write_table(labels, columns, column_names, table_file)
 
     """
+    import sys
 
+    #-----------------------
+    # Check format of inputs
+    #-----------------------
+    # If the list contains integers or floats, put in a list.
+    if isinstance(columns[0], int) or isinstance(columns[0], float):
+        columns = [columns]
+    # If the list contains all lists, accept format.
+    elif all([isinstance(x, list) for x in columns]):
+        pass
+    else:
+        print "io_file.py: Error: columns contains unacceptable elements."
+        print "io_file.py: columns type is:", type(columns)
+        print "io_file,py: columns length is:", len(columns)
+        print "io_file.py: columns[0] type is:", type(columns[0])
+        sys.exit()
+    # If column_names is a string, create a list containing
+    # as many of this string as there are columns.
+    if isinstance(column_names, str):
+        column_names = [column_names for x in columns]
+    elif isinstance(column_names, list):
+        if len(column_names) < len(columns):
+            column_names = [column_names[0] for x in columns]
+        else:
+            pass
+    else:
+        print "Error: column_names is neither a list nor a string"
+        sys.exit()
+
+    #----------------------------
+    # Open table file for writing
+    #----------------------------
     Fp = open(table_file, 'w')
 
     if column_names:
@@ -73,6 +124,8 @@ def write_table(labels, columns, column_names, table_file):
         Fp.write("\t".join(row) + "\n")
 
     Fp.close()
+
+    return table_file
 
 def write_list(table_file, List, header=""):
     """
