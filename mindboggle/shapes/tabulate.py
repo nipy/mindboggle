@@ -10,8 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def write_mean_shapes_table(table_file, column_names, labels,
-                            depth_file, depth_folds_file,
+def write_mean_shapes_table(table_file, column_names, labels, depth_file,
                             mean_curvature_file, gauss_curvature_file,
                             max_curvature_file, min_curvature_file,
                             thickness_file='', convexity_file='',
@@ -24,7 +23,7 @@ def write_mean_shapes_table(table_file, column_names, labels,
     filename :  output filename (without path)
     column_names :  names of columns [list of strings]
     labels :  name of label file or list of labels (same length as values)
-    *shape_files :  arbitrary number of vtk files with scalar values
+    *shape_files :  vtk files with scalar values
     norm_vtk_file :  name of file containing per-vertex normalization values
                      (e.g., surface areas)
     exclude_labels : list of integer labels to be excluded
@@ -39,7 +38,7 @@ def write_mean_shapes_table(table_file, column_names, labels,
     >>> import os
     >>> from mindboggle.shapes.tabulate import write_mean_shapes_table
     >>> table_file = 'test_write_mean_shapes_table.txt'
-    >>> column_names = ['labels', 'area', 'depth', 'norm_depth', 'mean_curvature',
+    >>> column_names = ['labels', 'area', 'depth', 'mean_curvature',
     >>>                 'gauss_curvature', 'max_curvature', 'min_curvature',
     >>>                 'thickness', 'convexity']
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -47,14 +46,13 @@ def write_mean_shapes_table(table_file, column_names, labels,
     >>> exclude_values = [-1]
     >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> depth_folds_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.norm.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
     >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
     >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
     >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
     >>> #
     >>> write_mean_shapes_table(table_file, column_names, labels_file,
-    >>>                         depth_file, depth_folds_file, mean_curv_file,
+    >>>                         depth_file, mean_curv_file,
     >>>                         gauss_curv_file, max_curv_file, min_curv_file,
     >>>                         thickness_file='', convexity_file='',
     >>>                         norm_vtk_file=area_file, exclude_labels=exclude_values)
@@ -75,7 +73,7 @@ def write_mean_shapes_table(table_file, column_names, labels,
         norms = np.ones(len(labels))
 
     # List files
-    vtk_files = [depth_file, depth_folds_file, mean_curvature_file,
+    vtk_files = [depth_file, mean_curvature_file,
                  gauss_curvature_file, max_curvature_file, min_curvature_file,
                  thickness_file, convexity_file]
 
@@ -110,8 +108,8 @@ def write_mean_shapes_table(table_file, column_names, labels,
     return means_file, norm_means_file
 
 def write_vertex_shapes_table(table_file, column_names,
-                              labels_file, sulci_file, fundi_file,
-                              area_file, depth_file, depth_folds_file,
+                              labels_file, folds_file, sulci_file, fundi_file,
+                              area_file, depth_file,
                               mean_curvature_file, gauss_curvature_file,
                               max_curvature_file, min_curvature_file,
                               thickness_file='', convexity_file=''):
@@ -136,15 +134,15 @@ def write_vertex_shapes_table(table_file, column_names,
     >>>
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> table_file = 'test_write_vertex_shape_table.txt'
-    >>> column_names = ['labels', 'sulcus', 'fundus', 'area', 'depth', 'norm_depth',
+    >>> column_names = ['labels', 'folds', 'sulcus', 'fundus', 'area', 'depth',
     >>>                 'mean_curvature', 'gauss_curvature', 'max_curvature',
-    >>>                 'min_curvature', 'thickness', 'convexity']
+    >>>                 'min_curvature', '', '']
     >>> labels_file = ''
     >>> fundi_file = ''
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> depth_folds_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.norm.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
     >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
     >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
@@ -160,8 +158,9 @@ def write_vertex_shapes_table(table_file, column_names,
     from mindboggle.utils.io_file import write_table
 
     # List files
-    vtk_files = [labels_file, sulci_file, fundi_file, area_file, depth_file,
-                 depth_folds_file, mean_curvature_file, gauss_curvature_file,
+    vtk_files = [labels_file, folds_file, sulci_file, fundi_file,
+                 area_file, depth_file,
+                 mean_curvature_file, gauss_curvature_file,
                  max_curvature_file, min_curvature_file,
                  thickness_file, convexity_file]
 
