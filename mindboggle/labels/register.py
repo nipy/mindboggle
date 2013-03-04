@@ -35,7 +35,7 @@ def read_itk_transform(transform_file):
 
     Examples
     --------
-    >>> import os
+    import os
     >>> from mindboggle.labels.register import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
@@ -69,60 +69,71 @@ def read_itk_transform(transform_file):
 
     return transform
 
-def transform_points(hemi, subject, transform,
-                     subjects_path, atlas, atlas_string):
+def apply_affine_transform(transform_file, vtk_file):
     """
-    Transform the labels from a surface atlas via a template
-    using FreeSurfer's mri_surf2surf (wrapped in NiPype).
-
-    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
-    wraps command ``mri_surf2surf``:
-
-        "Transform a surface file from one subject to another via a spherical registration.
-        Both the source and target subject must reside in your Subjects Directory,
-        and they must have been processed with recon-all, unless you are transforming
-        to one of the icosahedron meshes."
+    Transform coordinates using an affine matrix.
 
     Parameters
     ----------
-    hemi : string
-        hemisphere ['lh' or 'rh']
-    subject : string
-        subject corresponding to FreeSurfer subject directory
-    transform : string
-        name of FreeSurfer spherical surface registration transform file
-    subjects_path : string
-        name of FreeSurfer subjects directory
-    atlas : string
-        name of atlas
-    atlas_string : string
-        name of atlas labeling protocol
+    transform file : string
+        name of ITK affine transform file
+    vtk_file : string
+        name of VTK file containing point coordinate data
+
+    Returns
+    -------
+    affined_points : list of lists of floats
+        transformed coordinates
+    output_file : string
+        name of VTK file containing transformed point data
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.labels.register import apply_affine_transform
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> apply_affine_transform(transform_file, vtk_file)
+    >>> # View
+    >>> plot_vtk('transformed_lh.pial.depth.vtk')
+
 
     """
-#    from mindboggle.utils.io_vtk import read_points
-#    points = read_points(file)
-    from os import path, getcwd
-    from nipype.interfaces.freesurfer import SurfaceTransform
+    import os
+    import numpy as np
 
-    sxfm = SurfaceTransform()
-    sxfm.inputs.hemi = hemi
-    sxfm.inputs.target_subject = subject
-    sxfm.inputs.source_subject = atlas
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.labels.register import read_itk_transform
 
-    # Source file
-    sxfm.inputs.source_annot_file = path.join(subjects_path,
-                                    atlas, 'label',
-                                    hemi + '.' + atlas_string + '.annot')
-    # Output annotation file
-    output_file = path.join(getcwd(), hemi + '.' + atlas + '.' + atlas_string + \
-                                      '_to_' + subject + '.annot')
-    sxfm.inputs.out_file = output_file
+    # Read ITK affine transform file
+    transform = read_itk_transform(transform_file)
 
-    # Arguments: strings within registered files
-    args = ['--srcsurfreg', transform,
-            '--trgsurfreg', transform]
-    sxfm.inputs.args = ' '.join(args)
+    # Read VTK file
+    faces, lines, indices, points, npoints, scalars, name = read_vtk(vtk_file)
 
-    sxfm.run()
+    # Transform points
+    affined_points = transform * np.transpose(points)
 
-    return output_file
+    # Output transformed VTK file
+    output_file = os.path.join(os.getcwd(), 'affined_' + os.path.basename(vtk_file))
+
+    # Write VTK file
+    write_vtk(output_file, affined_points, indices, lines, faces, scalars, name)
+
+    return affined_points, output_file
+
+
+if __name__ == "__main__" :
+    import os
+    from mindboggle.labels.register import apply_affine_transform
+    from mindboggle.utils.mesh import plot_vtk
+    path = os.environ['MINDBOGGLE_DATA']
+    transform_file = os.path.join(path, 'arno', 'mri',
+                                  't1weighted_brain.MNI152Affine.txt')
+    vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    apply_affine_transform(transform_file, vtk_file)
+    # View
+    plot_vtk('transformed_lh.pial.depth.vtk')
