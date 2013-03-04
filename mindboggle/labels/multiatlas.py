@@ -3,22 +3,22 @@
 Atlas-based functions for surface registration-based labeling:
 
 Register to template
-    Register surface to template with FreeSurfer's mris_register.
-    Transform the labels from multiple atlases via a template
-    (using FreeSurfer's mri_surf2surf).
+Register surface to template with FreeSurfer's mris_register.
+Transform the labels from multiple atlases via a template
+(using FreeSurfer's mri_surf2surf).
 
 Transform atlas labels
-    For each brain hemisphere (left and right) in a given subject,
-    read in FreeSurfer *.annot files (multiple labelings) and output one VTK file
-    of majority vote labels, representing a "maximum probability" labeling.
-    The main function is majority_vote() and calls vote_labels().
+For each brain hemisphere (left and right) in a given subject,
+read in FreeSurfer *.annot files (multiple labelings) and output one VTK file
+of majority vote labels, representing a "maximum probability" labeling.
+The main function is majority_vote() and calls vote_labels().
 
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
-    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
+- Arno Klein, 2012-2013 (arno@mindboggle.info) http://binarybottle.com
+- Forrest Sheng Bao, 2012 (forrest.bao@gmail.com) http://fsbao.net
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2013, Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
