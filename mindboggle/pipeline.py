@@ -1178,19 +1178,21 @@ if run_volumeFlow:
                                                input_names = ['labels',
                                                               'columns',
                                                               'column_names',
-                                                              'table_file'],
+                                                              'output_prepend',
+                                                              'output_string'],
                                                output_names = ['table_file']))
-        tableFlow.add_nodes([VolumeLabelTable])
+        mbFlow2.add_nodes([VolumeLabelTable])
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('labels', 'labels')])])
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('volumes', 'columns')])])
         VolumeLabelTable.inputs.column_names = ['label', 'volume']
-        VolumeLabelTable.inputs.table_file = os.path.join(os.getcwd(),
-                                                'label_volume_shapes.txt')
+        VolumeLabelTable.inputs.output_prepend = os.path.join(os.getcwd(),
+                                                     'label_volume_shapes_')
+        mbFlow2.connect([(Info2, VolumeLabelTable, [('subject', 'output_string')])])
         # Save table of label volumes
-        mbFlow.connect([(mbFlow2, Sink2,
-                         [('Volume_label_table.table_file', 'tables.@label_volumes')])])
+        mbFlow2.connect([(VolumeLabelTable, Sink2,
+                          [('table_file', 'tables.@volume_labels')])])
         #-----------------------------------------------------------------------
         # Add volume measures as a column to the table.
         #-----------------------------------------------------------------------
