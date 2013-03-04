@@ -84,10 +84,12 @@ else:
 #===============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_fundi = False # Extract fundi from folds
-do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
+do_sulci = False # Extract sulci from folds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_vertex_tables = True  # Create per-vertex shape tables
+do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
+do_measure_volume = True  # Measure volumes of labeled regions
 do_evaluate_surface = False  # Surface overlap: auto vs. manual labels
 do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
 #-------------------------------------------------------------------------------
@@ -119,7 +121,7 @@ init_labels = 'manual' #'DKTatlas'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-------------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh'] #,'rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
+hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
 #-------------------------------------------------------------------------------
 # Evaluation options
 #-------------------------------------------------------------------------------
@@ -138,7 +140,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
 from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-from mindboggle.utils.io_file import read_columns
+from mindboggle.utils.io_file import read_columns, write_table
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
     surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
 from mindboggle.utils.mesh import find_neighbors_from_file
@@ -147,7 +149,7 @@ from mindboggle.labels.multiatlas import register_template,\
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
 from mindboggle.labels.label import label_with_classifier
-from mindboggle.shapes.measure import area, depth, curvature
+from mindboggle.shapes.measure import area, depth, curvature, volume_per_label
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
 from mindboggle.features.folds import extract_folds, normalize_fold_depths
@@ -595,55 +597,56 @@ if run_featureFlow:
     #===========================================================================
     # Sulci
     #===========================================================================
-    LabelPairs = Node(name='Label_pairs',
-                      interface = Fn(function = sulcus_boundaries,
-                                     input_names = [],
-                                     output_names = ['label_pair_lists']))
-    featureFlow.add_nodes([LabelPairs])
+    if do_sulci:
+        LabelPairs = Node(name='Label_pairs',
+                          interface = Fn(function = sulcus_boundaries,
+                                         input_names = [],
+                                         output_names = ['label_pair_lists']))
+        featureFlow.add_nodes([LabelPairs])
 
-    SulciNode = Node(name='Sulci',
-                     interface = Fn(function = extract_sulci,
-                                    input_names = ['labels_file',
-                                                   'folds_or_file',
-                                                   'label_pair_lists',
-                                                   'min_boundary',
-                                                   'sulcus_names',
-                                                   'save_file'],
-                                    output_names = ['sulci',
-                                                    'n_sulci',
-                                                    'sulci_file']))
-    featureFlow.add_nodes([SulciNode])
-    #---------------------------------------------------------------------------
-    # Use initial labels assigned by FreeSurfer classifier atlas
-    if init_labels == 'DKatlas':
-        mbFlow.connect([(labelFlow, featureFlow,
-                         [('DK_annot_to_VTK.output_vtk','Sulci.labels_file')])])
-    # Use initial labels assigned by Mindboggle classifier atlas
-    elif init_labels == 'DKTatlas':
-        mbFlow.connect([(labelFlow, featureFlow,
-                         [('DKT_annot_to_VTK.vtk_file','Sulci.labels_file')])])
-    # Use initial labels assigned by multi-atlas registration
-    elif init_labels == 'max':
-        mbFlow.connect([(labelFlow, featureFlow,
-                         [('Label_vote.maxlabel_file','Sulci.labels_file')])])
-    # Use manual (atlas) labels
-    elif init_labels == 'manual':
-        mbFlow.connect([(Atlas, featureFlow,
-                         [('atlas_file','Sulci.labels_file')])])
-    #---------------------------------------------------------------------------
-    featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds_or_file')])])
-    featureFlow.connect([(LabelPairs, SulciNode,
-                          [('label_pair_lists','label_pair_lists')])])
-    SulciNode.inputs.min_boundary = 1
-    sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
-    fid = open(sulcus_names_file, 'r')
-    sulcus_names = fid.readlines()
-    sulcus_names = [x.strip('\n') for x in sulcus_names]
-    SulciNode.inputs.sulcus_names = sulcus_names
-    SulciNode.inputs.save_file = True
-    # Save sulci
-    mbFlow.connect([(featureFlow, Sink,
-                     [('Sulci.sulci_file','features.@sulci')])])
+        SulciNode = Node(name='Sulci',
+                         interface = Fn(function = extract_sulci,
+                                        input_names = ['labels_file',
+                                                       'folds_or_file',
+                                                       'label_pair_lists',
+                                                       'min_boundary',
+                                                       'sulcus_names',
+                                                       'save_file'],
+                                        output_names = ['sulci',
+                                                        'n_sulci',
+                                                        'sulci_file']))
+        featureFlow.add_nodes([SulciNode])
+        #---------------------------------------------------------------------------
+        # Use initial labels assigned by FreeSurfer classifier atlas
+        if init_labels == 'DKatlas':
+            mbFlow.connect([(labelFlow, featureFlow,
+                             [('DK_annot_to_VTK.output_vtk','Sulci.labels_file')])])
+        # Use initial labels assigned by Mindboggle classifier atlas
+        elif init_labels == 'DKTatlas':
+            mbFlow.connect([(labelFlow, featureFlow,
+                             [('DKT_annot_to_VTK.vtk_file','Sulci.labels_file')])])
+        # Use initial labels assigned by multi-atlas registration
+        elif init_labels == 'max':
+            mbFlow.connect([(labelFlow, featureFlow,
+                             [('Label_vote.maxlabel_file','Sulci.labels_file')])])
+        # Use manual (atlas) labels
+        elif init_labels == 'manual':
+            mbFlow.connect([(Atlas, featureFlow,
+                             [('atlas_file','Sulci.labels_file')])])
+        #---------------------------------------------------------------------------
+        featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds_or_file')])])
+        featureFlow.connect([(LabelPairs, SulciNode,
+                              [('label_pair_lists','label_pair_lists')])])
+        SulciNode.inputs.min_boundary = 1
+        sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
+        fid = open(sulcus_names_file, 'r')
+        sulcus_names = fid.readlines()
+        sulcus_names = [x.strip('\n') for x in sulcus_names]
+        SulciNode.inputs.sulcus_names = sulcus_names
+        SulciNode.inputs.save_file = True
+        # Save sulci
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Sulci.sulci_file','features.@sulci')])])
 
     #===========================================================================
     # Fundi (curves at the bottoms of folds/sulci)
@@ -804,7 +807,7 @@ if run_tableFlow:
     #===========================================================================
     # Sulcus shapes
     #===========================================================================
-    if run_featureFlow:
+    if run_featureFlow and do_sulci:
         SulcusTable = LabelTable.clone('Sulcus_table')
         tableFlow.add_nodes([SulcusTable])
         SulcusTable.inputs.table_file = 'sulcus_shapes.txt'
@@ -932,7 +935,7 @@ if run_tableFlow:
                                'Vertex_table.folds_file')])])
         else:
             Vertices.inputs.folds_file = ''
-        if run_featureFlow:
+        if run_featureFlow and do_sulci:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Sulci.sulci_file',
                                'Vertex_table.sulci_file')])])
@@ -1070,7 +1073,7 @@ if run_volumeFlow and do_fill:
                                                     'annot_name'],
                                      output_names = ['annot_name',
                                                      'annot_file']))
-    WriteAnnot.inputs.annot_name = 'labels.' + init_labels
+    WriteAnnot.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
     WriteAnnot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([WriteAnnot])
     mbFlow.connect([(Info, annotflow,
@@ -1120,7 +1123,7 @@ if run_volumeFlow:
                                          output_names = ['output_file']))
         mbFlow2.add_nodes([FillVolume])
         mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
-        FillVolume.inputs.annot_name = 'labels.' + init_labels
+        FillVolume.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
         FillVolume.inputs.original_space = True
         mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
         mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
@@ -1147,19 +1150,62 @@ if run_volumeFlow:
     #===========================================================================
     if do_measure_volume:
 
-        FillVolume = Node(name='Fill_volume',
-                          interface = Fn(function = labels_to_volume,
-                                         input_names = ['subject',
-                                                        'annot_name',
-                                                        'original_space',
-                                                        'reference'],
-                                         output_names = ['output_file']))
-        mbFlow2.add_nodes([FillVolume])
-        mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
-        FillVolume.inputs.annot_name = 'labels.' + init_labels
-        FillVolume.inputs.original_space = True
-        mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
-        mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
+        #-----------------------------------------------------------------------
+        # Measure volume of each region of a labeled image file.
+        #-----------------------------------------------------------------------
+        MeasureVolumes = Node(name='Measure_volumes',
+                              interface = Fn(function = volume_per_label,
+                                             input_names = ['labels',
+                                                            'input_file'],
+                                             output_names = ['volumes',
+                                                             'labels']))
+        mbFlow2.add_nodes([MeasureVolumes])
+        volume_labels_list_file = os.path.join(protocol_path,
+                                               'labels.volume.'+protocol+'.txt')
+        volume_labels_list = read_columns(volume_labels_list_file, 1)[0]
+        MeasureVolumes.inputs.labels = volume_labels_list
+        if do_fill:
+            mbFlow2.connect([(Relabel, MeasureVolumes,
+                              [('output_file', 'input_file')])])
+        else:
+            sys.exit('No alternative set of label volumes provided...')
+
+        #-----------------------------------------------------------------------
+        # Create a table to save the volume measures.
+        #-----------------------------------------------------------------------
+        VolumeLabelTable = Node(name='Volume_label_table',
+                                interface = Fn(function = write_table,
+                                               input_names = ['labels',
+                                                              'columns',
+                                                              'column_names',
+                                                              'table_file'],
+                                               output_names = ['table_file']))
+        tableFlow.add_nodes([VolumeLabelTable])
+        mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
+                          [('labels', 'labels')])])
+        mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
+                          [('volumes', 'columns')])])
+        VolumeLabelTable.inputs.column_names = ['label', 'volume']
+        VolumeLabelTable.inputs.table_file = os.path.join(os.getcwd(),
+                                                'label_volume_shapes.txt')
+        # Save table of label volumes
+        mbFlow.connect([(mbFlow2, Sink2,
+                         [('Volume_label_table.table_file', 'tables.@label_volumes')])])
+        #-----------------------------------------------------------------------
+        # Add volume measures as a column to the table.
+        #-----------------------------------------------------------------------
+        #AddVolumesToTable = Node(name='Add_volumes_to_table',
+        #                         interface = Fn(function = add_column_to_table,
+        #                                        input_names = ['table_file'],
+        #                                        output_names = ['column',
+        #                                                        'column_name',
+        #                                                        'table_file']))
+        #mbFlow2.add_nodes([AddVolumesToTable])
+        #mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
+        #                  [('volumes', 'column')])])
+        #AddVolumesToTable.inputs.column_name = 'volume'
+        #mbFlow2.connect([(VolumeLabelTable, AddVolumesToTable,
+        #                  [('table_file', 'table_file')])])
 
     #===========================================================================
     # Evaluate label volume overlaps.
