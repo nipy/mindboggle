@@ -361,7 +361,8 @@ def volume_per_label(labels, input_file):
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> labels_file = os.path.join(path, 'info', 'labels.volume.DKT25.txt')
     >>> labels = read_columns(labels_file, 1)[0]
-    >>> volumes = volume_per_label(labels, input_file)
+    >>> labels = [int(x) for x in labels]
+    >>> volumes, labels = volume_per_label(labels, input_file)
     >>> print(volumes)
 
     """
@@ -369,21 +370,24 @@ def volume_per_label(labels, input_file):
     import nibabel as nb
 
     # Load labeled image volumes
-    data = nb.load(input_file).get_data().ravel()
+    img = nb.load(input_file)
+    hdr = img.get_header()
+    pixdims = hdr.get_zooms()
+    volume_per_voxel = np.product(pixdims)
+    data = img.get_data().ravel()
 
     # Initialize output
-    volumes = np.zeros((len(labels), 1))
+    volumes = np.zeros(len(labels))
 
     # Loop through labels
     for ilabel, label in enumerate(labels):
         label = int(label)
-        volumes[ilabel, 0] = label
 
         # Find which voxels contain the label in each volume
         indices = np.where(data==label)[0]
-        volumes[ilabel] = len(indices)
+        volumes[ilabel] = volume_per_voxel * len(indices)
 
-    return volumes, labels
+    return volumes.tolist(), labels
 
 def percentile(N, percent, key=lambda x:x):
     """
