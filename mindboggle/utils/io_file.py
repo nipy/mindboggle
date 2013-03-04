@@ -49,7 +49,7 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_table(labels, columns, column_names, table_file):
+def write_table(labels, columns, column_names, output_prepend, output_string):
     """
     Write table with label column, value columns, and column names.
 
@@ -61,8 +61,10 @@ def write_table(labels, columns, column_names, table_file):
         values (each list is a column of values)
     column_names :  list of strings
         names of columns
-    table_file : string
-        name of output table file
+    output_prepend : string
+        prepend for the output table file name
+    output_string : string
+        string for the output table file name (appended with '.txt' below)
 
     Returns
     -------
@@ -75,11 +77,15 @@ def write_table(labels, columns, column_names, table_file):
     >>> labels = [0,1,3,5]
     >>> columns = [0.12,0.36,0.75,0.03]
     >>> column_names = ['label', 'volume']
-    >>> table_file = 'label_volume_shapes.txt'
-    >>> write_table(labels, columns, column_names, table_file)
+    >>> output_path = ''
+    >>> output_string = 'label_volume_shapes'
+    >>> write_table(labels, columns, column_names, output_path, output_string)
 
     """
+    import os
     import sys
+
+    table_file = output_prepend + output_string + '.txt'
 
     #-----------------------
     # Check format of inputs
