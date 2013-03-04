@@ -1,22 +1,17 @@
 #!/usr/bin/python
 """
-Computing the Laplace-Beltrami Spectrum of a given structure. 
+Computing the Laplace-Beltrami Spectrum of a given structure using linear FEM method
 
-1. Geometric Laplacians (Desburn et al.'s, using cotangent kernel and area-based masses) 
-2. FEM Laplacians (linear FEM version. Cubic FEM version later.)
+1. old_fem_laplacian (Forrest's old version. Has bugs. Kept temporarily.)
+2. linear_fem_laplacians (Forrest's new version. Requires computeAB.py in the same directory)
 
 We follow the definitions and steps given in Reuter et al.'s
 Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation (2009)
 
-Since Reuter et al. (2009) did not give explicit equations/algorithm to compute 
-FEM Laplacian, Forrest derived the computation steps according to the paper.
-No mathematician has verified his steps. 
-And, this is free software. So, use at your own risk.   
-
 The information about using SciPy to solve generalized eigenvalue problem is
 at: http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html
 
-Requires Scipy 0.10 or later to solve generalized eigenvalue problem. 
+DEPENDENCE: Scipy 0.10 or later to solve generalized eigenvalue problem. 
 
 I just realize that PEP 8 says Capitalized_Letters_with_Underscores look UGLY!
 This is contrary to what I remembered before. 
@@ -31,8 +26,8 @@ This will cause singular matrix error when inverting matrixes because some rows
 are all zeros. 
 
 Acknowledgments:
-    - Dr. Martin Reuter, MIT, http://reuter.mit.edu/ 
-    - Dr. Eric You Xu, Google, http://www.youxu.info/
+    - Dr. Martin Reuter, MIT, http://reuter.mit.edu/ (Who provides his MATLAB code which is of great help and explains his paper in very details.)
+    - Dr. Eric You Xu, Google, http://www.youxu.info/ (Who explains to Forrest how eigenvalue problems are solved numerically.)
 
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
@@ -102,110 +97,7 @@ def area(Nodes, Meshes):
         i += 1
     return Area
 
-def geometric_laplacian(Nodes, Faces):
-    """The portal function to compute geometric laplacian
-    
-    Parameters
-    ----------
-    Nodes : 2-D numpy array 
-        Nodes[i] is the 3-D coordinates of nodes on a mesh 
-    Faces : 2-D numpy array
-        Faces[i] is a 3-element array containing the indexes of nodes 
-
-    Returns
-    -------
-    eigenvalues : a list of floats
-        The Laplacian-Beltrami Spectrum 
-    
-    Notes
-    ------
-    
-    This algorithm is described in Section 2.1.1 Discrete geometric Laplacians
-    Steps:
-    1. Compute W (can directly use Eliezer's cotangent kernel)
-    2. Compute V = diag(v_1,...v_n) where v_i = \sum_{j\in N(i)} w_{ij} 
-       and N(i) is the set of neighbors of node i.
-    3. Compute stiffness matrix A = V - W 
-    4. Compute the mass matrix D = diag(d_1, ..., d_n) where 
-       d_i = a(i)/3 and a(i) is the area of all triangles at node i 
-       (Here we adopt Eq. (4) of Reuter's paper)
-    5. Solve the generalized eigenvalue problems Af = \lambda D f where \lambda 
-       represents the reciprocal of eigenvalues we want.  
-    
-    """
-    
-    def masses(Nodes, Areas, Faces_at_Nodes):
-        """Computer the mass matrix D = diag(d_1, ..., d_n) where 
-           d_i = a(i)/3 and a(i) is the area of all triangles at node i 
-           (Here we adopt Eq. (4) of Reuter's paper)    
-    
-        Parameters
-        -----------
-        
-        Nodes : 2-D numpy array 
-            Nodes[i] is the 3-D coordinates of nodes on a mesh 
-        Meshes : 2-D numpy array
-            Meshes[i] is a 3-element array containing the indexes of nodes 
-        Area: A 1-D numpy array
-            Area[i] is the area of the i-th triangle 
-        Faces_at_Nodes: a 2-D list
-            Faces_at_Nodes[i] is a list of IDs of faces at node i.
-        d: a list of floats
-            The sequence d_i, ..., d_n in Eq.(4)
-        
-        Returns
-        ---------
-        D: a sparse diagonal matrix
-            The mass matrix
-        
-        """
-    #    import numpy as np
-        from scipy.sparse import lil_matrix
-        
-        num_nodes = Nodes.shape[0]
-
-        d = [sum([Areas[j] for j in Faces_at_Nodes[i]]) for i in range(num_nodes)]
-        D = lil_matrix((num_nodes, num_nodes))
-        D.setdiag(d)
-        
-        D /= 3 
-        return D
-
-    import numpy
-
-    num_nodes = len(Nodes)
-
-    if num_nodes < 5: # too small
-        print "The input size is too small. Skipped."
-        return numpy.array([-1,-1,-1, -1, -1])
-        
-    import mindboggle.utils.kernels
-    W = mindboggle.utils.kernels.cotangent_kernel(Nodes, Faces)
-    W /= 2
-    
-    import mindboggle.utils.mesh
-    Neighbor = mindboggle.utils.mesh.find_neighbors(Faces, num_nodes)
-     
-    V = gen_V(Faces, W, Neighbor)
-    A = V - W # the stiffness matrix
-    Area = area(Nodes, Faces)
-    
-    Faces_at_Nodes = mindboggle.utils.mesh.find_faces_at_vertices(Faces, num_nodes)
-    D = masses(Nodes, Area, Faces_at_Nodes)  
-    D = D.toarray()
-
-#    L = numpy.dot(numpy.linalg.inv(D), A)
-#    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
-
-    from scipy.sparse.linalg import eigsh, eigs 
-    # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
-    
-    eigenvalues, eigenvectors = eigs(A, k=3, M=D)
-    eigenvalues = 1/eigenvalues
-    
-    return eigenvalues
-
-def fem_laplacian(Nodes, Faces):
+def old_fem_laplacian(Nodes, Faces):
     """The portal function to compute geometric laplacian
     
     Parameters
@@ -315,19 +207,33 @@ def fem_laplacian(Nodes, Faces):
     P = gen_P(edges, faces_at_edges, Area, num_nodes)
     Q = gen_Q(edges, faces_at_edges, Area, num_nodes, Neighbor, Faces_at_Nodes)
     B = P + Q
-    B = B.toarray()   
-
-    A = A.toarray()
-    
-#    L = numpy.dot(numpy.linalg.inv(B),A)
-#    eigenvalues, eigenfunctions = numpy.linalg.eig(L)
 
     from scipy.sparse.linalg import eigsh, eigs 
     # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
     
-    eigenvalues, eigenvectors = eigs(A, k=3, M=B)
-    eigenvalues = 1/eigenvalues
+    eigenvalues, eigenvectors = eigsh(A, k=3, M=B, which="SM")
     
+    return eigenvalues
+
+def linear_fem_laplacian(Nodes, Faces):
+    """New Linear FEM laplacian code after studying Martin Reuter's code in MATLAB
+    """
+
+    num_nodes = len(Nodes)
+    
+    if num_nodes < 5: # too small
+        print "The input size is too small. Skipped."
+        return numpy.array([-1,-1,-1, -1, -1])
+
+    import computeAB
+    
+    A, B = computeAB.computeAB(Nodes, Faces)    
+
+    from scipy.sparse.linalg import eigsh, eigs 
+    # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
+    
+    eigenvalues, eigenvectors = eigsh(A, k=3, M=B, which="SM")
+
     return eigenvalues
 
 if __name__ == "__main__":
@@ -342,9 +248,7 @@ if __name__ == "__main__":
     # Then, pick some faces. 
     faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]] # note, all points must be on faces. O/w, you get singular matrix error when inverting D
     faces = np.array(faces)
-    geometric_LBS = geometric_laplacian(nodes, faces)
-    fem_LBS = fem_laplacian(nodes, faces)
     
-    print "the geometric LBS is:", list(geometric_LBS)
-    print "the FEM LBS is:", list(fem_LBS)
+#    print "the FEM LBS is:", list(old_fem_laplacian(nodes, faces))
+    print "the linear FEM LBS is:", list(linear_fem_laplacian(nodes, faces))
     
