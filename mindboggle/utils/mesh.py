@@ -133,20 +133,36 @@ def apply_affine_transform(transform_file, vtk_file):
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
     from mindboggle.utils.mesh import read_itk_transform
 
+    print("\n\n\nUNDER CONSTRUCTION!!!\n\n\n")
+
     # Read ITK affine transform file
-    transform, fixed_parameters = read_itk_transform(transform_file)
+#    transform, fixed_parameters = read_itk_transform(transform_file)
+
+    import nibabel as nb
+    subject_path = '/Applications/freesurfer/subjects/Twins-2-1'
+    native_volume_mgz = subject_path + '/mri/orig/001.mgz'
+    conformed_volume_mgz = subject_path + '/mri/brain.mgz'
+    M = np.array([[-1,0,0,128],
+                  [0,0,1,-128],
+                  [0,-1,0,128],
+                  [0,0,0,1]],dtype=float)
+    native = nb.freesurfer.load(native_volume_mgz)
+    conformed = nb.freesurfer.load(conformed_volume_mgz)
+    affine_native = native.get_affine()
+    affine_conformed = conformed.get_affine()
+    transform = np.dot(affine_conformed, np.linalg.inv(M))
 
     # Read VTK file
     faces, lines, indices, points, npoints, scalars, name = read_vtk(vtk_file)
 
     # Transform points
     points = np.array(points)
-    points += fixed_parameters
+#    points += fixed_parameters
 
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
     affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
-    affine_points -= fixed_parameters
-    affine_points += [0,256,0]
+#    affine_points -= fixed_parameters
+#    #affine_points += [0,256,0]
 
     # Output transformed VTK file
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
