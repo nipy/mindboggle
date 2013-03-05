@@ -3,9 +3,9 @@
 Computing the Laplace-Beltrami Spectrum of a given structure using linear FEM method
 
 1. old_fem_laplacian (Forrest's old version. Has bugs. Kept temporarily.)
-2. linear_fem_laplacians (Forrest's new version. Requires computeAB.py in the same directory)
+2. fem_laplacians (Forrest's new version that gives same output as Martin's.)
 
-We follow the definitions and steps given in Reuter et al.'s
+We follow the definitions and steps given in Martin Reuter et al.'s paper:
 Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation (2009)
 
 The information about using SciPy to solve generalized eigenvalue problem is
@@ -26,8 +26,10 @@ This will cause singular matrix error when inverting matrixes because some rows
 are all zeros. 
 
 Acknowledgments:
-    - Dr. Martin Reuter, MIT, http://reuter.mit.edu/ (Who provides his MATLAB code which is of great help and explains his paper in very details.)
-    - Dr. Eric You Xu, Google, http://www.youxu.info/ (Who explains to Forrest how eigenvalue problems are solved numerically.)
+    - Dr. Martin Reuter, MIT, who provides his MATLAB code which is of great help 
+      and explains his paper in very details               http://reuter.mit.edu/ 
+    - Dr. Eric You Xu, Google, who explains to Forrest how eigenvalue problems are 
+      solved numerically                                   http://www.youxu.info/ 
 
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
@@ -215,7 +217,139 @@ def old_fem_laplacian(Nodes, Faces):
     
     return eigenvalues
 
-def linear_fem_laplacian(Nodes, Faces):
+def computeAB(V, T):
+    """Compute the matrices A and B for LBO
+
+    Inputs
+    ==========
+    V: list of lists of 3 floats
+        Vertices. Each element is the X, Y and Z coordinate of a vertex on the structure
+
+    T: list of lists of 3 integers
+        Triangles. Each element represents the 3 indices of vertices that form a triangle on the mesh 
+
+    Outputs
+    =============
+
+    A : a numpy matrix
+    B : a numpy matrix
+
+    """
+    import numpy as np
+    from scipy import sparse
+
+    [v, t] = map(np.array, [V, T])
+
+    [vnum, tnum] = map(len, [V, T]) # numbers of vertices and triangles
+
+    # linear local matrices on unit triangle:
+    tB = (np.ones((3,3)) + np.eye(3) )/24.0;
+
+    tA00 = np.array([[ 0.5,-0.5, 0.0], 
+                     [-0.5, 0.5, 0.0],
+                     [ 0.0, 0.0, 0.0]])
+
+    tA11 = np.array([[ 0.5, 0.0,-0.5], 
+                     [ 0.0, 0.0, 0.0],
+                     [-0.5, 0.0, 0.5]])
+
+    tA0110 = np.array([[ 1.0,-0.5,-0.5], 
+                       [-0.5, 0.0, 0.5],
+                       [-0.5, 0.5, 0.0]])
+
+# replicate into third dimension for each triangle
+    tB     = np.array([np.tile(tB    ,(1, 1)) for i in xrange(tnum)]) # 1st index is the 3rd index in MATLAB
+    tA00   = np.array([np.tile(tA00  ,(1, 1)) for i in xrange(tnum)])
+    tA11   = np.array([np.tile(tA11  ,(1, 1)) for i in xrange(tnum)])
+    tA0110 = np.array([np.tile(tA0110,(1, 1)) for i in xrange(tnum)])
+
+    # compute vertex coord and difference vector for each triangle
+    v1 = v[t[:,0],:]
+    v2 = v[t[:,1],:]
+    v3 = v[t[:,2],:]
+    v2mv1 = v2 - v1
+    v3mv1 = v3 - v1
+
+    def reshape_and_repmat(A):
+        """For a given 1-D array A, does the two MATLAB code below 
+
+        M = reshape(M,1,1,tnum);
+        M = repmat(M,3,3);
+
+        Please note that the a0 is a 3-D matrix. But the 3rd index in NumPy is the 1st index in MATLAB    
+
+        Luckily, tnum is the size of A. 
+
+        """
+        return np.array([np.ones((3,3))*x for x in A])# may require an old enough version of numpy/python to support this semantics
+
+    # compute length^2 of v3mv1 for each triangle
+    a0 = np.sum(v3mv1 * v3mv1, axis=1)
+    a0 = reshape_and_repmat(a0)
+
+    # compute lenght^2 of v2mv1 for each triangle
+    a1 = np.sum(v2mv1 * v2mv1, axis=1)
+    a1 = reshape_and_repmat(a1)
+
+    # compute dot product (v2mv1*v3mv1) for each triangle
+    a0110 = np.sum(v2mv1 * v3mv1, axis=1)
+    a0110 = reshape_and_repmat(a0110)
+
+    # compute cross product and 2*vol for each triangle
+    cr  = np.cross(v2mv1,v3mv1)
+    vol = np.sqrt(np.sum(cr*cr, axis=1))
+    # zero vol will cause division by zero below, so set to small value:
+    vol_mean = np.mean(vol)
+    vol = [vol_mean if x == 0 else x for x in vol]
+    vol = reshape_and_repmat(vol)
+
+    # construct all local A and B matrices (guess: for each triangle)
+    localB = vol * tB
+    localA = (1.0/vol) * (a0*tA00 + a1*tA11 - a0110 * tA0110)
+
+    # construct row and col indices
+    J = np.array([np.tile(x, (3,1))  for x in t]) # note, J in numpy is I in MATLAB after flattening, because numpy is row-major while MATLAB is column-major
+    I = np.array([np.transpose(np.tile(x, (3,1)))  for x in t])
+
+    # flatten arrays
+    J_new = I.flatten() # note, swap I and J here.
+    I_new = J.flatten()
+    localA = localA.flatten()
+    localB = localB.flatten()
+
+    # construct sparse matrix
+    A = sparse.csr_matrix((localA, (I_new, J_new)))
+    B = sparse.csr_matrix((localB, (I_new, J_new)))
+
+#    return [[I_new[i]+1, J_new[i]+1, localA[i], localB[i]] for i in xrange(54)]
+    return A, B
+
+def print_sparse_matrix(M):
+    print "\nThe sparse matrix:\n"
+    for Row in M.toarray().tolist():
+        for E in Row:
+            if E == 0:
+                print "0\t".rjust(6),
+            else:
+                print '{0:2.4f}\t'.format(E),
+        print ""
+
+    print "The End.\n"
+
+def test_computeAB():
+    import numpy as np
+    nodes = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
+    nodes = np.array(nodes)
+    # Then, pick some faces.
+    faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]] # note, all points must be on faces. O/w, you get singular matrix error when inverting D
+    faces = np.array(faces)
+
+    A, B = computeAB(nodes, faces)
+
+    print_sparse_matrix(A)
+    print_sparse_matrix(B)
+
+def fem_laplacian(Nodes, Faces):
     """New Linear FEM laplacian code after studying Martin Reuter's code in MATLAB
     """
 
@@ -224,10 +358,8 @@ def linear_fem_laplacian(Nodes, Faces):
     if num_nodes < 5: # too small
         print "The input size is too small. Skipped."
         return numpy.array([-1,-1,-1, -1, -1])
-
-    import computeAB
-    
-    A, B = computeAB.computeAB(Nodes, Faces)    
+  
+    A, B = computeAB(Nodes, Faces)    
 
     from scipy.sparse.linalg import eigsh, eigs 
     # note eigs is for nonsymmetric matrixes while eigsh is for  real-symmetric or complex-hermitian matrices
@@ -250,5 +382,5 @@ if __name__ == "__main__":
     faces = np.array(faces)
     
 #    print "the FEM LBS is:", list(old_fem_laplacian(nodes, faces))
-    print "the linear FEM LBS is:", list(linear_fem_laplacian(nodes, faces))
+    print "the linear FEM LBS is:", list(fem_laplacian(nodes, faces))
     
