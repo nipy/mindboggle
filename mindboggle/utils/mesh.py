@@ -32,7 +32,7 @@ def plot_vtk(vtk_file):
 #------------------------------------------------------------------------------
 # Apply affine transform to the points of a VTK surface mesh
 #------------------------------------------------------------------------------
-def read_itk_transform(transform_file):
+def read_itk_transform(affine_transform_file):
     """
     Read ITK transform file and output transform array.
 
@@ -47,49 +47,53 @@ def read_itk_transform(transform_file):
 
     Parameters
     ----------
-    transform file : string
+    affine_transform_file : string
         name of ITK affine transform file
 
     Returns
     -------
-    transform : numpy array
+    affine_transform : numpy array
         4x4 affine transform matrix
+    fixed_parameters : numpy array
+        FixedParameters vector
 
     Examples
     --------
-    import os
+    >>> import os
     >>> from mindboggle.utils.mesh import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(transform_file)
-      array([[  9.07680000e-01,   4.35290000e-02,   1.28917000e-02, -6.09360000e-01],
-             [ -4.54455000e-02,   8.68937000e-01,   4.06098000e-01, 2.11593000e+01],
-             [  1.79439000e-02,  -4.30013000e-01,   7.83074000e-01, 1.06148000e+01],
-             [ -7.94889000e-01,  -1.83346000e+01,  -3.14767000e+00, 1.00000000e+00]])
+    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                             't1weighted_brain.MNI152Affine.txt')
+    >>> read_itk_transform(affine_transform_file)
+        (array([[  9.07680e-01,   4.35290e-02,   1.28917e-02, -7.94889e-01],
+               [ -4.54455e-02,   8.68937e-01,   4.06098e-01, -1.83346e+01],
+               [  1.79439e-02,  -4.30013e-01,   7.83074e-01, -3.14767e+00],
+               [  0.00000e+00,   0.00000e+00,   0.00000e+00, 1.00000e+00]]),
+         [-0.60936, 21.1593, 10.6148])
 
     """
     import numpy as np
 
-    transform = np.eye(4)
+    affine_transform = np.eye(4)
 
     # Read ITK transform file
-    fid = open(transform_file, 'r')
+    fid = open(affine_transform_file, 'r')
     affine_lines = fid.readlines()
-    # Linear transform
-    linear_transform = affine_lines[3]
-    linear_transform = linear_transform.split()
-    linear_transform = [np.float(x) for x in linear_transform[1::]]
-    # Translation
-    translation = affine_lines[4]
-    translation = translation.split()
-    translation = [np.float(x) for x in translation[1::]]
 
-    # Write transform array
-    transform[0:4,0:3] = np.reshape(linear_transform, (4,3))
-    transform[0:3,3] = translation
+    transform = affine_lines[3]
+    transform = transform.split()
+    transform = [np.float(x) for x in transform[1::]]
+    transform = np.reshape(transform, (4,3))
+    linear_transform = transform[0:3,:]
+    translation = transform[3,:]
+    affine_transform[0:3,0:3] = linear_transform
+    affine_transform[0:3,3] = translation
 
-    return transform
+    fixed_parameters = affine_lines[4]
+    fixed_parameters = fixed_parameters.split()
+    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+
+    return affine_transform, fixed_parameters
 
 def apply_affine_transform(transform_file, vtk_file):
     """
@@ -119,7 +123,7 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> apply_affine_transform(transform_file, vtk_file)
     >>> # View
-    >>> plot_vtk('transformed_lh.pial.depth.vtk')
+    >>> plot_vtk('affine_lh.pial.depth.vtk')
 
 
     """
@@ -130,21 +134,27 @@ def apply_affine_transform(transform_file, vtk_file):
     from mindboggle.utils.mesh import read_itk_transform
 
     # Read ITK affine transform file
-    transform = read_itk_transform(transform_file)
+    transform, fixed_parameters = read_itk_transform(transform_file)
 
     # Read VTK file
     faces, lines, indices, points, npoints, scalars, name = read_vtk(vtk_file)
 
     # Transform points
-    affined_points = transform * np.transpose(points)
+    points = np.array(points)
+    points += fixed_parameters
+
+    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
+    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+    affine_points -= fixed_parameters
+    affine_points += [0,256,0]
 
     # Output transformed VTK file
-    output_file = os.path.join(os.getcwd(), 'affined_' + os.path.basename(vtk_file))
+    output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
 
     # Write VTK file
-    write_vtk(output_file, affined_points, indices, lines, faces, scalars, name)
+    write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
 
-    return affined_points, output_file
+    return affine_points, output_file
 
 #------------------------------------------------------------------------------
 # Find all neighbors from faces in a VTK mesh file
