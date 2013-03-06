@@ -9,7 +9,6 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import re
 
 def read_columns(filename, n_columns=1, trail=False):
     """
@@ -20,7 +19,7 @@ def read_columns(filename, n_columns=1, trail=False):
     filename :  name of text file [string]
     n_columns :  number of columns to extract [integer]
     trail :  combine all remaining columns as a string
-            in the final list [Boolean]
+             in the final list [Boolean]
 
     Returns
     -------
@@ -49,8 +48,123 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_table(labels, columns, column_names, output_prepend, output_string):
+def write_columns(columns, column_names, output_table, input_table=''):
     """
+    Write table with label column, value columns, and column names.
+
+    Parameters
+    ----------
+    columns :  list of lists of floats or integers
+        values (each list is a column of values)
+    column_names :  list of strings
+        names of columns
+    output_table : string
+        name of output table file
+    input_table : string (default is empty)
+        name of table file to which the columns are to be appended
+
+    Returns
+    -------
+    output_table : string
+        name of output table file
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_file import write_columns
+    >>> labels = [0, 1, 3, 5]
+    >>> values = [0.12, 0.36, 0.75, 0.03]
+    >>> values2 = [32, 87, 53, 23]
+    >>> columns = [labels, values]
+    >>> column_names = ['label', 'value']
+    >>> write_columns(columns, column_names, 'write_columns.txt')
+    >>> write_columns(values2, 'values2', 'write_columns.txt', 'write_columns.txt')
+
+    """
+    import os
+    import sys
+    from mindboggle.utils.io_file import read_columns
+
+    output_table = os.path.join(os.getcwd(), output_table)
+
+    #-----------------------
+    # Check format of inputs
+    #-----------------------
+    # If the list contains integers or floats, put in a list:
+    if isinstance(columns[0], int) or isinstance(columns[0], float):
+        columns = [columns]
+    # If the list contains all lists, accept format:
+    elif all([isinstance(x, list) for x in columns]):
+        pass
+    else:
+        print("Error: columns contains unacceptable elements.")
+        print("columns type is: {0}".format(type(columns)))
+        print("columns length is: {0}".format(len(columns)))
+        print("columns[0] type is: {0}".format(type(columns[0])))
+        sys.exit()
+    # If column_names is a string, create a list containing
+    # as many of this string as there are columns.
+    if isinstance(column_names, str):
+        column_names = [column_names for x in columns]
+    elif isinstance(column_names, list):
+        if len(column_names) < len(columns):
+            column_names = [column_names[0] for x in columns]
+        else:
+            pass
+    else:
+        print("Error: column_names is neither a list nor a string")
+        sys.exit()
+
+    #------------------------------------
+    # Read columns from input table file.
+    # Open output table file for writing.
+    #------------------------------------
+    if input_table:
+        input_columns = read_columns(input_table, n_columns=1, trail=True)
+        input_names = input_columns[0][0]
+        input_columns = input_columns[0][1::]
+        Fp = open(output_table, 'a')
+    else:
+        input_names = ''
+        input_columns = ['' for x in columns[0]]
+        Fp = open(output_table, 'w')
+
+    #--------------
+    # Write to file
+    #--------------
+    if column_names:
+        Fp.write(" ".join([input_names, " ".join(column_names), "\n"]))
+    else:
+        Fp.write(input_names + "\n")
+
+    for irow in range(len(columns[0])):
+        Fp.write(input_columns[irow] + " ")
+        for column in columns:
+            Fp.write("{0} ".format(column[irow]))
+        Fp.write("\n")
+
+    Fp.close()
+
+    return output_table
+
+def write_list(table_file, List, header=""):
+    """
+    Write a list to a file, each line of which is a list element.
+    """
+
+    Fp = open(filename,'w')
+
+    if header:
+        Fp.write(header + '\n')
+
+    for Element in List:
+        Fp.write(str(Element) + '\n')
+
+    Fp.close()
+
+
+"""
+def write_table(labels, columns, column_names, output_prepend, output_string):
+    ""
     Write table with label column, value columns, and column names.
 
     Parameters
@@ -81,8 +195,7 @@ def write_table(labels, columns, column_names, output_prepend, output_string):
     >>> output_string = 'label_volume_shapes'
     >>> write_table(labels, columns, column_names, output_path, output_string)
 
-    """
-    import os
+    ""
     import sys
 
     table_file = output_prepend + output_string + '.txt'
@@ -97,10 +210,10 @@ def write_table(labels, columns, column_names, output_prepend, output_string):
     elif all([isinstance(x, list) for x in columns]):
         pass
     else:
-        print "io_file.py: Error: columns contains unacceptable elements."
-        print "io_file.py: columns type is:", type(columns)
-        print "io_file,py: columns length is:", len(columns)
-        print "io_file.py: columns[0] type is:", type(columns[0])
+        print("io_file.py: Error: columns contains unacceptable elements."
+        print("io_file.py: columns type is:", type(columns)
+        print("io_file,py: columns length is:", len(columns)
+        print("io_file.py: columns[0] type is:", type(columns[0])
         sys.exit()
     # If column_names is a string, create a list containing
     # as many of this string as there are columns.
@@ -112,7 +225,7 @@ def write_table(labels, columns, column_names, output_prepend, output_string):
         else:
             pass
     else:
-        print "Error: column_names is neither a list nor a string"
+        print("Error: column_names is neither a list nor a string"
         sys.exit()
 
     #----------------------------
@@ -132,22 +245,7 @@ def write_table(labels, columns, column_names, output_prepend, output_string):
     Fp.close()
 
     return table_file
-
-def write_list(table_file, List, header=""):
-    """
-    Write a list to a file, each line of which is a list element.
-    """
-
-    Fp = open(filename,'w')
-
-    if header:
-        Fp.write(header + '\n')
-
-    for Element in List:
-        Fp.write(str(Element) + '\n')
-
-    Fp.close()
-
+"""
 """
 def write_table_means(filename, column_names, labels, *values):
     ""
