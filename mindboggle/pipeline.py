@@ -140,7 +140,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 # Import Mindboggle Python libraries
 #-------------------------------------------------------------------------------
 from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-from mindboggle.utils.io_file import read_columns, write_table
+from mindboggle.utils.io_file import read_columns, write_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
     surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
 from mindboggle.utils.mesh import find_neighbors_from_file
@@ -1173,26 +1173,40 @@ if run_volumeFlow:
         #-----------------------------------------------------------------------
         # Create a table to save the volume measures.
         #-----------------------------------------------------------------------
+        InitVolTable = Node(name='Initialize_Volume_label_table',
+                            interface = Fn(function = write_columns,
+                                           input_names = ['columns',
+                                                          'column_names',
+                                                          'output_table',
+                                                          'output_prepend',
+                                                          'input_table'],
+                                           output_names = ['output_table']))
+        mbFlow2.add_nodes([InitVolTable])
+        mbFlow2.connect([(MeasureVolumes, InitVolTable,
+                          [('labels', 'columns')])])
+        InitVolTable.inputs.column_names = ['label']
+        InitVolTable.inputs.output_table = '_label_volume_shapes.txt'
+        mbFlow2.connect([(Info2, InitVolTable, [('subject', 'output_prepend')])])
+
         VolumeLabelTable = Node(name='Volume_label_table',
-                                interface = Fn(function = write_table,
-                                               input_names = ['labels',
-                                                              'columns',
+                                interface = Fn(function = write_columns,
+                                               input_names = ['columns',
                                                               'column_names',
+                                                              'output_table',
                                                               'output_prepend',
-                                                              'output_string'],
-                                               output_names = ['table_file']))
-        mbFlow2.add_nodes([VolumeLabelTable])
-        mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
-                          [('labels', 'labels')])])
+                                                              'input_table'],
+                                               output_names = ['output_table']))
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('volumes', 'columns')])])
-        VolumeLabelTable.inputs.column_names = ['label', 'volume']
-        VolumeLabelTable.inputs.output_prepend = os.path.join(os.getcwd(),
-                                                     'label_volume_shapes_')
-        mbFlow2.connect([(Info2, VolumeLabelTable, [('subject', 'output_string')])])
+        VolumeLabelTable.inputs.column_names = ['volume']
+        mbFlow2.connect([(InitVolTable, VolumeLabelTable,
+                          [('output_table', 'output_table')])])
+        VolumeLabelTable.inputs.output_prepend = ''
+        mbFlow2.connect([(InitVolTable, VolumeLabelTable,
+                          [('output_table', 'input_table')])])
         # Save table of label volumes
         mbFlow2.connect([(VolumeLabelTable, Sink2,
-                          [('table_file', 'tables.@volume_labels')])])
+                          [('output_table', 'tables.@volume_labels')])])
         #-----------------------------------------------------------------------
         # Add volume measures as a column to the table.
         #-----------------------------------------------------------------------
