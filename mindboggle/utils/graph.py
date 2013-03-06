@@ -174,33 +174,33 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
     """
 
     if type_of_laplacian is 'basic':
-        print 'Calculate unnormalized Laplacian'
+        print("Calculate unnormalized Laplacian")
         Laplacian = diagonal_degree_matrix(W) - W
         return Laplacian
 
     elif type_of_laplacian is 'norm1':
-        print "Normalize the Laplacian"
+        print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
         return Laplacian
 
     elif type_of_laplacian is 'norm2':
-        print "Normalize the Laplacian"
+        print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * W * ddmi_sq
         return Laplacian
 
     elif type_of_laplacian is 'norm3':
-        print "Normalize the Laplacian"
+        print("Normalize the Laplacian")
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
         return Laplacian
 
     elif type_of_laplacian is 'random_walk':
-        print "Compute Random Walk Laplacian"
+        print("Compute Random Walk Laplacian")
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * W
 
     else:
-        print 'Option is not available'
+        print('Option is not available')
         return 0

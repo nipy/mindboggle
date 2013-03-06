@@ -26,7 +26,7 @@ def cotangent_kernel(Nodes, Meshes):
 
     num_nodes = Nodes.shape[0]
     W = lil_matrix((num_nodes, num_nodes))
-    print 'Constructing sparse affinity matrix...'
+    print('Constructing sparse affinity matrix...')
     for c in Meshes:
         # Obtain vertices which comprise face
         v0, v1, v2 = Nodes[c[0]], Nodes[c[1]], Nodes[c[2]]
