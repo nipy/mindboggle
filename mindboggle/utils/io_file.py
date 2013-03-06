@@ -12,7 +12,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 def read_columns(filename, n_columns=1, trail=False):
     """
-    Read n-column text file.
+    Read n-column text file. Assumes space(s) as delimiter.
 
     Parameters
     ----------
@@ -48,9 +48,10 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_columns(columns, column_names, output_table, input_table=''):
+def write_columns(columns, column_names, output_table,
+                  output_prepend='', input_table=''):
     """
-    Write table with label column, value columns, and column names.
+    Write table with columns and column names.  Assumes space(s) as delimiter.
 
     Parameters
     ----------
@@ -60,7 +61,9 @@ def write_columns(columns, column_names, output_table, input_table=''):
         names of columns
     output_table : string
         name of output table file
-    input_table : string (default is empty)
+    output_prepend : string (default is empty string)
+        prepend to output table file name
+    input_table : string (default is empty string)
         name of table file to which the columns are to be appended
 
     Returns
@@ -71,20 +74,22 @@ def write_columns(columns, column_names, output_table, input_table=''):
     Examples
     --------
     >>> from mindboggle.utils.io_file import write_columns
-    >>> labels = [0, 1, 3, 5]
+    >>> labels = ['1', '2', '3', '4']
     >>> values = [0.12, 0.36, 0.75, 0.03]
     >>> values2 = [32, 87, 53, 23]
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
     >>> write_columns(columns, column_names, 'write_columns.txt')
-    >>> write_columns(values2, 'values2', 'write_columns.txt', 'write_columns.txt')
+    >>> write_columns(values2, 'values2', 'write_columns.txt', '',
+    >>>               'write_columns.txt')
 
     """
     import os
     import sys
     from mindboggle.utils.io_file import read_columns
 
-    output_table = os.path.join(os.getcwd(), output_table)
+    output_table = output_prepend + output_table
+    output_table_full = os.path.join(os.getcwd(), output_table)
 
     #-----------------------
     # Check format of inputs
@@ -122,11 +127,11 @@ def write_columns(columns, column_names, output_table, input_table=''):
         input_columns = read_columns(input_table, n_columns=1, trail=True)
         input_names = input_columns[0][0]
         input_columns = input_columns[0][1::]
-        Fp = open(output_table, 'a')
+        Fp = open(output_table_full, 'a')
     else:
         input_names = ''
         input_columns = ['' for x in columns[0]]
-        Fp = open(output_table, 'w')
+        Fp = open(output_table_full, 'w')
 
     #--------------
     # Write to file
@@ -146,135 +151,34 @@ def write_columns(columns, column_names, output_table, input_table=''):
 
     return output_table
 
-def write_list(table_file, List, header=""):
+def write_rows(filename, list_of_lines, header=""):
     """
-    Write a list to a file, each line of which is a list element.
+    Write a list to a file, one line per list element.
+
+    Parameters
+    ----------
+    filename : string
+        name of output file
+    list_of_lines :  list
+        each element is written to file as a line
+    header : string (default is empty string)
+        header to write at the top of the file
+
+    Returns
+    -------
+    filename : string
+        name of output file
+
     """
 
-    Fp = open(filename,'w')
+    Fp = open(filename, 'w')
 
     if header:
         Fp.write(header + '\n')
 
-    for Element in List:
-        Fp.write(str(Element) + '\n')
+    for element in list_of_lines:
+        Fp.write(str(element) + '\n')
 
     Fp.close()
-
-
-"""
-def write_table(labels, columns, column_names, output_prepend, output_string):
-    ""
-    Write table with label column, value columns, and column names.
-
-    Parameters
-    ----------
-    labels :  list of integers
-        label numbers (same length as values)
-    columns :  list of lists of floats or integers
-        values (each list is a column of values)
-    column_names :  list of strings
-        names of columns
-    output_prepend : string
-        prepend for the output table file name
-    output_string : string
-        string for the output table file name (appended with '.txt' below)
-
-    Returns
-    -------
-    table_file : string
-        name of output table file
-
-    Examples
-    --------
-    >>> from mindboggle.utils.io_file import write_table
-    >>> labels = [0,1,3,5]
-    >>> columns = [0.12,0.36,0.75,0.03]
-    >>> column_names = ['label', 'volume']
-    >>> output_path = ''
-    >>> output_string = 'label_volume_shapes'
-    >>> write_table(labels, columns, column_names, output_path, output_string)
-
-    ""
-    import sys
-
-    table_file = output_prepend + output_string + '.txt'
-
-    #-----------------------
-    # Check format of inputs
-    #-----------------------
-    # If the list contains integers or floats, put in a list.
-    if isinstance(columns[0], int) or isinstance(columns[0], float):
-        columns = [columns]
-    # If the list contains all lists, accept format.
-    elif all([isinstance(x, list) for x in columns]):
-        pass
-    else:
-        print("io_file.py: Error: columns contains unacceptable elements."
-        print("io_file.py: columns type is:", type(columns)
-        print("io_file,py: columns length is:", len(columns)
-        print("io_file.py: columns[0] type is:", type(columns[0])
-        sys.exit()
-    # If column_names is a string, create a list containing
-    # as many of this string as there are columns.
-    if isinstance(column_names, str):
-        column_names = [column_names for x in columns]
-    elif isinstance(column_names, list):
-        if len(column_names) < len(columns):
-            column_names = [column_names[0] for x in columns]
-        else:
-            pass
-    else:
-        print("Error: column_names is neither a list nor a string"
-        sys.exit()
-
-    #----------------------------
-    # Open table file for writing
-    #----------------------------
-    Fp = open(table_file, 'w')
-
-    if column_names:
-        Fp.write("\t".join(column_names) + "\n")
-
-    for irow, label in enumerate(labels):
-        row = ["{0}\t".format(label)]
-        for column in columns:
-            row.append(str(column[irow]))
-        Fp.write("\t".join(row) + "\n")
-
-    Fp.close()
-
-    return table_file
-"""
-"""
-def write_table_means(filename, column_names, labels, *values):
-    ""
-    Make a table of mean values per label.
-
-    NOTE:  untested
-
-    Parameters
-    ----------
-    filename :  output filename (without path)
-    column_names :  names of columns [list of strings]
-    labels :  list (same length as values)
-    *values :  arbitrary number of lists, each containing a value per label
-
-    Returns
-    -------
-    table_file :  table file
-
-    ""
-    import os
-    from shapes.measure import mean_value_per_label
-
-    columns = []
-    for value_list in values:
-        mean_values, label_list = mean_value_per_label(value_list, labels)
-        columns.append(mean_values)
-
-    filename = os.path.join(os.getcwd(), filename)
-    write_table(label_list, columns, column_names, filename)
 
     return filename
-"""
