@@ -182,6 +182,9 @@ def computeAB(points, faces):
 def print_sparse_matrix(M):
     """
     Print sparse matrix.
+
+    Note ::
+        print() command not suitable for Python 3.0.
     """
     print("\nThe sparse matrix:\n")
     for Row in M.toarray().tolist():
@@ -190,7 +193,7 @@ def print_sparse_matrix(M):
                 print "0\t".rjust(6),
             else:
                 print "{0:2.4f}\t".format(E),
-        print ""
+        print("")
 
 def fem_laplacian(points, faces):
     """
@@ -414,7 +417,7 @@ if __name__ == "__main__":
         npoints = len(points)
 
         if npoints < 5: # too small
-            print "The input size is too small. Skipped."
+            print("The input size is too small. Skipped.")
             return numpy.array([-1,-1,-1, -1, -1])
 
         import mindboggle.utils.kernels

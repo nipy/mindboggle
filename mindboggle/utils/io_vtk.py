@@ -86,8 +86,9 @@ def read_lines(Filename):
               for i in xrange(Data.GetNumberOfLines())]
 
     PointData = Data.GetPointData()
-    print "There are", Reader.GetNumberOfscalarsInFile(), "scalars in file", Filename
-    print "Loading the scalar", Reader.GetScalarsNameInFile(0)
+    print("There are {0} scalars in file {1}".format(
+        Reader.GetNumberOfscalarsInFile(), Filename))
+    print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
     scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
 
@@ -850,10 +851,10 @@ def scalars_checker(scalars, scalar_names):
             elif len(scalars.shape) == 2: # 2-D numpy array
                 scalars = scalars.tolist()
             else:
-                print "Error: Dimension of new_scalars is too high."
+                print("Error: Dimension of new_scalars is too high.")
                 sys.exit()
         else:
-            print "Error: scalars is neither a list nor a numpy array. "
+            print("Error: scalars is neither a list nor a numpy array.")
             sys.exit()
 
     # If the list contains integers or floats, put in a list.
@@ -872,10 +873,10 @@ def scalars_checker(scalars, scalar_names):
                 scalars2.append(x.tolist())
         scalars = scalars2
     else:
-        print "io_vtk.py: Error: scalars is a 1-D list containing unacceptable elements. "
-        print "io_vtk.py: scalars type is:", type(scalars)
-        print "io_vtk,py: scalar length is:", len(scalars)
-        print "io_vtk.py: scalars[0] type is:", type(scalars[0])
+        print("Error: scalars is a 1-D list containing unacceptable elements.")
+        print("scalars type is: {0}".format(type(scalars)))
+        print("scalars length is: {0}".format(len(scalars)))
+        print("scalars[0] type is: {0}".format(type(scalars[0])))
         sys.exit()
 
     # If scalar_names is a string, create a list containing
@@ -888,7 +889,7 @@ def scalars_checker(scalars, scalar_names):
         else:
             pass
     else:
-        print "Error: scalar_names is neither a list nor a string"
+        print("Error: scalar_names is neither a list nor a string")
         sys.exit()
 
     return scalars, scalar_names
