@@ -62,7 +62,7 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     import numpy as np
     from mindboggle.shapes.measure import mean_value_per_label
     from mindboggle.utils.io_vtk import read_scalars
-    from mindboggle.utils.io_file import write_table
+    from mindboggle.utils.io_file import write_columns
 
     # Load per-vertex labels and normalization vtk files
     if type(labels) == str:
@@ -96,14 +96,14 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
     norm_columns.insert(0, norm_values)
     column_names.insert(0, 'area')
 
-    # Prepend with column of labels and write tables
-    column_names.insert(0, 'label')
-
     means_file = os.path.join(os.getcwd(), table_file)
-    write_table(label_list, columns, column_names, means_file)
+    write_columns(label_list, 'label', means_file)
+    write_columns(columns, column_names, means_file, '', means_file)
 
     norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
-    write_table(label_list, norm_columns, column_names, norm_means_file)
+    write_columns(label_list, 'label', norm_means_file)
+    write_columns(norm_columns, column_names, norm_means_file,
+                  '', norm_means_file)
 
     return means_file, norm_means_file
 
@@ -155,7 +155,7 @@ def write_vertex_shapes_table(table_file, column_names,
     """
     import os
     from mindboggle.utils.io_vtk import read_scalars
-    from mindboggle.utils.io_file import write_table
+    from mindboggle.utils.io_file import write_columns
 
     # List files
     vtk_files = [labels_file, folds_file, sulci_file, fundi_file,
@@ -177,9 +177,9 @@ def write_vertex_shapes_table(table_file, column_names,
             column_names[i] = ''
 
     # Prepend with column of indices and write table
-    column_names.insert(0, 'index')
     shape_table = os.path.join(os.getcwd(), table_file)
-    write_table(indices, columns, column_names, shape_table)
+    write_columns(indices, 'index', shape_table)
+    write_columns(columns, column_names, shape_table, '', shape_table)
 
     return shape_table
 
