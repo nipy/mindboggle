@@ -98,12 +98,11 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
 
     means_file = os.path.join(os.getcwd(), table_file)
     write_columns(label_list, 'label', means_file)
-    write_columns(columns, column_names, means_file, '', means_file)
+    write_columns(columns, column_names, means_file, means_file)
 
     norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
     write_columns(label_list, 'label', norm_means_file)
-    write_columns(norm_columns, column_names, norm_means_file,
-                  '', norm_means_file)
+    write_columns(norm_columns, column_names, norm_means_file, norm_means_file)
 
     return means_file, norm_means_file
 
@@ -179,7 +178,7 @@ def write_vertex_shapes_table(table_file, column_names,
     # Prepend with column of indices and write table
     shape_table = os.path.join(os.getcwd(), table_file)
     write_columns(indices, 'index', shape_table)
-    write_columns(columns, column_names, shape_table, '', shape_table)
+    write_columns(columns, column_names, shape_table, shape_table)
 
     return shape_table
 

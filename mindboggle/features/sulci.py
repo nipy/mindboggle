@@ -77,7 +77,7 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
     >>> folds, name = read_scalars(folds_file)
     >>> label_pair_lists = sulcus_boundaries()
     >>> min_boundary = 10
-    >>> sulcus_names_file = os.path.join(path, 'info', 'sulcus_names.txt')
+    >>> sulcus_names_file = os.path.join(path, 'protocol', 'sulci.names.DKT25.txt')
     >>> fid = open(sulcus_names_file, 'r')
     >>> sulcus_names = fid.readlines()
     >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
@@ -158,7 +158,8 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
         else:
             # Find all label boundary pairs within the fold
             indices_fold_pairs, fold_pairs, unique_fold_pairs = extract_borders(
-                fold, labels, neighbor_lists)
+                fold, labels, neighbor_lists, ignore_indices=[],
+                return_label_pairs=True)
 
             # Find fold label pairs in the protocol (pairs are already sorted)
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
