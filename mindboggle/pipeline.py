@@ -1163,6 +1163,7 @@ if run_volumeFlow:
         volume_labels_list_file = os.path.join(protocol_path,
                                                'labels.volume.'+protocol+'.txt')
         volume_labels_list = read_columns(volume_labels_list_file, 1)[0]
+        volume_labels_list = [int(x) for x in volume_labels_list]
         MeasureVolumes.inputs.labels = volume_labels_list
         if do_fill:
             mbFlow2.connect([(Relabel, MeasureVolumes,
@@ -1178,50 +1179,30 @@ if run_volumeFlow:
                                            input_names = ['columns',
                                                           'column_names',
                                                           'output_table',
-                                                          'output_prepend',
                                                           'input_table'],
                                            output_names = ['output_table']))
         mbFlow2.add_nodes([InitVolTable])
         mbFlow2.connect([(MeasureVolumes, InitVolTable,
                           [('labels', 'columns')])])
         InitVolTable.inputs.column_names = ['label']
-        InitVolTable.inputs.output_table = '_label_volume_shapes.txt'
-        mbFlow2.connect([(Info2, InitVolTable, [('subject', 'output_prepend')])])
+        InitVolTable.inputs.output_table = 'volume_labels.txt'
 
         VolumeLabelTable = Node(name='Volume_label_table',
                                 interface = Fn(function = write_columns,
                                                input_names = ['columns',
                                                               'column_names',
                                                               'output_table',
-                                                              'output_prepend',
                                                               'input_table'],
                                                output_names = ['output_table']))
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('volumes', 'columns')])])
         VolumeLabelTable.inputs.column_names = ['volume']
-        mbFlow2.connect([(InitVolTable, VolumeLabelTable,
-                          [('output_table', 'output_table')])])
-        VolumeLabelTable.inputs.output_prepend = ''
+        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.txt'
         mbFlow2.connect([(InitVolTable, VolumeLabelTable,
                           [('output_table', 'input_table')])])
         # Save table of label volumes
         mbFlow2.connect([(VolumeLabelTable, Sink2,
                           [('output_table', 'tables.@volume_labels')])])
-        #-----------------------------------------------------------------------
-        # Add volume measures as a column to the table.
-        #-----------------------------------------------------------------------
-        #AddVolumesToTable = Node(name='Add_volumes_to_table',
-        #                         interface = Fn(function = add_column_to_table,
-        #                                        input_names = ['table_file'],
-        #                                        output_names = ['column',
-        #                                                        'column_name',
-        #                                                        'table_file']))
-        #mbFlow2.add_nodes([AddVolumesToTable])
-        #mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
-        #                  [('volumes', 'column')])])
-        #AddVolumesToTable.inputs.column_name = 'volume'
-        #mbFlow2.connect([(VolumeLabelTable, AddVolumesToTable,
-        #                  [('table_file', 'table_file')])])
 
     #===========================================================================
     # Evaluate label volume overlaps.
