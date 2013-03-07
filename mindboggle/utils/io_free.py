@@ -1,11 +1,6 @@
 #!/usr/bin/env python
 """
-Functions for reading surfaces and converting between FreeSurfer formats.
-
-This Python library reads and writes different file types.
-The function read_surface() reads in surface files,
-while the function read_curvature() reads in both
-curvature (.curv) and convexity (.sulc) files.
+Functions for converting to/from FreeSurfer formats.
 
 
 Authors:
@@ -15,138 +10,6 @@ Authors:
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-
-
-def read_surface(filename):
-    """
-    Read in a FreeSurfer triangle surface mesh in binary format.
-
-    Parameters
-    ----------
-    filename : string
-        A binary FreeSurfer Triangle Surface file
-
-    Returns
-    -------
-    Vertex : list of 3-tuples of floats
-        Each element is a 3-tuple (list) of floats, which are the X, Y and Z coordinates of a vertex, respectively.
-        A 3-tuple's index in the list *Vertex* is the ID of a vertex.
-
-    Face : list of 3-tuples of integers
-        Each element is a 3-tuple (list) of integers, which are the IDs of 3 vertices that form one face
-
-    Example
-    -------
-    >>> import os
-    >>> from mindboggle.utils.io_free import read_surface
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(data_path, 'arno', 'freesurfer', 'lh.pial')
-    >>> Vrtx, Face = read_surface(surface_file)
-    >>> len(Vrtx)
-      145069
-    >>> len(Face)
-      290134
-    >>> Vrtx[10]
-      [-16.585412979125977, -101.663330078125, 3.4243862628936768]
-    >>> Face[10]
-      [2, 50, 54]
-
-    """
-    import os
-    import struct
-
-    f = open(filename, "rb")
-    f.seek(3)  # skip the first 3 Bytes "Magic" number
-
-    s = f.read(500)   # the second field is a string of variable length
-    End2 = s.find('\n\n',0)  # end of the second field is a '\n\n'
-
-    f.seek(3+End2+2)  # jump to immediate Byte after the creating information
-
-    s = f.read(8)
-    VertexCount, FaceCount = struct.unpack(">ii", s)
-    # print("This hemisphere has", VertexCount, "Vertexes and", FaceCount, "Faces")
-
-    Vertex, Face = [], []
-
-    for i in xrange(0, VertexCount):
-        s = f.read(8)
-        R, A = struct.unpack(">ff", s)
-        f.seek(-4, os.SEEK_CUR)
-        s = f.read(8)
-        A, S = struct.unpack(">ff", s)
-        Vertex.append([R,A,S]) # R, A, S are the coordinates of vertices
-
-    for i in xrange(0, FaceCount):
-        s = f.read(8)
-        V0, V1 = struct.unpack(">ii", s)
-        f.seek(-4, os.SEEK_CUR)
-        s = f.read(8)
-        V1, V2 = struct.unpack(">ii", s)
-        Face.append([V0, V1, V2])
-
-    return Vertex, Face
-
-def read_curvature(filename):
-    """
-    Read in a FreeSurfer curvature, convexity, or thickness file.
-
-    Parameters
-    ----------
-    filename : string
-        A binary FreeSurfer (per-vertex) curvature file
-
-    Returns
-    -------
-    Curvature : list of floats
-        Each element is the curvature value of a FreeSurfer mesh vertex.
-
-    Example
-    -------
-    >>> import os
-    >>> from mindboggle.utils.io_free import read_curvature
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(data_path, 'arno', 'freesurfer', 'lh.curv')
-    >>> Curv = read_curvature(surface_file)
-    >>> len(Curv)
-      145069
-    >>> Curv[10]
-      -0.27393144369125366
-
-    """
-    import os
-    import struct
-
-    f = open(filename, "rb")
-
-    f.seek(3) # skip the first 3 Bytes "Magic" number
-
-    s = f.read(8)  # get the VertexCount and FaceCount
-    VertexCount, FaceCount = struct.unpack(">ii", s)
-    # print("# of Vertexes:", VertexCount, ", # of Faces:", FaceCount)
-
-    Curvature = [0.0]
-
-    s = f.read(8)
-    ValsPerVertex, Curvature[0] = struct.unpack(">if", s)
-
-    VertexCount -= 1  # because the first curvature value has been loaded
-
-    while VertexCount > 1:
-        s = f.read(8)
-        VertexVal1, VertexVal2  =  struct.unpack(">ff", s)
-        Curvature += [VertexVal1, VertexVal2]
-        VertexCount -= 2
-
-    if VertexCount != 0:  # number of vertices is even (NOT ODD!!!)
-        f.seek(-4, os.SEEK_CUR)  # backward 4 Bytes from current position
-        s = f.read(8)
-        VertexVal1, VertexVal2 = struct.unpack(">ff", s)
-        Curvature.append(VertexVal2)
-
-    f.close()
-
-    return Curvature
 
 def labels_to_annot(hemi, subjects_path, subject, label_files,
                     colortable, annot_name):
@@ -334,10 +197,13 @@ def surface_to_vtk(surface_file):
 
     """
     import os
-    from mindboggle.utils.io_free import read_surface
+    import nibabel as nb
+
     from mindboggle.utils.io_vtk import write_header, write_points, write_faces
 
-    points, faces = read_surface(surface_file)
+    surf = nb.freesurfer.read_geometry(freesurfer_surface)
+    points = surf[0]
+    faces = surf[1]
 
     output_vtk = os.path.join(os.getcwd(),
                               os.path.basename(surface_file + '.vtk'))
@@ -380,11 +246,13 @@ def curvature_to_vtk(surface_file, vtk_file):
 
     """
     import os
-    from mindboggle.utils.io_free import read_curvature
+    import nibabel as nb
+
     from mindboggle.utils.io_vtk import rewrite_scalars
 
     output_vtk = os.path.join(os.getcwd(), os.path.basename(surface_file)+'.vtk')
-    curvature_values = read_curvature(surface_file)
+
+    curvature_values = nb.freesurfer.read_morph_data(surface_file)
     scalar_names = os.path.basename(surface_file)
 
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
