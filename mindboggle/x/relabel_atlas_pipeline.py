@@ -67,7 +67,7 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import freeannot_to_vtk, freesurface_to_vtk
+from mindboggle.utils.io_vtk import annot_to_vtk, surface_to_vtk
 from mindboggle.label.relabel import relabel_annot_file
 #-----------------------------------------------------------------------------
 # Initialize main workflow
