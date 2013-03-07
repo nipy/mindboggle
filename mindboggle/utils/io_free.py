@@ -201,7 +201,7 @@ def surface_to_vtk(surface_file):
 
     from mindboggle.utils.io_vtk import write_header, write_points, write_faces
 
-    surf = nb.freesurfer.read_geometry(freesurfer_surface)
+    surf = nb.freesurfer.read_geometry(surface_file)
     points = surf[0]
     faces = surf[1]
 
