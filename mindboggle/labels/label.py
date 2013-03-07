@@ -94,7 +94,7 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 #------------------------------------------------------------------------------
 # Extract borders between labels
 #------------------------------------------------------------------------------
-def extract_borders(region_indices, labels, neighbor_lists,
+def extract_borders(indices, labels, neighbor_lists,
                     ignore_indices=[], return_label_pairs=False):
     """
     Detect the label boundaries in a collection of vertices such as a region.
@@ -104,8 +104,8 @@ def extract_borders(region_indices, labels, neighbor_lists,
 
     Parameters
     ----------
-    region_indices : list of integers
-        indices to vertices in a region (any given collection of vertices)
+    indices : list of integers
+        indices to (a subset of) vertices
     labels : numpy array of integers
         label numbers for all vertices, with -1s for unlabeled vertices
     neighbor_lists : list of lists of integers
@@ -126,12 +126,13 @@ def extract_borders(region_indices, labels, neighbor_lists,
     --------
     >>> # Small example:
     >>> from mindboggle.labels.label import extract_borders
-    >>> neighbor_lists = [[1,2,3], [0,0,8,0,8], [2], [4,7,4], [3,2,3]]
-    >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
-    >>> region_indices = [0,1,2,4,5,8,9]
-    >>> extract_borders(region_indices, labels, neighbor_lists)
-      ([1, 4], [[10, 90], [30, 40]], [[10, 90], [30, 40]])
-
+    >>> indices = [0,1,2,4,5,8,9]
+    >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
+    >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3]]
+    >>> extract_borders(indices, labels, neighbor_lists, [], True)
+        ([1, 2, 4, 5],
+         [[20, 30], [30, 40], [50, 80], [30, 40]],
+         [[20, 30], [30, 40], [50, 80]])
     >>> # Real example -- extract sulcus label boundaries:
     >>> import os
     >>> import numpy as np
@@ -169,13 +170,13 @@ def extract_borders(region_indices, labels, neighbor_lists,
     # Find indices to sets of two labels
     boundary_indices = [i for i,x in enumerate(label_lists)
                         if len(set(x)) == 2
-                        if i in region_indices]
+                        if i in indices]
 
     if return_label_pairs:
         boundary_label_pairs = [np.sort(x).tolist()
                                 for i,x in enumerate(label_lists)
                                 if len(set(x)) == 2
-                                if i in region_indices]
+                                if i in indices]
     else:
         boundary_label_pairs = []
 
