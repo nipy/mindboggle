@@ -48,8 +48,7 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_columns(columns, column_names, output_table,
-                  output_prepend='', input_table=''):
+def write_columns(columns, column_names, output_table, input_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
@@ -61,8 +60,6 @@ def write_columns(columns, column_names, output_table,
         names of columns
     output_table : string
         name of output table file
-    output_prepend : string (default is empty string)
-        prepend to output table file name
     input_table : string (default is empty string)
         name of table file to which the columns are to be appended
 
@@ -88,8 +85,7 @@ def write_columns(columns, column_names, output_table,
     import sys
     from mindboggle.utils.io_file import read_columns
 
-    output_table = output_prepend + output_table
-    output_table_full = os.path.join(os.getcwd(), output_table)
+    output_table = os.path.join(os.getcwd(), output_table)
 
     #-----------------------
     # Check format of inputs
@@ -127,11 +123,11 @@ def write_columns(columns, column_names, output_table,
         input_columns = read_columns(input_table, n_columns=1, trail=True)
         input_names = input_columns[0][0]
         input_columns = input_columns[0][1::]
-        Fp = open(output_table_full, 'a')
+        Fp = open(output_table, 'a')
     else:
         input_names = ''
         input_columns = ['' for x in columns[0]]
-        Fp = open(output_table_full, 'w')
+        Fp = open(output_table, 'w')
 
     #--------------
     # Write to file
