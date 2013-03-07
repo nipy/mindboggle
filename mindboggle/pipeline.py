@@ -84,7 +84,7 @@ else:
 #===============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_fundi = False # Extract fundi from folds
-do_sulci = False # Extract sulci from folds
+do_sulci = True # Extract sulci from folds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_vertex_tables = True  # Create per-vertex shape tables
@@ -386,7 +386,7 @@ if run_labelFlow:
                                                           'atlas_string'],
                                            output_names = ['output_file']))
         labelFlow.add_nodes([Transform])
-        mbFlow.connect([(info, labelFlow,
+        mbFlow.connect([(Info, labelFlow,
                          [('hemi', 'Transform_labels.hemi'),
                           ('subject', 'Transform_labels.subject')])])
         labelFlow.connect([(Register, Transform, [('transform', 'transform')])])
@@ -638,7 +638,7 @@ if run_featureFlow:
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         SulciNode.inputs.min_boundary = 1
-        sulcus_names_file = os.path.join(data_path, 'info', 'sulcus_names.txt')
+        sulcus_names_file = os.path.join(data_path, 'protocol', 'sulci.names.DKT25.txt')
         fid = open(sulcus_names_file, 'r')
         sulcus_names = fid.readlines()
         sulcus_names = [x.strip('\n') for x in sulcus_names]
