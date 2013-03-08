@@ -550,7 +550,7 @@ def label_holes(holes, regions, neighbor_lists):
 
     return regions
 
-def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
+def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     """
     Fill holes in regions on a surface mesh by using region boundaries.
 
@@ -570,11 +570,11 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
         region numbers for all vertices (default -1)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    exclude_values : list of integers
-        hole is not filled if any of these values are within the hole
-        (prevents cases where surface connected by folds mistaken for holes)
     values : list of integers
         values for vertices, for use in determining which holes to remove
+    exclude_range : list of two floats
+        hole is not filled if it contains values within this range
+        (prevents cases where surface connected by folds mistaken for holes)
 
     Returns
     -------
@@ -657,7 +657,7 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
     >>> regions = np.copy(folds)
-    >>> regions = fill_holes(regions, neighbor_lists, [100], values)
+    >>> regions = fill_holes(regions, neighbor_lists, values, [99,101])
     >>> #
     >>> # Write results to vtk file and view:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
@@ -734,10 +734,12 @@ def fill_holes(regions, neighbor_lists, exclude_values=[], values=[]):
             hole = segment(background, neighbor_lists, 1, seed_lists)
 
             # Label the vertices for each hole by surrounding region number
-            # if hole does not include any of the exclude_values
-            if exclude_values:
+            # if hole does not include values within exclude_range:
+            if len(exclude_range) == 2:
                 Ihole = np.where(hole > -1)[0]
-                if not len(frozenset(values[Ihole]).intersection(exclude_values)):
+                #if not len(frozenset(values[Ihole]).intersection(exclude_range)):
+                if not [x for x in values[Ihole]
+                        if x > exclude_range[0] and x < exclude_range[1]]:
                     regions = label_holes(hole, regions, neighbor_lists)
             else:
                 regions = label_holes(hole, regions, neighbor_lists)
