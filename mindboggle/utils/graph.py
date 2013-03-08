@@ -71,7 +71,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     Parameters
     ----------
     Nodes : numpy array
-    Indices : numpy array
+    Indices : list of integers
     Meshes : numpy array
     kernel : function which determines weights of edges
         - rbf_kernel: Gaussian kernel, with parameter sigma
