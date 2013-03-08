@@ -116,10 +116,13 @@ def propagate(points, faces, region, seeds, labels,
                 print('Segment {0} vertices from {1} sets of seed vertices'.
                       format(len(indices_region), n_sets))
 
+            # Remove faces whose three vertices are not among specified indices:
+            refaces = remove_faces(faces, indices_region)
+
             # Set up rebound Bounds class instance
             B = rb.Bounds()
-            B.Faces = remove_faces(faces, indices_region)
-            if B.Faces:
+            if refaces:
+                B.Faces = np.array(refaces)
                 B.Indices = local_indices_region
                 B.Points = points[indices_region]
                 B.Labels = labels[indices_region]
