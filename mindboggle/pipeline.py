@@ -10,10 +10,10 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
 ..Mindboggle surface workflows ::
 
     * Label surfaces:
-        - call manual labels
-        - call labels from FreeSurfer
-        - multi-atlas labeling
-        - DKT40 atlas labeling
+        - call manual labels OR
+        - call labels from FreeSurfer OR
+        - multi-atlas labeling OR
+        - DKT40 atlas labeling (default)
         -> evaluate surface labels
 
     * Extract features:
@@ -559,6 +559,7 @@ if run_featureFlow:
                      interface = Fn(function = extract_folds,
                                     input_names = ['depth_file',
                                                    'min_fold_size',
+                                                   'tiny_depth',
                                                    'extract_subfolds',
                                                    'save_file'],
                                     output_names = ['folds',
@@ -568,6 +569,7 @@ if run_featureFlow:
     mbFlow.connect([(shapeFlow, featureFlow,
                      [('Depth.depth_file','Folds.depth_file')])])
     FoldsNode.inputs.min_fold_size = 50
+    FoldsNode.inputs.min_fold_size = 0.001
     FoldsNode.inputs.extract_subfolds = True
     FoldsNode.inputs.save_file = True
     # Save folds
