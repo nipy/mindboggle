@@ -12,7 +12,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #===============================================================================
 # Extract folds
 #===============================================================================
-def extract_folds(depth_file, min_fold_size=1,
+def extract_folds(depth_file, min_fold_size=1, tiny_depth=0.001,
                   extract_subfolds=True, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
@@ -23,10 +23,10 @@ def extract_folds(depth_file, min_fold_size=1,
         3. Segment deep vertices as an initial set of folds
         4. Remove small folds
         5. Find and fill holes in the folds
-        6. Optional: segment into subfolds
+        6. Optional: Segment into subfolds
             a. Segment folds into "watershed basins"
             b. Shrink segments in folds with multiple segments
-            c. Regrow shrunken segments
+            c. Regrow shrunken segments with label propagation
         7. Renumber segments
 
     Step 2::
@@ -60,6 +60,8 @@ def extract_folds(depth_file, min_fold_size=1,
         surface mesh file in VTK format with faces and depth scalar values
     min_fold_size : int
         minimum fold size (number of vertices)
+    tiny_depth : float
+        largest non-zero depth value that will stop a hole from being filled
     extract_subfolds : Boolean
         segment folds into subfolds?
     save_file : Boolean
@@ -83,11 +85,10 @@ def extract_folds(depth_file, min_fold_size=1,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>>
-    >>> folds, n_folds = extract_folds(depth_file, 50, True, False)
-    >>>
+    >>> #
+    >>> folds, n_folds, folds_file = extract_folds(depth_file, 50, 0.001, True, False)
+    >>> #
     >>> # Write results to vtk file and view:
-    >>> folds = folds.tolist()
     >>> rewrite_scalars(depth_file, 'test_extract_folds.vtk', folds, 'folds', folds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_extract_folds.vtk')
@@ -142,7 +143,7 @@ def extract_folds(depth_file, min_fold_size=1,
     window = [-1, 0, 1]
     bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
     ibins0 = np.where(bin_slopes == 0)[0]
-    if ibins0.size:
+    if ibins0.shape:
         depth_threshold = bin_edges[ibins0[0]]
     else:
         depth_threshold = np.median(depths)
@@ -179,12 +180,12 @@ def extract_folds(depth_file, min_fold_size=1,
         #-----------------------------------------------------------------------
         # Find and fill holes in the folds
         # Note: Surfaces surrounded by folds can be mistaken for holes,
-        #       so exclude_values equals outer surface value of zero.
+        #       so exclude_range includes outer surface values close to zero.
         #-----------------------------------------------------------------------
         if do_fill_holes:
             print("  Find and fill holes in the folds")
-            folds = fill_holes(folds, neighbor_lists, exclude_values=[0],
-                               values=depths)
+            folds = fill_holes(folds, neighbor_lists, values=depths,
+                               exclude_range=[0, tiny_depth])
 
         #-----------------------------------------------------------------------
         # Extract subfolds
