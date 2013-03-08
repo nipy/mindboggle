@@ -302,8 +302,9 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
                             #                          if x == seed])
                             #sulci2 = segment(indices_label, neighbor_lists,
                             #                 50, indices_seeds, False, True, labels)
-                            sulci2 = propagate(points, faces, label_array,
-                                               seeds, sulci, max_iters=10000,
+                            sulci2 = propagate(points, faces,
+                                               label_array, seeds, sulci,
+                                               max_iters=10000,
                                                tol=0.001, sigma=5)
                             sulci[sulci2 > -1] = sulci2[sulci2 > -1]
 
