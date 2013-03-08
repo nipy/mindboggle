@@ -579,7 +579,6 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> plot_vtk('test_write_vtk.vtk')
     >>> #
     >>> # Write vtk file with depth values on sulci and view:
-    >>> from mindboggle.utils.mesh import remove_faces
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
@@ -620,10 +619,6 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
                 else:
                     scalar_name  = scalar_names[i]
                 write_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
-    else:
-        print('Error: scalars is empty')
-        exit()
-
     Fp.close()
 
     return output_vtk

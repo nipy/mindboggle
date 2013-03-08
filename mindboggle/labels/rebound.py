@@ -179,15 +179,15 @@ class Bounds:
         self.learned_matrix: np array (n x C array of probabilities
                                        that vertex has a given label)
         """
+        import sys
 
         # Step 1. Construct affinity matrix - compute edge weights
-        if self.Points and self.Indices and self.Faces:
+        if self.Points.shape and self.Indices.shape and self.Faces.shape:
             self.affinity_matrix = go.weight_graph(self.Points, self.Indices,
                 self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False)
         else:
             print("  Missing data!")
-            import os
-            os.error()
+            sys.exit()
 
         # Step 2. Transform column of labels into n x C matrix, one column per label
         if not realign:
