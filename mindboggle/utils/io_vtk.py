@@ -455,7 +455,7 @@ def write_lines(Fp, lines):
 
     Parameters
     ----------
-    Fp: pointer to a file
+    Fp : pointer to a file
         pointer to the file to write lines
     lines : list of 2-tuples of integers
         each element is an edge on the mesh, consisting of 2 integers
