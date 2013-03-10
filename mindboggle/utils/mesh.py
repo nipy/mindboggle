@@ -232,7 +232,6 @@ def find_neighbors(faces, npoints):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-
     npoints: integer
         number of vertices on the mesh
 
