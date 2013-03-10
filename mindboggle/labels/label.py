@@ -95,7 +95,7 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 # Extract borders between labels
 #------------------------------------------------------------------------------
 def extract_borders(indices, labels, neighbor_lists,
-                    ignore_indices=[], return_label_pairs=False):
+                    ignore_values=[], return_label_pairs=False):
     """
     Detect the label boundaries in a collection of vertices such as a region.
 
@@ -110,7 +110,7 @@ def extract_borders(indices, labels, neighbor_lists,
         label numbers for all vertices, with -1s for unlabeled vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    ignore_indices : list of integers
+    ignore_values : list of integers
         integers to ignore (e.g., background)
 
     Returns
@@ -180,9 +180,9 @@ def extract_borders(indices, labels, neighbor_lists,
     else:
         boundary_label_pairs = []
 
-    if ignore_indices:
+    if ignore_values:
         Ikeep = [i for i,x in enumerate(boundary_label_pairs)
-                 if not len(frozenset(x).intersection(ignore_indices))]
+                 if not len(frozenset(x).intersection(ignore_values))]
         boundary_indices = [x for i,x in enumerate(boundary_indices)
                             if i in Ikeep]
         if return_label_pairs:
