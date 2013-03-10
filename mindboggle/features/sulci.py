@@ -158,7 +158,7 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
         else:
             # Find all label boundary pairs within the fold
             indices_fold_pairs, fold_pairs, unique_fold_pairs = extract_borders(
-                fold, labels, neighbor_lists, ignore_indices=[],
+                fold, labels, neighbor_lists, ignore_values=[],
                 return_label_pairs=True)
 
             # Find fold label pairs in the protocol (pairs are already sorted)
