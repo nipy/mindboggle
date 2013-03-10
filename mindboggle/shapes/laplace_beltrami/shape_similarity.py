@@ -90,7 +90,7 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2):
 	''' Weighted Spectral Distance. See Konukoglu et al. (2012)'''
 	# At present, algorithm doesn't return normalized result. It therefore doesn't require calculation of volume. 
 	
-	d = 3.0
+	d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
 	Ball = 4.0/3*np.pi # For Three Dimensions
 	p = 2.0
 	
