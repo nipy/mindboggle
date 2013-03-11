@@ -318,7 +318,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     regrow_shrunken = True
 
     # Use propagate() to regrow subfolds:
-    regrow_by_propagating = 0#True
+    regrow_by_propagating = True
 
     print("Segment folds into subfolds")
     t0 = time()
@@ -411,7 +411,6 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
         subfolds_file = None
 
     return subfolds.tolist(), n_subfolds, subfolds_file
-
 
 #===============================================================================
 # Normalize depths in each fold
