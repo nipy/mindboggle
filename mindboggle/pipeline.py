@@ -152,7 +152,7 @@ from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature, volume_per_label
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
-from mindboggle.features.folds import extract_folds, normalize_fold_depths
+from mindboggle.features.folds import extract_folds, extract_subfolds
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -551,6 +551,7 @@ if run_shapeFlow:
 if run_featureFlow:
 
     featureFlow = Workflow(name='Features')
+    min_fold_size = 50
 
     #===========================================================================
     # Folds
@@ -560,41 +561,49 @@ if run_featureFlow:
                                     input_names = ['depth_file',
                                                    'min_fold_size',
                                                    'tiny_depth',
-                                                   'extract_subfolds',
                                                    'save_file'],
                                     output_names = ['folds',
                                                     'n_folds',
+                                                    'depth_threshold',
+                                                    'bins',
+                                                    'bin_edges',
                                                     'folds_file']))
     featureFlow.add_nodes([FoldsNode])
     mbFlow.connect([(shapeFlow, featureFlow,
                      [('Depth.depth_file','Folds.depth_file')])])
-    FoldsNode.inputs.min_fold_size = 50
-    FoldsNode.inputs.min_fold_size = 0.001
-    FoldsNode.inputs.extract_subfolds = True
-    FoldsNode.inputs.save_file = True
-    # Save folds
-    mbFlow.connect([(featureFlow, Sink,
-                     [('Folds.folds_file','features.@folds')])])
+    FoldsNode.inputs.min_fold_size = min_fold_size
+    FoldsNode.inputs.tiny_depth = 0.001
+    FoldsNode.inputs.save_file = False
 
     #===========================================================================
-    # Normalize depth in folds
+    # Folds
     #===========================================================================
-    #FoldDepths = Node(name='Fold_depths',
-    #                  interface = Fn(function = normalize_fold_depths,
-    #                                 input_names = ['depth_file',
-    #                                                'folds_or_file',
-    #                                                'save_file'],
-    #                                 output_names = ['depth_folds',
-    #                                                 'depth_folds_file']))
-    #featureFlow.add_nodes([FoldDepths])
-    #mbFlow.connect([(shapeFlow, featureFlow,
-    #                 [('Depth.depth_file','Fold_depths.depth_file')])])
-    #featureFlow.connect([(FoldsNode, FoldDepths, [('folds','folds_or_file')])])
-    #FoldDepths.inputs.save_file = do_save_fold_depths
-    ## Save folds with normalized depth values per fold
-    #mbFlow.connect([(featureFlow, Sink,
-    #                 [('Fold_depths.depth_folds_file',
-    #                   'features.@depth_folds')])])
+    SubfoldsNode = Node(name='Subfolds',
+                        interface = Fn(function = extract_subfolds,
+                                       input_names = ['depth_file',
+                                                      'folds',
+                                                      'min_subfold_size',
+                                                      'depth_factor',
+                                                      'depth_ratio',
+                                                      'tolerance',
+                                                      'shrink_factor',
+                                                      'save_file'],
+                                       output_names = ['subfolds',
+                                                       'n_subfolds',
+                                                       'subfolds_file']))
+    featureFlow.add_nodes([SubfoldsNode])
+    mbFlow.connect([(shapeFlow, featureFlow,
+                     [('Depth.depth_file','Subfolds.depth_file')])])
+    featureFlow.connect([(FoldsNode, SubfoldsNode, [('folds','folds')])])
+    SubfoldsNode.inputs.min_subfold_size = min_fold_size
+    SubfoldsNode.inputs.depth_factor = 0.25
+    SubfoldsNode.inputs.depth_ratio = 0.1
+    SubfoldsNode.inputs.tolerance = 0.01
+    SubfoldsNode.inputs.shrink_factor = 0.5
+    SubfoldsNode.inputs.save_file = True
+    # Save subfolds
+    mbFlow.connect([(featureFlow, Sink,
+                     [('Subfolds.subfolds_file','features.@subfolds')])])
 
     #===========================================================================
     # Sulci
@@ -636,7 +645,7 @@ if run_featureFlow:
             mbFlow.connect([(Atlas, featureFlow,
                              [('atlas_file','Sulci.labels_file')])])
         #---------------------------------------------------------------------------
-        featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds_or_file')])])
+        featureFlow.connect([(SubfoldsNode, SulciNode, [('subfolds','folds_or_file')])])
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         SulciNode.inputs.min_boundary = 1
@@ -676,7 +685,7 @@ if run_featureFlow:
         if fundi_from_sulci:
             featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
         else:
-            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
+            featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
                           ('Curvature.mean_curvature_file',
@@ -716,7 +725,7 @@ if run_featureFlow:
                                            output_names = ['fundi',
                                                         'n_fundi',
                                                         'likelihoods']))
-        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+        featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds')])])
         featureFlow.connect([(NbrNode, FundiNode,
                               [('neighbor_lists','neighbor_lists')])])
         mbFlow.connect([(shapeFlow, featureFlow,
