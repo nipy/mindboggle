@@ -231,8 +231,20 @@ def curvature(command, surface_file):
     Measure curvature values of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
 
-    command : curvature C++ executable command
-    surface_file : ``vtk file``
+    The 3 methods (-m 0,1,2) take about the same amount of time to run
+    if one does not set a neighborhood.
+    -m 0 is best if you have a low resolution or want to localize local peaks.
+    -m 1 is not well tested and the filtering is done using Euclidean distances,
+        so it's only good for fast visualization.
+    -m 2 is a good approximation but very large curvatures (negative or positive)
+        are underestimated (saturation effect).
+
+    Parameters
+    ----------
+    command : string
+        C++ executable command for computing curvature
+    surface_file : string
+        name of VTK surface mesh file
 
     """
     import os
