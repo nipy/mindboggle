@@ -17,7 +17,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         -> evaluate surface labels
 
     * Extract features:
-        - folds
+        - subfolds
         - fundi
         - sulci
 
@@ -83,8 +83,8 @@ else:
 # User settings
 #===============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = False # Extract fundi from folds
-do_sulci = True # Extract sulci from folds
+do_fundi = True # Extract fundi from subfolds
+do_sulci = True # Extract sulci from subfolds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_vertex_tables = True  # Create per-vertex shape tables
@@ -663,9 +663,9 @@ if run_featureFlow:
     # Fundi (curves at the bottoms of folds/sulci)
     #===========================================================================
     if do_fundi:
-        thr = 0.5
-        min_distance = 5.0
         fundi_from_sulci = False
+        min_distance = 5.0
+        thr = 0.5
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
                                         input_names = ['folds_or_file',
@@ -692,10 +692,9 @@ if run_featureFlow:
                            'Fundi.mean_curvature_file'),
                           ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
-        Like = read_columns('/Users/arno/Desktop/likelihoods_3subj_v2/likelihood_HLN_12_1.txt')
-        import numpy as np
-        Like = [np.float(x) for x in Like[0]]
-        FundiNode.inputs.likelihoods_or_file = Like
+        #Like = read_columns('/Users/arno/Desktop/likelihoods_3subj_v2/likelihood_HLN_12_1.txt')
+        #Like = [np.float(x) for x in Like[0]]
+        FundiNode.inputs.likelihoods_or_file = [] #Like
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
@@ -738,6 +737,41 @@ if run_featureFlow:
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
         FundiNode.inputs.compute_local_depth = True
+    """
+
+################################################################################
+#
+#   Shape measurement workflow (continued, for features)
+#
+################################################################################
+if run_shapeFlow:
+
+    pass
+    """
+    #===========================================================================
+    # Measure Laplace-Beltrami spectra of labeled regions
+    #===========================================================================
+    LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
+                                 interface = Fn(function = laplace_beltrami,
+                                                input_names = ['command',
+                                                               'surface_file'],
+                                                output_names = ['area_file']))
+    area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
+    AreaNode.inputs.command = area_command
+
+    #===========================================================================
+    # Measure Laplace-Beltrami spectra of subfolds
+    #===========================================================================
+
+    #===========================================================================
+    # Measure Laplace-Beltrami spectra of sulci
+    #===========================================================================
+    #if do_sulci:
+
+    #===========================================================================
+    # Measure Laplace-Beltrami spectra of fundi
+    #===========================================================================
+    #if do_fundi:
     """
 
 ################################################################################
@@ -906,7 +940,7 @@ if run_tableFlow:
     #===========================================================================
     if do_vertex_tables:
 
-        column_names2 = ['labels', 'folds', 'sulci', 'fundi', 'area', 'depth',
+        column_names2 = ['labels', 'subfolds', 'sulci', 'fundi', 'area', 'depth',
                          'mean_curvature', 'gauss_curvature', 'max_curvature',
                          'min_curvature', 'thickness', 'convexity']
         input_names2 = ['table_file', 'column_names']
@@ -942,10 +976,10 @@ if run_tableFlow:
         #-----------------------------------------------------------------------
         if run_featureFlow:
             mbFlow.connect([(featureFlow, tableFlow,
-                             [('Folds.folds_file',
-                               'Vertex_table.folds_file')])])
+                             [('Subfolds.subfolds_file',
+                               'Vertex_table.subfolds_file')])])
         else:
-            Vertices.inputs.folds_file = ''
+            Vertices.inputs.subfolds_file = ''
         if run_featureFlow and do_sulci:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Sulci.sulci_file',
