@@ -59,17 +59,20 @@ def compute_likelihood(depths, curvatures):
     >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
     >>> depths, name = read_scalars(depth_file, return_first=True, return_array=True)
-    >>> mean_curvs, name = read_scalars(mean_curv_file, return_first=True, return_array=True)
+    >>> curvatures, name = read_scalars(mean_curv_file, return_first=True, return_array=True)
     >>>
-    >>> L = compute_likelihood(depths, mean_curvs)
+    >>> L = compute_likelihood(depths, curvatures)
     >>>
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L, 'likelihoods')
+    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> rewrite_scalars(depth_file, 'test_compute_likelihood.vtk', L, 'likelihoods', subfolds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_compute_likelihood.vtk')
 
     """
     import numpy as np
+    from mindboggle.features.fundi import sigmoid
 
     tiny = 0.0000000001
 
@@ -84,9 +87,10 @@ def compute_likelihood(depths, curvatures):
     # Curvature values retain their values
     # Compute the means and std. deviations
     #=========================================
-    depths_norm = depths / (max(depths)+tiny)
-    depth_avg = np.mean(depths_norm)
-    depth_std = np.std(depths_norm)
+    if np.max(depths) != 1:
+        depths = depths / (max(depths)+tiny)
+    depth_avg = np.mean(depths)
+    depth_std = np.std(depths)
     curve_avg = np.mean(curvatures)
     curve_std = np.std(curvatures)
 
@@ -105,7 +109,7 @@ def compute_likelihood(depths, curvatures):
     # Compute likelihood values
     #==========================
     # Map values with sigmoid function to range [0,1]
-    depth_sigmoid = sigmoid(depths_norm, gain_depth, shift_depth)
+    depth_sigmoid = sigmoid(depths, gain_depth, shift_depth)
     curve_sigmoid = sigmoid(curvatures, gain_curve, shift_curve)
 
     likelihoods = depth_sigmoid * curve_sigmoid
@@ -114,15 +118,15 @@ def compute_likelihood(depths, curvatures):
     plot_result = False
     if plot_result:
         from matplotlib import pyplot
-        xdepth = np.sort(depths_norm)
+        xdepth = np.sort(depths)
         xcurve = np.sort(curvatures)
-        depth_sigmoid_sort = sigmoid(xdepth, gain_depth, shift_depth)
-        curve_sigmoid_sort = sigmoid(xcurve, gain_curve, shift_curve)
-        sigmoids = depth_sigmoid_sort * curve_sigmoid_sort
-        pyplot.plot(xdepth, depth_sigmoid_sort, 'k')
-        pyplot.plot(xcurve, curve_sigmoid_sort, 'b')
+        depth_sigmoid = sigmoid(xdepth, gain_depth, shift_depth)
+        curve_sigmoid = sigmoid(xcurve, gain_curve, shift_curve)
+        sigmoids = depth_sigmoid * curve_sigmoid
+        pyplot.plot(xdepth, depth_sigmoid, 'k')
+        pyplot.plot(xcurve, curve_sigmoid, 'b')
         pyplot.plot(xdepth, sigmoids, 'r')
-        pyplot.title('Depths, curves: (gains={0:.2f},{1:.2f}; shifts={2:.2f},{3:.2f})'.
+        pyplot.title('Depths, curves: (gains={0:.2f}, {1:.2f}; shifts={2:.2f}, {3:.2f})'.
                format(gain_depth, gain_curve, shift_depth, shift_curve))
         pyplot.show()
 
@@ -216,22 +220,26 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> from mindboggle.features.fundi import find_anchors
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, name = read_vtk(depth_file)
+    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures',
+    >>>                                          'lh.pial.curv.min.dir.txt')
+    >>> faces, lines, indices, points, npoints, likelihoods, name = read_vtk(likelihood_file,
+    >>>     return_first=True, return_array=True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
     >>> #
-    >>> anchors = find_anchors(points, values, min_directions, min_distance, thr)
+    >>> anchors = find_anchors(points, likelihoods, min_directions, min_distance, thr)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(min_directions))
-    >>> IDs[anchors] = 1
-    >>> rewrite_scalars(depth_file, 'test_find_anchors.vtk', IDs, 'anchors', IDs)
+    >>> likelihoods[anchors] = 2
+    >>> rewrite_scalars(likelihood_file, 'test_find_anchors.vtk',
+    >>>                 likelihoods, 'anchors_on_likelihoods_in_subfolds', subfolds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_find_anchors.vtk')
 
@@ -604,7 +612,7 @@ def extract_fundi(folds_or_file, depth_file,
     >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
     >>> min_curv_vec_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
     >>> # Select a single fold
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_ID = 10
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
