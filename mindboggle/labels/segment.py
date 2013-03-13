@@ -543,7 +543,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
 # Segment vertices of surface into contiguous regions by a watershed algorithm
 #------------------------------------------------------------------------------
 def watershed(depths, points, indices, neighbor_lists, min_size=1,
-              depth_factor=0.5, depth_ratio=0.1, tolerance=0.01):
+              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01):
     """
     Segment vertices of surface into contiguous "watershed basin" regions
     by seed growing from an iterative selection of the deepest vertices.
@@ -602,7 +602,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> min_size = 50
-    >>> depth_factor = 0.5
+    >>> depth_factor = 0.25
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
     >>> #
