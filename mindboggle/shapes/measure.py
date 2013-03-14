@@ -488,8 +488,9 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
 
     return rescaled_scalars
 
-def rescale_by_label(input_vtk, labels_or_file, by_neighborhood=True,
-                     nedges=10, p=99, set_max_to_1=True, save_file=False,
+def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
+                     by_neighborhood=True, nedges=10, p=99, 
+                     set_max_to_1=True, save_file=False,
                      output_filestring='rescaled_scalars'):
     """
     Rescale scalars for each label (such as depth values within each fold).
@@ -503,6 +504,8 @@ def rescale_by_label(input_vtk, labels_or_file, by_neighborhood=True,
         name of VTK file with a scalar value for each vertex
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
+    combine_all_labels : Boolean
+        combine all labels (scalars not equal to -1) as one label?
     by_neighborhood : Boolean
         rescale by a percentile value in each vertex's surface neighborhood?
     nedges : integer (if norm_by_neighborhood)
@@ -531,6 +534,7 @@ def rescale_by_label(input_vtk, labels_or_file, by_neighborhood=True,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> combine_all_labels = False
     >>> by_neighborhood = True
     >>> nedges = 10
     >>> p = 99
@@ -539,8 +543,8 @@ def rescale_by_label(input_vtk, labels_or_file, by_neighborhood=True,
     >>> output_filestring = 'rescaled_scalars'
     >>> #
     >>> rescaled_scalars, rescaled_scalars_file = rescale_by_label(input_vtk,
-    >>>     labels_or_file, by_neighborhood, nedges, p, set_max_to_1,
-    >>>     save_file, output_filestring)
+    >>>     labels_or_file, combine_all_labels, by_neighborhood, nedges, p,
+    >>>     set_max_to_1, save_file, output_filestring)
     >>> #
     >>> # View rescaled scalar values per fold:
     >>> from mindboggle.utils.mesh import plot_vtk
