@@ -402,7 +402,7 @@ def volume_per_label(labels, input_file):
     return volumes.tolist(), labels
 
 def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
-                            set_max_to_1=True):
+                            set_max_to_1=True, return_list=True):
     """
     Rescale the scalar values of a VTK file by a percentile value
     in each vertex's surface mesh neighborhood.
@@ -421,6 +421,8 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
         percentile used to normalize each scalar
     set_max_to_1 : Boolean
         set all rescaled values greater than 1 to 1.0?
+    return_list : Boolean
+        return list or numpy array?
 
     Returns
     -------
@@ -443,9 +445,10 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
     >>> nedges = 10
     >>> p = 99
     >>> set_max_to_1 = True
+    >>> return_list = True
     >>> #
     >>> rescaled_scalars = rescale_by_neighborhood(scalars, indices,
-    >>>     neighbor_lists, nedges, p)
+    >>>     neighbor_lists, nedges, p, set_max_to_1, return_list)
     >>> #
     >>> # View rescaled scalar values on folds:
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
@@ -461,11 +464,10 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
     # Make sure arguments are numpy arrays
     if not isinstance(scalars, np.ndarray):
         scalars = np.asarray(scalars)
+    rescaled_scalars = scalars.copy()
 
     # Loop through all vertices:
-    rescaled_scalars = -1 * np.ones(len(scalars))
     for index in indices:
-        print('{0} of {1})'.format(index, len(indices)))
 
         # Determine the scalars in the vertex's neighborhood:
         neighborhood = find_neighborhood(neighbor_lists, [index], nedges)
@@ -481,4 +483,121 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
             if rescaled_scalars[index] > 1:
                 rescaled_scalars[index] = 1.0
 
-    return rescaled_scalars.tolist()
+    if return_list:
+        rescaled_scalars = rescaled_scalars.tolist()
+
+    return rescaled_scalars
+
+def rescale_by_label(input_vtk, labels_or_file, by_neighborhood=True,
+                     nedges=10, p=99, set_max_to_1=True, save_file=False,
+                     output_filestring='rescaled_scalars'):
+    """
+    Rescale scalars for each label (such as depth values within each fold).
+
+    Default is to normalize the scalar values of a VTK file by
+    a percentile value in each vertex's surface mesh neighborhood for each label.
+
+    Parameters
+    ----------
+    input_vtk : string
+        name of VTK file with a scalar value for each vertex
+    labels_or_file : list or string
+        label number for each vertex or name of VTK file with index scalars
+    by_neighborhood : Boolean
+        rescale by a percentile value in each vertex's surface neighborhood?
+    nedges : integer (if norm_by_neighborhood)
+        number or edges from vertex, defining the size of its neighborhood
+    p : float in range of [0,100] (if norm_by_neighborhood)
+        percentile used to rescale each scalar
+    set_max_to_1 : Boolean
+        set all rescaled values greater than 1 to 1.0?
+    save_file : Boolean
+        save output VTK file?
+    output_filestring : string (if save_file)
+        name of output file
+
+    Returns
+    -------
+    rescaled_scalars : list of floats
+        scalar values rescaled for each label, for label numbers not equal to -1
+    rescaled_scalars_file : string (if save_file)
+        name of output VTK file with rescaled scalar values for each label
+
+    Examples
+    --------
+    >>> # Rescale depths by neighborhood within each subfold:
+    >>> import os
+    >>> from mindboggle.shapes.measure import rescale_by_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_vtk = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> by_neighborhood = True
+    >>> nedges = 10
+    >>> p = 99
+    >>> set_max_to_1 = True
+    >>> save_file = True
+    >>> output_filestring = 'rescaled_scalars'
+    >>> #
+    >>> rescaled_scalars, rescaled_scalars_file = rescale_by_label(input_vtk,
+    >>>     labels_or_file, by_neighborhood, nedges, p, set_max_to_1,
+    >>>     save_file, output_filestring)
+    >>> #
+    >>> # View rescaled scalar values per fold:
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk(rescaled_scalars_file)
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.shapes.measure import rescale_by_neighborhood
+
+    # Load scalars and vertex neighbor lists:
+    scalars, name = read_scalars(input_vtk, True, True)
+    if by_neighborhood:
+        neighbor_lists = find_neighbors_from_file(input_vtk)
+        print("  Rescaling scalar values by neighborhood within each label...")
+    else:
+        print("  Rescaling scalar values within each label...")
+
+    # Load label numbers:
+    if isinstance(labels_or_file, str):
+        labels, name = read_scalars(labels_or_file, True, True)
+    elif isinstance(labels_or_file, list):
+        labels = labels_or_file
+    unique_labels = np.unique(labels)
+    unique_labels = [x for x in unique_labels if x >= 0]
+
+    # Loop through labels:
+    for label in unique_labels:
+        #print("  Rescaling scalar values within label {0} of {1} labels...".format(
+        #    int(label), len(unique_labels)))
+        indices = [i for i,x in enumerate(labels) if x == label]
+        if indices:
+
+            # Rescale by neighborhood:
+            if by_neighborhood:
+                scalars = rescale_by_neighborhood(scalars,
+                    indices, neighbor_lists, nedges, p,
+                    set_max_to_1=True, return_list=False)
+
+            # Rescale by the maximum label scalar value:
+            else:
+                scalars[indices] = scalars[indices] / np.max(scalars[indices])
+
+    rescaled_scalars = scalars.tolist()
+
+    #---------------------------------------------------------------------------
+    # Return rescaled scalars, number of labels, file name
+    #---------------------------------------------------------------------------
+    if save_file:
+
+        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
+        rewrite_scalars(input_vtk, rescaled_scalars_file,
+                        rescaled_scalars, 'rescaled_scalars', labels)
+
+    else:
+        rescaled_scalars_file = None
+
+    return rescaled_scalars, rescaled_scalars_file
