@@ -369,6 +369,60 @@ def find_neighbors_vertex(faces, index):
 
     return neighbor_list
 
+#------------------------------------------------------------------------------
+# Find neighborhood for given vertices
+#------------------------------------------------------------------------------
+def find_neighborhood(neighbor_lists, indices, nedges):
+    """
+    Find neighbors in the neighborhood of given surface mesh vertices.
+
+    For indices to surface mesh vertices, find unique indices for
+    vertices in the neighborhood of the vertices.
+
+    Parameters
+    ----------
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    indices : list of integers
+        indices of surface vertices
+
+    Returns
+    -------
+    neighborhood : list integers
+        indices to vertices in neighborhood
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import find_neighborhood
+    >>> neighbor_lists = [[0,1],[0,2],[1,4,5],[2],[],[0,1,4,5]]
+    >>> indices = [1,3,4]
+    >>> find_neighborhood(neighbor_lists, indices, 2)
+        [0, 2, 5]
+
+    """
+
+    # Initialize seed list with indices
+    neighborhood = []
+    seed_list = indices[:]
+    completed = seed_list[:]
+
+    # Propagate nedges away from indices:
+    for iedge in range(nedges):
+
+        # Find neighbors of seeds:
+        if seed_list:
+            local_neighbors = []
+            [local_neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+            # Select neighbors that have not been previously selected:
+            seed_list = list(frozenset(local_neighbors).difference(completed))
+
+            # Add to neighborhood:
+            neighborhood.extend(seed_list)
+            completed.extend(seed_list)
+
+    return neighborhood
+
 #-----------------------------------------------------------------------------
 # find all triangle faces centered at each node on the mesh
 #-----------------------------------------------------------------------------
