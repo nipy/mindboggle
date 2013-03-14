@@ -401,10 +401,11 @@ def volume_per_label(labels, input_file):
 
     return volumes.tolist(), labels
 
-def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99):
+def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
+                            set_max_to_1=True):
     """
-    Normalize the scalar values of a VTK file by a percentile value in each
-    vertex's surface mesh neighborhood.
+    Rescale the scalar values of a VTK file by a percentile value
+    in each vertex's surface mesh neighborhood.
 
     Parameters
     ----------
@@ -418,18 +419,20 @@ def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99)
         number or edges from vertex, defining the size of its neighborhood
     p : float in range of [0,100]
         percentile used to normalize each scalar
+    set_max_to_1 : Boolean
+        set all rescaled values greater than 1 to 1.0?
 
     Returns
     -------
-    normalized_scalars : list of floats
-        normalized scalar values
+    rescaled_scalars : list of floats
+        rescaled scalar values
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.shapes.measure import normalize_by_neighborhood
+    >>> from mindboggle.shapes.measure import rescale_by_neighborhood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
     >>> scalars, name = read_scalars(vtk_file, return_first=True, return_array=True)
@@ -439,16 +442,17 @@ def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 10
     >>> p = 99
+    >>> set_max_to_1 = True
     >>> #
-    >>> normalized_scalars = normalize_by_neighborhood(scalars, indices,
+    >>> rescaled_scalars = rescale_by_neighborhood(scalars, indices,
     >>>     neighbor_lists, nedges, p)
     >>> #
-    >>> # View normalized scalar values on folds:
+    >>> # View rescaled scalar values on folds:
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> from mindboggle.utils.mesh import plot_vtk
-    >>> rewrite_scalars(vtk_file, 'test_normalize_by_neighborhood.vtk',
-    >>>     normalized_scalars, 'normalized_scalars', subfolds)
-    >>> plot_vtk('test_normalize_by_neighborhood.vtk')
+    >>> rewrite_scalars(vtk_file, 'test_rescale_by_neighborhood.vtk',
+    >>>     rescaled_scalars, 'rescaled_scalars', subfolds)
+    >>> plot_vtk('test_rescale_by_neighborhood.vtk')
 
     """
     import numpy as np
@@ -459,7 +463,7 @@ def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99)
         scalars = np.asarray(scalars)
 
     # Loop through all vertices:
-    normalized_scalars = -1 * np.ones(len(scalars))
+    rescaled_scalars = -1 * np.ones(len(scalars))
     for index in indices:
         print('{0} of {1})'.format(index, len(indices)))
 
@@ -468,12 +472,13 @@ def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99)
 
         # Compute a high neighborhood percentile to normalize the vertex's value:
         normalization_factor = np.percentile(scalars[neighborhood], p)
-        normalized_scalar = scalars[index] / normalization_factor
-        normalized_scalars[index] = normalized_scalar
+        rescaled_scalar = scalars[index] / normalization_factor
+        rescaled_scalars[index] = rescaled_scalar
 
-    # Make any normalized value greater than 1 equal to 1:
-    for index in indices:
-        if normalized_scalars[index] > 1:
-            normalized_scalars[index] = 1.0
+    # Make any rescaled value greater than 1 equal to 1:
+    if set_max_to_1:
+        for index in indices:
+            if rescaled_scalars[index] > 1:
+                rescaled_scalars[index] = 1.0
 
-    return normalized_scalars.tolist()
+    return rescaled_scalars.tolist()
