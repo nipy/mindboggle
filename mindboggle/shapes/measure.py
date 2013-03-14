@@ -401,48 +401,79 @@ def volume_per_label(labels, input_file):
 
     return volumes.tolist(), labels
 
-def percentile(N, percent, key=lambda x:x):
+def normalize_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99):
     """
-    Find the percentile of a list of values.
-
-    http://code.activestate.com/recipes/511478/ (r2)
-
-    Alternative scipy implementation:
-    from scipy.stats import scoreatpercentile
-    depth_found = scoreatpercentile(depths, depth_threshold2)
+    Normalize the scalar values of a VTK file by a percentile value in each
+    vertex's surface mesh neighborhood.
 
     Parameters
     ----------
-    N : list of values. Note N MUST BE already sorted
-    percent : float value from 0.0 to 1.0
-    key : optional key function to compute value from each element of N
+    scalars : list of floats
+        scalar values from a VTK surface mesh file
+    indices : list of integers
+        indices of scalars to normalize
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    nedges : integer
+        number or edges from vertex, defining the size of its neighborhood
+    p : float in range of [0,100]
+        percentile used to normalize each scalar
 
     Returns
     -------
-    percentile : percentile of the values
+    normalized_scalars : list of floats
+        normalized scalar values
 
     Examples
     --------
-    >>> from mindboggle.shapes.measure import percentile
-    >>> N = [2,3,4,8,9,10]
-    >>> percent = 0.5
-    >>> percentile(N, percent)
-      6.0
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.shapes.measure import normalize_by_neighborhood
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> scalars, name = read_scalars(vtk_file, return_first=True, return_array=True)
+    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> indices = [i for i,x in enumerate(subfolds) if x != -1]
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> nedges = 10
+    >>> p = 99
+    >>> #
+    >>> normalized_scalars = normalize_by_neighborhood(scalars, indices,
+    >>>     neighbor_lists, nedges, p)
+    >>> #
+    >>> # View normalized scalar values on folds:
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> rewrite_scalars(vtk_file, 'test_normalize_by_neighborhood.vtk',
+    >>>     normalized_scalars, 'normalized_scalars', subfolds)
+    >>> plot_vtk('test_normalize_by_neighborhood.vtk')
 
     """
     import numpy as np
+    from mindboggle.utils.mesh import find_neighborhood
 
-    if not len(N):
-        return None
+    # Make sure arguments are numpy arrays
+    if not isinstance(scalars, np.ndarray):
+        scalars = np.asarray(scalars)
 
-    k = (len(N)-1) * percent
-    f = np.floor(k)
-    c = np.ceil(k)
-    if f == c:
-        return key(N[int(k)])
-    d0 = key(N[int(f)]) * (c-k)
-    d1 = key(N[int(c)]) * (k-f)
+    # Loop through all vertices:
+    normalized_scalars = -1 * np.ones(len(scalars))
+    for index in indices:
+        print('{0} of {1})'.format(index, len(indices)))
 
-    percentile = d0 + d1
+        # Determine the scalars in the vertex's neighborhood:
+        neighborhood = find_neighborhood(neighbor_lists, [index], nedges)
 
-    return percentile
+        # Compute a high neighborhood percentile to normalize the vertex's value:
+        normalization_factor = np.percentile(scalars[neighborhood], p)
+        normalized_scalar = scalars[index] / normalization_factor
+        normalized_scalars[index] = normalized_scalar
+
+    # Make any normalized value greater than 1 equal to 1:
+    for index in indices:
+        if normalized_scalars[index] > 1:
+            normalized_scalars[index] = 1.0
+
+    return normalized_scalars.tolist()
