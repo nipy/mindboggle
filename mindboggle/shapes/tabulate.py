@@ -91,18 +91,23 @@ def write_mean_shapes_table(table_file, column_names, labels, depth_file,
         else:
             column_names[i] = ''
 
-    # Prepend with column of normalization values
-    columns.insert(0, norm_values)
-    norm_columns.insert(0, norm_values)
-    column_names.insert(0, 'area')
+    if columns:
 
-    means_file = os.path.join(os.getcwd(), table_file)
-    write_columns(label_list, 'label', means_file)
-    write_columns(columns, column_names, means_file, means_file)
+        # Prepend with column of normalization values
+        columns.insert(0, norm_values)
+        norm_columns.insert(0, norm_values)
+        column_names.insert(0, 'area')
 
-    norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
-    write_columns(label_list, 'label', norm_means_file)
-    write_columns(norm_columns, column_names, norm_means_file, norm_means_file)
+        means_file = os.path.join(os.getcwd(), table_file)
+        write_columns(label_list, 'label', means_file)
+        write_columns(columns, column_names, means_file, means_file)
+
+        norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
+        write_columns(label_list, 'label', norm_means_file)
+        write_columns(norm_columns, column_names, norm_means_file, norm_means_file)
+
+    else:
+        print("NOTE: 'columns' is empty. Nothing written.")
 
     return means_file, norm_means_file
 

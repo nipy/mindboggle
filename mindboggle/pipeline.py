@@ -83,7 +83,7 @@ else:
 # User settings
 #===============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = True # Extract fundi from subfolds
+do_fundi = 0#True # Extract fundi from subfolds
 do_sulci = True # Extract sulci from subfolds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -149,7 +149,8 @@ from mindboggle.labels.multiatlas import register_template,\
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
 from mindboggle.labels.label import label_with_classifier
-from mindboggle.shapes.measure import area, depth, curvature, volume_per_label
+from mindboggle.shapes.measure import area, depth, curvature, volume_per_label, \
+    rescale_by_label
 from mindboggle.shapes.tabulate import write_mean_shapes_table, \
     write_vertex_shapes_table
 from mindboggle.features.folds import extract_folds, extract_subfolds
@@ -461,6 +462,7 @@ if run_shapeFlow:
                                output_names = ['area_file']))
     area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
     AreaNode.inputs.command = area_command
+
     #===========================================================================
     # Measure surface depth
     #===========================================================================
@@ -471,6 +473,7 @@ if run_shapeFlow:
                                     output_names = ['depth_file']))
     depth_command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
     DepthNode.inputs.command = depth_command
+
     #===========================================================================
     # Measure surface curvature
     #===========================================================================
@@ -485,6 +488,7 @@ if run_shapeFlow:
                                                    'min_curvature_vector_file']))
     curvature_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain')
     CurvNode.inputs.command = curvature_command
+
     #===========================================================================
     # Convert FreeSurfer surface measures to VTK
     #===========================================================================
@@ -576,7 +580,7 @@ if run_featureFlow:
     FoldsNode.inputs.save_file = False
 
     #===========================================================================
-    # Folds
+    # Subfolds
     #===========================================================================
     SubfoldsNode = Node(name='Subfolds',
                         interface = Fn(function = extract_subfolds,
@@ -746,7 +750,36 @@ if run_featureFlow:
 ################################################################################
 if run_shapeFlow:
 
-    pass
+    #===========================================================================
+    # Rescale surface depth
+    #===========================================================================
+    RescaleDepth = Node(name='Rescale_depth',
+                        interface = Fn(function = rescale_by_label,
+                                       input_names = ['input_vtk',
+                                                      'labels_or_file',
+                                                      'combine_all_labels',
+                                                      'by_neighborhood',
+                                                      'nedges',
+                                                      'p',
+                                                      'set_max_to_1',
+                                                      'save_file',
+                                                      'output_filestring'],
+                                       output_names = ['rescaled_scalars',
+                                                       'rescaled_scalars_file']))
+    shapeFlow.add_nodes([RescaleDepth])
+    mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
+    mbFlow.connect([(SubfoldsNode, RescaleDepth, [('subfolds_file','labels_or_file')])])
+    RescaleDepth.inputs.combine_all_labels = True
+    RescaleDepth.inputs.by_neighborhood = True
+    RescaleDepth.inputs.nedges = 10
+    RescaleDepth.inputs.p = 99
+    RescaleDepth.inputs.set_max_to_1 = True
+    RescaleDepth.inputs.save_file = True
+    RescaleDepth.inputs.output_filestring = 'rescaled_depth'
+    # Save rescaled depth
+    mbFlow.connect([(shapeFlow, Sink,
+                     [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
+
     """
     #===========================================================================
     # Measure Laplace-Beltrami spectra of labeled regions
