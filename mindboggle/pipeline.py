@@ -775,15 +775,15 @@ if run_shapeFlow:
     RescaleDepth.inputs.p = 99
     RescaleDepth.inputs.set_max_to_1 = True
     RescaleDepth.inputs.save_file = True
-    RescaleDepth.inputs.output_filestring = 'rescaled_depth'
+    RescaleDepth.inputs.output_filestring = 'depth_rescaled'
     # Save rescaled depth
     mbFlow.connect([(shapeFlow, Sink,
                      [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
 
-    """
     #===========================================================================
     # Measure Laplace-Beltrami spectra of labeled regions
     #===========================================================================
+    """
     LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
                                  interface = Fn(function = laplace_beltrami,
                                                 input_names = ['command',
@@ -791,7 +791,7 @@ if run_shapeFlow:
                                                 output_names = ['area_file']))
     area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
     AreaNode.inputs.command = area_command
-
+    """
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
     #===========================================================================
@@ -805,7 +805,7 @@ if run_shapeFlow:
     # Measure Laplace-Beltrami spectra of fundi
     #===========================================================================
     #if do_fundi:
-    """
+
 
 ################################################################################
 #
@@ -815,7 +815,7 @@ if run_shapeFlow:
 if run_tableFlow:
 
     tableFlow = Workflow(name='Tables')
-    column_names = ['depth', 'mean_curvature', 'gauss_curvature',
+    column_names = ['depth', 'depth_rescaled', 'mean_curvature', 'gauss_curvature',
                     'max_curvature', 'min_curvature', 'thickness', 'convexity']
     vtk_files = [x + '_file' for x in column_names]
     input_names = ['table_file', 'column_names', 'labels']
@@ -853,6 +853,9 @@ if run_tableFlow:
     #---------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Depth.depth_file','Label_table.depth_file')])])
+    mbFlow.connect([(shapeFlow, tableFlow,
+                     [('Rescale_depth.rescaled_scalars_file',
+                       'Label_table.depth_rescaled_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Curvature.mean_curvature_file',
                        'Label_table.mean_curvature_file')])])
@@ -895,6 +898,9 @@ if run_tableFlow:
         #-----------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Depth.depth_file','Sulcus_table.depth_file')])])
+        mbFlow.connect([(shapeFlow, tableFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Sulcus_table.depth_rescaled_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Curvature.mean_curvature_file',
                            'Sulcus_table.mean_curvature_file')])])
@@ -939,6 +945,9 @@ if run_tableFlow:
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Depth.depth_file','Fundus_table.depth_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Fundus_table.depth_rescaled_file')])])
+        mbFlow.connect([(shapeFlow, tableFlow,
                          [('Curvature.mean_curvature_file',
                            'Fundus_table.mean_curvature_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
@@ -974,8 +983,8 @@ if run_tableFlow:
     if do_vertex_tables:
 
         column_names2 = ['labels', 'subfolds', 'sulci', 'fundi', 'area', 'depth',
-                         'mean_curvature', 'gauss_curvature', 'max_curvature',
-                         'min_curvature', 'thickness', 'convexity']
+                         'depth_rescaled', 'mean_curvature', 'gauss_curvature',
+                         'max_curvature', 'min_curvature', 'thickness', 'convexity']
         input_names2 = ['table_file', 'column_names']
         input_names2.extend([x + '_file' for x in column_names2])
 
@@ -1029,6 +1038,9 @@ if run_tableFlow:
                          [('Area.area_file','Vertex_table.area_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Depth.depth_file','Vertex_table.depth_file')])])
+        mbFlow.connect([(shapeFlow, tableFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Vertex_table.depth_rescaled_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Curvature.mean_curvature_file',
                            'Vertex_table.mean_curvature_file')])])
