@@ -188,7 +188,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> depths, name = read_scalars(depth_file)
 
     """
@@ -280,7 +280,7 @@ def read_vtk(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
 
     """
@@ -581,7 +581,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Write vtk file with depth values on sulci and view:
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
     >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
     >>> plot_vtk('test_write_vtk.vtk')
@@ -652,7 +652,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> depths, name = read_scalars(depth_file, True,True)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
