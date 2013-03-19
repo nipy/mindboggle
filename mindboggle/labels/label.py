@@ -232,7 +232,7 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
-    >>> values_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> border_file, border_values = extract_borders(labels_file, mask_file, values_file)
     >>> #
