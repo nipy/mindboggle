@@ -41,7 +41,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     >>> import os
     >>> from mindboggle.utils.mesh import plot_scalar_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> plot_scalar_histogram(vtk_file, nbins=500)
 
     """
@@ -148,7 +148,7 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> apply_affine_transform(transform_file, vtk_file)
     >>> # View
     >>> plot_vtk('affine_lh.pial.depth.vtk')
@@ -225,7 +225,7 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> #
@@ -283,7 +283,7 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -674,7 +674,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> # Select one fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -1066,7 +1066,7 @@ if __name__ == "__main__":
     from mindboggle.labels.segment import watershed, propagate
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
         return_first=True, return_array=True)
 

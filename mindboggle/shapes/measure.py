@@ -270,10 +270,11 @@ def curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, areas, labels, exclude_labels):
+def mean_value_per_label(values, labels, exclude_labels,
+                         normalize_by_area=False, areas=[]):
     """
     Compute the mean value across vertices per label,
-    taking into account surface area per vertex.
+    optionally taking into account surface area per vertex.
 
     average value = sum(a_i * v_i) / total_surface_area,
     where *a_i* and *v_i* are the area and value for each vertex *i*.
@@ -281,20 +282,23 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     Parameters
     ----------
     values : numpy array of integer or float values
-    areas : numpy array of surface areas
     labels : list or array of integer labels (same length as values)
     exclude_labels : list of integer labels to be excluded
+    normalize_by_area : Boolean
+        divide each mean value per label by the surface area of that label?
+    areas : numpy array of floats (if normalize_by_area)
+        surface areas
 
     Returns
     -------
     mean_values : list of floats
         mean values
-    norm_mean_values : list of floats
-        mean values normalized by vertex area
-    surface_areas : list of floats
-        surface area for each labeled set of vertices
     label_list : list of integers
         unique label numbers
+    surface_areas : list of floats
+        surface area for each labeled set of vertices
+    norm_mean_values : list of floats
+        mean values normalized by vertex area
 
     Examples
     --------
@@ -302,49 +306,58 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.shapes.measure import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1,0]
-    >>> mean_values, norm_mean_values, surface_areas, label_list = mean_value_per_label(depths,
-    >>>     areas, labels, exclude_labels)
+    >>> normalize_by_area = True
+    >>> mean_values, label_list, surface_areas, norm_mean_values = mean_value_per_label(depths,
+    >>>     labels, exclude_labels, normalize_by_area, areas)
 
     """
     import numpy as np
 
-    def avg_by_area(values_label, areas_label):
-        return sum(areas_label * values_label) / sum(areas_label)
+    # Define function for dividing by area:
+    if normalize_by_area:
+
+        def avg_by_area(values_label, areas_label):
+            return sum(areas_label * values_label) / sum(areas_label)
+
+        if not isinstance(areas, np.ndarray):
+            areas = np.asarray(areas)
 
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
-    if not isinstance(areas, np.ndarray):
-        areas = np.asarray(areas)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     mean_values = []
-    norm_mean_values = []
     surface_areas = []
+    norm_mean_values = []
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             mean_value = np.mean(values[I])
-            norm_mean_value = avg_by_area(values[I], areas[I])
             mean_values.append(mean_value)
-            norm_mean_values.append(norm_mean_value)
-            surface_area = sum(areas[I])
-            surface_areas.append(surface_area)
+
+            if normalize_by_area:
+                surface_area = sum(areas[I])
+                surface_areas.append(surface_area)
+                norm_mean_value = avg_by_area(values[I], areas[I])
+                norm_mean_values.append(norm_mean_value)
         else:
             mean_values.append(0)
-            norm_mean_values.append(0)
-            surface_areas.append(0)
 
-    return mean_values, norm_mean_values, surface_areas, label_list
+            if normalize_by_area:
+                surface_areas.append(0)
+                norm_mean_values.append(0)
+
+    return mean_values, label_list, surface_areas, norm_mean_values
 
 def volume_per_label(labels, input_file):
     """
@@ -436,7 +449,7 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.shapes.measure import rescale_by_neighborhood
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> scalars, name = read_scalars(vtk_file, return_first=True, return_array=True)
     >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> subfolds, name = read_scalars(subfolds_file)
@@ -532,7 +545,7 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
     >>> import os
     >>> from mindboggle.shapes.measure import rescale_by_label
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> combine_all_labels = False
     >>> by_neighborhood = True
