@@ -56,8 +56,8 @@ def compute_likelihood(depths, curvatures):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.features.fundi import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> depths, name = read_scalars(depth_file, return_first=True, return_array=True)
     >>> curvatures, name = read_scalars(mean_curv_file, return_first=True, return_array=True)
     >>>
@@ -226,7 +226,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> subfolds, name = read_scalars(subfolds_file)
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures',
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
     >>>                                          'lh.pial.curv.min.dir.txt')
     >>> faces, lines, indices, points, npoints, likelihoods, name = read_vtk(likelihood_file,
     >>>     return_first=True, return_array=True)
@@ -361,9 +361,9 @@ def connect_points(anchors, indices, L, neighbor_lists):
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.features.fundi import find_anchors, connect_points, compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> # Get neighbor_lists, scalars
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
@@ -608,9 +608,9 @@ def extract_fundi(folds_or_file, depth_file,
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> min_curv_vec_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.dir.txt')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> # Select a single fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -775,13 +775,13 @@ if __name__ == "__main__" :
     path = os.environ['MINDBOGGLE_DATA']
 
     depth_file = os.path.join(path, 'arno',
-                                         'measures', 'lh.pial.depth.vtk')
+                                         'shapes', 'lh.pial.depth.vtk')
     labels_file = os.path.join(path, 'arno',
                                'labels', 'lh.labels.DKT25.manual.vtk')
     mean_curvature_file = os.path.join(path, 'arno',
-                                         'measures', 'lh.pial.curv.avg.vtk')
+                                         'shapes', 'lh.pial.curv.avg.vtk')
     min_curvature_vector_file = os.path.join(path, 'arno',
-                                         'measures', 'lh.pial.curv.min.dir.txt')
+                                         'shapes', 'lh.pial.curv.min.dir.txt')
     sulci_file = os.path.join(path, 'arno',
                                          'features', 'lh.sulci.vtk')
 

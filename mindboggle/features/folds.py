@@ -74,7 +74,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_fold_size = 50
     >>> tiny_depth = 0.001
@@ -287,7 +287,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_subfolds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> min_subfold_size = 50
