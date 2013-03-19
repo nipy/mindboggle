@@ -10,108 +10,197 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def write_mean_shapes_table(table_file, column_names, labels, depth_file,
-                            depth_rescaled_file, mean_curvature_file,
-                            gauss_curvature_file,
-                            max_curvature_file, min_curvature_file,
-                            thickness_file='', convexity_file='',
-                            norm_vtk_file='', exclude_labels=[]):
+def write_mean_shapes_tables(labels, subfolds=[], fundi=[], sulci=[],
+                             area_file='', depth_file='',
+                             mean_curvature_file='', gauss_curvature_file='',
+                             max_curvature_file='', min_curvature_file='',
+                             thickness_file='', convexity_file='',
+                             exclude_labels=[-1]):
     """
-    Make a table of mean values per label per measure.
+    Make tables of mean shape values per label, subfold, or fundus.
 
     Parameters
     ----------
-    filename :  output filename (without path)
-    column_names :  names of columns [list of strings]
-    labels :  name of label file or list of labels (same length as values)
-    *shape_files :  vtk files with scalar values
-    norm_vtk_file :  name of file containing per-vertex normalization values
-                     (e.g., surface areas)
-    exclude_labels : list of integer labels to be excluded
+    labels :  list of integers
+        indices to labels, one per vertex, with -1 indicating no label
+    subfolds :  list of integers
+        indices to subfolds, one per vertex, with -1 indicating no subfold
+    fundi :  list of integers
+        indices to fundi, one per vertex, with -1 indicating no fundus
+    sulci :  list of integers
+        indices to sulci, one per vertex, with -1 indicating no sulcus
+    area_file :  string
+        name of VTK file with scalar surface area values
+    depth_file :  string
+        name of VTK file with scalar depth values
+    mean_curvature_file :  string
+        name of VTK file with scalar mean curvature values
+    gauss_curvature_file :  string
+        name of VTK file with scalar Gaussian curvature values
+    max_curvature_file :  string
+        name of VTK file with scalar maximum curvature values
+    min_curvature_file :  string
+        name of VTK file with scalar minimum curvature values
+    thickness_file :  string
+        name of VTK file with scalar thickness values
+    convexity_file :  string
+        name of VTK file with scalar convexity values
+    exclude_labels : list of integers
+        indices to be excluded (in addition to -1)
 
     Returns
     -------
-    means_file : table file name for mean shape values
-    norm_means_file : table file name for mean shape values normalized by area
+    label_table :  string
+        output table filename for label shapes
+    subfold_table :  string
+        output table filename for subfold shapes
+    fundus_table :  string
+        output table filename for fundus shapes
+    sulcus_table :  string
+        output table filename for sulcus shapes
+    norm_label_table :  string
+        output table filename for label shapes normalized by area
+    norm_subfold_table :  string
+        output table filename for subfold shapes normalized by area
+    norm_fundus_table :  string
+        output table filename for fundus shapes normalized by area
+    norm_sulcus_table :  string
+        output table filename for sulcus shapes normalized by area
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.shapes.tabulate import write_mean_shapes_table
-    >>> table_file = 'test_write_mean_shapes_table.txt'
-    >>> column_names = ['labels', 'area', 'depth', 'depth_rescaled', 'mean_curvature',
-    >>>                 'gauss_curvature', 'max_curvature', 'min_curvature',
-    >>>                 'thickness', 'convexity']
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.shapes.tabulate import write_mean_shapes_tables
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> exclude_values = [-1]
-    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'measures', 'depth_rescaled.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
+    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> labels, name = read_scalars(labels_file)
+    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> fundi, name = read_scalars(fundi_file)
+    >>> sulci, name = read_scalars(sulci_file)
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.gauss.vtk')
+    >>> max_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.max.vtk')
+    >>> min_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.vtk')
+    >>> thickness_file = ''
+    >>> convexity_file = ''
+    >>> exclude_labels = [-1]
     >>> #
-    >>> write_mean_shapes_table(table_file, column_names, labels_file,
-    >>>                         depth_file, depth_rescaled_file, mean_curv_file,
-    >>>                         gauss_curv_file, max_curv_file, min_curv_file,
-    >>>                         thickness_file='', convexity_file='',
-    >>>                         norm_vtk_file=area_file, exclude_labels=exclude_values)
+    >>> write_mean_shapes_tables(labels, subfolds, fundi, sulci,
+    >>>     area_file, depth_file, mean_curvature_file,
+    >>>     gauss_curvature_file, max_curvature_file, min_curvature_file,
+    >>>     thickness_file, convexity_file, exclude_labels)
 
     """
     import os
-    import numpy as np
     from mindboggle.shapes.measure import mean_value_per_label
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.io_file import write_columns
 
-    # Load per-vertex labels and normalization vtk files
-    if type(labels) == str:
-        labels, name = read_scalars(labels, return_first=True, return_array=True)
-    if norm_vtk_file:
-        norms, name = read_scalars(norm_vtk_file, return_first=True, return_array=True)
-    else:
-        norms = np.ones(len(labels))
+    # Feature lists:
+    feature_lists = [labels, subfolds, fundi, sulci]
+    table_names = ['label_shapes.csv', 'subfold_shapes.csv',
+                   'fundus_shapes.csv', 'sulcus_shapes.csv']
 
-    # List files
-    vtk_files = [depth_file, depth_rescaled_file, mean_curvature_file,
-                 gauss_curvature_file, max_curvature_file, min_curvature_file,
-                 thickness_file, convexity_file]
+    # Shape names corresponding to shape files below:
+    shape_names = ['area', 'depth', 'mean_curvature', 'gauss_curvature',
+                   'max_curvature', 'min_curvature', 'thickness', 'convexity']
 
-    # Append columns of values to table
-    columns = []
-    norm_columns = []
-    for i, vtk_file in enumerate(vtk_files):
-        values, name = read_scalars(vtk_file, return_first=True, return_array=True)
-        if values.size:
-            mean_values, norm_mean_values, norm_values, \
-                label_list = mean_value_per_label(values, norms, labels,
-                                                  exclude_labels)
-            columns.append(mean_values)
-            norm_columns.append(norm_mean_values)
-        else:
-            column_names[i] = ''
+    # Load shape files as a list of numpy arrays of per-vertex shape values:
+    shape_files = [area_file, depth_file, mean_curvature_file,
+                   gauss_curvature_file, max_curvature_file, min_curvature_file,
+                   thickness_file, convexity_file]
+    shape_arrays = []
+    column_names = []
+    normalize_by_area = False
+    for ishape, shape_file in enumerate(shape_files):
+        if os.path.exists(shape_file):
+            scalars_array, name = read_scalars(shape_file, True, True)
+            if scalars_array.size:
+                shape_arrays.append(scalars_array)
+                column_names.append(shape_names[ishape])
 
-    if columns:
+                # Store area array:
+                if ishape == 0:
+                    normalize_by_area = True
+                    area_array = scalars_array.copy()
 
-        # Prepend with column of normalization values
-        columns.insert(0, norm_values)
-        norm_columns.insert(0, norm_values)
-        column_names.insert(0, 'area')
+    # Initialize table file names:
+    label_table = None
+    subfold_table = None
+    fundus_table = None
+    sulcus_table = None
+    norm_label_table = None
+    norm_subfold_table = None
+    norm_fundus_table = None
+    norm_sulcus_table = None
 
-        means_file = os.path.join(os.getcwd(), table_file)
-        write_columns(label_list, 'label', means_file)
-        write_columns(columns, column_names, means_file, means_file)
+    # Loop through features / tables:
+    for itable, feature_list in enumerate(feature_lists):
+        if feature_list:
 
-        norm_means_file = os.path.join(os.getcwd(), 'norm_' + table_file)
-        write_columns(label_list, 'label', norm_means_file)
-        write_columns(norm_columns, column_names, norm_means_file, norm_means_file)
+            # Loop through shape measures:
+            columns = []
+            norm_columns = []
+            for shape_array in shape_arrays:
 
-    else:
-        print("NOTE: 'columns' is empty. Nothing written.")
+                # Compute mean shape value per feature:
+                mean_values, label_list, surface_areas, \
+                norm_mean_values = mean_value_per_label(shape_array,
+                    feature_list, exclude_labels, normalize_by_area, area_array)
 
-    return means_file, norm_means_file
+                columns.append(mean_values)
+                if normalize_by_area:
+                    norm_columns.append(norm_mean_values)
+
+            # For each feature, construct a table of average shape values:
+            if columns:
+
+                # Define output table:
+                table_file = os.path.join(os.getcwd(), table_names[itable])
+
+                # Write labels to table:
+                write_columns(label_list, 'label', table_file)
+
+                # Append columns of average shape values to table:
+                write_columns(columns, column_names, table_file, table_file)
+
+                # Write labels and normalized average shape values to table:
+                if normalize_by_area:
+                    norm_table_file = os.path.join(os.getcwd(),
+                        'norm_' + table_names[itable])
+                    write_columns(label_list, 'label', norm_table_file)
+                    write_columns(norm_columns, column_names,
+                                  norm_table_file, norm_table_file)
+
+                # Return correct table file name:
+                if itable == 0:
+                    label_table = table_file
+                elif itable == 1:
+                    subfold_table = table_file
+                elif itable == 2:
+                    fundus_table = table_file
+                elif itable == 3:
+                    sulcus_table = table_file
+                if normalize_by_area:
+                    if itable == 0:
+                        norm_label_table = norm_table_file
+                    elif itable == 1:
+                        norm_subfold_table = norm_table_file
+                    elif itable == 2:
+                        norm_fundus_table = norm_table_file
+                    elif itable == 3:
+                        norm_sulcus_table = norm_table_file
+
+    return label_table, subfold_table, fundus_table, sulcus_table, \
+           norm_label_table, norm_subfold_table, \
+           norm_fundus_table, norm_sulcus_table
+
 
 def write_vertex_shapes_table(table_file, column_names,
                               labels_file, subfolds_file, sulci_file, fundi_file,
@@ -128,6 +217,8 @@ def write_vertex_shapes_table(table_file, column_names,
     column_names : names of columns [list of strings]
     *vtk_files : arbitrary number of vtk files with per-vertex scalar values
                  (set each missing file to an empty string)
+    depth_rescaled_file :  string
+        name of VTK file with scalar rescaled depth values
 
     Returns
     -------
@@ -139,7 +230,7 @@ def write_vertex_shapes_table(table_file, column_names,
     >>> from mindboggle.shapes.tabulate import write_vertex_shapes_table
     >>>
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> table_file = 'test_write_vertex_shape_table.txt'
+    >>> table_file = 'test_write_vertex_shape_table.csv'
     >>> column_names = ['labels', 'subfolds', 'sulcus', 'fundus', 'area', 'depth',
     >>>                 'depth_rescaled', 'mean_curvature', 'gauss_curvature',
     >>>                 'max_curvature', 'min_curvature', '', '']
@@ -147,13 +238,13 @@ def write_vertex_shapes_table(table_file, column_names,
     >>> fundi_file = ''
     >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'measures', 'lh.pial.area.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'measures', 'depth_rescaled.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.avg.vtk')
-    >>> gauss_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.gauss.vtk')
-    >>> max_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.max.vtk')
-    >>> min_curv_file = os.path.join(path, 'arno', 'measures', 'lh.pial.curv.min.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> gauss_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.gauss.vtk')
+    >>> max_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.max.vtk')
+    >>> min_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.vtk')
     >>> #
     >>> write_vertex_shapes_table(table_file, column_names,
     >>>     labels_file, sulci_file, fundi_file, area_file, depth_file,
