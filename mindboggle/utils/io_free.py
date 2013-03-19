@@ -236,7 +236,7 @@ def curvature_to_vtk(surface_file, vtk_file):
     >>> from mindboggle.utils.io_vtk import curvature_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> curvature_to_vtk(surface_file, vtk_file)
     >>> #
@@ -284,7 +284,7 @@ def annot_to_vtk(annot_file, vtk_file):
     >>> from mindboggle.utils.io_vtk import annot_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file)
     >>> #
