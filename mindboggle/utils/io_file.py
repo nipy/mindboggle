@@ -52,6 +52,8 @@ def write_columns(columns, column_names, output_table, input_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
+    If there is an input table file to append to, assume a 1-line header.
+
     Parameters
     ----------
     columns :  list of lists of floats or integers
@@ -76,9 +78,10 @@ def write_columns(columns, column_names, output_table, input_table=''):
     >>> values2 = [32, 87, 53, 23]
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
-    >>> write_columns(columns, column_names, 'write_columns.txt')
-    >>> write_columns(values2, 'values2', 'write_columns.txt', '',
-    >>>               'write_columns.txt')
+    >>> output_table = 'write_columns.txt'
+    >>> input_table = ''
+    >>> write_columns(columns, column_names, output_table, input_table)
+    >>> write_columns(values2, 'value2', output_table, input_table=output_table)
 
     """
     import os
@@ -116,23 +119,21 @@ def write_columns(columns, column_names, output_table, input_table=''):
             print("Error: column_names is neither a list nor a string")
             sys.exit()
 
-        #------------------------------------
-        # Read columns from input table file.
-        # Open output table file for writing.
-        #------------------------------------
+        #-----------------------------------
+        # Read columns from input table file
+        #-----------------------------------
         if input_table:
             input_columns = read_columns(input_table, n_columns=1, trail=True)
             input_names = input_columns[0][0]
             input_columns = input_columns[0][1::]
-            Fp = open(output_table, 'a')
         else:
             input_names = ''
             input_columns = ['' for x in columns[0]]
-            Fp = open(output_table, 'w')
 
         #--------------
         # Write to file
         #--------------
+        Fp = open(output_table, 'wa')
         if column_names:
             Fp.write(" ".join([input_names, " ".join(column_names), "\n"]))
         else:

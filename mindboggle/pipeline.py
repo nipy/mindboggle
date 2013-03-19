@@ -151,7 +151,7 @@ from mindboggle.labels.relabel import relabel_volume
 from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature, volume_per_label, \
     rescale_by_label
-from mindboggle.shapes.tabulate import write_mean_shapes_table, \
+from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.features.folds import extract_folds, extract_subfolds
 from mindboggle.features.fundi import extract_fundi
@@ -815,167 +815,98 @@ if run_shapeFlow:
 if run_tableFlow:
 
     tableFlow = Workflow(name='Tables')
-    column_names = ['depth', 'depth_rescaled', 'mean_curvature', 'gauss_curvature',
-                    'max_curvature', 'min_curvature', 'thickness', 'convexity']
-    vtk_files = [x + '_file' for x in column_names]
-    input_names = ['table_file', 'column_names', 'labels']
-    input_names.extend(vtk_files)
-    input_names.extend(['norm_vtk_file', 'exclude_labels'])
 
     #===========================================================================
-    # Labeled surface region shapes
+    # Shape tables of surface: labels, subfolds, fundi, and sulci
     #===========================================================================
-    LabelTable = Node(name='Label_table',
-                      interface = Fn(function = write_mean_shapes_table,
-                                     input_names = input_names,
-                                     output_names = ['means_file',
-                                                     'norm_means_file']))
-    tableFlow.add_nodes([LabelTable])
-    LabelTable.inputs.table_file = 'label_shapes.txt'
-    LabelTable.inputs.column_names = column_names
+    ShapeTables = Node(name='Shape_tables',
+                       interface = Fn(function = write_mean_shapes_tables,
+                                      input_names = ['labels',
+                                                     'subfolds',
+                                                     'fundi',
+                                                     'sulci',
+                                                     'area_file',
+                                                     'depth_file',
+                                                     'mean_curvature_file',
+                                                     'gauss_curvature_file',
+                                                     'max_curvature_file',
+                                                     'min_curvature_file',
+                                                     'thickness_file',
+                                                     'convexity_file',
+                                                     'exclude_labels'],
+                                      output_names = ['label_table',
+                                                      'subfold_table',
+                                                      'fundus_table',
+                                                      'sulcus_table',
+                                                      'norm_label_table',
+                                                      'norm_subfold_table',
+                                                      'norm_fundus_table',
+                                                      'norm_sulcus_table']))
+    tableFlow.add_nodes([ShapeTables])
     #---------------------------------------------------------------------------
     # Use initial labels assigned by FreeSurfer classifier atlas
     if init_labels == 'DKatlas':
         mbFlow.connect([(labelFlow, tableFlow,
-                         [('DK_annot_to_VTK.labels','Label_table.labels')])])
+                         [('DK_annot_to_VTK.labels','Shape_tables.labels')])])
     # Use initial labels assigned by Mindboggle classifier atlas
     elif init_labels == 'DKTatlas':
         mbFlow.connect([(labelFlow, tableFlow,
-                         [('DKT_annot_to_VTK.labels','Label_table.labels')])])
+                         [('DKT_annot_to_VTK.labels','Shape_tables.labels')])])
     # Use initial labels assigned by multi-atlas registration
     elif init_labels == 'max':
         mbFlow.connect([(labelFlow, tableFlow,
-                         [('Label_vote.labels_max','Label_table.labels')])])
+                         [('Label_vote.labels_max','Shape_tables.labels')])])
     # Use manual (atlas) labels
     elif init_labels == 'manual':
         mbFlow.connect([(labelFlow, tableFlow,
-                         [('Atlas_labels.scalars','Label_table.labels')])])
+                         [('Atlas_labels.scalars','Shape_tables.labels')])])
+    #---------------------------------------------------------------------------
+    mbFlow.connect([(featureFlow, tableFlow,
+                     [('Subfolds.subfolds','Shape_tables.subfolds')])])
+    if do_fundi:
+        mbFlow.connect([(featureFlow, tableFlow,
+                         [('Fundi.fundi','Shape_tables.fundi')])])
+    else:
+        ShapeTables.inputs.fundi = []
+    mbFlow.connect([(featureFlow, tableFlow,
+                     [('Sulci.sulci','Shape_tables.sulci')])])
     #---------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Depth.depth_file','Label_table.depth_file')])])
+                     [('Area.area_file','Shape_tables.area_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Rescale_depth.rescaled_scalars_file',
-                       'Label_table.depth_rescaled_file')])])
+                     [('Depth.depth_file','Shape_tables.depth_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Curvature.mean_curvature_file',
-                       'Label_table.mean_curvature_file')])])
+                       'Shape_tables.mean_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Curvature.gauss_curvature_file',
-                       'Label_table.gauss_curvature_file')])])
+                       'Shape_tables.gauss_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Curvature.max_curvature_file',
-                       'Label_table.max_curvature_file')])])
+                       'Shape_tables.max_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Curvature.min_curvature_file',
-                       'Label_table.min_curvature_file')])])
+                       'Shape_tables.min_curvature_file')])])
     if do_thickness:
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Thickness_to_VTK.output_vtk',
-                           'Label_table.thickness_file')])])
+                           'Shape_tables.thickness_file')])])
     if do_convexity:
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Convexity_to_VTK.output_vtk',
-                           'Label_table.convexity_file')])])
+                           'Shape_tables.convexity_file')])])
     #---------------------------------------------------------------------------
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Area.area_file','Label_table.norm_vtk_file')])])
-    LabelTable.inputs.exclude_labels = [-1, 0]
+    ShapeTables.inputs.exclude_labels = [-1]
     # Save results
     mbFlow.connect([(tableFlow, Sink,
-                     [('Label_table.means_file', 'tables.@labels'),
-                      ('Label_table.norm_means_file', 'tables.@labels_norm')])])
-
-    #===========================================================================
-    # Sulcus shapes
-    #===========================================================================
-    if run_featureFlow and do_sulci:
-        SulcusTable = LabelTable.clone('Sulcus_table')
-        tableFlow.add_nodes([SulcusTable])
-        SulcusTable.inputs.table_file = 'sulcus_shapes.txt'
-        SulcusTable.inputs.column_names = column_names
-        mbFlow.connect([(featureFlow, tableFlow,
-                         [('Sulci.sulci','Sulcus_table.labels')])])
-        #-----------------------------------------------------------------------
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Depth.depth_file','Sulcus_table.depth_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Rescale_depth.rescaled_scalars_file',
-                           'Sulcus_table.depth_rescaled_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.mean_curvature_file',
-                           'Sulcus_table.mean_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.gauss_curvature_file',
-                           'Sulcus_table.gauss_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.max_curvature_file',
-                           'Sulcus_table.max_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.min_curvature_file',
-                           'Sulcus_table.min_curvature_file')])])
-        if do_thickness:
-            mbFlow.connect([(shapeFlow, tableFlow,
-                             [('Thickness_to_VTK.output_vtk',
-                               'Sulcus_table.thickness_file')])])
-        if do_convexity:
-            mbFlow.connect([(shapeFlow, tableFlow,
-                             [('Convexity_to_VTK.output_vtk',
-                               'Sulcus_table.convexity_file')])])
-        #-----------------------------------------------------------------------
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Area.area_file','Sulcus_table.norm_vtk_file')])])
-        SulcusTable.inputs.exclude_labels = [-1, 0]
-
-        # Save results
-        mbFlow.connect([(tableFlow, Sink,
-                         [('Sulcus_table.means_file', 'tables.@sulci'),
-                          ('Sulcus_table.norm_means_file', 'tables.@sulci_norm')])])
-
-    #===========================================================================
-    # Fundus shapes
-    #===========================================================================
-    if run_featureFlow and do_fundi:
-        FundusTable = LabelTable.clone('Fundus_table')
-        tableFlow.add_nodes([FundusTable])
-        FundusTable.inputs.table_file = 'fundus_shapes.txt'
-        FundusTable.inputs.column_names = column_names
-        mbFlow.connect([(featureFlow, tableFlow,
-                         [('Fundi.fundi','Fundus_table.labels')])])
-        #-----------------------------------------------------------------------
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Depth.depth_file','Fundus_table.depth_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Rescale_depth.rescaled_scalars_file',
-                           'Fundus_table.depth_rescaled_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.mean_curvature_file',
-                           'Fundus_table.mean_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.gauss_curvature_file',
-                           'Fundus_table.gauss_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.max_curvature_file',
-                           'Fundus_table.max_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.min_curvature_file',
-                           'Fundus_table.min_curvature_file')])])
-        if do_thickness:
-            mbFlow.connect([(shapeFlow, tableFlow,
-                             [('Thickness_to_VTK.output_vtk',
-                               'Fundus_table.thickness_file')])])
-        if do_convexity:
-            mbFlow.connect([(shapeFlow, tableFlow,
-                             [('Convexity_to_VTK.output_vtk',
-                               'Fundus_table.convexity_file')])])
-        #-----------------------------------------------------------------------
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Area.area_file','Fundus_table.norm_vtk_file')])])
-        FundusTable.inputs.exclude_labels = [-1, 0]
-
-        # Save results
-        mbFlow.connect([(tableFlow, Sink,
-                         [('Fundus_table.means_file', 'tables.@fundi'),
-                          ('Fundus_table.norm_means_file', 'tables.@fundi_norm')])])
+                     [('Shape_tables.label_table', 'tables.@labels'),
+                      ('Shape_tables.subfold_table', 'tables.@subfolds'),
+                      ('Shape_tables.fundus_table', 'tables.@fundi'),
+                      ('Shape_tables.sulcus_table', 'tables.@sulci'),
+                      ('Shape_tables.norm_label_table', 'tables.@labels_norm'),
+                      ('Shape_tables.norm_subfold_table', 'tables.@subfolds_norm'),
+                      ('Shape_tables.norm_fundus_table', 'tables.@fundi_norm'),
+                      ('Shape_tables.norm_sulcus_table', 'tables.@sulci_norm')])])
 
     #===========================================================================
     # Per-vertex shapes
