@@ -16,7 +16,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #------------------------------------------------------------------------------
 def plot_vtk(vtk_file):
     """
-    Use mayavi2 to visualize .vtk surface mesh data.
+    Use mayavi2 to visualize VTK surface mesh data.
 
     Inputs
     ------
@@ -25,9 +25,37 @@ def plot_vtk(vtk_file):
     """
     import os, sys
 
-    args = ['mayavi2', '-d' , vtk_file, '-m Surface &']
+    args = ['mayavi2', '-d', vtk_file, '-m Surface &']
     c = ' '.join(args)
     print(c); os.system(c)
+
+#------------------------------------------------------------------------------
+# Plot histogram of VTK surface mesh scalar values
+#------------------------------------------------------------------------------
+def plot_scalar_histogram(vtk_file, nbins=100):
+    """
+    Plot histogram of VTK surface mesh scalar values.
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.mesh import plot_scalar_histogram
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> plot_scalar_histogram(vtk_file, nbins=500)
+
+    """
+    import matplotlib.pyplot as plt
+    from mindboggle.utils.io_vtk import read_scalars
+
+    # Load values:
+    values, name = read_scalars(vtk_file)
+
+    # Histogram:
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    ax.hist(values, nbins, normed=1, facecolor='gray', alpha=0.1)
+    plt.show()
 
 #------------------------------------------------------------------------------
 # Apply affine transform to the points of a VTK surface mesh
@@ -120,7 +148,7 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> apply_affine_transform(transform_file, vtk_file)
     >>> # View
     >>> plot_vtk('affine_lh.pial.depth.vtk')
@@ -197,7 +225,7 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> #
@@ -255,7 +283,7 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -340,6 +368,60 @@ def find_neighbors_vertex(faces, index):
                          for x in I if x not in neighbor_list if x != index]
 
     return neighbor_list
+
+#------------------------------------------------------------------------------
+# Find neighborhood for given vertices
+#------------------------------------------------------------------------------
+def find_neighborhood(neighbor_lists, indices, nedges):
+    """
+    Find neighbors in the neighborhood of given surface mesh vertices.
+
+    For indices to surface mesh vertices, find unique indices for
+    vertices in the neighborhood of the vertices.
+
+    Parameters
+    ----------
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    indices : list of integers
+        indices of surface vertices
+
+    Returns
+    -------
+    neighborhood : list integers
+        indices to vertices in neighborhood
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import find_neighborhood
+    >>> neighbor_lists = [[0,1],[0,2],[1,4,5],[2],[],[0,1,4,5]]
+    >>> indices = [1,3,4]
+    >>> find_neighborhood(neighbor_lists, indices, 2)
+        [0, 2, 5]
+
+    """
+
+    # Initialize seed list with indices
+    neighborhood = []
+    seed_list = indices[:]
+    completed = seed_list[:]
+
+    # Propagate nedges away from indices:
+    for iedge in range(nedges):
+
+        # Find neighbors of seeds:
+        if seed_list:
+            local_neighbors = []
+            [local_neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+            # Select neighbors that have not been previously selected:
+            seed_list = list(frozenset(local_neighbors).difference(completed))
+
+            # Add to neighborhood:
+            neighborhood.extend(seed_list)
+            completed.extend(seed_list)
+
+    return neighborhood
 
 #-----------------------------------------------------------------------------
 # find all triangle faces centered at each node on the mesh
@@ -592,7 +674,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> # Select one fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -984,7 +1066,7 @@ if __name__ == "__main__":
     from mindboggle.labels.segment import watershed, propagate
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
         return_first=True, return_array=True)
 
