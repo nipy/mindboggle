@@ -245,7 +245,7 @@ def area_normalize(points, faces, spectrum):
     -----------
     new_spectrum : list of floats
         LB spectrum normalized by area 
-	"""
+    """
 
     area = compute_area(points, faces)
     total_area = sum(area) # the area of the entire shape
