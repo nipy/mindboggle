@@ -261,28 +261,23 @@ def area_normalize(points, faces, spectrum):
     
     return new_spectrum
 
-def fem_laplacian(points, faces, normalization="area"):
+def fem_laplacian(points, faces, n_eigenvalues=200, normalization="area"):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
 
     Parameters
     ----------
     points : list of lists of 3 floats
-        Points (coordinates)
-        Each element contains the x,y,z coordinates of a vertex on the structure.
-
+        x,y,z coordinates for each vertex of the structure
     faces : list of lists of 3 integers
-        Triangle faces (indices)
-        Each element contains 3 indices to vertices that form a triangle on the mesh.
-
-    normalization : string
-        The method to normalize spectrum (default: "area")
-        If left empty, no normalization
+        3 indices to vertices that form a triangle on the mesh
+    n_eigenvalues : integer
+        number of eigenvalues to return
 
     Returns
     -------
     spectrum : list
-        First three eigenvalues for Laplace-Beltrami spectrum.
+        first n_eigenvalues eigenvalues for Laplace-Beltrami spectrum
 
     Examples
     --------
@@ -294,7 +289,7 @@ def fem_laplacian(points, faces, normalization="area"):
     >>> # Pick some faces:
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> print("The linear FEM Laplace-Beltrami Spectrum is:\n")
-    >>> print("{0}".format(fem_laplacian(points, faces)))
+    >>> print("{0}".format(fem_laplacian(points, faces, 3)))
         The linear FEM Laplace-Beltrami Spectrum is:
         [9.126874965552942e-16, 0.91948040290470268, 3.7579933101613578]
 
@@ -314,7 +309,7 @@ def fem_laplacian(points, faces, normalization="area"):
 
     # Note: eigs is for nonsymmetric matrices while 
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
-    eigenvalues, eigenvectors = eigsh(A, k=3, M=B, which="SM")
+    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalue, M=B, which="SM")
 
     spectrum = eigenvalues.tolist()
 
@@ -322,6 +317,7 @@ def fem_laplacian(points, faces, normalization="area"):
         spectrum = area_normalize(points, faces, spectrum)
 
     return spectrum
+
 
 if __name__ == "__main__":
 
@@ -336,10 +332,10 @@ if __name__ == "__main__":
     faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
 
     print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, normalization="none")))
+        fem_laplacian(points, faces, n_eigenvalue=3, normalization="none")))
 
     print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces)))
+        fem_laplacian(points, faces, n_eigenvalue=3)))
 
 
     """
@@ -374,8 +370,6 @@ if __name__ == "__main__":
         V.setdiag(v)
 
         return V / 3
-
-
 
     def old_fem_laplacian(points, faces):
         ""The portal function to compute geometric laplacian
