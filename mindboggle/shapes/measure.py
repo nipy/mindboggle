@@ -231,8 +231,20 @@ def curvature(command, surface_file):
     Measure curvature values of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
 
-    command : curvature C++ executable command
-    surface_file : ``vtk file``
+    The 3 methods (-m 0,1,2) take about the same amount of time to run
+    if one does not set a neighborhood.
+    -m 0 is best if you have a low resolution or want to localize local peaks.
+    -m 1 is not well tested and the filtering is done using Euclidean distances,
+        so it's only good for fast visualization.
+    -m 2 is a good approximation but very large curvatures (negative or positive)
+        are underestimated (saturation effect).
+
+    Parameters
+    ----------
+    command : string
+        C++ executable command for computing curvature
+    surface_file : string
+        name of VTK surface mesh file
 
     """
     import os
@@ -258,10 +270,11 @@ def curvature(command, surface_file):
     return mean_curvature_file, gauss_curvature_file,\
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, areas, labels, exclude_labels):
+def mean_value_per_label(values, labels, exclude_labels,
+                         normalize_by_area=False, areas=[]):
     """
     Compute the mean value across vertices per label,
-    taking into account surface area per vertex.
+    optionally taking into account surface area per vertex.
 
     average value = sum(a_i * v_i) / total_surface_area,
     where *a_i* and *v_i* are the area and value for each vertex *i*.
@@ -269,20 +282,23 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     Parameters
     ----------
     values : numpy array of integer or float values
-    areas : numpy array of surface areas
     labels : list or array of integer labels (same length as values)
     exclude_labels : list of integer labels to be excluded
+    normalize_by_area : Boolean
+        divide each mean value per label by the surface area of that label?
+    areas : numpy array of floats (if normalize_by_area)
+        surface areas
 
     Returns
     -------
     mean_values : list of floats
         mean values
-    norm_mean_values : list of floats
-        mean values normalized by vertex area
-    surface_areas : list of floats
-        surface area for each labeled set of vertices
     label_list : list of integers
         unique label numbers
+    surface_areas : list of floats (if normalize_by_area)
+        surface area for each labeled set of vertices
+    norm_mean_values : list of floats (if normalize_by_area)
+        mean values normalized by vertex area
 
     Examples
     --------
@@ -290,49 +306,58 @@ def mean_value_per_label(values, areas, labels, exclude_labels):
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.shapes.measure import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(data_path, 'arno', 'measures', 'lh.pial.area.vtk')
+    >>> depth_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1,0]
-    >>> mean_values, norm_mean_values, surface_areas, label_list = mean_value_per_label(depths,
-    >>>     areas, labels, exclude_labels)
+    >>> normalize_by_area = True
+    >>> mean_values, label_list, surface_areas, norm_mean_values = mean_value_per_label(depths,
+    >>>     labels, exclude_labels, normalize_by_area, areas)
 
     """
     import numpy as np
 
-    def avg_by_area(values_label, areas_label):
-        return sum(areas_label * values_label) / sum(areas_label)
+    # Define function for dividing by area:
+    if normalize_by_area:
+
+        def avg_by_area(values_label, areas_label):
+            return sum(areas_label * values_label) / sum(areas_label)
+
+        if not isinstance(areas, np.ndarray):
+            areas = np.asarray(areas)
 
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
-    if not isinstance(areas, np.ndarray):
-        areas = np.asarray(areas)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     mean_values = []
-    norm_mean_values = []
     surface_areas = []
+    norm_mean_values = []
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             mean_value = np.mean(values[I])
-            norm_mean_value = avg_by_area(values[I], areas[I])
             mean_values.append(mean_value)
-            norm_mean_values.append(norm_mean_value)
-            surface_area = sum(areas[I])
-            surface_areas.append(surface_area)
+
+            if normalize_by_area:
+                surface_area = sum(areas[I])
+                surface_areas.append(surface_area)
+                norm_mean_value = avg_by_area(values[I], areas[I])
+                norm_mean_values.append(norm_mean_value)
         else:
             mean_values.append(0)
-            norm_mean_values.append(0)
-            surface_areas.append(0)
 
-    return mean_values, norm_mean_values, surface_areas, label_list
+            if normalize_by_area:
+                surface_areas.append(0)
+                norm_mean_values.append(0)
+
+    return mean_values, label_list, surface_areas, norm_mean_values
 
 def volume_per_label(labels, input_file):
     """
@@ -389,48 +414,207 @@ def volume_per_label(labels, input_file):
 
     return volumes.tolist(), labels
 
-def percentile(N, percent, key=lambda x:x):
+def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
+                            set_max_to_1=True, return_list=True):
     """
-    Find the percentile of a list of values.
-
-    http://code.activestate.com/recipes/511478/ (r2)
-
-    Alternative scipy implementation:
-    from scipy.stats import scoreatpercentile
-    depth_found = scoreatpercentile(depths, depth_threshold2)
+    Rescale the scalar values of a VTK file by a percentile value
+    in each vertex's surface mesh neighborhood.
 
     Parameters
     ----------
-    N : list of values. Note N MUST BE already sorted
-    percent : float value from 0.0 to 1.0
-    key : optional key function to compute value from each element of N
+    scalars : list of floats
+        scalar values from a VTK surface mesh file
+    indices : list of integers
+        indices of scalars to normalize
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    nedges : integer
+        number or edges from vertex, defining the size of its neighborhood
+    p : float in range of [0,100]
+        percentile used to normalize each scalar
+    set_max_to_1 : Boolean
+        set all rescaled values greater than 1 to 1.0?
+    return_list : Boolean
+        return list or numpy array?
 
     Returns
     -------
-    percentile : percentile of the values
+    rescaled_scalars : list of floats
+        rescaled scalar values
 
     Examples
     --------
-    >>> from mindboggle.shapes.measure import percentile
-    >>> N = [2,3,4,8,9,10]
-    >>> percent = 0.5
-    >>> percentile(N, percent)
-      6.0
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.shapes.measure import rescale_by_neighborhood
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> scalars, name = read_scalars(vtk_file, return_first=True, return_array=True)
+    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> indices = [i for i,x in enumerate(subfolds) if x != -1]
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> nedges = 10
+    >>> p = 99
+    >>> set_max_to_1 = True
+    >>> return_list = True
+    >>> #
+    >>> rescaled_scalars = rescale_by_neighborhood(scalars, indices,
+    >>>     neighbor_lists, nedges, p, set_max_to_1, return_list)
+    >>> #
+    >>> # View rescaled scalar values on folds:
+    >>> from mindboggle.utils.io_vtk import rewrite_scalars
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> rewrite_scalars(vtk_file, 'test_rescale_by_neighborhood.vtk',
+    >>>     rescaled_scalars, 'rescaled_scalars', subfolds)
+    >>> plot_vtk('test_rescale_by_neighborhood.vtk')
 
     """
     import numpy as np
+    from mindboggle.utils.mesh import find_neighborhood
 
-    if not len(N):
-        return None
+    # Make sure arguments are numpy arrays
+    if not isinstance(scalars, np.ndarray):
+        scalars = np.asarray(scalars)
+    rescaled_scalars = scalars.copy()
 
-    k = (len(N)-1) * percent
-    f = np.floor(k)
-    c = np.ceil(k)
-    if f == c:
-        return key(N[int(k)])
-    d0 = key(N[int(f)]) * (c-k)
-    d1 = key(N[int(c)]) * (k-f)
+    # Loop through all vertices:
+    for index in indices:
 
-    percentile = d0 + d1
+        # Determine the scalars in the vertex's neighborhood:
+        neighborhood = find_neighborhood(neighbor_lists, [index], nedges)
 
-    return percentile
+        # Compute a high neighborhood percentile to normalize the vertex's value:
+        normalization_factor = np.percentile(scalars[neighborhood], p)
+        rescaled_scalar = scalars[index] / normalization_factor
+        rescaled_scalars[index] = rescaled_scalar
+
+    # Make any rescaled value greater than 1 equal to 1:
+    if set_max_to_1:
+        for index in indices:
+            if rescaled_scalars[index] > 1:
+                rescaled_scalars[index] = 1.0
+
+    if return_list:
+        rescaled_scalars = rescaled_scalars.tolist()
+
+    return rescaled_scalars
+
+def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
+                     by_neighborhood=True, nedges=10, p=99, 
+                     set_max_to_1=True, save_file=False,
+                     output_filestring='rescaled_scalars'):
+    """
+    Rescale scalars for each label (such as depth values within each fold).
+
+    Default is to normalize the scalar values of a VTK file by
+    a percentile value in each vertex's surface mesh neighborhood for each label.
+
+    Parameters
+    ----------
+    input_vtk : string
+        name of VTK file with a scalar value for each vertex
+    labels_or_file : list or string
+        label number for each vertex or name of VTK file with index scalars
+    combine_all_labels : Boolean
+        combine all labels (scalars not equal to -1) as one label?
+    by_neighborhood : Boolean
+        rescale by a percentile value in each vertex's surface neighborhood?
+    nedges : integer (if norm_by_neighborhood)
+        number or edges from vertex, defining the size of its neighborhood
+    p : float in range of [0,100] (if norm_by_neighborhood)
+        percentile used to rescale each scalar
+    set_max_to_1 : Boolean
+        set all rescaled values greater than 1 to 1.0?
+    save_file : Boolean
+        save output VTK file?
+    output_filestring : string (if save_file)
+        name of output file
+
+    Returns
+    -------
+    rescaled_scalars : list of floats
+        scalar values rescaled for each label, for label numbers not equal to -1
+    rescaled_scalars_file : string (if save_file)
+        name of output VTK file with rescaled scalar values for each label
+
+    Examples
+    --------
+    >>> # Rescale depths by neighborhood within each subfold:
+    >>> import os
+    >>> from mindboggle.shapes.measure import rescale_by_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> combine_all_labels = False
+    >>> by_neighborhood = True
+    >>> nedges = 10
+    >>> p = 99
+    >>> set_max_to_1 = True
+    >>> save_file = True
+    >>> output_filestring = 'rescaled_scalars'
+    >>> #
+    >>> rescaled_scalars, rescaled_scalars_file = rescale_by_label(input_vtk,
+    >>>     labels_or_file, combine_all_labels, by_neighborhood, nedges, p,
+    >>>     set_max_to_1, save_file, output_filestring)
+    >>> #
+    >>> # View rescaled scalar values per fold:
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk(rescaled_scalars_file)
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.shapes.measure import rescale_by_neighborhood
+
+    # Load scalars and vertex neighbor lists:
+    scalars, name = read_scalars(input_vtk, True, True)
+    if by_neighborhood:
+        neighbor_lists = find_neighbors_from_file(input_vtk)
+        print("  Rescaling scalar values by neighborhood within each label...")
+    else:
+        print("  Rescaling scalar values within each label...")
+
+    # Load label numbers:
+    if isinstance(labels_or_file, str):
+        labels, name = read_scalars(labels_or_file, True, True)
+    elif isinstance(labels_or_file, list):
+        labels = labels_or_file
+    unique_labels = np.unique(labels)
+    unique_labels = [x for x in unique_labels if x >= 0]
+
+    # Loop through labels:
+    for label in unique_labels:
+        #print("  Rescaling scalar values within label {0} of {1} labels...".format(
+        #    int(label), len(unique_labels)))
+        indices = [i for i,x in enumerate(labels) if x == label]
+        if indices:
+
+            # Rescale by neighborhood:
+            if by_neighborhood:
+                scalars = rescale_by_neighborhood(scalars,
+                    indices, neighbor_lists, nedges, p,
+                    set_max_to_1=True, return_list=False)
+
+            # Rescale by the maximum label scalar value:
+            else:
+                scalars[indices] = scalars[indices] / np.max(scalars[indices])
+
+    rescaled_scalars = scalars.tolist()
+
+    #---------------------------------------------------------------------------
+    # Return rescaled scalars, number of labels, file name
+    #---------------------------------------------------------------------------
+    if save_file:
+
+        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
+        rewrite_scalars(input_vtk, rescaled_scalars_file,
+                        rescaled_scalars, 'rescaled_scalars', labels)
+
+    else:
+        rescaled_scalars_file = None
+
+    return rescaled_scalars, rescaled_scalars_file
