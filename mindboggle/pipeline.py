@@ -153,6 +153,7 @@ from mindboggle.shapes.measure import area, depth, curvature, volume_per_label, 
     rescale_by_label
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
+from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 from mindboggle.features.folds import extract_folds, extract_subfolds
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -785,12 +786,14 @@ if run_shapeFlow:
     #===========================================================================
     """
     LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
-                                 interface = Fn(function = laplace_beltrami,
-                                                input_names = ['command',
-                                                               'surface_file'],
-                                                output_names = ['area_file']))
-    area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
-    AreaNode.inputs.command = area_command
+                                 interface = Fn(function = fem_laplacian_from_labels,
+                                                input_names = ['vtk_file',
+                                                               'n_eigenvalues'],
+                                                output_names = ['eigenvalue_lists']))
+    shapeFlow.add_nodes([LaplaceBeltramiLabels])
+    mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','points')])])
+    mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','faces')])])
+    LaplaceBeltramiLabels.inputs.n_eigenvalues = 200
     """
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
