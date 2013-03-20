@@ -920,26 +920,26 @@ if run_tableFlow:
     #===========================================================================
     if do_vertex_tables:
 
-        Vertices = Node(name='Vertex_table',
-                        interface = Fn(function = write_vertex_shapes_table,
-                                       input_names = ['table_file',
-                                                      'labels',
-                                                      'subfolds',
-                                                      'fundi',
-                                                      'sulci',
-                                                      'area_file',
-                                                      'depth_file',
-                                                      'depth_rescaled_file',
-                                                      'mean_curvature_file',
-                                                      'gauss_curvature_file',
-                                                      'max_curvature_file',
-                                                      'min_curvature_file',
-                                                      'thickness_file',
-                                                      'convexity_file'],
-                                       output_names = ['shapes_table']))
-        tableFlow.add_nodes([Vertices])
-        Vertices.inputs.table_file = 'vertex_shapes.csv'
-        #---------------------------------------------------------------------------
+        VertexTable = Node(name='Vertex_table',
+                           interface = Fn(function = write_vertex_shapes_table,
+                                          input_names = ['table_file',
+                                                         'labels',
+                                                         'subfolds',
+                                                         'fundi',
+                                                         'sulci',
+                                                         'area_file',
+                                                         'depth_file',
+                                                         'depth_rescaled_file',
+                                                         'mean_curvature_file',
+                                                         'gauss_curvature_file',
+                                                         'max_curvature_file',
+                                                         'min_curvature_file',
+                                                         'thickness_file',
+                                                         'convexity_file'],
+                                          output_names = ['shapes_table']))
+        tableFlow.add_nodes([VertexTable])
+        VertexTable.inputs.table_file = 'vertex_shapes.csv'
+        #-----------------------------------------------------------------------
         # Use initial labels assigned by FreeSurfer classifier atlas
         if init_labels == 'DKatlas':
             mbFlow.connect([(labelFlow, tableFlow,
@@ -956,7 +956,7 @@ if run_tableFlow:
         elif init_labels == 'manual':
             mbFlow.connect([(labelFlow, tableFlow,
                              [('Atlas_labels.scalars','Vertex_table.labels')])])
-        #---------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         mbFlow.connect([(featureFlow, tableFlow,
                          [('Subfolds.subfolds','Vertex_table.subfolds')])])
         if do_fundi:
@@ -966,7 +966,7 @@ if run_tableFlow:
             ShapeTables.inputs.fundi = []
         mbFlow.connect([(featureFlow, tableFlow,
                          [('Sulci.sulci','Vertex_table.sulci')])])
-        #---------------------------------------------------------------------------
+        #-----------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
@@ -991,18 +991,17 @@ if run_tableFlow:
                              [('Thickness_to_VTK.output_vtk',
                                'Vertex_table.thickness_file')])])
         else:
-            Vertices.inputs.thickness_file = ''
+            VertexTable.inputs.thickness_file = ''
         if do_convexity:
             mbFlow.connect([(shapeFlow, tableFlow,
                              [('Convexity_to_VTK.output_vtk',
                                'Vertex_table.convexity_file')])])
         else:
-            Vertices.inputs.convexity_file = ''
+            VertexTable.inputs.convexity_file = ''
         #-----------------------------------------------------------------------
         mbFlow.connect([(tableFlow, Sink,
                          [('Vertex_table.shapes_table',
                            'tables.@vertex_table')])])
-
 
 #===============================================================================
 # Surface label evaluation
