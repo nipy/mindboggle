@@ -461,7 +461,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - H_step, 0])
                     cost_down = compute_cost(L[index], H_down, H[N[index]], wN)
-                    H_test = H[index] + gradient_factor * (C[index] - cost_down)
+                    H_test = H[index] - gradient_factor * (C[index] - cost_down)
 
                     # Update the HMMF value if near the threshold
                     # such that a step makes it cross the threshold,
