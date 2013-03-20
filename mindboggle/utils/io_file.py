@@ -52,6 +52,8 @@ def write_columns(columns, column_names, output_table, input_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
+    If there is an input table file to append to, assume a 1-line header.
+
     Parameters
     ----------
     columns :  list of lists of floats or integers
@@ -76,9 +78,10 @@ def write_columns(columns, column_names, output_table, input_table=''):
     >>> values2 = [32, 87, 53, 23]
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
-    >>> write_columns(columns, column_names, 'write_columns.txt')
-    >>> write_columns(values2, 'values2', 'write_columns.txt', '',
-    >>>               'write_columns.txt')
+    >>> output_table = 'write_columns.txt'
+    >>> input_table = ''
+    >>> write_columns(columns, column_names, output_table, input_table)
+    >>> write_columns(values2, 'value2', output_table, input_table=output_table)
 
     """
     import os
@@ -91,59 +94,61 @@ def write_columns(columns, column_names, output_table, input_table=''):
     # Check format of inputs
     #-----------------------
     # If the list contains integers or floats, put in a list:
-    if isinstance(columns[0], int) or isinstance(columns[0], float):
-        columns = [columns]
-    # If the list contains all lists, accept format:
-    elif all([isinstance(x, list) for x in columns]):
-        pass
-    else:
-        print("Error: columns contains unacceptable elements.")
-        print("columns type is: {0}".format(type(columns)))
-        print("columns length is: {0}".format(len(columns)))
-        print("columns[0] type is: {0}".format(type(columns[0])))
-        sys.exit()
-    # If column_names is a string, create a list containing
-    # as many of this string as there are columns.
-    if isinstance(column_names, str):
-        column_names = [column_names for x in columns]
-    elif isinstance(column_names, list):
-        if len(column_names) < len(columns):
-            column_names = [column_names[0] for x in columns]
-        else:
+    if columns:
+        if isinstance(columns[0], int) or isinstance(columns[0], float):
+            columns = [columns]
+        # If the list contains all lists, accept format:
+        elif all([isinstance(x, list) for x in columns]):
             pass
+        else:
+            print("Error: columns contains unacceptable elements.")
+            print("columns type is: {0}".format(type(columns)))
+            print("columns length is: {0}".format(len(columns)))
+            print("columns[0] type is: {0}".format(type(columns[0])))
+            sys.exit()
+        # If column_names is a string, create a list containing
+        # as many of this string as there are columns.
+        if isinstance(column_names, str):
+            column_names = [column_names for x in columns]
+        elif isinstance(column_names, list):
+            if len(column_names) < len(columns):
+                column_names = [column_names[0] for x in columns]
+            else:
+                pass
+        else:
+            print("Error: column_names is neither a list nor a string")
+            sys.exit()
+
+        #-----------------------------------
+        # Read columns from input table file
+        #-----------------------------------
+        if input_table:
+            input_columns = read_columns(input_table, n_columns=1, trail=True)
+            input_names = input_columns[0][0]
+            input_columns = input_columns[0][1::]
+        else:
+            input_names = ''
+            input_columns = ['' for x in columns[0]]
+
+        #--------------
+        # Write to file
+        #--------------
+        Fp = open(output_table, 'wa')
+        if column_names:
+            Fp.write(" ".join([input_names, " ".join(column_names), "\n"]))
+        else:
+            Fp.write(input_names + "\n")
+
+        for irow in range(len(columns[0])):
+            Fp.write(input_columns[irow] + " ")
+            for column in columns:
+                Fp.write("{0} ".format(column[irow]))
+            Fp.write("\n")
+
+        Fp.close()
+
     else:
-        print("Error: column_names is neither a list nor a string")
-        sys.exit()
-
-    #------------------------------------
-    # Read columns from input table file.
-    # Open output table file for writing.
-    #------------------------------------
-    if input_table:
-        input_columns = read_columns(input_table, n_columns=1, trail=True)
-        input_names = input_columns[0][0]
-        input_columns = input_columns[0][1::]
-        Fp = open(output_table, 'a')
-    else:
-        input_names = ''
-        input_columns = ['' for x in columns[0]]
-        Fp = open(output_table, 'w')
-
-    #--------------
-    # Write to file
-    #--------------
-    if column_names:
-        Fp.write(" ".join([input_names, " ".join(column_names), "\n"]))
-    else:
-        Fp.write(input_names + "\n")
-
-    for irow in range(len(columns[0])):
-        Fp.write(input_columns[irow] + " ")
-        for column in columns:
-            Fp.write("{0} ".format(column[irow]))
-        Fp.write("\n")
-
-    Fp.close()
+        print("NOTE: 'columns' is empty. Nothing written.")
 
     return output_table
 
