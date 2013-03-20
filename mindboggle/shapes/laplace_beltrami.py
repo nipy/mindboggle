@@ -195,7 +195,73 @@ def print_sparse_matrix(M):
                 print "{0:2.4f}\t".format(E),
         print("")
 
-def fem_laplacian(points, faces):
+def compute_area(points, faces):
+        """
+        Compute the areas of all triangles on the mesh.
+
+        Parameters
+        ----------
+        points : 2-D list
+            points[i] contains the 3-D coordinates of points on a mesh
+
+        faces : 2-D list
+            faces[i] is a 3-element array containing the indices of points
+
+        Returns
+        -------
+        area: 1-D numpy array
+            area[i] is the area of the i-th triangle
+
+        """
+        import numpy as np
+
+        area = np.zeros(len(faces))
+
+        points = np.array(points)
+
+        for i, triangle in enumerate(faces):
+
+            a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
+            b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
+            c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
+            s = (a+b+c) / 2.0
+
+            area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
+
+        return area
+
+def area_normalize(points, faces, spectrum):
+    """Normalize the spectrum for one shape using areas as suggested in Reuter et al. 2006
+
+    Parameters
+    ------------
+
+    points : list of lists of 3 floats
+        Points (coordinates)
+        Each element contains the x,y,z coordinates of a vertex on the structure.
+
+    faces : list of lists of 3 integers
+        Triangle faces (indices)
+        Each element contains 3 indices to vertices that form a triangle on the mesh.
+
+    spectrum : list of floats
+        The LB spectrum of a given shape defined by _points_ and _faces_
+
+    Returns
+    -----------
+
+    new_spectrum : list of floats
+        The LB spectrum normalized by area 
+	"""
+
+    area = compute_area(points, faces)
+    total_area = sum(area) # the area of the entire shape
+
+    new_spectrum = [x/total_area for x in spectrum]
+    
+    return new_spectrum
+
+def fem_laplacian(points, faces, normalization="area"):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
 
@@ -209,9 +275,13 @@ def fem_laplacian(points, faces):
         Triangle faces (indices)
         Each element contains 3 indices to vertices that form a triangle on the mesh.
 
+    normalization : string
+        The method to normalize spectrum (default: "area")
+        If left empty, no normalization
+
     Returns
     -------
-    eigenvalues : list
+    spectrum : list
         First three eigenvalues for Laplace-Beltrami spectrum.
 
     Examples
@@ -246,8 +316,12 @@ def fem_laplacian(points, faces):
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
     eigenvalues, eigenvectors = eigsh(A, k=3, M=B, which="SM")
 
-    return eigenvalues.tolist()
+    spectrum = eigenvalues.tolist()
 
+    if normalization == "area":
+        spectrum = area_normalize(points, faces, spectrum)
+
+    return spectrum
 
 if __name__ == "__main__":
 
@@ -261,7 +335,10 @@ if __name__ == "__main__":
     # Pick some faces:
     faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
 
-    print("The linear FEM Laplace-Beltrami Spectrum is:\n{0}".format(
+    print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
+        fem_laplacian(points, faces, normalization="none")))
+
+    print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
         fem_laplacian(points, faces)))
 
 
@@ -298,37 +375,7 @@ if __name__ == "__main__":
 
         return V / 3
 
-    def compute_area(points, meshes):
-        ""
-        Compute the areas of all triangles on the mesh.
 
-        Parameters
-        ----------
-        points : 2-D numpy array
-            points[i] contains the 3-D coordinates of points on a mesh
-        meshes : 2-D numpy array
-            meshes[i] is a 3-element array containing the indices of points
-
-        Returns
-        -------
-        area: 1-D numpy array
-            area[i] is the area of the i-th triangle
-
-        ""
-        import numpy as np
-
-        area = np.zeros(meshes.shape[0])
-
-        for i, triangle in enumerate(meshes):
-
-            a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
-            b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
-            c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
-            s = (a+b+c) / 2.0
-
-            area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
-
-        return area
 
     def old_fem_laplacian(points, faces):
         ""The portal function to compute geometric laplacian
