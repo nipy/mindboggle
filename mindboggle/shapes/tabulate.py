@@ -98,9 +98,20 @@ def write_mean_shapes_tables(labels, subfolds=[], fundi=[], sulci=[],
 
     """
     import os
+    import numpy as np
     from mindboggle.shapes.measure import mean_value_per_label
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.io_file import write_columns
+
+    # Make sure inputs are lists:
+    if isinstance(labels, np.ndarray):
+        labels = labels.tolist()
+    if isinstance(subfolds, np.ndarray):
+        subfolds = subfolds.tolist()
+    if isinstance(fundi, np.ndarray):
+        fundi = fundi.tolist()
+    if isinstance(sulci, np.ndarray):
+        sulci = sulci.tolist()
 
     # Feature lists:
     feature_lists = [labels, subfolds, fundi, sulci]
@@ -142,7 +153,12 @@ def write_mean_shapes_tables(labels, subfolds=[], fundi=[], sulci=[],
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
-        print('itbl: {0} ftrlist: {1}'.format(itable, type(feature_list)))
+
+        # For each feature, construct a table of average shape values:
+        table_file = os.path.join(os.getcwd(), table_names[itable])
+        if normalize_by_area:
+            norm_table_file = os.path.join(os.getcwd(),
+                                           'norm_' + table_names[itable])
         if feature_list:
 
             # Loop through shape measures:
@@ -159,44 +175,41 @@ def write_mean_shapes_tables(labels, subfolds=[], fundi=[], sulci=[],
                 if normalize_by_area:
                     norm_columns.append(norm_mean_values)
 
-            # For each feature, construct a table of average shape values:
+            # Write labels to table:
+            write_columns(label_list, 'label', table_file)
+            if normalize_by_area:
+                write_columns(label_list, 'label', norm_table_file)
+
+            # Append columns of average shape values to table:
             if columns:
-
-                # Define output table:
-                table_file = os.path.join(os.getcwd(), table_names[itable])
-
-                # Write labels to table:
-                write_columns(label_list, 'label', table_file)
-
-                # Append columns of average shape values to table:
                 write_columns(columns, column_names, table_file, table_file)
-
-                # Write labels and normalized average shape values to table:
                 if normalize_by_area:
-                    norm_table_file = os.path.join(os.getcwd(),
-                        'norm_' + table_names[itable])
-                    write_columns(label_list, 'label', norm_table_file)
                     write_columns(norm_columns, column_names,
                                   norm_table_file, norm_table_file)
+        else:
+            # Write something to table:
+            write_columns([], '', table_file)
+            if normalize_by_area:
+                write_columns([], '', norm_table_file)
 
-                # Return correct table file name:
-                if itable == 0:
-                    label_table = table_file
-                elif itable == 1:
-                    subfold_table = table_file
-                elif itable == 2:
-                    fundus_table = table_file
-                elif itable == 3:
-                    sulcus_table = table_file
-                if normalize_by_area:
-                    if itable == 0:
-                        norm_label_table = norm_table_file
-                    elif itable == 1:
-                        norm_subfold_table = norm_table_file
-                    elif itable == 2:
-                        norm_fundus_table = norm_table_file
-                    elif itable == 3:
-                        norm_sulcus_table = norm_table_file
+        # Return correct table file name:
+        if itable == 0:
+            label_table = table_file
+        elif itable == 1:
+            subfold_table = table_file
+        elif itable == 2:
+            fundus_table = table_file
+        elif itable == 3:
+            sulcus_table = table_file
+        if normalize_by_area:
+            if itable == 0:
+                norm_label_table = norm_table_file
+            elif itable == 1:
+                norm_subfold_table = norm_table_file
+            elif itable == 2:
+                norm_fundus_table = norm_table_file
+            elif itable == 3:
+                norm_sulcus_table = norm_table_file
 
     return label_table, subfold_table, fundus_table, sulcus_table, \
            norm_label_table, norm_subfold_table, \
@@ -279,8 +292,19 @@ def write_vertex_shapes_table(table_file,
 
     """
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.io_file import write_columns
+
+    # Make sure inputs are lists:
+    if isinstance(labels, np.ndarray):
+        labels = labels.tolist()
+    if isinstance(subfolds, np.ndarray):
+        subfolds = subfolds.tolist()
+    if isinstance(fundi, np.ndarray):
+        fundi = fundi.tolist()
+    if isinstance(sulci, np.ndarray):
+        sulci = sulci.tolist()
 
     # Feature names and corresponding feature lists:
     feature_names = ['label', 'subfold', 'fundus', 'sulcus']
@@ -299,7 +323,6 @@ def write_vertex_shapes_table(table_file,
     columns = []
     column_names = []
     for ifeature, values in enumerate(feature_lists):
-        print('iftr: {0} values: {1} columns: {2}'.format(ifeature, type(values), type(columns)))
         if values:
             if not columns:
                 indices = range(len(values))
