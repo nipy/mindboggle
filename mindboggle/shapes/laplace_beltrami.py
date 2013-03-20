@@ -196,62 +196,55 @@ def print_sparse_matrix(M):
         print("")
 
 def compute_area(points, faces):
-        """
-        Compute the areas of all triangles on the mesh.
+    """
+    Compute the areas of all triangles on the mesh.
 
-        Parameters
-        ----------
-        points : 2-D list
-            points[i] contains the 3-D coordinates of points on a mesh
+    Parameters
+    ----------
+    points : list of lists of 3 floats
+        x,y,z coordinates for each vertex of the structure
+    faces : list of lists of 3 integers
+        3 indices to vertices that form a triangle on the mesh
 
-        faces : 2-D list
-            faces[i] is a 3-element array containing the indices of points
+    Returns
+    -------
+    area: 1-D numpy array
+        area[i] is the area of the i-th triangle
 
-        Returns
-        -------
-        area: 1-D numpy array
-            area[i] is the area of the i-th triangle
+    """
+    import numpy as np
 
-        """
-        import numpy as np
+    area = np.zeros(len(faces))
 
-        area = np.zeros(len(faces))
+    points = np.array(points)
 
-        points = np.array(points)
+    for i, triangle in enumerate(faces):
 
-        for i, triangle in enumerate(faces):
+        a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
+        b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
+        c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
+        s = (a+b+c) / 2.0
 
-            a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
-            b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
-            c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
-            s = (a+b+c) / 2.0
+        area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
 
-            area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
-
-        return area
+    return area
 
 def area_normalize(points, faces, spectrum):
     """Normalize the spectrum for one shape using areas as suggested in Reuter et al. 2006
 
     Parameters
     ------------
-
     points : list of lists of 3 floats
-        Points (coordinates)
-        Each element contains the x,y,z coordinates of a vertex on the structure.
-
+        x,y,z coordinates for each vertex of the structure
     faces : list of lists of 3 integers
-        Triangle faces (indices)
-        Each element contains 3 indices to vertices that form a triangle on the mesh.
-
+        3 indices to vertices that form a triangle on the mesh
     spectrum : list of floats
-        The LB spectrum of a given shape defined by _points_ and _faces_
+        LB spectrum of a given shape defined by _points_ and _faces_
 
     Returns
     -----------
-
     new_spectrum : list of floats
-        The LB spectrum normalized by area 
+        LB spectrum normalized by area 
 	"""
 
     area = compute_area(points, faces)
@@ -261,7 +254,7 @@ def area_normalize(points, faces, spectrum):
     
     return new_spectrum
 
-def fem_laplacian(points, faces, n_eigenvalues=200, normalization="area"):
+def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
 
@@ -273,6 +266,9 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization="area"):
         3 indices to vertices that form a triangle on the mesh
     n_eigenvalues : integer
         number of eigenvalues to return
+    normalization : string
+        the method used to normalize eigenvalues (default: None) 
+        if "area", use area of the 2D structure as mentioned in Reuter et al. 2006
 
     Returns
     -------
@@ -288,10 +284,12 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization="area"):
     >>>           [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> # Pick some faces:
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
-    >>> print("The linear FEM Laplace-Beltrami Spectrum is:\n")
-    >>> print("{0}".format(fem_laplacian(points, faces, 3)))
-        The linear FEM Laplace-Beltrami Spectrum is:
+    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n{0}".format(
+        fem_laplacian(points, faces, n_eigenvalues=3)))
         [9.126874965552942e-16, 0.91948040290470268, 3.7579933101613578]
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n{0}".format(
+        fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+        [2.461761608909144e-16, 0.2867009007303839, 1.1717705603712372]
 
     """
     import numpy as np
@@ -301,15 +299,15 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization="area"):
 
     npoints = len(points)
     
-    if npoints < 5:  # too small
-        print("The input size is too small to compute spectra. Skipped.")
-        return np.array([-1, -1, -1, -1, -1])
+    if npoints < n_eigenvalues:  # too small
+        print "The input size {0} is smaller than n_eigenvalue {1}. Skipped.".format(npoints, n_eigenvalues)
+        return None
   
     A, B = computeAB(points, faces)
 
     # Note: eigs is for nonsymmetric matrices while 
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
-    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalue, M=B, which="SM")
+    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="SM")
 
     spectrum = eigenvalues.tolist()
 
@@ -332,10 +330,10 @@ if __name__ == "__main__":
     faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
 
     print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, n_eigenvalue=3, normalization="none")))
+        fem_laplacian(points, faces, n_eigenvalues=3)))
 
     print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, n_eigenvalue=3)))
+        fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
 
 
     """
