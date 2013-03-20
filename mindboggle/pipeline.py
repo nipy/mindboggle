@@ -784,7 +784,6 @@ if run_shapeFlow:
     #===========================================================================
     # Measure Laplace-Beltrami spectra of labeled regions
     #===========================================================================
-    """
     LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
                                  interface = Fn(function = fem_laplacian_from_labels,
                                                 input_names = ['vtk_file',
@@ -794,7 +793,7 @@ if run_shapeFlow:
     mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','points')])])
     mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','faces')])])
     LaplaceBeltramiLabels.inputs.n_eigenvalues = 200
-    """
+
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
     #===========================================================================
