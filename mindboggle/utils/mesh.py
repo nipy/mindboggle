@@ -562,7 +562,7 @@ def remove_faces(faces, indices):
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
     indices : integers
-        vertex indices to mesh
+        indices to vertices of the surface mesh
 
     Returns
     -------
@@ -592,49 +592,47 @@ def remove_faces(faces, indices):
 
 def renumber_faces(faces, indices):
     """
-    Renumber the vertices in faces to equal range(len(indices)).
+    Renumber the indices to vertices in faces of a surface mesh.
+
+    This program renumbers the faces lists' indices to vertices,
+    so that the new indices are in the range of the number of indices:
+    range(len(indices)). This assumes that all of the indices are
+    represented in the faces, for example, after running remove_faces().
 
     Parameters
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
     indices : integers
-        vertex indices to mesh
+        indices to vertices of the surface mesh, and all contained in faces
 
     Returns
     -------
-    faces : list of lists of three integers
-        renumbered faces
+    faces_renumbered : list of lists of three integers
+        faces with renumbered indices
 
     Examples
     --------
-    >>> from mindboggle.utils.mesh import remove_faces_renumber_indices
-    >>> faces = [[1,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> indices = [0,1,2,3,4,5]
-    >>> remove_faces_renumber_indices(faces, indices)
-      Reduced 4 to 2 triangular faces.
-      [[1, 2, 3], [3, 2, 5]]
+    >>> from mindboggle.utils.mesh import renumber_faces
+    >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> indices = [2,3,4,5,8,7]
+    >>> renumber_faces(faces, indices)
+      [[4, 0, 1], [0, 1, 5], [2, 5, 4], [1, 0, 3]]
 
     """
     import numpy as np
 
     faces_ravel = np.ravel(faces)
-    new_faces = faces_ravel.copy()
+    faces_renumbered = faces_ravel.copy()
 
-    # Loop through unique indices:
-    unique_indices = np.unique(indices)
-    for i, index in enumerate(unique_indices):
+    # Loop through indices:
+    for new_index, index in enumerate(indices):
         ifaces = np.where(faces_ravel == index)[0]
-        new_faces[ifaces] = i
+        faces_renumbered[ifaces] = new_index
 
-    len_faces = len(faces)
-    fs = frozenset(indices)
-    faces = [lst for lst in faces if len(fs.intersection(lst)) == 3]
-    faces = np.reshape(np.ravel(faces), (-1, 3))
-    if len(faces) < len_faces:
-        print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
+    faces_renumbered = np.reshape(faces_renumbered, (-1, 3))
 
-    return faces.tolist()
+    return faces_renumbered.tolist()
 
 #------------------------------------------------------------------------------
 # Fill holes
