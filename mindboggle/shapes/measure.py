@@ -295,9 +295,9 @@ def mean_value_per_label(values, labels, exclude_labels,
         mean values
     label_list : list of integers
         unique label numbers
-    surface_areas : list of floats
+    surface_areas : list of floats (if normalize_by_area)
         surface area for each labeled set of vertices
-    norm_mean_values : list of floats
+    norm_mean_values : list of floats (if normalize_by_area)
         mean values normalized by vertex area
 
     Examples
