@@ -43,7 +43,7 @@ def compute_likelihood(depths, curvatures):
     depths : numpy array of floats
         depth values in [0,1] for all vertices
     curvatures : numpy array of floats
-        mean curvature values in [-1,1] for all vertives
+        mean curvature values in [-1,1] for all vertices
 
     Returns
     -------
@@ -64,9 +64,9 @@ def compute_likelihood(depths, curvatures):
     >>> L = compute_likelihood(depths, curvatures)
     >>>
     >>> # Write results to vtk file and view:
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
-    >>> rewrite_scalars(depth_rescaled_file, 'test_compute_likelihood.vtk', L, 'likelihoods', subfolds)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> rewrite_scalars(depth_rescaled_file, 'test_compute_likelihood.vtk', L, 'likelihoods', folds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_compute_likelihood.vtk')
 
@@ -137,17 +137,20 @@ def compute_likelihood(depths, curvatures):
 #--------------
 def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
     """
-    Cost function for penalizing unlikely curve (fundus) vertices.
+    Cost function for penalizing unlikely fundus curve vertices.
 
-    This cost function penalizes vertices with low likelihood values,
+    This cost function penalizes vertices with low fundus likelihood values,
     and whose Hidden Markov Measure Field (HMMF) values differ from
     their neighbors:
 
-    cost = hmmf * (1 - likelihood) +
+    cost = hmmf * (1.1 - likelihood) +
            wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
 
     term 1 promotes high likelihood values
     term 2 promotes smoothness of the HMMF values
+
+    Note: 1.1 is used instead of 1 to ensure that there is a cost for all points,
+          even for those with likelihoods close to 1.
 
     Parameters
     ----------
@@ -162,7 +165,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     Returns
     -------
-    cost : ``float``
+    cost : float
 
     """
     import numpy as np
@@ -172,17 +175,18 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
         hmmf_neighbors = np.array(hmmf_neighbors)
 
     if hmmf_neighbors.size:
-        cost = hmmf * (1 - likelihood) + \
+        cost = hmmf * (1.1 - likelihood) + \
                wN * sum(abs(hmmf - hmmf_neighbors)) / hmmf_neighbors.size
     else:
-        exit('ERROR: No HMMF neighbors to compute cost.')
+        import sys
+        sys.exit('ERROR: No HMMF neighbors to compute cost.')
 
     return cost
 
 #------------------------------------------------------------------------------
 # Find special "anchor" points for constructing fundus curves
 #------------------------------------------------------------------------------
-def find_anchors(points, L, min_directions, min_distance, thr):
+def find_anchors(points, likelihoods, min_directions, min_distance, thr):
     """
     Find special "anchor" points for constructing fundus curves.
 
@@ -203,7 +207,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     ----------
     points : numpy array of floats
         coordinates for all vertices
-    L : list (or array) of integers
+    likelihoods : list (or array) of integers
         fundus likelihood values for all vertices (default -1)
     min_directions : numpy array of floats
         minimum directions for all vertices
@@ -214,7 +218,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
 
     Returns
     -------
-    anchors : list of subset of surface mesh vertex indices
+    indices_anchors : list of subset of surface mesh vertex indices
 
     Examples
     --------
@@ -223,23 +227,39 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> from mindboggle.features.fundi import find_anchors
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> #
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
     >>>                                          'lh.pial.curv.min.dir.txt')
     >>> faces, lines, indices, points, npoints, likelihoods, name = read_vtk(likelihood_file,
     >>>     return_first=True, return_array=True)
+    >>> #
+    >>> ## Artificially inflate likelihood values:
+    >>> likelihoods = (likelihoods + 0.3)/1.3
+    >>> #
+    >>> # Select a single fold
+    >>> plot_single_fold = True
+    >>> if plot_single_fold:
+    >>>   fold_ID = 11
+    >>>   indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    >>>   indices_not_fold = [i for i,x in enumerate(folds) if x != fold_ID]
+    >>>   likelihoods[indices_not_fold] = 0
+    >>>   fold_array = -1 * np.ones(len(folds))
+    >>>   fold_array[indices_fold] = 1
+    >>>   folds = fold_array.tolist()
+    >>> #
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> min_distance = 5
     >>> thr = 0.5
     >>> #
-    >>> anchors = find_anchors(points, likelihoods, min_directions, min_distance, thr)
+    >>> indices_anchors = find_anchors(points, likelihoods, min_directions, min_distance, thr)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> likelihoods[anchors] = 2
+    >>> likelihoods[indices_anchors] = 1.1
     >>> rewrite_scalars(likelihood_file, 'test_find_anchors.vtk',
-    >>>                 likelihoods, 'anchors_on_likelihoods_in_subfolds', subfolds)
+    >>>                 likelihoods, 'anchors_on_likelihoods_in_folds', folds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_find_anchors.vtk')
 
@@ -256,7 +276,7 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     max_distance = 2 * min_distance
 
     # Sort likelihood values and find indices for values above the threshold
-    L_table = [[i,x] for i,x in enumerate(L)]
+    L_table = [[i,x] for i,x in enumerate(likelihoods)]
     L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
     IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
           if x > thr]
@@ -264,25 +284,25 @@ def find_anchors(points, L, min_directions, min_distance, thr):
     # Initialize anchors list with the index of the maximum likelihood value,
     # remove this value, and loop through the remaining high likelihoods
     if IL:
-        anchors = [IL.pop(0)]
+        indices_anchors = [IL.pop(0)]
         for imax in IL:
 
             # Determine if there are any anchor points
             # near to the current maximum likelihood vertex
             i = 0
             found = 0
-            while i < len(anchors) and found == 0:
+            while i < len(indices_anchors) and found == 0:
 
                 # Compute Euclidean distance between points
-                D = np.linalg.norm(points[anchors[i]] - points[imax])
+                D = np.linalg.norm(points[indices_anchors[i]] - points[imax])
 
                 # If distance less than threshold, consider the point found
                 if D < min_distance:
                     found = 1
                 # Compute directional distance between points if they are close
                 elif D < max_distance:
-                    dirV = np.dot(points[anchors[i]] - points[imax],
-                                  min_directions[anchors[i]])
+                    dirV = np.dot(points[indices_anchors[i]] - points[imax],
+                                  min_directions[indices_anchors[i]])
                     # If distance less than threshold, consider the point found
                     if np.linalg.norm(dirV) < min_distance:
                         found = 1
@@ -292,16 +312,16 @@ def find_anchors(points, L, min_directions, min_distance, thr):
             # If there are no nearby anchor points,
             # assign the maximum likelihood vertex as an anchor point
             if not found:
-                anchors.append(imax)
+                indices_anchors.append(imax)
     else:
-        anchors = []
+        indices_anchors = []
 
-    return anchors
+    return indices_anchors
 
 #---------------
 # Connect points
 #---------------
-def connect_points(anchors, indices, L, neighbor_lists):
+def connect_points(indices_anchors, indices, L, neighbor_lists):
     """
     Connect vertices in a surface mesh to create a curve.
 
@@ -338,7 +358,7 @@ def connect_points(anchors, indices, L, neighbor_lists):
 
     Parameters
     ----------
-    anchors : list of integers
+    indices_anchors : list of integers
         indices of vertices to connect (should contain > 1)
     indices : list of integers
         indices of vertices
@@ -371,13 +391,15 @@ def connect_points(anchors, indices, L, neighbor_lists):
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> mean_curvatures, name = read_scalars(mean_curvature_file, True, True)
     >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> #
     >>> # Select a single fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> fold_ID = 0
+    >>> fold_ID = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     >>> fold_array = -1 * np.ones(npoints)
     >>> fold_array[indices_fold] = 1
+    >>> #
     >>> fold_likelihoods = compute_likelihood(depths[indices_fold],
     >>>                                       mean_curvatures[indices_fold])
     >>> fold_indices_anchors = find_anchors(points[indices_fold],
@@ -385,12 +407,24 @@ def connect_points(anchors, indices, L, neighbor_lists):
     >>> indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
     >>> likelihoods_fold = np.zeros(len(points))
     >>> likelihoods_fold[indices_fold] = fold_likelihoods
-    >>>
-    >>> H = connect_points(indices_anchors, indices_fold, likelihoods_fold, neighbor_lists)
-    >>>
-    >>> # Write results to vtk file and view:
-    >>> H[indices_anchors] = 2
-    >>> rewrite_scalars(depth_rescaled_file, 'test_connect_points.vtk', H, 'connected_points', fold_array)
+
+
+    >>> #@d:
+    >>> likelihoods,name = read_scalars('/drop/MB/data/arno/features/likelihoods.vtk',True,True)
+    >>> #likelihoods_fold = likelihoods[indices_fold]
+    >>> anchors,name = read_scalars('/drop/share/YrjoHame/connect_anchor_tests/connect_anchors10d.vtk')
+    >>> indices_anchors =[i for i,x in enumerate(anchors) if x==0 if folds[i]==fold_ID]
+
+
+    >>> indices = indices_fold
+    >>> L = likelihoods #_fold
+    >>> #
+    >>> H = connect_points(indices_anchors, indices, L, neighbor_lists)
+    >>> #
+    >>> # View:
+    >>> H[indices_anchors] = 1.1
+    >>> rewrite_scalars(depth_rescaled_file, 'test_connect_points.vtk', H,
+    >>>                 'connected_points', fold_array)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_connect_points.vtk')
 
@@ -405,19 +439,53 @@ def connect_points(anchors, indices, L, neighbor_lists):
     #-------------------------------------------------------------------------
     # Parameters
     #-------------------------------------------------------------------------
-    # Cost and cost gradient parameters
+    # Cost and cost gradient parameters:
+    slope_exp = 2
     wN_max = 0.5  # maximum neighborhood weight
     wN_min = 0.1  # minimum neighborhood weight
     H_step = 0.1  # step down HMMF value
     H_min = 0.5 - H_step  # minimum HMMF value to be processed
 
-    # Parameters to speed up optimization and for termination of the algorithm
+    # Parameters to speed up optimization and for termination of the algorithm:
     grad_min = 0.1  # minimum gradient factor
     grad_max = 0.2  # maximum gradient factor
     min_cost_change = 0.0001  # minimum change in the sum of costs
     n_tries_no_change = 3  # number of loops without sufficient change
-    max_count = 1000  # maximum number of iterations (in case no convergence)
+    max_count = 500  # maximum number of iterations (in case no convergence)
+
+    # Miscellaneous parameters:
+    do_skeletonize = False
+    plot_iterations = 0#True
     #-------------------------------------------------------------------------
+
+    if plot_iterations:
+        # Extract fundus from a single fold:
+        import os
+        from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+        from mindboggle.utils.mesh import find_neighbors_from_file
+        from mindboggle.features.fundi import extract_fundi
+        path = os.environ['MINDBOGGLE_DATA']
+        depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+        mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+        min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
+
+        likelihoods_or_file = '/drop/share/YrjoHame/likelihoods_20130314/likelihood_test_rescale_by_neighborhood.txt'
+        from mindboggle.utils.io_file import read_columns
+        likelihoods_or_file = read_columns(likelihoods_or_file)[0]
+        likelihoods_or_file = [np.float(x) for x in likelihoods_or_file]
+
+        #likelihoods_or_file = np.array(likelihoods_or_file)
+        #I=np.where(np.isnan(likelihoods_or_file))[0]
+        #likelihoods=likelihoods_or_file.copy()
+        #likelihoods[I]=0
+
+        # Select a single fold
+        folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+        folds, name = read_scalars(folds_file)
+        fold_ID = 10
+        indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+        fold_array = -1 * np.ones(len(folds))
+        fold_array[indices_fold] = 1
 
     # Initialize all Hidden Markov Measure Field (HMMF) values with
     # likelihood values (except 0) normalized to the interval (0.5, 1.0]
@@ -430,7 +498,8 @@ def connect_points(anchors, indices, L, neighbor_lists):
     H_init[L == 0.0] = 0
     H_init[H_init > 1.0] = 1
     H[H_init > 0.5] = H_init[H_init > 0.5]
-    H[anchors] = 1
+    H[indices_anchors] = 1
+    print_interval = 1
 
     # Neighbors for each vertex
     N = neighbor_lists
@@ -445,14 +514,14 @@ def connect_points(anchors, indices, L, neighbor_lists):
     end_flag = 0
     H_new = H.copy()
     wN = wN_max
-    gradient_factor = grad_max
+    gradient_factor = grad_min
     while end_flag < n_tries_no_change and count < max_count:
 
         # For each index
         for index in indices:
 
             # Do not update anchor point costs
-            if index not in anchors:
+            if index not in indices_anchors:
 
                 # Continue if the HMMF value is greater than a minimum value
                 # (fix at very low values to speed up optimization)
@@ -505,15 +574,24 @@ def connect_points(anchors, indices, L, neighbor_lists):
                 end_flag = 0
 
             # Display information every n_mod iterations
-            if not np.mod(count, 10):
+            if not np.mod(count, print_interval):
                 print('      Iteration {0}: {1} points crossing threshold'.
-                      format(count, delta_points)) #delta_cost
+                      format(count, delta_points))
 
-            # Increment next gradient factor and decrement next neighborhood
-            # weight as a function of net number of points crossing threshold
-            n_change = max([abs(delta_points), 20])
-            gradient_factor = grad_min + (grad_max - grad_min) / n_change
-            wN = wN_max - (wN_max - wN_min) / n_change
+
+
+
+
+
+            # Increment the gradient factor and
+            # decrement the neighborhood factor
+            # so that the spacing is close in early iterations
+            # and far apart in later increments.
+            if gradient_factor < grad_max:
+                gradient_factor = (count/max_count)**slope_exp * \
+                                  (grad_max - grad_min) + grad_min
+            if wN > wN_min:
+                wN = wN_max - (count/max_count)**slope_exp * (wN_max - wN_min)
 
         # Reset for next iteration
         costs_previous = costs
@@ -530,9 +608,12 @@ def connect_points(anchors, indices, L, neighbor_lists):
     npoints_thr = sum(H)
 
     # Skeletonize
-    skeleton = skeletonize(H, anchors, N)
-    print('      Removed {0} points to create one-vertex-thin skeletons'.
-          format(int(npoints_thr - sum(skeleton))))
+    if do_skeletonize:
+        skeleton = skeletonize(H, indices_anchors, N)
+        print('      Removed {0} points to create one-vertex-thin skeletons'.
+              format(int(npoints_thr - sum(skeleton))))
+    else:
+        skeleton = H
 
     return skeleton
 
@@ -588,10 +669,12 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
     -------
     fundi : list of integers
         fundus numbers for all vertices (-1 for non-fundus vertices)
-    n_fundi :  int
+    n_fundi :  integer
         number of fundi
-    likelihoods : array of floats
+    likelihoods : list of floats
         fundus likelihood values for all vertices (zero outside folds)
+    fundus_anchor_indices : list of integers
+        indices to fundus anchor vertices
     fundi_file : string (if save_file)
         name of output VTK file with fundus numbers (-1 for non-fundus vertices)
         and likelihood values for sulcus vertices (separate scalars)
@@ -620,14 +703,14 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
     >>> #likelihoods[I]=0
     >>> #
     >>> # Select a single fold
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_ID = 10
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     >>> fold_array = -1 * np.ones(len(folds))
     >>> fold_array[indices_fold] = 1
     >>>
-    >>> fundi, n_fundi, likelihoods, fundi_file = extract_fundi(fold_array, \
+    >>> fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold_array,
     >>>     depth_rescaled_file, mean_curv_file, min_curv_vec_file,
     >>>     likelihoods_or_file, min_distance=5, thr=0.5,
     >>>     use_only_endpoints=True, save_file=True)
@@ -671,6 +754,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
 
     # Load normalized depth and curvature values from VTK and text files:
     if compute_likelihoods:
+        print("Compute fundus likelihood values...")
         faces, lines, indices, points, npoints, depths, \
             name = read_vtk(depth_rescaled_file, return_first=True, return_array=True)
         mean_curvatures, name = read_scalars(mean_curvature_file,
@@ -686,6 +770,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
     points = np.array(points)
     Z = np.zeros(npoints)
     fundi = -1 * np.ones(npoints)
+    fundus_anchor_indices = []
     if compute_likelihoods:
         likelihoods = np.copy(fundi)
 
@@ -726,8 +811,9 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
                 if not use_only_endpoints:
                     print('    Connect {0} fundus points...'.format(n_anchors))
                     B = connect_points(indices_anchors, indices_fold,
-                        likelihoods_fold, neighbor_lists)
+                                       likelihoods_fold, neighbor_lists)
                     indices_skeleton = [i for i,x in enumerate(B) if x > 0]
+                    fundus_anchor_indices.extend(indices_anchors)
                 else:
                     L = likelihoods_fold.copy()
                     L[L > thr] = 1
@@ -739,6 +825,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
                     indices_endpoints = [x for x in indices_endpoints
                                          if x in indices_anchors]
                     n_anchors = len(indices_endpoints)
+                    fundus_anchor_indices.extend(indices_endpoints)
                     if len(indices_endpoints) > 1:
                         print('    Connect {0} fundus endpoints...'.
                               format(n_anchors))
@@ -770,32 +857,52 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
     else:
         fundi_file = None
 
-    return fundi, n_fundi, likelihoods, fundi_file
+    return fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file
 
 
 # Example
 if __name__ == "__main__" :
+
+    # Extract fundus from a single fold:
     import os
+    import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.features.fundi import extract_fundi
-    from mindboggle.utils.mesh import plot_vtk
-
     path = os.environ['MINDBOGGLE_DATA']
-
     depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    min_curvature_vector_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
-    sulci_file = os.path.join(path, 'arno', 'features', 'lh.sulci.vtk')
+    mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
 
-    neighbor_lists = find_neighbors_from_file(depth_rescaled_file)
+    likelihoods_or_file = '/drop/share/YrjoHame/likelihoods_20130314/likelihood_test_rescale_by_neighborhood.txt'
+    from mindboggle.utils.io_file import read_columns
+    likelihoods_or_file = read_columns(likelihoods_or_file)[0]
+    likelihoods_or_file = [np.float(x) for x in likelihoods_or_file]
 
-    sulci, name = read_scalars(sulci_file, return_first=True, return_array=True)
+    # Select a single fold
+    folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    folds, name = read_scalars(folds_file)
+    fold_ID = 3
+    indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    fold_array = -1 * np.ones(len(folds))
+    fold_array[indices_fold] = 1
 
-    fundi, n_fundi, likelihoods, fundi_file = extract_fundi(sulci, neighbor_lists,
-        depth_rescaled_file, mean_curvature_file, min_curvature_vector_file,
-        min_distance=5, thr=0.5, use_only_endpoints=True, save_file=True)
+    #likelihoods_or_file = None
 
-    # Write results to vtk file and view:
-    plot_vtk('fundi.vtk')
+    fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold_array,
+        depth_rescaled_file, mean_curv_file, min_curv_vec_file,
+        likelihoods_or_file, min_distance=5, thr=0.5,
+        use_only_endpoints=True, save_file=True)
+
+    # View:
+    from mindboggle.utils.mesh import plot_vtk
+    #plot_vtk('fundi.vtk')
+
+    # View overlay of likelihood values, fundus, and anchor points:
+    overlay = np.array(likelihoods_or_file)
+    Ifundi = [i for i,x in enumerate(fundi) if x > -1]
+    overlay[Ifundi] = 0.25
+    overlay[fundus_anchor_indices] = 0
+    rewrite_scalars(depth_rescaled_file, 'overlay.vtk', overlay,
+                    'likelihoods_fundi_anchors', fold_array)
+    plot_vtk('overlay.vtk')
