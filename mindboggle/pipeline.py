@@ -774,7 +774,7 @@ if run_shapeFlow:
     RescaleDepth.inputs.by_neighborhood = True
     RescaleDepth.inputs.nedges = 10
     RescaleDepth.inputs.p = 99
-    RescaleDepth.inputs.set_max_to_1 = True
+    RescaleDepth.inputs.set_max_to_1 = False
     RescaleDepth.inputs.save_file = True
     RescaleDepth.inputs.output_filestring = 'depth_rescaled'
     # Save rescaled depth
@@ -784,6 +784,7 @@ if run_shapeFlow:
     #===========================================================================
     # Measure Laplace-Beltrami spectra of labeled regions
     #===========================================================================
+    """
     LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
                                  interface = Fn(function = fem_laplacian_from_labels,
                                                 input_names = ['vtk_file',
@@ -793,7 +794,7 @@ if run_shapeFlow:
     mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','points')])])
     mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','faces')])])
     LaplaceBeltramiLabels.inputs.n_eigenvalues = 200
-
+    """
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
     #===========================================================================
