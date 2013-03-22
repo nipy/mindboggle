@@ -291,7 +291,9 @@ if run_labelFlow:
                            'DK_annot_to_VTK.vtk_file')])])
         mbFlow.connect([(labelFlow, Sink,
                          [('DK_annot_to_VTK.output_vtk', 'labels.@DKsurface')])])
-    #===========================================================================
+        init_labels_plug = 'DK_annot_to_VTK.output_vtk'
+
+#===========================================================================
     # Initialize labels with the DKT classifier atlas
     #===========================================================================
     elif init_labels == 'DKTatlas':
@@ -346,6 +348,7 @@ if run_labelFlow:
                             [('annot_name', 'annot_name')])])
         mbFlow.connect([(labelFlow, Sink,
                          [('Classifier2vtk.vtk_file', 'labels.@DKTsurface')])])
+        init_labels_plug = 'DKT_annot_to_VTK.vtk_file'
     #===========================================================================
     # Initialize labels using multi-atlas registration
     #===========================================================================
@@ -422,6 +425,7 @@ if run_labelFlow:
                          [('Label_vote.maxlabel_file', 'labels.@max'),
                           ('Label_vote.labelcounts_file', 'labels.@counts'),
                           ('Label_vote.labelvotes_file', 'labels.@votes')])])
+        init_labels_plug = 'Label_vote.maxlabel_file'
     #===========================================================================
     # Skip label initialization and process manual (atlas) labels
     #===========================================================================
@@ -444,6 +448,7 @@ if run_labelFlow:
                          [('atlas_file', 'Atlas_labels.input_vtk')])])
         AtlasLabels.inputs.return_first = 'True'
         AtlasLabels.inputs.return_array = 'False'
+        init_labels_plug = 'Atlas_labels.input_vtk'
 
 ################################################################################
 #
@@ -633,24 +638,8 @@ if run_featureFlow:
                                                         'n_sulci',
                                                         'sulci_file']))
         featureFlow.add_nodes([SulciNode])
-        #---------------------------------------------------------------------------
-        # Use initial labels assigned by FreeSurfer classifier atlas
-        if init_labels == 'DKatlas':
-            mbFlow.connect([(labelFlow, featureFlow,
-                             [('DK_annot_to_VTK.output_vtk','Sulci.labels_file')])])
-        # Use initial labels assigned by Mindboggle classifier atlas
-        elif init_labels == 'DKTatlas':
-            mbFlow.connect([(labelFlow, featureFlow,
-                             [('DKT_annot_to_VTK.vtk_file','Sulci.labels_file')])])
-        # Use initial labels assigned by multi-atlas registration
-        elif init_labels == 'max':
-            mbFlow.connect([(labelFlow, featureFlow,
-                             [('Label_vote.maxlabel_file','Sulci.labels_file')])])
-        # Use manual (atlas) labels
-        elif init_labels == 'manual':
-            mbFlow.connect([(labelFlow, featureFlow,
-                             [('Atlas_labels.input_vtk','Sulci.labels_file')])])
-        #---------------------------------------------------------------------------
+        mbFlow.connect([(labelFlow, featureFlow,
+                         [(init_labels_plug, 'Sulci.labels_file')])])
         featureFlow.connect([(SubfoldsNode, SulciNode, [('subfolds','folds_or_file')])])
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
@@ -792,62 +781,36 @@ if run_shapeFlow:
                                                        'normalization'],
                                         output_names = ['spectrum_lists']))
     shapeFlow.add_nodes([SpectraLabels])
-    #---------------------------------------------------------------------------
-    """
-    # Use initial labels assigned by FreeSurfer classifier atlas
-    if init_labels == 'DKatlas':
-        init_labels_input = 'DK_annot_to_VTK.output_vtk'
-    elif init_labels == 'DKTatlas':
-        init_labels_input = 'DKT_annot_to_VTK.vtk_file'
-    elif init_labels == 'max':
-        init_labels_input = 'Label_vote.maxlabel_file'
-    elif init_labels == 'manual':
-        init_labels_input = 'DK_annot_to_VTK.output_vtk'
-    """
-    # Use initial labels assigned by FreeSurfer classifier atlas
-    if init_labels == 'DKatlas':
-        mbFlow.connect([(labelFlow, shapeFlow,
-                         [('DK_annot_to_VTK.output_vtk','Spectra_labels.vtk_file')])])
-    # Use initial labels assigned by Mindboggle classifier atlas
-    elif init_labels == 'DKTatlas':
-        mbFlow.connect([(labelFlow, shapeFlow,
-                         [('DKT_annot_to_VTK.vtk_file','Spectra_labels.vtk_file')])])
-    # Use initial labels assigned by multi-atlas registration
-    elif init_labels == 'max':
-        mbFlow.connect([(labelFlow, shapeFlow,
-                         [('Label_vote.maxlabel_file','Spectra_labels.vtk_file')])])
-    # Use manual (atlas) labels
-    elif init_labels == 'manual':
-        mbFlow.connect([(labelFlow, shapeFlow,
-                         [('Atlas_labels.input_vtk','Spectra_labels.vtk_file')])])
-    #---------------------------------------------------------------------------
+    mbFlow.connect([(labelFlow, shapeFlow,
+                     [(init_labels_plug, 'Spectra_labels.vtk_file')])])
     SpectraLabels.inputs.n_eigenvalues = 200
     SpectraLabels.inputs.normalization = "area"
 
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
     #===========================================================================
-    """
     SpectraSubfolds = SpectraLabels.clone('Spectra_subfolds')
-    shapeFlow.add_nodes([SpectraLabels])
-    mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
+    shapeFlow.add_nodes([SpectraSubfolds])
+    mbFlow.connect([(SubfoldsNode, SpectraSubfolds,
+                     [('subfolds_file', 'vtk_file')])])
 
     #===========================================================================
     # Measure Laplace-Beltrami spectra of fundi
     #===========================================================================
     if do_fundi:
-        SpectraFundi = SpectraLabels.clone('Spectra_sulci')
-        shapeFlow.add_nodes([SpectraLabels])
-        mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
+        SpectraFundi = SpectraLabels.clone('Spectra_fundi')
+        shapeFlow.add_nodes([SpectraFundi])
+        mbFlow.connect([(FundiNode, SpectraFundi,
+                         [('fundi_file', 'vtk_file')])])
 
     #===========================================================================
     # Measure Laplace-Beltrami spectra of sulci
     #===========================================================================
     if do_sulci:
         SpectraSulci = SpectraLabels.clone('Spectra_sulci')
-        shapeFlow.add_nodes([SpectraLabels])
-        mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
-    """
+        shapeFlow.add_nodes([SpectraSulci])
+        mbFlow.connect([(SulciNode, SpectraSulci,
+                         [('sulci_file', 'vtk_file')])])
 
 ################################################################################
 #
@@ -885,33 +848,17 @@ if run_tableFlow:
                                                       'norm_fundus_table',
                                                       'norm_sulcus_table']))
     tableFlow.add_nodes([ShapeTables])
-    #---------------------------------------------------------------------------
-    # Use initial labels assigned by FreeSurfer classifier atlas
-    if init_labels == 'DKatlas':
-        mbFlow.connect([(labelFlow, tableFlow,
-                         [('DK_annot_to_VTK.labels','Shape_tables.labels')])])
-    # Use initial labels assigned by Mindboggle classifier atlas
-    elif init_labels == 'DKTatlas':
-        mbFlow.connect([(labelFlow, tableFlow,
-                         [('DKT_annot_to_VTK.labels','Shape_tables.labels')])])
-    # Use initial labels assigned by multi-atlas registration
-    elif init_labels == 'max':
-        mbFlow.connect([(labelFlow, tableFlow,
-                         [('Label_vote.labels_max','Shape_tables.labels')])])
-    # Use manual (atlas) labels
-    elif init_labels == 'manual':
-        mbFlow.connect([(labelFlow, tableFlow,
-                         [('Atlas_labels.scalars','Shape_tables.labels')])])
-    #---------------------------------------------------------------------------
+    mbFlow.connect([(labelFlow, tableFlow,
+                     [(init_labels_plug, 'Shape_tables.labels')])])
     mbFlow.connect([(featureFlow, tableFlow,
-                     [('Subfolds.subfolds','Shape_tables.subfolds')])])
+                     [('Subfolds.subfolds', 'Shape_tables.subfolds')])])
     if do_fundi:
         mbFlow.connect([(featureFlow, tableFlow,
-                         [('Fundi.fundi','Shape_tables.fundi')])])
+                         [('Fundi.fundi', 'Shape_tables.fundi')])])
     else:
         ShapeTables.inputs.fundi = []
     mbFlow.connect([(featureFlow, tableFlow,
-                     [('Sulci.sulci','Shape_tables.sulci')])])
+                     [('Sulci.sulci', 'Shape_tables.sulci')])])
     #---------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Area.area_file','Shape_tables.area_file')])])
@@ -978,33 +925,17 @@ if run_tableFlow:
                                           output_names = ['shapes_table']))
         tableFlow.add_nodes([VertexTable])
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
-        #-----------------------------------------------------------------------
-        # Use initial labels assigned by FreeSurfer classifier atlas
-        if init_labels == 'DKatlas':
-            mbFlow.connect([(labelFlow, tableFlow,
-                             [('DK_annot_to_VTK.labels','Vertex_table.labels')])])
-        # Use initial labels assigned by Mindboggle classifier atlas
-        elif init_labels == 'DKTatlas':
-            mbFlow.connect([(labelFlow, tableFlow,
-                             [('DKT_annot_to_VTK.labels','Vertex_table.labels')])])
-        # Use initial labels assigned by multi-atlas registration
-        elif init_labels == 'max':
-            mbFlow.connect([(labelFlow, tableFlow,
-                             [('Label_vote.labels_max','Vertex_table.labels')])])
-        # Use manual (atlas) labels
-        elif init_labels == 'manual':
-            mbFlow.connect([(labelFlow, tableFlow,
-                             [('Atlas_labels.scalars','Vertex_table.labels')])])
-        #-----------------------------------------------------------------------
+        mbFlow.connect([(labelFlow, tableFlow,
+                         [(init_labels_plug, 'Vertex_table.labels')])])
         mbFlow.connect([(featureFlow, tableFlow,
-                         [('Subfolds.subfolds','Vertex_table.subfolds')])])
+                         [('Subfolds.subfolds', 'Vertex_table.subfolds')])])
         if do_fundi:
             mbFlow.connect([(featureFlow, tableFlow,
-                             [('Fundi.fundi','Vertex_table.fundi')])])
+                             [('Fundi.fundi', 'Vertex_table.fundi')])])
         else:
             ShapeTables.inputs.fundi = []
         mbFlow.connect([(featureFlow, tableFlow,
-                         [('Sulci.sulci','Vertex_table.sulci')])])
+                         [('Sulci.sulci', 'Vertex_table.sulci')])])
         #-----------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file')])])
@@ -1058,18 +989,8 @@ if do_evaluate_surface:
         'surface_overlap', 'SurfaceOverlapMain')
     EvalSurfLabels.inputs.command = surface_overlap_command
     mbFlow.connect([(Atlas, EvalSurfLabels, [('atlas_file','labels_file1')])])
-    if init_labels == 'DKatlas':
-        mbFlow.connect([(labelFlow, EvalSurfLabels,
-                         [('DK_annot_to_VTK.output_vtk','labels_file2')])])
-    elif init_labels == 'DKTatlas':
-        mbFlow.connect([(labelFlow, EvalSurfLabels,
-                         [('DKT_annot_to_VTK.vtk_file','labels_file2')])])
-    elif init_labels == 'max':
-        mbFlow.connect([(labelFlow, EvalSurfLabels,
-                         [('Label_vote.maxlabel_file','labels_file2')])])
-    elif init_labels == 'manual':
-        mbFlow.connect([(Atlas, EvalSurfLabels,
-                         [('atlas_file','labels_file2')])])
+    mbFlow.connect([(labelFlow, EvalSurfLabels,
+                     [(init_labels_plug, 'labels_file2')])])
     mbFlow.connect([(EvalSurfLabels, Sink,
                      [('overlap_file', 'evaluate_labels')])])
 
@@ -1104,26 +1025,12 @@ if run_volumeFlow and do_fill:
     WriteLabels.inputs.label_numbers = ctx_label_numbers
     WriteLabels.inputs.label_names = ctx_label_names
     WriteLabels.inputs.RGBs = RGBs
-    if init_labels == 'DKatlas':
-        WriteLabels.inputs.scalar_name = 'Labels'
-        mbFlow.connect([(labelFlow, annotflow,
-                         [('DK_annot_to_VTK.output_vtk',
-                           'Write_label_files.surface_file')])])
-    if init_labels == 'DKTatlas':
-        WriteLabels.inputs.scalar_name = 'Labels'
-        mbFlow.connect([(labelFlow, annotflow,
-                         [('DKT_annot_to_VTK.vtk_file',
-                           'Write_label_files.surface_file')])])
-    elif init_labels == 'max':
+    mbFlow.connect([(labelFlow, annotflow,
+                     [(init_labels_plug, 'Write_label_files.surface_file')])])
+    if init_labels == 'max':
         WriteLabels.inputs.scalar_name = 'Max_(majority_labels)'
-        mbFlow.connect([(labelFlow, annotflow,
-                         [('Label_vote.maxlabel_file',
-                           'Write_label_files.surface_file')])])
-    elif init_labels == 'manual':
+    else:
         WriteLabels.inputs.scalar_name = 'Labels'
-        mbFlow.connect([(Atlas, annotflow,
-                         [('atlas_file',
-                           'Write_label_files.surface_file')])])
     #---------------------------------------------------------------------------
     # Write .annot file from .label files
     # NOTE:  incorrect labels to be corrected below!
