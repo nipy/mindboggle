@@ -806,16 +806,16 @@ def getFeatures(InputFiles, Type, Options):
         Maps = {}
 
         print "    Loading depth map"
-        Faces, Lines, Vertexes, Points, nPoints, Depth, name = io_vtk.read_vtk(DepthVTK)
+        Faces, Lines, Vertexes, Points, nPoints, Depth, name, input_vtk = io_vtk.read_vtk(DepthVTK)
 
         Maps['depth'] = Depth
 
         if MeanCurvVTK != "":
             print "   Loading mean curvature map"
-            Faces, Lines, Vertexes, Points, nPoints, Maps['meancurv'], name = io_vtk.read_vtk(MeanCurvVTK)
+            Faces, Lines, Vertexes, Points, nPoints, Maps['meancurv'], name, input_vtk = io_vtk.read_vtk(MeanCurvVTK)
         if GaussCurvVTK != "":
             print "   Loading Gaussian curvature map"
-            Faces, Lines, Vertexes, Points, nPoints, Maps['gausscurv'], name = io_vtk.read_vtk(GaussCurvVTK)
+            Faces, Lines, Vertexes, Points, nPoints, Maps['gausscurv'], name, input_vtk = io_vtk.read_vtk(GaussCurvVTK)
 
         if ThickFile != '':
             Maps['thickness'] = io_free.read_curvature(ThickFile)
