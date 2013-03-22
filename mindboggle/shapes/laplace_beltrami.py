@@ -312,6 +312,7 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     # Note: eigs is for nonsymmetric matrices while
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
     eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="SM")
+#    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="LM", sigma=0, mode="normal")
 
     spectrum = eigenvalues.tolist()
 
@@ -377,16 +378,22 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
 
         # Extract points and renumber faces for the labeled region:
         indices = [i for i,x in enumerate(labels) if x == label]
-        label_points = points[indices]
-        label_faces = remove_faces(faces, indices)
-        label_faces = renumber_faces(label_faces, indices)
+        if indices:
+            label_points = points[indices]
+            label_faces = remove_faces(faces, indices)
+            if label_faces:
+                label_faces = renumber_faces(label_faces, indices)
 
-        # Compute Laplace-Beltrami spectrum for the labeled region:
-        spectrum = fem_laplacian(label_points, label_faces, n_eigenvalues,
-                                 normalization)
+                # Compute Laplace-Beltrami spectrum for the labeled region:
+                spectrum = fem_laplacian(label_points, label_faces, n_eigenvalues,
+                                         normalization)
 
-        # Append to a list of lists of spectra:
-        spectrum_lists.append(spectrum)
+                # Append to a list of lists of spectra:
+                spectrum_lists.append(spectrum)
+            else:
+                spectrum_lists.append([])
+        else:
+            spectrum_lists.append([])
 
     return spectrum_lists
 
