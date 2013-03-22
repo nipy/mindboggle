@@ -87,6 +87,7 @@ do_fundi = 0#True # Extract fundi from subfolds
 do_sulci = True # Extract sulci from subfolds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
+do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -771,46 +772,38 @@ if run_shapeFlow:
     mbFlow.connect([(shapeFlow, Sink,
                      [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
 
-    #===========================================================================
-    # Measure Laplace-Beltrami spectra of labeled regions
-    #===========================================================================
-    SpectraLabels = Node(name='Spectra_labels',
-                         interface = Fn(function = fem_laplacian_from_labels,
-                                        input_names = ['vtk_file',
-                                                       'n_eigenvalues',
-                                                       'normalization'],
-                                        output_names = ['spectrum_lists']))
-    shapeFlow.add_nodes([SpectraLabels])
-    mbFlow.connect([(labelFlow, shapeFlow,
-                     [(init_labels_plug, 'Spectra_labels.vtk_file')])])
-    SpectraLabels.inputs.n_eigenvalues = 200
-    SpectraLabels.inputs.normalization = "area"
+    if do_measure_spectra:
+        #===========================================================================
+        # Measure Laplace-Beltrami spectra of labeled regions
+        #===========================================================================
+        SpectraLabels = Node(name='Spectra_labels',
+                             interface = Fn(function = fem_laplacian_from_labels,
+                                            input_names = ['vtk_file',
+                                                           'n_eigenvalues',
+                                                           'normalization'],
+                                            output_names = ['spectrum_lists']))
+        shapeFlow.add_nodes([SpectraLabels])
+        mbFlow.connect([(labelFlow, shapeFlow,
+                         [(init_labels_plug, 'Spectra_labels.vtk_file')])])
+        SpectraLabels.inputs.n_eigenvalues = 200
+        SpectraLabels.inputs.normalization = "area"
 
-    #===========================================================================
-    # Measure Laplace-Beltrami spectra of subfolds
-    #===========================================================================
-    SpectraSubfolds = SpectraLabels.clone('Spectra_subfolds')
-    shapeFlow.add_nodes([SpectraSubfolds])
-    mbFlow.connect([(SubfoldsNode, SpectraSubfolds,
-                     [('subfolds_file', 'vtk_file')])])
+        #===========================================================================
+        # Measure Laplace-Beltrami spectra of subfolds
+        #===========================================================================
+        SpectraSubfolds = SpectraLabels.clone('Spectra_subfolds')
+        shapeFlow.add_nodes([SpectraSubfolds])
+        mbFlow.connect([(SubfoldsNode, SpectraSubfolds,
+                         [('subfolds_file', 'vtk_file')])])
 
-    #===========================================================================
-    # Measure Laplace-Beltrami spectra of fundi
-    #===========================================================================
-    if do_fundi:
-        SpectraFundi = SpectraLabels.clone('Spectra_fundi')
-        shapeFlow.add_nodes([SpectraFundi])
-        mbFlow.connect([(FundiNode, SpectraFundi,
-                         [('fundi_file', 'vtk_file')])])
-
-    #===========================================================================
-    # Measure Laplace-Beltrami spectra of sulci
-    #===========================================================================
-    if do_sulci:
-        SpectraSulci = SpectraLabels.clone('Spectra_sulci')
-        shapeFlow.add_nodes([SpectraSulci])
-        mbFlow.connect([(SulciNode, SpectraSulci,
-                         [('sulci_file', 'vtk_file')])])
+        #===========================================================================
+        # Measure Laplace-Beltrami spectra of sulci
+        #===========================================================================
+        if do_sulci:
+            SpectraSulci = SpectraLabels.clone('Spectra_sulci')
+            shapeFlow.add_nodes([SpectraSulci])
+            mbFlow.connect([(SulciNode, SpectraSulci,
+                             [('sulci_file', 'vtk_file')])])
 
 ################################################################################
 #
@@ -826,7 +819,7 @@ if run_tableFlow:
     #===========================================================================
     ShapeTables = Node(name='Shape_tables',
                        interface = Fn(function = write_mean_shapes_tables,
-                                      input_names = ['labels',
+                                      input_names = ['labels_or_file',
                                                      'subfolds',
                                                      'fundi',
                                                      'sulci',
@@ -838,6 +831,9 @@ if run_tableFlow:
                                                      'min_curvature_file',
                                                      'thickness_file',
                                                      'convexity_file',
+                                                     'labels_spectra',
+                                                     'subfolds_spectra',
+                                                     'sulci_spectra',
                                                      'exclude_labels'],
                                       output_names = ['label_table',
                                                       'subfold_table',
@@ -849,7 +845,7 @@ if run_tableFlow:
                                                       'norm_sulcus_table']))
     tableFlow.add_nodes([ShapeTables])
     mbFlow.connect([(labelFlow, tableFlow,
-                     [(init_labels_plug, 'Shape_tables.labels')])])
+                     [(init_labels_plug, 'Shape_tables.labels_or_file')])])
     mbFlow.connect([(featureFlow, tableFlow,
                      [('Subfolds.subfolds', 'Shape_tables.subfolds')])])
     if do_fundi:
@@ -888,6 +884,24 @@ if run_tableFlow:
                            'Shape_tables.convexity_file')])])
     else:
         ShapeTables.inputs.convexity_file = ''
+    if do_measure_spectra:
+        mbFlow.connect([(shapeFlow, tableFlow,
+                         [('Spectra_labels.spectrum_lists',
+                           'Shape_tables.labels_spectra')])])
+        mbFlow.connect([(shapeFlow, tableFlow,
+                         [('Spectra_subfolds.spectrum_lists',
+                           'Shape_tables.subfolds_spectra')])])
+        if do_sulci:
+            mbFlow.connect([(shapeFlow, tableFlow,
+                             [('Spectra_sulci.spectrum_lists',
+                               'Shape_tables.sulci_spectra')])])
+        else:
+            ShapeTables.inputs.sulci_spectra = []
+    else:
+        ShapeTables.inputs.labels_spectra = []
+        ShapeTables.inputs.subfolds_spectra = []
+        ShapeTables.inputs.sulci_spectra = []
+
     #---------------------------------------------------------------------------
     ShapeTables.inputs.exclude_labels = [-1]
     # Save results
@@ -909,7 +923,7 @@ if run_tableFlow:
         VertexTable = Node(name='Vertex_table',
                            interface = Fn(function = write_vertex_shapes_table,
                                           input_names = ['table_file',
-                                                         'labels',
+                                                         'labels_or_file',
                                                          'subfolds',
                                                          'fundi',
                                                          'sulci',
@@ -926,7 +940,7 @@ if run_tableFlow:
         tableFlow.add_nodes([VertexTable])
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         mbFlow.connect([(labelFlow, tableFlow,
-                         [(init_labels_plug, 'Vertex_table.labels')])])
+                         [(init_labels_plug, 'Vertex_table.labels_or_file')])])
         mbFlow.connect([(featureFlow, tableFlow,
                          [('Subfolds.subfolds', 'Vertex_table.subfolds')])])
         if do_fundi:
