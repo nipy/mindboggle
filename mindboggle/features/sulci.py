@@ -118,7 +118,7 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
      for x in lst if np.unique(x).tolist() not in protocol_pairs]
 
     # Load points, faces, and neighbors
-    faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file)
+    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
     # Array of sulcus IDs for fold vertices, initialized as -1.

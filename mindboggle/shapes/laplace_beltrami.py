@@ -277,30 +277,35 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     Examples
     --------
-    >>> import numpy as np
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> # Define a cube:
-    >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1],
-    >>>           [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
-    >>> # Pick some faces:
-    >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n{0}".format(
-        fem_laplacian(points, faces, n_eigenvalues=3)))
-        [9.126874965552942e-16, 0.91948040290470268, 3.7579933101613578]
-    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n{0}".format(
-        fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
-        [2.461761608909144e-16, 0.2867009007303839, 1.1717705603712372]
+    >>> points = [[0,0,0], [0,1,0], [1,1,0], [1,0,0],
+    >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
+    >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
+    >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
+    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3)))
+        The un-normalized linear FEM Laplace-Beltrami Spectrum is:
+        [-2.74238008172841e-16, 4.583592135001265, 4.800000000000001]
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+        The area-normalized linear FEM Laplace-Beltrami Spectrum is:
+        [-7.4014869016002383e-16, 0.76393202250021075, 0.80000000000000049]
 
     """
     from scipy.sparse.linalg import eigsh
 
     from mindboggle.shapes.laplace_beltrami import computeAB
 
+    min_n_eigenvalues = 3
     npoints = len(points)
 
-    if npoints < n_eigenvalues:  # too small
-        print "The input size {0} is smaller than n_eigenvalue {1}. Skipped.".format(npoints, n_eigenvalues)
+    if npoints < min_n_eigenvalues:
+        print "The input size {0} is smaller than n_eigenvalue {1}. Skipped.".\
+            format(npoints, n_eigenvalues)
         return None
+    elif npoints < n_eigenvalues:
+        n_eigenvalues = npoints
 
     A, B = computeAB(points, faces)
 
@@ -339,22 +344,31 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> vtk_file = os.path.join(path, 'tests', 'cube.vtk')
     >>> n_eigenvalues = 3
-    >>> print("The linear FEM Laplace-Beltrami Spectra are:\n")
+    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
     >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues)))
-        The linear FEM Laplace-Beltrami Spectra are:
-        [9.126874965552942e-16, 0.91948040290470268, 3.7579933101613578]
-
+        The un-normalized linear FEM Laplace-Beltrami Spectrum is:
+        Reduced 12 to 0 triangular faces
+        The input size 2 is smaller than n_eigenvalue 3. Skipped.
+        Reduced 12 to 6 triangular faces
+        [None, [3.2049378106476917e-17, 4.583592135001263, 4.800000000000005]]
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues, normalization="area")))
+        The area-normalized linear FEM Laplace-Beltrami Spectrum is:
+        Reduced 12 to 0 triangular faces
+        The input size 2 is smaller than n_eigenvalue 3. Skipped.
+        Reduced 12 to 6 triangular faces
+        [None, [-2.1366252070792216e-17, 1.5278640450004206, 1.6000000000000001]]
     """
     import numpy as np
 
     from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.utils.mesh import remove_faces, renumber_faces
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
     # Read VTK surface mesh file:
-    faces, lines, indices, points, npoints, labels, name = read_vtk(vtk_file)
+    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(vtk_file)
     points = np.array(points)
 
     # Loop through labeled regions:

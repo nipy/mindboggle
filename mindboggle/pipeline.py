@@ -428,7 +428,7 @@ if run_labelFlow:
     elif init_labels == 'manual':
         AtlasLabels = Node(name = 'Atlas_labels',
                            interface = Fn(function = read_vtk,
-                                          input_names = ['filename',
+                                          input_names = ['input_vtk',
                                                          'return_first',
                                                          'return_array'],
                                           output_names = ['faces',
@@ -437,10 +437,11 @@ if run_labelFlow:
                                                           'points',
                                                           'npoints',
                                                           'scalars',
-                                                          'scalar_names']))
+                                                          'scalar_names',
+                                                          'input_vtk']))
         labelFlow.add_nodes([AtlasLabels])
         mbFlow.connect([(Atlas, labelFlow,
-                         [('atlas_file', 'Atlas_labels.filename')])])
+                         [('atlas_file', 'Atlas_labels.input_vtk')])])
         AtlasLabels.inputs.return_first = 'True'
         AtlasLabels.inputs.return_array = 'False'
 
@@ -647,8 +648,8 @@ if run_featureFlow:
                              [('Label_vote.maxlabel_file','Sulci.labels_file')])])
         # Use manual (atlas) labels
         elif init_labels == 'manual':
-            mbFlow.connect([(Atlas, featureFlow,
-                             [('atlas_file','Sulci.labels_file')])])
+            mbFlow.connect([(labelFlow, featureFlow,
+                             [('Atlas_labels.input_vtk','Sulci.labels_file')])])
         #---------------------------------------------------------------------------
         featureFlow.connect([(SubfoldsNode, SulciNode, [('subfolds','folds_or_file')])])
         featureFlow.connect([(LabelPairs, SulciNode,
@@ -784,31 +785,69 @@ if run_shapeFlow:
     #===========================================================================
     # Measure Laplace-Beltrami spectra of labeled regions
     #===========================================================================
+    SpectraLabels = Node(name='Spectra_labels',
+                         interface = Fn(function = fem_laplacian_from_labels,
+                                        input_names = ['vtk_file',
+                                                       'n_eigenvalues',
+                                                       'normalization'],
+                                        output_names = ['spectrum_lists']))
+    shapeFlow.add_nodes([SpectraLabels])
+    #---------------------------------------------------------------------------
     """
-    LaplaceBeltramiLabels = Node(name='LaplaceBeltrami_labels',
-                                 interface = Fn(function = fem_laplacian_from_labels,
-                                                input_names = ['vtk_file',
-                                                               'n_eigenvalues'],
-                                                output_names = ['eigenvalue_lists']))
-    shapeFlow.add_nodes([LaplaceBeltramiLabels])
-    mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','points')])])
-    mbFlow.connect([(DepthNode, LaplaceBeltramiLabels, [('depth_file','faces')])])
-    LaplaceBeltramiLabels.inputs.n_eigenvalues = 200
+    # Use initial labels assigned by FreeSurfer classifier atlas
+    if init_labels == 'DKatlas':
+        init_labels_input = 'DK_annot_to_VTK.output_vtk'
+    elif init_labels == 'DKTatlas':
+        init_labels_input = 'DKT_annot_to_VTK.vtk_file'
+    elif init_labels == 'max':
+        init_labels_input = 'Label_vote.maxlabel_file'
+    elif init_labels == 'manual':
+        init_labels_input = 'DK_annot_to_VTK.output_vtk'
     """
+    # Use initial labels assigned by FreeSurfer classifier atlas
+    if init_labels == 'DKatlas':
+        mbFlow.connect([(labelFlow, shapeFlow,
+                         [('DK_annot_to_VTK.output_vtk','Spectra_labels.vtk_file')])])
+    # Use initial labels assigned by Mindboggle classifier atlas
+    elif init_labels == 'DKTatlas':
+        mbFlow.connect([(labelFlow, shapeFlow,
+                         [('DKT_annot_to_VTK.vtk_file','Spectra_labels.vtk_file')])])
+    # Use initial labels assigned by multi-atlas registration
+    elif init_labels == 'max':
+        mbFlow.connect([(labelFlow, shapeFlow,
+                         [('Label_vote.maxlabel_file','Spectra_labels.vtk_file')])])
+    # Use manual (atlas) labels
+    elif init_labels == 'manual':
+        mbFlow.connect([(labelFlow, shapeFlow,
+                         [('Atlas_labels.input_vtk','Spectra_labels.vtk_file')])])
+    #---------------------------------------------------------------------------
+    SpectraLabels.inputs.n_eigenvalues = 200
+    SpectraLabels.inputs.normalization = "area"
+
     #===========================================================================
     # Measure Laplace-Beltrami spectra of subfolds
     #===========================================================================
-
-    #===========================================================================
-    # Measure Laplace-Beltrami spectra of sulci
-    #===========================================================================
-    #if do_sulci:
+    """
+    SpectraSubfolds = SpectraLabels.clone('Spectra_subfolds')
+    shapeFlow.add_nodes([SpectraLabels])
+    mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
 
     #===========================================================================
     # Measure Laplace-Beltrami spectra of fundi
     #===========================================================================
-    #if do_fundi:
+    if do_fundi:
+        SpectraFundi = SpectraLabels.clone('Spectra_sulci')
+        shapeFlow.add_nodes([SpectraLabels])
+        mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
 
+    #===========================================================================
+    # Measure Laplace-Beltrami spectra of sulci
+    #===========================================================================
+    if do_sulci:
+        SpectraSulci = SpectraLabels.clone('Spectra_sulci')
+        shapeFlow.add_nodes([SpectraLabels])
+        mbFlow.connect([(DepthNode, SpectraLabels, [('depth_file','vtk_file')])])
+    """
 
 ################################################################################
 #
