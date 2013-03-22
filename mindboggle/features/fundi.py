@@ -233,7 +233,7 @@ def find_anchors(points, likelihoods, min_directions, min_distance, thr):
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
     >>>                                          'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, likelihoods, name = read_vtk(likelihood_file,
+    >>> faces, lines, indices, points, npoints, likelihoods, name, input_vtk = read_vtk(likelihood_file,
     >>>     return_first=True, return_array=True)
     >>> #
     >>> ## Artificially inflate likelihood values:
@@ -385,7 +385,7 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> # Get neighbor_lists, scalars
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_rescaled_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_rescaled_file,
     >>>     return_first=True, return_array=True)
     >>> points = np.array(points)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -756,7 +756,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
     if compute_likelihoods:
         print("Compute fundus likelihood values...")
         faces, lines, indices, points, npoints, depths, \
-            name = read_vtk(depth_rescaled_file, return_first=True, return_array=True)
+            name, input_vtk = read_vtk(depth_rescaled_file, return_first=True, return_array=True)
         mean_curvatures, name = read_scalars(mean_curvature_file,
                                              return_first=True, return_array=True)
     else:

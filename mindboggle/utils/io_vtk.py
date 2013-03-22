@@ -236,7 +236,7 @@ def read_scalars(filename, return_first=True, return_array=False):
     return scalars, scalar_names
 
 
-def read_vtk(filename, return_first=True, return_array=False):
+def read_vtk(input_vtk, return_first=True, return_array=False):
     """
     Load faces, lines, indices, points, #points,
     and all scalar lookup tables from a VTK file.
@@ -249,8 +249,8 @@ def read_vtk(filename, return_first=True, return_array=False):
 
     Parameters
     ----------
-    filename : string
-        The path/filename of a VTK format file.
+    input_vtk : string
+        path/filename of a VTK format file
     return_first : Boolean
         Return only the first list of scalar values?
     return_array : Boolean (only if return_first)
@@ -274,14 +274,16 @@ def read_vtk(filename, return_first=True, return_array=False):
         scalar values for the vertices of a mesh
     scalar_names : string or list of strings
         name(s) of lookup table(s)
+    input_vtk : string
+        path/filename of the input VTK format file
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
 
     """
     import os
@@ -290,7 +292,7 @@ def read_vtk(filename, return_first=True, return_array=False):
         import numpy as np
 
     Reader = vtk.vtkDataSetReader()
-    Reader.SetFileName(filename)
+    Reader.SetFileName(input_vtk)
     Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
     Reader.Update()
 
@@ -331,10 +333,10 @@ def read_vtk(filename, return_first=True, return_array=False):
             n_scalars = scalar_index + 1
             if n_scalars == 1:
                 print("Load \"{0}\" scalars from {1}".
-                      format(scalar_name, os.path.basename(filename)))
+                      format(scalar_name, os.path.basename(input_vtk)))
             else:
                 print("Load \"{0}\" (of {1} scalars) from {2}".
-                      format(scalar_name, n_scalars, os.path.basename(filename)))
+                      format(scalar_name, n_scalars, os.path.basename(input_vtk)))
 
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
@@ -353,7 +355,7 @@ def read_vtk(filename, return_first=True, return_array=False):
         else:
             scalar_names = ''
 
-    return faces, lines, indices, points, npoints, scalars, scalar_names
+    return faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk
 
 #=============================================================================
 # Functions for writing VTK elements/files
@@ -581,8 +583,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Write vtk file with depth values on sulci and view:
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
     >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
     >>> plot_vtk('test_write_vtk.vtk')
 
@@ -683,7 +685,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
-    faces, lines, indices, points, npoints, scalars, name = read_vtk(input_vtk)
+    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(input_vtk)
 
     # Find indices to nonzero values
     indices = range(npoints)
@@ -766,7 +768,7 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
 
     # Load VTK file
     faces, lines, indices, points, npoints, scalars, \
-        scalar_names = read_vtk(input_vtk, return_first=False, return_array=False)
+        scalar_names, input_vtk = read_vtk(input_vtk, return_first=False, return_array=False)
     print("Explode the scalar list in {0}".format(os.path.basename(input_vtk)))
 
     # Use first scalar list as a numpy array

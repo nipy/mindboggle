@@ -142,7 +142,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
@@ -247,7 +247,7 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     from mindboggle.labels.label import extract_borders
 
     # Load labeled surface file
-    faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
                                                                     return_first=True, return_array=True)
 
     # Detect boundaries
