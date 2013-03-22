@@ -969,11 +969,12 @@ def topo_test(index, values, neighbor_lists):
 #------------------------------------------------------------------------------
 # Skeletonize
 #------------------------------------------------------------------------------
-def skeletonize(binary_array, indices_to_keep, neighbor_lists):
+def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
     This does not necessarily find a smooth skeleton.
-    It just iteratively removes simple points (see topo_test()).
+    It just iteratively removes simple points (see topo_test()),
+    optionally in order of lowest to highest values.
 
     Parameters
     ----------
@@ -982,6 +983,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     indices_to_keep : indices to retain
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+    values : list of floats
+        optionally remove simple points in order of lowest to highest values
 
     Returns
     -------
@@ -1015,26 +1018,30 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     """
     import numpy as np
 
-    # Make sure argument is a numpy array
+    # Make sure argument is a numpy array:
     if not isinstance(binary_array, np.ndarray):
         binary_array = np.array(binary_array)
 
-    # Loop until all vertices are not simple points
+    # Sort indices to remove simple points in order of lowest to highest values:
     indices = np.where(binary_array)[0]
+    if values:
+        indices = indices[np.argsort(values[indices])]
+
+    # Loop until all vertices are not simple points:
     exist_simple = True
     while exist_simple == True:
         exist_simple = False
 
-        # For each index
+        # For each index:
         for index in indices:
 
-            # Do not update certain indices
+            # Do not update certain indices:
             if binary_array[index] and index not in indices_to_keep:
 
-                # Test to see if index is a simple point
+                # Test to see if index is a simple point:
                 update, n_in = topo_test(index, binary_array, neighbor_lists)
 
-                # If a simple point, remove and run again
+                # If a simple point, remove and run again:
                 if update and n_in > 1:
                     binary_array[index] = 0
                     exist_simple = True
