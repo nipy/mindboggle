@@ -181,7 +181,7 @@ def apply_affine_transform(transform_file, vtk_file):
     transform = np.dot(affine_conformed, np.linalg.inv(M))
 
     # Read VTK file
-    faces, lines, indices, points, npoints, scalars, name = read_vtk(vtk_file)
+    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
 
     # Transform points
     points = np.array(points)
@@ -720,7 +720,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
@@ -996,7 +996,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists):
     >>> from mindboggle.utils.mesh import find_neighbors, skeletonize
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> faces, lines, indices, points, npoints, folds, name = read_vtk(folds_file,
+    >>> faces, lines, indices, points, npoints, folds, name, input_vtk = read_vtk(folds_file,
     >>>     return_first=True, return_array=True)
     >>> n_fold = max(folds)
     >>> folds[folds != n_fold] = -1
@@ -1072,7 +1072,7 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_pair_lists = sulcus_boundaries()
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> label_indices = [i for i,x in enumerate(labels) if x in label_pair_lists[0][0]]
@@ -1112,7 +1112,7 @@ if __name__ == "__main__":
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     path = os.environ['MINDBOGGLE_DATA']
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
         return_first=True, return_array=True)
 
     indices = np.where(depths > 0.11)[0]  # high to speed up
