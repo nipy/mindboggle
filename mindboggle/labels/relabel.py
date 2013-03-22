@@ -140,7 +140,7 @@ def relabel_surface(vtk_file, relabel_list, new_string):
 
     # Load labeled vtk surfaces
     faces, lines, indices, points, npoints, scalars, \
-        name = read_vtk(vtk_file, return_first=True, return_array=True)
+        name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
     indices = range(1, npoints + 1)
 
     # Load label lists

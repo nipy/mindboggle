@@ -189,7 +189,7 @@ def min_span_tree(adjacency_matrix, indices_to_connect):
     >>> from mindboggle.utils.min_span_tree import min_span_tree
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
-    >>> faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
+    >>> faces, lines, indices, points, npoints, sulci, name, input_vtk = read_vtk(sulci_file)
     >>> sulcus_ID = 1
     >>> sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     >>> sulcus_faces = remove_faces(faces, sulcus_indices)
@@ -228,7 +228,7 @@ if __name__ == "__main__" :
     from mindboggle.utils.mesh import plot_vtk
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
-    faces, lines, indices, points, npoints, sulci, name = read_vtk(sulci_file)
+    faces, lines, indices, points, npoints, sulci, name, input_vtk = read_vtk(sulci_file)
     sulcus_ID = 1
     sulcus_indices = [i for i,x in enumerate(sulci) if x == sulcus_ID]
     sulcus_faces = remove_faces(faces, sulcus_indices)

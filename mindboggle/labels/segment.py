@@ -59,7 +59,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file,
+    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> indices_boundaries, label_pairs, foo = extract_borders(range(npoints),
@@ -197,7 +197,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0].tolist()  # higher to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -213,7 +213,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> label_pair_lists = sulcus_boundaries()
     >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, name = read_vtk(labels_file)
+    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     >>> indices_boundaries, label_pairs, foo = extract_borders(vertices_to_segment,
     >>>     labels, neighbor_lists)
     >>> seed_lists = []
@@ -451,7 +451,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> regions = -1 * np.ones(npoints)
     >>> regions[depths > 0.50] = 1
@@ -597,7 +597,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -815,7 +815,7 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.11)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -912,7 +912,7 @@ def extract_high_values(values, areas, fraction):
     --------
     >>> # Extract the highest depth values constituting half of the surface area:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.labels.segment import extract_high_values
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
