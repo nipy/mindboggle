@@ -441,14 +441,14 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters:
     slope_exp = 2
-    wN_max = 0.5  # maximum neighborhood weight
-    wN_min = 0.1  # minimum neighborhood weight
+    wN_min = 0.0  # minimum neighborhood weight
+    wN_max = 1.0  # maximum neighborhood weight
     H_step = 0.1  # step down HMMF value
     H_min = 0.5 - H_step  # minimum HMMF value to be processed
 
     # Parameters to speed up optimization and for termination of the algorithm:
-    grad_min = 0.1  # minimum gradient factor
-    grad_max = 0.2  # maximum gradient factor
+    grad_min = 0.0  # minimum gradient factor
+    grad_max = 1.0  # maximum gradient factor
     min_cost_change = 0.0001  # minimum change in the sum of costs
     n_tries_no_change = 3  # number of loops without sufficient change
     max_count = 500  # maximum number of iterations (in case no convergence)
