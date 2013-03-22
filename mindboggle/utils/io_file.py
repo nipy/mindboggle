@@ -95,7 +95,8 @@ def write_columns(columns, column_names, output_table, input_table=''):
     #-----------------------
     # If the list contains integers or floats, put in a list:
     if columns:
-        if isinstance(columns[0], int) or isinstance(columns[0], float):
+        if isinstance(columns[0], int) or isinstance(columns[0], float) or \
+           isinstance(columns[0], str):
             columns = [columns]
         # If the list contains all lists, accept format:
         elif all([isinstance(x, list) for x in columns]):
