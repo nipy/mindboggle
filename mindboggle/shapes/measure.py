@@ -618,3 +618,4 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
         rescaled_scalars_file = None
 
     return rescaled_scalars, rescaled_scalars_file
+
