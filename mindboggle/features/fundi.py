@@ -92,9 +92,9 @@ def compute_likelihood(depths, curvatures):
     >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> depths, name = read_scalars(depth_rescaled_file, True, return_array=True)
     >>> curvatures, name = read_scalars(mean_curv_file, True, return_array=True)
-    >>>
+    >>> #
     >>> L = compute_likelihood(depths, curvatures)
-    >>>
+    >>> #
     >>> # Write results to vtk file and view:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -190,11 +190,11 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 Choose highest likelihood point in P as endpoint.
                 Return endpoints E and remaining vertices R.
             else:
-                Remove P from R.
                 Identify N_i different segments of N.
                 For each segment N_i:
                     If N_i large enough or if max(i)==1:
-                        Call creep() with new R and P=N_i.
+                        Call creep() with new arguments.
+                Return endpoints E and remaining vertices R.
 
     Parameters
     ----------
@@ -256,11 +256,11 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 Choose highest likelihood point in P as endpoint.
                 Return endpoints E and remaining vertices R.
             else:
-                Remove P from R.
                 Identify N_i different segments of N.
                 For each segment N_i:
                     If N_i large enough or if max(i)==1:
-                        Call creep() with new R and P=N_i.
+                        Call creep() with new arguments.
+                Return endpoints E and remaining vertices R.
 
         Parameters
         ----------
@@ -294,7 +294,6 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
         import numpy as np
 
         from mindboggle.labels.segment import segment
-        from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
 
         min_size = 3
 
@@ -337,10 +336,10 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 N_i = [i for i,x in enumerate(N_segments) if x==n]
 
                 # If N_i large enough or if max(i)==1:
-                #if len(N_i) > min_size or n_segments==1:
+                if len(N_i) >= min_size or n_segments==1:
 
-                # Call creep() with new arguments:
-                R, P, N, E = creep(R, N_i, N_i, E, L, step_size, neighbor_lists)
+                    # Call creep() with new arguments:
+                    R, P, N, E = creep(R, N_i, N_i, E, L, step_size, neighbor_lists)
 
             # Return endpoints E and remaining vertices R:
             return R, P, N, E
