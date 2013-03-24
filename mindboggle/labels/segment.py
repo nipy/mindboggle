@@ -151,8 +151,8 @@ def propagate(points, faces, region, seeds, labels,
 # Segment vertices of surface into contiguous regions by seed growing
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
-            seed_lists=[], keep_seeding=False,
-            spread_within_labels=False, labels=[], label_lists=[], values=[]):
+            seed_lists=[], keep_seeding=False, spread_within_labels=False,
+            labels=[], label_lists=[], values=[], max_steps=''):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -179,6 +179,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     values : list of floats (default empty)
         values for all vertices for use in preferentially directed segmentation
         (segment in direction of lower values)
+    max_steps : integer (or empty string for infinity)
+        maximum number of segmentation steps to take for each seed list
 
     Returns
     -------
@@ -215,7 +217,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     >>> indices_boundaries, label_pairs, foo = extract_borders(vertices_to_segment,
-    >>>     labels, neighbor_lists)
+    >>>     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
     >>> for label_pair_list in label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list])
@@ -232,12 +234,20 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     verbose = False
 
+    # Make sure arguments are lists:
+    if isinstance(vertices_to_segment, np.ndarray):
+        vertices_to_segment = vertices_to_segment.tolist()
+    if isinstance(labels, np.ndarray):
+        labels = labels.tolist()
+    if isinstance(values, np.ndarray):
+        values = values.tolist()
+
     # If seed_lists is empty, select first vertex from vertices_to_segment
     # (single vertex selection does not affect result -- see below*)
     if seed_lists:
         select_single_seed = False
         if len(seed_lists) == 1:
-            print('    Segment {0} vertices using seed vertices'.
+            print('    Segment {0} vertices from seed vertices'.
                   format(len(vertices_to_segment)))
         else:
             print('    Segment {0} vertices from {1} sets of seed vertices'.
@@ -245,7 +255,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
-        print('    Segment {0} vertices (first vertex as initial seed)'.
+        print('    Segment {0} vertices from first vertex as initial seed'.
               format(len(vertices_to_segment)))
 
     # Initialize variables, including the list of vertex indices for each region,
@@ -257,6 +267,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     fully_grown = [False for x in seed_lists]
     new_segment_index = 0
     counter = 0
+    if isinstance(max_steps, str):
+        max_steps = np.Inf
 
     # If label_lists empty, set to unique labels for each seed list
     if spread_within_labels:
@@ -267,6 +279,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                 label_lists.append(seed_labels)
 
     # Loop until all of the seed lists have grown to their full extent
+    count = 0
     while not all(fully_grown):
         # Loop through seed lists over and over again
         for ilist, seed_list in enumerate(seed_lists):
@@ -309,7 +322,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                     seed_list = []
 
                 # If there are seeds remaining
-                if seed_list:
+                if seed_list and count < max_steps:
 
                     # Select neighbors with the same labels
                     # as the initial seed labels
@@ -319,6 +332,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
                     # Continue growing seed list
                     seed_lists[ilist] = seed_list
+                    count += 1
 
                 # If there are no seeds remaining
                 else:
@@ -350,7 +364,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
                     # If selecting a single seed, continue growing
                     # if there are more vertices to segment
-                    if select_single_seed:
+                    if select_single_seed and count < max_steps:
                         if len(vertices_to_segment) >= min_region_size:
                             fully_grown[0] = False
                             seed_lists[0] = [vertices_to_segment[0]]
