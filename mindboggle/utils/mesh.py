@@ -1051,7 +1051,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
 #------------------------------------------------------------------------------
 # Extract endpoints
 #------------------------------------------------------------------------------
-def extract_endpoints(indices_skeleton, neighbor_lists):
+def extract_skeleton_endpoints(indices_skeleton, neighbor_lists):
     """
     Extract endpoints from connected set of vertices
 
@@ -1073,7 +1073,7 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.label import extract_borders, extract_endpoints
+    >>> from mindboggle.labels.label import extract_borders, extract_skeleton_endpoints
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -1086,16 +1086,16 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
     >>> indices_boundaries, label_pairs, foo = extract_borders(label_indices,
     >>>                                               labels, neighbor_lists)
     >>> #
-    >>> indices_endpoints = extract_endpoints(indices_boundaries, neighbor_lists)
+    >>> indices_endpoints = extract_skeleton_endpoints(indices_boundaries, neighbor_lists)
     >>> #
     >>> # Write results to vtk file and view:
     >>> end_IDs = -1 * np.ones(len(points))
     >>> end_IDs[indices_boundaries] = 1
     >>> end_IDs[indices_endpoints] = 2
-    >>> rewrite_scalars(labels_file, 'test_extract_endpoints.vtk',
+    >>> rewrite_scalars(labels_file, 'test_extract_skeleton_endpoints.vtk',
     >>>                 end_IDs, 'endpoints', end_IDs)
     >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_extract_endpoints.vtk')
+    >>> plot_vtk('test_extract_skeleton_endpoints.vtk')
 
     """
 
@@ -1106,6 +1106,135 @@ def extract_endpoints(indices_skeleton, neighbor_lists):
             indices_endpoints.append(index)
 
     return indices_endpoints
+
+#------------------------------------------------------------------------------
+# Find points with maximal values that are not too close together.
+#------------------------------------------------------------------------------
+def find_special_points(points, values, min_directions, min_distance, thr):
+    """
+    Find 'special' points with maximal values that are not too close together.
+
+    Steps ::
+
+        1. Sort values and find values above the threshold.
+
+        2. Initialize special points with the maximum value,
+           remove this value, and loop through the remaining high values.
+
+        3. If there are no nearby special points,
+           assign the maximum value vertex as a special point.
+
+    Parameters
+    ----------
+    points : numpy array of floats
+        coordinates for all vertices
+    values : list (or array) of integers
+        values of some kind to maximize over for all vertices (default -1)
+    min_directions : numpy array of floats
+        minimum directions for all vertices
+    min_distance : integer
+        minimum distance
+    thr : float
+        value threshold in [0,1]
+
+    Returns
+    -------
+    indices_special : list of integers
+        subset of surface mesh vertex indices
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_special_points
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> #
+    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
+    >>>                                          'lh.pial.curv.min.dir.txt')
+    >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
+    >>>     return_first=True, return_array=True)
+    >>> # Select a single fold
+    >>> plot_single_fold = True
+    >>> if plot_single_fold:
+    >>>   fold_ID = 11
+    >>>   indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+    >>>   indices_not_fold = [i for i,x in enumerate(folds) if x != fold_ID]
+    >>>   values[indices_not_fold] = 0
+    >>>   fold_array = -1 * np.ones(len(folds))
+    >>>   fold_array[indices_fold] = 1
+    >>>   folds = fold_array.tolist()
+    >>> #
+    >>> min_directions = np.loadtxt(min_curvature_vector_file)
+    >>> min_distance = 5
+    >>> thr = 0.5
+    >>> #
+    >>> indices_special = find_special_points(points, values, min_directions, min_distance, thr)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> values[indices_special] = np.max(values) + 0.1
+    >>> rewrite_scalars(likelihood_file, 'find_special_points.vtk',
+    >>>                 values, 'special_points_on_values_in_folds', folds)
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('find_special_points.vtk')
+
+    """
+    import numpy as np
+    from operator import itemgetter
+
+    # Make sure arguments are numpy arrays:
+    if not isinstance(points, np.ndarray):
+        points = np.array(points)
+    if not isinstance(min_directions, np.ndarray):
+        min_directions = np.array(min_directions)
+
+    max_distance = 2 * min_distance
+
+    # Sort values and find indices for values above the threshold:
+    L_table = [[i,x] for i,x in enumerate(values)]
+    L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+          if x > thr]
+
+    # Initialize special points list with the index of the maximum value,
+    # remove this value, and loop through the remaining high values:
+    if IL:
+        indices_special = [IL.pop(0)]
+        for imax in IL:
+
+            # Determine if there are any special points
+            # near to the current maximum value vertex:
+            i = 0
+            found = 0
+            while i < len(indices_special) and found == 0:
+
+                # Compute Euclidean distance between points:
+                D = np.linalg.norm(points[indices_special[i]] - points[imax])
+
+                # If distance less than threshold, consider the point found:
+                if D < min_distance:
+                    found = 1
+                # Compute directional distance between points if they are close:
+                elif D < max_distance:
+                    dirV = np.dot(points[indices_special[i]] - points[imax],
+                                  min_directions[indices_special[i]])
+                    # If distance less than threshold, consider the point found:
+                    if np.linalg.norm(dirV) < min_distance:
+                        found = 1
+
+                i += 1
+
+            # If there are no nearby special points,
+            # assign the maximum value vertex as a special point:
+            if not found:
+                indices_special.append(imax)
+    else:
+        indices_special = []
+
+    return indices_special
 
 #------------------------------------------------------------------------------
 # Example: watershed() segmentation
