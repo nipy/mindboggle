@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #==================
 # Extract all fundi
 #==================
-def extract_fundi(folds_or_file, depth_rescaled_file,
+def extract_fundi(folds_or_file, depth_file,
                   min_curvature_vector_file, likelihoods_or_file,
                   min_distance=5, thr=0.5, save_file=False):
     """
@@ -32,7 +32,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
     ----------
     folds_or_file : list or string
         fold number for each vertex or name of VTK file containing folds scalars
-    depth_rescaled_file :  string
+    depth_file :  string
         surface mesh file in VTK format with scalar rescaled depth values
     min_curvature_vector_file : string
         surface mesh file in VTK format with scalar values
@@ -68,7 +68,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
@@ -77,7 +77,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
     >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
     >>>
     >>> fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold,
-    >>>     depth_rescaled_file, min_curv_vec_file,
+    >>>     depth_file, min_curv_vec_file,
     >>>     likelihoods_or_file, min_distance=5, thr=0.5, save_file=True)
     >>>
     >>> # View:
@@ -114,7 +114,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
     elif isinstance(likelihoods_or_file, np.ndarray):
         likelihoods = likelihoods_or_file
 
-    faces, points, npoints = read_faces_points(depth_rescaled_file)
+    faces, points, npoints = read_faces_points(depth_file)
     min_directions = np.loadtxt(min_curvature_vector_file)
 
     # Initialize variables:
@@ -125,8 +125,6 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
     Z = np.zeros(npoints)
     fundi = -1 * np.ones(npoints)
     fundus_anchor_indices = []
-    if compute_likelihoods:
-        likelihoods = np.copy(fundi)
 
     # For each fold region...
     unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
@@ -176,7 +174,7 @@ def extract_fundi(folds_or_file, depth_rescaled_file,
 
     if save_file:
         fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-        rewrite_scalars(depth_rescaled_file, fundi_file, [fundi],
+        rewrite_scalars(depth_file, fundi_file, [fundi],
                         ['fundi'], folds)
     else:
         fundi_file = None
@@ -499,9 +497,9 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
     >>> from mindboggle.features.fundi import find_endpoints, connect_points
     >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> # Get neighbor_lists, scalars
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_rescaled_file,
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold:
@@ -519,7 +517,7 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
     >>> #
     >>> # View:
     >>> H[indices_endpoints] = 1.1
-    >>> rewrite_scalars(depth_rescaled_file, 'test_connect_points.vtk', H,
+    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk', H,
     >>>                 'connected_points', fold)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_connect_points.vtk')
@@ -693,7 +691,7 @@ if __name__ == "__main__" :
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.features.fundi import extract_fundi
     path = os.environ['MINDBOGGLE_DATA']
-    depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
 
     # Select a single fold
@@ -705,7 +703,7 @@ if __name__ == "__main__" :
     fold_array[indices_fold] = 1
 
     fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold_array,
-        depth_rescaled_file, min_curv_vec_file,
+        depth_file, min_curv_vec_file,
         likelihoods_or_file, min_distance=5, thr=0.5, save_file=True)
 
     # View:
@@ -717,6 +715,6 @@ if __name__ == "__main__" :
     Ifundi = [i for i,x in enumerate(fundi) if x > -1]
     overlay[Ifundi] = 0.25
     overlay[fundus_anchor_indices] = 0
-    rewrite_scalars(depth_rescaled_file, 'overlay.vtk', overlay,
+    rewrite_scalars(depth_file, 'overlay.vtk', overlay,
                     'likelihoods_fundi_endpoints', fold_array)
     plot_vtk('overlay.vtk')
