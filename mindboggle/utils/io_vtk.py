@@ -235,7 +235,6 @@ def read_scalars(filename, return_first=True, return_array=False):
 
     return scalars, scalar_names
 
-
 def read_vtk(input_vtk, return_first=True, return_array=False):
     """
     Load faces, lines, indices, points, #points,
