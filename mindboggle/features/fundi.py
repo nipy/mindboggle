@@ -10,6 +10,180 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+#==================
+# Extract all fundi
+#==================
+def extract_fundi(folds_or_file, depth_rescaled_file,
+                  min_curvature_vector_file, likelihoods_or_file,
+                  min_distance=5, thr=0.5, save_file=False):
+    """
+    Extract all fundi.
+
+    A fundus is a connected set of high-likelihood vertices in a surface mesh.
+
+    Steps ::
+
+        1. Find fundus endpoints from likelihood and
+           minimum distance values and minimum directions.
+
+        2. Connect fundus endpoints and extract fundi.
+
+    Parameters
+    ----------
+    folds_or_file : list or string
+        fold number for each vertex or name of VTK file containing folds scalars
+    depth_rescaled_file :  string
+        surface mesh file in VTK format with scalar rescaled depth values
+    min_curvature_vector_file : string
+        surface mesh file in VTK format with scalar values
+    likelihoods_or_file : list or string
+        fundus likelihood values or name of VTK file with the scalar values
+    min_fold_size : int
+        minimum fold size (number of vertices)
+    min_distance :  int
+        minimum distance between "anchor points"
+    thr :  float
+        likelihood threshold
+    save_file : Boolean
+        save output VTK file?
+
+    Returns
+    -------
+    fundi : list of integers
+        fundus numbers for all vertices (-1 for non-fundus vertices)
+    n_fundi :  integer
+        number of fundi
+    fundus_anchor_indices : list of integers
+        indices to fundus anchor vertices
+    fundi_file : string (if save_file)
+        name of output VTK file with fundus numbers (-1 for non-fundus vertices)
+        and likelihood values for sulcus vertices (separate scalars)
+
+    Examples
+    --------
+    >>> # Extract fundus from a single fold:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.features.fundi import extract_fundi
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
+    >>> likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> # Select a single fold
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
+    >>>
+    >>> fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold,
+    >>>     depth_rescaled_file, min_curv_vec_file,
+    >>>     likelihoods_or_file, min_distance=5, thr=0.5, save_file=True)
+    >>>
+    >>> # View:
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('fundi.vtk')
+
+    """
+    import os
+    import sys
+    import numpy as np
+    from time import time
+
+    from mindboggle.features.fundi import find_endpoints, connect_points
+    from mindboggle.features.likelihood import compute_likelihood
+    from mindboggle.utils.mesh import find_neighbors, skeletonize, extract_skeleton_endpoints
+    from mindboggle.utils.io_vtk import read_scalars, read_faces_points, \
+        read_vtk, rewrite_scalars
+
+    # Load fold numbers:
+    if isinstance(folds_or_file, str):
+        folds, name = read_scalars(folds_or_file)
+    elif isinstance(folds_or_file, list):
+        folds = folds_or_file
+    elif isinstance(folds_or_file, np.ndarray):
+        folds = folds_or_file.tolist()
+    else:
+        sys.error('folds_or_file is not a string, list, or array.')
+
+    # Load likelihood values:
+    if isinstance(likelihoods_or_file, str):
+        likelihoods, name = read_scalars(likelihoods_or_file, True, True)
+    elif isinstance(likelihoods_or_file, list):
+        likelihoods = np.array(likelihoods_or_file)
+    elif isinstance(likelihoods_or_file, np.ndarray):
+        likelihoods = likelihoods_or_file
+
+    faces, points, npoints = read_faces_points(depth_rescaled_file)
+    min_directions = np.loadtxt(min_curvature_vector_file)
+
+    # Initialize variables:
+    t1 = time()
+    count = 0
+    neighbor_lists = find_neighbors(faces, npoints)
+    points = np.array(points)
+    Z = np.zeros(npoints)
+    fundi = -1 * np.ones(npoints)
+    fundus_anchor_indices = []
+    if compute_likelihoods:
+        likelihoods = np.copy(fundi)
+
+    # For each fold region...
+    unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
+    n_folds = len(unique_fold_IDs)
+    print("Extract a fundus from each of {0} regions...".format(n_folds))
+    for fold_ID in unique_fold_IDs:
+        indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+        if indices_fold:
+
+            print('  Region {0}:'.format(fold_ID))
+
+            fold_likelihoods = likelihoods[indices_fold]
+
+            # Find fundus points
+            ########indices, neighbor_lists, likelihoods, step_size=5
+            fold_indices_endpoints = find_endpoints(points[indices_fold],
+                                                    fold_likelihoods,
+                                                    min_directions[indices_fold],
+                                                    min_distance, thr)
+            indices_endpoints = [indices_fold[x] for x in fold_indices_endpoints]
+            n_endpoints = len(indices_endpoints)
+            if n_endpoints > 1:
+                t2 = time()
+                likelihoods_fold = Z.copy()
+                likelihoods_fold[indices_fold] = fold_likelihoods
+
+                # Connect fundus points and extract fundi:
+                print('    Connect {0} fundus points...'.format(n_endpoints))
+                B = connect_points(indices_endpoints, indices_fold,
+                                   likelihoods_fold, neighbor_lists)
+                indices_skeleton = [i for i,x in enumerate(B) if x > 0]
+                fundus_anchor_indices.extend(indices_endpoints)
+
+                if len(indices_skeleton) > 1:
+                    fundi[indices_skeleton] = fold_ID
+                    count += 1
+                    print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
+                          format(n_endpoints, time() - t2))
+
+    n_fundi = count
+    print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
+
+    #---------------------------------------------------------------------------
+    # Return fundi, number of fundi, and file name
+    #---------------------------------------------------------------------------
+    fundi = fundi.tolist()
+
+    if save_file:
+        fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
+        rewrite_scalars(depth_rescaled_file, fundi_file, [fundi],
+                        ['fundi'], folds)
+    else:
+        fundi_file = None
+
+    return fundi, n_fundi, fundus_anchor_indices, fundi_file
+
+
 #--------------
 # Cost function
 #--------------
@@ -265,7 +439,7 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 #---------------
 # Connect points
 #---------------
-def connect_points(indices_anchors, indices, L, neighbor_lists):
+def connect_points(indices_endpoints, indices, L, neighbor_lists):
     """
     Connect vertices in a surface mesh to create a curve.
 
@@ -302,7 +476,7 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
 
     Parameters
     ----------
-    indices_anchors : list of integers
+    indices_endpoints : list of integers
         indices of vertices to connect (should contain > 1)
     indices : list of integers
         indices of vertices
@@ -320,44 +494,31 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
     --------
     >>> # Connect vertices according to likelihood values in a single fold
     >>> import os
-    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.features.fundi import find_endpoints, connect_points, compute_likelihood
+    >>> from mindboggle.features.fundi import find_endpoints, connect_points
+    >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> # Get neighbor_lists, scalars
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_rescaled_file,
     >>>     return_first=True, return_array=True)
-    >>> points = np.array(points)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> mean_curvatures, name = read_scalars(mean_curvature_file, True, True)
-    >>> min_directions = np.loadtxt(min_curvature_vector_file)
     >>> # Select a single fold:
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
-    >>> # Test with pre-computed anchors:
-    >>> test_with_precomputed_anchors = True
-    >>> if test_with_precomputed_anchors:
-    >>>     anchors_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
-    >>>     #anchors_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
-    >>>     anchors,name = read_scalars(anchors_file)
-    >>>     likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>>     L, name = read_scalars(likelihood_file,True,True)
-    >>>     indices_anchors =[i for i,x in enumerate(anchors) if x>1 if folds[i]==fold_ID]
-    >>> else:
-    >>>     fold_likelihoods = compute_likelihood(depths[indices],
-    >>>                                           mean_curvatures[indices])
-    >>>     fold_indices_anchors = find_endpoints(points[indices],
-    >>>         fold_likelihoods, min_directions[indices], 5, 0.5)
-    >>>     indices_anchors = [indices[x] for x in fold_indices_anchors]
+    >>> # Test with pre-computed endpoints:
+    >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
+    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
+    >>> endpoints, name = read_scalars(endpoints_file)
+    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> L, name = read_scalars(likelihood_file,True,True)
+    >>> indices_endpoints =[i for i,x in enumerate(endpoints) if x>1 if folds[i]==fold_ID]
     >>> #
-    >>> H = connect_points(indices_anchors, indices, L, neighbor_lists)
+    >>> H = connect_points(indices_endpoints, indices, L, neighbor_lists)
     >>> #
     >>> # View:
-    >>> H[indices_anchors] = 1.1
+    >>> H[indices_endpoints] = 1.1
     >>> rewrite_scalars(depth_rescaled_file, 'test_connect_points.vtk', H,
     >>>                 'connected_points', fold)
     >>> from mindboggle.utils.mesh import plot_vtk
@@ -407,7 +568,7 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
     H_init[H_init > 1.0] = 1
     H[H_init > 0.5] = H_init[H_init > 0.5]
     #
-    H[indices_anchors] = 1
+    H[indices_endpoints] = 1
     print_interval = 100
 
     # Neighbors for each vertex
@@ -432,7 +593,7 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
             if H[index] > 0:
 
                 # Do not update anchor point costs
-                if index not in indices_anchors:
+                if index not in indices_endpoints:
 
                     # Compute the cost gradient for the HMMF value
                     H_down = max([H[index] - H_step, 0])
@@ -512,7 +673,7 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
 
     # Skeletonize
     if do_skeletonize:
-        skeleton = skeletonize(H, indices_anchors, N)
+        skeleton = skeletonize(H, indices_endpoints, N)
         print('      Removed {0} points to create one-vertex-thin skeletons'.
               format(int(npoints_thr - sum(skeleton))))
     else:
@@ -520,233 +681,6 @@ def connect_points(indices_anchors, indices, L, neighbor_lists):
 
     return skeleton
 
-#==================
-# Extract all fundi
-#==================
-def extract_fundi(folds_or_file, depth_rescaled_file, mean_curvature_file,
-                  min_curvature_vector_file, likelihoods_or_file=[],
-                  min_distance=5, thr=0.5, use_only_endpoints=True,
-                  save_file=False):
-    """
-    Extract all fundi.
-
-    A fundus is a connected set of high-likelihood vertices in a surface mesh.
-
-    Steps ::
-
-        1. Compute fundus likelihood values from normalized depth
-           and mean curvature.
-
-        2. Find fundus ("anchor") points from likelihood and
-           minimum distance values and minimum directions.
-
-        3. Connect fundus points and extract fundi.
-           If using endpoints to connect fundus vertices, run in two stages:
-           fast, to get a rough skeleton to extract the endpoints, then
-           slow, to get fundi.
-
-    Parameters
-    ----------
-    folds_or_file : list or string
-        fold number for each vertex or name of VTK file containing folds scalars
-    depth_rescaled_file :  string
-        surface mesh file in VTK format with scalar rescaled depth values
-    mean_curvature_file : string
-        surface mesh file in VTK format with scalar values
-    min_curvature_vector_file : string
-        surface mesh file in VTK format with scalar values
-    likelihoods_or_file : list or string (optional)
-        fundus likelihood values (if empty, compute within function)
-    min_fold_size : int
-        minimum fold size (number of vertices)
-    min_distance :  int
-        minimum distance between "anchor points"
-    thr :  float
-        likelihood threshold
-    use_only_endpoints : Boolean
-        use only endpoints to construct fundi (or all anchor points)?
-    save_file : Boolean
-        save output VTK file?
-
-    Returns
-    -------
-    fundi : list of integers
-        fundus numbers for all vertices (-1 for non-fundus vertices)
-    n_fundi :  integer
-        number of fundi
-    likelihoods : list of floats
-        fundus likelihood values for all vertices (zero outside folds)
-    fundus_anchor_indices : list of integers
-        indices to fundus anchor vertices
-    fundi_file : string (if save_file)
-        name of output VTK file with fundus numbers (-1 for non-fundus vertices)
-        and likelihood values for sulcus vertices (separate scalars)
-
-    Examples
-    --------
-    >>> # Extract fundus from a single fold:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.features.fundi import extract_fundi
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
-    >>> likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> # Select a single fold
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
-    >>>
-    >>> fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold,
-    >>>     depth_rescaled_file, mean_curv_file, min_curv_vec_file,
-    >>>     likelihoods_or_file, min_distance=5, thr=0.5,
-    >>>     use_only_endpoints=True, save_file=True)
-    >>>
-    >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('fundi.vtk')
-
-    """
-    import os
-    import sys
-    import numpy as np
-    from time import time
-
-    from mindboggle.features.fundi import compute_likelihood, find_endpoints, connect_points
-    from mindboggle.utils.mesh import find_neighbors, skeletonize, extract_skeleton_endpoints
-    from mindboggle.utils.io_vtk import read_scalars, read_faces_points, \
-                                        read_vtk, rewrite_scalars
-
-    # Load fold numbers:
-    if isinstance(folds_or_file, str):
-        folds, name = read_scalars(folds_or_file)
-    elif isinstance(folds_or_file, list):
-        folds = folds_or_file
-    elif isinstance(folds_or_file, np.ndarray):
-        folds = folds_or_file.tolist()
-    else:
-        sys.error('folds_or_file is not a string, list, or array.')
-
-    # Load likelihood values (or compute them later):
-    compute_likelihoods = True
-    if isinstance(likelihoods_or_file, str):
-        likelihoods, name = read_scalars(likelihoods_or_file, True, True)
-        compute_likelihoods = False
-    elif isinstance(likelihoods_or_file, list):
-        likelihoods = np.array(likelihoods_or_file)
-        compute_likelihoods = False
-    elif isinstance(likelihoods_or_file, np.ndarray):
-        likelihoods = likelihoods_or_file
-        compute_likelihoods = False
-
-    # Load normalized depth and curvature values from VTK and text files:
-    if compute_likelihoods:
-        print("Compute fundus likelihood values...")
-        faces, lines, indices, points, npoints, depths, \
-            name, input_vtk = read_vtk(depth_rescaled_file, return_first=True, return_array=True)
-        mean_curvatures, name = read_scalars(mean_curvature_file,
-                                             return_first=True, return_array=True)
-    else:
-        faces, points, npoints = read_faces_points(depth_rescaled_file)
-    min_directions = np.loadtxt(min_curvature_vector_file)
-
-    # Initialize variables:
-    t1 = time()
-    count = 0
-    neighbor_lists = find_neighbors(faces, npoints)
-    points = np.array(points)
-    Z = np.zeros(npoints)
-    fundi = -1 * np.ones(npoints)
-    fundus_anchor_indices = []
-    if compute_likelihoods:
-        likelihoods = np.copy(fundi)
-
-    # For each fold region...
-    unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
-    n_folds = len(unique_fold_IDs)
-    print("Extract a fundus from each of {0} regions...".format(n_folds))
-    for fold_ID in unique_fold_IDs:
-        indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-        if indices_fold:
-
-            print('  Region {0}:'.format(fold_ID))
-
-            # Compute fundus likelihood values:
-            if compute_likelihoods:
-                fold_likelihoods = compute_likelihood(depths[indices_fold],
-                                       mean_curvatures[indices_fold])
-                likelihoods[indices_fold] = fold_likelihoods
-            else:
-                fold_likelihoods = likelihoods[indices_fold]
-
-            # Find fundus points
-            fold_indices_anchors = find_endpoints(points[indices_fold],
-                                                fold_likelihoods,
-                                                min_directions[indices_fold],
-                                                min_distance, thr)
-            indices_anchors = [indices_fold[x] for x in fold_indices_anchors]
-            n_anchors = len(indices_anchors)
-            if n_anchors > 1:
-                t2 = time()
-                likelihoods_fold = Z.copy()
-                likelihoods_fold[indices_fold] = fold_likelihoods
-
-                # Connect fundus points and extract fundi.
-                # If using only endpoints to connect fundus vertices,
-                # run in two stages -- fast, to get a rough skeleton
-                # to extract the endpoints, then slow, to get fundi
-                if not use_only_endpoints:
-                    print('    Connect {0} fundus points...'.format(n_anchors))
-                    B = connect_points(indices_anchors, indices_fold,
-                                       likelihoods_fold, neighbor_lists)
-                    indices_skeleton = [i for i,x in enumerate(B) if x > 0]
-                    fundus_anchor_indices.extend(indices_anchors)
-                else:
-                    L = likelihoods_fold.copy()
-                    L[L > thr] = 1
-                    L[L <= thr] = 0
-                    S = skeletonize(L, indices_anchors, neighbor_lists)
-                    indices_skeleton = [i for i,x in enumerate(S) if x > 0]
-                    indices_endpoints = extract_skeleton_endpoints(indices_skeleton,
-                                                          neighbor_lists)
-                    indices_endpoints = [x for x in indices_endpoints
-                                         if x in indices_anchors]
-                    n_anchors = len(indices_endpoints)
-                    fundus_anchor_indices.extend(indices_endpoints)
-                    if len(indices_endpoints) > 1:
-                        print('    Connect {0} fundus endpoints...'.
-                              format(n_anchors))
-                        B = connect_points(indices_endpoints, indices_fold,
-                                           likelihoods_fold, neighbor_lists)
-                        indices_skeleton = [i for i,x in enumerate(B) if x > 0]
-                    else:
-                        indices_skeleton = []
-
-                if len(indices_skeleton) > 1:
-                    fundi[indices_skeleton] = fold_ID
-                    count += 1
-                    print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
-                          format(n_anchors, time() - t2))
-
-    n_fundi = count
-    print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
-
-    #---------------------------------------------------------------------------
-    # Return fundi, number of fundi, likelihood values, and file name
-    #---------------------------------------------------------------------------
-    likelihoods = likelihoods.tolist()
-    fundi = fundi.tolist()
-
-    if save_file:
-        fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-        rewrite_scalars(depth_rescaled_file, fundi_file, [fundi, likelihoods],
-                        ['fundi', 'likelihoods'], folds)
-    else:
-        fundi_file = None
-
-    return fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file
 
 
 # Example
@@ -760,7 +694,6 @@ if __name__ == "__main__" :
     from mindboggle.features.fundi import extract_fundi
     path = os.environ['MINDBOGGLE_DATA']
     depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
 
     # Select a single fold
@@ -772,9 +705,8 @@ if __name__ == "__main__" :
     fold_array[indices_fold] = 1
 
     fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold_array,
-        depth_rescaled_file, mean_curv_file, min_curv_vec_file,
-        likelihoods_or_file, min_distance=5, thr=0.5,
-        use_only_endpoints=True, save_file=True)
+        depth_rescaled_file, min_curv_vec_file,
+        likelihoods_or_file, min_distance=5, thr=0.5, save_file=True)
 
     # View:
     from mindboggle.utils.mesh import plot_vtk
@@ -786,5 +718,5 @@ if __name__ == "__main__" :
     overlay[Ifundi] = 0.25
     overlay[fundus_anchor_indices] = 0
     rewrite_scalars(depth_rescaled_file, 'overlay.vtk', overlay,
-                    'likelihoods_fundi_anchors', fold_array)
+                    'likelihoods_fundi_endpoints', fold_array)
     plot_vtk('overlay.vtk')
