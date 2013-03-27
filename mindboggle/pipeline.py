@@ -83,8 +83,8 @@ else:
 # User settings
 #===============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = 0#True # Extract fundi from subfolds
-do_sulci = True # Extract sulci from subfolds
+do_fundi = True  # Extract fundi from subfolds
+do_sulci = True  # Extract sulci from subfolds
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
@@ -156,6 +156,7 @@ from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 from mindboggle.features.folds import extract_folds, extract_subfolds
+from mindboggle.features.likelihood import compute_likelihood
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -618,6 +619,41 @@ if run_featureFlow:
                      [('Subfolds.subfolds_file','features.@subfolds')])])
 
     #===========================================================================
+    # Rescaled travel depth
+    #===========================================================================
+    if run_shapeFlow:
+
+        #===========================================================================
+        # Rescale surface depth
+        #===========================================================================
+        RescaleDepth = Node(name='Rescale_depth',
+                            interface = Fn(function = rescale_by_label,
+                                           input_names = ['input_vtk',
+                                                          'labels_or_file',
+                                                          'combine_all_labels',
+                                                          'by_neighborhood',
+                                                          'nedges',
+                                                          'p',
+                                                          'set_max_to_1',
+                                                          'save_file',
+                                                          'output_filestring'],
+                                           output_names = ['rescaled_scalars',
+                                                           'rescaled_scalars_file']))
+        shapeFlow.add_nodes([RescaleDepth])
+        mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
+        mbFlow.connect([(SubfoldsNode, RescaleDepth, [('subfolds_file','labels_or_file')])])
+        RescaleDepth.inputs.combine_all_labels = True
+        RescaleDepth.inputs.by_neighborhood = True
+        RescaleDepth.inputs.nedges = 10
+        RescaleDepth.inputs.p = 99
+        RescaleDepth.inputs.set_max_to_1 = False
+        RescaleDepth.inputs.save_file = True
+        RescaleDepth.inputs.output_filestring = 'depth_rescaled'
+        # Save rescaled depth
+        mbFlow.connect([(shapeFlow, Sink,
+                         [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
+
+    #===========================================================================
     # Sulci
     #===========================================================================
     if do_sulci:
@@ -659,6 +695,27 @@ if run_featureFlow:
     # Fundi (curves at the bottoms of folds/sulci)
     #===========================================================================
     if do_fundi:
+        LikelihoodNode = Node(name='Likelihood',
+                              interface = Fn(function = compute_likelihood,
+                                             input_names = ['trained_file',
+                                                            'depth_file',
+                                                            'curvature_file',
+                                                            'sulci'],
+                                             output_names = ['likelihoods']))
+
+        featureFlow.add_nodes([LikelihoodNode])
+        LikelihoodNode.inputs.trained_file = os.path.join(data_path,
+            'depth_curv_border_nonborder_parameters.pkl')
+        mbFlow.connect([(shapeFlow, featureFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Likelihood.depth_file'),
+                          ('Curvature.mean_curvature_file',
+                           'Likelihood.curvature_file')])])
+        featureFlow.connect([(SulciNode, LikelihoodNode, [('sulci','sulci')])])
+        # Save VTK file with likelihood values:
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Likelihood.likelihoods','features.@likelihood')])])
+
         fundi_from_sulci = False
         min_distance = 5.0
         thr = 0.5
@@ -688,15 +745,14 @@ if run_featureFlow:
                            'Fundi.mean_curvature_file'),
                           ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
-        #Like = read_columns('/Users/arno/Desktop/likelihoods_3subj_v2/likelihood_HLN_12_1.txt')
-        #Like = [np.float(x) for x in Like[0]]
-        FundiNode.inputs.likelihoods_or_file = [] #Like
+        featureFlow.connect([(LikelihoodNode, FundiNode,
+                              [('likelihoods', 'likelihoods_or_file')])])
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
         FundiNode.inputs.use_only_endpoints = True
         FundiNode.inputs.compute_local_depth = True
         FundiNode.inputs.save_file = True
-        # Save VTK file with fundi and likelihood values
+        # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
                          [('Fundi.fundi_file','features.@fundi')])])
 
@@ -741,36 +797,6 @@ if run_featureFlow:
 #
 ################################################################################
 if run_shapeFlow:
-
-    #===========================================================================
-    # Rescale surface depth
-    #===========================================================================
-    RescaleDepth = Node(name='Rescale_depth',
-                        interface = Fn(function = rescale_by_label,
-                                       input_names = ['input_vtk',
-                                                      'labels_or_file',
-                                                      'combine_all_labels',
-                                                      'by_neighborhood',
-                                                      'nedges',
-                                                      'p',
-                                                      'set_max_to_1',
-                                                      'save_file',
-                                                      'output_filestring'],
-                                       output_names = ['rescaled_scalars',
-                                                       'rescaled_scalars_file']))
-    shapeFlow.add_nodes([RescaleDepth])
-    mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
-    mbFlow.connect([(SubfoldsNode, RescaleDepth, [('subfolds_file','labels_or_file')])])
-    RescaleDepth.inputs.combine_all_labels = True
-    RescaleDepth.inputs.by_neighborhood = True
-    RescaleDepth.inputs.nedges = 10
-    RescaleDepth.inputs.p = 99
-    RescaleDepth.inputs.set_max_to_1 = False
-    RescaleDepth.inputs.save_file = True
-    RescaleDepth.inputs.output_filestring = 'depth_rescaled'
-    # Save rescaled depth
-    mbFlow.connect([(shapeFlow, Sink,
-                     [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
 
     if do_measure_spectra:
         #===========================================================================
