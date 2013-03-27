@@ -99,18 +99,21 @@ def compute_likelihood(depth_border, curv_border,
     import numpy as np
     from math import pi
 
-    k = 3  # number of classes
     tiny = 0.000000001
     L = np.zeros(len(sulci))
-    probs_border = L
-    probs_nonborder = L
+    probs_border = np.zeros(len(sulci))
+    probs_nonborder = np.zeros(len(sulci))
+
+    k = 2
+    twopiexp = (2*pi)**(k/2)
 
     I = [i for i,x in enumerate(sulci) if x != -1]
 
-    norm_border = 1 / (2 * pi * depth_border['sigmas'] * curv_border['sigmas'])
-    norm_nonborder = 1 / (2 * pi * depth_nonborder['sigmas'] * curv_nonborder['sigmas'])
+    norm_border = 1 / (twopiexp * depth_border['sigmas'] * curv_border['sigmas'])
+    norm_nonborder = 1 / (twopiexp * depth_nonborder['sigmas'] * curv_nonborder['sigmas'])
 
-    for j in range(k):
+    N = depth_border['sigmas'].shape[0]
+    for j in range(N):
 
         # Depth:
         expB = depth_border['weights'][j] * \
@@ -133,8 +136,6 @@ def compute_likelihood(depth_border, curv_border,
         probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
 
     L = probs_border / (probs_nonborder + probs_border + tiny)
-    I0 = np.where(depths < 0)[0]
-    L[I0] = 0
 
     return L
 
@@ -396,7 +397,7 @@ def fit_normals_to_histogram(data, x):
                          np.exp((-1/(2*(sigmas[i]**2))) * (data-means[i])**2)
 
         for i in range(k):
-            W[:,i] = probs[:,i] / np.sum(probs)
+            W[:,i] = probs[:,i] / np.sum(probs, axis=1)
 
         for i in range(k):
             sigmas[i] = np.sqrt(sum(W[:,i]*(data - means[i])**2) / sum(W[:,i]))
