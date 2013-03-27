@@ -61,109 +61,6 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 
     return cost
 
-#--------------------
-# Likelihood function
-#--------------------
-def compute_likelihood(depths, curvatures):
-    """
-    Compute (fundus) curve likelihood values on a surface mesh.
-
-    The *slope_factor* is used to compute the "gain" of the slope of sigmoidal values.
-
-    Parameters
-    ----------
-    depths : numpy array of floats
-        depth values in [0,1] for all vertices
-    curvatures : numpy array of floats
-        mean curvature values in [-1,1] for all vertices
-
-    Returns
-    -------
-    likelihoods : numpy array of floats
-        likelihood values for all vertices
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.features.fundi import compute_likelihood
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> depths, name = read_scalars(depth_rescaled_file, True, return_array=True)
-    >>> curvatures, name = read_scalars(mean_curv_file, True, return_array=True)
-    >>> #
-    >>> L = compute_likelihood(depths, curvatures)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file)
-    >>> rewrite_scalars(depth_rescaled_file, 'test_compute_likelihood.vtk', L, 'likelihoods', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_compute_likelihood.vtk')
-
-    """
-    import numpy as np
-    from mindboggle.features.fundi import sigmoid
-
-    tiny = 0.0000000001
-
-    # Make sure arguments are numpy arrays
-    if not isinstance(depths, np.ndarray):
-        depths = np.array(depths)
-    if not isinstance(curvatures, np.ndarray):
-        curvatures = np.array(curvatures)
-
-    #==========================================
-    # Normalize depth values to interval [0,1]
-    # Curvature values retain their values
-    # Compute the means and std. deviations
-    #=========================================
-    if np.max(depths) != 1:
-        depths = depths / (max(depths)+tiny)
-    depth_avg = np.mean(depths)
-    depth_std = np.std(depths)
-    curve_avg = np.mean(curvatures)
-    curve_std = np.std(curvatures)
-
-    #==========================================
-    # Find slope for depth and curvature values
-    #==========================================
-    # Factor influencing "gain" or "sharpness" of the sigmoidal function below
-    # slope_factor = abs(np.log((1. / x) - 1))  # 2.197224577 for x = 0.9
-    # gain_depth = slope_factor / (2 * depth_std)
-    gain_depth = 1 / (depth_std+tiny)
-    gain_curve = 1 / (curve_std+tiny)
-    shift_depth = depth_avg - depth_std
-    shift_curve = curve_avg
-
-    #==========================
-    # Compute likelihood values
-    #==========================
-    # Map values with sigmoid function to range [0,1]
-    depth_sigmoid = sigmoid(depths, gain_depth, shift_depth)
-    curve_sigmoid = sigmoid(curvatures, gain_curve, shift_curve)
-
-    likelihoods = depth_sigmoid * curve_sigmoid
-
-    # Plot the sigmoid curves (does not include value distributions)
-    plot_result = False
-    if plot_result:
-        from matplotlib import pyplot
-        xdepth = np.sort(depths)
-        xcurve = np.sort(curvatures)
-        depth_sigmoid = sigmoid(xdepth, gain_depth, shift_depth)
-        curve_sigmoid = sigmoid(xcurve, gain_curve, shift_curve)
-        sigmoids = depth_sigmoid * curve_sigmoid
-        pyplot.plot(xdepth, depth_sigmoid, 'k')
-        pyplot.plot(xcurve, curve_sigmoid, 'b')
-        pyplot.plot(xdepth, sigmoids, 'r')
-        pyplot.title('Depths, curves: (gains={0:.2f}, {1:.2f}; shifts={2:.2f}, {3:.2f})'.
-               format(gain_depth, gain_curve, shift_depth, shift_curve))
-        pyplot.show()
-
-    return likelihoods
-
 #------------------------------------------------------------------------------
 # Find special points that are not too close together
 #------------------------------------------------------------------------------
@@ -866,11 +763,6 @@ if __name__ == "__main__" :
     mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
 
-    likelihoods_or_file = '/drop/share/YrjoHame/likelihoods_20130314/likelihood_test_rescale_by_neighborhood.txt'
-    from mindboggle.utils.io_file import read_columns
-    likelihoods_or_file = read_columns(likelihoods_or_file)[0]
-    likelihoods_or_file = [np.float(x) for x in likelihoods_or_file]
-
     # Select a single fold
     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     folds, name = read_scalars(folds_file)
@@ -878,8 +770,6 @@ if __name__ == "__main__" :
     indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     fold_array = -1 * np.ones(len(folds))
     fold_array[indices_fold] = 1
-
-    #likelihoods_or_file = None
 
     fundi, n_fundi, likelihoods, fundus_anchor_indices, fundi_file = extract_fundi(fold_array,
         depth_rescaled_file, mean_curv_file, min_curv_vec_file,
