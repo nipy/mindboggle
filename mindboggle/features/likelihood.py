@@ -38,8 +38,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Compute likelihood values for any surface mesh based on learned parameters.
 #-------------------------------------------------------------------------------
 
-def compute_likelihood(depth_border, curv_border,
-        depth_nonborder, curv_nonborder, depths, curvatures, sulci):
+def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
     """
     Compute likelihoods based on input values, sulci, and estimated parameters.
 
@@ -48,18 +47,15 @@ def compute_likelihood(depth_border, curv_border,
 
     Parameters
     ----------
-    depth_border : dictionary containing lists of floats
-        estimated depth means, sigmas, weights trained on sulcus label borders
-    curv_border : dictionary containing lists of floats
-        estimated curvature means, sigmas, weights trained on sulcus label borders
-    depth_nonborder : dictionary containing lists of floats
-        estimated depth means, sigmas, weights trained outside label borders
-    curv_nonborder : dictionary containing lists of floats
-        estimated curvature means, sigmas, weights trained outside label borders
-    depths : numpy array of floats
-        depth values in [0,1] for all vertices
-    curvatures : numpy array of floats
-        mean curvature values in [-1,1] for all vertices
+    trained_file : pickle compressed file
+        contains the following dictionaries containing lists of floats
+        (estimates of depth or curvature means, sigmas, and weights
+         trained on sulcus vertices either on or off sulcus label borders)
+        depth_border, curv_border, depth_nonborder, curv_nonborder
+    depth_file : string
+        name of VTK surface mesh file with depth values in [0,1] for all vertices
+    curvature_file : string
+        name of VTK surface mesh file with curvature values in [-1,1] for all vertices
     sulci : list of integers
         sulcus number for all vertices (-1 for non-sulcus vertices)
 
@@ -71,23 +67,16 @@ def compute_likelihood(depth_border, curv_border,
     Examples
     --------
     >>> import os
-    >>> import cPickle as pickle
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
-    >>> depths, name = read_scalars(depth_file, True, True)
-    >>> curvatures, name = read_scalars(curv_file, True, True)
     >>> sulci, name = read_scalars(sulci_file)
-    >>> # Load estimated depth and curvature distribution parameters:
-    >>> depth_border, curv_border, depth_nonborder, curv_nonborder = pickle.load(
-    >>> open(trained_file, "r" ) )
     >>> #
-    >>> L = compute_likelihood(depth_border, curv_border, depth_nonborder,
-    >>>                        curv_nonborder, depths, curvatures, sulci)
+    >>> L = compute_likelihood(trained_file, depth_file, curvature_file, sulci)
     >>> # View:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -98,19 +87,31 @@ def compute_likelihood(depth_border, curv_border,
     """
     import numpy as np
     from math import pi
+    import cPickle as pickle
 
+    from mindboggle.utils.io_vtk import read_scalars
+
+
+    # Initialize variables:
     tiny = 0.000000001
     L = np.zeros(len(sulci))
     probs_border = np.zeros(len(sulci))
     probs_nonborder = np.zeros(len(sulci))
 
+    # Load estimated depth and curvature distribution parameters:
+    depth_border, curv_border, depth_nonborder, curv_nonborder = pickle.load(
+        open(trained_file, "r" ) )
+
+    # Load depths, curvatures:
+    depths, name = read_scalars(depth_file, True, True)
+    curvatures, name = read_scalars(curvature_file, True, True)
+
+    # Prep for below:
     k = 2
     twopiexp = (2*pi)**(k/2)
-
-    I = [i for i,x in enumerate(sulci) if x != -1]
-
     norm_border = 1 / (twopiexp * depth_border['sigmas'] * curv_border['sigmas'])
     norm_nonborder = 1 / (twopiexp * depth_nonborder['sigmas'] * curv_nonborder['sigmas'])
+    I = [i for i,x in enumerate(sulci) if x != -1]
 
     N = depth_border['sigmas'].shape[0]
     for j in range(N):
