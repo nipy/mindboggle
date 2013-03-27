@@ -229,10 +229,10 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     >>> # Extract depth values along label boundaries in sulci (mask):
     >>> import os
     >>> from mindboggle.labels.label import extract_borders
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> mask_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
-    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
     >>> border_file, border_values = extract_borders(labels_file, mask_file, values_file)
     >>> #
