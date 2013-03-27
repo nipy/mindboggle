@@ -716,6 +716,7 @@ if run_featureFlow:
         mbFlow.connect([(featureFlow, Sink,
                          [('Likelihood.likelihoods','features.@likelihood')])])
 
+
         fundi_from_sulci = False
         min_distance = 5.0
         thr = 0.5
@@ -723,17 +724,13 @@ if run_featureFlow:
                          interface = Fn(function = extract_fundi,
                                         input_names = ['folds_or_file',
                                                        'depth_file',
-                                                       'mean_curvature_file',
                                                        'min_curvature_vector_file',
                                                        'likelihoods_or_file',
                                                        'min_distance',
                                                        'thr',
-                                                       'use_only_endpoints',
-                                                       'compute_local_depth',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
-                                                        'likelihoods_or_file',
                                                         'fundi_file']))
         if fundi_from_sulci:
             featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
@@ -741,16 +738,12 @@ if run_featureFlow:
             featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature.mean_curvature_file',
-                           'Fundi.mean_curvature_file'),
                           ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
                               [('likelihoods', 'likelihoods_or_file')])])
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
-        FundiNode.inputs.use_only_endpoints = True
-        FundiNode.inputs.compute_local_depth = True
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
