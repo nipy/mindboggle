@@ -248,6 +248,15 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 
     Steps ::
 
+    Grow also the already included area 'X' with every new threshold 'T'.
+    The growing of X would not provide endpoints, only expand the area
+    that is already included in X, mostly along the walls.
+    (i) grow active segment 'S' with current T, providing new set of points 'F',
+    (ii) grow 'X' with current T, including to points in S and F
+    (iii) remove points from 'F' that are also in the new, grown 'X',
+    (iv) add S to X, assign remaining F as S,
+    (v) return to (i)
+
         Initialize:
             R: Region/remaining vertices to segment (initially fold vertices)
             P: Previous segment (initially the maximum likelihood point)
@@ -313,8 +322,11 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
     if isinstance(likelihoods, list):
         likelihoods = np.array(likelihoods)
 
+    init_threshold = 0.8
+    min_threshold = 0.1
+
     # Recursive function for segmenting and finding endpoints:
-    def creep(R, P, N, E, L, step_size, neighbor_lists):
+    def creep(R, P, X, N, E, L, step_size, neighbor_lists):
         """
         Recursively segment a mesh, creeping toward its edges to find endpoints.
 
@@ -337,6 +349,8 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
             indices of vertices to segment (such as a fold)
         P : list of integers
             indices of previous segment vertices
+        X : list of integers
+            indices of already segmented vertices
         N : list of integers
             indices of new/next segment vertices
         E: list of integers
@@ -354,6 +368,8 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
             remaining vertices to segment
         P : list of integers
             previous segment vertices
+        X : list of integers
+            already segmented vertices
         N : list of integers
             new segment vertices
         E: list of integers
@@ -364,7 +380,7 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 
         from mindboggle.labels.segment import segment
 
-        min_size = 3
+        min_size = 1
 
         #-----------------------------------------------------------------------
         # Propagate P into R, and call these new vertices N:
@@ -373,10 +389,22 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                              seed_lists=[P], keep_seeding=False, spread_within_labels=False,
                              labels=[], label_lists=[], values=[], max_steps=step_size)
         N = [i for i,x in enumerate(R_segments) if x != -1]
+        print('  {0} vertices in the new segment'.format(len(N)))
+
+        # Propagate X into R
+        # (before P added to X and before P and N removed from R):
+        X_segments = segment(R, neighbor_lists, min_region_size=1,
+                             seed_lists=[X], keep_seeding=False, spread_within_labels=False,
+                             labels=[], label_lists=[], values=[], max_steps=step_size)
+        X = [i for i,x in enumerate(X_segments) if x != -1]
+        print('  {0} vertices spread from previously segmented'.format(len(X)))
+
+        # Add P (seeds) to X and remove X from R:
+        X.extend(P)
+        R = list(frozenset(R).difference(X))
 
         # Remove P (seeds) from N, and remove P and N from R:
         N = list(frozenset(N).difference(P))
-        R = list(frozenset(R).difference(P))
         R = list(frozenset(R).difference(N))
 
         #-----------------------------------------------------------------------
@@ -386,9 +414,6 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 
             # Choose highest likelihood point in P as endpoint:
             E.append(P[np.argmax(L[P])])
-
-            # Return endpoints E and remaining vertices R:
-            return R, P, N, E
 
         #-----------------------------------------------------------------------
         # If N is not empty, continue segmenting recursively:
@@ -408,27 +433,55 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 if len(N_i) >= min_size or n_segments==1:
 
                     # Call creep() with new arguments:
-                    R, P, N, E = creep(R, N_i, N_i, E, L, step_size, neighbor_lists)
+                    R, P, X, N, E = creep(R, N_i, X, N_i, E, L, step_size, neighbor_lists)
 
-            # Return endpoints E and remaining vertices R:
-            return R, P, N, E
+        # Return endpoints E and remaining vertices R:
+        return R, P, X, N, E
 
 
     # Initialize old and new segments P and N with the maximum likelihood point:
     maxL = indices[np.argmax(likelihoods[indices])]
+    P = [maxL]
+    N = [maxL]
 
-    # For each threshold:
+    # Initialize endpoints:
     indices_endpoints = []
-    thresholds = [0.5]
-    for thr in thresholds:
+    E = indices_endpoints
+
+    # Initialize remaining vertices with likelihoods greater than a threshold:
+    threshold = init_threshold
+    L = likelihoods
+    R = [x for x in indices if L[x] > threshold]
+    X = []
+
+    # Iterate endpoint extraction until all vertices have been segmented:
+    while R:
+
+        print('  {0} remaining vertices (threshold: {1})'.
+            format(len(R), threshold))
 
         # Run recursive function creep() to return endpoints:
-        R = indices
-        P = [maxL]
-        N = [maxL]
-        E = indices_endpoints
-        L = likelihoods
-        R, P, N, E = creep(R, P, N, E, L, step_size, neighbor_lists)
+        R, P, X, N, E = creep(R, P, X, N, E, L, step_size, neighbor_lists)
+
+        # Include new vertices with lower likelihood values:
+        prev_threshold = threshold
+        threshold = 0.9 * np.mean(L[X])
+        T = [x for x in indices if L[x] > threshold
+             if L[x] <= prev_threshold]
+        if not T:
+            decrease_threshold = True
+            while decrease_threshold:
+                threshold = 0.9 * threshold
+                print('  threshold: {0}'.format(threshold))
+                T = [x for x in indices if L[x] > threshold
+                                        if L[x] <= prev_threshold]
+                if T or threshold < min_threshold:
+                    decrease_threshold = False
+        R.extend(T)
+
+        # Use newest endpoints as previous and next seeds:
+        P = E[:]
+        N = E[:]
 
         indices_endpoints.extend(E)
 
