@@ -152,7 +152,7 @@ def propagate(points, faces, region, seeds, labels,
 #------------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False, spread_within_labels=False,
-            labels=[], label_lists=[], values=[], max_steps=''):
+            labels=[], label_lists=[], values=[], max_steps='', verbose=False):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -181,6 +181,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         (segment in direction of lower values)
     max_steps : integer (or empty string for infinity)
         maximum number of segmentation steps to take for each seed list
+    verbose : Boolean
+        print out text?
 
     Returns
     -------
@@ -246,17 +248,19 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     # (single vertex selection does not affect result -- see below*)
     if seed_lists:
         select_single_seed = False
-        if len(seed_lists) == 1:
-            print('    Segment {0} vertices from seed vertices'.
-                  format(len(vertices_to_segment)))
-        else:
-            print('    Segment {0} vertices from {1} sets of seed vertices'.
-                  format(len(vertices_to_segment), len(seed_lists)))
+        if verbose:
+            if len(seed_lists) == 1:
+                print('    Segment {0} vertices from seed vertices'.
+                      format(len(vertices_to_segment)))
+            else:
+                print('    Segment {0} vertices from {1} sets of seed vertices'.
+                      format(len(vertices_to_segment), len(seed_lists)))
     else:
         select_single_seed = True
         seed_lists = [[vertices_to_segment[0]]]
-        print('    Segment {0} vertices from first vertex as initial seed'.
-              format(len(vertices_to_segment)))
+        if verbose:
+            print('    Segment {0} vertices from first vertex as initial seed'.
+                  format(len(vertices_to_segment)))
 
     # Initialize variables, including the list of vertex indices for each region,
     # vertex indices for all regions, and Boolean list indicating which regions
@@ -353,10 +357,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
                         # Display current number and size of region
                         if verbose and size_region > 1:
-                            if len(seed_lists) == 1:
-                                if vertices_to_segment:
-                                    print("      {0} vertices remain".
-                                          format(len(vertices_to_segment)))
+                            if len(seed_lists) == 1 and vertices_to_segment:
+                                print("      {0} vertices remain".
+                                      format(len(vertices_to_segment)))
                             else:
                                 print("      Region {0}: {1} vertices ({2} remain)".
                                       format(int(new_segment_index), size_region,
@@ -372,8 +375,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 
     # Keep growing from new seeds even after all seed lists have fully grown
     if keep_seeding and len(vertices_to_segment) >= min_region_size:
-        print('    Keep seeding to segment {0} remaining vertices'.
-              format(len(vertices_to_segment)))
+        if verbose:
+            print('    Keep seeding to segment {0} remaining vertices'.
+                  format(len(vertices_to_segment)))
 
         # Select first unsegmented vertex as new seed
         seed_list = [vertices_to_segment[0]]
