@@ -296,6 +296,7 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import find_endpoints
+    >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> likelihoods, name = read_scalars(likelihood_file, True, True)
@@ -316,12 +317,12 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
     >>> likelihoods[indices_endpoints] = max(likelihoods) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_endpoints.vtk',
     >>>                 likelihoods, 'endpoints_on_likelihoods_in_fold', fold)
-    >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('find_endpoints.vtk')
     >>> #
     >>> #-----------------------------------------------------------------------
     >>> # Find endpoints on every fold in a hemisphere:
     >>> #-----------------------------------------------------------------------
+    >>> plot_each_fold = False
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_numbers = [x for x in np.unique(folds) if x != -1]
@@ -333,14 +334,20 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
     >>>     if len(indices) > min_size:
     >>>         indices_endpoints = find_endpoints(indices, neighbor_lists, likelihoods, step)
     >>>         endpoints.extend(indices_endpoints)
-    >>>         print(endpoints)
+    >>>         # Plot each fold:
+    >>>         if plot_each_fold:
+    >>>             fold = -1 * np.ones(len(likelihoods))
+    >>>             fold[indices] = 1
+    >>>             likelihoods[indices_endpoints] = max(likelihoods) + 0.1
+    >>>             rewrite_scalars(likelihood_file, 'find_endpoints.vtk',
+    >>>                     likelihoods, 'endpoints_on_likelihoods_in_fold', fold)
+    >>>             plot_vtk('find_endpoints.vtk')
     >>> E = -1 * np.ones(len(likelihoods))
     >>> E[endpoints] = 1
     >>> #
     >>> # Write results to VTK file and view:
     >>> rewrite_scalars(folds_file, 'find_endpoints.vtk',
     >>>                 E, 'endpoints_on_folds', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('find_endpoints.vtk')
 
     """
