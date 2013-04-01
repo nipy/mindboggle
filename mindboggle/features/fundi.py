@@ -139,7 +139,7 @@ def extract_fundi(folds_or_file, depth_file,
             fold_likelihoods = likelihoods[indices_fold]
 
             # Find fundus points
-            ########indices, neighbor_lists, likelihoods, step_size=5
+            ########indices, neighbor_lists, likelihoods, step=5
             fold_indices_endpoints = find_endpoints(points[indices_fold],
                                                     fold_likelihoods,
                                                     min_directions[indices_fold],
@@ -236,7 +236,7 @@ def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
 #------------------------------------------------------------------------------
 # Find special points that are not too close together
 #------------------------------------------------------------------------------
-def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
+def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
     """
     Find endpoints in a region of connected vertices.
 
@@ -248,22 +248,20 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 
     Steps ::
 
-    Grow also the already included area 'X' with every new threshold 'T'.
-    The growing of X would not provide endpoints, only expand the area
-    that is already included in X, mostly along the walls.
-    (i) grow active segment 'S' with current T, providing new set of points 'F',
-    (ii) grow 'X' with current T, including to points in S and F
-    (iii) remove points from 'F' that are also in the new, grown 'X',
-    (iv) add S to X, assign remaining F as S,
-    (v) return to (i)
-
         Initialize:
             R: Region/remaining vertices to segment (initially fold vertices)
             P: Previous segment (initially the maximum likelihood point)
+            X: Excluded segment
             N: New/next segment (initially P)
             E: indices to endpoint vertices (initially empty)
-        For each segment P, run recursive function creep():
+
+        For each decreasing threshold, run recursive function creep():
+
             Propagate P into R, and call these new vertices N.
+            Propagate X into P, R, and N.
+            Remove points from N and R that are also in the expanded X.
+            Remove P and N from R.
+            Reassign P to X.
             If N is empty:
                 Choose highest likelihood point in P as endpoint.
                 Return endpoints E and remaining vertices R.
@@ -271,8 +269,8 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 Identify N_i different segments of N.
                 For each segment N_i:
                     If N_i large enough or if max(i)==1:
-                        Call creep() with new arguments.
-                Return endpoints E and remaining vertices R.
+                        Call recursive function creep() with new arguments.
+                Return endpoints E and R, P, X, and N.
 
     Parameters
     ----------
@@ -282,7 +280,7 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
         indices to neighboring vertices for each vertex
     likelihoods : numpy array of floats
         fundus likelihood values for all vertices
-    step_size : integer
+    step : integer
         number of segmentation steps before assessing segments
 
     Returns
@@ -292,56 +290,98 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
 
     Examples
     --------
-    >>> # Find endpoints on a single fold:
+    >>> # Setup:
     >>> import os
+    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import find_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> likelihoods, name = read_scalars(likelihood_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(likelihood_file)
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> step = 1
+    >>> min_size = 50
+    >>> #
+    >>> #-----------------------------------------------------------------------
+    >>> # Find endpoints on a single fold:
+    >>> #-----------------------------------------------------------------------
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
-    >>> step_size = 1
-    >>> #
-    >>> indices_endpoints = find_endpoints(indices, neighbor_lists, likelihoods, step_size)
-    >>> #
+    >>> indices_endpoints = find_endpoints(indices, neighbor_lists,
+    >>>                                    likelihoods, step)
     >>> # Write results to VTK file and view:
     >>> likelihoods[indices_endpoints] = max(likelihoods) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_endpoints.vtk',
-    >>>                 likelihoods, 'endpoints_on_likelihoods_in_folds', fold)
+    >>>                 likelihoods, 'endpoints_on_likelihoods_in_fold', fold)
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('find_endpoints.vtk')
+    >>> #
+    >>> #-----------------------------------------------------------------------
+    >>> # Find endpoints on every fold in a hemisphere:
+    >>> #-----------------------------------------------------------------------
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> fold_numbers = [x for x in np.unique(folds) if x != -1]
+    >>> nfolds = len(fold_numbers)
+    >>> endpoints = []
+    >>> for ifold, fold_number in enumerate(fold_numbers):
+    >>>     print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
+    >>>     indices = [i for i,x in enumerate(folds) if x == fold_number]
+    >>>     if len(indices) > min_size:
+    >>>         indices_endpoints = find_endpoints(indices, neighbor_lists, likelihoods, step)
+    >>>         endpoints.extend(indices_endpoints)
+    >>>         print(endpoints)
+    >>> E = -1 * np.ones(len(likelihoods))
+    >>> E[endpoints] = 1
+    >>> #
+    >>> # Write results to VTK file and view:
+    >>> rewrite_scalars(folds_file, 'find_endpoints.vtk',
+    >>>                 E, 'endpoints_on_folds', folds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('find_endpoints.vtk')
 
     """
     import numpy as np
 
+    from mindboggle.labels.label import extract_borders
+
     # Make sure arguments are numpy arrays
     if isinstance(likelihoods, list):
         likelihoods = np.array(likelihoods)
 
-    init_threshold = 0.8
+    # Parameters:
+    min_size = 1
+    xstep = 1
+
+    # Threshold parameters:
+    use_thresholds = True
+    threshold_factor = 0.9
     min_threshold = 0.1
 
     # Recursive function for segmenting and finding endpoints:
-    def creep(R, P, X, N, E, L, step_size, neighbor_lists):
+    def creep(R, P, X, E, L, B, step, neighbor_lists, min_size=1):
         """
         Recursively segment a mesh, creeping toward its edges to find endpoints.
 
         Steps ::
 
-            Propagate P into R, and call these new vertices N.
-            If N is empty:
-                Choose highest likelihood point in P as endpoint.
-                Return endpoints E and remaining vertices R.
-            else:
-                Identify N_i different segments of N.
-                For each segment N_i:
-                    If N_i large enough or if max(i)==1:
-                        Call creep() with new arguments.
-                Return endpoints E and remaining vertices R.
+                Propagate P into R, and call these new vertices N.
+                Propagate X into P, R, and N.
+                Remove points from N and R that are also in the expanded X.
+                Remove P and N from R.
+                Reassign P to X.
+                If N is empty:
+                    Choose highest likelihood point in P as endpoint.
+                    Return endpoints E and remaining vertices R.
+                else:
+                    Identify N_i different segments of N.
+                    For each segment N_i:
+                        If N_i large enough or if max(i)==1:
+                            Call recursive function creep() with new arguments.
+                    Return endpoints E and R, P, X, and N.
 
         Parameters
         ----------
@@ -350,73 +390,88 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
         P : list of integers
             indices of previous segment vertices
         X : list of integers
-            indices of already segmented vertices
-        N : list of integers
-            indices of new/next segment vertices
+            indices of segmented vertices to exclude from endpoint selection
         E: list of integers
             indices to endpoint vertices
         L : numpy array of floats
             likelihood values for all vertices
-        step_size : integer
+        step : integer
             number of segmentation steps before assessing segments
         neighbor_lists : list of lists of integers
             indices to neighboring vertices for each vertex
+        min_size : integer
+            minimum number of vertices for an endpoint segment
 
         Returns
         -------
         R : list of integers
             remaining vertices to segment
         P : list of integers
-            previous segment vertices
+            previous segment
         X : list of integers
-            already segmented vertices
-        N : list of integers
-            new segment vertices
+            excluded segment
         E: list of integers
-            endpoint vertices
+            endpoints
 
         """
         import numpy as np
 
         from mindboggle.labels.segment import segment
 
-        min_size = 1
+        # Expand X and exclude endpoint selection?:
+        rmX = False
 
         #-----------------------------------------------------------------------
         # Propagate P into R, and call these new vertices N:
         #-----------------------------------------------------------------------
-        R_segments = segment(R, neighbor_lists, min_region_size=1,
-                             seed_lists=[P], keep_seeding=False, spread_within_labels=False,
-                             labels=[], label_lists=[], values=[], max_steps=step_size)
-        N = [i for i,x in enumerate(R_segments) if x != -1]
-        print('  {0} vertices in the new segment'.format(len(N)))
+        PintoR = segment(R, neighbor_lists, min_region_size=1, seed_lists=[P],
+                         keep_seeding=False, spread_within_labels=False,
+                         labels=[], label_lists=[], values=[], max_steps=step)
+        PN = [i for i,x in enumerate(PintoR) if x != -1]
+        # Remove P (seeds) from N:
+        N = list(frozenset(PN).difference(P))
+        #print('  {0} vertices in the new segment'.format(len(N)))
 
-        # Propagate X into R
-        # (before P added to X and before P and N removed from R):
-        X_segments = segment(R, neighbor_lists, min_region_size=1,
-                             seed_lists=[X], keep_seeding=False, spread_within_labels=False,
-                             labels=[], label_lists=[], values=[], max_steps=step_size)
-        X = [i for i,x in enumerate(X_segments) if x != -1]
-        print('  {0} vertices spread from previously segmented'.format(len(X)))
+        #-----------------------------------------------------------------------
+        # Propagate X into R (including P and N):
+        #-----------------------------------------------------------------------
+        if rmX:
+            if X:
+                RPN = R[:]
+                RPN.extend(PN)
+                XintoR = segment(RPN, neighbor_lists, min_region_size=1,
+                                 seed_lists=[X], keep_seeding=False,
+                                 spread_within_labels=False, labels=[],
+                                 label_lists=[], values=[], max_steps=xstep)
+                X = [i for i,x in enumerate(XintoR) if x != -1]
+                print('  {0} vertices spread from previously segmented'.format(len(X)))
 
-        # Add P (seeds) to X and remove X from R:
-        X.extend(P)
-        R = list(frozenset(R).difference(X))
+                # Remove points from N and R that are also in the expanded X:
+                N = list(frozenset(N).difference(X))
+                R = list(frozenset(R).difference(X))
 
-        # Remove P (seeds) from N, and remove P and N from R:
-        N = list(frozenset(N).difference(P))
+            # Reassign P to X:
+            X.extend(P)
+
+        # Remove P and N from R:
+        R = list(frozenset(R).difference(P))
         R = list(frozenset(R).difference(N))
 
         #-----------------------------------------------------------------------
         # If N is empty, return endpoints:
         #-----------------------------------------------------------------------
+        BandN = list(frozenset(B).intersection(N))
+
         if not N:
+            pass
+
+        elif BandN:
 
             # Choose highest likelihood point in P as endpoint:
-            E.append(P[np.argmax(L[P])])
+            E.append(BandN[np.argmax(L[BandN])])
 
         #-----------------------------------------------------------------------
-        # If N is not empty, continue segmenting recursively:
+        # If N is not empty, assign as P and continue segmenting recursively:
         #-----------------------------------------------------------------------
         else:
 
@@ -433,57 +488,86 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step_size=5):
                 if len(N_i) >= min_size or n_segments==1:
 
                     # Call creep() with new arguments:
-                    R, P, X, N, E = creep(R, N_i, X, N_i, E, L, step_size, neighbor_lists)
+                    R, P, X, E = creep(R, N_i, X, E, L, B, step,
+                                       neighbor_lists, min_size)
 
         # Return endpoints E and remaining vertices R:
-        return R, P, X, N, E
+        return R, P, X, E
 
 
-    # Initialize old and new segments P and N with the maximum likelihood point:
-    maxL = indices[np.argmax(likelihoods[indices])]
-    P = [maxL]
-    N = [maxL]
+    # Extract boundary:
+    D = np.ones(len(likelihoods))
+    D[indices] = 2
+    B, foo1, foo2 = extract_borders(range(len(likelihoods)), D, neighbor_lists)
 
-    # Initialize endpoints:
-    indices_endpoints = []
-    E = indices_endpoints
-
-    # Initialize remaining vertices with likelihoods greater than a threshold:
-    threshold = init_threshold
-    L = likelihoods
-    R = [x for x in indices if L[x] > threshold]
+    # Initialize R, X, and E:
+    R = []
     X = []
+    E = []
+    indices_endpoints = []
 
-    # Iterate endpoint extraction until all vertices have been segmented:
-    while R:
+    # Initialize P and threshold with the maximum likelihood point:
+    L = likelihoods
+    index_maxL = indices[np.argmax(L[indices])]
+    P = [index_maxL]
+    threshold = L[index_maxL]
 
-        print('  {0} remaining vertices (threshold: {1})'.
-            format(len(R), threshold))
+    # Include new vertices with lower likelihood values:
+    if use_thresholds:
+
+        # Iterate endpoint extraction until all vertices have been segmented:
+        continue_loop = True
+        while continue_loop:
+            prev_threshold = threshold
+
+            # If threshold above minimum, update R based on the threshold:
+            if threshold > min_threshold:
+                #if X:  threshold = threshold_factor * np.mean(L[X])
+                threshold = threshold_factor * threshold
+                T = [x for x in indices if L[x] >= threshold
+                     if L[x] < prev_threshold]
+                if not T:
+                    decrease_threshold = True
+                    while decrease_threshold:
+                        threshold *= threshold_factor
+                        T = [x for x in indices if L[x] >= threshold
+                                                if L[x] < prev_threshold]
+                        if T or threshold < min_threshold:
+                            decrease_threshold = False
+                R.extend(T)
+
+            # If threshold below minimum, update and exit:
+            else:
+                T = [x for x in indices if L[x] < prev_threshold]
+                R.extend(T)
+                continue_loop = False
+
+            # Run recursive function creep() to return endpoints:
+            R, P, X, E = creep(R, P, X, E, L, B, step, neighbor_lists, min_size)
+            E = np.unique(E).tolist()
+
+            # Print message:
+            if len(R) == 1:
+                str1 = 'vertex'
+            else:
+                str1 = 'vertices'
+            if len(E) == 1:
+                str2 = 'endpoint'
+            else:
+                str2 = 'endpoints'
+            print('  {0} remaining {1}, {2} {3} (threshold: {4:0.3f})'.
+                format(len(R), str1, len(E), str2, threshold))
+
+    # Don't use thresholds -- include all vertices:
+    else:
+
+        R = indices
+        print('  Segment {0} vertices'.format(len(R)))
 
         # Run recursive function creep() to return endpoints:
-        R, P, X, N, E = creep(R, P, X, N, E, L, step_size, neighbor_lists)
+        R, P, X, E = creep(R, P, X, E, L, B, step, neighbor_lists, min_size)
 
-        # Include new vertices with lower likelihood values:
-        prev_threshold = threshold
-        threshold = 0.9 * np.mean(L[X])
-        T = [x for x in indices if L[x] > threshold
-             if L[x] <= prev_threshold]
-        if not T:
-            decrease_threshold = True
-            while decrease_threshold:
-                threshold = 0.9 * threshold
-                print('  threshold: {0}'.format(threshold))
-                T = [x for x in indices if L[x] > threshold
-                                        if L[x] <= prev_threshold]
-                if T or threshold < min_threshold:
-                    decrease_threshold = False
-        R.extend(T)
-
-        # Use newest endpoints as previous and next seeds:
-        P = E[:]
-        N = E[:]
-
-        indices_endpoints.extend(E)
+    indices_endpoints = E
 
     return indices_endpoints
 
