@@ -241,10 +241,22 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
     Find endpoints in a region of connected vertices.
 
     These points are intended to serve as endpoints of fundus curves
-    running along high-likelihood paths.  This algorithm iteratively
-    propagates from an initial high-likelihood seed toward the boundary
-    of the region, selecting the highest likelihood boundary point
-    from each terminal segment as an endpoint.
+    running along high-likelihood paths within a region (fold).
+    This algorithm iteratively propagates from an initial high-likelihood seed
+    toward the boundary of a region within thresholded subregions of
+    decreasing likelihood. The first boundary point that is reached for each
+    segmented branch serves as an endpoint.
+
+    Note ::
+
+        This algorithm suffers from the following problems:
+        1.  If multiple boundary points are reached simultaneously,
+            the choice of highest likelihood among them might not be appropriate.
+        2.  The boundary may be reached before any other branches are
+            discovered, especially if other branches are separated by
+            low likelihood (shallow) vertices.
+        3.  Segmentation may reach the top of a fold's wall before reaching
+            the tip of its branch.
 
     Steps ::
 
@@ -259,7 +271,7 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
 
             Propagate P into R, and call these new vertices N.
             Propagate X into P, R, and N.
-            Remove points from N and R that are also in the expanded X.
+            Optionally remove points from N and R that are also in the expanded X.
             Remove P and N from R.
             Reassign P to X.
             If N is empty:
