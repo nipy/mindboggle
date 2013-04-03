@@ -994,26 +994,38 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     Examples
     --------
     >>> # Extract a skeleton from a fold through a couple of points:
+    >>> # (Alternative to connecting vertices with connect_points().
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_scalars, \
+    >>>                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors, skeletonize
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> faces, lines, indices, points, npoints, folds, name, input_vtk = read_vtk(folds_file,
-    >>>     return_first=True, return_array=True)
-    >>> n_fold = max(folds)
-    >>> folds[folds != n_fold] = -1
-    >>> indices_fold = [i for i,x in enumerate(folds) if x > -1]
-    >>> indices = [indices_fold[0], indices_fold[-1]]
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> # Get neighbor_lists, scalars
+    >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> # Select a single fold:
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold, name = read_scalars(fold_file)
+    >>> # Test with pre-computed endpoints:
+    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
+    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
+    >>> #endpoints, name = read_scalars(endpoints_file)
+    >>> #indices_endpoints = [i for i,x in enumerate(endpoints) if x > 1]
+    >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test3.vtk')
+    >>> endpoints, name = read_scalars(endpoints_file)
+    >>> max_endpoints = max(endpoints)
+    >>> indices_endpoints = [i for i,x in enumerate(endpoints) if x == max_endpoints]
     >>> #
-    >>> skeleton = skeletonize(folds, indices, neighbor_lists)
+    >>> skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
     >>> #
     >>> # Write out vtk file and view:
-    >>> rewrite_scalars(folds_file, 'test_skeletonize.vtk',
+    >>> indices_skeleton = [i for i,x in enumerate(skeleton) if x > -1]
+    >>> skeleton[indices_endpoints] = 2
+    >>> rewrite_scalars(fold_file, 'skeletonize.vtk',
     >>>                 skeleton, 'skeleton', skeleton)
     >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_skeletonize.vtk')
+    >>> plot_vtk('skeletonize.vtk')
 
     """
     import numpy as np
