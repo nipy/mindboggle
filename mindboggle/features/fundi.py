@@ -636,32 +636,35 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
     --------
     >>> # Connect vertices according to likelihood values in a single fold
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
+    >>>                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.features.fundi import find_endpoints, connect_points
-    >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> # Get neighbor_lists, scalars
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
+    >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold:
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
+    >>> faces, lines, indices, points, npoints, fold, name, input_vtk = read_vtk(fold_file)
     >>> # Test with pre-computed endpoints:
-    >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
+    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
     >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
+    >>> #endpoints, name = read_scalars(endpoints_file)
+    >>> #indices_endpoints = [i for i,x in enumerate(endpoints) if x > 1]
+    >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test3.vtk')
     >>> endpoints, name = read_scalars(endpoints_file)
+    >>> max_endpoints = max(endpoints)
+    >>> indices_endpoints = [i for i,x in enumerate(endpoints) if x == max_endpoints]
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> L, name = read_scalars(likelihood_file,True,True)
-    >>> indices_endpoints =[i for i,x in enumerate(endpoints) if x>1 if folds[i]==fold_ID]
     >>> #
     >>> H = connect_points(indices_endpoints, indices, L, neighbor_lists)
     >>> #
     >>> # View:
     >>> H[indices_endpoints] = 1.1
-    >>> rewrite_scalars(depth_file, 'test_connect_points.vtk', H,
+    >>> rewrite_scalars(likelihood_file, 'test_connect_points.vtk', H,
     >>>                 'connected_points', fold)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('test_connect_points.vtk')
@@ -669,6 +672,7 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
     """
     import numpy as np
     from mindboggle.utils.mesh import topo_test, skeletonize
+    from mindboggle.features.fundi import compute_cost
 
     # Make sure argument is a numpy array
     if not isinstance(L, np.ndarray):
@@ -711,7 +715,7 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
     H[H_init > 0.5] = H_init[H_init > 0.5]
     #
     H[indices_endpoints] = 1
-    print_interval = 100
+    print_interval = 1
 
     # Neighbors for each vertex
     N = neighbor_lists
@@ -785,9 +789,8 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
 
             # Display information every n_mod iterations
             if not np.mod(count, print_interval):
-                print('      Iteration {0}: {1} points crossing threshold (wN={2}, grad={3}, cost={4})'.
+                print('      Iteration {0}: {1} points crossing threshold (wN={2:0.3f}, grad={3:0.3f}, cost={4:0.3f})'.
                       format(count, delta_points, wN, gradient_factor, delta_cost))
-                #print('      H[0]: {0}'.format(H[indices]))
 
             # Increment the gradient factor and
             # decrement the neighborhood factor
@@ -822,8 +825,6 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
         skeleton = H
 
     return skeleton
-
-
 
 # Example
 if __name__ == "__main__" :
