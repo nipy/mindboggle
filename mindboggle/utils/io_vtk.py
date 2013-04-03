@@ -264,7 +264,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         each element is an edge on the mesh, consisting of 2 integers
         representing the 2 vertices of the edge
     indices : list of integers
-        indices of vertices
+        indices of vertices not equal to -1
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     npoints : int
@@ -315,12 +315,12 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     else:
         lines = []
 
-    if Data.GetNumberOfVerts() > 0:
-        indices = [Data.GetVerts().GetData().GetValue(i)
-                    for i in xrange(1, Data.GetVerts().GetSize() )]
-        # The reason the reading starts from 1 is because we need to avoid the
-    else:
-        indices = []
+#    if Data.GetNumberOfVerts() > 0:
+#        indices = [Data.GetVerts().GetData().GetValue(i)
+#                   for i in xrange(1, Data.GetVerts().GetSize() )]
+#        # The reason the reading starts from 1 is because we need to avoid the
+#    else:
+#        indices = []
 
     scalars = []
     scalar_names = []
@@ -353,6 +353,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             scalar_names = scalar_names[0]
         else:
             scalar_names = ''
+
+    indices = [i for i,x in enumerate(scalars) if x != -1]
 
     return faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk
 
