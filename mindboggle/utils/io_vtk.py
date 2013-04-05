@@ -68,9 +68,10 @@ def read_lines(Filename):
     Returns
     -------
     lines : list of 2-tuple of integers
-        Each element is a 2-tuple of IDs (i.e., indexes) of two points defined in POINTS segment of the VTK file
+        each element is a 2-tuple of IDs (i.e., indices) of two points
+        defined in the POINTS section of the VTK file
     scalars : list of floats
-        Each element is a scalar value corresponding to a vertex
+        each element is a scalar value corresponding to a vertex
 
     """
     import vtk
