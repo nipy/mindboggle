@@ -387,20 +387,20 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
 
         Steps ::
 
-                Propagate P into R, and call these new vertices N.
-                Propagate X into P, R, and N.
-                Remove points from N and R that are also in the expanded X.
-                Remove P and N from R.
-                Reassign P to X.
-                If N is empty:
-                    Choose highest likelihood point in P as endpoint.
-                    Return endpoints E and remaining vertices R.
-                else:
-                    Identify N_i different segments of N.
-                    For each segment N_i:
-                        If N_i large enough or if max(i)==1:
-                            Call recursive function creep() with new arguments.
-                    Return endpoints E and R, P, X, and N.
+            Propagate P into R, and call these new vertices N.
+            Propagate X into P, R, and N.
+            Remove points from N and R that are also in the expanded X.
+            Remove P and N from R.
+            Reassign P to X.
+            If N is empty:
+                Choose highest likelihood point in P as endpoint.
+                Return endpoints E and remaining vertices R.
+            else:
+                Identify N_i different segments of N.
+                For each segment N_i:
+                    If N_i large enough or if max(i)==1:
+                        Call recursive function creep() with new arguments.
+                Return E, R, P, X, and N.
 
         Parameters
         ----------
@@ -841,6 +841,7 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
 # Example
 if __name__ == "__main__" :
 
+    """
     # Extract fundus from a single fold:
     import os
     import numpy as np
@@ -875,3 +876,148 @@ if __name__ == "__main__" :
     rewrite_scalars(depth_file, 'overlay.vtk', overlay,
                     'likelihoods_fundi_endpoints', fold_array)
     plot_vtk('overlay.vtk')
+    """
+
+
+
+
+    # Setup:
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
+#    from mindboggle.labels.label import extract_borders
+    from mindboggle.utils.mesh import plot_vtk
+    path = os.environ['MINDBOGGLE_DATA']
+    likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    likelihoods, name = read_scalars(likelihood_file, True, True)
+    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+
+
+
+    likelihoods, name = read_scalars(depth_file, True, True)
+
+
+
+    neighbor_lists = find_neighbors_from_file(depth_file)
+    #
+    #-----------------------------------------------------------------------
+    # Find indices for a single fold:
+    #-----------------------------------------------------------------------
+    fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    fold, name = read_scalars(fold_file)
+    indices = [i for i,x in enumerate(fold) if x != -1]
+
+
+    # Recursive function for finding tracks:
+    def track(R, P, T, L, neighbor_lists):
+        """
+        Recursively run tracks along a mesh, through vertices of high likelihood.
+        At each vertex, continue, branch, or terminate.
+
+        Steps ::
+
+            R is the set of remaining (untracked) vertices.
+            Find the neighborhood N for point P in R.
+            If N is not empty:
+                Remove N from R.
+                If the neighborhood contains a boundary point B_i:
+                    Assign [P, B_i] as a track segment in T
+                Else:
+                    For each neighborhood vertex N_i:
+                        Remove N_i from N.
+                        Find the neighbors for N_i also in N.
+                        If N_i has the maximum value in its neighborhood:
+                            Call recursive function track() with N_i as P.
+            Return R, T.
+
+        Parameters
+        ----------
+        R : list of integers
+            indices of vertices (such as a fold in a surface mesh)
+        P : integer
+            index to vertex
+        T : list of lists of pairs of integers
+            index pairs are track segments
+        L : numpy array of floats
+            likelihood values for all vertices
+        neighbor_lists : list of lists of integers
+            indices to neighboring vertices for each vertex
+
+        Returns
+        -------
+        R : list of integers
+            remaining vertices
+        T : list of lists of pairs of integers
+            track segments
+
+        """
+        import numpy as np
+
+
+        # Find the neighborhood N for point P in R:
+        N = neighbor_lists[P]
+        N = list(frozenset(N).intersection(R))
+        print('N', N)
+        if N:
+
+            # Remove N from R:
+            R = list(frozenset(R).difference(N))
+
+            # For each neighborhood vertex N_i:
+            for N_i in N:
+#                # Remove N_i from N:
+#                N.remove(N_i)
+
+#                # If N_i is a boundary point,
+#                # assign [P, N_i] as a track segment in T:
+#                if N_i in B:
+#                    print('B_i', N_i)
+#                    T.append([P, N_i])
+#                else:
+
+                # Find the neighbors of N_i also in N:
+                N2 = list(frozenset(neighbor_lists[N_i]).intersection(N))
+                print('N2', N2)
+                if N2:
+
+                    # If N_i has the maximum value in its restricted neighborhood:
+                    if L[N_i] >= max(L[N2]):
+
+                        # Add track segment:
+                        T.append([P, N_i])
+                        print('T', T)
+
+                # Call recursive function track() with N_i as P:
+                R, T = track(R, N_i, T, L, neighbor_lists)
+
+        return R, T
+
+    # Initialize P with the maximum likelihood point:
+    L = np.array(likelihoods)
+    index_maxL = indices[np.argmax(L[indices])]
+    P = index_maxL
+
+    # Initialize R, T:
+    R = indices[:]
+    R.remove(P)
+    T = []
+
+#    # Extract boundary:
+#    D = np.ones(len(L))
+#    D[indices] = 2
+#    B, foo1, foo2 = extract_borders(range(len(L)), D, neighbor_lists)
+#    B = []
+
+    # Run recursive function track() to return endpoints:
+    print('  Track through {0} vertices'.format(len(R)))
+    R, T = track(R, P, T, L, neighbor_lists)
+
+    print(T)
+    T = np.ravel(T)
+
+    # Write results to VTK file and view:
+    L[T] = max(L) + 0.1
+    rewrite_scalars(likelihood_file, 'track.vtk',
+                    L, 'tracks_on_likelihoods_in_fold', fold)
+    plot_vtk('track.vtk')
