@@ -32,7 +32,7 @@ int main(int argc, char** argv)
         print_help();
         return -1;
     }
-    
+
     /* Default values for options */
     int Method=0;  // using ComputePrincipalCurvatures()
     bool Gaussian=false, Max=false, Min=false, MinDir=false;  // whether output Gaussian, max and min curvatures, and directions of minimal curvature
@@ -40,11 +40,11 @@ int main(int argc, char** argv)
     double NeighborhoodSize = 0.7; // default neighborhood size for computing curvature
 
     /*Check whether we have mandatory I/Os*/
-    int Mandatory = 0; // number of mandatory I/O (input mesh and mean curvature VTK) available 
+    int Mandatory = 0; // number of mandatory I/O (input mesh and mean curvature VTK) available
     for (int i=1;i<argc;i++) // we may need to use getopt or getlongopt later - Forrest, 2012/05/29
     {
-        if (argv[i][0] != '-') 
-        { 
+        if (argv[i][0] != '-')
+        {
             Mandatory++;
         }
         else
@@ -60,17 +60,17 @@ int main(int argc, char** argv)
     /* Processing options and arguments */
     for (int i=1;i<argc;i++) // we may need to use getopt or getlongopt later - Forrest, 2012/05/29
     {
-        if (argv[i][0] != '-') 
+        if (argv[i][0] != '-')
             continue; // no more options
         switch (argv[i][1])
         {
-            case 'm' :  // select curvature computation method 
+            case 'm' :  // select curvature computation method
                 Method = atoi(argv[i+1]);
                 cout<<"Using method "<<Method<<" to compute curvature(s)..."<<endl;
                 break;
 
-            case 'g' :  // whether output Gaussian curvature 
-                if (Method==2) 
+            case 'g' :  // whether output Gaussian curvature
+                if (Method==2)
                 {
                     cout<<"[ERROR]: Method 2 does NOT compute Gaussian curvature."<<endl;
                     return -2;
@@ -79,24 +79,24 @@ int main(int argc, char** argv)
                 GaussianVTK = argv[i+1];
                 break;
 
-            case 'x' : // whether output max curvature 
+            case 'x' : // whether output max curvature
                 Max = true;
                 MaxVTK = argv[i+1];
                 break;
 
-            case 'i' : // whether output min curvature 
+            case 'i' : // whether output min curvature
                 Min = true;
                 MinVTK = argv[i+1];
                 break;
 
             case 'n': //set neighborhood size for computing curvature
-                if (Method==0)
-                        cout <<"[Warning]: Method 0 does not need neighborhood size though you provided it."<<endl;
+//                if (Method==0)
+//                        cout <<"[Warning]: Method 0 does not need neighborhood size though you provided it."<<endl;
                 NeighborhoodSize = atof(argv[i+1]);
                 break;
 
             case 'd': // whether output directions of min curvature
-                if ((Method==2) or (Method==1))
+                if ((Method==2) || (Method==1))
                 {
                     cout<<"[ERROR]: Method 2 or 1 does NOT compute directions of minimal curvature. Remove flag -d and its argument please."<<endl;
                     return -3;
@@ -104,8 +104,8 @@ int main(int argc, char** argv)
                 MinDir = true;
                 MinDirVTK = argv[i+1];
                 break;
-        
-            default: 
+
+            default:
                 cout<<"[ERROR] Unrecognized argument flag or option. Check usage. ";
                 print_help();
         } // end of switch
@@ -117,10 +117,12 @@ int main(int argc, char** argv)
     {
         case 2:
             ma->ComputeCurvature(NeighborhoodSize);
-        case 1: 
+            break;
+        case 1:
             ma->ComputeBothCurvatures(NeighborhoodSize);
-        default: // =0  
-            vtkDoubleArray* minDirections= ma->ComputePrincipalCurvatures();
+            break;
+        default: // =0
+            vtkDoubleArray* minDirections= ma->ComputePrincipalCurvatures(NeighborhoodSize);
             if(MinDir)
             {
                 cout<<"Saving directions of minimal curvature into file "<<MinDirVTK<<endl;
@@ -137,29 +139,27 @@ int main(int argc, char** argv)
                 }
                 myfile.close();
             }
+            break;
     }
-
     /*Write results into VTK files*/
-    ma->WriteIntoFile(argv[argc-1], (char*)"curv");  // the very last input is the VTK for mean curv 
-
+    ma->WriteIntoFile(argv[argc-1], (char*)"curv");  // the very last input is the VTK for mean curv
+    ma->ComputeHistogram("curv",40);
     if(Gaussian)
     {
         cout<<"Saving Gaussian curvature into file "<<GaussianVTK<<endl;
         ma->WriteIntoFile(GaussianVTK, (char*)"gCurv");
     }
-
     if(Max)
     {
         cout<<"Saving maximum curvature into file "<<MaxVTK<<endl;
         ma->WriteIntoFile(MaxVTK, (char*)"curv1");
     }
-   
+
     if(Min)
     {
         cout<<"Saving minimum curvature into file "<<MinVTK<<endl;
         ma->WriteIntoFile(MinVTK, (char*)"curv2");
     }
-
     cout<<"Elapsed time: "<<time(NULL)-start<<" s"<<endl;
     return 0;
 }
