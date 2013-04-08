@@ -15,6 +15,7 @@
 #include <vtkHull.h>
 #include <vtkPolyDataWriter.h>
 #include <vtkPointLocator.h>
+#include <math.h>
 
 TravelDepth::TravelDepth(char *fileName)
 {
@@ -417,7 +418,7 @@ void TravelDepth::DecreaseReferenceSet(vtkIdList* changed)
 
 void TravelDepth::RefillReferenceSet()
 {
-    int subNumber = round(m_mesh->GetNumberOfPoints()/5);
+    int subNumber = floor(m_mesh->GetNumberOfPoints()/5.0);
 
     vtkIdType randomId;
 
@@ -516,6 +517,6 @@ bool TravelDepth::CheckIntersection(double x1, double y1, double z1, double x2, 
         point2[k]+=shift[k]*0.001;
     }
 
-    return m_meshLocator->IntersectWithLine(point1, point2, 0.0001, t, ptline, pcoords, subId);
+    return (m_meshLocator->IntersectWithLine(point1, point2, 0.0001, t, ptline, pcoords, subId) ==1);
 }
 
