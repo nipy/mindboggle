@@ -527,9 +527,9 @@ def find_endpoints(indices, neighbor_lists, likelihoods, step=1):
 
     # Initialize P and threshold with the maximum likelihood point:
     L = likelihoods
-    index_maxL = indices[np.argmax(L[indices])]
-    P = [index_maxL]
-    threshold = L[index_maxL]
+    Imax = indices[np.argmax(L[indices])]
+    P = [Imax]
+    threshold = L[Imax]
 
     # Include new vertices with lower likelihood values:
     if use_thresholds:
@@ -838,6 +838,260 @@ def connect_points(indices_endpoints, indices, L, neighbor_lists):
 
     return skeleton
 
+def track(R, P, T, L, B, neighbor_lists):
+    """
+    Recursively run tracks along a mesh, through vertices of high likelihood.
+    At each vertex, continue, branch, or terminate.
+
+    Steps ::
+
+        R is the set of remaining (untracked) vertices.
+        Find the neighborhood N for point P in R.
+        Remove N from R.
+        For each neighborhood vertex N_i:
+            Remove N_i from N.
+            Find the neighbors for N_i also in N.
+            If N_i has the maximum value in its restricted neighborhood:
+                Call recursive function track() with N_i as P if N_i not in B.
+
+    Parameters
+    ----------
+    R : list of integers
+        indices of vertices (such as a fold in a surface mesh)
+    P : integer
+        index to vertex
+    T : list of lists of pairs of integers
+        index pairs are track segments
+    L : numpy array of floats
+        likelihood values for all vertices
+    B : list of integers
+        indices of boundary vertices for R
+    neighbor_lists : list of lists of integers
+        indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    R : list of integers
+        remaining vertices
+    T : list of lists of pairs of integers
+        track segments
+
+    """
+    import numpy as np
+
+
+    # Find the neighborhood N for point P in R:
+    N = neighbor_lists[P]
+    N = list(frozenset(N).intersection(R))
+    print('N', N)
+    if N:
+
+        # Remove N from R:
+        R = list(frozenset(R).difference(N))
+
+        # For each neighborhood vertex N_i:
+        Imax = np.argmax(L[N])
+        print(Imax)
+        for N_i in [N[Imax]]:
+
+            # Find the neighbors of N_i also in N:
+            N2 = list(frozenset(neighbor_lists[N_i]).intersection(N))
+            print('N2', N2)
+            if N2:
+
+                # If N_i has the maximum value in its restricted neighborhood:
+                if L[N_i] >= max(L[N2]):
+
+                    # Add track segment:
+                    T.append([P, N_i])
+                    print('T', T)
+
+            # Call recursive function track() with N_i as P if N_i not in B:
+            if N_i not in B:
+                R, T = track(R, N_i, T, L, B, neighbor_lists)
+
+    return R, T
+
+def segment_rings(region, seeds, neighbor_lists, step=1):
+    """
+    Segment a region of surface mesh iteratively toward its edges.
+
+    Store the concentric segments for use in constructing tracks.
+
+    Parameters
+    ----------
+    region : list of integers
+        indices of region vertices to segment (such as a fold)
+    seeds : list of integers
+        indices of seed vertices
+    neighbor_lists : list of lists of integers
+        indices to neighboring vertices for each vertex
+    step : integer
+        number of segmentation steps before assessing segments
+
+    Returns
+    -------
+    segments : list of lists of integers
+        indices to vertices for each concentric segment
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.features.fundi import segment_rings
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> #likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> #values, name = read_scalars(likelihood_file, True, True)
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> values, name = read_scalars(depth_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold, name = read_scalars(fold_file)
+    >>> region = [i for i,x in enumerate(fold) if x != -1]
+    >>> seeds = [region[np.argmax(values[region])]]
+    >>> #
+    >>> segments = segment_rings(region, seeds, neighbor_lists, step=1)
+    >>> #
+    >>> # View:
+    >>> S = -1 * np.ones(len(values))
+    >>> for i, segment in enumerate(segments):
+    >>>     S[segment] = i
+    >>> rewrite_scalars(depth_file, 'segment_rings.vtk', S, 'segment_rings', fold)
+    >>> plot_vtk('segment_rings.vtk')
+    >>> # Store:
+    >>> #import pickle
+    >>> #pickle.dump(segments, open('segments_depth_fold11.pkl', "wb" ))
+
+    """
+    from mindboggle.labels.segment import segment
+
+    segments = []
+    while seeds:
+
+        # Segment step-wise starting from seeds and through the region:
+        seeds_plus_new = segment(region, neighbor_lists, min_region_size=1,
+                                 seed_lists=[seeds], keep_seeding=False,
+                                 spread_within_labels=False, labels=[],
+                                 label_lists=[], values=[], max_steps=step)
+        seeds_plus_new = [i for i,x in enumerate(seeds_plus_new) if x != -1]
+
+        # Store the new segment after removing the previous segment:
+        region = list(frozenset(region).difference(seeds))
+        seeds = list(frozenset(seeds_plus_new).difference(seeds))
+        if seeds:
+
+            # Add the new segment and remove it from the region:
+            segments.append(seeds)
+            region = list(frozenset(region).difference(seeds))
+
+    return segments
+
+def track_segments(seed, segments, neighbor_lists, mesh_values, borders):
+    """
+    Build a track from a point through concentric segments.
+
+    This function builds a track from an initial point through concentric
+    segments along high-value vertices of a surface mesh.
+
+    Parameters
+    ----------
+    seed : integer
+        index to initial seed vertex from which to grow a track
+    segments : list of lists of integers
+        indices to vertices for each concentric segment
+    neighbor_lists : list of lists of integers
+        indices to neighboring vertices for each vertex
+    mesh_values : numpy array of floats
+        values for all vertices that help to guide a track
+
+    Returns
+    -------
+    track : list of integers
+        indices of ordered vertices for a single track
+
+    Examples
+    --------
+    >>> # Track from deepest point in a fold to its boundary:
+    >>> import os
+    >>> import pickle
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.features.fundi import track_segments
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> segments_file = os.path.join(path, 'tests', 'segments_depth_fold11.pkl')
+    >>> segments = pickle.load(open(segments_file, 'rb'))
+    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> mesh_values, name = read_scalars(depth_file, True, True)
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold, name = read_scalars(fold_file)
+    >>> region = [i for i,x in enumerate(fold) if x != -1]
+    >>> seed = region[np.argmax(mesh_values[region])]
+    >>> # Extract boundary:
+    >>> D = np.ones(len(mesh_values))
+    >>> D[region] = 2
+    >>> borders, foo1, foo2 = extract_borders(range(len(mesh_values)), D, neighbor_lists)
+    >>> #
+    >>> track = track_segments(seed, segments, neighbor_lists, mesh_values, borders)
+    >>> #
+    >>> # View:
+    >>> T = -1 * np.ones(len(mesh_values))
+    >>> T[track] = 1
+    >>> rewrite_scalars(depth_file, 'track_segments.vtk', T, 'track', fold)
+    >>> plot_vtk('track_segments.vtk')
+
+    """
+    import numpy as np
+
+    track = []
+    for isegment, segment in enumerate(segments):
+
+        # Find the seed's neighborhood N in the segment:
+        N = neighbor_lists[seed]
+        N_segment = list(frozenset(N).intersection(segment))
+        if N:
+
+            # Add the neighborhood vertex with the maximum value to the track:
+            if N_segment:
+                seed = N_segment[np.argmax(mesh_values[N_segment])]
+                track.append(seed)
+
+                # If the track has run into the region's border, return the track:
+                if seed in borders:
+                    return track
+
+            # If there is no neighbor in the new segment,
+            # back up to the previous segment:
+            elif isegment > 0:
+                bridge = []
+                max_bridge = 0
+                N_previous = list(frozenset(N).intersection(segments[isegment-1]))
+                for Np in N_previous:
+                    N_next = list(frozenset(neighbor_lists[Np]).intersection(segment))
+                    if N_next:
+                        if np.max(mesh_values[N_next]) > max_bridge:
+                            seed = N_next[np.argmax(mesh_values[N_next])]
+                            bridge = [Np, seed]
+                            max_bridge = np.max(mesh_values[N_next])
+                if bridge:
+                    track.extend(bridge)
+
+                    # If the track has run into the region's border, return the track:
+                    if seed in borders:
+                        return track
+
+        # If there is no neighborhood for the seed, return the track:
+        else:
+            return track
+
 # Example
 if __name__ == "__main__" :
 
@@ -886,21 +1140,18 @@ if __name__ == "__main__" :
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
-#    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.label import extract_borders
+    from mindboggle.features.fundi import find_endpoints
     from mindboggle.utils.mesh import plot_vtk
     path = os.environ['MINDBOGGLE_DATA']
-    likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    likelihoods, name = read_scalars(likelihood_file, True, True)
+    #likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    #values, name = read_scalars(likelihood_file, True, True)
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-
-
-
-    likelihoods, name = read_scalars(depth_file, True, True)
-
-
-
+    depths, name = read_scalars(depth_file, True, True)
+    curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    values, name = read_scalars(curvature_file, True, True)
     neighbor_lists = find_neighbors_from_file(depth_file)
-    #
+
     #-----------------------------------------------------------------------
     # Find indices for a single fold:
     #-----------------------------------------------------------------------
@@ -908,116 +1159,48 @@ if __name__ == "__main__" :
     fold, name = read_scalars(fold_file)
     indices = [i for i,x in enumerate(fold) if x != -1]
 
-
-    # Recursive function for finding tracks:
-    def track(R, P, T, L, neighbor_lists):
-        """
-        Recursively run tracks along a mesh, through vertices of high likelihood.
-        At each vertex, continue, branch, or terminate.
-
-        Steps ::
-
-            R is the set of remaining (untracked) vertices.
-            Find the neighborhood N for point P in R.
-            If N is not empty:
-                Remove N from R.
-                If the neighborhood contains a boundary point B_i:
-                    Assign [P, B_i] as a track segment in T
-                Else:
-                    For each neighborhood vertex N_i:
-                        Remove N_i from N.
-                        Find the neighbors for N_i also in N.
-                        If N_i has the maximum value in its neighborhood:
-                            Call recursive function track() with N_i as P.
-            Return R, T.
-
-        Parameters
-        ----------
-        R : list of integers
-            indices of vertices (such as a fold in a surface mesh)
-        P : integer
-            index to vertex
-        T : list of lists of pairs of integers
-            index pairs are track segments
-        L : numpy array of floats
-            likelihood values for all vertices
-        neighbor_lists : list of lists of integers
-            indices to neighboring vertices for each vertex
-
-        Returns
-        -------
-        R : list of integers
-            remaining vertices
-        T : list of lists of pairs of integers
-            track segments
-
-        """
-        import numpy as np
-
-
-        # Find the neighborhood N for point P in R:
-        N = neighbor_lists[P]
-        N = list(frozenset(N).intersection(R))
-        print('N', N)
-        if N:
-
-            # Remove N from R:
-            R = list(frozenset(R).difference(N))
-
-            # For each neighborhood vertex N_i:
-            for N_i in N:
-#                # Remove N_i from N:
-#                N.remove(N_i)
-
-#                # If N_i is a boundary point,
-#                # assign [P, N_i] as a track segment in T:
-#                if N_i in B:
-#                    print('B_i', N_i)
-#                    T.append([P, N_i])
-#                else:
-
-                # Find the neighbors of N_i also in N:
-                N2 = list(frozenset(neighbor_lists[N_i]).intersection(N))
-                print('N2', N2)
-                if N2:
-
-                    # If N_i has the maximum value in its restricted neighborhood:
-                    if L[N_i] >= max(L[N2]):
-
-                        # Add track segment:
-                        T.append([P, N_i])
-                        print('T', T)
-
-                # Call recursive function track() with N_i as P:
-                R, T = track(R, N_i, T, L, neighbor_lists)
-
-        return R, T
-
-    # Initialize P with the maximum likelihood point:
-    L = np.array(likelihoods)
-    index_maxL = indices[np.argmax(L[indices])]
-    P = index_maxL
-
-    # Initialize R, T:
+    # Initialize R, T, L:
     R = indices[:]
-    R.remove(P)
     T = []
+    D = np.array(depths)
+    V = np.array(values)
 
-#    # Extract boundary:
-#    D = np.ones(len(L))
-#    D[indices] = 2
-#    B, foo1, foo2 = extract_borders(range(len(L)), D, neighbor_lists)
-#    B = []
+    # Extract boundary:
+    B = np.ones(len(V))
+    B[indices] = 2
+    borders, foo1, foo2 = extract_borders(range(len(V)), B, neighbor_lists)
 
-    # Run recursive function track() to return endpoints:
-    print('  Track through {0} vertices'.format(len(R)))
-    R, T = track(R, P, T, L, neighbor_lists)
+    # Initialize seeds with the boundary of a thresholded region:
+    use_threshold = True
+    if use_threshold:
+        threshold = np.max(D[borders]) + 2*np.std(D[indices])
+        #threshold = np.mean(D[indices]) + np.std(D[indices])
+        indices_high = [x for x in indices if D[x] >= threshold]
+        B = np.ones(len(D))
+        B[indices_high] = 2
+        seeds, foo1, foo2 = extract_borders(range(len(D)), B, neighbor_lists)
+        R = list(frozenset(R).difference(indices_high))
+    # Initialize P with the maximum value point:
+    else:
+        Imax = indices[np.argmax(D[indices])]
+        seeds = [Imax]
+        R.remove(Imax)
 
-    print(T)
-    T = np.ravel(T)
+    # Segment the mesh iteratively toward its edges:
+    segments = segment_rings(R, seeds, neighbor_lists, step=1)
+
+    # Run recursive function track() to return track segments:
+    print('  Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
+          format(len(R), len(segments), threshold))
+    for seed in seeds:
+        track = track_segments(seed, segments, neighbor_lists, V, borders)
+        if track:
+            T.append(track)
+
+    T = [x for lst in T for x in lst]
 
     # Write results to VTK file and view:
-    L[T] = max(L) + 0.1
-    rewrite_scalars(likelihood_file, 'track.vtk',
-                    L, 'tracks_on_likelihoods_in_fold', fold)
+    V[T] = max(V) + 0.01
+    rewrite_scalars(depth_file, 'track.vtk',
+                    V, 'tracks_on_likelihoods_in_fold', fold)
     plot_vtk('track.vtk')
