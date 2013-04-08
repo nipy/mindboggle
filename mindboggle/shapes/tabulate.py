@@ -197,9 +197,6 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
                                            'norm_' + table_names[itable])
         if feature_list:
 
-            print(type(feature_list))
-            print(feature_list)
-
             # Loop through shape measures:
             columns = []
             norm_columns = []
