@@ -200,7 +200,7 @@ void MeshAnalyser::GeoDistRing(vtkIdType st, double maxDist, double approx)
     vtkDoubleArray* tempDist=vtkDoubleArray::New();
 
     //number of closest points in this->simpl to relate to each point of this->mesh
-    int N=3;
+    const int N=3;
     //minimal ray to effectuate front propagation without passing through this->simpl (to be upgraded)
     double ray=0;
     double point1[3],point2[3], pointt[3],ec;
@@ -371,7 +371,7 @@ void MeshAnalyser::GeoDistRing(vtkIdType st, double maxDist, double approx)
 
 
 void MeshAnalyser::GeoDistRingSimple(vtkIdType stPoint, double maxDist)
-{		
+{
     multimap<float,vtkIdType> frontier;
 
     //temporary indexes
@@ -521,59 +521,13 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     vtkPolyDataWriter* writer=vtkPolyDataWriter::New();
     writer->SetFileName(fileName);
 
-    if(strcmp("geoDist",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->geoDistRing);
-        writer->SetInput(this->mesh);
-    }
-    else if(strcmp("depth",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->depth);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("euclideanDepth",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("curv",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->curv);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("gCurv",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->gCurv);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("curv1",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->curv1);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("curv2",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->curv2);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("test",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->test);
-        writer->SetInput(this->mesh);
-    }
-
-    else if(strcmp("surf",prop)==0)
-    {
-        this->mesh->GetPointData()->SetScalars(this->pointSurf);
-        writer->SetInput(this->mesh);
-    }
-
+    if(strcmp("geoDist",prop)==0) this->mesh->GetPointData()->SetScalars(this->geoDistRing);
+    else if(strcmp("depth",prop)==0) this->mesh->GetPointData()->SetScalars(this->depth);
+    else if(strcmp("euclideanDepth",prop)==0) this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
+    else if(strcmp("curv",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv);
+    else if(strcmp("gCurv",prop)==0) this->mesh->GetPointData()->SetScalars(this->gCurv);
+    else if(strcmp("test",prop)==0) this->mesh->GetPointData()->SetScalars(this->test);
+    else if(strcmp("surf",prop)==0) this->mesh->GetPointData()->SetScalars(this->pointSurf);
     else if(strcmp("1color",prop)==0)
     {
         vtkDoubleArray* value=vtkDoubleArray::New();
@@ -584,12 +538,26 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         }
         this->mesh->GetPointData()->SetScalars(value);
         value->Delete();
-        writer->SetInput(this->mesh);
+
     }
-    else if(strcmp("simple",prop)==0)
+    //If no valid code is used, the index of the point is the scalar
+    else
     {
-        writer->SetInput(this->simpl);
+/*
+        vtkDoubleArray* noValue=vtkDoubleArray::New();
+
+        for(int i=0;i<this->nbPoints;i++)
+        {
+            noValue->InsertNextValue(i);
+        }
+        this->mesh->GetPointData()->SetScalars(noValue);
+        noValue->Delete();
+*/
     }
+
+
+    this->mesh->Update();
+    if(strcmp("simple",prop)==0) writer->SetInput(this->simpl);
     else if(strcmp("geoDistSimple",prop)==0)
     {
         Simplify(500);
@@ -598,22 +566,9 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         this->simpl->Update();
         writer->SetInput(this->simpl);
     }
-    else if(strcmp("closed",prop)==0)
-    {
-        writer->SetInput(this->closedMesh);
-    }
-    else if(strcmp("medial",prop)==0)
-    {
-        writer->SetInput(this->medialSurface);
-    }
-    else
-    {
-        writer->SetInput(this->mesh);
-        cout<<"WARNING: "<< prop <<" is not a valid keyword for WriteIntoFile"<<endl;
-    }
-
-    this->mesh->Update();
-
+    else if(strcmp("closed",prop)==0) writer->SetInput(this->closedMesh);
+    else if(strcmp("medial",prop)==0) writer->SetInput(this->medialSurface);
+    else writer->SetInput(this->mesh);
     writer->Update();
     writer->Write();
     writer->Delete();
@@ -648,7 +603,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, vtkDataArray* propExt)
 }
 
 void MeshAnalyser::ComputePointSurface()
-{	
+{
     //initialisation
     vtkCellArray* cells=this->mesh->GetPolys();
     int nbPolys = cells->GetNumberOfCells();
@@ -762,7 +717,7 @@ void MeshAnalyser::ComputeTravelDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
     {
-        ComputeClosedMesh();
+        ComputeClosedMeshFast();
     }
 
     ComputeTravelDepth(norm,this->closedMesh);
@@ -1209,8 +1164,8 @@ void MeshAnalyser::ComputeTravelDepth(bool norm, vtkPolyData* pq)
     {
         for(int i = 0; i < this->nbPoints; i++)
         {
-            if(MAX<depths->GetValue(i)&depths->GetValue(i)<maxBound)MAX=depths->GetValue(i);
-            if(MIN>depths->GetValue(i))MIN=depths->GetValue(i);
+            if(MAX<depths->GetValue(i) && depths->GetValue(i)<maxBound) MAX=depths->GetValue(i);
+            if(MIN>depths->GetValue(i)) MIN=depths->GetValue(i);
         }
     }
 
@@ -1218,7 +1173,7 @@ void MeshAnalyser::ComputeTravelDepth(bool norm, vtkPolyData* pq)
     double tot=0;
     for(int i = 0; i < this->nbPoints; i++)
     {
-        if(norm==true)cc = (depths->GetValue(i)-MIN)/(MAX-MIN);
+        if(norm==true) cc = (depths->GetValue(i)-MIN)/(MAX-MIN);
         else cc=depths->GetValue(i);
         this->depth->InsertNextValue(cc);
         tot+=cc*this->pointSurf->GetValue(i);
@@ -1361,7 +1316,7 @@ void MeshAnalyser::ComputeEuclideanDepthFromClosed(bool norm)
 {
     if(this->closedMesh->GetNumberOfPoints()<1)
     {
-        ComputeClosedMesh();
+        ComputeClosedMeshFast();
     }
 
     ComputeEuclideanDepth(norm,this->closedMesh);
@@ -1381,7 +1336,7 @@ void MeshAnalyser::ComputeNormals()
     this->normals=no->GetPointData()->GetNormals();
 }
 
-void MeshAnalyser::ComputeBothCurvatures(double ray)
+void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 {
 
     //initialisation
@@ -1391,11 +1346,19 @@ void MeshAnalyser::ComputeBothCurvatures(double ray)
     double point1[3], point2[3], norm[3];
     double eps=0.01;
 
+    //computation of the laplacian smoothed mesh
+    vtkSmoothPolyDataFilter* smoothed = vtkSmoothPolyDataFilter::New();
+    smoothed->SetInput(this->mesh);
+    smoothed->SetRelaxationFactor(0.9);
+    smoothed->SetNumberOfIterations(200);
+    smoothed->FeatureEdgeSmoothingOff();
+    smoothed->Update();
+
     //computation of the mesh modification by projection of the points
     //in the direction of the normal.
     for(int i=0;i<this->nbPoints;i++)
     {
-        this->mesh->GetPoint(i,point1);
+        smoothed->GetOutput()->GetPoint(i,point1);
         this->normals->GetTuple(i,norm);
 
         point2[0]=point1[0]+norm[0]*eps;
@@ -1410,14 +1373,6 @@ void MeshAnalyser::ComputeBothCurvatures(double ray)
     upNorm->Update();
 
     upNormPoints->Delete();
-
-    //computation of the laplacian smoothed mesh
-    vtkSmoothPolyDataFilter* smoothed = vtkSmoothPolyDataFilter::New();
-    smoothed->SetInput(this->mesh);
-    smoothed->SetRelaxationFactor(0.7);
-    smoothed->SetNumberOfIterations(200);
-    smoothed->FeatureEdgeSmoothingOff();
-    smoothed->Update();
 
     int nbInRing;
 
@@ -1452,30 +1407,34 @@ void MeshAnalyser::ComputeBothCurvatures(double ray)
     for(int i=0;i<this->nbPoints;i++)
     {
         this->mesh->GetPoint(i,point1);
-        pl->FindPointsWithinRadius(ray,point1,Nclo);
+//        pl->FindPointsWithinRadius(ray,point1,Nclo);
         //GeoDistRing(i,ray);
         //nbInRing=this->inRing->GetNumberOfIds();
-        nbInRing=Nclo->GetNumberOfIds();
+//        nbInRing=Nclo->GetNumberOfIds();
 
         surf=0;
         normSurf=0;
         siSurf=0;
 
-        for(int j=0;j<nbInRing;j++)
-        {
-            //curId=this->inRing->GetId(j);
-            curId=Nclo->GetId(j);
+        surf=this->pointSurf->GetValue(i);
+        normSurf=upPs->GetValue(i);
+        siSurf=sPs->GetValue(i);
 
-            surf+=this->pointSurf->GetValue(curId);
-            normSurf+=upPs->GetValue(curId);
-            siSurf+=sPs->GetValue(curId);
-        }
+//        for(int j=0;j<nbInRing;j++)
+//        {
+//            //curId=this->inRing->GetId(j);
+//            curId=Nclo->GetId(j);
+
+//            surf+=this->pointSurf->GetValue(curId);
+//            normSurf+=upPs->GetValue(curId);
+//            siSurf+=sPs->GetValue(curId);
+//        }
         if(normSurf/surf<minCurv)minCurv=normSurf/surf;
         if(normSurf/surf>maxCurv)maxCurv=normSurf/surf;
         if(siSurf/surf<mingCurv)mingCurv=siSurf/surf;
         if(siSurf/surf>maxgCurv)maxgCurv=siSurf/surf;
 
-        this->curv->InsertNextValue(normSurf/surf);
+        this->curv->InsertNextValue((normSurf-surf)/surf);
         this->gCurv->InsertNextValue(siSurf/surf);
 
     }
@@ -1500,7 +1459,7 @@ void MeshAnalyser::ComputeBothCurvatures(double ray)
 
 }
 
-void MeshAnalyser::ComputeCurvature(double res)
+void MeshAnalyser::ComputeCurvature(double res) // -m 2
 {
 
     double pt1[3],pt2[3],N[3]={0,0,0}, normv;
@@ -1532,7 +1491,7 @@ void MeshAnalyser::ComputeCurvature(double res)
         //if(vtkMath::Norm(pt1pt2)==0)normv=1;
         //else normv=vtkMath::Norm(pt1pt2);
         normv=vtkMath::Norm(pt1pt2);
-        curCurv=(1+vtkMath::Dot(N,pt1pt2))/2.0;
+        curCurv=(vtkMath::Dot(N,pt1pt2)/normv);
         //curCurv=normv;
         this->curv->InsertNextTuple1(curCurv);
         if(curCurv<minCurv)minCurv=curCurv;
@@ -1540,25 +1499,15 @@ void MeshAnalyser::ComputeCurvature(double res)
         if(isnan(this->curv->GetTuple1(i)))cout<<vtkMath::Norm(pt1pt2)<<" "<<vtkMath::Norm(N)<<endl;
     }
 
+    cout<<"curvature estimation done"<<endl;
 
-    ofstream myfile("curvLapl.txt");
-    myfile.clear();
-
-    for(int i=0;i<this->nbPoints;i++)
-    {
-        curCurv=this->curv->GetValue(i);
-        this->curv->SetValue(i,(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1);
-        myfile<<(maxCurv-curCurv)/(maxCurv-minCurv)*(-2)+1<<endl;
-    }
-
-    myfile.close();
 
 
     smoothed->Delete();
-
+    cout<<"curvature estimation done"<<endl;
 }
 
-vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
+vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize)
 {
     vtkIdList* neib = vtkIdList::New();
 
@@ -1573,13 +1522,13 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
 
     double d1, d2, d;
 
-    double r, ac, ab, dc;
+    double r, dc;
 
     double maxD, minD;
 
     this->test->Reset();
 
-    double ec, ecv, ecc1, ecc2;
+    double ec, ecc1, ecc2;
 
     double saturation = 1;
     double maxScore, minScore, score;
@@ -1597,14 +1546,22 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
     vtkDoubleArray* minDirections = vtkDoubleArray::New();
     minDirections->SetNumberOfComponents(3);
 
+    //point locator for the smoothing of the curvature field
+    vtkPointLocator* pl=vtkPointLocator::New();
+    pl->SetDataSet(this->mesh);
+    pl->BuildLocator();
+
+
     for(int i = 0 ; i<this->nbPoints ; i++)
     {
-        GetPointNeighbors(i, neib);
 
         this->mesh->GetPoint(i,pointc);
 
-//        GeoDistRing(i,3);
-//        neib = this->inRing;
+//                GetPointNeighbors(i, neib);
+
+//        pl->FindPointsWithinRadius(3,pointc,neib);
+        GeoDistRing(i,nebSize);
+        neib = this->inRing;
 
         nbn = neib->GetNumberOfIds();
 
@@ -1641,25 +1598,6 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
                 ecc1 = vtkMath::Norm(vecc1);
                 ecc2 = vtkMath::Norm(vecc2);
 
-//                if(ec != 0)
-//                {
-//                    r = vtkMath::Dot(vec,vecc) / ec;
-//                }
-//                else
-//                {
-//                    r = 0;
-//                }
-
-
-//                ecv = pow(vtkMath::Norm(vecc),2) - pow(r,2);
-
-//                if(ecv < 0)
-//                {
-//                    ecv =0;
-//                }
-
-//                dc = sqrt( ecv );
-
                 if(ecc1 !=0 && ecc2 !=0 )
                 {
                     dc = vtkMath::Dot(vecc1, vecc2)/ecc1/ecc2;
@@ -1668,7 +1606,6 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
                 {
                     dc = 0;
                 }
-
 
                 if(isnan(dc))
                 {
@@ -1790,13 +1727,13 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures()
 //        curCurv=this->gCurv->GetValue(i);
 //        this->gCurv->SetValue(i,(maxgCurv-curCurv)/(maxgCurv-mingCurv)*2-1);
 //    }
-    /* end of added Forrest 2012-03-05 */ 
+    /* end of added Forrest 2012-03-05 */
 
     return minDirections;
 
 }
 
-void MeshAnalyser::ComputeClosedMesh()
+void MeshAnalyser::ComputeClosedMeshFast()
 {
 
     int recPlan=3;
@@ -1821,93 +1758,96 @@ void MeshAnalyser::ComputeClosedMesh()
     smooth->Update();
 
     this->closedMesh->DeepCopy(smooth->GetOutput());
+}
 
-//    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
-//    double bounds[6];
-//    this->mesh->GetBounds(bounds);
-//    double spacing[3]; // desired volume spacing
-//    spacing[0] = 2;
-//    spacing[1] = 2;
-//    spacing[2] = 2;
-//    whiteImage->SetSpacing(spacing);
-//    double sk = 5;
-//    double sec = 1.5;
+void MeshAnalyser::ComputeClosedMesh(double kernelSize)
+{
+    vtkSmartPointer<vtkImageData> whiteImage = vtkSmartPointer<vtkImageData>::New();
+    double bounds[6];
+    this->mesh->GetBounds(bounds);
+    double spacing[3]; // desired volume spacing
+    spacing[0] = 2;
+    spacing[1] = 2;
+    spacing[2] = 2;
+    whiteImage->SetSpacing(spacing);
+    double sk = kernelSize;
+    double sec = 1.5;
 
-//    for(int i = 0; i < 3 ; i++)
-//    {
-//        bounds[2*i] -= sec*sk;
-//        bounds[2*i+1] += sec*sk;
-//    }
-
-
-//    // compute dimensions
-//    int dim[3];
-//    for (int i = 0; i < 3; i++)
-//    {
-//        dim[i] = static_cast<int>(ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]));
-//    }
-//    whiteImage->SetDimensions(dim);
-//    whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
-
-//    double origin[3];
-//    // NOTE: I am not sure whether or not we had to add some offset!
-//    origin[0] = bounds[0];// + spacing[0] / 2;
-//    origin[1] = bounds[2];// + spacing[1] / 2;
-//    origin[2] = bounds[4];// + spacing[2] / 2;
-//    whiteImage->SetOrigin(origin);
-
-//    whiteImage->SetScalarTypeToUnsignedChar();
-//    whiteImage->AllocateScalars();
-
-//    // fill the image with foreground voxels:
-//    unsigned char inval = 255;
-//    unsigned char outval = 0;
-//    vtkIdType count = whiteImage->GetNumberOfPoints();
-//    for (vtkIdType i = 0; i < count; ++i)
-//    {
-//        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
-//    }
-
-//    // polygonal data --> image stencil:
-//    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
-//    pol2stenc->SetInput(this->mesh);
-//    pol2stenc->SetOutputOrigin(origin);
-//    pol2stenc->SetOutputSpacing(spacing);
-//    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
-//    pol2stenc->Update();
-
-//    // cut the corresponding white image and set the background:
-//    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
-//    imgstenc->SetInput(whiteImage);
-//    imgstenc->SetStencil(pol2stenc->GetOutput());
-//    imgstenc->ReverseStencilOff();
-//    imgstenc->SetBackgroundValue(outval);
-//    imgstenc->Update();
-
-//    //Dilatation
-//    vtkImageContinuousDilate3D *dilate = vtkImageContinuousDilate3D::New();
-//    dilate->SetInputConnection(imgstenc->GetOutputPort());
-//    //sk is the size of the dilation kernel in each direction
+    for(int i = 0; i < 3 ; i++)
+    {
+        bounds[2*i] -= sec*sk;
+        bounds[2*i+1] += sec*sk;
+    }
 
 
-//    dilate->SetKernelSize(sk,sk,sk);
-//    dilate->UpdateWholeExtent();
+    // compute dimensions
+    int dim[3];
+    for (int i = 0; i < 3; i++)
+    {
+        dim[i] = static_cast<int>(ceil((bounds[i * 2 + 1] - bounds[i * 2]) / spacing[i]));
+    }
+    whiteImage->SetDimensions(dim);
+    whiteImage->SetExtent(0, dim[0] - 1, 0, dim[1] - 1, 0, dim[2] - 1);
+
+    double origin[3];
+    // NOTE: I am not sure whether or not we had to add some offset!
+    origin[0] = bounds[0];// + spacing[0] / 2;
+    origin[1] = bounds[2];// + spacing[1] / 2;
+    origin[2] = bounds[4];// + spacing[2] / 2;
+    whiteImage->SetOrigin(origin);
+
+    whiteImage->SetScalarTypeToUnsignedChar();
+    whiteImage->AllocateScalars();
+
+    // fill the image with foreground voxels:
+    unsigned char inval = 255;
+    unsigned char outval = 0;
+    vtkIdType count = whiteImage->GetNumberOfPoints();
+    for (vtkIdType i = 0; i < count; ++i)
+    {
+        whiteImage->GetPointData()->GetScalars()->SetTuple1(i, inval);
+    }
+
+    // polygonal data --> image stencil:
+    vtkSmartPointer<vtkPolyDataToImageStencil> pol2stenc = vtkSmartPointer<vtkPolyDataToImageStencil>::New();
+    pol2stenc->SetInput(this->mesh);
+    pol2stenc->SetOutputOrigin(origin);
+    pol2stenc->SetOutputSpacing(spacing);
+    pol2stenc->SetOutputWholeExtent(whiteImage->GetExtent());
+    pol2stenc->Update();
+
+    // cut the corresponding white image and set the background:
+    vtkSmartPointer<vtkImageStencil> imgstenc = vtkSmartPointer<vtkImageStencil>::New();
+    imgstenc->SetInput(whiteImage);
+    imgstenc->SetStencil(pol2stenc->GetOutput());
+    imgstenc->ReverseStencilOff();
+    imgstenc->SetBackgroundValue(outval);
+    imgstenc->Update();
+
+    //Dilatation
+    vtkImageContinuousDilate3D *dilate = vtkImageContinuousDilate3D::New();
+    dilate->SetInputConnection(imgstenc->GetOutputPort());
+    //sk is the size of the dilation kernel in each direction
 
 
-//    //Erosion
-//    vtkImageContinuousErode3D *erode = vtkImageContinuousErode3D::New();
-//    erode->SetInputConnection(dilate->GetOutputPort());
-//    erode->SetKernelSize(sk,sk,sk);
-//    erode->UpdateWholeExtent();
+    dilate->SetKernelSize(sk,sk,sk);
+    dilate->UpdateWholeExtent();
 
-//    vtkMarchingContourFilter* imc3=vtkMarchingContourFilter::New();
-//    imc3->SetInputConnection(erode->GetOutputPort());
-//    imc3->SetValue(0,100);
-//    imc3->UpdateWholeExtent();
 
-//    this->closedMesh->DeepCopy(imc3->GetOutput());
+    //Erosion
+    vtkImageContinuousErode3D *erode = vtkImageContinuousErode3D::New();
+    erode->SetInputConnection(dilate->GetOutputPort());
+    erode->SetKernelSize(sk,sk,sk);
+    erode->UpdateWholeExtent();
 
-//    cout<<"Closed mesh computed"<<endl;
+    vtkMarchingContourFilter* imc3=vtkMarchingContourFilter::New();
+    imc3->SetInputConnection(erode->GetOutputPort());
+    imc3->SetValue(0,100);
+    imc3->UpdateWholeExtent();
+
+    this->closedMesh->DeepCopy(imc3->GetOutput());
+
+    cout<<"Closed mesh computed"<<endl;
 
 }
 
@@ -1938,6 +1878,64 @@ double MeshAnalyser::IsIntersecting(double point1[3], double point2[3])
 
 
     return t;
+
+}
+
+void MeshAnalyser::ComputeHistogram(char* prop, const int nbBins)
+{
+    vtkDataArray* data;
+
+    if(strcmp("geoDist",prop)==0) data=this->geoDistRing;
+    else if(strcmp("depth",prop)==0) data=this->depth;
+    else if(strcmp("curv",prop)==0) data=this->curv;
+    else if(strcmp("gCurv",prop)==0) data=this->gCurv;
+    else if(strcmp("test",prop)==0) data=this->test;
+    else if(strcmp("surf",prop)==0) data=this->pointSurf;
+    else data = this->mesh->GetPointData()->GetScalars();
+
+    ComputeHistogram(data, nbBins);
+}
+
+void MeshAnalyser::ComputeHistogram(vtkDataArray* data, const int nbBinsNU)
+{
+    double min=10000000;
+    double max=-100000000;
+
+    int nbEl = data->GetNumberOfTuples();
+
+    for(int i=0;i<nbEl;i++)
+    {
+        if(min>data->GetTuple1(i))min=data->GetTuple1(i);
+        if(max<data->GetTuple1(i))max=data->GetTuple1(i);
+    }
+
+    //FIXME JGI temporary: problem with const
+    const int nbBins = 40;
+
+    double hist[nbBins];
+
+    for(int j=0;j<nbBins;j++)
+    {
+        hist[j]=0;
+    }
+
+    int curBin;
+    double s=(max-min)/(double)nbBins;
+
+
+    for(int i=0;i<nbEl;i++)
+    {
+        curBin=(int)floor((data->GetTuple1(i)-min)/s);
+        hist[curBin]=hist[curBin]+1;//this->pointSurf->GetValue(i);
+    }
+    cout<<"histogram: "<<endl;
+    cout<<"min: "<<min<<"; max: "<<max<<"; step: "<<s<<endl;
+
+    for(int j=0;j<nbBins;j++)
+    {
+        cout<<hist[j]/this->nbPoints<<" ";
+    }
+    cout<<endl;
 
 }
 
