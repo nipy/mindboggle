@@ -226,16 +226,17 @@ def depth(command, surface_file):
 
     return depth_file
 
-def curvature(command, surface_file):
+def curvature0(command, surface_file):
     """
-    Measure curvature values of each vertex in a surface mesh.
+    Measure curvature values of each vertex in a surface mesh (-m 0).
     (Calls Joachim Giard's C++ code)
 
     The 3 methods (-m 0,1,2) take about the same amount of time to run
     if one does not set a neighborhood.
-    -m 0 is best if you have a low resolution or want to localize local peaks.
+    -m 0 is best if you have a low resolution or want to localize local peaks,
+        but is too sensitive to the local linear geometry of the mesh.
     -m 1 is not well tested and the filtering is done using Euclidean distances,
-        so it's only good for fast visualization.
+        so it's only good for incorrect but fast visualization.
     -m 2 is a good approximation but very large curvatures (negative or positive)
         are underestimated (saturation effect).
 
@@ -267,8 +268,48 @@ def curvature(command, surface_file):
     cli.cmdline
     cli.run()
 
-    return mean_curvature_file, gauss_curvature_file,\
+    return mean_curvature_file, gauss_curvature_file, \
            max_curvature_file, min_curvature_file, min_curvature_vector_file
+
+def curvature2(command, surface_file):
+    """
+    Measure curvature values of each vertex in a surface mesh (-m 2).
+    (Calls Joachim Giard's C++ code)
+
+    The 3 methods (-m 0,1,2) take about the same amount of time to run
+    if one does not set a neighborhood.
+    -m 0 is best if you have a low resolution or want to localize local peaks,
+        but is too sensitive to the local linear geometry of the mesh.
+    -m 1 is not well tested and the filtering is done using Euclidean distances,
+        so it's only good for incorrect but fast visualization.
+    -m 2 is a good approximation but very large curvatures (negative or positive)
+        are underestimated (saturation effect).
+
+    Parameters
+    ----------
+    command : string
+        C++ executable command for computing curvature
+    surface_file : string
+        name of VTK surface mesh file
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    stem = os.path.join(os.getcwd(),
+                        os.path.splitext(os.path.basename(surface_file))[0])
+    mean_curvature_file = stem + '.curv.avg.vtk'
+    max_curvature_file = stem + '.curv.max.vtk'
+    min_curvature_file = stem + '.curv.min.vtk'
+    args = ['-x', max_curvature_file,
+            '-i', min_curvature_file,
+            surface_file, mean_curvature_file]
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join(args)
+    cli.cmdline
+    cli.run()
+
+    return mean_curvature_file, max_curvature_file, min_curvature_file
 
 def mean_value_per_label(values, labels, exclude_labels,
                          normalize_by_area=False, areas=[]):
