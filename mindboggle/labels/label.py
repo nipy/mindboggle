@@ -152,10 +152,10 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> # Write results to vtk file and view:
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[indices_boundaries] = 1
-    >>> rewrite_scalars(labels_file, 'test_extract_borders.vtk',
+    >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
     >>>                 IDs, 'boundaries', IDs)
     >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_extract_borders.vtk')
+    >>> plot_vtk('extract_borders.vtk')
 
     """
     import numpy as np
