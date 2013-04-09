@@ -150,7 +150,7 @@ from mindboggle.labels.multiatlas import register_template,\
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
 from mindboggle.labels.label import label_with_classifier
-from mindboggle.shapes.measure import area, depth, curvature0, curvature2,\
+from mindboggle.shapes.measure import area, depth, curvature,\
     volume_per_label, rescale_by_label
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
@@ -486,8 +486,8 @@ if run_shapeFlow:
     #===========================================================================
     # Measure surface curvature
     #===========================================================================
-    CurvNode0 = Node(name='Curvature0',
-                     interface = Fn(function = curvature0,
+    CurvNode = Node(name='Curvature',
+                     interface = Fn(function = curvature,
                                     input_names = ['command',
                                                    'surface_file'],
                                     output_names = ['mean_curvature_file',
@@ -495,23 +495,9 @@ if run_shapeFlow:
                                                     'max_curvature_file',
                                                     'min_curvature_file',
                                                     'min_curvature_vector_file']))
-    curvature0_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain') +\
-                         ' -m 0 '
-    CurvNode0.inputs.command = curvature0_command
-
-    #===========================================================================
-    # Measure surface curvature
-    #===========================================================================
-    CurvNode2 = Node(name='Curvature2',
-                     interface = Fn(function = curvature2,
-                                    input_names = ['command',
-                                                   'surface_file'],
-                                    output_names = ['mean_curvature_file',
-                                                    'max_curvature_file',
-                                                    'min_curvature_file']))
-    curvature2_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain') +\
-                         ' -m 2 '
-    CurvNode2.inputs.command = curvature2_command
+    curvature_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain') +\
+                         ' -m 0 -n 2 '
+    CurvNode.inputs.command = curvature_command
 
     #===========================================================================
     # Convert FreeSurfer surface measures to VTK
@@ -545,35 +531,31 @@ if run_shapeFlow:
     #---------------------------------------------------------------------------
     # Add and connect nodes, save output files
     #---------------------------------------------------------------------------
-    shapeFlow.add_nodes([AreaNode, DepthNode, CurvNode0, CurvNode2])
+    shapeFlow.add_nodes([AreaNode, DepthNode, CurvNode])
     if do_input_vtk:
         mbFlow.connect([(Surf, shapeFlow,
                          [('surface_files','Area.surface_file')])])
         mbFlow.connect([(Surf, shapeFlow,
                          [('surface_files','Depth.surface_file')])])
         mbFlow.connect([(Surf, shapeFlow,
-                         [('surface_files','Curvature0.surface_file')])])
-        mbFlow.connect([(Surf, shapeFlow,
-                         [('surface_files','Curvature2.surface_file')])])
+                         [('surface_files','Curvature.surface_file')])])
     else:
         mbFlow.connect([(ConvertSurf, shapeFlow,
                          [('vtk_file', 'Area.surface_file')])])
         mbFlow.connect([(ConvertSurf, shapeFlow,
                          [('vtk_file', 'Depth.surface_file')])])
         mbFlow.connect([(ConvertSurf, shapeFlow,
-                         [('vtk_file', 'Curvature0.surface_file')])])
-        mbFlow.connect([(ConvertSurf, shapeFlow,
-                         [('vtk_file', 'Curvature2.surface_file')])])
+                         [('vtk_file', 'Curvature.surface_file')])])
     mbFlow.connect([(shapeFlow, Sink,
                      [('Area.area_file', 'shapes.@area')])])
     mbFlow.connect([(shapeFlow, Sink,
                      [('Depth.depth_file', 'shapes.@depth')])])
     mbFlow.connect([(shapeFlow, Sink,
-     [('Curvature2.mean_curvature_file', 'shapes.@mean_curvature'),
-      ('Curvature0.gauss_curvature_file', 'shapes.@gauss_curvature'),
-      ('Curvature2.max_curvature_file', 'shapes.@max_curvature'),
-      ('Curvature2.min_curvature_file', 'shapes.@min_curvature'),
-      ('Curvature0.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
+     [('Curvature.mean_curvature_file', 'shapes.@mean_curvature'),
+      ('Curvature.gauss_curvature_file', 'shapes.@gauss_curvature'),
+      ('Curvature.max_curvature_file', 'shapes.@max_curvature'),
+      ('Curvature.min_curvature_file', 'shapes.@min_curvature'),
+      ('Curvature.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
 
 ################################################################################
 #
@@ -728,7 +710,7 @@ if run_featureFlow:
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Rescale_depth.rescaled_scalars_file',
                            'Likelihood.depth_file'),
-                          ('Curvature2.mean_curvature_file',
+                          ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
         featureFlow.connect([(SulciNode, LikelihoodNode, [('sulci','sulci')])])
         # Save VTK file with likelihood values:
@@ -757,7 +739,7 @@ if run_featureFlow:
             featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature0.min_curvature_vector_file',
+                          ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
                               [('likelihoods', 'likelihoods_or_file')])])
@@ -793,9 +775,9 @@ if run_featureFlow:
                               [('neighbor_lists','neighbor_lists')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature2.mean_curvature_file',
+                          ('Curvature.mean_curvature_file',
                            'Fundi.mean_curvature_file'),
-                          ('Curvature0.min_curvature_vector_file',
+                          ('Curvature.min_curvature_vector_file',
                            'Fundi.min_curvature_vector_file')])])
         FundiNode.inputs.min_distance = min_distance
         FundiNode.inputs.thr = thr
@@ -899,16 +881,16 @@ if run_tableFlow:
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Depth.depth_file','Shape_tables.depth_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature2.mean_curvature_file',
+                     [('Curvature.mean_curvature_file',
                        'Shape_tables.mean_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature0.gauss_curvature_file',
+                     [('Curvature.gauss_curvature_file',
                        'Shape_tables.gauss_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature2.max_curvature_file',
+                     [('Curvature.max_curvature_file',
                        'Shape_tables.max_curvature_file')])])
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature2.min_curvature_file',
+                     [('Curvature.min_curvature_file',
                        'Shape_tables.min_curvature_file')])])
     if do_thickness:
         mbFlow.connect([(shapeFlow, tableFlow,
@@ -997,16 +979,16 @@ if run_tableFlow:
                          [('Rescale_depth.rescaled_scalars_file',
                            'Vertex_table.depth_rescaled_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature2.mean_curvature_file',
+                         [('Curvature.mean_curvature_file',
                            'Vertex_table.mean_curvature_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature0.gauss_curvature_file',
+                         [('Curvature.gauss_curvature_file',
                            'Vertex_table.gauss_curvature_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature2.max_curvature_file',
+                         [('Curvature.max_curvature_file',
                            'Vertex_table.max_curvature_file')])])
         mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature2.min_curvature_file',
+                         [('Curvature.min_curvature_file',
                            'Vertex_table.min_curvature_file')])])
         if do_thickness:
             mbFlow.connect([(shapeFlow, tableFlow,
