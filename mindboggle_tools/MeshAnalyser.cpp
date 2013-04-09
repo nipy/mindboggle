@@ -1734,7 +1734,7 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
 
 }
 
-void MeshAnalyser::ClosedMeshFast()
+void MeshAnalyser::ComputeClosedMeshFast()
 {
 
     int recPlan=3;
