@@ -226,7 +226,7 @@ def depth(command, surface_file):
 
     return depth_file
 
-def curvature0(command, surface_file):
+def curvature(command, surface_file):
     """
     Measure curvature values of each vertex in a surface mesh (-m 0).
     (Calls Joachim Giard's C++ code)
@@ -234,7 +234,8 @@ def curvature0(command, surface_file):
     The 3 methods (-m 0,1,2) take about the same amount of time to run
     if one does not set a neighborhood.
     -m 0 is best if you have a low resolution or want to localize local peaks,
-        but is too sensitive to the local linear geometry of the mesh.
+        but can be too sensitive to the local linear geometry of the mesh,
+        unless the neighborhood parameter is set high enough.
     -m 1 is not well tested and the filtering is done using Euclidean distances,
         so it's only good for incorrect but fast visualization.
     -m 2 is a good approximation but very large curvatures (negative or positive)
@@ -279,7 +280,8 @@ def curvature2(command, surface_file):
     The 3 methods (-m 0,1,2) take about the same amount of time to run
     if one does not set a neighborhood.
     -m 0 is best if you have a low resolution or want to localize local peaks,
-        but is too sensitive to the local linear geometry of the mesh.
+        but can be too sensitive to the local linear geometry of the mesh,
+        unless the neighborhood parameter is set high enough.
     -m 1 is not well tested and the filtering is done using Euclidean distances,
         so it's only good for incorrect but fast visualization.
     -m 2 is a good approximation but very large curvatures (negative or positive)
