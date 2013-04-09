@@ -165,7 +165,7 @@ public:
     //
     //arg1 = resolution (0 <= arg1 <= 1) the more it's small, the more it's local
     //Compute the local surface curvature and fill this->curv
-    void ComputeCurvature(double res);
+    void ComputeCurvature(double res, int nbIt);
 
     //ComputeBothCurvatures(double arg1)
     //

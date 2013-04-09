@@ -1459,7 +1459,7 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 
 }
 
-void MeshAnalyser::ComputeCurvature(double res) // -m 2
+void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
 {
 
     double pt1[3],pt2[3],N[3]={0,0,0}, normv;
@@ -1467,7 +1467,7 @@ void MeshAnalyser::ComputeCurvature(double res) // -m 2
     vtkSmoothPolyDataFilter* smoothed = vtkSmoothPolyDataFilter::New();
     smoothed->SetInput(this->mesh);
     smoothed->SetRelaxationFactor(res);
-    smoothed->SetNumberOfIterations(20);
+    smoothed->SetNumberOfIterations(nbIt);
     smoothed->FeatureEdgeSmoothingOff();
     smoothed->BoundarySmoothingOff();
     smoothed->Update();
@@ -1507,7 +1507,7 @@ void MeshAnalyser::ComputeCurvature(double res) // -m 2
     cout<<"curvature estimation done"<<endl;
 }
 
-vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize)
+vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
 {
     vtkIdList* neib = vtkIdList::New();
 
@@ -1644,6 +1644,7 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize)
         }
 
         ec = vtkMath::Norm(minVec);
+        if (ec < 0.001) ec =1;
         for(int k = 0 ; k<3; k++)
         {
             minVec[k] /= ec;
@@ -1733,7 +1734,7 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize)
 
 }
 
-void MeshAnalyser::ComputeClosedMeshFast()
+void MeshAnalyser::ClosedMeshFast()
 {
 
     int recPlan=3;
