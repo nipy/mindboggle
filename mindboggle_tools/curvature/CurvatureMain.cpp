@@ -116,7 +116,7 @@ int main(int argc, char** argv)
     switch (Method)
     {
         case 2:
-            ma->ComputeCurvature(NeighborhoodSize);
+            ma->ComputeCurvature(NeighborhoodSize, 200);
             break;
         case 1:
             ma->ComputeBothCurvatures(NeighborhoodSize);
@@ -143,7 +143,6 @@ int main(int argc, char** argv)
     }
     /*Write results into VTK files*/
     ma->WriteIntoFile(argv[argc-1], (char*)"curv");  // the very last input is the VTK for mean curv
-    ma->ComputeHistogram("curv",40);
     if(Gaussian)
     {
         cout<<"Saving Gaussian curvature into file "<<GaussianVTK<<endl;
