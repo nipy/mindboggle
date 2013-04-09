@@ -50,7 +50,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     Examples
     --------
-    >>> # Extract fundus from a single fold:
+    >>> # Extract fundus from one or more folds:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
@@ -60,14 +60,18 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file, return_first=True, return_array=True)
+    >>> single_fold = False
+    >>> if single_fold:
+    >>>     folds_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> else:
+    >>>     folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> #
-    >>> fundi, n_fundi, endpoints, fundi_file = extract_fundi(fold, depth_file,
+    >>> fundi, n_fundi, endpoints, fundi_file = extract_fundi(folds, depth_file,
     >>>     likelihoods_or_file, save_file=True)
     >>> #
     >>> # View:
-    >>> plot_vtk('fundi.vtk')
+    >>> plot_vtk('fundi2.vtk')
 
     """
     import os
@@ -110,10 +114,10 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
     n_folds = len(unique_fold_IDs)
     print("Extract a fundus from each of {0} regions...".format(n_folds))
-    for fold_ID in unique_fold_IDs:
+    for fold_ID in unique_fold_IDs[0:9]:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
-            print('  Region {0}:'.format(fold_ID))
+            print('  Region {0}:'.format(int(fold_ID)))
 
             # Find fundus points
             indices_endpoints, tracks = find_endpoints(indices_fold,
@@ -128,7 +132,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
                 print('    Connect {0} fundus points...'.format(n_endpoints))
                 B = connect_points(indices_endpoints, indices_fold,
                                    likelihoods, neighbor_lists)
-                indices_skeleton = [i for i,x in enumerate(B) if x > 0]
+                indices_skeleton = [i for i,x in enumerate(B) if x != -1]
                 if len(indices_skeleton) > 1:
                     fundi[indices_skeleton] = fold_ID
                     count += 1
@@ -144,9 +148,8 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     fundi = fundi.tolist()
 
     if save_file:
-        fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-        rewrite_scalars(depth_file, fundi_file, [fundi],
-                        ['fundi'], folds)
+        fundi_file = os.path.join(os.getcwd(), 'fundi2.vtk')
+        rewrite_scalars(depth_file, fundi_file, fundi, 'fundi', folds)
     else:
         fundi_file = None
 
@@ -184,17 +187,39 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> from mindboggle.features.fundi import segment_rings
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> #values, name = read_scalars(likelihood_file, True, True)
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> values, name = read_scalars(depth_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
-    >>> region = [i for i,x in enumerate(fold) if x != -1]
-    >>> seeds = [region[np.argmax(values[region])]]
+    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> # Initialize seeds with the boundary of thresholded indices:
+    >>> use_threshold = True
+    >>> if use_threshold:
+    >>>     # Threshold at the median depth or within maximum values in boundary:
+    >>>     threshold = np.median(values[indices]) #+ np.std(values[indices])
+    >>>     indices_high = [x for x in indices if values[x] >= threshold]
+    >>>     # Make sure threshold is within the maximum values of the boundary:
+    >>>     B = np.ones(len(values))
+    >>>     B[indices] = 2
+    >>>     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
+    >>>     borders = [x for x in borders if values[x] != -1]
+    >>>     if list(frozenset(indices_high).intersection(borders)):
+    >>>         threshold = np.max(values[borders]) + np.std(values[borders])
+    >>>         indices_high = [x for x in indices if values[x] >= threshold]
+    >>>     # Extract threshold boundary vertices as seeds:
+    >>>     B = -1 * np.ones(len(values))
+    >>>     B[indices_high] = 2
+    >>>     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
+    >>> # Or initialize P with the maximum value point:
+    >>> else:
+    >>>     seeds = [indices[np.argmax(values[indices])]]
+    >>>     indices_high = []
     >>> #
-    >>> segments = segment_rings(region, seeds, neighbor_lists, step=1)
+    >>> indices = list(frozenset(indices).difference(indices_high))
+    >>> indices = list(frozenset(indices).difference(seeds))
+    >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
     >>> #
     >>> # View:
     >>> S = -1 * np.ones(len(values))
@@ -204,7 +229,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> plot_vtk('segment_rings.vtk')
     >>> # Store:
     >>> #import pickle
-    >>> #pickle.dump(segments, open('segments_depth_fold11.pkl', "wb" ))
+    >>> #output_file = os.path.join(path, 'tests', 'segments_fold11.pkl')
+    >>> #pickle.dump(segments, open(output_file, "wb" ))
 
     """
     from mindboggle.labels.segment import segment
@@ -230,7 +256,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
 
     return segments
 
-def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
+def track_to_border(seed, segments, neighbor_lists, values, borders):
     """
     Build a track from a point through concentric segments.
 
@@ -245,7 +271,7 @@ def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
         indices to vertices for each concentric segment
     neighbor_lists : list of lists of integers
         indices to neighboring vertices for each vertex
-    mesh_values : numpy array of floats
+    values : numpy array of floats
         values for all vertices that help to guide a track
 
     Returns
@@ -265,25 +291,33 @@ def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
     >>> from mindboggle.features.fundi import track_to_border
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> segments_file = os.path.join(path, 'tests', 'segments_depth_fold11.pkl')
-    >>> segments = pickle.load(open(segments_file, 'rb'))
-    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>> mesh_values, name = read_scalars(depth_file, True, True)
+    >>> values, name = read_scalars(values_file, True, True)
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
-    >>> region = [i for i,x in enumerate(fold) if x != -1]
-    >>> seed = region[np.argmax(mesh_values[region])]
+    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> # Start from the boundary of a thresholded indices:
+    >>> use_threshold = True
+    >>> if use_threshold:
+    >>>     segments_file = os.path.join(path, 'tests', 'segments_fold11.pkl')
+    >>>     segments = pickle.load(open(segments_file, 'rb'))
+    >>>     seed = segments[0][np.argmax(values[segments[0]])]
+    >>> # Or from the maximum value point:
+    >>> else:
+    >>>     segments_file = os.path.join(path, 'tests', 'segments_likelihood_fold11.pkl')
+    >>>     segments = pickle.load(open(segments_file, 'rb'))
+    >>>     seed = indices[np.argmax(values[indices])]
     >>> # Extract boundary:
-    >>> D = np.ones(len(mesh_values))
-    >>> D[region] = 2
-    >>> borders, foo1, foo2 = extract_borders(range(len(mesh_values)), D, neighbor_lists)
+    >>> D = np.ones(len(values))
+    >>> D[indices] = 2
+    >>> borders, foo1, foo2 = extract_borders(range(len(values)), D, neighbor_lists)
     >>> #
-    >>> track = track_to_border(seed, segments, neighbor_lists, mesh_values, borders)
+    >>> track = track_to_border(seed, segments, neighbor_lists, values, borders)
     >>> #
     >>> # View:
-    >>> T = -1 * np.ones(len(mesh_values))
+    >>> T = -1 * np.ones(len(values))
     >>> T[track] = 1
     >>> rewrite_scalars(depth_file, 'track_to_border.vtk', T, 'track', fold)
     >>> plot_vtk('track_to_border.vtk')
@@ -296,16 +330,18 @@ def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
 
         # Find the seed's neighborhood N in the segment:
         N = neighbor_lists[seed]
+        N = [x for x in N if values[x] != -1]
         N_segment = list(frozenset(N).intersection(segment))
         if N:
 
             # Add the neighborhood vertex with the maximum value to the track:
             if N_segment:
-                seed = N_segment[np.argmax(mesh_values[N_segment])]
+                seed = N_segment[np.argmax(values[N_segment])]
                 track.append(seed)
 
                 # If the track has run into the region's border, return the track:
-                if seed in borders:
+                #if seed in borders:
+                if list(frozenset(N_segment).intersection(borders)):
                     return track
 
             # If there is no neighbor in the new segment,
@@ -317,12 +353,13 @@ def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
                 for Np in N_previous:
                     N_next = list(frozenset(neighbor_lists[Np]).intersection(segment))
                     if N_next:
-                        if np.max(mesh_values[N_next]) > max_bridge:
-                            seed = N_next[np.argmax(mesh_values[N_next])]
+                        if np.max(values[N_next]) > max_bridge:
+                            seed = N_next[np.argmax(values[N_next])]
                             bridge = [Np, seed]
-                            max_bridge = np.max(mesh_values[N_next])
+                            max_bridge = np.max(values[N_next])
                 if bridge:
                     track.extend(bridge)
+                    print(bridge)
 
                     # If the track has run into the region's border, return the track:
                     if seed in borders:
@@ -331,6 +368,9 @@ def track_to_border(seed, segments, neighbor_lists, mesh_values, borders):
         # If there is no neighborhood for the seed, return the track:
         else:
             return track
+
+    # If the track remains empty or does not reach the border, return the track:
+    return track
 
 #------------------------------------------------------------------------------
 # Find endpoints
@@ -446,13 +486,25 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
     # Initialize seeds with the boundary of a thresholded region:
     use_threshold = True
     if use_threshold:
-        threshold = np.max(S[borders]) + np.std(S[indices])
+        # Threshold within maximum values in boundary:
+        threshold = np.max(S[borders]) # + np.std(S[indices])
+        #threshold = np.mean(S[indices])
         indices_high = [x for x in indices if S[x] >= threshold]
-        B = np.ones(len(S))
+        B = -1 * np.ones(len(S))
         B[indices_high] = 2
         seeds, foo1, foo2 = extract_borders(range(len(S)), B, neighbor_lists)
         R = list(frozenset(R).difference(indices_high))
-    # Initialize P with the maximum value point:
+
+#        print('KHY',len(borders),len(indices_high),len(seeds),np.mean(S[indices]),threshold)
+#        B[seeds] = 3
+#        import os
+#        from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+#        from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+#        path = os.environ['MINDBOGGLE_DATA']
+#        depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+#        rewrite_scalars(depth_file, 'test.vtk', B, 'test'); plot_vtk('test.vtk')
+
+    # Or initialize P with the maximum value point:
     else:
         Imax = indices[np.argmax(S[indices])]
         seeds = [Imax]
@@ -791,21 +843,28 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 # Example
 if __name__ == "__main__" :
 
-    # Extract fundus from a single fold:
+    # Extract fundus from a single fold or multiple folds:
     import os
+
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
     from mindboggle.features.fundi import extract_fundi
+
     path = os.environ['MINDBOGGLE_DATA']
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    fold, name = read_scalars(fold_file, return_first=True, return_array=True)
 
-    fundi, n_fundi, endpoints, fundi_file = extract_fundi(fold, depth_file,
+    single_fold = False
+    if single_fold:
+        folds_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    else:
+        folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+
+    fundi, n_fundi, endpoints, fundi_file = extract_fundi(folds, depth_file,
         likelihoods_or_file, save_file=True)
 
     # View:
-    plot_vtk('fundi.vtk')
+    plot_vtk('fundi2.vtk')
