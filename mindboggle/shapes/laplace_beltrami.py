@@ -311,8 +311,7 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     # Note: eigs is for nonsymmetric matrices while
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
-    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="SM")
-#    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="LM", sigma=0, mode="normal")
+    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, sigma=0)
 
     spectrum = eigenvalues.tolist()
 
