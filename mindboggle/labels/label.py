@@ -107,7 +107,7 @@ def extract_borders(indices, labels, neighbor_lists,
     indices : list of integers
         indices to (a subset of) vertices
     labels : numpy array of integers
-        label numbers for all vertices, with -1s for unlabeled vertices
+        label numbers for all vertices (-1 for unlabeled vertices)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
