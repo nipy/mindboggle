@@ -388,7 +388,7 @@ def find_neighborhood(neighbor_lists, indices, nedges):
 
     Returns
     -------
-    neighborhood : list integers
+    neighborhood : list of integers
         indices to vertices in neighborhood
 
     Examples
@@ -812,7 +812,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     for n_region in region_numbers:
         region_indices = np.where(regions == n_region)[0]
 
-        # Identify neighbors to these vertices a]nd their neighbors
+        # Identify neighbors to these vertices and their neighbors
         N = []
         [N.extend(neighbor_lists[x]) for x in region_indices]
         N = list(frozenset(N).difference(region_indices))
