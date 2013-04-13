@@ -155,107 +155,6 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     return fundi, n_fundi, fundus_endpoints, fundi_file
 
-def segment_rings(region, seeds, neighbor_lists, step=1):
-    """
-    Segment a region of surface mesh iteratively toward its edges.
-
-    Store the concentric segments for use in constructing tracks.
-
-    Parameters
-    ----------
-    region : list of integers
-        indices of region vertices to segment (such as a fold)
-    seeds : list of integers
-        indices of seed vertices
-    neighbor_lists : list of lists of integers
-        indices to neighboring vertices for each vertex
-    step : integer
-        number of segmentation steps before assessing segments
-
-    Returns
-    -------
-    segments : list of lists of integers
-        indices to vertices for each concentric segment
-
-    Examples
-    --------
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.labels.label import extract_borders
-    >>> from mindboggle.features.fundi import segment_rings
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> values, name = read_scalars(values_file, True, True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file)
-    >>> indices = [i for i,x in enumerate(fold) if x != -1]
-    >>> # Initialize seeds with the boundary of thresholded indices:
-    >>> use_threshold = True
-    >>> if use_threshold:
-    >>>     # Threshold at the median depth or within maximum values in boundary:
-    >>>     threshold = np.median(values[indices]) #+ np.std(values[indices])
-    >>>     indices_high = [x for x in indices if values[x] >= threshold]
-    >>>     # Make sure threshold is within the maximum values of the boundary:
-    >>>     B = np.ones(len(values))
-    >>>     B[indices] = 2
-    >>>     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
-    >>>     borders = [x for x in borders if values[x] != -1]
-    >>>     if list(frozenset(indices_high).intersection(borders)):
-    >>>         threshold = np.max(values[borders]) + np.std(values[borders])
-    >>>         indices_high = [x for x in indices if values[x] >= threshold]
-    >>>     # Extract threshold boundary vertices as seeds:
-    >>>     B = -1 * np.ones(len(values))
-    >>>     B[indices_high] = 2
-    >>>     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
-    >>> # Or initialize P with the maximum value point:
-    >>> else:
-    >>>     seeds = [indices[np.argmax(values[indices])]]
-    >>>     indices_high = []
-    >>> #
-    >>> indices = list(frozenset(indices).difference(indices_high))
-    >>> indices = list(frozenset(indices).difference(seeds))
-    >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
-    >>> #
-    >>> # View:
-    >>> S = -1 * np.ones(len(values))
-    >>> for i, segment in enumerate(segments):
-    >>>     S[segment] = i
-    >>> rewrite_scalars(depth_file, 'segment_rings.vtk', S, 'segment_rings', fold)
-    >>> plot_vtk('segment_rings.vtk')
-    >>> # Store:
-    >>> #import pickle
-    >>> #output_file = os.path.join(path, 'tests', 'segments_fold11.pkl')
-    >>> #pickle.dump(segments, open(output_file, "wb" ))
-
-    """
-    from mindboggle.labels.segment import segment
-
-    segments = []
-    while seeds:
-
-        # Segment step-wise starting from seeds and through the region:
-        seeds_plus_new = segment(region, neighbor_lists, min_region_size=1,
-                                 seed_lists=[seeds], keep_seeding=False,
-                                 spread_within_labels=False, labels=[],
-                                 label_lists=[], values=[], max_steps=step)
-        seeds_plus_new = [i for i,x in enumerate(seeds_plus_new) if x != -1]
-
-        # Store the new segment after removing the previous segment:
-        region = list(frozenset(region).difference(seeds))
-        seeds = list(frozenset(seeds_plus_new).difference(seeds))
-        if seeds:
-
-            # Add the new segment and remove it from the region:
-            segments.append(seeds)
-            region = list(frozenset(region).difference(seeds))
-
-    return segments
-
 def track_to_border(seed, segments, neighbor_lists, values, borders):
     """
     Build a track from a point through concentric segments.
@@ -293,9 +192,9 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>> values, name = read_scalars(values_file, True, True)
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
     >>> # Start from the boundary of a thresholded indices:
@@ -340,8 +239,8 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
                 track.append(seed)
 
                 # If the track has run into the region's border, return the track:
-                #if seed in borders:
-                if list(frozenset(N_segment).intersection(borders)):
+                #if list(frozenset(N_segment).intersection(borders)):
+                if seed in borders:
                     return track
 
             # If there is no neighbor in the new segment,
@@ -359,7 +258,6 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
                             max_bridge = np.max(values[N_next])
                 if bridge:
                     track.extend(bridge)
-                    print(bridge)
 
                     # If the track has run into the region's border, return the track:
                     if seed in borders:
@@ -367,15 +265,16 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
 
         # If there is no neighborhood for the seed, return the track:
         else:
-            return track
+            return None
 
     # If the track remains empty or does not reach the border, return the track:
-    return track
+    return None
 
 #------------------------------------------------------------------------------
 # Find endpoints
 #------------------------------------------------------------------------------
-def find_endpoints(indices, neighbor_lists, values, step=1):
+def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
+                   use_threshold=True):
     """
     Find endpoints in a region of connected vertices.
 
@@ -392,8 +291,12 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
         indices to neighboring vertices for each vertex
     values : numpy array of floats
         values for all vertices (e.g., fundus likelihood values)
-    step : integer
-        number of segmentation steps before assessing segments
+    values_seeding : numpy array of floats
+        values for all vertices to threshold for initial seeds
+    min_edges : integer
+        minimum number of edges between endpoint vertices
+    use_threshold : Boolean
+        initialize seeds with thresholded vertices?
 
     Returns
     -------
@@ -412,11 +315,14 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
     >>> from mindboggle.features.fundi import find_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>> step = 1
     >>> min_size = 50
+    >>> min_edges = 5
+    >>> use_threshold = True
     >>> #
     >>> #-----------------------------------------------------------------------
     >>> # Find endpoints on a single fold:
@@ -424,8 +330,10 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> #
     >>> indices_endpoints, tracks = find_endpoints(indices, neighbor_lists, \
-    >>>                                            values, step)
+    >>>     values, values_seeding, min_edges, use_threshold)
+    >>> #
     >>> # Write results to VTK file and view:
     >>> indices_tracks = [x for lst in tracks for x in lst]
     >>> values[indices_tracks] = max(values) + 0.1
@@ -436,18 +344,18 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
     >>> #-----------------------------------------------------------------------
     >>> # Find endpoints on every fold in a hemisphere:
     >>> #-----------------------------------------------------------------------
-    >>> plot_each_fold = False
+    >>> plot_each_fold = 1#False
     >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_numbers = [x for x in np.unique(folds) if x != -1]
     >>> nfolds = len(fold_numbers)
     >>> endpoints = []
-    >>> for ifold, fold_number in enumerate(fold_numbers):
+    >>> for ifold, fold_number in enumerate(fold_numbers[0:1]):
     >>>     print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
     >>>     indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>>     if len(indices) > min_size:
-    >>>         indices_endpoints, tracks = find_endpoints(indices, \
-    >>>             neighbor_lists, values, step)
+    >>>         indices_endpoints, tracks = find_endpoints(indices, neighbor_lists, \
+    >>>             values, values_seeding, min_edges, use_threshold)
     >>>         endpoints.extend(indices_endpoints)
     >>>         # Plot each fold:
     >>>         if plot_each_fold:
@@ -469,13 +377,14 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
     import numpy as np
 
     from mindboggle.labels.label import extract_borders
-    from mindboggle.features.fundi import find_endpoints
+    from mindboggle.labels.segment import segment, segment_rings
+    from mindboggle.features.fundi import track_to_border
 
     # Initialize R, T, S, V:
     R = indices[:]
     T = []
-    S = np.array(values)
-    V = np.copy(S)
+    S = np.array(values_seeding)
+    V = np.array(values)
 
     # Extract boundary:
     B = np.ones(len(V))
@@ -483,37 +392,42 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
 
     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
 
-    # Initialize seeds with the boundary of a thresholded region:
-    use_threshold = True
+    #---------------------------------------------------------------------------
+    # Initialize seeds with thresholded vertices:
+    #---------------------------------------------------------------------------
     if use_threshold:
-        # Threshold within maximum values in boundary:
-        threshold = np.max(S[borders]) # + np.std(S[indices])
-        #threshold = np.mean(S[indices])
+
+        # Threshold at the median depth or within maximum values in boundary:
+        threshold = np.median(S[indices]) #+ np.std(S[indices])
         indices_high = [x for x in indices if S[x] >= threshold]
+
+        # Make sure threshold is within the maximum values of the boundary:
+        B = np.ones(len(S))
+        B[indices] = 2
+        borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
+        borders = [x for x in borders if S[x] != -1]
+        if list(frozenset(indices_high).intersection(borders)):
+            threshold = np.max(S[borders]) + np.std(S[borders])
+            indices_high = [x for x in indices if S[x] >= threshold]
+
+        # Extract threshold boundary vertices as seeds:
         B = -1 * np.ones(len(S))
         B[indices_high] = 2
         seeds, foo1, foo2 = extract_borders(range(len(S)), B, neighbor_lists)
-        R = list(frozenset(R).difference(indices_high))
 
-#        print('KHY',len(borders),len(indices_high),len(seeds),np.mean(S[indices]),threshold)
-#        B[seeds] = 3
-#        import os
-#        from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
-#        from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-#        path = os.environ['MINDBOGGLE_DATA']
-#        depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-#        rewrite_scalars(depth_file, 'test.vtk', B, 'test'); plot_vtk('test.vtk')
-
-    # Or initialize P with the maximum value point:
+    # Or initialize seeds with the maximum value point:
     else:
-        Imax = indices[np.argmax(S[indices])]
-        seeds = [Imax]
-        R.remove(Imax)
+        seeds = [indices[np.argmax(S[indices])]]
+        indices_high = []
 
-    # Segment the mesh iteratively toward its edges:
+    #---------------------------------------------------------------------------
+    # Segment the mesh from the seeds iteratively toward the boundary:
+    #---------------------------------------------------------------------------
+    R = list(frozenset(R).difference(indices_high))
+    R = list(frozenset(R).difference(seeds))
     segments = segment_rings(R, seeds, neighbor_lists, step=1)
 
-    # Run recursive function track() to return track segments:
+    # Run tracks from the seeds through the segments toward the boundary:
     print('  Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
           format(len(R), len(segments), threshold))
     for seed in seeds:
@@ -521,24 +435,76 @@ def find_endpoints(indices, neighbor_lists, values, step=1):
         if track:
             T.append(track)
 
-    # Filter tracks by the mean mesh value:
+    #---------------------------------------------------------------------------
+    # Filter the tracks in two ways:
+    # 1. Keep tracks that have a median track value above the background value.
+    # 2. Filter tracks so that there are no two track endpoint vertices
+    # within a given number of edges between each other.  We select the track
+    # with higher median value when their endpoints are close.
+    #---------------------------------------------------------------------------
     filter_tracks = True
     if filter_tracks:
-        min_track_value = np.mean(V[indices])
+
+        # Compute median track values:
+        Tvalues = []
+        for track in T:
+            Tvalues.append(np.median(V[track]))
+
+        # Keep tracks that have a median track value above the background value:
+        #background = np.median(V[[x for lst in segments for x in lst]])
+        background = np.median(V[indices])
         T2 = []
+        T2values = []
+        for itrack, track in enumerate(T):
+            if Tvalues[itrack] > background:
+                T2.append(track)
+                T2values.append(Tvalues[itrack])
+        T = T2
+        Tvalues = T2values
+
+        # Gather endpoint vertex indices:
         E = []
         for track in T:
-            track_value = np.mean(V[track])
-            if track_value > min_track_value:
-                T2.append(track)
-                E.append(track[-1])
-        T = T2
-
-    # Extract endpoints from tracks:
-    E = []
-    for track in T:
-        if track[-1] not in E:
             E.append(track[-1])
+
+        # Loop through endpoints:
+        E2 = []
+        T2 = []
+        while E:
+
+            # Find nearby endpoints to first endpoint:
+            near = segment(indices, neighbor_lists, min_region_size=1,
+                           seed_lists=[[E[0]]], keep_seeding=False,
+                           spread_within_labels=False, labels=[],
+                           label_lists=[], values=[], max_steps=min_edges)
+            near = [i for i,x in enumerate(near) if x != -1]
+            E_near = [x for x in E if x in near]
+            if len(E_near) > 1:
+
+                # Select endpoint with the maximum median track value:
+                Inear = [i for i,x in enumerate(E) if x in E_near]
+                Imax = np.argmax([Tvalues[x] for x in Inear])
+                E2.append(E[Imax])
+                T2.append(T[Imax])
+                print(T[Imax], E[Imax])
+
+                # Remove nearby points for the next loop:
+                E = [x for i,x in enumerate(E) if i not in Inear]
+                T = [x for i,x in enumerate(T) if i not in Inear]
+                Tvalues = [x for i,x in enumerate(Tvalues) if i not in Inear]
+
+            # Otherwise keep endpoint:
+            else:
+                E2.append(E[0])
+                T2.append(T[0])
+                E = E[1::]
+                T = T[1::]
+                Tvalues = Tvalues[1::]
+                print('alt', E[0],T[0])
+            print(E)
+
+        E = E2
+        T = T2
 
     return E, T
 

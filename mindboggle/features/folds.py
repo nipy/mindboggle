@@ -74,21 +74,23 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> #depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.rescaled.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_fold_size = 50
     >>> tiny_depth = 0.001
     >>> save_file = True
+    >>> #
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
     >>>     min_fold_size, tiny_depth, save_file)
+    >>> #
     >>> # View folds:
     >>> plot_vtk('folds.vtk')
     >>> # Plot histogram and depth threshold:
     >>> depths, name = read_scalars(depth_file)
     >>> nbins = np.round(len(depths) / 100.0)
     >>> a,b,c = pylab.hist(depths, bins=nbins)
-    >>> pylab.plot(thr*np.ones((100,1)),
-    >>>            np.linspace(0, max(bins), 100), 'r.')
+    >>> pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
     >>> pylab.show()
     >>> # Plot smoothed histogram:
     >>> bins_smooth = gaussian_filter1d(bins.tolist(), 5)
@@ -301,6 +303,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     >>>     shrink_factor, True)
     >>> #
     >>> # View:
+    >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> plot_vtk('subfolds.vtk')
 
@@ -318,7 +321,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     regrow_shrunken = True
 
     # Use propagate() to regrow subfolds:
-    regrow_by_propagating = True
+    regrow_by_propagating = False
 
     print("Segment folds into subfolds")
     t0 = time()
@@ -387,7 +390,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
         subfolds[regrown > -1] = regrown[regrown > -1] + np.max(folds) + 1
 
     #---------------------------------------------------------------------------
-    # Renumber folds so they are sequential
+    # Renumber subfolds so they are sequential
     #---------------------------------------------------------------------------
     renumber_subfolds = -1 * np.ones(len(folds))
     subfold_numbers = [int(x) for x in np.unique(subfolds) if x > -1]
