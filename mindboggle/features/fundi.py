@@ -71,7 +71,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>>     likelihoods_or_file, save_file=True)
     >>> #
     >>> # View:
-    >>> plot_vtk('fundi2.vtk')
+    >>> plot_vtk('fundi.vtk')
 
     """
     import os
@@ -105,6 +105,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     t1 = time()
     count = 0
     neighbor_lists = find_neighbors_from_file(depth_file)
+    depths, name = read_scalars(depth_file)
     npoints = len(folds)
     Z = np.zeros(npoints)
     fundi = -1 * np.ones(npoints)
@@ -121,8 +122,8 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
             # Find fundus points
             indices_endpoints, tracks = find_endpoints(indices_fold,
-                neighbor_lists, likelihoods, step=1)
-
+                neighbor_lists, likelihoods, depths, min_edges=5,
+                use_threshold=True)
             n_endpoints = len(indices_endpoints)
             if n_endpoints > 1:
                 fundus_endpoints.extend(indices_endpoints)
@@ -486,7 +487,6 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
                 Imax = np.argmax([Tvalues[x] for x in Inear])
                 E2.append(E[Imax])
                 T2.append(T[Imax])
-                print(T[Imax], E[Imax])
 
                 # Remove nearby points for the next loop:
                 E = [x for i,x in enumerate(E) if i not in Inear]
@@ -500,8 +500,6 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
                 E = E[1::]
                 T = T[1::]
                 Tvalues = Tvalues[1::]
-                print('alt', E[0],T[0])
-            print(E)
 
         E = E2
         T = T2
@@ -633,7 +631,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     #---------------------------------------------------------------------------
     # Cost function:
     #---------------------------------------------------------------------------
-    def compute_cost(likelihood, hmmf, hmmf_neighbors, wN):
+    def compute_cost(likelihood, hmmf, hmmf_neighbors, size_neighbors, wN):
         """
         Cost function for penalizing unlikely fundus curve vertices.
 
@@ -642,7 +640,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
         their neighbors:
 
         cost = hmmf * (1.1 - likelihood) +
-               wN * sum(abs(hmmf - hmmf_neighbors)) / len(hmmf_neighbors)
+               wN * sum(abs(hmmf - hmmf_neighbors)) / size_neighbors
 
         term 1 promotes high likelihood values
         term 2 promotes smoothness of the HMMF values
@@ -658,6 +656,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
             HMMF value
         hmmf_neighbors : numpy array of floats
             HMMF values of neighboring vertices
+        size_neighbors : integer
+            number of neighbors
         wN : float
             weight influence of neighbors on cost (term 2)
 
@@ -666,15 +666,10 @@ def connect_points(indices_points, indices, L, neighbor_lists):
         cost : float
 
         """
-        import numpy as np
 
-        # Make sure arguments are numpy arrays:
-        if not isinstance(hmmf_neighbors, np.ndarray):
-            hmmf_neighbors = np.array(hmmf_neighbors)
-
-        if hmmf_neighbors.size:
+        if size_neighbors:
             cost = hmmf * (1.1 - likelihood) + \
-                   wN * sum(abs(hmmf - hmmf_neighbors)) / hmmf_neighbors.size
+                   wN * sum([abs(hmmf-x) for x in hmmf_neighbors]) / size_neighbors
         else:
             import sys
             sys.exit('ERROR: No HMMF neighbors to compute cost.')
@@ -687,6 +682,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     # (to guarantee correct topology). Assign a 1 for each anchor point.
     # This influences surrounding vertex neighborhoods.
     # Note: 0.5 is the class boundary threshold for the HMMF values.
+    # Note: H and H_new as lists since the sum of a list is faster to compute
+    #       than the sum of a numpy array in compute_cost()
     npoints = len(indices)
     C = np.zeros(len(L))
     H = C.copy()
@@ -695,19 +692,21 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     H_init[H_init > 1.0] = 1
     H[H_init > 0.5] = H_init[H_init > 0.5]
     H[indices_points] = 1
+    H.tolist()
+    H_new = H[:]
 
     # Neighbors for each vertex:
     N = neighbor_lists
 
     # Assign cost values to each vertex:
-    C[indices] = [compute_cost(L[i], H[i], H[N[i]], wN_max) for i in indices]
+    C[indices] = [compute_cost(L[i], H[i], [H[x] for x in N[i]], len(N[i]), wN_max)
+                  for i in indices]
 
     # Loop until count reaches max_count or until end_flag equals zero
     # (end_flag is used to allow the loop to continue even if there is
     #  no change for n_tries_no_change times):
     count = 0
     end_flag = 0
-    H_new = H.copy()
     wN = wN_max
     gradient_factor = grad_min
     from time import time
@@ -716,11 +715,12 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     indices_init = np.array(indices)
     while end_flag < n_tries_no_change and count < max_count:
 
-        indices = indices_init[H[indices_init] > 0.0]
+        indices = [x for x in indices_init if H[x] > 0.0]
 
         # Compute the cost gradient for the HMMF value:
-        cost_downs[indices] = [compute_cost(L[i], max([H[i] - H_step, 0]), H[N[i]], wN)
-                               for i in indices]
+        cost_downs[indices] = \
+            [compute_cost(L[i], max([H[i] - H_step, 0]), [H[x] for x in N[i]], len(N[i]), wN)
+             for i in indices]
         H_tests[indices] = [H[i] - gradient_factor * (C[i] - cost_downs[i])
                             for i in indices]
 
@@ -752,9 +752,10 @@ def connect_points(indices_points, indices, L, neighbor_lists):
                         H_new[index] = H_tests[index]
 
         # Update the test and cost values:
-        H_tests[indices[H_tests[indices] < 0]] = 0.0
-        H_tests[indices[H_tests[indices] > 1]] = 1.0
-        C[indices] = [compute_cost(L[i], H_new[i], H[N[i]], wN) for i in indices]
+        H_tests[[x for x in indices if H_tests[x] < 0]] = 0.0
+        H_tests[[x for x in indices if H_tests[x] > 1]] = 1.0
+        C[indices] = [compute_cost(L[i], H_new[i], [H[x] for x in N[i]], len(N[i]), wN)
+                      for i in indices]
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
@@ -775,8 +776,12 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
             # Display information every n_mod iterations:
             if not np.mod(count, print_interval):
-                print('      Iteration {0}: {1} points crossing threshold (wN={2:0.3f}, grad={3:0.3f}, cost={4:0.3f})'.
-                      format(count, delta_points, wN, gradient_factor, delta_cost))
+                if delta_points == 1:
+                    s = ''
+                else:
+                    s = 's'
+                print('      Iteration {0}: {1} point{2} crossing threshold (wN={3:0.3f}, grad={4:0.3f}, cost={5:0.3f})'.
+                      format(count, delta_points, s, wN, gradient_factor, delta_cost))
 
             # Increment the gradient factor and
             # decrement the neighborhood factor
@@ -798,8 +803,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     print('      Updated hidden Markov measure field (HMMF) values')
 
     # Threshold the resulting array:
-    H[H > 0.5] = 1
-    H[H <= 0.5] = 0
+    H[[i for i,x in enumerate(H) if x > 0.5]] = 1
+    H[[i for i,x in enumerate(H) if x <= 0.5]] = 0
     npoints_thr = sum(H)
 
     # Skeletonize:
@@ -819,7 +824,6 @@ if __name__ == "__main__" :
     """
     # Extract fundus from a single fold or multiple folds:
     import os
-
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
     from mindboggle.features.fundi import extract_fundi
@@ -834,16 +838,17 @@ if __name__ == "__main__" :
     if single_fold:
         folds_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     else:
-        folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+        folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     folds, name = read_scalars(folds_file, return_first=True, return_array=True)
 
     fundi, n_fundi, endpoints, fundi_file = extract_fundi(folds, depth_file,
         likelihoods_or_file, save_file=True)
 
     # View:
-    plot_vtk('fundi2.vtk')
-    """
+    plot_vtk('fundi.vtk')
 
+
+    """
     # Connect vertices according to likelihood values in a single fold
     import os
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
@@ -871,3 +876,8 @@ if __name__ == "__main__" :
     L, name = read_scalars(likelihood_file,True,True)
     #
     H = connect_points(indices_points, indices, L, neighbor_lists)
+    H[indices_points] = 1.1
+    rewrite_scalars(likelihood_file, 'test_connect_points.vtk', H,
+                     'connected_points', fold)
+    from mindboggle.utils.mesh import plot_vtk
+    plot_vtk('test_connect_points.vtk')
