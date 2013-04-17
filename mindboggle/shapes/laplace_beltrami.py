@@ -292,6 +292,13 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
         The area-normalized linear FEM Laplace-Beltrami Spectrum is:
         [-7.4014869016002383e-16, 0.76393202250021075, 0.80000000000000049]
 
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_vtk #read_faces_points
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+
     """
     from scipy.sparse.linalg import eigsh
 
@@ -322,7 +329,7 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
 def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
     """
-    Compute linear FEM Laplace-Beltrami spetra from each labeled region in a file.
+    Compute linear FEM Laplace-Beltrami spectra from each labeled region in a file.
 
     Parameters
     ----------
