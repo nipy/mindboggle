@@ -254,6 +254,62 @@ def area_normalize(points, faces, spectrum):
 
     return new_spectrum
 
+def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
+    """
+    Weighted Spectral Distance. See Konukoglu et al. (2012)
+
+    Parameters
+    ---------------
+
+    EVAL1 : numpy array of floats
+        LB spectrum from the 1st shape
+
+    EVAL2 : numpy array of floats
+        LB spectrum from the 2nd shape
+
+    Vol1: float
+        Volume (area for 2D) of the 1st shape
+
+    Vol2: float
+        Volume (area for 2D) of the 2nd shape
+
+    show_error: boolean
+        Whether display the error of WESD using Eqs.(9) and (10) in Konukoglu et al. (2012).
+        default: false
+
+    N : integer
+        The length of spetrum used (N>=3, default: 3)
+
+    """
+    # At present, algorithm doesn't return normalized result. It therefore doesn't require calculation of volume.
+
+    d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
+    Ball = 4.0/3*np.pi # For Three Dimensions
+    p = 2.0
+
+    Vol = np.amax((Vol1, Vol2))
+    mu = np.amax(EVAL1[1], EVAL2[1])
+
+    C = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - 1/mu)**p + ((d+2)/(d*4*np.pi**2)*(Ball*Vol/2)**(2/d) - 1/mu*(d/(d+4)))**p
+
+    K = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - (1/mu)*(d/(d+2.64)))**p
+
+    W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p) # the right-hand side of Eq.(8) or the equation right after Eq.(4)
+
+    holder = 0
+    for i in xrange(1, np.amin((len(EVAL1), len(EVAL2) )) ):
+        holder += (np.abs(EVAL1[i] - EVAL2[i])/(EVAL1[i]*EVAL2[i]))**p
+    WESD = holder ** (1/p)
+
+    nWESD = WESD/W
+
+    if show_error:
+        WN = (C + K * (sum( [ n**(-1*2p/d) for n in range(3,N+1) ] ) ) )**(1/p) # the second term on the right-hand side of Eq.(9)
+        print "Truncation error of WESD is: ", W - WN
+        print "Truncation error of nWESD is: ", 1 -  WN/W
+
+    return WESD
+
 def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
@@ -429,6 +485,7 @@ if __name__ == "__main__":
 
     print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
         fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+
 
 
     """
