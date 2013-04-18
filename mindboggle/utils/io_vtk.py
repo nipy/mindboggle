@@ -142,6 +142,14 @@ def read_faces_points(filename):
     npoints : integer
         number of points
 
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_faces_points
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+
     """
     import vtk
 
