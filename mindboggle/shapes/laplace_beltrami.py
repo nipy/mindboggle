@@ -304,7 +304,8 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     nWESD = WESD/W
 
     if show_error:
-        WN = (C + K * (sum( [ n**(-1*2p/d) for n in range(3,N+1) ] ) ) )**(1/p) # the second term on the right-hand side of Eq.(9)
+        WN = (C + K * (sum([n**(-1*2*p/d) for n in range(3,N+1)])))**(1/p)
+        # the second term on the right-hand side of Eq.(9)
         print "Truncation error of WESD is: ", W - WN
         print "Truncation error of nWESD is: ", 1 -  WN/W
 
@@ -431,6 +432,16 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
         The input size 2 is smaller than n_eigenvalue 3. Skipped.
         Reduced 12 to 6 triangular faces
         [None, [-2.1366252070792216e-17, 1.5278640450004206, 1.6000000000000001]]
+    >>> # Spectrum for a single fold:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.mesh import remove_faces, renumber_faces
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> print("{0}".format(fem_laplacian_from_labels(fold_file, n_eigenvalues=3, normalization="area")))
+
     """
     import numpy as np
 
