@@ -291,12 +291,20 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
         The area-normalized linear FEM Laplace-Beltrami Spectrum is:
         [-7.4014869016002383e-16, 0.76393202250021075, 0.80000000000000049]
-
+    >>> # Spectrum for a single fold:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk #read_faces_points
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.mesh import remove_faces, renumber_faces
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(fold_file)
+    >>> indices = [i for i,x in enumerate(scalars) if x != -1]
+    >>> points = np.array(points)
+    >>> points = points[indices]
+    >>> faces = remove_faces(faces, indices)
+    >>> faces = renumber_faces(faces, indices)
     >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
 
     """
