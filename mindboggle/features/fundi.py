@@ -115,7 +115,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
     n_folds = len(unique_fold_IDs)
     print("Extract a fundus from each of {0} regions...".format(n_folds))
-    for fold_ID in unique_fold_IDs[0:9]:
+    for fold_ID in unique_fold_IDs[2:5]:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
             print('  Region {0}:'.format(int(fold_ID)))
@@ -149,7 +149,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     fundi = fundi.tolist()
 
     if save_file:
-        fundi_file = os.path.join(os.getcwd(), 'fundi2.vtk')
+        fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
         rewrite_scalars(depth_file, fundi_file, fundi, 'fundi', folds)
     else:
         fundi_file = None
@@ -429,7 +429,7 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
     segments = segment_rings(R, seeds, neighbor_lists, step=1)
 
     # Run tracks from the seeds through the segments toward the boundary:
-    print('  Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
+    print('    Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
           format(len(R), len(segments), threshold))
     for seed in seeds:
         track = track_to_border(seed, segments, neighbor_lists, V, borders)
@@ -529,20 +529,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     Parameters for computing the cost and cost gradients:
 
         ``wL``: weight influence of likelihood on the cost function
-
         ``wN``: weight influence of neighbors on the cost function
-
-        ``H_step``: the amount that the HMMF values are H_step'd
-
-    Parameters to speed up optimization and terminate the algorithm:
-
-        ``min_H``: minimum HMMF value to fix very low values
-
-        ``min_change``: minimum change in the sum of costs
-
-        ``n_tries_no_change``: #times the loop can continue even without any change
-
-        ``max_count``: maximum #iterations
+        ``H_step``: the amount that the HMMF values are incremented
 
     Parameters
     ----------
@@ -626,12 +614,10 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
     # Miscellaneous parameters:
     do_skeletonize = False
-    print_interval = 100
+    print_interval = 50
 
-    #---------------------------------------------------------------------------
-    # Cost function:
-    #---------------------------------------------------------------------------
-    def compute_cost(likelihood, hmmf, hmmf_neighbors, size_neighbors, wN):
+    def compute_costs(likelihoods, hmmfs, hmmfs_neighbors, numbers_of_neighbors,
+                      wN, Z=[]):
         """
         Cost function for penalizing unlikely fundus curve vertices.
 
@@ -650,31 +636,44 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
         Parameters
         ----------
-        likelihood : float
-            likelihood value in interval [0,1]
-        hmmf : float
-            HMMF value
+        likelihoods : numpy array of floats
+            likelihood values in interval [0,1]
+        hmmf : numpy array of floats
+            HMMF values
         hmmf_neighbors : numpy array of floats
-            HMMF values of neighboring vertices
-        size_neighbors : integer
-            number of neighbors
+            HMMF values of neighboring vertices for each vertex
+        numbers_of_neighbors : numpy array of integers
+            number of neighbors for each vertex
         wN : float
             weight influence of neighbors on cost (term 2)
+        Z : numpy array of integers in {0,1} (same shape as hmmf_neighbors)
+            to remove zero-padded neighborhood elements after hmmf subtraction
 
         Returns
         -------
-        cost : float
+        costs : numpy array of floats
+            cost values
 
         """
+        import numpy as np
 
-        if size_neighbors:
-            cost = hmmf * (1.1 - likelihood) + \
-                   wN * sum([abs(hmmf-x) for x in hmmf_neighbors]) / size_neighbors
+        if all(numbers_of_neighbors):
+
+            # Subtract each HMMF value from its neighbors:
+            diff = abs(hmmfs - hmmfs_neighbors)
+
+            # Remove the padding from the neighbor array:
+            if np.shape(Z) == np.shape(hmmfs_neighbors):
+                diff = diff * Z
+
+            # Compute the cost for each vertex:
+            costs = hmmfs * (1.1 - likelihoods) + \
+                    wN * np.sum(diff,axis=0) / numbers_of_neighbors
         else:
             import sys
             sys.exit('ERROR: No HMMF neighbors to compute cost.')
 
-        return cost
+        return costs
 
     #---------------------------------------------------------------------------
     # Initialize all Hidden Markov Measure Field (HMMF) values with
@@ -682,87 +681,92 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     # (to guarantee correct topology). Assign a 1 for each anchor point.
     # This influences surrounding vertex neighborhoods.
     # Note: 0.5 is the class boundary threshold for the HMMF values.
-    # Note: H and H_new as lists since the sum of a list is faster to compute
-    #       than the sum of a numpy array in compute_cost()
-    npoints = len(indices)
-    C = np.zeros(len(L))
-    H = C.copy()
-    H_init = (L + 1.000001) / 2
-    H_init[L == 0.0] = 0
-    H_init[H_init > 1.0] = 1
-    H[H_init > 0.5] = H_init[H_init > 0.5]
+    H = np.zeros(len(L))
+    H_new = (L + 1.000001) / 2
+    H_new[L == 0.0] = 0
+    H_new[H_new > 1.0] = 1
+    H[H_new > 0.5] = H_new[H_new > 0.5]
     H[indices_points] = 1
-    H.tolist()
-    H_new = H[:]
+    H_new = H.copy()
 
-    # Neighbors for each vertex:
+    # Find the HMMF values for the neighbors of each vertex:
     N = neighbor_lists
+    N_sizes = np.array([len(x) for x in N])
+    N_array = np.zeros((max(N_sizes[indices]), len(L)))
+    for index in indices:
+        N_array[0:N_sizes[index], index] = N[index]
+    N_array_shape = np.shape(N_array)
+    N_flat = np.ravel(N_array)
+    N_flat_list = N_flat.tolist()
+    H_N = np.reshape(H[N_flat_list], N_array_shape)
+    ind_flat = [i for i,x in enumerate(N_flat_list) if x > 0]
+    len_flat = len(N_flat_list)
 
-    # Assign cost values to each vertex:
-    C[indices] = [compute_cost(L[i], H[i], [H[x] for x in N[i]], len(N[i]), wN_max)
-                  for i in indices]
+    # A zero in N calls H[0], so remove zero-padded neighborhood elements:
+    Z = np.zeros((max(N_sizes), len(L)))
+    for index in indices:
+        Z[0:N_sizes[index], index] = 1
+
+    # Assign cost values to each vertex (for indices):
+    C = np.zeros(len(L))
+    C[indices] = compute_costs(L[indices], H[indices], H_N[:,indices],
+                               N_sizes[indices], wN_max, Z)
+    H_tests = C.copy()
 
     # Loop until count reaches max_count or until end_flag equals zero
-    # (end_flag is used to allow the loop to continue even if there is
-    #  no change for n_tries_no_change times):
+    # (end_flag allows the loop to continue a few times even if no change):
     count = 0
     end_flag = 0
     wN = wN_max
     gradient_factor = grad_min
-    from time import time
-    cost_downs = C.copy()
-    H_tests = C.copy()
-    indices_init = np.array(indices)
+    npoints = len(indices)
+
     while end_flag < n_tries_no_change and count < max_count:
 
-        indices = [x for x in indices_init if H[x] > 0.0]
+        # Select indices with a positive HMMF value:
+        V = [indices[x] for x in np.where(H[indices] > 0.0)[0]]
 
-        # Compute the cost gradient for the HMMF value:
-        cost_downs[indices] = \
-            [compute_cost(L[i], max([H[i] - H_step, 0]), [H[x] for x in N[i]], len(N[i]), wN)
-             for i in indices]
-        H_tests[indices] = [H[i] - gradient_factor * (C[i] - cost_downs[i])
-                            for i in indices]
+        # Update neighborhood H values:
+        #H_N = np.reshape(H[N_flat_list], N_array_shape)
+        H_N = np.zeros(len_flat)
+        H_N[ind_flat] = H[N_flat[ind_flat].tolist()]
+        H_N = np.reshape(H_N, N_array_shape)
 
-        t1 = time()
+        # Compute the cost gradient for the HMMF values:
+        H_decr = H - H_step
+        H_decr[np.where(H_decr < 0)[0]] = 0
+        C_decr = compute_costs(L[V], H_decr[V], H_N[:,V], N_sizes[V], wN, Z)
+        H_tests[V] = H[V] - gradient_factor * (C[V] - C_decr)
 
-        # For each index:
-        for index in indices:
-
+        # For each index where the HMMF value is greater than 0:
+        for index in V:
             if H[index] > 0:
 
                 # Do not update anchor point costs:
                 if index not in indices_points:
 
-                    # Update the HMMF value if near the threshold
-                    # such that a step makes it cross the threshold,
-                    # and the vertex is a topologically "simple point".
-                    # Note: 0.5 not considered part of the fundus
+                    # Update a vertex HMMF value if it is away from the threshold:
+                    update = True
+                    # Or if it crosses the threshold and is a topologically
+                    # "simple point" (0.5 not considered part of the fundus):
                     if H[index] > 0.5 >= H_tests[index]:
                         update, n_in = topo_test(index, H_new, N)
                     elif H[index] <= 0.5 < H_tests[index]:
                         update, n_in = topo_test(index, 1 - H_new, N)
-
-                    # Update the HMMF value if far from the threshold:
-                    else:
-                        update = True
-
-                    # Update the HMMF:
                     if update:
                         H_new[index] = H_tests[index]
-
         # Update the test and cost values:
-        H_tests[[x for x in indices if H_tests[x] < 0]] = 0.0
-        H_tests[[x for x in indices if H_tests[x] > 1]] = 1.0
-        C[indices] = [compute_cost(L[i], H_new[i], [H[x] for x in N[i]], len(N[i]), wN)
-                      for i in indices]
+        H_tests[H_tests < 0] = 0.0
+        H_tests[H_tests > 1] = 1.0
+
+        C[V] = compute_costs(L[V], H_new[V], H_N[:,V], N_sizes[V], wN, Z)
 
         # Sum the cost values across all vertices and tally the number
         # of HMMF values greater than the threshold.
         # After iteration 1, compare current and previous values.
         # If the values are similar, increment end_flag:
-        costs = sum(C)
-        npoints_thr = sum([1 for x in H if x > 0.5])
+        costs = sum(C[V].tolist())
+        npoints_thr = len([x for x in H[V].tolist() if x > 0.5])
 
         # Terminate the loop if there are insufficient changes:
         if count > 0:
@@ -776,17 +780,12 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
             # Display information every n_mod iterations:
             if not np.mod(count, print_interval):
-                if delta_points == 1:
-                    s = ''
-                else:
-                    s = 's'
-                print('      Iteration {0}: {1} point{2} crossing threshold (wN={3:0.3f}, grad={4:0.3f}, cost={5:0.3f})'.
-                      format(count, delta_points, s, wN, gradient_factor, delta_cost))
+                print('      Iteration {0}: {1} crossing threshold '
+                      '(wN={2:0.3f}, grad={3:0.3f}, cost={4:0.3f})'.
+                      format(count, delta_points, wN, gradient_factor, delta_cost))
 
-            # Increment the gradient factor and
-            # decrement the neighborhood factor
-            # so that the spacing is close in early iterations
-            # and far apart in later increments:
+            # Increment the gradient factor and decrement the neighborhood factor
+            # so that spacing is close in early iterations and far apart later:
             factor = (count / np.round(rate_factor*max_count))**slope_exp
             if gradient_factor < grad_max:
                 gradient_factor = factor * (grad_max - grad_min) + grad_min
@@ -803,9 +802,9 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     print('      Updated hidden Markov measure field (HMMF) values')
 
     # Threshold the resulting array:
-    H[[i for i,x in enumerate(H) if x > 0.5]] = 1
-    H[[i for i,x in enumerate(H) if x <= 0.5]] = 0
-    npoints_thr = sum(H)
+    H[H > 0.5] = 1.0
+    H[H <= 0.5] = 0.0
+    npoints_thr = sum(H.tolist())
 
     # Skeletonize:
     if do_skeletonize:
@@ -821,7 +820,6 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 # Example
 if __name__ == "__main__" :
 
-    """
     # Extract fundus from a single fold or multiple folds:
     import os
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
@@ -876,8 +874,11 @@ if __name__ == "__main__" :
     L, name = read_scalars(likelihood_file,True,True)
     #
     H = connect_points(indices_points, indices, L, neighbor_lists)
+    #
+    # View:
     H[indices_points] = 1.1
     rewrite_scalars(likelihood_file, 'test_connect_points.vtk', H,
-                     'connected_points', fold)
+                        'connected_points', fold)
     from mindboggle.utils.mesh import plot_vtk
     plot_vtk('test_connect_points.vtk')
+    """
