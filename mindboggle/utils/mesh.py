@@ -991,8 +991,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
 
     Returns
     -------
-    binary_array : numpy array of integers
-        skeleton: binary values for all vertices
+    indices_skeleton : list of integers
+        indices to vertices of skeleton
 
     Examples
     --------
@@ -1020,10 +1020,11 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> max_endpoints = max(endpoints)
     >>> indices_endpoints = [i for i,x in enumerate(endpoints) if x == max_endpoints]
     >>> #
-    >>> skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
+    >>> indices_skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
     >>> #
     >>> # Write out vtk file and view:
-    >>> indices_skeleton = [i for i,x in enumerate(skeleton) if x > -1]
+    >>> skeleton = -1 * np.ones(npoints)
+    >>> skeleton[indices_skeleton] = 1
     >>> skeleton[indices_endpoints] = 2
     >>> rewrite_scalars(fold_file, 'skeletonize.vtk',
     >>>                 skeleton, 'skeleton', skeleton)
@@ -1061,7 +1062,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
                     binary_array[index] = 0
                     exist_simple = True
 
-    return binary_array
+    indices_skeleton = [i for i,x in enumerate(binary_array.tolist()) if x != -1]
+
+    return indices_skeleton
 
 #------------------------------------------------------------------------------
 # Extract endpoints

@@ -15,7 +15,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #==================
 def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=False):
     """
-    Extract all fundi.
+    Extract fundi from folds.
 
     A fundus is a connected set of high-likelihood vertices in a surface mesh.
 
@@ -57,8 +57,6 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     >>> likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> single_fold = False
     >>> if single_fold:
@@ -71,7 +69,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>>     likelihoods_or_file, save_file=True)
     >>> #
     >>> # View:
-    >>> plot_vtk('fundi.vtk')
+    >>> plot_vtk(fundi_file)
 
     """
     import os
@@ -112,9 +110,9 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     fundus_endpoints = []
 
     # For each fold region...
-    unique_fold_IDs = [x for x in np.unique(folds) if x > -1]
-    n_folds = len(unique_fold_IDs)
-    print("Extract a fundus from each of {0} regions...".format(n_folds))
+    unique_fold_IDs = [x for x in np.unique(folds) if x != -1]
+    print("Extract a fundus from each of {0} regions...".
+          format(len(unique_fold_IDs)))
     for fold_ID in unique_fold_IDs[2:5]:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
@@ -131,9 +129,9 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
                 # Connect fundus points and extract fundi:
                 print('    Connect {0} fundus points...'.format(n_endpoints))
-                B = connect_points(indices_endpoints, indices_fold,
-                                   likelihoods, neighbor_lists)
-                indices_skeleton = [i for i,x in enumerate(B) if x != -1]
+                indices_skeleton = connect_points(indices_endpoints,
+                                   indices_fold, likelihoods, neighbor_lists)
+                print(len(indices_skeleton), len(indices_fold))
                 if len(indices_skeleton) > 1:
                     fundi[indices_skeleton] = fold_ID
                     count += 1
@@ -142,7 +140,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
-
+    print(np.unique(fundi))
     #---------------------------------------------------------------------------
     # Return fundi, number of fundi, fundus points, and file name:
     #---------------------------------------------------------------------------
@@ -545,17 +543,19 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
     Returns
     -------
-    skeleton : numpy array of integers
-        indices to vertices
+    indices_skeleton : list of integers
+        indices to vertices connecting the points
 
     Examples
     --------
     >>> # Connect vertices according to likelihood values in a single fold
     >>> import os
+    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
     >>>                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.features.fundi import find_endpoints, connect_points
+    >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> # Get neighbor_lists, scalars
@@ -576,14 +576,15 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> L, name = read_scalars(likelihood_file,True,True)
     >>> #
-    >>> H = connect_points(indices_points, indices, L, neighbor_lists)
+    >>> S = connect_points(indices_points, indices, L, neighbor_lists)
     >>> #
     >>> # View:
-    >>> H[indices_points] = 1.1
-    >>> rewrite_scalars(likelihood_file, 'test_connect_points.vtk', H,
-    >>>                 'connected_points', fold)
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_connect_points.vtk')
+    >>> skeleton = -1 * np.ones(npoints)
+    >>> skeleton[S] = 1
+    >>> skeleton[indices_points] = 2
+    >>> rewrite_scalars(fold_file, 'connect_points.vtk',
+    >>>                 skeleton, 'skeleton', fold)
+    >>> plot_vtk('connect_points.vtk')
 
     """
     import numpy as np
@@ -734,7 +735,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
         # Compute the cost gradient for the HMMF values:
         H_decr = H - H_step
-        H_decr[np.where(H_decr < 0)[0]] = 0
+        H_decr[H_decr < 0] = 0.0
         C_decr = compute_costs(L[V], H_decr[V], H_N[:,V], N_sizes[V], wN, Z)
         H_tests[V] = H[V] - gradient_factor * (C[V] - C_decr)
 
@@ -802,19 +803,21 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     print('      Updated hidden Markov measure field (HMMF) values')
 
     # Threshold the resulting array:
-    H[H > 0.5] = 1.0
-    H[H <= 0.5] = 0.0
-    npoints_thr = sum(H.tolist())
+    S = np.zeros(len(L))
+    S[indices] = H[indices]
+    S[S > 0.5] = 1.0
+    S[S <= 0.5] = 0.0
+    npoints_thr = sum(S.tolist())
 
     # Skeletonize:
     if do_skeletonize:
-        skeleton = skeletonize(H, indices_points, N)
+        indices_skeleton = skeletonize(S, indices_points, N)
         print('      Removed {0} points to create one-vertex-thin skeletons'.
-              format(int(npoints_thr - sum(skeleton))))
+              format(int(npoints_thr - len(indices_skeleton))))
     else:
-        skeleton = H
+        indices_skeleton = [i for i,x in enumerate(S.tolist()) if x == 1]
 
-    return skeleton
+    return indices_skeleton
 
 
 # Example
@@ -828,8 +831,6 @@ if __name__ == "__main__" :
 
     path = os.environ['MINDBOGGLE_DATA']
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    mean_curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    min_curv_vec_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.dir.txt')
     likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
 
     single_fold = False
@@ -843,42 +844,4 @@ if __name__ == "__main__" :
         likelihoods_or_file, save_file=True)
 
     # View:
-    plot_vtk('fundi.vtk')
-
-
-    """
-    # Connect vertices according to likelihood values in a single fold
-    import os
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
-                                        read_faces_points, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.features.fundi import find_endpoints, connect_points
-    path = os.environ['MINDBOGGLE_DATA']
-    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    # Get neighbor_lists, scalars
-    faces, points, npoints = read_faces_points(depth_file)
-    neighbor_lists = find_neighbors(faces, npoints)
-    # Select a single fold:
-    fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    faces, lines, indices, points, npoints, fold, name, input_vtk = read_vtk(fold_file)
-    # Test with pre-computed endpoints:
-    #endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
-    #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
-    #endpoints, name = read_scalars(endpoints_file)
-    #indices_points = [i for i,x in enumerate(endpoints) if x > 1]
-    endpoints_file = os.path.join(path, 'tests', 'connect_points_test3.vtk')
-    endpoints, name = read_scalars(endpoints_file)
-    max_endpoints = max(endpoints)
-    indices_points = [i for i,x in enumerate(endpoints) if x == max_endpoints]
-    likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    L, name = read_scalars(likelihood_file,True,True)
-    #
-    H = connect_points(indices_points, indices, L, neighbor_lists)
-    #
-    # View:
-    H[indices_points] = 1.1
-    rewrite_scalars(likelihood_file, 'test_connect_points.vtk', H,
-                        'connected_points', fold)
-    from mindboggle.utils.mesh import plot_vtk
-    plot_vtk('test_connect_points.vtk')
-    """
+    plot_vtk(fundi_file)
