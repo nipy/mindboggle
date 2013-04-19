@@ -669,354 +669,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
 #------------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by a watershed algorithm
 #------------------------------------------------------------------------------
-def watershed_segment(depths, points, indices, neighbor_lists, min_size=1,
-                      depth_factor=0.25, depth_ratio=0.1, tolerance=0.01):
-    """
-    Segment vertices of surface into contiguous "watershed basin" regions
-    by iterative reduction of depth threshold, stopping growth for individual
-    basins when they touch another basin. Each resulting basin is further
-    grown by seed growing, either by segment(), or by propagate(), which is
-    slower and insensitive to depth, but is not biased by seed order.
-
-    Parameters
-    ----------
-    depths : numpy array of floats
-        depth values for all vertices (default -1)
-    points : list of lists of floats
-        each element is a list of 3-D coordinates of a vertex on a surface mesh
-    indices : list of integers
-        indices to mesh vertices to be segmented
-    min_size : index
-        the minimum number of vertices in a basin
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-    depth_factor : float
-        factor to determine whether to merge two neighboring watershed catchment
-        basins -- they are merged if the Euclidean distance between their basin
-        seeds is less than this fraction of the maximum Euclidean distance
-        between points having minimum and maximum depths
-    depth_ratio : float
-        the minimum fraction of depth for a neighboring shallower
-        watershed catchment basin (otherwise merged with the deeper basin)
-    tolerance : float
-        tolerance for detecting differences in depth between vertices
-
-    Returns
-    -------
-    segments : list of integers
-        region numbers for all vertices (default -1)
-    seed_indices : list of integers
-        list of indices to seed vertices
-
-    Examples
-    --------
-    >>> # Perform watershed segmentation on the deeper portions of a surface:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import watershed_segment
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
-    >>> indices = np.where(depths > 0.01)[0]  # high to speed up
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> min_size = 50
-    >>> depth_factor = 0.25
-    >>> depth_ratio = 0.1
-    >>> tolerance = 0.01
-    >>> #
-    >>> segments, seed_indices = watershed_segment(depths, points, indices,
-    >>>     neighbor_lists, min_size, depth_factor, depth_ratio, tolerance)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'watershed.vtk',
-    >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('watershed.vtk')
-    >>> # View watershed seeds:
-    >>> seeds = -1 * np.ones(len(depths))
-    >>> for i, s in enumerate(seed_indices):
-    >>>     seeds[s] = i
-    >>> rewrite_scalars(depth_file, 'watershed_seeds.vtk',
-    >>>                 seeds, 'seeds', seeds)
-    >>> plot_vtk('watershed_seeds.vtk')
-
-    """
-    import numpy as np
-    from time import time
-    from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.segment import segment, segment_rings
-    from mindboggle.utils.mesh import find_neighborhood
-    from mindboggle.shapes.measure import point_distance
-
-    print('Segment {0} vertices by a surface watershed algorithm'.
-          format(len(indices)))
-    verbose = False
-    merge = True
-    t0 = time()
-    tiny = 0.000001
-
-    use_depth_ratio = True
-
-    #---------------------------------------------------------------------------
-    # Find the boundaries of the given mesh vertices (indices):
-    #---------------------------------------------------------------------------
-    folds = np.ones(len(depths))
-    folds[indices] = 2
-    boundary_indices, foo1, foo2 = extract_borders(range(len(depths)), folds,
-        neighbor_lists, ignore_values=[], return_label_pairs=False)
-
-    #---------------------------------------------------------------------------
-    # Iteratively segment the vertices as concentric segments:
-    #---------------------------------------------------------------------------
-    rings = segment_rings(indices, boundary_indices, neighbor_lists, step=1)
-
-    # Reverse order from final segment to first segment (boundaries):
-    rings = rings[::-1]
-
-    #---------------------------------------------------------------------------
-    # Break each ring up into unconnected segments:
-    #---------------------------------------------------------------------------
-    ring_segments = []
-    ring_segment_labels = []
-    ring_labels = []
-    max_segment = 0
-    count=0
-    labels = -1 * np.ones(len(depths))
-    for ring in rings:
-        count+=1
-        print(count)
-        S = []
-        SL = []
-        L = []
-        segments = segment(ring, neighbor_lists)
-        for n in [x for x in np.unique(segments) if x != -1]:
-            label = n + max_segment
-            L.extend([label for x in segments if x == n])
-            SL.append(label)
-            I = [i for i,x in enumerate(segments) if x == n]
-            labels[I] = label
-            S.append(I)
-        ring_segments.append(S)
-        ring_segment_labels.append(SL)
-        ring_labels.append(L)
-        max_segment = n + 1
-
-    #---------------------------------------------------------------------------
-    # Combine adjacent vertices across ring segments, from the deepest ring up:
-    #---------------------------------------------------------------------------
-    for iring, ring in enumerate(ring_segments):
-        if iring > 0:
-            for isegment, segment in enumerate(ring):
-
-                prev_label = ring_segment_labels[iring-1][isegment]
-                print(label)
-
-                # For a given segment, find neighborhood of vertices in upper ring:
-                next_ring = rings[iring + 1]
-                N = find_neighborhood(neighbor_lists, segment, 1)
-                N = list(frozenset(N).intersection(next_ring))
-
-                # Relabel neighbors in upper ring if the neighbors
-                # all have the same label:
-                if len(np.unique(labels[N])) == 1:
-                    labels[N] = label
-                    #ring_segment_labels[iring + 1][?] = label
-                    #ring_labels[iring + 1] = label
-
-
-
-    """
-    #---------------------------------------------------------------------------
-    # Loop through thresholds:
-    #---------------------------------------------------------------------------
-#    segments = -1 * np.ones(len(depths))
-#    seed_indices = []
-#    seed_points = []
-#    all_regions = []
-#    region = []
-
-    filled = []
-    n_basins = 0
-    original_indices = indices[:]
-    seed_lists = []
-    for threshold in thresholds:
-
-        # Find the boundaries of the given mesh vertices (indices):
-        folds = np.ones(len(depths))
-        folds[indices] = 2
-        boundary_indices, foo1, foo2 = extract_borders(range(len(depths)), folds,
-            neighbor_lists, ignore_values=[], return_label_pairs=False)
-
-        segment_rings(region, seeds, neighbor_lists, step=1)
-
-        # Find vertices deeper than threshold:
-        indices_depth = [x for x in indices if depths[x] >= threshold]
-
-        # Segment the neighbors into connected vertices (region boundaries)
-        segments = segment(indices_depth, neighbor_lists)
-        unique_segments = [x for x in np.unique(segments) if x != -1]
-        n_segments = len(unique_segments)
-
-        # Extract segments pairs at boundaries between watershed catchment basins
-        foo1, foo2, pairs = extract_borders(original_indices, segments,
-                                            neighbor_lists, ignore_values=[-1],
-                                            return_label_pairs=True)
-        # Sort basin depths (descending order) -- return segment indices
-        Isort = np.argsort(basin_depths).tolist()
-        Isort.reverse()
-
-        # Find neighboring basins to each of the sorted basins
-        print("    Find neighboring basins")
-        basin_pairs = []
-        for index in Isort:
-            index_neighbors = [int(list(frozenset(x).difference([index]))[0])
-                               for x in pairs if index in x]
-
-            # Store neighbors whose depth is less than a fraction
-            # of the basin's depth and farther away than half the basin's depth:
-            if use_depth_ratio:
-                index_neighbors = [[x, index] for x in index_neighbors
-                                   if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
-                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
-                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
-            # Store neighbors farther away than half the basin's depth:
-            else:
-                index_neighbors = [[x, index] for x in index_neighbors
-                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
-                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
-            if index_neighbors:
-                basin_pairs.extend(index_neighbors)
-
-        # Merge shallow watershed catchment basins
-        if basin_pairs:
-            print('    Merge basins with deeper neighboring basins')
-            for basin_pair in basin_pairs:
-                segments[np.where(segments == basin_pair[0])] = basin_pair[1]
-
-
-        filled.extend(indices_deep)
-
-
-
-        # Add seeds to region
-        region.extend(seed_list)
-        all_regions.extend(seed_list)
-
-        # Remove seeds from vertices to segment
-        indices = list(frozenset(indices).difference(seed_list))
-        if indices:
-
-            # Identify neighbors of seeds
-            neighbors = []
-            [neighbors.extend(neighbor_lists[x]) for x in seed_list]
-
-            # Select neighbors that have not been previously selected
-            # and are among the vertices to segment
-            old_seed_list = seed_list[:]
-            seed_list = list(frozenset(neighbors).intersection(indices))
-            seed_list = list(frozenset(seed_list).difference(all_regions))
-
-            # For each vertex, select neighbors that are shallower
-            seed_neighbors = []
-            for seed in old_seed_list:
-                seed_neighbors.extend([x for x in neighbor_lists[seed]
-                                       if depths[x] - tolerance <= depths[seed]])
-            seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
-
-        else:
-            seed_list = []
-
-        # If there are no seeds remaining
-        if not len(seed_list):
-
-            # If there is at least min_size points, assign counter to
-            # segmented region, store index, and increment counter:
-            if len(region) >= min_size:
-                segments[region] = counter
-                seed_indices.append(index_deepest)
-                seed_points.append(points[index_deepest])
-                counter += 1
-
-                # Compute basin depth (max - min)
-                Imax = region[np.argmax(depths[region])]
-                Imin = region[np.argmin(depths[region])]
-                max_depth = point_distance(points[Imax], [points[Imin]])[0]
-                basin_depths.append(max_depth)
-
-            # If vertices left to segment, re-initialize parameters
-            if indices:
-
-                # Initialize new region/basin
-                region = []
-
-                # Select deepest unsegmented vertex as new seed
-                index_deepest = indices[np.argmax(depths[indices])]
-                seed_list = [index_deepest]
-
-            # Display current number and size of region
-            if verbose:
-                print("    {0} vertices remain".format(len(indices)))
-    print('  ...Segmented {0} regions ({1:.2f} seconds)'.
-          format(counter, time() - t0))
-
-    # Merge watershed catchment basins
-    if merge:
-
-        # Extract segments pairs at boundaries between watershed catchment basins
-        print('  Merge watershed catchment basins with deeper neighboring basins')
-        print('    Extract basin boundaries')
-        foo1, foo2, pairs = extract_borders(original_indices, segments,
-                                            neighbor_lists, ignore_values=[-1],
-                                            return_label_pairs=True)
-        # Sort basin depths (descending order) -- return segment indices
-        Isort = np.argsort(basin_depths).tolist()
-        Isort.reverse()
-
-        # Find neighboring basins to each of the sorted basins
-        print("    Find neighboring basins")
-        basin_pairs = []
-        for index in Isort:
-            index_neighbors = [int(list(frozenset(x).difference([index]))[0])
-                               for x in pairs if index in x]
-
-            # Store neighbors whose depth is less than a fraction
-            # of the basin's depth and farther away than half the basin's depth:
-            if use_depth_ratio:
-                index_neighbors = [[x, index] for x in index_neighbors
-                                   if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
-                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
-                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
-            # Store neighbors farther away than half the basin's depth:
-            else:
-                index_neighbors = [[x, index] for x in index_neighbors
-                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
-                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
-            if index_neighbors:
-                basin_pairs.extend(index_neighbors)
-
-        # Merge shallow watershed catchment basins
-        if basin_pairs:
-            print('    Merge basins with deeper neighboring basins')
-            for basin_pair in basin_pairs:
-                segments[np.where(segments == basin_pair[0])] = basin_pair[1]
-
-        # Print statement
-        n_segments = len([x for x in np.unique(segments) if x > -1])
-        print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
-              format(n_segments, time() - t0))
-
-    return segments.tolist(), seed_indices
-    """
-
-#------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions by a watershed algorithm
-#------------------------------------------------------------------------------
-def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
-              min_size=1, depth_factor=0.25, depth_ratio=0.1, tolerance=0.01,
-              regrow=True):
+def watershed_segment(depths, points, indices, neighbor_lists,
+    min_size=1, depth_factor=0.25, depth_ratio=0.1, tolerance=0.01):
     """
     Segment vertices of surface into contiguous "watershed basin" regions
     by seed growing from an iterative selection of the deepest vertices.
@@ -1034,8 +688,6 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
     ----------
     depths : numpy array of floats
         depth values for all vertices (default -1)
-    rescaled_depths : numpy array of floats
-        rescaled depth values for all vertices (default -1)
     points : list of lists of floats
         each element is a list of 3-D coordinates of a vertex on a surface mesh
     indices : list of integers
@@ -1054,8 +706,6 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
         watershed catchment basin (otherwise merged with the deeper basin)
     tolerance : float
         tolerance for detecting differences in depth between vertices
-    regrow : Boolean
-        regrow segments from watershed seeds?
 
     Returns
     -------
@@ -1071,24 +721,21 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.labels.segment import watershed, segment
-    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> depth2_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.rescaled.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
-    >>> rescaled_depths, name = read_scalars(depth2_file)
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> min_size = 50
     >>> depth_factor = 0.25
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
-    >>> regrow = True
     >>> #
-    >>> segments, seed_indices = watershed(depths, rescaled_depths, points,
-    >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
-    >>>     tolerance, regrow)
+    >>> segments, seed_indices = watershed(depths, points, indices,
+    >>>     neighbor_lists, min_size, depth_factor, depth_ratio, tolerance)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'watershed.vtk',
@@ -1124,7 +771,7 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
     D = np.ones(len(depths))
     D[indices] = 2
     borders, foo1, foo2 = extract_borders(range(len(depths)), D,
-        neighbor_lists, ignore_values=[], return_label_pairs=False)
+                                          neighbor_lists, ignore_values=[], return_label_pairs=False)
 
     #---------------------------------------------------------------------------
     # Select deepest vertex as initial seed:
@@ -1259,6 +906,325 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
         # Print statement:
         n_segments = len([x for x in np.unique(segments) if x > -1])
         print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
+              format(n_segments, time() - t0))
+
+    return segments.tolist(), seed_indices
+
+#------------------------------------------------------------------------------
+# Segment vertices of surface into contiguous regions by a watershed algorithm
+#------------------------------------------------------------------------------
+def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
+              min_size=1, depth_factor=0.25, depth_ratio=0.1, tolerance=0.01,
+              regrow=True):
+    """
+    Segment vertices of surface into contiguous "watershed basin" regions
+    by seed growing from an iterative selection of the deepest vertices.
+
+    Parameters
+    ----------
+    depths : numpy array of floats
+        depth values for all vertices (default -1)
+    rescaled_depths : numpy array of floats
+        rescaled depth values for all vertices (default -1)
+    points : list of lists of floats
+        each element is a list of 3-D coordinates of a vertex on a surface mesh
+    indices : list of integers
+        indices to mesh vertices to be segmented
+    min_size : index
+        the minimum number of vertices in a basin
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    depth_factor : float
+        factor to determine whether to merge two neighboring watershed catchment
+        basins -- they are merged if the Euclidean distance between their basin
+        seeds is less than this fraction of the maximum Euclidean distance
+        between points having minimum and maximum depths
+    depth_ratio : float
+        the minimum fraction of depth for a neighboring shallower
+        watershed catchment basin (otherwise merged with the deeper basin)
+    tolerance : float
+        tolerance for detecting differences in depth between vertices
+    regrow : Boolean
+        regrow segments from watershed seeds?
+
+    Returns
+    -------
+    segments : list of integers
+        region numbers for all vertices (default -1)
+    seed_indices : list of integers
+        list of indices to seed vertices
+
+    Examples
+    --------
+    >>> # Perform watershed segmentation on the deeper portions of a surface:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh import find_neighbors, plot_vtk
+    >>> from mindboggle.labels.segment import watershed, segment
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth2_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.rescaled.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
+    >>> rescaled_depths, name = read_scalars(depth2_file)
+    >>> indices = np.where(depths > 0.01)[0]  # high to speed up
+    >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> min_size = 50
+    >>> depth_factor = 0.25
+    >>> depth_ratio = 0.1
+    >>> tolerance = 0.01
+    >>> regrow = True
+    >>> #
+    >>> segments, seed_indices = watershed(depths, rescaled_depths, points,
+    >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
+    >>>     tolerance, regrow)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> rewrite_scalars(depth_file, 'watershed.vtk',
+    >>>                 segments, 'segments', segments)
+    >>> plot_vtk('watershed.vtk')
+    >>> # View watershed seeds:
+    >>> seeds = -1 * np.ones(len(depths))
+    >>> for i, s in enumerate(seed_indices):
+    >>>     seeds[s] = i
+    >>> rewrite_scalars(depth_file, 'watershed_seeds.vtk',
+    >>>                 seeds, 'seeds', seeds)
+    >>> plot_vtk('watershed_seeds.vtk')
+
+    """
+    import numpy as np
+    from time import time
+    from mindboggle.labels.label import extract_borders
+    from mindboggle.shapes.measure import point_distance
+
+    print('Segment {0} vertices by a surface watershed algorithm'.
+          format(len(indices)))
+    verbose = False
+    merge = True
+    t0 = time()
+    tiny = 0.000001
+
+    use_depth_ratio = True
+
+    #---------------------------------------------------------------------------
+    # Find the boundaries of the given mesh vertices (indices):
+    #---------------------------------------------------------------------------
+    D = np.ones(len(depths))
+    D[indices] = 2
+    borders, foo1, foo2 = extract_borders(range(len(depths)), D,
+        neighbor_lists, ignore_values=[], return_label_pairs=False)
+
+    #---------------------------------------------------------------------------
+    # Select deepest vertex as initial seed:
+    #---------------------------------------------------------------------------
+    index_deepest = indices[np.argmax(depths[indices])]
+    seed_list = [index_deepest]
+    basin_depths = []
+    original_indices = indices[:]
+
+    #---------------------------------------------------------------------------
+    # Loop until all vertices have been segmented.
+    # This limits the number of possible seeds:
+    #---------------------------------------------------------------------------
+    segments = -1 * np.ones(len(depths))
+    seed_indices = []
+    seed_points = []
+    all_regions = []
+    region = []
+    counter = 0
+    terminate = False
+    while not terminate:
+
+        # Add seeds to region:
+        region.extend(seed_list)
+        all_regions.extend(seed_list)
+
+        # Remove seeds from vertices to segment:
+        indices = list(frozenset(indices).difference(seed_list))
+        if indices:
+
+            # Identify neighbors of seeds:
+            neighbors = []
+            [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+            # Select neighbors that have not been previously selected
+            # and are among the vertices to segment:
+            old_seed_list = seed_list[:]
+            seed_list = list(frozenset(neighbors).intersection(indices))
+            seed_list = list(frozenset(seed_list).difference(all_regions))
+
+            # For each vertex, select neighbors that are shallower:
+            seed_neighbors = []
+            for seed in old_seed_list:
+                seed_neighbors.extend([x for x in neighbor_lists[seed]
+                                       if depths[x] - tolerance <= depths[seed]])
+            seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
+
+        else:
+            seed_list = []
+
+        # If there are no seeds remaining:
+        if not len(seed_list):
+
+            # If there is at least min_size points, assign counter to
+            # segmented region, store index, and increment counter:
+            if len(region) >= min_size:
+                segments[region] = counter
+                seed_indices.append(index_deepest)
+                seed_points.append(points[index_deepest])
+                counter += 1
+
+                # Compute basin depth (max - min):
+                Imax = region[np.argmax(depths[region])]
+                Imin = region[np.argmin(depths[region])]
+                max_depth = point_distance(points[Imax], [points[Imin]])[0]
+                basin_depths.append(max_depth)
+
+            # If vertices left to segment, re-initialize parameters:
+            if indices:
+
+                # Initialize new region/basin:
+                region = []
+
+                # Select deepest unsegmented vertex as new seed
+                # if its rescaled depth is close to 1:
+                index_deepest = indices[np.argmax(depths[indices])]
+                seed_list = [index_deepest]
+
+            # Termination criteria:
+            if not len(indices):
+                terminate = True
+
+            # Display current number and size of region:
+            if verbose:
+                print("    {0} vertices remain".format(len(indices)))
+
+    print('  ...Segmented {0} initial watershed regions ({1:.2f} seconds)'.
+          format(counter, time() - t0))
+
+    #---------------------------------------------------------------------------
+    # Regrow from (deep) watershed seeds, stopping at borders:
+    #---------------------------------------------------------------------------
+    if regrow:
+
+        print('  Regrow segments from watershed seeds, stopping at borders')
+        indices = original_indices[:]
+        segments = -1 * np.ones(len(depths))
+        all_regions = []
+        for iseed, seed_index in enumerate(seed_indices):
+            seed_list = [seed_index]
+            region = []
+            terminate = False
+            while not terminate:
+
+                # Add seeds to region:
+                region.extend(seed_list)
+                all_regions.extend(seed_list)
+
+                # Remove seeds from vertices to segment:
+                indices = list(frozenset(indices).difference(seed_list))
+                if indices:
+
+                    # Identify neighbors of seeds:
+                    neighbors = []
+                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+                    # Select neighbors that have not been previously selected
+                    # and are among the vertices to segment:
+                    old_seed_list = seed_list[:]
+                    seed_list = list(frozenset(neighbors).intersection(indices))
+                    seed_list = list(frozenset(seed_list).difference(all_regions))
+
+                    # For each vertex, select neighbors that are shallower:
+                    seed_neighbors = []
+                    for seed in old_seed_list:
+                        seed_neighbors.extend([x for x in neighbor_lists[seed]
+                                               if depths[x] - tolerance <= depths[seed]])
+                    seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
+
+                    # Remove seed list if it contains a border vertex:
+                    if seed_list:
+                        if list(frozenset(seed_list).intersection(borders)):
+                            seed_list = []
+                else:
+                    seed_list = []
+
+                # Terminate growth for this seed if the seed_list is empty:
+                if not len(seed_list):
+                    terminate = True
+
+                    # If there is at least min_size points, store index:
+                    if len(region) >= min_size:
+                        segments[region] = iseed
+
+                    # Display current number and size of region:
+                    if verbose:
+                        print("    {0} vertices remain".format(len(indices)))
+
+        #-----------------------------------------------------------------------
+        # Continue growth until there are no more vertices to segment:
+        #-----------------------------------------------------------------------
+        seed_lists = []
+        for n in np.unique(segments):
+            seed_lists.append([i for i,x in enumerate(segments)
+                               if x == n if x != -1])
+        segments = segment(indices, neighbor_lists, min_region_size=1,
+            seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
+            labels=[], label_lists=[], values=[], max_steps='', verbose=False)
+
+        print('  ...Regrew {0} watershed regions from seeds ({1:.2f} seconds)'.
+              format(iseed+1, time() - t0))
+
+    #---------------------------------------------------------------------------
+    # Merge watershed catchment basins:
+    #---------------------------------------------------------------------------
+    if merge:
+
+        # Extract segments pairs at boundaries between watershed catchment basins:
+        print('  Merge watershed catchment basins with deeper neighboring basins')
+        if verbose:
+            print('    Extract basin boundaries')
+        foo1, foo2, pairs = extract_borders(original_indices, segments,
+                                            neighbor_lists, ignore_values=[-1],
+                                            return_label_pairs=True)
+        # Sort basin depths (descending order) -- return segment indices:
+        Isort = np.argsort(basin_depths).tolist()
+        Isort.reverse()
+
+        # Find neighboring basins to each of the sorted basins:
+        if verbose:
+            print("    Find neighboring basins")
+        basin_pairs = []
+        for index in Isort:
+            index_neighbors = [int(list(frozenset(x).difference([index]))[0])
+                               for x in pairs if index in x]
+
+            # Store neighbors whose depth is less than a fraction
+            # of the basin's depth and farther away than half the basin's depth:
+            if use_depth_ratio:
+                index_neighbors = [[x, index] for x in index_neighbors
+                                   if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
+                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
+                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
+            # Store neighbors farther away than half the basin's depth:
+            else:
+                index_neighbors = [[x, index] for x in index_neighbors
+                                   if point_distance(seed_points[x], [seed_points[index]])[0] >
+                                      depth_factor * max([basin_depths[x], basin_depths[index]])]
+            if index_neighbors:
+                basin_pairs.extend(index_neighbors)
+
+        # Merge shallow watershed catchment basins:
+        if basin_pairs:
+            if verbose:
+                print('    Merge basins with deeper neighboring basins')
+            for basin_pair in basin_pairs:
+                segments[np.where(segments == basin_pair[0])] = basin_pair[1]
+
+        # Print statement:
+        n_segments = len([x for x in np.unique(segments) if x > -1])
+        print('  ...Merged segments to form {0} watershed regions ({1:.2f} seconds)'.
               format(n_segments, time() - t0))
 
     return segments.tolist(), seed_indices
