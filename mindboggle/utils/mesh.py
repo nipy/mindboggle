@@ -884,7 +884,8 @@ def topo_test(index, values, neighbor_lists):
 
     Parameters
     ----------
-    index : index of vertex
+    index : integer
+        index of vertex
     values : numpy array of integers or floats
         values for all vertices
     neighbor_lists : list of lists of integers
@@ -892,8 +893,10 @@ def topo_test(index, values, neighbor_lists):
 
     Returns
     -------
-    sp : simple point or not?: Boolean
-    n_inside : number of neighboring vertices greater than threshold
+    sp : Boolean
+        simple point or not?
+    n_inside : integer
+        number of neighboring vertices greater than threshold
 
     """
     import numpy as np
