@@ -21,9 +21,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     Steps ::
 
-        1. Find fundus endpoints from likelihood and
-           minimum distance values and minimum directions.
-
+        1. Find fundus endpoints.
         2. Connect fundus endpoints and extract fundi.
 
     Parameters
@@ -62,7 +60,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>> if single_fold:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> else:
-    >>>     folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
     >>> #
     >>> fundi, n_fundi, endpoints, fundi_file = extract_fundi(folds, depth_file,
@@ -77,7 +75,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     import numpy as np
     from time import time
 
-    from mindboggle.features.fundi import find_endpoints, connect_points
+    from mindboggle.features.fundi import track_endpoints, connect_points
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
 
@@ -113,13 +111,13 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     unique_fold_IDs = [x for x in np.unique(folds) if x != -1]
     print("Extract a fundus from each of {0} regions...".
           format(len(unique_fold_IDs)))
-    for fold_ID in unique_fold_IDs[2:5]:
+    for fold_ID in unique_fold_IDs:
         indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
         if indices_fold:
-            print('  Region {0}:'.format(int(fold_ID)))
+            print('  Fold {0}:'.format(int(fold_ID)))
 
             # Find fundus points
-            indices_endpoints, tracks = find_endpoints(indices_fold,
+            indices_endpoints, tracks = track_endpoints(indices_fold,
                 neighbor_lists, likelihoods, depths, min_edges=5,
                 use_threshold=True)
             n_endpoints = len(indices_endpoints)
@@ -131,7 +129,6 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
                 print('    Connect {0} fundus points...'.format(n_endpoints))
                 indices_skeleton = connect_points(indices_endpoints,
                                    indices_fold, likelihoods, neighbor_lists)
-                print(len(indices_skeleton), len(indices_fold))
                 if len(indices_skeleton) > 1:
                     fundi[indices_skeleton] = fold_ID
                     count += 1
@@ -140,7 +137,7 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
-    print(np.unique(fundi))
+
     #---------------------------------------------------------------------------
     # Return fundi, number of fundi, fundus points, and file name:
     #---------------------------------------------------------------------------
@@ -154,12 +151,105 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
 
     return fundi, n_fundi, fundus_endpoints, fundi_file
 
-def track_to_border(seed, segments, neighbor_lists, values, borders):
+def track_values(seed, indices, neighbor_lists, values, sink=[]):
     """
-    Build a track from a point through concentric segments.
+    Build a track from a seed vertex along increasing vertex values of a mesh.
 
-    This function builds a track from an initial point through concentric
-    segments along high-value vertices of a surface mesh.
+    This function builds a track from an initial seed vertex through
+    increasing value vertices of a surface mesh, optionally terminating
+    at any of a set of sink vertices.
+
+    Parameters
+    ----------
+    seed : integer
+        index to initial seed vertex from which to grow a track
+    indices : list of integers
+        indices of vertices through which to connect points
+    neighbor_lists : list of lists of integers
+        indices to neighboring vertices for each vertex
+    values : numpy array of floats
+        values for all vertices that help to guide a track
+    sink : list of integers
+        indices for vertices that end a track (optional)
+
+    Returns
+    -------
+    track : list of integers
+        indices of ordered vertices for a single track
+
+    Examples
+    --------
+    >>> # Track from deepest point in a fold to its boundary:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.features.fundi import track_values
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> fold, name = read_scalars(fold_file)
+    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> # Start from the boundary of a thresholded indices:
+    >>> seeds = [18267, 38339, 39689]
+    >>> seed = seeds[0]
+    >>> #
+    >>> track = track_values(seed, indices, neighbor_lists, values, sink=[])
+    >>> #
+    >>> # View:
+    >>> T = -1 * np.ones(len(values))
+    >>> T[track] = 1
+    >>> T[seed] = 2
+    >>> rewrite_scalars(depth_file, 'track.vtk', T, 'track', fold)
+    >>> plot_vtk('track.vtk')
+
+    """
+    import numpy as np
+
+    track = [seed]
+    value = values[seed]
+    prev_value = 0.0
+    while value >= prev_value:
+        prev_value = value
+
+        # Find the seed's neighborhood N within indices:
+        N = neighbor_lists[seed]
+        N = list(frozenset(N).intersection(indices))
+        if N:
+
+            # Add the neighborhood vertex with the maximum value to the track:
+            seed = N[np.argmax(values[N])]
+            track.append(seed)
+            value = values[seed]
+
+            # If the track has run into the sink vertices, return the track:
+            #if list(frozenset(N_segment).intersection(sink)):
+            if sink and seed in sink:
+                return track
+
+        # If there is no neighborhood for the seed, return the track:
+        elif len(track) > 1:
+            return track
+        else:
+            return None
+
+    # Return the track:
+    if len(track) > 1:
+        return track
+    else:
+        return None
+
+def track_segments(seed, segments, neighbor_lists, values, sink):
+    """
+    Build a track from a seed vertex through concentric segments of a mesh.
+
+    This function builds a track from an initial seed vertex through
+    concentric segments along high-value vertices of a surface mesh
+    optionally terminating at any of a set of sink vertices.
 
     Parameters
     ----------
@@ -171,6 +261,8 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
         indices to neighboring vertices for each vertex
     values : numpy array of floats
         values for all vertices that help to guide a track
+    sink : list of integers
+        indices for vertices that end a track
 
     Returns
     -------
@@ -186,7 +278,7 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.labels.label import extract_borders
-    >>> from mindboggle.features.fundi import track_to_border
+    >>> from mindboggle.features.fundi import track_segments
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
@@ -212,18 +304,18 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
     >>> D[indices] = 2
     >>> borders, foo1, foo2 = extract_borders(range(len(values)), D, neighbor_lists)
     >>> #
-    >>> track = track_to_border(seed, segments, neighbor_lists, values, borders)
+    >>> track = track_segments(seed, segments, neighbor_lists, values, borders)
     >>> #
     >>> # View:
     >>> T = -1 * np.ones(len(values))
     >>> T[track] = 1
-    >>> rewrite_scalars(depth_file, 'track_to_border.vtk', T, 'track', fold)
-    >>> plot_vtk('track_to_border.vtk')
+    >>> rewrite_scalars(depth_file, 'track.vtk', T, 'track', fold)
+    >>> plot_vtk('track.vtk')
 
     """
     import numpy as np
 
-    track = []
+    track = [seed]
     for isegment, segment in enumerate(segments):
 
         # Find the seed's neighborhood N in the segment:
@@ -238,8 +330,8 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
                 track.append(seed)
 
                 # If the track has run into the region's border, return the track:
-                #if list(frozenset(N_segment).intersection(borders)):
-                if seed in borders:
+                #if list(frozenset(N_segment).intersection(sink)):
+                if seed in sink:
                     return track
 
             # If there is no neighbor in the new segment,
@@ -259,10 +351,10 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
                     track.extend(bridge)
 
                     # If the track has run into the region's border, return the track:
-                    if seed in borders:
+                    if seed in sink:
                         return track
 
-        # If there is no neighborhood for the seed, return the track:
+        # If there is no neighborhood for the seed, return None:
         else:
             return None
 
@@ -272,15 +364,17 @@ def track_to_border(seed, segments, neighbor_lists, values, borders):
 #------------------------------------------------------------------------------
 # Find endpoints
 #------------------------------------------------------------------------------
-def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
-                   use_threshold=True):
+def track_endpoints(indices, neighbor_lists, values, values_seeding,
+                    min_edges=5, use_threshold=True, backtrack=True):
     """
-    Find endpoints in a region of connected vertices.
+    Construct multiple tracks through a region of connected vertices.
 
-    These points are intended to serve as endpoints of fundus curves
-    running along high-likelihood paths within a region (fold).
-    This algorithm iteratively propagates paths from a high-likelihood boundary
-    within a region of a surface mesh to the boundary of the region.
+    This algorithm propagates multiple tracks from seed vertices
+    at a given depth within a region of a surface mesh to the boundary
+    of the region (via the track_segments() function).
+
+    The tracks terminate at boundary vertices that serve as endpoints
+    of fundus curves running along the depths of a fold.
 
     Parameters
     ----------
@@ -296,6 +390,8 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
         minimum number of edges between endpoint vertices
     use_threshold : Boolean
         initialize seeds with thresholded vertices?
+    backtrack : Boolean
+        track backwards from the beginning of the resulting tracks to the center?
 
     Returns
     -------
@@ -311,7 +407,7 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
-    >>> from mindboggle.features.fundi import find_endpoints
+    >>> from mindboggle.features.fundi import track_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
@@ -324,64 +420,75 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
     >>> use_threshold = True
     >>> #
     >>> #-----------------------------------------------------------------------
-    >>> # Find endpoints on a single fold:
+    >>> # Extract tracks and endpoints on a single fold:
     >>> #-----------------------------------------------------------------------
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file)
-    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> folds[folds != fold_number] = -1
+    >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> #
-    >>> indices_endpoints, tracks = find_endpoints(indices, neighbor_lists, \
-    >>>     values, values_seeding, min_edges, use_threshold)
+    >>> tracks, indices_endpoints = track_endpoints(indices, neighbor_lists, \
+    >>>     values, values_seeding, min_edges, use_threshold, backtrack=True)
     >>> #
-    >>> # Write results to VTK file and view:
+    >>> # View results atop values:
     >>> indices_tracks = [x for lst in tracks for x in lst]
-    >>> values[indices_tracks] = max(values) + 0.1
-    >>> values[indices_endpoints] = max(values) + 0.2
-    >>> rewrite_scalars(depth_file, 'find_endpoints.vtk', \
-    >>>                 values, 'endpoints_on_values_in_fold', fold)
-    >>> plot_vtk('find_endpoints.vtk')
+    >>> values[indices_tracks] = max(values) + 0.5
+    >>> values[indices_endpoints] = max(values) + 0.1
+    >>> rewrite_scalars(depth_file, 'track_endpoints.vtk', \
+    >>>                 values, 'endpoints_on_values_in_fold', folds)
+    >>> plot_vtk('track_endpoints.vtk')
     >>> #-----------------------------------------------------------------------
-    >>> # Find endpoints on every fold in a hemisphere:
+    >>> # Extract tracks and endpoints on every fold in a hemisphere:
     >>> #-----------------------------------------------------------------------
-    >>> plot_each_fold = 1#False
+    >>> plot_each_fold = False
     >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> fold_numbers = [x for x in np.unique(folds) if x != -1]
     >>> nfolds = len(fold_numbers)
-    >>> endpoints = []
-    >>> for ifold, fold_number in enumerate(fold_numbers[0:1]):
+    >>> all_endpoints = []
+    >>> all_tracks = []
+    >>> for ifold, fold_number in enumerate(fold_numbers):
     >>>     print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
     >>>     indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>>     if len(indices) > min_size:
-    >>>         indices_endpoints, tracks = find_endpoints(indices, neighbor_lists, \
-    >>>             values, values_seeding, min_edges, use_threshold)
-    >>>         endpoints.extend(indices_endpoints)
+    >>>         tracks, indices_endpoints = track_endpoints(indices,
+    >>>             neighbor_lists, values, values_seeding, min_edges,
+    >>>             use_threshold, backtrack=True)
+    >>>         indices_tracks = [x for lst in tracks for x in lst]
+    >>>         all_endpoints.extend(indices_endpoints)
+    >>>         all_tracks.extend(indices_tracks)
     >>>         # Plot each fold:
     >>>         if plot_each_fold:
     >>>             fold = -1 * np.ones(len(values))
     >>>             fold[indices] = 1
+    >>>             values[indices_tracks] = max(values) + 0.5
     >>>             values[indices_endpoints] = max(values) + 0.1
-    >>>             rewrite_scalars(depth_file, 'find_endpoints.vtk',
+    >>>             rewrite_scalars(depth_file, 'track_endpoints.vtk',
     >>>                     values, 'endpoints_on_values_in_fold', fold)
-    >>>             plot_vtk('find_endpoints.vtk')
-    >>> E = -1 * np.ones(len(values))
-    >>> E[endpoints] = 1
+    >>>             plot_vtk('track_endpoints.vtk')
+    >>> P = -1 * np.ones(len(values))
+    >>> P[all_tracks] = 1
+    >>> P[all_endpoints] = 2
     >>> #
     >>> # Write results to VTK file and view:
-    >>> rewrite_scalars(folds_file, 'find_endpoints.vtk',
-    >>>                 E, 'endpoints_on_folds', folds)
-    >>> plot_vtk('find_endpoints.vtk')
+    >>> rewrite_scalars(folds_file, 'track_endpoints.vtk',
+    >>>                 P, 'tracks_endpoints_on_folds', folds)
+    >>> plot_vtk('track_endpoints.vtk')
 
     """
     import numpy as np
 
     from mindboggle.labels.label import extract_borders
     from mindboggle.labels.segment import segment, segment_rings
-    from mindboggle.features.fundi import track_to_border
+    from mindboggle.features.fundi import track_segments, track_values
+
+    filter_tracks = True
 
     # Initialize R, T, S, V:
     R = indices[:]
     T = []
+    E = []
     S = np.array(values_seeding)
     V = np.array(values)
 
@@ -412,7 +519,9 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
         # Extract threshold boundary vertices as seeds:
         B = -1 * np.ones(len(S))
         B[indices_high] = 2
-        seeds, foo1, foo2 = extract_borders(range(len(S)), B, neighbor_lists)
+        high_value_borders, foo1, foo2 = extract_borders(range(len(S)), B,
+                                                         neighbor_lists)
+        seeds = high_value_borders[:]
 
     # Or initialize seeds with the maximum value point:
     else:
@@ -430,7 +539,7 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
     print('    Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
           format(len(R), len(segments), threshold))
     for seed in seeds:
-        track = track_to_border(seed, segments, neighbor_lists, V, borders)
+        track = track_segments(seed, segments, neighbor_lists, V, borders)
         if track:
             T.append(track)
 
@@ -441,8 +550,7 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
     # within a given number of edges between each other.  We select the track
     # with higher median value when their endpoints are close.
     #---------------------------------------------------------------------------
-    filter_tracks = True
-    if filter_tracks:
+    if filter_tracks and T:
 
         # Compute median track values:
         Tvalues = []
@@ -462,7 +570,6 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
         Tvalues = T2values
 
         # Gather endpoint vertex indices:
-        E = []
         for track in T:
             E.append(track[-1])
 
@@ -502,7 +609,45 @@ def find_endpoints(indices, neighbor_lists, values, values_seeding, min_edges=5,
         E = E2
         T = T2
 
-    return E, T
+    #---------------------------------------------------------------------------
+    # Track backwards from the beginning vertices of the above tracks,
+    # finishing at the deepest point:
+    #---------------------------------------------------------------------------
+    if backtrack and use_threshold and indices_high:
+
+        # Define remaining vertices:
+        R = list(frozenset(indices_high).union(high_value_borders))
+
+        # Initialize seeds with beginning vertices of the above tracks:
+        seeds = [x[0] for x in T]
+
+        ## Initialize sink with the maximum value point:
+        #center = [R[np.argmax(V[R])]]
+
+        #-----------------------------------------------------------------------
+        # Segment the mesh from the maximum value to the threshold boundary:
+        #-----------------------------------------------------------------------
+        #segments = segment_rings(R, center, neighbor_lists, step=1)
+
+        # Reverse order of the segments, from threshold boundary to the center:
+        #segments = segments[::-1]
+        #segments.append(center)
+
+        #print('    Track back through {0} vertices in {1} segments'.
+        #      format(len(R), len(segments)))
+        T2 = []
+        for iseed, seed in enumerate(seeds):
+            #track = track_segments(seed, segments, neighbor_lists, V, center)
+            track = track_values(seed, R, neighbor_lists, V, sink=[])
+            if track:
+                # Remove seed and reverse track direction:
+                track = track[1::][::-1]
+                # Combine forward and backward tracks:
+                track.extend(T[iseed])
+                T2.append(track)
+        T = T2
+
+    return T, E
 
 #---------------
 # Connect points
@@ -554,7 +699,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
     >>>                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.features.fundi import find_endpoints, connect_points
+    >>> from mindboggle.features.fundi import track_endpoints, connect_points
     >>> from mindboggle.utils.mesh import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -562,13 +707,12 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     >>> faces, points, npoints = read_faces_points(depth_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold:
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, lines, indices, points, npoints, fold, name, input_vtk = read_vtk(fold_file)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> folds[folds != fold_number] = -1
+    >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Test with pre-computed endpoints:
-    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
-    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
-    >>> #endpoints, name = read_scalars(endpoints_file)
-    >>> #indices_points = [i for i,x in enumerate(endpoints) if x > 1]
     >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test3.vtk')
     >>> endpoints, name = read_scalars(endpoints_file)
     >>> max_endpoints = max(endpoints)
@@ -582,8 +726,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     >>> skeleton = -1 * np.ones(npoints)
     >>> skeleton[S] = 1
     >>> skeleton[indices_points] = 2
-    >>> rewrite_scalars(fold_file, 'connect_points.vtk',
-    >>>                 skeleton, 'skeleton', fold)
+    >>> rewrite_scalars(folds_file, 'connect_points.vtk',
+    >>>                 skeleton, 'skeleton', folds)
     >>> plot_vtk('connect_points.vtk')
 
     """
@@ -600,8 +744,10 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters:
     wN_min = 0.0  # minimum neighborhood weight
-    wN_max = 2.0  # maximum neighborhood weight (trust prior more for smoother fundi)
+    wN_max = 5.0  # maximum neighborhood weight (trust prior more for smoother fundi)
     H_step = 0.1  # step down HMMF value
+    n_levels = 1
+    levels = np.linspace(0.5, 1.0, n_levels + 1)[1::]
 
     # Parameters to speed up optimization and for termination of the algorithm:
     grad_min = 0.1  # minimum gradient factor
@@ -722,83 +868,85 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     gradient_factor = grad_min
     npoints = len(indices)
 
-    while end_flag < n_tries_no_change and count < max_count:
+    for level in levels:
 
-        # Select indices with a positive HMMF value:
-        V = [indices[x] for x in np.where(H[indices] > 0.0)[0]]
+        while end_flag < n_tries_no_change and count < max_count:
 
-        # Update neighborhood H values:
-        #H_N = np.reshape(H[N_flat_list], N_array_shape)
-        H_N = np.zeros(len_flat)
-        H_N[ind_flat] = H[N_flat[ind_flat].tolist()]
-        H_N = np.reshape(H_N, N_array_shape)
+            # Select indices with a positive HMMF value:
+            V = [indices[i] for i,x in enumerate(H[indices]) if x > 0.0]
 
-        # Compute the cost gradient for the HMMF values:
-        H_decr = H - H_step
-        H_decr[H_decr < 0] = 0.0
-        C_decr = compute_costs(L[V], H_decr[V], H_N[:,V], N_sizes[V], wN, Z)
-        H_tests[V] = H[V] - gradient_factor * (C[V] - C_decr)
+            # Update neighborhood H values:
+            #H_N = np.reshape(H[N_flat_list], N_array_shape)
+            H_N = np.zeros(len_flat)
+            H_N[ind_flat] = H[N_flat[ind_flat].tolist()]
+            H_N = np.reshape(H_N, N_array_shape)
 
-        # For each index where the HMMF value is greater than 0:
-        for index in V:
-            if H[index] > 0:
+            # Compute the cost gradient for the HMMF values:
+            H_decr = H - H_step
+            H_decr[H_decr < 0] = 0.0
+            C_decr = compute_costs(L[V], H_decr[V], H_N[:,V], N_sizes[V], wN, Z)
+            H_tests[V] = H[V] - gradient_factor * (C[V] - C_decr)
 
-                # Do not update anchor point costs:
-                if index not in indices_points:
+            # For each index:
+            for index in V:
+                if level >= H[index] >= 0.0:
 
-                    # Update a vertex HMMF value if it is away from the threshold:
-                    update = True
-                    # Or if it crosses the threshold and is a topologically
-                    # "simple point" (0.5 not considered part of the fundus):
-                    if H[index] > 0.5 >= H_tests[index]:
-                        update, n_in = topo_test(index, H_new, N)
-                    elif H[index] <= 0.5 < H_tests[index]:
-                        update, n_in = topo_test(index, 1 - H_new, N)
-                    if update:
-                        H_new[index] = H_tests[index]
-        # Update the test and cost values:
-        H_tests[H_tests < 0] = 0.0
-        H_tests[H_tests > 1] = 1.0
+                    # Do not update anchor point costs:
+                    if index not in indices_points:
 
-        C[V] = compute_costs(L[V], H_new[V], H_N[:,V], N_sizes[V], wN, Z)
+                        # Update a vertex HMMF value if it is away from the threshold:
+                        update = True
+                        # Or if it crosses the threshold and is a topologically
+                        # "simple point" (0.5 not considered part of the fundus):
+                        if H[index] > 0.5 >= H_tests[index]:
+                            update, n_in = topo_test(index, H_new, N)
+                        elif H[index] <= 0.5 < H_tests[index]:
+                            update, n_in = topo_test(index, 1 - H_new, N)
+                        if update:
+                            H_new[index] = H_tests[index]
+            # Update the test and cost values:
+            H_tests[H_tests < 0] = 0.0
+            H_tests[H_tests > 1] = 1.0
 
-        # Sum the cost values across all vertices and tally the number
-        # of HMMF values greater than the threshold.
-        # After iteration 1, compare current and previous values.
-        # If the values are similar, increment end_flag:
-        costs = sum(C[V].tolist())
-        npoints_thr = len([x for x in H[V].tolist() if x > 0.5])
+            C[V] = compute_costs(L[V], H_new[V], H_N[:,V], N_sizes[V], wN, Z)
 
-        # Terminate the loop if there are insufficient changes:
-        if count > 0:
-            delta_cost = (costs_previous - costs) / npoints
-            delta_points = npoints_thr_previous - npoints_thr
-            if delta_points == 0:
-                if delta_cost < min_cost_change and count > min_count:
-                    end_flag += 1
-            else:
-                end_flag = 0
+            # Sum the cost values across all vertices and tally the number
+            # of HMMF values greater than the threshold.
+            # After iteration 1, compare current and previous values.
+            # If the values are similar, increment end_flag:
+            costs = sum(C[V].tolist())
+            npoints_thr = len([x for x in H[V].tolist() if x > 0.5])
 
-            # Display information every n_mod iterations:
-            if not np.mod(count, print_interval):
-                print('      Iteration {0}: {1} crossing threshold '
-                      '(wN={2:0.3f}, grad={3:0.3f}, cost={4:0.3f})'.
-                      format(count, delta_points, wN, gradient_factor, delta_cost))
+            # Terminate the loop if there are insufficient changes:
+            if count > 0:
+                delta_cost = (costs_previous - costs) / npoints
+                delta_points = npoints_thr_previous - npoints_thr
+                if delta_points == 0:
+                    if delta_cost < min_cost_change and count > min_count:
+                        end_flag += 1
+                else:
+                    end_flag = 0
 
-            # Increment the gradient factor and decrement the neighborhood factor
-            # so that spacing is close in early iterations and far apart later:
-            factor = (count / np.round(rate_factor*max_count))**slope_exp
-            if gradient_factor < grad_max:
-                gradient_factor = factor * (grad_max - grad_min) + grad_min
-            if wN > wN_min:
-                wN = wN_max - factor * (wN_max - wN_min)
+                # Display information every n_mod iterations:
+                if not np.mod(count, print_interval):
+                    print('      Iteration {0}: {1} crossing threshold '
+                          '(wN={2:0.3f}, grad={3:0.3f}, cost={4:0.3f})'.
+                          format(count, delta_points, wN, gradient_factor, delta_cost))
 
-        # Reset for next iteration:
-        costs_previous = costs
-        npoints_thr_previous = npoints_thr
-        H = H_new
+                # Increment the gradient factor and decrement the neighborhood factor
+                # so that spacing is close in early iterations and far apart later:
+                factor = (count / np.round(rate_factor*max_count))**slope_exp
+                if gradient_factor < grad_max:
+                    gradient_factor = factor * (grad_max - grad_min) + grad_min
+                if wN > wN_min:
+                    wN = wN_max - factor * (wN_max - wN_min)
 
-        count += 1
+            # Reset for next iteration:
+            costs_previous = costs
+            npoints_thr_previous = npoints_thr
+            H = H_new
+
+            count += 1
 
     print('      Updated hidden Markov measure field (HMMF) values')
 
@@ -824,6 +972,8 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 if __name__ == "__main__" :
 
     # Extract fundus from a single fold or multiple folds:
+
+    """
     import os
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
@@ -845,3 +995,83 @@ if __name__ == "__main__" :
 
     # View:
     plot_vtk(fundi_file)
+    """
+
+    # Setup:
+    import os
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    from mindboggle.features.fundi import track_endpoints
+
+    single_fold = False
+
+    path = os.environ['MINDBOGGLE_DATA']
+    values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    values, name = read_scalars(values_file, True, True)
+    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    values_seeding, name = read_scalars(values_seeding_file, True, True)
+    neighbor_lists = find_neighbors_from_file(depth_file)
+    min_size = 50
+    min_edges = 5
+    use_threshold = True
+
+    #-----------------------------------------------------------------------
+    # Extract tracks and endpoints on a single fold:
+    #-----------------------------------------------------------------------
+    if single_fold:
+        fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+        fold, name = read_scalars(fold_file)
+        indices = [i for i,x in enumerate(fold) if x != -1]
+
+        tracks, indices_endpoints = track_endpoints(indices, neighbor_lists, \
+            values, values_seeding, min_edges, use_threshold, backtrack=True)
+
+        # View results atop values:
+        indices_tracks = [x for lst in tracks for x in lst]
+        values[indices_tracks] = max(values) + 0.5
+        values[indices_endpoints] = max(values) + 0.1
+        rewrite_scalars(depth_file, 'track_endpoints.vtk', \
+                        values, 'endpoints_on_values_in_fold', fold)
+        plot_vtk('track_endpoints.vtk')
+    #-----------------------------------------------------------------------
+    # Extract tracks and endpoints on every fold in a hemisphere:
+    #-----------------------------------------------------------------------
+    else:
+        plot_each_fold = False
+        folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+        folds, name = read_scalars(folds_file)
+        fold_numbers = [x for x in np.unique(folds) if x != -1]
+        nfolds = len(fold_numbers)
+        all_endpoints = []
+        all_tracks = []
+        for ifold, fold_number in enumerate(fold_numbers):
+            print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
+            indices = [i for i,x in enumerate(folds) if x == fold_number]
+            if len(indices) > min_size:
+                tracks, indices_endpoints = track_endpoints(indices,
+                    neighbor_lists, values, values_seeding, min_edges,
+                    use_threshold, backtrack=True)
+                if tracks:
+                    indices_tracks = [x for lst in tracks for x in lst]
+                    all_endpoints.extend(indices_endpoints)
+                    all_tracks.extend(indices_tracks)
+                    # Plot each fold:
+                    if plot_each_fold:
+                        fold = -1 * np.ones(len(values))
+                        fold[indices] = 1
+                        values[indices_tracks] = max(values) + 0.5
+                        values[indices_endpoints] = max(values) + 0.1
+                        rewrite_scalars(depth_file, 'track_endpoints.vtk',
+                                values, 'endpoints_on_values_in_fold', fold)
+                        plot_vtk('track_endpoints.vtk')
+        T = -1 * np.ones(len(values))
+        T[all_tracks] = 1
+        T[all_endpoints] = 2
+
+        # Write results to VTK file and view:
+        rewrite_scalars(folds_file, 'track_endpoints.vtk',
+                        T, 'tracks_endpoints_on_folds', folds)
+        plot_vtk('track_endpoints.vtk')
