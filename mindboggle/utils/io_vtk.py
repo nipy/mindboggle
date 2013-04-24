@@ -172,6 +172,57 @@ def read_faces_points(filename):
 
     return faces, points, npoints
 
+def reindex_faces_points(faces, points=[]):
+    """
+    Renumber indices in faces and remove points (coordinates) not in faces.
+
+    Parameters
+    ----------
+    faces : list of lists of integers
+        each sublist contains 3 indices of vertices that form a face
+        on a surface mesh
+    points : list of lists of floats (optional)
+        each sublist contains 3-D coordinates of a vertex on a surface mesh
+
+    Returns
+    -------
+    new_faces : list of lists of integers
+        each sublist contains 3 (renumbered) indices of vertices
+        that form a face on a surface mesh
+    new_points : list of lists of floats
+        each (new) sublist contains 3-D coordinates of a vertex on a surface mesh
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
+    >>> # Reindex faces:
+    >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> reindex_faces_points(faces, points=[])
+        ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)
+    >>> # Reindex faces of a single fold of the brain:
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> new_faces, new_points = reindex_faces_points(faces, points)
+
+    """
+    import itertools
+
+    # set() to remove repeated indices and list() to order them for later use:
+    indices_to_keep = list(set(itertools.chain(*faces)))
+    reindex = dict([(old_index, new_index)
+                    for new_index, old_index in enumerate(indices_to_keep)])
+
+    new_faces = [[reindex[old_index] for old_index in face] for face in faces]
+
+    if points:
+        new_points = [points[new_index] for new_index in indices_to_keep]
+    else:
+        new_points = None
+
+    return new_faces, new_points
+
 def read_scalars(filename, return_first=True, return_array=False):
     """
     Load all scalar lookup tables from a VTK file.
