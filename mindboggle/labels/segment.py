@@ -942,7 +942,8 @@ def watershed(depths, points, indices, neighbor_lists,
         #---------------------------------------------------------------------
         # Note: As long as keep_seeding=False, the segment values in `segments`
         # are equal to the order of the `basin_depths` and `seed_points` below.
-        seed_lists = [[x] for x in seed_indices]
+        seed_lists = [[i for i,x in enumerate(segments) if x==s]
+                      for s in np.unique(segments) if s!=-1]
         segments = segment(indices, neighbor_lists, min_region_size=1,
             seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
             labels=[], label_lists=[], values=[], max_steps='', verbose=False)
