@@ -10,23 +10,20 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
+def write_mean_shapes_tables(labels_or_file, fundi=[], sulci=[],
                              area_file='', depth_file='',
                              mean_curvature_file='', gauss_curvature_file='',
                              max_curvature_file='', min_curvature_file='',
                              thickness_file='', convexity_file='',
-                             labels_spectra=[], subfolds_spectra=[],
-                             sulci_spectra=[],
+                             labels_spectra=[], sulci_spectra=[],
                              exclude_labels=[-1]):
     """
-    Make tables of mean shape values per label, subfold, fundus, and/or sulcus.
+    Make tables of mean shape values per label, fundus, and/or sulcus.
 
     Parameters
     ----------
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    subfolds :  list of integers
-        indices to subfolds, one per vertex, with -1 indicating no subfold
     fundi :  list of integers
         indices to fundi, one per vertex, with -1 indicating no fundus
     sulci :  list of integers
@@ -49,8 +46,6 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
         name of VTK file with scalar convexity values
     labels_spectra : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
-    subfolds_spectra : list of lists of floats
-        Laplace-Beltrami spectra for subfolds
     sulci_spectra : list of lists of floats
         Laplace-Beltrami spectra for sulci
     exclude_labels : list of lists of integers
@@ -60,16 +55,12 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     -------
     label_table :  string
         output table filename for label shapes
-    subfold_table :  string
-        output table filename for subfold shapes
     fundus_table :  string
         output table filename for fundus shapes
     sulcus_table :  string
         output table filename for sulcus shapes
     norm_label_table :  string
         output table filename for label shapes normalized by area
-    norm_subfold_table :  string
-        output table filename for subfold shapes normalized by area
     norm_fundus_table :  string
         output table filename for fundus shapes normalized by area
     norm_sulcus_table :  string
@@ -82,10 +73,8 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     >>> from mindboggle.shapes.tabulate import write_mean_shapes_tables
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> sulci, name = read_scalars(sulci_file)
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -97,14 +86,13 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     >>> thickness_file = ''
     >>> convexity_file = ''
     >>> labels_spectra = [[1,2,3] for x in labels]
-    >>> subfolds_spectra = [[1,2,3] for x in subfolds]
     >>> sulci_spectra = [[1,2,3] for x in sulci]
     >>> exclude_labels = [-1]
     >>> #
-    >>> write_mean_shapes_tables(labels_or_file, subfolds, fundi, sulci, \
+    >>> write_mean_shapes_tables(labels_or_file, fundi, sulci, \
     >>>     area_file, depth_file, mean_curvature_file, \
     >>>     gauss_curvature_file, max_curvature_file, min_curvature_file, \
-    >>>     thickness_file, convexity_file, labels_spectra, subfolds_spectra, \
+    >>>     thickness_file, convexity_file, labels_spectra, \
     >>>     sulci_spectra, exclude_labels)
 
     """
@@ -121,25 +109,19 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
-    if isinstance(subfolds, np.ndarray):
-        subfolds = subfolds.tolist()
     if isinstance(fundi, np.ndarray):
         fundi = fundi.tolist()
     if isinstance(sulci, np.ndarray):
         sulci = sulci.tolist()
 
     # Feature lists:
-    feature_lists = [labels, subfolds, fundi, sulci]
-    table_names = ['label_shapes.csv', 'subfold_shapes.csv',
-                   'fundus_shapes.csv', 'sulcus_shapes.csv']
+    feature_lists = [labels, fundi, sulci]
+    table_names = ['label_shapes.csv', 'fundus_shapes.csv', 'sulcus_shapes.csv']
 
     # Convert each list of spectrum lists to a list of strings:
     label_spectrum_strings = []
     for labels_spectrum in labels_spectra:
         label_spectrum_strings.append(','.join([str(x) for x in labels_spectrum]))
-    subfold_spectrum_strings = []
-    for subfolds_spectrum in subfolds_spectra:
-        subfold_spectrum_strings.append(','.join([str(x) for x in subfolds_spectrum]))
     sulcus_spectrum_strings = []
     for sulci_spectrum in sulci_spectra:
         sulcus_spectrum_strings.append(','.join([str(x) for x in sulci_spectrum]))
@@ -147,8 +129,6 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     # Feature shapes:
     label_shape_names = ['label_spectrum']
     label_shape_lists = [label_spectrum_strings]
-    subfold_shape_names = ['subfold_spectrum']
-    subfold_shape_lists = [subfold_spectrum_strings]
     sulcus_shape_names = ['sulcus_spectrum']
     sulcus_shape_lists = [sulcus_spectrum_strings]
 
@@ -176,12 +156,8 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
-    subfold_table = None
-    subfold_table = None
     fundus_table = None
     sulcus_table = None
-    norm_subfold_table = None
-    norm_subfold_table = None
     norm_fundus_table = None
     norm_sulcus_table = None
 
@@ -220,14 +196,7 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
                         table_column_names.append(label_shape_names[ilabel_shapes])
                         if normalize_by_area:
                             norm_columns.append(label_shapes)
-            elif itable == 1:
-                for isubfold_shapes, subfold_shapes in enumerate(subfold_shape_lists):
-                    if subfold_shapes:
-                        columns.append(subfold_shapes)
-                        table_column_names.append(subfold_shape_names[isubfold_shapes])
-                        if normalize_by_area:
-                            norm_columns.append(subfold_shapes)
-            elif itable == 3:
+            elif itable == 2:
                 for isulcus_shapes, sulcus_shapes in enumerate(sulcus_shape_lists):
                     if sulcus_shapes:
                         columns.append(sulcus_shapes)
@@ -256,23 +225,18 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
         if itable == 0:
             label_table = table_file
         elif itable == 1:
-            subfold_table = table_file
-        elif itable == 2:
             fundus_table = table_file
-        elif itable == 3:
+        elif itable == 2:
             sulcus_table = table_file
         if normalize_by_area:
             if itable == 0:
                 norm_label_table = norm_table_file
             elif itable == 1:
-                norm_subfold_table = norm_table_file
-            elif itable == 2:
                 norm_fundus_table = norm_table_file
-            elif itable == 3:
+            elif itable == 2:
                 norm_sulcus_table = norm_table_file
 
-    return label_table, subfold_table, fundus_table, sulcus_table, \
-           norm_label_table, norm_subfold_table, \
+    return label_table, fundus_table, sulcus_table, norm_label_table, \
            norm_fundus_table, norm_sulcus_table
 
 
