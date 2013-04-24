@@ -75,8 +75,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.rescaled.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_fold_size = 50
     >>> tiny_depth = 0.001
@@ -223,8 +222,8 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
 #===============================================================================
 # Extract subfolds
 #===============================================================================
-def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
-                     tolerance=0.01, save_file=False):
+def extract_subfolds(depth_file, folds, min_size=50, depth_factor=0.25,
+                     depth_ratio=0.1, tolerance=0.01, save_file=False):
     """
     Use depth to segment folds into subfolds in a triangular surface mesh.
 
@@ -244,6 +243,8 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
         surface mesh file in VTK format with faces and depth scalar values
     folds : list of integers
         fold numbers for all vertices (-1 for non-fold vertices)
+    min_size : integer
+        minimum number of vertices for a subfold
     depth_factor : float
         watershed() depth_factor:
         factor to determine whether to merge two neighboring watershed catchment
@@ -280,12 +281,13 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
+    >>> min_size = 50
     >>> depth_factor = 0.5
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
     >>> #
     >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
-    >>>     folds, depth_factor, depth_ratio, tolerance, True)
+    >>>     folds, min_size, depth_factor, depth_ratio, tolerance, True)
     >>> #
     >>> # View:
     >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
@@ -318,8 +320,8 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     #-------------------------------------------------------------------------
     indices_folds = [i for i,x in enumerate(folds) if x > -1]
     subfolds, seed_indices = watershed(depths, points, indices_folds,
-                                       neighbor_lists, depth_factor,
-                                       depth_ratio, tolerance)
+                                 neighbor_lists, min_size, depth_factor=0.25,
+                                 depth_ratio=0.1, tolerance=0.01, regrow=True)
 
     # Print statement
     n_subfolds = len([x for x in np.unique(subfolds) if x != -1])
