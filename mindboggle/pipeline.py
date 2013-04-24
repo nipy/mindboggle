@@ -288,9 +288,14 @@ if run_labelFlow:
         labelFlow.add_nodes([FreeLabels])
         mbFlow.connect([(Annot, labelFlow,
                          [('annot_files', 'DK_annot_to_VTK.annot_file')])])
-        mbFlow.connect([(ConvertSurf, labelFlow,
-                         [('vtk_file',
-                           'DK_annot_to_VTK.vtk_file')])])
+        if do_input_vtk:
+            mbFlow.connect([(Surf, labelFlow,
+                             [('surface_files',
+                               'DK_annot_to_VTK.vtk_file')])])
+        else:
+            mbFlow.connect([(ConvertSurf, labelFlow,
+                             [('vtk_file',
+                               'DK_annot_to_VTK.vtk_file')])])
         mbFlow.connect([(labelFlow, Sink,
                          [('DK_annot_to_VTK.output_vtk', 'labels.@DKsurface')])])
         init_labels_plug = 'DK_annot_to_VTK.output_vtk'
@@ -299,9 +304,9 @@ if run_labelFlow:
     # Initialize labels with the DKT classifier atlas
     #=========================================================================
     elif init_labels == 'DKTatlas':
-        """
-        Label a brain with the DKT atlas using FreeSurfer's mris_ca_label.
-        """
+        #---------------------------------------------------------------------
+        # Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
+        #---------------------------------------------------------------------
         Classifier = Node(name = 'Label_with_DKTatlas',
                           interface = Fn(function = label_with_classifier,
                                          input_names = ['hemi',
@@ -323,34 +328,29 @@ if run_labelFlow:
         Classifier.inputs.classifier_path = classifier_path
         Classifier.inputs.classifier_atlas = classifier_atlas
 
+        #---------------------------------------------------------------------
         # Convert .annot file to .vtk format
+        #---------------------------------------------------------------------
         Classifier2vtk = Node(name = 'DKT_annot_to_VTK',
                               interface = Fn(function = annot_to_vtk,
-                                             input_names = ['surface_file',
-                                                            'hemi',
-                                                            'subject',
-                                                            'subjects_path',
-                                                            'annot_name'],
+                                             input_names = ['annot_file',
+                                                            'vtk_file'],
                                              output_names = ['labels',
-                                                             'vtk_file']))
+                                                             'output_vtk']))
         labelFlow.add_nodes([Classifier2vtk])
+        labelFlow.connect([(Classifier, Classifier2vtk,
+                            [('annot_file', 'annot_file')])])
         if do_input_vtk:
             mbFlow.connect([(Surf, labelFlow,
                              [('surface_files',
-                               'DKT_annot_to_VTK.surface_file')])])
+                               'DKT_annot_to_VTK.vtk_file')])])
         else:
             mbFlow.connect([(ConvertSurf, labelFlow,
                              [('vtk_file',
-                               'DKT_annot_to_VTK.surface_file')])])
-        mbFlow.connect([(Info, labelFlow,
-                         [('hemi', 'DKT_annot_to_VTK.hemi'),
-                          ('subject', 'DKT_annot_to_VTK.subject')])])
-        Classifier2vtk.inputs.subjects_path = subjects_path
-        labelFlow.connect([(Classifier, Classifier2vtk,
-                            [('annot_name', 'annot_name')])])
+                               'DKT_annot_to_VTK.vtk_file')])])
         #mbFlow.connect([(labelFlow, Sink,
-        #                 [('Classifier2vtk.vtk_file', 'labels.@DKTsurface')])])
-        init_labels_plug = 'DKT_annot_to_VTK.vtk_file'
+        #                 [('Classifier2vtk.output_vtk', 'labels.@DKTsurface')])])
+        init_labels_plug = 'DKT_annot_to_VTK.output_vtk'
     #=========================================================================
     # Initialize labels using multi-atlas registration
     #=========================================================================
@@ -596,11 +596,9 @@ if run_featureFlow:
                         interface = Fn(function = extract_subfolds,
                                        input_names = ['depth_file',
                                                       'folds',
-                                                      'min_subfold_size',
                                                       'depth_factor',
                                                       'depth_ratio',
                                                       'tolerance',
-                                                      'shrink_factor',
                                                       'save_file'],
                                        output_names = ['subfolds',
                                                        'n_subfolds',
@@ -609,11 +607,9 @@ if run_featureFlow:
     mbFlow.connect([(shapeFlow, featureFlow,
                      [('Depth.depth_file','Subfolds.depth_file')])])
     featureFlow.connect([(FoldsNode, SubfoldsNode, [('folds','folds')])])
-    SubfoldsNode.inputs.min_subfold_size = min_fold_size
     SubfoldsNode.inputs.depth_factor = 0.25
     SubfoldsNode.inputs.depth_ratio = 0.1
     SubfoldsNode.inputs.tolerance = 0.01
-    SubfoldsNode.inputs.shrink_factor = 0.5
     SubfoldsNode.inputs.save_file = True
     # Save subfolds
     mbFlow.connect([(featureFlow, Sink,
@@ -828,7 +824,7 @@ if run_shapeFlow:
         shapeFlow.add_nodes([SpectraLabels])
         mbFlow.connect([(labelFlow, shapeFlow,
                          [(init_labels_plug, 'Spectra_labels.vtk_file')])])
-        SpectraLabels.inputs.n_eigenvalues = 200
+        SpectraLabels.inputs.n_eigenvalues = 6
         SpectraLabels.inputs.normalization = "area"
 
         #=====================================================================
@@ -947,6 +943,7 @@ if run_tableFlow:
                            interface = Fn(function = write_vertex_shapes_table,
                                           input_names = ['table_file',
                                                          'labels_or_file',
+                                                         'subfolds',
                                                          'fundi',
                                                          'sulci',
                                                          'area_file',
@@ -963,6 +960,8 @@ if run_tableFlow:
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         mbFlow.connect([(labelFlow, tableFlow,
                          [(init_labels_plug, 'Vertex_table.labels_or_file')])])
+        mbFlow.connect([(featureFlow, tableFlow,
+                         [('Subfolds.subfolds', 'Vertex_table.subfolds')])])
         if do_fundi:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
@@ -1260,7 +1259,7 @@ if __name__== '__main__':
 
     run_flow1 = True
     run_flow2 = True
-    generate_graphs = True
+    generate_graphs = 0#True
     if generate_graphs:
         if run_flow1:
             mbFlow.write_graph(graph2use='flat')
