@@ -228,11 +228,11 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     """
     Use depth to segment folds into subfolds in a triangular surface mesh.
 
-    Note from the watershed() function:
+    Note about the watershed() function:
     The watershed() function performs individual seed growing from deep seeds,
-    and segments are joined if their seeds are too close to each other.
-    Seed growing is repeated from the resulting seeds, until each
-    seed's segment touches a boundary; segment() fills in the rest.
+    repeats segmentation from the resulting seeds until each seed's segment
+    touches a boundary. The function segment() fills in the rest. Finally
+    segments are joined if their seeds are too close to each other.
     Despite these precautions, the order of seed selection in segment() could
     possibly influence the resulting boundaries between adjoining segments.
     [The propagate() function is slower and insensitive to depth,
@@ -335,4 +335,4 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     else:
         subfolds_file = None
 
-    return subfolds.tolist(), n_subfolds, subfolds_file
+    return subfolds, n_subfolds, subfolds_file
