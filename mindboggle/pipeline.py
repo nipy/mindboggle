@@ -83,11 +83,11 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = False  # Extract fundi from subfolds
-do_sulci = True  # Extract sulci from subfolds
+do_fundi = False  # Extract fundi
+do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
+do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -151,7 +151,7 @@ from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
 from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature,\
-    volume_per_label, rescale_by_label
+    volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
@@ -628,11 +628,34 @@ if run_featureFlow:
         # Rescale surface depth
         #=====================================================================
         RescaleDepth = Node(name='Rescale_depth',
+                            interface = Fn(function = rescale_by_neighborhood,
+                                           input_names = ['input_vtk',
+                                                          'indices',
+                                                          'nedges',
+                                                          'p',
+                                                          'set_max_to_1',
+                                                          'save_file',
+                                                          'output_filestring'],
+                                           output_names = ['rescaled_scalars',
+                                                           'rescaled_scalars_file']))
+        shapeFlow.add_nodes([RescaleDepth])
+        mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
+        RescaleDepth.inputs.indices = []
+        RescaleDepth.inputs.nedges = 10
+        RescaleDepth.inputs.p = 99
+        RescaleDepth.inputs.set_max_to_1 = True
+        RescaleDepth.inputs.save_file = True
+        RescaleDepth.inputs.output_filestring = 'depth_rescaled'
+        # Save rescaled depth
+        mbFlow.connect([(shapeFlow, Sink,
+                         [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
+
+        """
+        RescaleDepth = Node(name='Rescale_depth',
                             interface = Fn(function = rescale_by_label,
                                            input_names = ['input_vtk',
                                                           'labels_or_file',
                                                           'combine_all_labels',
-                                                          'by_neighborhood',
                                                           'nedges',
                                                           'p',
                                                           'set_max_to_1',
@@ -644,7 +667,6 @@ if run_featureFlow:
         mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
         mbFlow.connect([(SubfoldsNode, RescaleDepth, [('subfolds_file','labels_or_file')])])
         RescaleDepth.inputs.combine_all_labels = True
-        RescaleDepth.inputs.by_neighborhood = True
         RescaleDepth.inputs.nedges = 10
         RescaleDepth.inputs.p = 99
         RescaleDepth.inputs.set_max_to_1 = False
@@ -653,6 +675,7 @@ if run_featureFlow:
         # Save rescaled depth
         mbFlow.connect([(shapeFlow, Sink,
                          [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
+        """
 
     #=========================================================================
     # Sulci
@@ -809,14 +832,6 @@ if run_shapeFlow:
         SpectraLabels.inputs.normalization = "area"
 
         #=====================================================================
-        # Measure Laplace-Beltrami spectra of subfolds
-        #=====================================================================
-        SpectraSubfolds = SpectraLabels.clone('Spectra_subfolds')
-        shapeFlow.add_nodes([SpectraSubfolds])
-        mbFlow.connect([(SubfoldsNode, SpectraSubfolds,
-                         [('subfolds_file', 'vtk_file')])])
-
-        #=====================================================================
         # Measure Laplace-Beltrami spectra of sulci
         #=====================================================================
         if do_sulci:
@@ -835,12 +850,11 @@ if run_tableFlow:
     tableFlow = Workflow(name='Tables')
 
     #=========================================================================
-    # Shape tables of surface: labels, subfolds, fundi, and sulci
+    # Shape tables of surface: labels, fundi, and sulci
     #=========================================================================
     ShapeTables = Node(name='Shape_tables',
                        interface = Fn(function = write_mean_shapes_tables,
                                       input_names = ['labels_or_file',
-                                                     'subfolds',
                                                      'fundi',
                                                      'sulci',
                                                      'area_file',
@@ -852,22 +866,17 @@ if run_tableFlow:
                                                      'thickness_file',
                                                      'convexity_file',
                                                      'labels_spectra',
-                                                     'subfolds_spectra',
                                                      'sulci_spectra',
                                                      'exclude_labels'],
                                       output_names = ['label_table',
-                                                      'subfold_table',
                                                       'fundus_table',
                                                       'sulcus_table',
                                                       'norm_label_table',
-                                                      'norm_subfold_table',
                                                       'norm_fundus_table',
                                                       'norm_sulcus_table']))
     tableFlow.add_nodes([ShapeTables])
     mbFlow.connect([(labelFlow, tableFlow,
                      [(init_labels_plug, 'Shape_tables.labels_or_file')])])
-    mbFlow.connect([(featureFlow, tableFlow,
-                     [('Subfolds.subfolds', 'Shape_tables.subfolds')])])
     if do_fundi:
         mbFlow.connect([(featureFlow, tableFlow,
                          [('Fundi.fundi', 'Shape_tables.fundi')])])
@@ -908,9 +917,6 @@ if run_tableFlow:
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Spectra_labels.spectrum_lists',
                            'Shape_tables.labels_spectra')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Spectra_subfolds.spectrum_lists',
-                           'Shape_tables.subfolds_spectra')])])
         if do_sulci:
             mbFlow.connect([(shapeFlow, tableFlow,
                              [('Spectra_sulci.spectrum_lists',
@@ -919,7 +925,6 @@ if run_tableFlow:
             ShapeTables.inputs.sulci_spectra = []
     else:
         ShapeTables.inputs.labels_spectra = []
-        ShapeTables.inputs.subfolds_spectra = []
         ShapeTables.inputs.sulci_spectra = []
 
     #-------------------------------------------------------------------------
@@ -927,11 +932,9 @@ if run_tableFlow:
     # Save results
     mbFlow.connect([(tableFlow, Sink,
                      [('Shape_tables.label_table', 'tables.@labels'),
-                      ('Shape_tables.subfold_table', 'tables.@subfolds'),
                       ('Shape_tables.fundus_table', 'tables.@fundi'),
                       ('Shape_tables.sulcus_table', 'tables.@sulci'),
                       ('Shape_tables.norm_label_table', 'tables.@labels_norm'),
-                      ('Shape_tables.norm_subfold_table', 'tables.@subfolds_norm'),
                       ('Shape_tables.norm_fundus_table', 'tables.@fundi_norm'),
                       ('Shape_tables.norm_sulcus_table', 'tables.@sulci_norm')])])
 
@@ -944,7 +947,6 @@ if run_tableFlow:
                            interface = Fn(function = write_vertex_shapes_table,
                                           input_names = ['table_file',
                                                          'labels_or_file',
-                                                         'subfolds',
                                                          'fundi',
                                                          'sulci',
                                                          'area_file',
@@ -961,8 +963,6 @@ if run_tableFlow:
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         mbFlow.connect([(labelFlow, tableFlow,
                          [(init_labels_plug, 'Vertex_table.labels_or_file')])])
-        mbFlow.connect([(featureFlow, tableFlow,
-                         [('Subfolds.subfolds', 'Vertex_table.subfolds')])])
         if do_fundi:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
