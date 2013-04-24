@@ -275,6 +275,7 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_subfolds
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -288,7 +289,6 @@ def extract_subfolds(depth_file, folds, depth_factor=0.25, depth_ratio=0.1,
     >>> #
     >>> # View:
     >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('subfolds.vtk')
 
     """
