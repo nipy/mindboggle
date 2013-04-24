@@ -51,7 +51,8 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     >>> # Extract fundus from one or more folds:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.fundi import extract_fundi
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -159,6 +160,8 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     increasing value vertices of a surface mesh, optionally terminating
     at any of a set of sink vertices.
 
+    NOTE :: Untested!
+
     Parameters
     ----------
     seed : integer
@@ -185,7 +188,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.fundi import track_values
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -194,7 +197,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
-    >>> # Start from the boundary of a thresholded indices:
+    >>> # Start from initial track points on boundary of a thresholded indices:
     >>> seeds = [18267, 38339, 39689]
     >>> seed = seeds[0]
     >>> #
@@ -225,6 +228,8 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
             seed = N[np.argmax(values[N])]
             track.append(seed)
             value = values[seed]
+
+            print(prev_value, value, values[N])
 
             # If the track has run into the sink vertices, return the track:
             #if list(frozenset(N_segment).intersection(sink)):
@@ -279,7 +284,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.labels.label import extract_borders
     >>> from mindboggle.features.fundi import track_segments
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -406,7 +411,8 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.fundi import track_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
@@ -621,25 +627,26 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
         # Initialize seeds with beginning vertices of the above tracks:
         seeds = [x[0] for x in T]
 
-        ## Initialize sink with the maximum value point:
-        #center = [R[np.argmax(V[R])]]
-
         #-----------------------------------------------------------------------
-        # Segment the mesh from the maximum value to the threshold boundary:
+        # Segment the mesh from the seeds:
         #-----------------------------------------------------------------------
-        #segments = segment_rings(R, center, neighbor_lists, step=1)
-
-        # Reverse order of the segments, from threshold boundary to the center:
-        #segments = segments[::-1]
-        #segments.append(center)
-
-        #print('    Track back through {0} vertices in {1} segments'.
-        #      format(len(R), len(segments)))
         T2 = []
         for iseed, seed in enumerate(seeds):
-            #track = track_segments(seed, segments, neighbor_lists, V, center)
-            track = track_values(seed, R, neighbor_lists, V, sink=[])
+
+            segments = segment_rings(R, [seed], neighbor_lists, step=1)
+
+            # Reverse order of the segments:
+            segments = segments[::-1]
+
+            print('    Track back through {0} vertices'.format(len(R)))
+
+            deepest = [x for x in R if S[x] == 1.0]
+            track = track_segments(seed, segments, neighbor_lists, V, deepest)
+            #track = track_values(seed, R, neighbor_lists, V, sink=[])
             if track:
+
+                #segments.append(seed)
+
                 # Remove seed and reverse track direction:
                 track = track[1::][::-1]
                 # Combine forward and backward tracks:
@@ -700,7 +707,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     >>>                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.features.fundi import track_endpoints, connect_points
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> # Get neighbor_lists, scalars
@@ -744,7 +751,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters:
     wN_min = 0.0  # minimum neighborhood weight
-    wN_max = 5.0  # maximum neighborhood weight (trust prior more for smoother fundi)
+    wN_max = 2.0  # maximum neighborhood weight (trust prior more for smoother fundi)
     H_step = 0.1  # step down HMMF value
     n_levels = 1
     levels = np.linspace(0.5, 1.0, n_levels + 1)[1::]
@@ -859,17 +866,17 @@ def connect_points(indices_points, indices, L, neighbor_lists):
     C[indices] = compute_costs(L[indices], H[indices], H_N[:,indices],
                                N_sizes[indices], wN_max, Z)
     H_tests = C.copy()
-
-    # Loop until count reaches max_count or until end_flag equals zero
-    # (end_flag allows the loop to continue a few times even if no change):
-    count = 0
-    end_flag = 0
-    wN = wN_max
-    gradient_factor = grad_min
     npoints = len(indices)
 
+    # Loop through levels (thresholds) of values:
     for level in levels:
 
+        # Loop until count reaches max_count or until end_flag equals zero
+        # (end_flag allows the loop to continue a few times even if no change):
+        count = 0
+        end_flag = 0
+        wN = wN_max
+        gradient_factor = grad_min
         while end_flag < n_tries_no_change and count < max_count:
 
             # Select indices with a positive HMMF value:
@@ -976,7 +983,8 @@ if __name__ == "__main__" :
     """
     import os
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.plots import plot_vtk
     from mindboggle.features.fundi import extract_fundi
 
     path = os.environ['MINDBOGGLE_DATA']
@@ -1002,7 +1010,8 @@ if __name__ == "__main__" :
     import numpy as np
 
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.plots import plot_vtk
     from mindboggle.features.fundi import track_endpoints
 
     single_fold = False
