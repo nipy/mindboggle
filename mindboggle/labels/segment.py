@@ -674,17 +674,24 @@ def watershed(depths, points, indices, neighbor_lists,
               min_size=1, depth_factor=0.25, depth_ratio=0.1, tolerance=0.01,
               regrow=True):
     """
-    Segment vertices of a surface mesh into contiguous "watershed basin" regions
+    Segment vertices of a surface mesh into contiguous "watershed basins"
     by seed growing from an iterative selection of the deepest vertices.
 
-    The watershed() function performs individual seed growing from deep seeds,
-    and segments are joined if their seeds are too close to each other.
-    Seed growing is repeated from the resulting seeds, until each
-    seed's segment touches a boundary; segment() fills in the rest.
-    Despite these precautions, the order of seed selection in segment() could
-    possibly influence the resulting boundaries between adjoining segments.
-    [The propagate() function is slower and insensitive to depth,
-     but is not biased by seed order.]
+    Steps ::
+
+        1. Grow segments from an iterative selection of the deepest seeds.
+        2. Regrow segments from the resulting seeds, until each seed's
+            segment touches a boundary.
+        3. Use the segment() function to fill in the rest.
+        4. Merge segments if their seeds are too close to each other
+            or their depths are very different.
+
+    Note ::
+
+        Despite the above precautions, the order of seed selection in segment()
+        could possibly influence the resulting boundaries between adjoining
+        segments (vs. propagate(), which is slower and insensitive to depth,
+        but is not biased by seed order).
 
     Parameters
     ----------
@@ -729,7 +736,6 @@ def watershed(depths, points, indices, neighbor_lists,
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depth2_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.rescaled.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up
@@ -760,6 +766,7 @@ def watershed(depths, points, indices, neighbor_lists,
     import numpy as np
     from time import time
     from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.segment import segment
     from mindboggle.shapes.measure import point_distance
 
     # Make sure argument is a list
@@ -908,7 +915,7 @@ def watershed(depths, points, indices, neighbor_lists,
                     seed_neighbors = []
                     for seed in old_seed_list:
                         seed_neighbors.extend([x for x in neighbor_lists[seed]
-                                               if depths[x] - tolerance <= depths[seed]])
+                            if depths[x] - tolerance <= depths[seed]])
                     seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
 
                     # Remove seed list if it contains a border vertex:
@@ -930,13 +937,12 @@ def watershed(depths, points, indices, neighbor_lists,
                     if verbose:
                         print("    {0} vertices remain".format(len(indices)))
 
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Continue growth until there are no more vertices to segment:
-        #-----------------------------------------------------------------------
-        seed_lists = []
-        for n in np.unique(segments):
-            seed_lists.append([i for i,x in enumerate(segments)
-                               if x == n if x != -1])
+        #---------------------------------------------------------------------
+        # Note: As long as keep_seeding=False, the segment values in `segments`
+        # are equal to the order of the `basin_depths` and `seed_points` below.
+        seed_lists = [[x] for x in seed_indices]
         segments = segment(indices, neighbor_lists, min_region_size=1,
             seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
             labels=[], label_lists=[], values=[], max_steps='', verbose=False)
@@ -949,7 +955,7 @@ def watershed(depths, points, indices, neighbor_lists,
     #-------------------------------------------------------------------------
     if merge:
 
-        # Extract segments pairs at boundaries between watershed catchment basins:
+        # Extract segments pairs at boundaries between watershed basins:
         print('  Merge watershed catchment basins with deeper neighboring basins')
         if verbose:
             print('    Extract basin boundaries')
