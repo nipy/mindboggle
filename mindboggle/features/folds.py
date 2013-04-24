@@ -71,7 +71,8 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> import pylab
     >>> from scipy.ndimage.filters import gaussian_filter1d
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -304,7 +305,7 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     >>> #
     >>> # View:
     >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('subfolds.vtk')
 
     """

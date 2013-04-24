@@ -46,7 +46,7 @@ def find_neighbors_from_file(input_vtk):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(depth_file, 'test_find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_find_neighbors_from_file.vtk')
 
     """
@@ -105,7 +105,7 @@ def find_neighbors(faces, npoints):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(depth_file, 'test_find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_find_neighbors.vtk')
 
     """
@@ -544,7 +544,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> indices = [i for i,x in enumerate(holes) if x > -1]
     >>> write_vtk('test_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_holes.vtk')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
@@ -556,7 +556,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_fill_holes.vtk')
 
     """
@@ -795,7 +795,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> skeleton[indices_endpoints] = 2
     >>> rewrite_scalars(fold_file, 'skeletonize.vtk',
     >>>                 skeleton, 'skeleton', skeleton)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('skeletonize.vtk')
 
     """
@@ -879,7 +879,7 @@ def extract_skeleton_endpoints(indices_skeleton, neighbor_lists):
     >>> end_IDs[indices_endpoints] = 2
     >>> rewrite_scalars(labels_file, 'test_extract_skeleton_endpoints.vtk',
     >>>                 end_IDs, 'endpoints', end_IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_extract_skeleton_endpoints.vtk')
 
     """
@@ -963,7 +963,7 @@ def find_special_points(points, values, min_directions, min_distance, thr):
     >>> values[indices_special] = np.max(values) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_special_points.vtk',
     >>>                 values, 'special_points_on_values_in_folds', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('find_special_points.vtk')
 
     """
@@ -1045,5 +1045,5 @@ if __name__ == "__main__":
     # Write results to vtk file and view:
     rewrite_scalars(depth_file, 'test_segment.vtk',
                     segments, 'segments', segments)
-    from mindboggle.utils.mesh import plot_vtk
+    from mindboggle.utils.plots import plot_vtk
     plot_vtk('test_segment.vtk')
