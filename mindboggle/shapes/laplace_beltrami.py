@@ -352,18 +352,16 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.mesh import remove_faces, renumber_faces
+    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(fold_file)
-    >>> indices = [i for i,x in enumerate(scalars) if x != -1]
-    >>> points = np.array(points)
-    >>> points = points[indices]
-    >>> faces = remove_faces(faces, indices)
-    >>> faces = renumber_faces(faces, indices)
-    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
-
+    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> faces, points = reindex_faces_points(faces, points)
+    >>> # Test LBO:
+    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=6, normalization="area")))
+        [8.6598495496215578e-20, 4.214922171245502e-19, 1.7613177561957697e-05,
+         3.9602772997696686e-05, 7.1740562223650042e-05, 8.5687655524969452e-05]
     """
     from scipy.sparse.linalg import eigsh
 
@@ -435,18 +433,19 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
     >>> # Spectrum for a single fold:
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
-    >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.mesh import remove_faces, renumber_faces
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> print("{0}".format(fem_laplacian_from_labels(fold_file, n_eigenvalues=3, normalization="area")))
+    >>> print("{0}".format(fem_laplacian_from_labels(fold_file, n_eigenvalues=6,
+    >>>                    normalization="area")))
+        [[], [1.3018974942695461e-22, 4.1372760926995227e-22,
+        4.8337713972572192e-09, 1.5664228156289067e-08,
+        1.7575722948984955e-08, 2.4475754761086305e-08]]
 
     """
     import numpy as np
 
-    from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.utils.mesh import remove_faces, renumber_faces
+    from mindboggle.utils.io_vtk import read_vtk, reindex_faces_points
+    from mindboggle.utils.mesh import remove_faces
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
     # Read VTK surface mesh file:
@@ -463,7 +462,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
             label_points = points[indices]
             label_faces = remove_faces(faces, indices)
             if label_faces:
-                label_faces = renumber_faces(label_faces, indices)
+                label_faces, foo = reindex_faces_points(faces, points=[])
 
                 # Compute Laplace-Beltrami spectrum for the labeled region:
                 spectrum = fem_laplacian(label_points, label_faces, n_eigenvalues,
