@@ -23,7 +23,7 @@ def plot_vtk(vtk_file):
     """
     import subprocess
 
-    cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface", "&"]
+    cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface"]
     print(' '.join(cmd))
     p = subprocess.Popen(cmd)
     p.communicate()
