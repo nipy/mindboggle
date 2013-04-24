@@ -627,7 +627,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
@@ -724,7 +724,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_rewrite_scalars.vtk')
 
     """
@@ -819,7 +819,7 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(example_vtk)
 
     """
@@ -1039,7 +1039,8 @@ def apply_affine_transform(transform_file, vtk_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import apply_affine_transform, plot_vtk
+    >>> from mindboggle.utils.io_vtk import apply_affine_transform
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
