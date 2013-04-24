@@ -508,7 +508,7 @@ def rescale_by_neighborhood(scalars, indices, neighbor_lists, nedges=10, p=99,
     >>> #
     >>> # View rescaled scalar values on folds:
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> rewrite_scalars(vtk_file, 'rescale_by_neighborhood.vtk',
     >>>     rescaled_scalars, 'rescaled_scalars', subfolds)
     >>> plot_vtk('rescale_by_neighborhood.vtk')
@@ -603,7 +603,7 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
     >>>     set_max_to_1, save_file, output_filestring)
     >>> #
     >>> # View rescaled scalar values per fold:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(rescaled_scalars_file)
 
     """
