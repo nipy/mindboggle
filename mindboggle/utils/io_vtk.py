@@ -720,12 +720,12 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> #
-    >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
+    >>> rewrite_scalars(depth_file, 'rewrite_scalars.vtk',
     >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_rewrite_scalars.vtk')
+    >>> plot_vtk('rewrite_scalars.vtk')
 
     """
     import os
