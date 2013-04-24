@@ -670,9 +670,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
 #-----------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by a watershed algorithm
 #-----------------------------------------------------------------------------
-def watershed(depths, points, indices, neighbor_lists,
-              min_size=1, depth_factor=0.25, depth_ratio=0.1, tolerance=0.01,
-              regrow=True):
+def watershed(depths, points, indices, neighbor_lists, min_size=1,
+              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True):
     """
     Segment vertices of a surface mesh into contiguous "watershed basins"
     by seed growing from an iterative selection of the deepest vertices.
