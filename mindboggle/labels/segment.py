@@ -84,7 +84,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(labels_file, 'test_propagate.vtk',
     >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_propagate.vtk')
 
     """
@@ -198,7 +198,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.labels.segment import segment
     >>> from mindboggle.labels.label import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -489,7 +489,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_segment_by_filling_boundaries.vtk', folds, 'folds', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_segment_by_filling_boundaries.vtk')
 
     """
@@ -595,7 +595,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.labels.label import extract_borders
     >>> from mindboggle.features.fundi import segment_rings
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -715,7 +715,8 @@ def watershed(depths, rescaled_depths, points, indices, neighbor_lists,
     >>> # Perform watershed segmentation on the deeper portions of a surface:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors, plot_vtk
+    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.labels.segment import watershed, segment
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -1049,7 +1050,7 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_shrink_segments.vtk',
     >>>     shrunken_segments, 'shrunken_segments', shrunken_segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_shrink_segments.vtk')
 
     """
@@ -1146,7 +1147,7 @@ def extract_high_values(values, areas, fraction):
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
     >>>                 area_values, 'area values', area_values)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_extract_high_values.vtk')
 
     """

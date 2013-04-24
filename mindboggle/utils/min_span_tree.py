@@ -205,7 +205,7 @@ def min_span_tree(adjacency_matrix, indices_to_connect):
     >>> MST = np.zeros(len(points))
     >>> MST[W] = 1
     >>> rewrite_scalars(sulci_file, 'test_min_span_tree.vtk', MST, 'MST', MST)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_min_span_tree.vtk')
 
     """
@@ -225,7 +225,7 @@ if __name__ == "__main__" :
     from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors, remove_faces
     from mindboggle.utils.mesh import min_span_tree
-    from mindboggle.utils.mesh import plot_vtk
+    from mindboggle.utils.plots import plot_vtk
     data_path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(data_path, 'arno', 'features', 'sulci.vtk')
     faces, lines, indices, points, npoints, sulci, name, input_vtk = read_vtk(sulci_file)
