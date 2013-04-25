@@ -793,7 +793,8 @@ if run_shapeFlow:
                                             input_names = ['vtk_file',
                                                            'n_eigenvalues',
                                                            'normalization'],
-                                            output_names = ['spectrum_lists']))
+                                            output_names = ['spectrum_lists',
+                                                            'label_list']))
         shapeFlow.add_nodes([SpectraLabels])
         mbFlow.connect([(labelFlow, shapeFlow,
                          [(init_labels_plug, 'Spectra_labels.vtk_file')])])
@@ -824,8 +825,8 @@ if run_tableFlow:
     ShapeTables = Node(name='Shape_tables',
                        interface = Fn(function = write_mean_shapes_tables,
                                       input_names = ['labels_or_file',
-                                                     'fundi',
                                                      'sulci',
+                                                     'fundi',
                                                      'area_file',
                                                      'depth_file',
                                                      'mean_curvature_file',
@@ -836,7 +837,8 @@ if run_tableFlow:
                                                      'convexity_file',
                                                      'labels_spectra',
                                                      'sulci_spectra',
-                                                     'exclude_labels'],
+                                                     'exclude_labels',
+                                                     'delimiter'],
                                       output_names = ['label_table',
                                                       'fundus_table',
                                                       'sulcus_table',
@@ -846,13 +848,13 @@ if run_tableFlow:
     tableFlow.add_nodes([ShapeTables])
     mbFlow.connect([(labelFlow, tableFlow,
                      [(init_labels_plug, 'Shape_tables.labels_or_file')])])
+    mbFlow.connect([(featureFlow, tableFlow,
+                     [('Sulci.sulci', 'Shape_tables.sulci')])])
     if do_fundi:
         mbFlow.connect([(featureFlow, tableFlow,
                          [('Fundi.fundi', 'Shape_tables.fundi')])])
     else:
         ShapeTables.inputs.fundi = []
-    mbFlow.connect([(featureFlow, tableFlow,
-                     [('Sulci.sulci', 'Shape_tables.sulci')])])
     #-------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Area.area_file','Shape_tables.area_file')])])
@@ -898,11 +900,12 @@ if run_tableFlow:
 
     #-------------------------------------------------------------------------
     ShapeTables.inputs.exclude_labels = [-1]
+    ShapeTables.inputs.delimiter = ","
     # Save results
     mbFlow.connect([(tableFlow, Sink,
                      [('Shape_tables.label_table', 'tables.@labels'),
-                      ('Shape_tables.fundus_table', 'tables.@fundi'),
                       ('Shape_tables.sulcus_table', 'tables.@sulci'),
+                      ('Shape_tables.fundus_table', 'tables.@fundi'),
                       ('Shape_tables.norm_label_table', 'tables.@labels_norm'),
                       ('Shape_tables.norm_fundus_table', 'tables.@fundi_norm'),
                       ('Shape_tables.norm_sulcus_table', 'tables.@sulci_norm')])])
@@ -916,8 +919,8 @@ if run_tableFlow:
                            interface = Fn(function = write_vertex_shapes_table,
                                           input_names = ['table_file',
                                                          'labels_or_file',
-                                                         'fundi',
                                                          'sulci',
+                                                         'fundi',
                                                          'area_file',
                                                          'depth_file',
                                                          'depth_rescaled_file',
@@ -926,19 +929,20 @@ if run_tableFlow:
                                                          'max_curvature_file',
                                                          'min_curvature_file',
                                                          'thickness_file',
-                                                         'convexity_file'],
+                                                         'convexity_file',
+                                                         'delimiter'],
                                           output_names = ['shapes_table']))
         tableFlow.add_nodes([VertexTable])
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         mbFlow.connect([(labelFlow, tableFlow,
                          [(init_labels_plug, 'Vertex_table.labels_or_file')])])
+        mbFlow.connect([(featureFlow, tableFlow,
+                         [('Sulci.sulci', 'Vertex_table.sulci')])])
         if do_fundi:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
         else:
             ShapeTables.inputs.fundi = []
-        mbFlow.connect([(featureFlow, tableFlow,
-                         [('Sulci.sulci', 'Vertex_table.sulci')])])
         #---------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file')])])
@@ -972,6 +976,7 @@ if run_tableFlow:
         else:
             VertexTable.inputs.convexity_file = ''
         #---------------------------------------------------------------------
+        VertexTable.inputs.delimiter = ","
         mbFlow.connect([(tableFlow, Sink,
                          [('Vertex_table.shapes_table',
                            'tables.@vertex_table')])])
