@@ -17,7 +17,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         -> evaluate surface labels
 
     * Extract features:
-        - subfolds
+        - folds
         - fundi
         - sulci
 
@@ -155,7 +155,7 @@ from mindboggle.shapes.measure import area, depth, curvature,\
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
-from mindboggle.features.folds import extract_folds, extract_subfolds
+from mindboggle.features.folds import extract_folds
 from mindboggle.features.likelihood import compute_likelihood
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -589,9 +589,8 @@ if run_featureFlow:
     FoldsNode.inputs.tiny_depth = 0.001
     FoldsNode.inputs.save_file = False
 
-    #=========================================================================
+    """
     # Subfolds
-    #=========================================================================
     SubfoldsNode = Node(name='Subfolds',
                         interface = Fn(function = extract_subfolds,
                                        input_names = ['depth_file',
@@ -614,6 +613,7 @@ if run_featureFlow:
     # Save subfolds
     mbFlow.connect([(featureFlow, Sink,
                      [('Subfolds.subfolds_file','features.@subfolds')])])
+    """
 
     #=========================================================================
     # Rescaled travel depth
@@ -646,33 +646,6 @@ if run_featureFlow:
         mbFlow.connect([(shapeFlow, Sink,
                          [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
 
-        """
-        RescaleDepth = Node(name='Rescale_depth',
-                            interface = Fn(function = rescale_by_label,
-                                           input_names = ['input_vtk',
-                                                          'labels_or_file',
-                                                          'combine_all_labels',
-                                                          'nedges',
-                                                          'p',
-                                                          'set_max_to_1',
-                                                          'save_file',
-                                                          'output_filestring'],
-                                           output_names = ['rescaled_scalars',
-                                                           'rescaled_scalars_file']))
-        shapeFlow.add_nodes([RescaleDepth])
-        mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
-        mbFlow.connect([(SubfoldsNode, RescaleDepth, [('subfolds_file','labels_or_file')])])
-        RescaleDepth.inputs.combine_all_labels = True
-        RescaleDepth.inputs.nedges = 10
-        RescaleDepth.inputs.p = 99
-        RescaleDepth.inputs.set_max_to_1 = False
-        RescaleDepth.inputs.save_file = True
-        RescaleDepth.inputs.output_filestring = 'depth_rescaled'
-        # Save rescaled depth
-        mbFlow.connect([(shapeFlow, Sink,
-                         [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
-        """
-
     #=========================================================================
     # Sulci
     #=========================================================================
@@ -697,7 +670,7 @@ if run_featureFlow:
         featureFlow.add_nodes([SulciNode])
         mbFlow.connect([(labelFlow, featureFlow,
                          [(init_labels_plug, 'Sulci.labels_file')])])
-        featureFlow.connect([(SubfoldsNode, SulciNode, [('subfolds','folds_or_file')])])
+        featureFlow.connect([(FoldsNode, SulciNode, [('folds','folds_or_file')])])
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         SulciNode.inputs.min_boundary = 1
@@ -755,7 +728,7 @@ if run_featureFlow:
         if fundi_from_sulci:
             featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
         else:
-            featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds_or_file')])])
+            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Depth.depth_file','Fundi.depth_file'),
                           ('Curvature.min_curvature_vector_file',
@@ -789,7 +762,7 @@ if run_featureFlow:
                                            output_names = ['fundi',
                                                         'n_fundi',
                                                         'likelihoods']))
-        featureFlow.connect([(SubfoldsNode, FundiNode, [('subfolds','folds')])])
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
         featureFlow.connect([(NbrNode, FundiNode,
                               [('neighbor_lists','neighbor_lists')])])
         mbFlow.connect([(shapeFlow, featureFlow,
@@ -943,7 +916,6 @@ if run_tableFlow:
                            interface = Fn(function = write_vertex_shapes_table,
                                           input_names = ['table_file',
                                                          'labels_or_file',
-                                                         'subfolds',
                                                          'fundi',
                                                          'sulci',
                                                          'area_file',
@@ -960,8 +932,6 @@ if run_tableFlow:
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         mbFlow.connect([(labelFlow, tableFlow,
                          [(init_labels_plug, 'Vertex_table.labels_or_file')])])
-        mbFlow.connect([(featureFlow, tableFlow,
-                         [('Subfolds.subfolds', 'Vertex_table.subfolds')])])
         if do_fundi:
             mbFlow.connect([(featureFlow, tableFlow,
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
