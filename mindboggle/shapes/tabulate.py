@@ -241,7 +241,7 @@ def write_mean_shapes_tables(labels_or_file, fundi=[], sulci=[],
 
 
 def write_vertex_shapes_table(table_file,
-                              labels_or_file, subfolds=[], fundi=[], sulci=[],
+                              labels_or_file, fundi=[], sulci=[],
                               area_file='', depth_file='', depth_rescaled_file='',
                               mean_curvature_file='', gauss_curvature_file='',
                               max_curvature_file='', min_curvature_file='',
@@ -254,8 +254,6 @@ def write_vertex_shapes_table(table_file,
     table_file : output filename (without path)
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    subfolds :  list of integers
-        indices to subfolds, one per vertex, with -1 indicating no subfold
     fundi :  list of integers
         indices to fundi, one per vertex, with -1 indicating no fundus
     sulci :  list of integers
@@ -292,10 +290,8 @@ def write_vertex_shapes_table(table_file,
     >>> table_file = 'vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> sulci, name = read_scalars(sulci_file)
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -308,7 +304,7 @@ def write_vertex_shapes_table(table_file,
     >>> thickness_file = ''
     >>> convexity_file = ''
     >>> #
-    >>> write_vertex_shapes_table(table_file, labels_or_file, subfolds, fundi, sulci, \
+    >>> write_vertex_shapes_table(table_file, labels_or_file, fundi, sulci, \
     >>>     area_file, depth_file, depth_rescaled_file, mean_curvature_file, \
     >>>     gauss_curvature_file, max_curvature_file, min_curvature_file, \
     >>>     thickness_file, convexity_file)
@@ -326,16 +322,14 @@ def write_vertex_shapes_table(table_file,
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
-    if isinstance(subfolds, np.ndarray):
-        subfolds = subfolds.tolist()
     if isinstance(fundi, np.ndarray):
         fundi = fundi.tolist()
     if isinstance(sulci, np.ndarray):
         sulci = sulci.tolist()
 
     # Feature names and corresponding feature lists:
-    feature_names = ['label', 'subfold', 'fundus', 'sulcus']
-    feature_lists = [labels, subfolds, fundi, sulci]
+    feature_names = ['label', 'fundus', 'sulcus']
+    feature_lists = [labels, fundi, sulci]
 
     # Shape names and corresponding shape files:
     shape_names = ['area', 'depth', 'depth_rescaled', 'mean_curvature',
