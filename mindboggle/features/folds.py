@@ -42,7 +42,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     ----------
     depth_file : string
         surface mesh file in VTK format with faces and depth scalar values
-    min_fold_size : int
+    min_fold_size : integer
         minimum fold size (number of vertices)
     tiny_depth : float
         largest non-zero depth value that will stop a hole from being filled
@@ -174,7 +174,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
             print('  Remove folds smaller than {0}'.format(min_fold_size))
             unique_folds = [x for x in np.unique(folds) if x > -1]
             for nfold in unique_folds:
-                indices_fold = np.where(folds == nfold)[0]
+                indices_fold = [i for i,x in enumerate(folds) if x == nfold]
                 if len(indices_fold) < min_fold_size:
                     folds[indices_fold] = -1
 
@@ -219,13 +219,20 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     return folds.tolist(), n_folds, depth_threshold, bins, bin_edges, folds_file
 
 
-#===============================================================================
+#=============================================================================
 # Extract subfolds
-#===============================================================================
-def extract_subfolds(depth_file, folds, min_size=50, depth_factor=0.25,
+#=============================================================================
+def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
                      depth_ratio=0.1, tolerance=0.01, save_file=False):
     """
     Use depth to segment folds into subfolds in a triangular surface mesh.
+
+    Note ::
+
+        The function extract_sulci() performs about the same whether folds
+        or subfolds are used as input.  The latter leads to some loss of
+        small subfolds and possibly holes for small subfolds in the middle
+        of other subfolds.
 
     Note about the watershed() function:
     The watershed() function performs individual seed growing from deep seeds,
@@ -281,7 +288,7 @@ def extract_subfolds(depth_file, folds, min_size=50, depth_factor=0.25,
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
-    >>> min_size = 50
+    >>> min_size = 10
     >>> depth_factor = 0.5
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
