@@ -48,7 +48,8 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_columns(columns, column_names, output_table, input_table=''):
+def write_columns(columns, column_names, output_table, delimiter=',',
+                  input_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
@@ -62,6 +63,8 @@ def write_columns(columns, column_names, output_table, input_table=''):
         names of columns
     output_table : string
         name of output table file
+    delimiter : string
+        delimiter between columns, such as ','
     input_table : string (default is empty string)
         name of table file to which the columns are to be appended
 
@@ -79,9 +82,11 @@ def write_columns(columns, column_names, output_table, input_table=''):
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
     >>> output_table = 'write_columns.txt'
+    >>> delimiter = ','
     >>> input_table = ''
-    >>> write_columns(columns, column_names, output_table, input_table)
-    >>> write_columns(values2, 'value2', output_table, input_table=output_table)
+    >>> write_columns(columns, column_names, output_table, delimiter, input_table)
+    >>> write_columns(values2, 'value2', output_table, delimiter,
+    >>>               input_table=output_table)
 
     """
     import os
@@ -127,23 +132,31 @@ def write_columns(columns, column_names, output_table, input_table=''):
             input_columns = read_columns(input_table, n_columns=1, trail=True)
             input_names = input_columns[0][0]
             input_columns = input_columns[0][1::]
-        else:
-            input_names = ''
-            input_columns = ['' for x in columns[0]]
+        #else:
+        #    input_names = ''
+        #    input_columns = ['' for x in columns[0]]
 
         #--------------
         # Write to file
         #--------------
         Fp = open(output_table, 'wa')
         if column_names:
-            Fp.write(" ".join([input_names, " ".join(column_names), "\n"]))
-        else:
-            Fp.write(input_names + "\n")
+            if input_table:
+                Fp.write(delimiter.join([input_names,
+                                         delimiter.join(column_names) + "\n"]))
+            else:
+                Fp.write(delimiter.join(column_names) + "\n")
+        #else:
+        #    Fp.write(input_names + "\n")
 
         for irow in range(len(columns[0])):
-            Fp.write(input_columns[irow] + " ")
-            for column in columns:
-                Fp.write("{0} ".format(column[irow]))
+            if input_table:
+                Fp.write(input_columns[irow] + delimiter)
+            for icolumn, column in enumerate(columns):
+                if icolumn < len(columns)-1:
+                    Fp.write("{0}{1}".format(column[irow], delimiter))
+                else:
+                    Fp.write("{0}".format(column[irow]))
             Fp.write("\n")
 
         Fp.close()

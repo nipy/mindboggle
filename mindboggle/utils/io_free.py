@@ -192,7 +192,7 @@ def surface_to_vtk(surface_file):
     >>> surface_to_vtk(surface_file)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('lh.pial.vtk')
 
     """
@@ -241,7 +241,7 @@ def curvature_to_vtk(surface_file, vtk_file):
     >>> curvature_to_vtk(surface_file, vtk_file)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('lh.thickness.vtk')
 
     """
@@ -289,7 +289,7 @@ def annot_to_vtk(annot_file, vtk_file):
     >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('lh.aparc.vtk')
 
     """
