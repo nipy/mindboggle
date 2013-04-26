@@ -47,10 +47,6 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
 
     Parameters
     ----------
-    :param trained_file:
-    :param depth_file:
-    :param curvature_file:
-    :param sulci:
     trained_file : pickle compressed file
         contains the following dictionaries containing lists of floats
         (estimates of depth or curvature means, sigmas, and weights
@@ -85,7 +81,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> rewrite_scalars(depth_file, 'compute_likelihood.vtk', L, 'likelihoods', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('compute_likelihood.vtk')
 
     """
