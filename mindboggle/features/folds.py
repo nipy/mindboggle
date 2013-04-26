@@ -9,9 +9,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#===============================================================================
+#=============================================================================
 # Extract folds
-#===============================================================================
+#=============================================================================
 def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
@@ -42,7 +42,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     ----------
     depth_file : string
         surface mesh file in VTK format with faces and depth scalar values
-    min_fold_size : int
+    min_fold_size : integer
         minimum fold size (number of vertices)
     tiny_depth : float
         largest non-zero depth value that will stop a hole from being filled
@@ -71,7 +71,8 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> import pylab
     >>> from scipy.ndimage.filters import gaussian_filter1d
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, plot_vtk
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -79,16 +80,17 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> min_fold_size = 50
     >>> tiny_depth = 0.001
     >>> save_file = True
+    >>> #
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
     >>>     min_fold_size, tiny_depth, save_file)
+    >>> #
     >>> # View folds:
     >>> plot_vtk('folds.vtk')
     >>> # Plot histogram and depth threshold:
     >>> depths, name = read_scalars(depth_file)
     >>> nbins = np.round(len(depths) / 100.0)
     >>> a,b,c = pylab.hist(depths, bins=nbins)
-    >>> pylab.plot(thr*np.ones((100,1)),
-    >>>            np.linspace(0, max(bins), 100), 'r.')
+    >>> pylab.plot(thr*np.ones((100,1)), np.linspace(0, max(bins), 100), 'r.')
     >>> pylab.show()
     >>> # Plot smoothed histogram:
     >>> bins_smooth = gaussian_filter1d(bins.tolist(), 5)
@@ -110,20 +112,20 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     print("Extract folds in surface mesh")
     t0 = time()
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Load depth values for all vertices
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
         return_first=True, return_array=True)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Find neighbors for each vertex
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     neighbor_lists = find_neighbors(faces, npoints)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Compute histogram of depth measures
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     min_vertices = 10000
     if npoints > min_vertices:
         nbins = np.round(npoints / 100.0)
@@ -132,12 +134,12 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
             format(min_vertices))
     bins, bin_edges = np.histogram(depths, bins=nbins)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Anticipating that there will be a rapidly decreasing distribution
     # of low depth values (on the outer surface) with a long tail of higher
     # depth values (in the folds), smooth the bin values (Gaussian), convolve
     # to compute slopes, and find the depth for the first bin with slope = 0.
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     bins_smooth = gaussian_filter1d(bins.tolist(), 5)
     window = [-1, 0, 1]
     bin_slopes = np.convolve(bins_smooth, window, mode='same') / (len(window) - 1)
@@ -147,15 +149,15 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     else:
         depth_threshold = np.median(depths)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Find the deepest vertices
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     indices_deep = [i for i,x in enumerate(depths) if x >= depth_threshold]
     if indices_deep:
 
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Segment deep vertices as an initial set of folds
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         print("  Segment vertices deeper than {0:.2f} as folds".format(depth_threshold))
         t1 = time()
         folds = segment(indices_deep, neighbor_lists)
@@ -165,30 +167,30 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         #folds = segment_by_filling_boundaries(regions, neighbor_lists)
         print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
 
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Remove small folds
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         if min_fold_size > 1:
             print('  Remove folds smaller than {0}'.format(min_fold_size))
             unique_folds = [x for x in np.unique(folds) if x > -1]
             for nfold in unique_folds:
-                indices_fold = np.where(folds == nfold)[0]
+                indices_fold = [i for i,x in enumerate(folds) if x == nfold]
                 if len(indices_fold) < min_fold_size:
                     folds[indices_fold] = -1
 
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Find and fill holes in the folds
         # Note: Surfaces surrounded by folds can be mistaken for holes,
         #       so exclude_range includes outer surface values close to zero.
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         if do_fill_holes:
             print("  Find and fill holes in the folds")
             folds = fill_holes(folds, neighbor_lists, values=depths,
                                exclude_range=[0, tiny_depth])
 
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         # Renumber folds so they are sequential
-        #-----------------------------------------------------------------------
+        #---------------------------------------------------------------------
         renumber_folds = -1 * np.ones(len(folds))
         fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
         for i_fold, n_fold in enumerate(fold_numbers):
@@ -203,9 +205,9 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     else:
         print('  No deep vertices')
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Return folds, number of folds, file name
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     if save_file:
 
         folds_file = os.path.join(os.getcwd(), 'folds.vtk')
@@ -217,32 +219,30 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     return folds.tolist(), n_folds, depth_threshold, bins, bin_edges, folds_file
 
 
-#===============================================================================
+#=============================================================================
 # Extract subfolds
-#===============================================================================
-def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
-                     depth_ratio=0.1, tolerance=0.01, shrink_factor=0.5,
-                     save_file=False):
+#=============================================================================
+def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
+                     depth_ratio=0.1, tolerance=0.01, save_file=False):
     """
     Use depth to segment folds into subfolds in a triangular surface mesh.
 
-    Steps ::
-        1. Segment folds into "watershed basins".
-        2. Shrink segments by either:
-            a. removing shallow vertices (in folds with multiple segments), or
-            b. using the watershed basin seeds
-        3. Regrow shrunken segments as subfolds.
-        4. Renumber subfolds.
+    Note ::
 
-    Step 1 ::
-        The watershed() function, when used alone, has the same drawback as
-        segment() -- the order of seed selection influences the result for
-        multiple seeds within a connected set of vertices (region).
-        To ameliorate this bias, we run the shrink_segments() function
-        on the segments returned by watershed(), which shrinks segments in
-        regions with multiple segments, and use these fractional segments
-        as seeds for the segment() function, or the propagate() function,
-        which is slower and insensitive to depth, but is not biased by seed order.
+        The function extract_sulci() performs about the same whether folds
+        or subfolds are used as input.  The latter leads to some loss of
+        small subfolds and possibly holes for small subfolds in the middle
+        of other subfolds.
+
+    Note about the watershed() function:
+    The watershed() function performs individual seed growing from deep seeds,
+    repeats segmentation from the resulting seeds until each seed's segment
+    touches a boundary. The function segment() fills in the rest. Finally
+    segments are joined if their seeds are too close to each other.
+    Despite these precautions, the order of seed selection in segment() could
+    possibly influence the resulting boundaries between adjoining segments.
+    [The propagate() function is slower and insensitive to depth,
+     but is not biased by seed order.]
 
     Parameters
     ----------
@@ -250,8 +250,8 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
         surface mesh file in VTK format with faces and depth scalar values
     folds : list of integers
         fold numbers for all vertices (-1 for non-fold vertices)
-    min_subfold_size : int
-        minimum fold size (number of vertices)
+    min_size : integer
+        minimum number of vertices for a subfold
     depth_factor : float
         watershed() depth_factor:
         factor to determine whether to merge two neighboring watershed catchment
@@ -265,9 +265,6 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     tolerance : float
         watershed() tolerance:
         tolerance for detecting differences in depth between vertices
-    shrink_factor : float
-        shrink each fold to this fraction of its maximum depth
-        for folds with multiple subfolds, to regrow the subfolds
     save_file : Boolean
         save output VTK file?
 
@@ -286,22 +283,21 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_subfolds
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
-    >>> min_subfold_size = 50
+    >>> min_size = 10
     >>> depth_factor = 0.5
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
-    >>> shrink_factor = 0.5
     >>> #
     >>> subfolds, n_subfolds, subfolds_file = extract_subfolds(depth_file,
-    >>>     folds, min_subfold_size, depth_factor, depth_ratio, tolerance,
-    >>>     shrink_factor, True)
+    >>>     folds, min_size, depth_factor, depth_ratio, tolerance, True)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
     >>> plot_vtk('subfolds.vtk')
 
     """
@@ -310,104 +306,42 @@ def extract_subfolds(depth_file, folds, min_subfold_size=50, depth_factor=0.25,
     from time import time
     from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.segment import segment, propagate, watershed, \
-                                          shrink_segments
-
-    # Shrink folds or use seeds:
-    regrow = True
-    regrow_shrunken = True
-
-    # Use propagate() to regrow subfolds:
-    regrow_by_propagating = True
+    from mindboggle.labels.segment import segment, propagate, watershed
 
     print("Segment folds into subfolds")
     t0 = time()
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Load depth values for all vertices
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     faces, lines, indices, points, npoints, depths, \
         name, input_vtk = read_vtk(depth_file, return_first=True, return_array=True)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Find neighbors for each vertex
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     neighbor_lists = find_neighbors(faces, npoints)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Segment folds into "watershed basins"
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     indices_folds = [i for i,x in enumerate(folds) if x > -1]
     subfolds, seed_indices = watershed(depths, points, indices_folds,
-                                       neighbor_lists, depth_factor,
-                                       depth_ratio, tolerance)
-
-    #---------------------------------------------------------------------------
-    # Regrow segments
-    #---------------------------------------------------------------------------
-    if regrow:
-
-        #-----------------------------------------------------------------------
-        # Regrow segments after shrinking them in depth
-        #-----------------------------------------------------------------------
-        if regrow_shrunken:
-            print("  Regrow segments after shrinking in depth")
-            shrunken = shrink_segments(folds, subfolds, depths,
-                                       shrink_factor=shrink_factor,
-                                       only_multiple_segments=True)
-            if not regrow_by_propagating:
-                seed_lists = []
-                unique_shrunken = [x for x in np.unique(shrunken)
-                                   if x > -1]
-                for n_shrunken in unique_shrunken:
-                    seed_lists.append([i for i,x in enumerate(shrunken)
-                                       if x == n_shrunken])
-        #-----------------------------------------------------------------------
-        # Regrow segments from watershed basin seeds
-        #-----------------------------------------------------------------------
-        else:
-            print("  Regrow segments from watershed basin seeds")
-            if regrow_by_propagating:
-                shrunken = -1 * np.ones(len(depths))
-                for iseed, seed_index in enumerate(seed_indices):
-                    shrunken[seed_index] = iseed
-            else:
-                seed_lists = [[x] for x in seed_indices]
-
-        #-----------------------------------------------------------------------
-        # Growth by label propagation or segmentation
-        #-----------------------------------------------------------------------
-        if regrow_by_propagating:
-            regrown = propagate(points, faces, folds, shrunken, folds,
-                                max_iters=1000, tol=0.001, sigma=5)
-        else:
-            regrown = segment(indices_folds, neighbor_lists,
-                              min_subfold_size, seed_lists)
-        subfolds = np.array(subfolds)
-        subfolds[regrown > -1] = regrown[regrown > -1] + np.max(folds) + 1
-
-    #---------------------------------------------------------------------------
-    # Renumber folds so they are sequential
-    #---------------------------------------------------------------------------
-    renumber_subfolds = -1 * np.ones(len(folds))
-    subfold_numbers = [int(x) for x in np.unique(subfolds) if x > -1]
-    for i_subfold, n_subfold in enumerate(subfold_numbers):
-        subfold = [i for i,x in enumerate(subfolds) if x == n_subfold]
-        renumber_subfolds[subfold] = i_subfold
-    subfolds = renumber_subfolds
-    n_subfolds = i_subfold + 1
+                                 neighbor_lists, min_size, depth_factor=0.25,
+                                 depth_ratio=0.1, tolerance=0.01, regrow=True)
 
     # Print statement
+    n_subfolds = len([x for x in np.unique(subfolds) if x != -1])
     print('  ...Extracted {0} subfolds ({1:.2f} seconds)'.
           format(n_subfolds, time() - t0))
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Return subfolds, number of subfolds, file name
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     if save_file:
         subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
         rewrite_scalars(depth_file, subfolds_file, subfolds, 'subfolds', subfolds)
     else:
         subfolds_file = None
 
-    return subfolds.tolist(), n_subfolds, subfolds_file
+    return subfolds, n_subfolds, subfolds_file
