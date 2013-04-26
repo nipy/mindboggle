@@ -26,6 +26,10 @@ ADD_SUBDIRECTORY(
 area
 )
 
+ADD_SUBDIRECTORY(
+gradient
+)
+
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
@@ -50,6 +54,10 @@ Overlap Overlap.cpp
 )
 
 ADD_LIBRARY(
+GradientComputer GradientComputer.cpp
+)
+
+ADD_LIBRARY(
 PointAreaComputer PointAreaComputer.cpp
 )
 
@@ -59,6 +67,10 @@ MeshAnalyser
 
 TARGET_LINK_LIBRARIES(
 TravelDepth
+)
+
+TARGET_LINK_LIBRARIES(
+GradientComputer
 )
 
 TARGET_LINK_LIBRARIES(
