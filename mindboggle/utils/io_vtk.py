@@ -142,6 +142,14 @@ def read_faces_points(filename):
     npoints : integer
         number of points
 
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_faces_points
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+
     """
     import vtk
 
@@ -163,6 +171,57 @@ def read_faces_points(filename):
         faces = []
 
     return faces, points, npoints
+
+def reindex_faces_points(faces, points=[]):
+    """
+    Renumber indices in faces and remove points (coordinates) not in faces.
+
+    Parameters
+    ----------
+    faces : list of lists of integers
+        each sublist contains 3 indices of vertices that form a face
+        on a surface mesh
+    points : list of lists of floats (optional)
+        each sublist contains 3-D coordinates of a vertex on a surface mesh
+
+    Returns
+    -------
+    new_faces : list of lists of integers
+        each sublist contains 3 (renumbered) indices of vertices
+        that form a face on a surface mesh
+    new_points : list of lists of floats
+        each (new) sublist contains 3-D coordinates of a vertex on a surface mesh
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
+    >>> # Reindex faces:
+    >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> reindex_faces_points(faces, points=[])
+        ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)
+    >>> # Reindex faces of a single fold of the brain:
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> new_faces, new_points = reindex_faces_points(faces, points)
+
+    """
+    import itertools
+
+    # set() to remove repeated indices and list() to order them for later use:
+    indices_to_keep = list(set(itertools.chain(*faces)))
+    reindex = dict([(old_index, new_index)
+                    for new_index, old_index in enumerate(indices_to_keep)])
+
+    new_faces = [[reindex[old_index] for old_index in face] for face in faces]
+
+    if points:
+        new_points = [points[new_index] for new_index in indices_to_keep]
+    else:
+        new_points = None
+
+    return new_faces, new_points
 
 def read_scalars(filename, return_first=True, return_array=False):
     """
@@ -568,7 +627,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
@@ -661,12 +720,12 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> #
-    >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
+    >>> rewrite_scalars(depth_file, 'rewrite_scalars.vtk',
     >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_rewrite_scalars.vtk')
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> plot_vtk('rewrite_scalars.vtk')
 
     """
     import os
@@ -760,7 +819,7 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(example_vtk)
 
     """
@@ -892,6 +951,149 @@ def scalars_checker(scalars, scalar_names):
         sys.exit()
 
     return scalars, scalar_names
+
+#------------------------------------------------------------------------------
+# Apply affine transform to the points of a VTK surface mesh
+#------------------------------------------------------------------------------
+def read_itk_transform(affine_transform_file):
+    """
+    Read ITK transform file and output transform array.
+
+    ..ITK affine transform file format ::
+
+        #Insight Transform File V1.0
+        #Transform 0
+        Transform: MatrixOffsetTransformBase_double_3_3
+        Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
+                    0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
+        FixedParameters: -0.60936 21.1593 10.6148
+
+    Parameters
+    ----------
+    affine_transform_file : string
+        name of ITK affine transform file
+
+    Returns
+    -------
+    affine_transform : numpy array
+        4x4 affine transform matrix
+    fixed_parameters : numpy array
+        FixedParameters vector
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_itk_transform
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                             't1weighted_brain.MNI152Affine.txt')
+    >>> read_itk_transform(affine_transform_file)
+        (array([[  9.07680e-01,   4.35290e-02,   1.28917e-02, -7.94889e-01],
+               [ -4.54455e-02,   8.68937e-01,   4.06098e-01, -1.83346e+01],
+               [  1.79439e-02,  -4.30013e-01,   7.83074e-01, -3.14767e+00],
+               [  0.00000e+00,   0.00000e+00,   0.00000e+00, 1.00000e+00]]),
+         [-0.60936, 21.1593, 10.6148])
+
+    """
+    import numpy as np
+
+    affine_transform = np.eye(4)
+
+    # Read ITK transform file
+    fid = open(affine_transform_file, 'r')
+    affine_lines = fid.readlines()
+
+    transform = affine_lines[3]
+    transform = transform.split()
+    transform = [np.float(x) for x in transform[1::]]
+    transform = np.reshape(transform, (4,3))
+    linear_transform = transform[0:3,:]
+    translation = transform[3,:]
+    affine_transform[0:3,0:3] = linear_transform
+    affine_transform[0:3,3] = translation
+
+    fixed_parameters = affine_lines[4]
+    fixed_parameters = fixed_parameters.split()
+    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+
+    return affine_transform, fixed_parameters
+
+def apply_affine_transform(transform_file, vtk_file):
+    """
+    Transform coordinates using an affine matrix.
+
+    Parameters
+    ----------
+    transform file : string
+        name of ITK affine transform file
+    vtk_file : string
+        name of VTK file containing point coordinate data
+
+    Returns
+    -------
+    affined_points : list of lists of floats
+        transformed coordinates
+    output_file : string
+        name of VTK file containing transformed point data
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import apply_affine_transform
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> apply_affine_transform(transform_file, vtk_file)
+    >>> # View
+    >>> plot_vtk('affine_lh.pial.depth.vtk')
+
+
+    """
+    import os
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
+
+    print("\n\n\nUNDER CONSTRUCTION!!!\n\n\n")
+
+    # Read ITK affine transform file
+#    transform, fixed_parameters = read_itk_transform(transform_file)
+
+    import nibabel as nb
+    subject_path = '/Applications/freesurfer/subjects/Twins-2-1'
+    native_volume_mgz = subject_path + '/mri/orig/001.mgz'
+    conformed_volume_mgz = subject_path + '/mri/brain.mgz'
+    M = np.array([[-1,0,0,128],
+                  [0,0,1,-128],
+                  [0,-1,0,128],
+                  [0,0,0,1]],dtype=float)
+    native = nb.freesurfer.load(native_volume_mgz)
+    conformed = nb.freesurfer.load(conformed_volume_mgz)
+    affine_native = native.get_affine()
+    affine_conformed = conformed.get_affine()
+    transform = np.dot(affine_conformed, np.linalg.inv(M))
+
+    # Read VTK file
+    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
+
+    # Transform points
+    points = np.array(points)
+#    points += fixed_parameters
+
+    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
+    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+#    affine_points -= fixed_parameters
+#    #affine_points += [0,256,0]
+
+    # Output transformed VTK file
+    output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
+
+    # Write VTK file
+    write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
+
+    return affine_points, output_file
 
 
 #if __name__ == "__main__" :

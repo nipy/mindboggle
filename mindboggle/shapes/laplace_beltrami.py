@@ -254,6 +254,63 @@ def area_normalize(points, faces, spectrum):
 
     return new_spectrum
 
+def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
+    """
+    Weighted Spectral Distance. See Konukoglu et al. (2012)
+
+    Parameters
+    ---------------
+
+    EVAL1 : numpy array of floats
+        LB spectrum from the 1st shape
+
+    EVAL2 : numpy array of floats
+        LB spectrum from the 2nd shape
+
+    Vol1: float
+        Volume (area for 2D) of the 1st shape
+
+    Vol2: float
+        Volume (area for 2D) of the 2nd shape
+
+    show_error: boolean
+        Whether display the error of WESD using Eqs.(9) and (10) in Konukoglu et al. (2012).
+        default: false
+
+    N : integer
+        The length of spetrum used (N>=3, default: 3)
+
+    """
+    # At present, algorithm doesn't return normalized result. It therefore doesn't require calculation of volume.
+
+    d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
+    Ball = 4.0/3*np.pi # For Three Dimensions
+    p = 2.0
+
+    Vol = np.amax((Vol1, Vol2))
+    mu = np.amax(EVAL1[1], EVAL2[1])
+
+    C = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - 1/mu)**p + ((d+2)/(d*4*np.pi**2)*(Ball*Vol/2)**(2/d) - 1/mu*(d/(d+4)))**p
+
+    K = ((d+2)/(d*4*np.pi**2)*(Ball*Vol)**(2/d) - (1/mu)*(d/(d+2.64)))**p
+
+    W = (C + K*(zeta(2*p/d,1) - 1 - .5**(2*p/d)))**(1/p) # the right-hand side of Eq.(8) or the equation right after Eq.(4)
+
+    holder = 0
+    for i in xrange(1, np.amin((len(EVAL1), len(EVAL2) )) ):
+        holder += (np.abs(EVAL1[i] - EVAL2[i])/(EVAL1[i]*EVAL2[i]))**p
+    WESD = holder ** (1/p)
+
+    nWESD = WESD/W
+
+    if show_error:
+        WN = (C + K * (sum([n**(-1*2*p/d) for n in range(3,N+1)])))**(1/p)
+        # the second term on the right-hand side of Eq.(9)
+        print "Truncation error of WESD is: ", W - WN
+        print "Truncation error of nWESD is: ", 1 -  WN/W
+
+    return WESD
+
 def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
@@ -291,17 +348,30 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
         The area-normalized linear FEM Laplace-Beltrami Spectrum is:
         [-7.4014869016002383e-16, 0.76393202250021075, 0.80000000000000049]
-
+    >>> # Spectrum for a single fold:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> faces, points = reindex_faces_points(faces, points)
+    >>> # Test LBO:
+    >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=6, normalization="area")))
+        [8.6598495496215578e-20, 4.214922171245502e-19, 1.7613177561957697e-05,
+         3.9602772997696686e-05, 7.1740562223650042e-05, 8.5687655524969452e-05]
     """
     from scipy.sparse.linalg import eigsh
 
     from mindboggle.shapes.laplace_beltrami import computeAB
 
-    min_n_eigenvalues = 3
+    min_n_eigenvalues = 10 * n_eigenvalues
     npoints = len(points)
 
     if npoints < min_n_eigenvalues:
-        print "The input size {0} is smaller than n_eigenvalue {1}. Skipped.".\
+        print "The input size {0} should be much larger than n_eigenvalue {1}. Skipped.".\
             format(npoints, n_eigenvalues)
         return None
     elif npoints < n_eigenvalues:
@@ -311,8 +381,7 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     # Note: eigs is for nonsymmetric matrices while
     #       eigsh is for real-symmetric or complex-Hermitian matrices.
-    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="SM")
-#    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, which="LM", sigma=0, mode="normal")
+    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, sigma=0)
 
     spectrum = eigenvalues.tolist()
 
@@ -321,9 +390,9 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     return spectrum
 
-def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
+def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None):
     """
-    Compute linear FEM Laplace-Beltrami spetra from each labeled region in a file.
+    Compute linear FEM Laplace-Beltrami spectra from each labeled region in a file.
 
     Parameters
     ----------
@@ -338,64 +407,77 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=200, normalization=None):
     Returns
     -------
     spectrum_lists : list of lists
-        first n_eigenvalues eigenvalues for each label's Laplace-Beltrami spectrum
+        first eigenvalues for each label's Laplace-Beltrami spectrum
+    label_list : list of integers
+        list of unique labels for which spectra are obtained
 
     Examples
     --------
+    >>> # Spectrum for a single fold (one label):
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(fold_file, n_eigenvalues=6)))
+        ([[5.0385680900266565e-17, 2.452371976244268e-16,
+           0.010247891019253531, 0.02304211720531372,
+           0.04174087615603567, 0.04985572605660033]], [1.0])
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(fold_file, n_eigenvalues=6,
+    >>>                    normalization="area")))
+        ([[8.6598495496215614e-20, 4.214922171245503e-19,
+           1.7613177561957693e-05, 3.9602772997696571e-05,
+           7.1740562223650029e-05, 8.5687655524969235e-05]], [1.0])
+    >>> #
+    >>> # Case of too few points:
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'tests', 'cube.vtk')
-    >>> n_eigenvalues = 3
+    >>> n_eigenvalues = 6
     >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
     >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues)))
-        The un-normalized linear FEM Laplace-Beltrami Spectrum is:
-        Reduced 12 to 0 triangular faces
-        The input size 2 is smaller than n_eigenvalue 3. Skipped.
-        Reduced 12 to 6 triangular faces
-        [None, [3.2049378106476917e-17, 4.583592135001263, 4.800000000000005]]
-    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
-    >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues, normalization="area")))
-        The area-normalized linear FEM Laplace-Beltrami Spectrum is:
-        Reduced 12 to 0 triangular faces
-        The input size 2 is smaller than n_eigenvalue 3. Skipped.
-        Reduced 12 to 6 triangular faces
-        [None, [-2.1366252070792216e-17, 1.5278640450004206, 1.6000000000000001]]
-    """
-    import numpy as np
+        The input size 6 should be much larger than n_eigenvalue 6. Skipped.
+        ([None], [0.0])
 
-    from mindboggle.utils.io_vtk import read_vtk
-    from mindboggle.utils.mesh import remove_faces, renumber_faces
+    """
+    from mindboggle.utils.io_vtk import read_vtk, reindex_faces_points
+    from mindboggle.utils.mesh import remove_faces
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
+    min_n_eigenvalues = 10 * n_eigenvalues
+
     # Read VTK surface mesh file:
-    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(vtk_file)
-    points = np.array(points)
+    faces, foo1, foo2, points, foo3, labels, foo4, foo5 = read_vtk(vtk_file)
 
     # Loop through labeled regions:
+    ulabels = []
+    [ulabels.append(int(x)) for x in labels if x not in ulabels if x != -1]
+    label_list = []
     spectrum_lists = []
-    for label in np.unique(labels):
+    for label in ulabels:
 
         # Extract points and renumber faces for the labeled region:
         indices = [i for i,x in enumerate(labels) if x == label]
-        if indices:
-            label_points = points[indices]
+        if len(indices) >= min_n_eigenvalues:
             label_faces = remove_faces(faces, indices)
             if label_faces:
-                label_faces = renumber_faces(label_faces, indices)
+                label_faces, label_points = reindex_faces_points(label_faces,
+                                                                 points)
 
                 # Compute Laplace-Beltrami spectrum for the labeled region:
-                spectrum = fem_laplacian(label_points, label_faces, n_eigenvalues,
-                                         normalization)
+                spectrum = fem_laplacian(label_points, label_faces,
+                                         n_eigenvalues, normalization)
 
                 # Append to a list of lists of spectra:
                 spectrum_lists.append(spectrum)
-            else:
-                spectrum_lists.append([])
+                label_list.append(label)
         else:
-            spectrum_lists.append([])
+            print "The input size {0} for label {1} is too small. Skipped.".\
+                format(len(indices), label)
 
-    return spectrum_lists
+    return spectrum_lists, label_list
 
 
 if __name__ == "__main__":
@@ -415,157 +497,3 @@ if __name__ == "__main__":
 
     print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
         fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
-
-
-    """
-    def compute_V(W, neighbors):
-        ""
-        Compute V as in Martin Reuter's 2009 paper.
-
-        Parameters
-        ----------
-        W: 2-D numpy array
-            W[i,j] is w_{ij} in Eq. (3) of Reuter's 2009 paper
-        neighbors: 2-D list
-            neighbors[i] gives the list of neighbors of i on the mesh,
-            in indices to vertices
-
-        Returns
-        -------
-        V : sparse diagonal matrix
-            described in Reuter's 2009 paper
-
-        ""
-        from scipy.sparse import lil_matrix
-
-        npoints = W.shape[0]
-        V = lil_matrix((npoints, npoints))
-
-        # v: 1-D list
-        # v_i = \sum_{j\in N(i)} w_{ij},
-        #       where N(i) is the set of neighbors of vertex i
-        v = [sum([W[i,j] for j in neighbors[i]]) for i in range(npoints)]
-
-        V.setdiag(v)
-
-        return V / 3
-
-    def old_fem_laplacian(points, faces):
-        ""The portal function to compute geometric laplacian
-
-        Parameters
-        ----------
-        points : 2-D numpy array
-            points[i] is the 3-D coordinates of points on a mesh
-        faces : 2-D numpy array
-            faces[i] is a 3-element array containing the indices of points
-
-        Returns
-        -------
-        eigenvalues : a list of floats
-            The Laplacian-Beltrami Spectrum
-
-        Notes
-        ------
-
-        This is how Forrest got the steps from the paper:
-        1. The FEM Laplacian problem is given as
-           A_{cot}\mathbf{f} = - \lambda B \mathbf{f} in the paper (the next equation after Eq. 6)
-           We denote this equation in the docstring as Eq.A.
-        2. Let L' = - B^{-1} A_{cot}
-        3. Then Eq.A can be rewritten as
-            L' \mathbf{f} = \lambda \mathbf{f}
-        4. Similarly to geometric Laplacian, the FEM Laplacian spectrum is then the
-           eigenvalues of L' .
-
-        Steps:
-        We could heavily reuse the code for geometric Laplacian.
-
-        1. Compute W (can directly use Eliezer's cotangent kernel)
-        2. Compute V = diag(v_1,...v_n) where v_i = \sum_{j\in N(i)} w_{ij}
-           and N(i) is the set of neighbors of node i.
-        3. Compute stiffness matrix A = V - W.
-           Note that W and V are two cases for A_{cot}.
-           A is -A_{cot}   (A_{cot} should be W - V)
-        4. Compute the mass matrix B according to the paper.
-           B = P + Q where P[i,j] = (area[x] + area[y])/2 for x and y
-           are the two faces sharing the edge (i,j) (0's, otherwise), and
-           Q[i,j] = (\sum_{k\in N(i)} area[k] )/6 for i=j (0's, otherwise)
-
-           I assume by the notation \sum_{k\in N(i)} |t_k| in the paper,
-           the authors mean total area of all triangles centered at node i.
-           There is some ambiguity here because N(i) is the set of neighbor points
-           of node i (defined earlier in the paper) whereas t_k is a triangle.
-           This is my best guess.
-
-        5. L = inv(B)*A
-        ""
-
-        def gen_P(edges, faces_at_edges, area, npoints):
-            ""Generate the P mentioned in pseudocode above
-            ""
-
-            from scipy.sparse import lil_matrix
-            P = lil_matrix((npoints, npoints))
-            #        P = numpy.zeros((npoints, npoints))
-            for [i,j] in edges:
-                P[i,j] = sum([area[face] for face in faces_at_edges[(i,j)]]) # this line replaces the block commented below
-                # =-------------------
-            #            facing_edges = faces_at_edges[(i,j)]
-            #            if len(facing_edges) == 1:
-            #                [t1]= facing_edges
-            #                P[i,j] = area[t1]
-            #            else:
-            #                [t1,t2]= facing_edges
-            #                P[i,j] = area[t1] + area[t2]
-            #=---------------------------------
-
-            return P/12
-
-        def gen_Q(edges, faces_at_edges, area, npoints, neighbors, faces_at_points):
-            ""Generate the Q mentioned in pseudocode above
-            ""
-            from scipy.sparse import lil_matrix
-            Q = lil_matrix((npoints, npoints))
-            q = [sum([area[k] for k in faces_at_points[i]]) for i in range(npoints)]
-            Q.setdiag(q)
-
-            return Q/6
-
-        import numpy
-
-        npoints = len(points)
-
-        if npoints < 5: # too small
-            print("The input size is too small. Skipped.")
-            return numpy.array([-1,-1,-1, -1, -1])
-
-        import mindboggle.utils.kernels
-        W = mindboggle.utils.kernels.cotangent_kernel(points, faces)
-        W /= 2
-
-        import mindboggle.utils.mesh
-        neighbors = mindboggle.utils.mesh.find_neighbors(faces, npoints)
-
-        V = compute_V(faces, W, neighbors)
-        A = V - W # the stiffness matrix
-
-        area = compute_area(points, faces)
-        faces_at_points = mindboggle.utils.mesh.find_faces_at_vertices(faces, npoints)
-        # up to this point, the computation is the same as in geometric Laplacian
-
-        faces_at_edges = mindboggle.utils.mesh.find_faces_at_edges(faces)
-        edges = mindboggle.utils.mesh.find_edges(faces.tolist())
-
-        P = gen_P(edges, faces_at_edges, area, npoints)
-        Q = gen_Q(edges, faces_at_edges, area, npoints, neighbors, faces_at_points)
-        B = P + Q
-
-        from scipy.sparse.linalg import eigsh, eigs
-        # note eigs is for nonsymmetric matrices while eigsh is for  real-symmetric or complex-hermitian matrices
-
-        eigenvalues, eigenvectors = eigsh(A, k=3, M=B, which="SM")
-
-        return eigenvalues
-
-    """

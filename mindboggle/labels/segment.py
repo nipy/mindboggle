@@ -10,9 +10,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
-# Propagate labels to segment surface into contiguous regions
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Propagate ring_labels to segment surface into contiguous regions
+#-----------------------------------------------------------------------------
 def propagate(points, faces, region, seeds, labels,
               max_iters=500, tol=0.001, sigma=10):
     """
@@ -76,7 +76,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Select boundary segments in the sulcus labeling protocol
     >>> seeds = -1 * np.ones(npoints)
     >>> for ilist,label_pair_list in enumerate(label_pair_lists):
-    >>>     I = [x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list]
+    >>>     I = [x for i,x in enumerate(indices_boundaries)
+    >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
     >>> #
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
@@ -84,7 +85,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(labels_file, 'test_propagate.vtk',
     >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_propagate.vtk')
 
     """
@@ -147,9 +148,9 @@ def propagate(points, faces, region, seeds, labels,
 
     return segments
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Segment vertices of surface into contiguous regions by seed growing
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False, spread_within_labels=False,
             labels=[], label_lists=[], values=[], max_steps='', verbose=False):
@@ -198,7 +199,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.labels.segment import segment
     >>> from mindboggle.labels.label import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -244,8 +245,10 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     if isinstance(values, np.ndarray):
         values = values.tolist()
 
+    #-------------------------------------------------------------------------
     # If seed_lists is empty, select first vertex from vertices_to_segment
-    # (single vertex selection does not affect result -- see below*)
+    # (single vertex selection does not affect result -- see below*):
+    #-------------------------------------------------------------------------
     if seed_lists:
         select_single_seed = False
         if verbose:
@@ -262,9 +265,11 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             print('    Segment {0} vertices from first vertex as initial seed'.
                   format(len(vertices_to_segment)))
 
+    #-------------------------------------------------------------------------
     # Initialize variables, including the list of vertex indices for each region,
     # vertex indices for all regions, and Boolean list indicating which regions
-    # are not fully grown, max. region ID, number of segments, etc.
+    # are fully grown, number of segments, etc.:
+    #-------------------------------------------------------------------------
     segments = -1 * np.ones(len(neighbor_lists))
     region_lists = [[] for x in seed_lists]
     all_regions = []
@@ -274,7 +279,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     if isinstance(max_steps, str):
         max_steps = np.Inf
 
-    # If label_lists empty, set to unique labels for each seed list
+    #-------------------------------------------------------------------------
+    # If label_lists empty, set to unique labels for each seed list:
+    #-------------------------------------------------------------------------
     if spread_within_labels:
         if not len(label_lists):
             label_lists = []
@@ -282,28 +289,30 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                 seed_labels = np.unique([labels[x] for x in seed_list])
                 label_lists.append(seed_labels)
 
-    # Loop until all of the seed lists have grown to their full extent
+    #-------------------------------------------------------------------------
+    # Loop until all of the seed lists have grown to their full extent:
+    #-------------------------------------------------------------------------
     count = 0
     while not all(fully_grown):
-        # Loop through seed lists over and over again
+        # Loop through seed lists over and over again:
         for ilist, seed_list in enumerate(seed_lists):
             # If seed list empty
             if not len(seed_list):
                 fully_grown[ilist] = True
-                # If seed list not fully grown
+            # If seed list not fully grown:
             if not fully_grown[ilist]:
 
-                # Add seeds to region
+                # Add seeds to region:
                 region_lists[ilist].extend(seed_list)
                 all_regions.extend(seed_list)
 
-                # Remove seeds from vertices to segment
+                # Remove seeds from vertices to segment:
                 vertices_to_segment = list(frozenset(vertices_to_segment).
                 difference(seed_list))
 
                 if vertices_to_segment:
 
-                    # Find neighbors of each seed with lower values than the seed
+                    # Find neighbors of each seed with lower values than the seed:
                     if values:
                         neighbors = []
                         for seed in seed_list:
@@ -313,41 +322,41 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                             if seed_neighbors:
                                 neighbors.extend(seed_neighbors)
                     else:
-                        # Find neighbors of seeds
+                        # Find neighbors of seeds:
                         neighbors = []
                         [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
                     # Select neighbors that have not been previously selected
-                    # and are among the vertices to segment
+                    # and are among the vertices to segment:
                     seed_list = list(frozenset(neighbors).intersection(vertices_to_segment))
                     seed_list = list(frozenset(seed_list).difference(all_regions))
 
                 else:
                     seed_list = []
 
-                # If there are seeds remaining
+                # If there are seeds remaining:
                 if seed_list and count < max_steps:
 
                     # Select neighbors with the same labels
-                    # as the initial seed labels
+                    # as the initial seed labels:
                     if spread_within_labels:
                         seed_list = [x for x in seed_list
                                      if labels[x] in label_lists[ilist]]
 
-                    # Continue growing seed list
+                    # Continue growing seed list:
                     seed_lists[ilist] = seed_list
                     count += 1
 
-                # If there are no seeds remaining
+                # If there are no seeds remaining:
                 else:
-                    # Stop growing seed list (see exception below)
+                    # Stop growing seed list (see exception below):
                     fully_grown[ilist] = True
 
-                    # If the region size is large enough
+                    # If the region size is large enough:
                     size_region = len(region_lists[ilist])
                     if size_region >= min_region_size:
 
-                        # Assign ID to segmented region and increment ID
+                        # Assign ID to segmented region and increment ID:
                         if select_single_seed:
                             new_segment_index = counter
                             counter += 1
@@ -355,7 +364,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                             new_segment_index = ilist
                         segments[region_lists[ilist]] = new_segment_index
 
-                        # Display current number and size of region
+                        # Display current number and size of region:
                         if verbose and size_region > 1:
                             if len(seed_lists) == 1 and vertices_to_segment:
                                 print("      {0} vertices remain".
@@ -366,73 +375,75 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
                                              len(vertices_to_segment)))
 
                     # If selecting a single seed, continue growing
-                    # if there are more vertices to segment
+                    # if there are more vertices to segment:
                     if select_single_seed and count < max_steps:
                         if len(vertices_to_segment) >= min_region_size:
                             fully_grown[0] = False
                             seed_lists[0] = [vertices_to_segment[0]]
                             region_lists[0] = []
 
-    # Keep growing from new seeds even after all seed lists have fully grown
+    #-------------------------------------------------------------------------
+    # Keep growing from new seeds even after all seed lists have fully grown:
+    #-------------------------------------------------------------------------
     if keep_seeding and len(vertices_to_segment) >= min_region_size:
         if verbose:
             print('    Keep seeding to segment {0} remaining vertices'.
                   format(len(vertices_to_segment)))
 
-        # Select first unsegmented vertex as new seed
+        # Select first unsegmented vertex as new seed:
         seed_list = [vertices_to_segment[0]]
 
-        # Loop until the seed list has grown to its full extent
+        # Loop until the seed list has grown to its full extent:
         new_segment_index = ilist + 1
         region = []
         while len(vertices_to_segment) >= min_region_size:
 
-            # Add seeds to region
+            # Add seeds to region:
             region.extend(seed_list)
             all_regions.extend(seed_list)
 
-            # Remove seeds from vertices to segment
+            # Remove seeds from vertices to segment:
             vertices_to_segment = list(frozenset(vertices_to_segment).
             difference(seed_list))
             if vertices_to_segment:
 
-                # Identify neighbors of seeds
+                # Identify neighbors of seeds:
                 neighbors = []
                 [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
                 # Select neighbors that have not been previously selected
-                # and are among the vertices to segment
+                # and are among the vertices to segment:
                 seed_list = list(frozenset(vertices_to_segment).intersection(neighbors))
                 seed_list = list(frozenset(seed_list).difference(all_regions))
             else:
                 seed_list = []
 
-            # If there are no seeds remaining
+            # If there are no seeds remaining:
             if not len(seed_list):
 
-                # If the region size is large enough
+                # If the region size is large enough:
                 size_region = len(region)
                 if size_region >= min_region_size:
 
-                    # Assign ID to segmented region and increment ID
+                    # Assign ID to segmented region and increment ID:
                     segments[region] = new_segment_index
                     new_segment_index += 1
 
-                    # Display current number and size of region
+                    # Display current number and size of region:
                     if verbose and size_region > 1:
                         print("      {0} vertices remain".
                               format(len(vertices_to_segment)))
 
-                # Select first unsegmented vertex as new seed
+                # Select first unsegmented vertex as new seed:
                 if len(vertices_to_segment) >= min_region_size:
                     seed_list = [vertices_to_segment[0]]
                     region = []
 
     return segments
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Fill boundaries on a surface mesh to segment vertices into contiguous regions
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def segment_by_filling_boundaries(regions, neighbor_lists):
     """
     Fill boundaries (contours) on a surface mesh
@@ -479,7 +490,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_segment_by_filling_boundaries.vtk', folds, 'folds', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_segment_by_filling_boundaries.vtk')
 
     """
@@ -557,23 +568,129 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
 
     return segments
 
-#------------------------------------------------------------------------------
-# Segment vertices of surface into contiguous regions by a watershed algorithm
-#------------------------------------------------------------------------------
-def watershed(depths, points, indices, neighbor_lists, min_size=1,
-              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01):
+def segment_rings(region, seeds, neighbor_lists, step=1):
     """
-    Segment vertices of surface into contiguous "watershed basin" regions
+    Iteratively segment a region of surface mesh as concentric segments.
+
+    Parameters
+    ----------
+    region : list of integers
+        indices of region vertices to segment (such as a fold)
+    seeds : list of integers
+        indices of seed vertices
+    neighbor_lists : list of lists of integers
+        indices to neighboring vertices for each vertex
+    step : integer
+        number of segmentation steps before assessing segments
+
+    Returns
+    -------
+    segments : list of lists of integers
+        indices to vertices for each concentric segment
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.features.fundi import segment_rings
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+    >>> fold, name = read_scalars(fold_file)
+    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> # Initialize seeds with the boundary of thresholded indices:
+    >>> use_threshold = True
+    >>> if use_threshold:
+    >>>     # Threshold at the median depth or within maximum values in boundary:
+    >>>     threshold = np.median(values[indices]) #+ np.std(values[indices])
+    >>>     indices_high = [x for x in indices if values[x] >= threshold]
+    >>>     # Make sure threshold is within the maximum values of the boundary:
+    >>>     B = np.ones(len(values))
+    >>>     B[indices] = 2
+    >>>     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
+    >>>     borders = [x for x in borders if values[x] != -1]
+    >>>     if list(frozenset(indices_high).intersection(borders)):
+    >>>         threshold = np.max(values[borders]) + np.std(values[borders])
+    >>>         indices_high = [x for x in indices if values[x] >= threshold]
+    >>>     # Extract threshold boundary vertices as seeds:
+    >>>     B = -1 * np.ones(len(values))
+    >>>     B[indices_high] = 2
+    >>>     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
+    >>> # Or initialize P with the maximum value point:
+    >>> else:
+    >>>     seeds = [indices[np.argmax(values[indices])]]
+    >>>     indices_high = []
+    >>> #
+    >>> indices = list(frozenset(indices).difference(indices_high))
+    >>> indices = list(frozenset(indices).difference(seeds))
+    >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
+    >>> #
+    >>> # View:
+    >>> S = -1 * np.ones(len(values))
+    >>> for i, segment in enumerate(segments):
+    >>>     S[segment] = i
+    >>> rewrite_scalars(depth_file, 'segment_rings.vtk', S, 'segment_rings', fold)
+    >>> plot_vtk('segment_rings.vtk')
+    >>> # Store:
+    >>> #import pickle
+    >>> #output_file = os.path.join(path, 'tests', 'segments_fold11.pkl')
+    >>> #pickle.dump(segments, open(output_file, "wb" ))
+
+    """
+    from mindboggle.labels.segment import segment
+
+    segments = []
+    while seeds:
+
+        # Segment step-wise starting from seeds and through the region:
+        seeds_plus_new = segment(region, neighbor_lists, min_region_size=1,
+                                 seed_lists=[seeds], keep_seeding=False,
+                                 spread_within_labels=False, labels=[],
+                                 label_lists=[], values=[], max_steps=step)
+        seeds_plus_new = [i for i,x in enumerate(seeds_plus_new) if x != -1]
+
+        # Store the new segment after removing the previous segment:
+        region = list(frozenset(region).difference(seeds))
+        seeds = list(frozenset(seeds_plus_new).difference(seeds))
+        if seeds:
+
+            # Add the new segment and remove it from the region:
+            segments.append(seeds)
+            region = list(frozenset(region).difference(seeds))
+
+    return segments
+
+#-----------------------------------------------------------------------------
+# Segment vertices of surface into contiguous regions by a watershed algorithm
+#-----------------------------------------------------------------------------
+def watershed(depths, points, indices, neighbor_lists, min_size=1,
+              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True):
+    """
+    Segment vertices of a surface mesh into contiguous "watershed basins"
     by seed growing from an iterative selection of the deepest vertices.
 
-    Note: This function, when used alone, has the same drawback as segment() --
-    the order of seed selection influences the result for multiple
-    seeds within a connected set of vertices (region).
-    To ameliorate this bias, we run the shrink_segments() function
-    on the segments returned by watershed(), which shrinks segments in
-    regions with multiple segments, and use these fractional segments
-    as seeds for the propagate() function, which is slower and insensitive
-    to depth, but is not biased by seed order.
+    Steps ::
+
+        1. Grow segments from an iterative selection of the deepest seeds.
+        2. Regrow segments from the resulting seeds, until each seed's
+            segment touches a boundary.
+        3. Use the segment() function to fill in the rest.
+        4. Merge segments if their seeds are too close to each other
+            or their depths are very different.
+
+    Note ::
+
+        Despite the above precautions, the order of seed selection in segment()
+        could possibly influence the resulting boundaries between adjoining
+        segments (vs. propagate(), which is slower and insensitive to depth,
+        but is not biased by seed order).
 
     Parameters
     ----------
@@ -597,6 +714,8 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         watershed catchment basin (otherwise merged with the deeper basin)
     tolerance : float
         tolerance for detecting differences in depth between vertices
+    regrow : Boolean
+        regrow segments from watershed seeds?
 
     Returns
     -------
@@ -611,8 +730,9 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import watershed
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.labels.segment import watershed, segment
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -623,28 +743,34 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> depth_factor = 0.25
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
+    >>> regrow = True
     >>> #
-    >>> segments, seed_indices = watershed(depths, points, indices,
-    >>>     neighbor_lists, min_size, depth_factor, depth_ratio, tolerance)
+    >>> segments, seed_indices = watershed(depths, points,
+    >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
+    >>>     tolerance, regrow)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_watershed.vtk',
+    >>> rewrite_scalars(depth_file, 'watershed.vtk',
     >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
-    >>> plot_vtk('test_watershed.vtk')
+    >>> plot_vtk('watershed.vtk')
     >>> # View watershed seeds:
     >>> seeds = -1 * np.ones(len(depths))
     >>> for i, s in enumerate(seed_indices):
     >>>     seeds[s] = i
-    >>> rewrite_scalars(depth_file, 'test_watershed_seeds.vtk',
+    >>> rewrite_scalars(depth_file, 'watershed_seeds.vtk',
     >>>                 seeds, 'seeds', seeds)
-    >>> plot_vtk('test_watershed_seeds.vtk')
+    >>> plot_vtk('watershed_seeds.vtk')
 
     """
     import numpy as np
     from time import time
     from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.segment import segment
     from mindboggle.shapes.measure import point_distance
+
+    # Make sure argument is a list
+    if isinstance(indices, np.ndarray):
+        indices.tolist()
 
     print('Segment {0} vertices by a surface watershed algorithm'.
           format(len(indices)))
@@ -655,44 +781,54 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
     use_depth_ratio = True
 
-    # Select deepest vertex as initial seed
+    #-------------------------------------------------------------------------
+    # Find the boundaries of the given mesh vertices (indices):
+    #-------------------------------------------------------------------------
+    D = np.ones(len(depths))
+    D[indices] = 2
+    borders, foo1, foo2 = extract_borders(range(len(depths)), D,
+        neighbor_lists, ignore_values=[], return_label_pairs=False)
+
+    #-------------------------------------------------------------------------
+    # Select deepest vertex as initial seed:
+    #-------------------------------------------------------------------------
     index_deepest = indices[np.argmax(depths[indices])]
     seed_list = [index_deepest]
     basin_depths = []
     original_indices = indices[:]
 
-    # Loop until all vertices segmented
+    #-------------------------------------------------------------------------
+    # Loop until all vertices have been segmented.
+    # This limits the number of possible seeds:
+    #-------------------------------------------------------------------------
     segments = -1 * np.ones(len(depths))
     seed_indices = []
     seed_points = []
     all_regions = []
     region = []
     counter = 0
-    while len(indices):
+    terminate = False
+    while not terminate:
 
-        if verbose:
-            print('  Segment {0} vertices (deepest vertex as initial seed)'.
-                  format(len(indices)))
-
-        # Add seeds to region
+        # Add seeds to region:
         region.extend(seed_list)
         all_regions.extend(seed_list)
 
-        # Remove seeds from vertices to segment
+        # Remove seeds from vertices to segment:
         indices = list(frozenset(indices).difference(seed_list))
         if indices:
 
-            # Identify neighbors of seeds
+            # Identify neighbors of seeds:
             neighbors = []
             [neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
             # Select neighbors that have not been previously selected
-            # and are among the vertices to segment
+            # and are among the vertices to segment:
             old_seed_list = seed_list[:]
             seed_list = list(frozenset(neighbors).intersection(indices))
             seed_list = list(frozenset(seed_list).difference(all_regions))
 
-            # For each vertex, select neighbors that are shallower
+            # For each vertex, select neighbors that are shallower:
             seed_neighbors = []
             for seed in old_seed_list:
                 seed_neighbors.extend([x for x in neighbor_lists[seed]
@@ -702,7 +838,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         else:
             seed_list = []
 
-        # If there are no seeds remaining
+        # If there are no seeds remaining:
         if not len(seed_list):
 
             # If there is at least min_size points, assign counter to
@@ -713,79 +849,171 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
                 seed_points.append(points[index_deepest])
                 counter += 1
 
-                # Compute basin depth (max - min)
+                # Compute basin depth (max - min):
                 Imax = region[np.argmax(depths[region])]
                 Imin = region[np.argmin(depths[region])]
                 max_depth = point_distance(points[Imax], [points[Imin]])[0]
                 basin_depths.append(max_depth)
 
-            # If vertices left to segment, re-initialize parameters
+            # If vertices left to segment, re-initialize parameters:
             if indices:
 
-                # Initialize new region/basin
+                # Initialize new region/basin:
                 region = []
 
                 # Select deepest unsegmented vertex as new seed
+                # if its rescaled depth is close to 1:
                 index_deepest = indices[np.argmax(depths[indices])]
                 seed_list = [index_deepest]
 
-            # Display current number and size of region
+            # Termination criteria:
+            if not len(indices):
+                terminate = True
+
+            # Display current number and size of region:
             if verbose:
                 print("    {0} vertices remain".format(len(indices)))
-    print('  ...Segmented {0} regions ({1:.2f} seconds)'.
+
+    print('  ...Segmented {0} initial watershed regions ({1:.2f} seconds)'.
           format(counter, time() - t0))
 
-    # Merge watershed catchment basins
+    #-------------------------------------------------------------------------
+    # Regrow from (deep) watershed seeds, stopping at borders:
+    #-------------------------------------------------------------------------
+    if regrow:
+
+        print('  Regrow segments from watershed seeds, stopping at borders')
+        indices = original_indices[:]
+        segments = -1 * np.ones(len(depths))
+        all_regions = []
+        for iseed, seed_index in enumerate(seed_indices):
+            seed_list = [seed_index]
+            region = []
+            terminate = False
+            while not terminate:
+
+                # Add seeds to region:
+                region.extend(seed_list)
+                all_regions.extend(seed_list)
+
+                # Remove seeds from vertices to segment:
+                indices = list(frozenset(indices).difference(seed_list))
+                if indices:
+
+                    # Identify neighbors of seeds:
+                    neighbors = []
+                    [neighbors.extend(neighbor_lists[x]) for x in seed_list]
+
+                    # Select neighbors that have not been previously selected
+                    # and are among the vertices to segment:
+                    old_seed_list = seed_list[:]
+                    seed_list = list(frozenset(neighbors).intersection(indices))
+                    seed_list = list(frozenset(seed_list).difference(all_regions))
+
+                    # For each vertex, select neighbors that are shallower:
+                    seed_neighbors = []
+                    for seed in old_seed_list:
+                        seed_neighbors.extend([x for x in neighbor_lists[seed]
+                            if depths[x] - tolerance <= depths[seed]])
+                    seed_list = list(frozenset(seed_list).intersection(seed_neighbors))
+
+                    # Remove seed list if it contains a border vertex:
+                    if seed_list:
+                        if list(frozenset(seed_list).intersection(borders)):
+                            seed_list = []
+                else:
+                    seed_list = []
+
+                # Terminate growth for this seed if the seed_list is empty:
+                if not len(seed_list):
+                    terminate = True
+
+                    # If there is at least min_size points, store index:
+                    if len(region) >= min_size:
+                        segments[region] = iseed
+
+                    # Display current number and size of region:
+                    if verbose:
+                        print("    {0} vertices remain".format(len(indices)))
+
+        #---------------------------------------------------------------------
+        # Continue growth until there are no more vertices to segment:
+        #---------------------------------------------------------------------
+        # Note: As long as keep_seeding=False, the segment values in `segments`
+        # are equal to the order of the `basin_depths` and `seed_points` below.
+        seed_lists = [[i for i,x in enumerate(segments) if x==s]
+                      for s in np.unique(segments) if s!=-1]
+        segments = segment(indices, neighbor_lists, min_region_size=1,
+            seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
+            labels=[], label_lists=[], values=[], max_steps='', verbose=False)
+
+        print('  ...Regrew {0} watershed regions from seeds ({1:.2f} seconds)'.
+              format(iseed+1, time() - t0))
+
+    #-------------------------------------------------------------------------
+    # Merge watershed catchment basins:
+    #-------------------------------------------------------------------------
     if merge:
 
-        # Extract segments pairs at boundaries between watershed catchment basins
+        # Extract segments pairs at boundaries between watershed basins:
         print('  Merge watershed catchment basins with deeper neighboring basins')
-        print('    Extract basin boundaries')
+        if verbose:
+            print('    Extract basin boundaries')
         foo1, foo2, pairs = extract_borders(original_indices, segments,
                                             neighbor_lists, ignore_values=[-1],
                                             return_label_pairs=True)
-        # Sort basin depths (descending order) -- return segment indices
+        # Sort basin depths (descending order) -- return segment indices:
         Isort = np.argsort(basin_depths).tolist()
         Isort.reverse()
 
-        # Find neighboring basins to each of the sorted basins
-        print("    Find neighboring basins")
+        # Find neighboring basins to each of the sorted basins:
+        if verbose:
+            print("    Find neighboring basins")
         basin_pairs = []
         for index in Isort:
             index_neighbors = [int(list(frozenset(x).difference([index]))[0])
                                for x in pairs if index in x]
-
-            # Store neighbors whose depth is less than a fraction
-            # of the basin's depth and farther away than half the basin's depth:
-            if use_depth_ratio:
-                index_neighbors = [[x, index] for x in index_neighbors
-                    if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
-                    if point_distance(seed_points[x], [seed_points[index]])[0] >
-                       depth_factor * max([basin_depths[x], basin_depths[index]])]
-            # Store neighbors farther away than half the basin's depth:
-            else:
-                index_neighbors = [[x, index] for x in index_neighbors
-                   if point_distance(seed_points[x], [seed_points[index]])[0] >
-                      depth_factor * max([basin_depths[x], basin_depths[index]])]
             if index_neighbors:
-                basin_pairs.extend(index_neighbors)
 
-        # Merge shallow watershed catchment basins
+                # Store neighbors whose depth is less than a fraction of the
+                # basin's depth and farther away than half the basin's depth:
+                if use_depth_ratio:
+                    index_neighbors = [[x, index] for x in index_neighbors
+                        if basin_depths[x] / (basin_depths[index]+tiny) < depth_ratio
+                        if point_distance(seed_points[x], [seed_points[index]])[0] >
+                          depth_factor * max([basin_depths[x], basin_depths[index]])]
+                # Store neighbors farther away than half the basin's depth:
+                else:
+                    index_neighbors = [[x, index] for x in index_neighbors
+                        if point_distance(seed_points[x], [seed_points[index]])[0] >
+                        depth_factor * max([basin_depths[x], basin_depths[index]])]
+                if index_neighbors:
+                    basin_pairs.extend(index_neighbors)
+
+        # Merge shallow watershed catchment basins:
         if basin_pairs:
-            print('    Merge basins with deeper neighboring basins')
+            if verbose:
+                print('    Merge basins with deeper neighboring basins')
             for basin_pair in basin_pairs:
                 segments[np.where(segments == basin_pair[0])] = basin_pair[1]
 
-        # Print statement
-        n_segments = len([x for x in np.unique(segments) if x > -1])
-        print('  ...Segmented and merged {0} watershed regions ({1:.2f} seconds)'.
-              format(n_segments, time() - t0))
+        # Renumber segments so they are sequential:
+        renumber_segments = segments.copy()
+        segment_numbers = [int(x) for x in np.unique(segments) if x != -1]
+        for i_segment, n_segment in enumerate(segment_numbers):
+            segment = [i for i,x in enumerate(segments) if x == n_segment]
+            renumber_segments[segment] = i_segment
+        segments = renumber_segments
+
+        # Print statement:
+        print('  ...Merged segments to form {0} watershed regions ({1:.2f} seconds)'.
+              format(i_segment + 1, time() - t0))
 
     return segments.tolist(), seed_indices
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Shrink segments
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def shrink_segments(regions, segments, depths, shrink_factor=0.25,
                     only_multiple_segments=False):
     """
@@ -847,7 +1075,7 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'test_shrink_segments.vtk',
     >>>     shrunken_segments, 'shrunken_segments', shrunken_segments)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_shrink_segments.vtk')
 
     """
@@ -902,9 +1130,9 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
 
     return shrunken_segments
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find vertices with highest values within a fraction of the surface
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def extract_high_values(values, areas, fraction):
     """
     Find the highest-valued vertices in a surface whose collective area
@@ -944,7 +1172,7 @@ def extract_high_values(values, areas, fraction):
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
     >>>                 area_values, 'area values', area_values)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_extract_high_values.vtk')
 
     """

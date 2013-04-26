@@ -12,195 +12,6 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 #------------------------------------------------------------------------------
-# Plot VTK surface mesh
-#------------------------------------------------------------------------------
-def plot_vtk(vtk_file):
-    """
-    Use mayavi2 to visualize VTK surface mesh data.
-
-    Inputs
-    ------
-    vtk_file : string
-        name of VTK surface mesh file
-    """
-    import os, sys
-
-    args = ['mayavi2', '-d', vtk_file, '-m Surface &']
-    c = ' '.join(args)
-    print(c); os.system(c)
-
-#------------------------------------------------------------------------------
-# Plot histogram of VTK surface mesh scalar values
-#------------------------------------------------------------------------------
-def plot_scalar_histogram(vtk_file, nbins=100):
-    """
-    Plot histogram of VTK surface mesh scalar values.
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh import plot_scalar_histogram
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> plot_scalar_histogram(vtk_file, nbins=500)
-
-    """
-    import matplotlib.pyplot as plt
-    from mindboggle.utils.io_vtk import read_scalars
-
-    # Load values:
-    values, name = read_scalars(vtk_file)
-
-    # Histogram:
-    fig = plt.figure()
-    ax = fig.add_subplot(111)
-    ax.hist(values, nbins, normed=1, facecolor='gray', alpha=0.1)
-    plt.show()
-
-#------------------------------------------------------------------------------
-# Apply affine transform to the points of a VTK surface mesh
-#------------------------------------------------------------------------------
-def read_itk_transform(affine_transform_file):
-    """
-    Read ITK transform file and output transform array.
-
-    ..ITK affine transform file format ::
-
-        #Insight Transform File V1.0
-        #Transform 0
-        Transform: MatrixOffsetTransformBase_double_3_3
-        Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
-                    0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
-        FixedParameters: -0.60936 21.1593 10.6148
-
-    Parameters
-    ----------
-    affine_transform_file : string
-        name of ITK affine transform file
-
-    Returns
-    -------
-    affine_transform : numpy array
-        4x4 affine transform matrix
-    fixed_parameters : numpy array
-        FixedParameters vector
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh import read_itk_transform
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                             't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(affine_transform_file)
-        (array([[  9.07680e-01,   4.35290e-02,   1.28917e-02, -7.94889e-01],
-               [ -4.54455e-02,   8.68937e-01,   4.06098e-01, -1.83346e+01],
-               [  1.79439e-02,  -4.30013e-01,   7.83074e-01, -3.14767e+00],
-               [  0.00000e+00,   0.00000e+00,   0.00000e+00, 1.00000e+00]]),
-         [-0.60936, 21.1593, 10.6148])
-
-    """
-    import numpy as np
-
-    affine_transform = np.eye(4)
-
-    # Read ITK transform file
-    fid = open(affine_transform_file, 'r')
-    affine_lines = fid.readlines()
-
-    transform = affine_lines[3]
-    transform = transform.split()
-    transform = [np.float(x) for x in transform[1::]]
-    transform = np.reshape(transform, (4,3))
-    linear_transform = transform[0:3,:]
-    translation = transform[3,:]
-    affine_transform[0:3,0:3] = linear_transform
-    affine_transform[0:3,3] = translation
-
-    fixed_parameters = affine_lines[4]
-    fixed_parameters = fixed_parameters.split()
-    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
-
-    return affine_transform, fixed_parameters
-
-def apply_affine_transform(transform_file, vtk_file):
-    """
-    Transform coordinates using an affine matrix.
-
-    Parameters
-    ----------
-    transform file : string
-        name of ITK affine transform file
-    vtk_file : string
-        name of VTK file containing point coordinate data
-
-    Returns
-    -------
-    affined_points : list of lists of floats
-        transformed coordinates
-    output_file : string
-        name of VTK file containing transformed point data
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh import apply_affine_transform, plot_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> apply_affine_transform(transform_file, vtk_file)
-    >>> # View
-    >>> plot_vtk('affine_lh.pial.depth.vtk')
-
-
-    """
-    import os
-    import numpy as np
-
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.mesh import read_itk_transform
-
-    print("\n\n\nUNDER CONSTRUCTION!!!\n\n\n")
-
-    # Read ITK affine transform file
-#    transform, fixed_parameters = read_itk_transform(transform_file)
-
-    import nibabel as nb
-    subject_path = '/Applications/freesurfer/subjects/Twins-2-1'
-    native_volume_mgz = subject_path + '/mri/orig/001.mgz'
-    conformed_volume_mgz = subject_path + '/mri/brain.mgz'
-    M = np.array([[-1,0,0,128],
-                  [0,0,1,-128],
-                  [0,-1,0,128],
-                  [0,0,0,1]],dtype=float)
-    native = nb.freesurfer.load(native_volume_mgz)
-    conformed = nb.freesurfer.load(conformed_volume_mgz)
-    affine_native = native.get_affine()
-    affine_conformed = conformed.get_affine()
-    transform = np.dot(affine_conformed, np.linalg.inv(M))
-
-    # Read VTK file
-    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
-
-    # Transform points
-    points = np.array(points)
-#    points += fixed_parameters
-
-    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
-    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
-#    affine_points -= fixed_parameters
-#    #affine_points += [0,256,0]
-
-    # Output transformed VTK file
-    output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-
-    # Write VTK file
-    write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
-
-    return affine_points, output_file
-
-#------------------------------------------------------------------------------
 # Find all neighbors from faces in a VTK mesh file
 #------------------------------------------------------------------------------
 def find_neighbors_from_file(input_vtk):
@@ -235,7 +46,7 @@ def find_neighbors_from_file(input_vtk):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(depth_file, 'test_find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_find_neighbors_from_file.vtk')
 
     """
@@ -294,7 +105,7 @@ def find_neighbors(faces, npoints):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(depth_file, 'test_find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_find_neighbors.vtk')
 
     """
@@ -388,7 +199,7 @@ def find_neighborhood(neighbor_lists, indices, nedges):
 
     Returns
     -------
-    neighborhood : list integers
+    neighborhood : list of integers
         indices to vertices in neighborhood
 
     Examples
@@ -422,44 +233,6 @@ def find_neighborhood(neighbor_lists, indices, nedges):
             completed.extend(seed_list)
 
     return neighborhood
-
-#-----------------------------------------------------------------------------
-# find all triangle faces centered at each node on the mesh
-#-----------------------------------------------------------------------------
-def find_faces_at_vertices(faces, npoints):
-    """
-    For each vertex, find all faces containing this vertex.
-    Note: faces do not have to be triangles.
-
-    Parameters
-    ----------
-    faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
-
-    npoints: integer
-        number of vertices on the mesh
-
-    Returns
-    --------
-    faces_at_vertex : list of lists of integers
-        faces_at_vertices[i] is a list of faces that contain the i-th vertex
-
-    Examples
-    --------
-    >>> # Simple example:
-    >>> from mindboggle.utils.mesh import find_faces_at_vertices
-    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
-    >>> npoints = 5
-    >>> find_faces_at_vertices(faces, npoints)
-        [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]
-
-    """
-    faces_at_vertices = [[] for i in xrange(npoints)]
-    for face_id, face in enumerate(faces):
-        for vertex in face:
-           faces_at_vertices[vertex].append(face_id)
-
-    return faces_at_vertices
 
 #-----------------------------------------------------------------------------
 # find all edges on the mesh
@@ -550,6 +323,44 @@ def find_faces_at_edges(faces):
 
     return faces_at_edges
 
+#-----------------------------------------------------------------------------
+# find all triangle faces centered at each node on the mesh
+#-----------------------------------------------------------------------------
+def find_faces_at_vertices(faces, npoints):
+    """
+    For each vertex, find all faces containing this vertex.
+    Note: faces do not have to be triangles.
+
+    Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    npoints: integer
+        number of vertices on the mesh
+
+    Returns
+    --------
+    faces_at_vertex : list of lists of integers
+        faces_at_vertices[i] is a list of faces that contain the i-th vertex
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh import find_faces_at_vertices
+    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
+    >>> npoints = 5
+    >>> find_faces_at_vertices(faces, npoints)
+        [[0, 1, 2, 3], [0, 3, 4], [0, 1], [1, 2, 4], [2, 3, 4]]
+
+    """
+    faces_at_vertices = [[] for i in xrange(npoints)]
+    for face_id, face in enumerate(faces):
+        for vertex in face:
+           faces_at_vertices[vertex].append(face_id)
+
+    return faces_at_vertices
+
 #------------------------------------------------------------------------------
 # Filter faces
 #------------------------------------------------------------------------------
@@ -589,50 +400,6 @@ def remove_faces(faces, indices):
         print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
     return faces.tolist()
-
-def renumber_faces(faces, indices):
-    """
-    Renumber the indices to vertices in faces of a surface mesh.
-
-    This program renumbers the faces lists' indices to vertices,
-    so that the new indices are in the range of the number of indices:
-    range(len(indices)). This assumes that all of the indices are
-    represented in the faces, for example, after running remove_faces().
-
-    Parameters
-    ----------
-    faces : list of lists of three integers
-        the integers for each face are indices to vertices, starting from zero
-    indices : integers
-        indices to vertices of the surface mesh, and all contained in faces
-
-    Returns
-    -------
-    faces_renumbered : list of lists of three integers
-        faces with renumbered indices
-
-    Examples
-    --------
-    >>> from mindboggle.utils.mesh import renumber_faces
-    >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> indices = [2,3,4,5,8,7]
-    >>> renumber_faces(faces, indices)
-      [[4, 0, 1], [0, 1, 5], [2, 5, 4], [1, 0, 3]]
-
-    """
-    import numpy as np
-
-    faces_ravel = np.ravel(faces)
-    faces_renumbered = faces_ravel.copy()
-
-    # Loop through indices:
-    for new_index, index in enumerate(indices):
-        ifaces = np.where(faces_ravel == index)[0]
-        faces_renumbered[ifaces] = new_index
-
-    faces_renumbered = np.reshape(faces_renumbered, (-1, 3))
-
-    return faces_renumbered.tolist()
 
 #------------------------------------------------------------------------------
 # Fill holes
@@ -777,7 +544,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> indices = [i for i,x in enumerate(holes) if x > -1]
     >>> write_vtk('test_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_holes.vtk')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
@@ -789,7 +556,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
     >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_fill_holes.vtk')
 
     """
@@ -812,7 +579,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     for n_region in region_numbers:
         region_indices = np.where(regions == n_region)[0]
 
-        # Identify neighbors to these vertices a]nd their neighbors
+        # Identify neighbors to these vertices and their neighbors
         N = []
         [N.extend(neighbor_lists[x]) for x in region_indices]
         N = list(frozenset(N).difference(region_indices))
@@ -884,7 +651,8 @@ def topo_test(index, values, neighbor_lists):
 
     Parameters
     ----------
-    index : index of vertex
+    index : integer
+        index of vertex
     values : numpy array of integers or floats
         values for all vertices
     neighbor_lists : list of lists of integers
@@ -892,8 +660,10 @@ def topo_test(index, values, neighbor_lists):
 
     Returns
     -------
-    sp : simple point or not?: Boolean
-    n_inside : number of neighboring vertices greater than threshold
+    sp : Boolean
+        simple point or not?
+    n_inside : integer
+        number of neighboring vertices greater than threshold
 
     """
     import numpy as np
@@ -988,8 +758,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
 
     Returns
     -------
-    binary_array : numpy array of integers
-        skeleton: binary values for all vertices
+    indices_skeleton : list of integers
+        indices to vertices of skeleton
 
     Examples
     --------
@@ -1017,14 +787,15 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> max_endpoints = max(endpoints)
     >>> indices_endpoints = [i for i,x in enumerate(endpoints) if x == max_endpoints]
     >>> #
-    >>> skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
+    >>> indices_skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
     >>> #
     >>> # Write out vtk file and view:
-    >>> indices_skeleton = [i for i,x in enumerate(skeleton) if x > -1]
+    >>> skeleton = -1 * np.ones(npoints)
+    >>> skeleton[indices_skeleton] = 1
     >>> skeleton[indices_endpoints] = 2
     >>> rewrite_scalars(fold_file, 'skeletonize.vtk',
     >>>                 skeleton, 'skeleton', skeleton)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('skeletonize.vtk')
 
     """
@@ -1058,7 +829,9 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
                     binary_array[index] = 0
                     exist_simple = True
 
-    return binary_array
+    indices_skeleton = [i for i,x in enumerate(binary_array.tolist()) if x != -1]
+
+    return indices_skeleton
 
 #------------------------------------------------------------------------------
 # Extract endpoints
@@ -1106,7 +879,7 @@ def extract_skeleton_endpoints(indices_skeleton, neighbor_lists):
     >>> end_IDs[indices_endpoints] = 2
     >>> rewrite_scalars(labels_file, 'test_extract_skeleton_endpoints.vtk',
     >>>                 end_IDs, 'endpoints', end_IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('test_extract_skeleton_endpoints.vtk')
 
     """
@@ -1190,7 +963,7 @@ def find_special_points(points, values, min_directions, min_distance, thr):
     >>> values[indices_special] = np.max(values) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_special_points.vtk',
     >>>                 values, 'special_points_on_values_in_folds', folds)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('find_special_points.vtk')
 
     """
@@ -1272,5 +1045,5 @@ if __name__ == "__main__":
     # Write results to vtk file and view:
     rewrite_scalars(depth_file, 'test_segment.vtk',
                     segments, 'segments', segments)
-    from mindboggle.utils.mesh import plot_vtk
+    from mindboggle.utils.plots import plot_vtk
     plot_vtk('test_segment.vtk')

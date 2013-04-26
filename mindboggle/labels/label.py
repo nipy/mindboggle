@@ -107,7 +107,7 @@ def extract_borders(indices, labels, neighbor_lists,
     indices : list of integers
         indices to (a subset of) vertices
     labels : numpy array of integers
-        label numbers for all vertices, with -1s for unlabeled vertices
+        label numbers for all vertices (-1 for unlabeled vertices)
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
@@ -154,7 +154,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> IDs[indices_boundaries] = 1
     >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
     >>>                 IDs, 'boundaries', IDs)
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('extract_borders.vtk')
 
     """
@@ -236,7 +236,7 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     >>> #
     >>> border_file, border_values = extract_borders(labels_file, mask_file, values_file)
     >>> #
-    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(border_file)
 
     """

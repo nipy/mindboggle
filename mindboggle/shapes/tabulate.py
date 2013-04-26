@@ -10,27 +10,24 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
-                             area_file='', depth_file='',
-                             mean_curvature_file='', gauss_curvature_file='',
-                             max_curvature_file='', min_curvature_file='',
-                             thickness_file='', convexity_file='',
-                             labels_spectra=[], subfolds_spectra=[],
-                             sulci_spectra=[],
-                             exclude_labels=[-1]):
+def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
+        area_file='', depth_file='', mean_curvature_file='',
+        gauss_curvature_file='', max_curvature_file='', min_curvature_file='',
+        thickness_file='', convexity_file='',
+        labels_spectra=[], labels_spectra_norm=[], labels_spectra_IDs=[],
+        sulci_spectra=[], sulci_spectra_norm=[], sulci_spectra_IDs=[],
+        exclude_labels=[-1], delimiter=','):
     """
-    Make tables of mean shape values per label, subfold, fundus, and/or sulcus.
+    Make tables of mean shape values per label, fundus, and/or sulcus.
 
     Parameters
     ----------
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    subfolds :  list of integers
-        indices to subfolds, one per vertex, with -1 indicating no subfold
-    fundi :  list of integers
-        indices to fundi, one per vertex, with -1 indicating no fundus
     sulci :  list of integers
         indices to sulci, one per vertex, with -1 indicating no sulcus
+    fundi :  list of integers
+        indices to fundi, one per vertex, with -1 indicating no fundus
     area_file :  string
         name of VTK file with scalar surface area values
     depth_file :  string
@@ -49,31 +46,35 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
         name of VTK file with scalar convexity values
     labels_spectra : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
-    subfolds_spectra : list of lists of floats
-        Laplace-Beltrami spectra for subfolds
+    labels_spectra_norm : list of lists of floats
+        Laplace-Beltrami spectra for labeled regions normalized by area
+    labels_spectra_IDs : list of integers
+        unique ID numbers (labels) for labels_spectra
     sulci_spectra : list of lists of floats
         Laplace-Beltrami spectra for sulci
+    sulci_spectra_norm : list of lists of floats
+        Laplace-Beltrami spectra for sulci normalized by area
+    sulci_spectra_IDs : list of integers
+        unique ID numbers (labels) for sulci_spectra
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
+    delimiter : string
+        delimiter between columns, such as ','
 
     Returns
     -------
     label_table :  string
         output table filename for label shapes
-    subfold_table :  string
-        output table filename for subfold shapes
-    fundus_table :  string
-        output table filename for fundus shapes
     sulcus_table :  string
         output table filename for sulcus shapes
+    fundus_table :  string
+        output table filename for fundus shapes
     norm_label_table :  string
         output table filename for label shapes normalized by area
-    norm_subfold_table :  string
-        output table filename for subfold shapes normalized by area
-    norm_fundus_table :  string
-        output table filename for fundus shapes normalized by area
     norm_sulcus_table :  string
         output table filename for sulcus shapes normalized by area
+    norm_fundus_table :  string
+        output table filename for fundus shapes normalized by area
 
     Examples
     --------
@@ -82,12 +83,10 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     >>> from mindboggle.shapes.tabulate import write_mean_shapes_tables
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
-    >>> fundi, name = read_scalars(fundi_file)
+    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
+    >>> fundi, name = read_scalars(fundi_file)
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
@@ -96,16 +95,24 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
     >>> min_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.vtk')
     >>> thickness_file = ''
     >>> convexity_file = ''
+    >>> delimiter = ','
+    >>> #
+    >>> import numpy as np
+    >>> labels, name = read_scalars(labels_or_file)
     >>> labels_spectra = [[1,2,3] for x in labels]
-    >>> subfolds_spectra = [[1,2,3] for x in subfolds]
+    >>> labels_spectra_norm = [[1,2,3] for x in labels]
+    >>> labels_spectra_IDs = np.unique(labels).tolist()
     >>> sulci_spectra = [[1,2,3] for x in sulci]
+    >>> sulci_spectra_norm = [[1,2,3] for x in sulci]
+    >>> sulci_spectra_IDs = np.unique(sulci).tolist()
     >>> exclude_labels = [-1]
     >>> #
-    >>> write_mean_shapes_tables(labels_or_file, subfolds, fundi, sulci, \
+    >>> write_mean_shapes_tables(labels_or_file, sulci, fundi, \
     >>>     area_file, depth_file, mean_curvature_file, \
     >>>     gauss_curvature_file, max_curvature_file, min_curvature_file, \
-    >>>     thickness_file, convexity_file, labels_spectra, subfolds_spectra, \
-    >>>     sulci_spectra, exclude_labels)
+    >>>     thickness_file, convexity_file, labels_spectra,
+    >>>     labels_spectra_norm, labels_spectra_IDs, sulci_spectra, \
+    >>>     sulci_spectra_norm, sulci_spectra_IDs, exclude_labels, delimiter)
 
     """
     import os
@@ -121,36 +128,18 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
-    if isinstance(subfolds, np.ndarray):
-        subfolds = subfolds.tolist()
-    if isinstance(fundi, np.ndarray):
-        fundi = fundi.tolist()
     if isinstance(sulci, np.ndarray):
         sulci = sulci.tolist()
+    if isinstance(fundi, np.ndarray):
+        fundi = fundi.tolist()
 
     # Feature lists:
-    feature_lists = [labels, subfolds, fundi, sulci]
-    table_names = ['label_shapes.csv', 'subfold_shapes.csv',
-                   'fundus_shapes.csv', 'sulcus_shapes.csv']
-
-    # Convert each list of spectrum lists to a list of strings:
-    label_spectrum_strings = []
-    for labels_spectrum in labels_spectra:
-        label_spectrum_strings.append(','.join([str(x) for x in labels_spectrum]))
-    subfold_spectrum_strings = []
-    for subfolds_spectrum in subfolds_spectra:
-        subfold_spectrum_strings.append(','.join([str(x) for x in subfolds_spectrum]))
-    sulcus_spectrum_strings = []
-    for sulci_spectrum in sulci_spectra:
-        sulcus_spectrum_strings.append(','.join([str(x) for x in sulci_spectrum]))
-
-    # Feature shapes:
-    label_shape_names = ['label_spectrum']
-    label_shape_lists = [label_spectrum_strings]
-    subfold_shape_names = ['subfold_spectrum']
-    subfold_shape_lists = [subfold_spectrum_strings]
-    sulcus_shape_names = ['sulcus_spectrum']
-    sulcus_shape_lists = [sulcus_spectrum_strings]
+    feature_lists = [labels, sulci, fundi]
+    spectra_lists = [labels_spectra, sulci_spectra]
+    spectra_norm_lists = [labels_spectra_norm, sulci_spectra_norm]
+    spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
+    spectra_names = ['label_spectrum', 'sulcus_spectrum']
+    table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
     shape_names = ['area', 'depth', 'mean_curvature', 'gauss_curvature',
@@ -158,8 +147,8 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
     shape_files = [area_file, depth_file, mean_curvature_file,
-                   gauss_curvature_file, max_curvature_file, min_curvature_file,
-                   thickness_file, convexity_file]
+                   gauss_curvature_file, max_curvature_file,
+                   min_curvature_file, thickness_file, convexity_file]
     shape_arrays = []
     column_names = []
     normalize_by_area = False
@@ -176,12 +165,8 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
-    subfold_table = None
-    subfold_table = None
     fundus_table = None
     sulcus_table = None
-    norm_subfold_table = None
-    norm_subfold_table = None
     norm_fundus_table = None
     norm_sulcus_table = None
 
@@ -212,76 +197,82 @@ def write_mean_shapes_tables(labels_or_file, subfolds=[], fundi=[], sulci=[],
                 if normalize_by_area:
                     norm_columns.append(norm_mean_values)
 
-            # Append feature shape name and value to relevant columns:
-            if itable == 0:
-                for ilabel_shapes, label_shapes in enumerate(label_shape_lists):
-                    if label_shapes:
-                        columns.append(label_shapes)
-                        table_column_names.append(label_shape_names[ilabel_shapes])
+            # Include spectra:
+            if itable in [0,1]:
+                spectra = spectra_lists[itable]
+                spectra_name = spectra_names[itable]
+                spectra_IDs = spectra_ID_lists[itable]
+                if normalize_by_area:
+                    spectra_norm = spectra_norm_lists[itable]
+
+                # Order spectra and convert to comma-delimited strings:
+                spectrum_strings = []
+                if normalize_by_area:
+                    spectrum_norm_strings = []
+                for label in label_list:
+                    if label in spectra_IDs:
+                        spectrum = spectra[spectra_IDs.index(label)]
+                        spectrum_string = ','.join([str(x) for x in spectrum])
+                        spectrum_strings.append('"' + spectrum_string + '"')
                         if normalize_by_area:
-                            norm_columns.append(label_shapes)
-            elif itable == 1:
-                for isubfold_shapes, subfold_shapes in enumerate(subfold_shape_lists):
-                    if subfold_shapes:
-                        columns.append(subfold_shapes)
-                        table_column_names.append(subfold_shape_names[isubfold_shapes])
-                        if normalize_by_area:
-                            norm_columns.append(subfold_shapes)
-            elif itable == 3:
-                for isulcus_shapes, sulcus_shapes in enumerate(sulcus_shape_lists):
-                    if sulcus_shapes:
-                        columns.append(sulcus_shapes)
-                        table_column_names.append(sulcus_shape_names[isulcus_shapes])
-                        if normalize_by_area:
-                            norm_columns.append(sulcus_shapes)
+                            spectrum_norm = spectra_norm[spectra_IDs.index(label)]
+                            spectrum_norm_string = ','.join([str(x) for x in spectrum_norm])
+                            spectrum_norm_strings.append('"' + spectrum_norm_string + '"')
+                    else:
+                        spectrum_strings.append('')
+                        spectrum_norm_strings.append('')
+
+                # Append spectral shape name and values to relevant columns:
+                columns.append(spectrum_strings)
+                table_column_names.append(spectra_name)
+                if normalize_by_area:
+                    norm_columns.append(spectrum_norm_strings)
 
             # Write labels to table:
-            write_columns(label_list, 'label', table_file)
+            write_columns(label_list, 'label', table_file, delimiter)
             if normalize_by_area:
-                write_columns(label_list, 'label', norm_table_file)
+                write_columns(label_list, 'label', norm_table_file, delimiter)
 
             # Append columns of shape values to table:
             if columns:
-                write_columns(columns, table_column_names, table_file, table_file)
+                write_columns(columns, table_column_names, table_file,
+                              delimiter, table_file)
                 if normalize_by_area:
                     write_columns(norm_columns, table_column_names,
-                                  norm_table_file, norm_table_file)
+                                  norm_table_file, delimiter,
+                                  norm_table_file)
         else:
             # Write something to table:
-            write_columns([], '', table_file)
+            write_columns([], '', table_file, delimiter)
             if normalize_by_area:
-                write_columns([], '', norm_table_file)
+                write_columns([], '', norm_table_file, delimiter)
 
         # Return correct table file name:
         if itable == 0:
             label_table = table_file
         elif itable == 1:
-            subfold_table = table_file
+            sulcus_table = table_file
         elif itable == 2:
             fundus_table = table_file
-        elif itable == 3:
-            sulcus_table = table_file
         if normalize_by_area:
             if itable == 0:
                 norm_label_table = norm_table_file
             elif itable == 1:
-                norm_subfold_table = norm_table_file
+                norm_sulcus_table = norm_table_file
             elif itable == 2:
                 norm_fundus_table = norm_table_file
-            elif itable == 3:
-                norm_sulcus_table = norm_table_file
 
-    return label_table, subfold_table, fundus_table, sulcus_table, \
-           norm_label_table, norm_subfold_table, \
-           norm_fundus_table, norm_sulcus_table
+    return label_table, sulcus_table, fundus_table, \
+           norm_label_table, norm_sulcus_table, norm_fundus_table
 
 
 def write_vertex_shapes_table(table_file,
-                              labels_or_file, subfolds=[], fundi=[], sulci=[],
+                              labels_or_file, sulci=[], fundi=[],
                               area_file='', depth_file='', depth_rescaled_file='',
                               mean_curvature_file='', gauss_curvature_file='',
                               max_curvature_file='', min_curvature_file='',
-                              thickness_file='', convexity_file=''):
+                              thickness_file='', convexity_file='',
+                              delimiter=','):
     """
     Make a table of shape values per vertex.
 
@@ -290,12 +281,10 @@ def write_vertex_shapes_table(table_file,
     table_file : output filename (without path)
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    subfolds :  list of integers
-        indices to subfolds, one per vertex, with -1 indicating no subfold
-    fundi :  list of integers
-        indices to fundi, one per vertex, with -1 indicating no fundus
     sulci :  list of integers
         indices to sulci, one per vertex, with -1 indicating no sulcus
+    fundi :  list of integers
+        indices to fundi, one per vertex, with -1 indicating no fundus
     area_file :  string
         name of VTK file with scalar surface area values
     depth_file :  string
@@ -314,6 +303,8 @@ def write_vertex_shapes_table(table_file,
         name of VTK file with scalar thickness values
     convexity_file :  string
         name of VTK file with scalar convexity values
+    delimiter : string
+        delimiter between columns, such as ','
 
     Returns
     -------
@@ -328,12 +319,10 @@ def write_vertex_shapes_table(table_file,
     >>> table_file = 'vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> subfolds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> subfolds, name = read_scalars(subfolds_file)
-    >>> fundi, name = read_scalars(fundi_file)
+    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
+    >>> fundi, name = read_scalars(fundi_file)
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> depth_rescaled_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
@@ -343,11 +332,12 @@ def write_vertex_shapes_table(table_file,
     >>> min_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.min.vtk')
     >>> thickness_file = ''
     >>> convexity_file = ''
+    >>> delimiter = ','
     >>> #
-    >>> write_vertex_shapes_table(table_file, labels_or_file, subfolds, fundi, sulci, \
+    >>> write_vertex_shapes_table(table_file, labels_or_file, sulci, fundi, \
     >>>     area_file, depth_file, depth_rescaled_file, mean_curvature_file, \
     >>>     gauss_curvature_file, max_curvature_file, min_curvature_file, \
-    >>>     thickness_file, convexity_file)
+    >>>     thickness_file, convexity_file, delimiter)
 
     """
     import os
@@ -362,16 +352,14 @@ def write_vertex_shapes_table(table_file,
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
-    if isinstance(subfolds, np.ndarray):
-        subfolds = subfolds.tolist()
-    if isinstance(fundi, np.ndarray):
-        fundi = fundi.tolist()
     if isinstance(sulci, np.ndarray):
         sulci = sulci.tolist()
+    if isinstance(fundi, np.ndarray):
+        fundi = fundi.tolist()
 
     # Feature names and corresponding feature lists:
-    feature_names = ['label', 'subfold', 'fundus', 'sulcus']
-    feature_lists = [labels, subfolds, fundi, sulci]
+    feature_names = ['label', 'sulcus', 'fundus']
+    feature_lists = [labels, sulci, fundi]
 
     # Shape names and corresponding shape files:
     shape_names = ['area', 'depth', 'depth_rescaled', 'mean_curvature',
@@ -403,8 +391,8 @@ def write_vertex_shapes_table(table_file,
 
     # Prepend with column of indices and write table
     shapes_table = os.path.join(os.getcwd(), table_file)
-    write_columns(indices, 'index', shapes_table)
-    write_columns(columns, column_names, shapes_table, shapes_table)
+    write_columns(indices, 'index', shapes_table, delimiter)
+    write_columns(columns, column_names, shapes_table, delimiter, shapes_table)
 
     return shapes_table
 
