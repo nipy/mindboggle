@@ -436,10 +436,18 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'tests', 'cube.vtk')
     >>> n_eigenvalues = 6
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
     >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues)))
         The input size 6 should be much larger than n_eigenvalue 6. Skipped.
         ([None], [0.0])
+    >>> #
+    >>> # Spectra for multiple sulci:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectra:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(sulci_file, n_eigenvalues=6,
+    >>>                    normalization="area")))
 
     """
     from mindboggle.utils.io_vtk import read_vtk, reindex_faces_points

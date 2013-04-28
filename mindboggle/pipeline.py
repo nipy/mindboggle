@@ -87,7 +87,7 @@ do_fundi = False  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
+do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -1163,25 +1163,30 @@ if run_volumeFlow:
                                            input_names = ['columns',
                                                           'column_names',
                                                           'output_table',
+                                                          'delimiter',
                                                           'input_table'],
                                            output_names = ['output_table']))
         mbFlow2.add_nodes([InitVolTable])
         mbFlow2.connect([(MeasureVolumes, InitVolTable,
                           [('labels', 'columns')])])
         InitVolTable.inputs.column_names = ['label']
-        InitVolTable.inputs.output_table = 'volume_labels.txt'
+        InitVolTable.inputs.output_table = 'volume_labels.csv'
+        InitVolTable.inputs.delimiter = ','
+        InitVolTable.inputs.input_table = ''
 
         VolumeLabelTable = Node(name='Volume_label_table',
                                 interface = Fn(function = write_columns,
                                                input_names = ['columns',
                                                               'column_names',
                                                               'output_table',
+                                                              'delimiter',
                                                               'input_table'],
                                                output_names = ['output_table']))
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('volumes', 'columns')])])
         VolumeLabelTable.inputs.column_names = ['volume']
-        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.txt'
+        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.csv'
+        VolumeLabelTable.inputs.delimiter = ','
         mbFlow2.connect([(InitVolTable, VolumeLabelTable,
                           [('output_table', 'input_table')])])
         # Save table of label volumes
