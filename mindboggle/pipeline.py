@@ -84,23 +84,23 @@ else:
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_fundi = False  # Extract fundi
-do_sulci = True  # Extract sulci
-do_thickness = True  # Include FreeSurfer's thickness measure
-do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
+do_sulci = False  # Extract sulci
+do_thickness = False  # Include FreeSurfer's thickness measure
+do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_vertex_tables = True  # Create per-vertex shape tables
-do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
-do_measure_volume = True  # Measure volumes of labeled regions
+do_vertex_tables = False  # Create per-vertex shape tables
+do_fill = False  # Fill (gray matter) volumes with surface labels (FreeSurfer)
+do_measure_volume = False  # Measure volumes of labeled regions
 do_evaluate_surface = False  # Surface overlap: auto vs. manual labels
 do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
 #-----------------------------------------------------------------------------
 # Mindboggle workflows
 #-----------------------------------------------------------------------------
-run_labelFlow = True
+run_labelFlow = False
 run_shapeFlow = True
 run_featureFlow = True
-run_tableFlow = True
-run_volumeFlow = True
+run_tableFlow = False
+run_volumeFlow = False
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -172,6 +172,7 @@ temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 ccode_path = os.environ['MINDBOGGLE_TOOLS']
 #protocol_path = os.path.join(get_info()['pkg_path'], 'labels', 'protocol')
 protocol_path = os.path.join(os.environ['MINDBOGGLE'], 'labels', 'protocol')
+x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
 atlases_path = subjects_path
 # Label with classifier atlas
 templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
@@ -379,7 +380,7 @@ if run_labelFlow:
         # Register atlases to subject via template
         #---------------------------------------------------------------------
         # Load atlas list
-        atlas_list_file = os.path.join(protocol_path, 'atlases.txt')
+        atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
         atlas_list = read_columns(atlas_list_file, 1)[0]
 
         Transform = MapNode(name = 'Transform_labels',
@@ -587,7 +588,10 @@ if run_featureFlow:
                      [('Depth.depth_file','Folds.depth_file')])])
     FoldsNode.inputs.min_fold_size = min_fold_size
     FoldsNode.inputs.tiny_depth = 0.001
-    FoldsNode.inputs.save_file = False
+    FoldsNode.inputs.save_file = True
+    # Save folds
+    mbFlow.connect([(featureFlow, Sink,
+                     [('Folds.folds_file','features.@folds')])])
 
     """
     # Subfolds
@@ -1255,3 +1259,19 @@ if __name__== '__main__':
         mbFlow.run()
     if run_flow2:
         mbFlow2.run()
+
+"""
+import os
+from mindboggle.utils.io_file import read_columns
+
+out_path = '/Users/arno/Data/Mindboggle-101/'
+x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
+atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
+atlas_list = read_columns(atlas_list_file, 1)[0]
+
+for atlas in atlas_list:
+    if 'MMRR-21' in atlas:
+        for h in ['lh','rh']:
+            cmd = ' '.join(['python pipeline.py', out_path, atlas])
+            print(cmd); os.system(cmd)
+"""
