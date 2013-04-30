@@ -73,7 +73,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
+    >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters_SMALL.pkl')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -81,7 +81,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     >>> #
     >>> L = compute_likelihood(trained_file, depth_file, curvature_file, folds)
     >>> # View:
-    >>> rewrite_scalars(depth_file, 'compute_likelihood.vtk', L, 'likelihoods', folds)
+    >>> rewrite_scalars(curvature_file, 'compute_likelihood.vtk', L, 'likelihoods', folds)
     >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('compute_likelihood.vtk')
 
@@ -108,10 +108,12 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     curvatures, name = read_scalars(curvature_file, True, True)
 
     # Prep for below:
-    k = 2
-    twopiexp = (2*pi)**(k/2)
-    norm_border = 1 / (twopiexp * depth_border['sigmas'] * curv_border['sigmas'])
-    norm_nonborder = 1 / (twopiexp * depth_nonborder['sigmas'] * curv_nonborder['sigmas'])
+    n = 2
+    twopiexp = (2*pi)**(n/2)
+    border_sigmas = depth_border['sigmas'] * curv_border['sigmas']
+    nonborder_sigmas = depth_nonborder['sigmas'] * curv_nonborder['sigmas']
+    norm_border = 1 / (twopiexp * border_sigmas + tiny)
+    norm_nonborder = 1 / (twopiexp * nonborder_sigmas + tiny)
     I = [i for i,x in enumerate(folds) if x != -1]
 
     N = depth_border['sigmas'].shape[0]
