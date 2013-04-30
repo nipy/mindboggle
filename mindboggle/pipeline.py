@@ -84,23 +84,23 @@ else:
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_fundi = False  # Extract fundi
-do_sulci = False  # Extract sulci
-do_thickness = False  # Include FreeSurfer's thickness measure
-do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
+do_sulci = True  # Extract sulci
+do_thickness = True  # Include FreeSurfer's thickness measure
+do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_vertex_tables = False  # Create per-vertex shape tables
-do_fill = False  # Fill (gray matter) volumes with surface labels (FreeSurfer)
-do_measure_volume = False  # Measure volumes of labeled regions
+do_vertex_tables = True  # Create per-vertex shape tables
+do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
+do_measure_volume = True  # Measure volumes of labeled regions
 do_evaluate_surface = False  # Surface overlap: auto vs. manual labels
 do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
 #-----------------------------------------------------------------------------
 # Mindboggle workflows
 #-----------------------------------------------------------------------------
-run_labelFlow = False
+run_labelFlow = True
 run_shapeFlow = True
 run_featureFlow = True
-run_tableFlow = False
-run_volumeFlow = False
+run_tableFlow = True
+run_volumeFlow = True
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -1271,7 +1271,6 @@ atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
     if 'MMRR-21' in atlas:
-        for h in ['lh','rh']:
-            cmd = ' '.join(['python pipeline.py', out_path, atlas])
-            print(cmd); os.system(cmd)
+        cmd = ' '.join(['python pipeline.py', out_path, atlas])
+        print(cmd); os.system(cmd)
 """
