@@ -2,20 +2,21 @@
 """
 Compute fundus likelihood values.
 
-Compute likelihood values for any surface mesh:
+Compute likelihood values for a VTK surface mesh:
 
   compute_likelihood()
-    Compute likelihood values for a given subject after training on
-    distributions of depth and curvature values across VTK surface mesh files.
+    Compute likelihood values for a given VTK surface mesh.
+    This is run after training on the distributions of depth and curvature
+    values across multiple VTK surface mesh files in the functions below.
 
-Learn distributions from training data (different surface meshes):
+Learn distributions from training data (see Examples below):
 
   estimate_depth_curvature_distributions()
-    Estimate distribution means, sigmas (standard deviations), and weights for
-    VTK surface mesh depth and curvature scalars along and outside sulcus label
-    borders within folds.
+    Estimate distribution means, sigmas (standard deviations), and weights
+    for VTK surface mesh depth and curvature scalars along and outside
+    sulcus label borders within folds (as defined by a labeling protocol).
 
-  calls:
+  which calls the functions:
 
     concatenate_sulcus_scalars()
       Prepare data for estimating scalar distributions along and outside fundi.
@@ -55,9 +56,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
          trained on fold vertices either on or off sulcus label borders)
         depth_border, curv_border, depth_nonborder, curv_nonborder
     depth_file : string
-        name of VTK surface mesh file with depth values in [0,1] for all vertices
+        VTK surface mesh file with depth values in [0,1] for all vertices
     curvature_file : string
-        name of VTK surface mesh file with curvature values in [-1,1] for all vertices
+        VTK surface mesh file with curvature values in [-1,1] for all vertices
     folds : list of integers
         fold number for all vertices (-1 for non-fold vertices)
 
@@ -72,16 +73,14 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.features.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> L = compute_likelihood(trained_file, depth_file, curvature_file, folds)
     >>> # View:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file)
     >>> rewrite_scalars(depth_file, 'compute_likelihood.vtk', L, 'likelihoods', folds)
     >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('compute_likelihood.vtk')
@@ -102,7 +101,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
 
     # Load estimated depth and curvature distribution parameters:
     depth_border, curv_border, depth_nonborder, curv_nonborder = pickle.load(
-        open(trained_file, "r" ) )
+        open(trained_file, "r"))
 
     # Load depths, curvatures:
     depths, name = read_scalars(depth_file, True, True)
@@ -176,12 +175,12 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
 
     Examples
     --------
-    >>> # Train on a single surface mesh:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.features.likelihood import estimate_distribution
     >>> from mindboggle.utils.io_file import read_columns
     >>> do_test = False
+    >>> # Train on a single surface mesh:
     >>> if do_test:
     >>>     path = os.environ['MINDBOGGLE_DATA']
     >>>     depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
@@ -192,6 +191,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     curv_files = [curv_file]
     >>>     fold_files = [folds_file]
     >>>     label_files = [labels_file]
+    >>> # Train on many Mindboggle-101 surface meshes:
     >>> else:
     >>>     mindboggle_path = '/Users/arno/Data/Mindboggle-101/results'
     >>>     label_path = os.environ['SUBJECTS_DIR']
@@ -203,6 +203,8 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     fold_files = []
     >>>     label_files = []
     >>>     for atlas in atlas_list:
+    >>>      if 'OASIS' in atlas or 'NKI' in atlas or 'MMRR-21' in atlas:
+    >>>       print(atlas)
     >>>       for h in ['lh','rh']:
     >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
     >>>             '_hemi_'+h+'_subject_'+atlas, 'depth_rescaled.vtk')
@@ -212,10 +214,10 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>             '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
     >>>         labels_file = os.path.join(label_path, atlas, 'label',
     >>>             h+'.labels.DKT25.manual.vtk')
-    >>>     depth_files.append(depth_file)
-    >>>     curv_files.append(curv_file)
-    >>>     fold_files.append(folds_file)
-    >>>     label_files.append(labels_file)
+    >>>         depth_files.append(depth_file)
+    >>>         curv_files.append(curv_file)
+    >>>         fold_files.append(folds_file)
+    >>>         label_files.append(labels_file)
     >>> scalar_range1 = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
     >>> scalar_range2 = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> #
@@ -227,12 +229,15 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> #
     >>> import cPickle as pickle
     >>> pickle.dump( [depth_border, curv_border, depth_nonborder, curv_nonborder],
-    >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb" ) )
+    >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 
     """
     from mindboggle.features.likelihood import concatenate_sulcus_scalars, \
         fit_normals_to_histogram
 
+    if not scalar_files or not fold_files or not label_files:
+        import sys
+        sys.exit("Input file lists cannot be empty.")
 
     # Concatenate scalars across multiple training files:
     border_scalars, nonborder_scalars = concatenate_sulcus_scalars(scalar_files,
@@ -303,7 +308,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.protocol.folds_labelpairs_DKT import sulcus_boundaries
+    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 
 
     # Prepare (non-unique) list of sulcus label pairs:
@@ -313,7 +318,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     border_scalars = []
     nonborder_scalars = []
 
-    # Loop through files of each type of scalar value:
+    # Loop through files with the scalar values:
     for ifile, scalar_file in enumerate(scalar_files):
 
         # Load scalars, folds, and labels:
@@ -387,6 +392,7 @@ def fit_normals_to_histogram(data, x):
 
     # Initialize variables:
     k = 3
+    tiny = 0.000000001
     probs = np.zeros((len(data), k))
     W = np.zeros((len(data), k))
     means = np.zeros(k)
@@ -407,20 +413,23 @@ def fit_normals_to_histogram(data, x):
         iter += 1
 
         for i in range(k):
-            probs[:,i] = 1 / (sigmas[i]*np.sqrt(2*pi)) * \
-                         np.exp((-1/(2*(sigmas[i]**2))) * (data-means[i])**2)
+            m1 = 1 / (sigmas[i] * np.sqrt(2*pi) + tiny)
+            m2 = -((data-means[i])**2) / (2 *(sigmas[i]**2) + tiny)
+            probs[:,i] = m1 * np.exp(m2)
 
         for i in range(k):
-            W[:,i] = probs[:,i] / np.sum(probs, axis=1)
+            W[:,i] = probs[:,i] / (np.sum(probs, axis=1) + tiny)
 
         for i in range(k):
-            sigmas[i] = np.sqrt(sum(W[:,i]*(data - means[i])**2) / sum(W[:,i]))
-            means[i] = sum(W[:,i] * data) / sum(W[:,i])
+            n1 = sum(W[:,i] * (data - means[i])**2)
+            d1 = sum(W[:,i]) + tiny
+            sigmas[i] =  np.sqrt(n1 / d1)
+            means[i] = sum(W[:,i] * data) / d1
 
         print('    means: {0}; sigmas: {1}'.format(means, sigmas))
 
     for i in range(k):
-        weights[i] = sum(W[:,i]) / np.sum(W)
+        weights[i] = sum(W[:,i]) / (np.sum(W) + tiny)
 
     print('    weights: {0}'.format(weights))
 
