@@ -742,19 +742,20 @@ def topo_test(index, values, neighbor_lists):
 def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
-    This does not necessarily find a smooth skeleton.
-    It just iteratively removes simple points (see topo_test()),
+
+    This algorithm iteratively removes endpoints and simple points,
     optionally in order of lowest to highest values.
 
     Parameters
     ----------
-    binary_array : numpy array of integers
-        binary values for all vertices
-    indices_to_keep : indices to retain
+    binary_array : numpy array of integers in {-1,1}
+        values of 1 or -1 for all vertices
+    indices_to_keep : indices with value 1 to keep
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-    values : list of floats
-        optionally remove simple points in order of lowest to highest values
+    values : numpy array of floats
+        values for binary_array elements, to optionally remove points
+        in order of lowest to highest values
 
     Returns
     -------
@@ -766,70 +767,111 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> # Extract a skeleton from a fold through a couple of points:
     >>> # (Alternative to connecting vertices with connect_points().
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, \
-    >>>                                     read_faces_points, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors, skeletonize
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file, skeletonize
+    >>> from mindboggle.features.fundi import track_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> # Get neighbor_lists, scalars
-    >>> faces, points, npoints = read_faces_points(depth_file)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> # Select a single fold:
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> fold, name = read_scalars(fold_file)
-    >>> # Test with pre-computed endpoints:
-    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test1.vtk')
-    >>> #endpoints_file = os.path.join(path, 'tests', 'connect_points_test2.vtk')
-    >>> #endpoints, name = read_scalars(endpoints_file)
-    >>> #indices_endpoints = [i for i,x in enumerate(endpoints) if x > 1]
-    >>> endpoints_file = os.path.join(path, 'tests', 'connect_points_test3.vtk')
-    >>> endpoints, name = read_scalars(endpoints_file)
-    >>> max_endpoints = max(endpoints)
-    >>> indices_endpoints = [i for i,x in enumerate(endpoints) if x == max_endpoints]
     >>> #
-    >>> indices_skeleton = skeletonize(fold, indices_endpoints, neighbor_lists)
+    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
+    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> #
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> binary_array = -1 * np.ones(len(folds))
+    >>> binary_array[indices] = 1
+    >>> #
+    >>> # Find endpoints:
+    >>> min_edges = 5
+    >>> backtrack = False
+    >>> tracks, indices_to_keep = track_endpoints(indices, neighbor_lists, \
+    >>>     values, values_seeding, min_edges, backtrack)
+    >>> #
+    >>> indices_skeleton = skeletonize(binary_array, indices_to_keep, neighbor_lists)
     >>> #
     >>> # Write out vtk file and view:
-    >>> skeleton = -1 * np.ones(npoints)
+    >>> skeleton = -1 * np.ones(len(values))
     >>> skeleton[indices_skeleton] = 1
-    >>> skeleton[indices_endpoints] = 2
-    >>> rewrite_scalars(fold_file, 'skeletonize.vtk',
-    >>>                 skeleton, 'skeleton', skeleton)
+    >>> skeleton[indices_to_keep] = 2
+    >>> folds[folds != fold_number] = -1
+    >>> rewrite_scalars(folds_file, 'skeletonize.vtk',
+    >>>                 skeleton, 'skeleton', folds)
     >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('skeletonize.vtk')
 
     """
     import numpy as np
 
-    # Make sure argument is a numpy array:
+    # Make sure arguments are numpy arrays:
     if not isinstance(binary_array, np.ndarray):
         binary_array = np.array(binary_array)
+    if len(values):
+        sort_by_value = True
+        if not isinstance(values, np.ndarray):
+            values = np.array(values)
+    else:
+        sort_by_value = False
 
-    # Sort indices to remove simple points in order of lowest to highest values:
-    indices = np.where(binary_array)[0]
-    if values:
-        indices = indices[np.argsort(values[indices])]
-
-    # Loop until all vertices are not simple points:
+    #-------------------------------------------------------------------------
+    # Iteratively remove simple points:
+    #-------------------------------------------------------------------------
     exist_simple = True
-    while exist_simple == True:
+    while exist_simple:
         exist_simple = False
 
-        # For each index:
-        for index in indices:
+        #---------------------------------------------------------------------
+        # Iteratively remove endpoints:
+        #---------------------------------------------------------------------
+        exist_endpoint = True
+        while exist_endpoint:
+            exist_endpoint = False
+            endpoints = [i for i,x in enumerate(binary_array)
+                         if x == 1
+                         if i not in indices_to_keep
+                         if len([x for x in binary_array[neighbor_lists[i]]
+                                 if x == 1]) == 1]
+            if endpoints:
+                binary_array[endpoints] = -1
+                exist_endpoint = True
 
-            # Do not update certain indices:
-            if binary_array[index] and index not in indices_to_keep:
+        #---------------------------------------------------------------------
+        # Only consider updating vertices that are on the edge of the
+        # region and are not among the indices to keep:
+        #---------------------------------------------------------------------
+        indices = [i for i,x in enumerate(binary_array)
+                   if x==1
+                   if i not in indices_to_keep
+                   if -1 in binary_array[neighbor_lists[i]]
+                   if 1 in binary_array[neighbor_lists[i]]]
+        if indices:
+
+            #-----------------------------------------------------------------
+            # Sort indices to remove simple points
+            # in order of lowest to highest values:
+            #-----------------------------------------------------------------
+            if sort_by_value:
+                I = np.argsort(values[indices]).tolist()
+                indices = [indices[x] for x in I]
+
+            # For each index:
+            for index in indices:
 
                 # Test to see if index is a simple point:
                 update, n_in = topo_test(index, binary_array, neighbor_lists)
 
                 # If a simple point, remove and run again:
                 if update and n_in > 1:
-                    binary_array[index] = 0
+                    binary_array[index] = -1
                     exist_simple = True
 
-    indices_skeleton = [i for i,x in enumerate(binary_array.tolist()) if x != -1]
+    indices_skeleton = [i for i,x in enumerate(binary_array) if x != -1]
 
     return indices_skeleton
 
