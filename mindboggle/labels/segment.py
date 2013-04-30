@@ -1020,14 +1020,6 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     Shrink segments in a segmented surface mesh by a fraction of its maximum
     depth, for all segments or for segments in regions with multiple segments.
 
-    The segment() and watershed() functions, when used alone, are influenced
-    by the order of seed selection for multiple seeds within a connected
-    set of vertices.  To ameliorate this bias, we run this function on
-    the segments returned by segment() or watershed() to shrink segments
-    in regions with multiple segments (only_multiple_segments=True).
-    The output can be used as seeds for the propagate() function,
-    which is not biased by seed order.
-
     Parameters
     ----------
     regions : list or array of integers
@@ -1037,8 +1029,8 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     depths : numpy array of floats
         depth values for all vertices (default -1)
     shrink_factor : float
-        shrink each region of connected vertices to this fraction of its
-        maximum depth for regions with multiple segments, to regrow the segments
+        shrink each region of connected vertices to this fraction
+        of its maximum depth
     only_multiple_segments : Boolean
         shrink only segments in regions with multiple segments
         (otherwise shrink all segments)
@@ -1120,7 +1112,7 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     # Shrink all segments
     else:
         print('  Shrink each segment to {0:.2f} of its depth'.format(shrink_factor))
-        unique_segments = [x for x in np.unique(segments) if x > -1]
+        unique_segments = [x for x in np.unique(segments) if x != -1]
         for n_segment in unique_segments:
             indices_segment = [i for i,x in enumerate(segments) if x == n_segment]
             depth_threshold = remove_fraction * np.max(depths[indices_segment])
