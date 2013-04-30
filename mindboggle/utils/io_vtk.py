@@ -1062,16 +1062,16 @@ def apply_affine_transform(transform_file, vtk_file):
 #    transform, fixed_parameters = read_itk_transform(transform_file)
 
     import nibabel as nb
-    subject_path = '/Applications/freesurfer/subjects/Twins-2-1'
-    native_volume_mgz = subject_path + '/mri/orig/001.mgz'
-    conformed_volume_mgz = subject_path + '/mri/brain.mgz'
+    path = os.environ['MINDBOGGLE_DATA']
+    native_volume_mgz = os.path.join(path, 'arno', 'freesurfer', '001.mgz')
+    conformed_volume_mgz = os.path.join(path, 'arno', 'freesurfer', 'brain.mgz')
     M = np.array([[-1,0,0,128],
                   [0,0,1,-128],
                   [0,-1,0,128],
                   [0,0,0,1]],dtype=float)
     native = nb.freesurfer.load(native_volume_mgz)
     conformed = nb.freesurfer.load(conformed_volume_mgz)
-    affine_native = native.get_affine()
+    #affine_native = native.get_affine()
     affine_conformed = conformed.get_affine()
     transform = np.dot(affine_conformed, np.linalg.inv(M))
 
@@ -1084,13 +1084,10 @@ def apply_affine_transform(transform_file, vtk_file):
 
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
     affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
-#    affine_points -= fixed_parameters
 #    #affine_points += [0,256,0]
 
-    # Output transformed VTK file
+    # Write transformed VTK file
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-
-    # Write VTK file
     write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
 
     return affine_points, output_file
