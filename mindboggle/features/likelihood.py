@@ -15,15 +15,17 @@ Learn distributions from training data (different surface meshes):
     VTK surface mesh depth and curvature scalars along and outside sulcus label
     borders within folds.
 
-  concatenate_sulcus_scalars()
-    Prepare data for estimating scalar distributions along and outside fundi.
-    Extract (e.g., depth, curvature) scalar values in folds, along sulcus
-    label boundaries as well as outside the sulcus label boundaries.
-    Concatenate these scalar values across multiple files.
+  calls:
 
-  fit_normals_to_histogram()
-    This Estimation-Maximization method returns estimated means, sigmas
-    (standard deviations) and weights from a distribution of values.
+    concatenate_sulcus_scalars()
+      Prepare data for estimating scalar distributions along and outside fundi.
+      Extract (e.g., depth, curvature) scalar values in folds, along sulcus
+      label boundaries as well as outside the sulcus label boundaries.
+      Concatenate these scalar values across multiple files.
+
+    fit_normals_to_histogram()
+      This Estimation-Maximization method returns estimated means, sigmas
+      (standard deviations) and weights from a distribution of values.
 
 
 Authors:
@@ -38,9 +40,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Compute likelihood values for any surface mesh based on learned parameters.
 #-------------------------------------------------------------------------------
 
-def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
+def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     """
-    Compute likelihoods based on input values, sulci, and estimated parameters.
+    Compute likelihoods based on input values, folds, and estimated parameters.
 
     Compute likelihood values for a given VTK surface mesh file, after training
     on distributions of depth and curvature values from multiple files.
@@ -50,19 +52,19 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
     trained_file : pickle compressed file
         contains the following dictionaries containing lists of floats
         (estimates of depth or curvature means, sigmas, and weights
-         trained on sulcus vertices either on or off sulcus label borders)
+         trained on fold vertices either on or off sulcus label borders)
         depth_border, curv_border, depth_nonborder, curv_nonborder
     depth_file : string
         name of VTK surface mesh file with depth values in [0,1] for all vertices
     curvature_file : string
         name of VTK surface mesh file with curvature values in [-1,1] for all vertices
-    sulci : list of integers
-        sulcus number for all vertices (-1 for non-sulcus vertices)
+    folds : list of integers
+        fold number for all vertices (-1 for non-fold vertices)
 
     Returns
     -------
     L : list of floats
-        likelihood values for all vertices (0 for non-sulcus vertices)
+        likelihood values for all vertices (0 for non-fold vertices)
 
     Examples
     --------
@@ -72,11 +74,11 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
-    >>> sulci, name = read_scalars(sulci_file)
+    >>> folds, name = read_scalars(folds_file)
     >>> #
-    >>> L = compute_likelihood(trained_file, depth_file, curvature_file, sulci)
+    >>> L = compute_likelihood(trained_file, depth_file, curvature_file, folds)
     >>> # View:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -94,9 +96,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
 
     # Initialize variables:
     tiny = 0.000000001
-    L = np.zeros(len(sulci))
-    probs_border = np.zeros(len(sulci))
-    probs_nonborder = np.zeros(len(sulci))
+    L = np.zeros(len(folds))
+    probs_border = np.zeros(len(folds))
+    probs_nonborder = np.zeros(len(folds))
 
     # Load estimated depth and curvature distribution parameters:
     depth_border, curv_border, depth_nonborder, curv_nonborder = pickle.load(
@@ -111,28 +113,28 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
     twopiexp = (2*pi)**(k/2)
     norm_border = 1 / (twopiexp * depth_border['sigmas'] * curv_border['sigmas'])
     norm_nonborder = 1 / (twopiexp * depth_nonborder['sigmas'] * curv_nonborder['sigmas'])
-    I = [i for i,x in enumerate(sulci) if x != -1]
+    I = [i for i,x in enumerate(folds) if x != -1]
 
     N = depth_border['sigmas'].shape[0]
     for j in range(N):
 
         # Depth:
         expB = depth_border['weights'][j] * \
-               ((depths[I]-depth_border['means'][j])**2) / \
-               depth_border['sigmas'][j]**2
-        expB = expB + curv_border['weights'][j] * \
-               ((curvatures[I]-curv_border['means'][j])**2) / \
-               curv_border['sigmas'][j]**2
+            ((depths[I]-depth_border['means'][j])**2) / \
+            depth_border['sigmas'][j]**2
+        expB += curv_border['weights'][j] * \
+            ((curvatures[I]-curv_border['means'][j])**2) / \
+            curv_border['sigmas'][j]**2
         expB = -expB / 2
         probs_border[I] = probs_border[I] + norm_border[j] * np.exp(expB)
 
         # Curvature:
         expNB = depth_nonborder['weights'][j] * \
-               ((depths[I]-depth_nonborder['means'][j])**2) / \
-               depth_nonborder['sigmas'][j]**2
-        expNB = expNB + curv_nonborder['weights'][j] * \
-                      ((curvatures[I]-curv_nonborder['means'][j])**2) / \
-                      curv_nonborder['sigmas'][j]**2
+            ((depths[I]-depth_nonborder['means'][j])**2) / \
+            depth_nonborder['sigmas'][j]**2
+        expNB += curv_nonborder['weights'][j] * \
+            ((curvatures[I]-curv_nonborder['means'][j])**2) / \
+            curv_nonborder['sigmas'][j]**2
         expNB = -expNB / 2
         probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
 
@@ -144,7 +146,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, sulci):
 # Learn distributions from training data (different surface meshes).
 #-------------------------------------------------------------------------------
 
-def estimate_distribution(scalar_files, scalar_range, sulcus_files, label_files):
+def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     """
     Estimate sulcus label border scalar distributions from VTK files.
 
@@ -160,8 +162,8 @@ def estimate_distribution(scalar_files, scalar_range, sulcus_files, label_files)
         names of VTK files with scalar values for all surface vertices
     scalar_range : list of floats
         range of values to estimate distribution
-    sulcus_files : list of strings
-        names of VTK files with sulcus numbers for scalar values
+    fold_files : list of strings
+        names of VTK files with fold numbers for scalar values
     label_files : list of strings
         names of VTK files with label numbers for scalar values
 
@@ -178,23 +180,50 @@ def estimate_distribution(scalar_files, scalar_range, sulcus_files, label_files)
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.features.likelihood import estimate_distribution
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> depth_files = [depth_file]
-    >>> curv_files = [curv_file]
-    >>> sulcus_files = [sulci_file]
-    >>> label_files = [labels_file]
+    >>> from mindboggle.utils.io_file import read_columns
+    >>> do_test = False
+    >>> if do_test:
+    >>>     path = os.environ['MINDBOGGLE_DATA']
+    >>>     depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>>     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>>     depth_files = [depth_file]
+    >>>     curv_files = [curv_file]
+    >>>     fold_files = [folds_file]
+    >>>     label_files = [labels_file]
+    >>> else:
+    >>>     mindboggle_path = '/Users/arno/Data/Mindboggle-101/results'
+    >>>     label_path = os.environ['SUBJECTS_DIR']
+    >>>     x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
+    >>>     atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
+    >>>     atlas_list = read_columns(atlas_list_file, 1)[0]
+    >>>     depth_files = []
+    >>>     curv_files = []
+    >>>     fold_files = []
+    >>>     label_files = []
+    >>>     for atlas in atlas_list:
+    >>>       for h in ['lh','rh']:
+    >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
+    >>>             '_hemi_'+h+'_subject_'+atlas, 'depth_rescaled.vtk')
+    >>>         curv_file = os.path.join(mindboggle_path, 'shapes',
+    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.curv.avg.vtk')
+    >>>         folds_file = os.path.join(mindboggle_path, 'features',
+    >>>             '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
+    >>>         labels_file = os.path.join(label_path, atlas, 'label',
+    >>>             h+'.labels.DKT25.manual.vtk')
+    >>>     depth_files.append(depth_file)
+    >>>     curv_files.append(curv_file)
+    >>>     fold_files.append(folds_file)
+    >>>     label_files.append(labels_file)
     >>> scalar_range1 = np.linspace(0, 1, 51, endpoint=True) # (0 to 1 by 0.02)
     >>> scalar_range2 = np.linspace(-1, 1, 101, endpoint=True) # (-1 to 1 by 0.02)
     >>> #
     >>> depth_border, depth_nonborder = estimate_distribution(depth_files,
-    >>>     scalar_range1, sulcus_files, label_files)
+    >>>     scalar_range1, fold_files, label_files)
     >>> #
     >>> curv_border, curv_nonborder = estimate_distribution(curv_files,
-    >>>     scalar_range2, sulcus_files, label_files)
+    >>>     scalar_range2, fold_files, label_files)
     >>> #
     >>> import cPickle as pickle
     >>> pickle.dump( [depth_border, curv_border, depth_nonborder, curv_nonborder],
@@ -207,21 +236,7 @@ def estimate_distribution(scalar_files, scalar_range, sulcus_files, label_files)
 
     # Concatenate scalars across multiple training files:
     border_scalars, nonborder_scalars = concatenate_sulcus_scalars(scalar_files,
-        sulcus_files, label_files)
-
-
-    if min(scalar_range) < -0.9:
-        import numpy as np
-        print('RANDOMIZE ZERO CURVATURE')
-        border_scalars = np.array(border_scalars)
-        nonborder_scalars = np.array(nonborder_scalars)
-        inds = np.where(border_scalars == 0)[0]
-        border_scalars[inds] = 0.05 * np.random.randn(len(inds))
-        inds = np.where(nonborder_scalars == 0)[0]
-        nonborder_scalars[inds] = 0.05 * np.random.randn(len(inds))
-        border_scalars.tolist()
-        nonborder_scalars.tolist()
-
+        fold_files, label_files)
 
     # Estimate distribution parameters:
     border_means, border_sigmas, \
@@ -243,7 +258,7 @@ def estimate_distribution(scalar_files, scalar_range, sulcus_files, label_files)
 
     return border_parameters, nonborder_parameters
 
-def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
+def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     """
     Prepare data for estimating scalar distributions along and outside fundi.
 
@@ -255,9 +270,9 @@ def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
     ----------
     scalar_files : list of strings
         names of surface mesh VTK files with scalar values to concatenate
-    sulcus_files : list of strings (corr. to each list in scalar_file_lists)
-        VTK files with sulcus numbers as scalars (-1 for non-sulcus vertices)
-    label_files : list of strings (corr. to sulcus_files)
+    fold_files : list of strings (corr. to each list in scalar_files)
+        VTK files with fold numbers as scalars (-1 for non-fold vertices)
+    label_files : list of strings (corr. to fold_files)
         VTK files with label numbers (-1 for unlabeled vertices)
 
     Returns
@@ -274,13 +289,13 @@ def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
     >>> from mindboggle.features.likelihood import concatenate_sulcus_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> scalar_files = [depth_file, depth_file]
-    >>> sulcus_files = [sulci_file, sulci_file]
+    >>> fold_files = [folds_file, folds_file]
     >>> label_files = [labels_file, labels_file]
     >>> #
-    >>> S = concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files)
+    >>> S = concatenate_sulcus_scalars(scalar_files, fold_files, label_files)
 
     """
     import numpy as np
@@ -288,7 +303,7 @@ def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    from mindboggle.labels.protocol.folds_labelpairs_DKT import sulcus_boundaries
 
 
     # Prepare (non-unique) list of sulcus label pairs:
@@ -301,19 +316,19 @@ def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
     # Loop through files of each type of scalar value:
     for ifile, scalar_file in enumerate(scalar_files):
 
-        # Load scalars, sulci, and labels:
-        sulci_file = sulcus_files[ifile]
+        # Load scalars, folds, and labels:
+        folds_file = fold_files[ifile]
         labels_file = label_files[ifile]
         scalars, name = read_scalars(scalar_file, True, True)
         if scalars.shape:
-            sulci, name = read_scalars(sulci_file)
+            folds, name = read_scalars(folds_file)
             labels, name = read_scalars(labels_file)
-            indices_sulci = [i for i,x in enumerate(sulci) if x != -1]
+            indices_folds = [i for i,x in enumerate(folds) if x != -1]
             neighbor_lists = find_neighbors_from_file(labels_file)
 
-            # Find all label border pairs within the sulcus folds:
+            # Find all label border pairs within the folds:
             indices_label_pairs, label_pairs, unique_pairs = extract_borders(
-                indices_sulci, labels, neighbor_lists, ignore_values=[-1],
+                indices_folds, labels, neighbor_lists, ignore_values=[-1],
                 return_label_pairs=True)
             indices_label_pairs = np.array(indices_label_pairs)
 
@@ -321,15 +336,13 @@ def concatenate_sulcus_scalars(scalar_files, sulcus_files, label_files):
             Ipairs_in_protocol = [i for i,x in enumerate(label_pairs)
                                   if x in protocol_label_pairs]
             indices_label_pairs = indices_label_pairs[Ipairs_in_protocol]
-            #indices_outside_pairs = [x for x in indices_sulci
-            #                         if x not in indices_label_pairs]
-            indices_outside_pairs = list(frozenset(indices_sulci).difference(
+            indices_outside_pairs = list(frozenset(indices_folds).difference(
                 indices_label_pairs))
 
-            # Store scalar values in sulci along label border pairs:
+            # Store scalar values in folds along label border pairs:
             border_scalars.extend(scalars[indices_label_pairs].tolist())
 
-            # Store scalar values in sulci outside label border pairs:
+            # Store scalar values in folds outside label border pairs:
             nonborder_scalars.extend(scalars[indices_outside_pairs].tolist())
 
     return border_scalars, nonborder_scalars
