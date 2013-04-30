@@ -10,9 +10,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#==================
+#=============================================================================
 # Extract all fundi
-#==================
+#=============================================================================
 def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=False):
     """
     Extract fundi from folds.
@@ -139,9 +139,9 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
     n_fundi = count
     print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Return fundi, number of fundi, fundus points, and file name:
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     fundi = fundi.tolist()
 
     if save_file:
@@ -320,6 +320,10 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     """
     import numpy as np
 
+    if not sink:
+        import sys
+        sys.exit('Missing sink vertices.')
+
     track = [seed]
     for isegment, segment in enumerate(segments):
 
@@ -366,11 +370,11 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     # If the track remains empty or does not reach the border, return the track:
     return None
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find endpoints
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def track_endpoints(indices, neighbor_lists, values, values_seeding,
-                    min_edges=5, use_threshold=True, backtrack=True):
+                    min_edges=5, connect_endpoints=False):
     """
     Construct multiple tracks through a region of connected vertices.
 
@@ -393,14 +397,12 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
         values for all vertices to threshold for initial seeds
     min_edges : integer
         minimum number of edges between endpoint vertices
-    use_threshold : Boolean
-        initialize seeds with thresholded vertices?
-    backtrack : Boolean
-        track backwards from the beginning of the resulting tracks to the center?
+    connect_endpoints : Boolean
+        connect endpoints?
 
     Returns
     -------
-    indices_endpoints : list of integers
+    endpoints : list of integers
         indices of surface mesh vertices that are endpoints
     tracks : list of lists of integers
         indices to track vertices
@@ -415,38 +417,38 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.fundi import track_endpoints
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
+    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
+    >>> #depths, n = read_scalars(depth_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_size = 50
     >>> min_edges = 5
-    >>> use_threshold = True
+    >>> connect_endpoints = True
     >>> #
-    >>> #-----------------------------------------------------------------------
-    >>> # Extract tracks and endpoints on a single fold:
-    >>> #-----------------------------------------------------------------------
+    >>> #---------------------------------------------------------------------
+    >>> # Extract tracks and endpoints from a single fold:
+    >>> #---------------------------------------------------------------------
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 1 #11
     >>> folds[folds != fold_number] = -1
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> #
-    >>> tracks, indices_endpoints = track_endpoints(indices, neighbor_lists, \
-    >>>     values, values_seeding, min_edges, use_threshold, backtrack=True)
+    >>> tracks, endpoints = track_endpoints(indices, neighbor_lists, \
+    >>>     values, values_seeding, min_edges, connect_endpoints)
     >>> #
     >>> # View results atop values:
-    >>> indices_tracks = [x for lst in tracks for x in lst]
-    >>> values[indices_tracks] = max(values) + 0.5
-    >>> values[indices_endpoints] = max(values) + 0.1
+    >>> values[tracks] = max(values) + 0.5
+    >>> values[endpoints] = max(values) + 0.1
     >>> rewrite_scalars(depth_file, 'track_endpoints.vtk', \
     >>>                 values, 'endpoints_on_values_in_fold', folds)
     >>> plot_vtk('track_endpoints.vtk')
-    >>> #-----------------------------------------------------------------------
+    >>> #---------------------------------------------------------------------
     >>> # Extract tracks and endpoints on every fold in a hemisphere:
-    >>> #-----------------------------------------------------------------------
+    >>> #---------------------------------------------------------------------
     >>> plot_each_fold = False
     >>> folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -458,18 +460,16 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
     >>>     print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
     >>>     indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>>     if len(indices) > min_size:
-    >>>         tracks, indices_endpoints = track_endpoints(indices,
-    >>>             neighbor_lists, values, values_seeding, min_edges,
-    >>>             use_threshold, backtrack=True)
-    >>>         indices_tracks = [x for lst in tracks for x in lst]
-    >>>         all_endpoints.extend(indices_endpoints)
-    >>>         all_tracks.extend(indices_tracks)
+    >>>         tracks, endpoints = track_endpoints(indices, neighbor_lists,
+    >>>             values, values_seeding, min_edges, connect_endpoints)
+    >>>         all_endpoints.extend(endpoints)
+    >>>         all_tracks.extend(tracks)
     >>>         # Plot each fold:
     >>>         if plot_each_fold:
     >>>             fold = -1 * np.ones(len(values))
     >>>             fold[indices] = 1
-    >>>             values[indices_tracks] = max(values) + 0.5
-    >>>             values[indices_endpoints] = max(values) + 0.1
+    >>>             values[tracks] = max(values) + 0.5
+    >>>             values[endpoints] = max(values) + 0.1
     >>>             rewrite_scalars(depth_file, 'track_endpoints.vtk',
     >>>                     values, 'endpoints_on_values_in_fold', fold)
     >>>             plot_vtk('track_endpoints.vtk')
@@ -487,9 +487,20 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
 
     from mindboggle.labels.label import extract_borders
     from mindboggle.labels.segment import segment, segment_rings
-    from mindboggle.features.fundi import track_segments, track_values
+    from mindboggle.utils.mesh import skeletonize
+    from mindboggle.features.fundi import track_segments, connect_points
 
-    filter_tracks = True
+    #-------------------------------------------------------------------------
+    # Settings:
+    #-------------------------------------------------------------------------
+    # For finding outward tracks:
+    do_threshold = True
+    remove_fraction = 0.5
+    do_filter_tracks = True
+
+    # For connecting endpoints:
+    do_skeletonize = True
+    do_connect_points = False
 
     # Initialize R, T, S, V:
     R = indices[:]
@@ -498,74 +509,71 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
     S = np.array(values_seeding)
     V = np.array(values)
 
-    # Extract boundary:
+    #-------------------------------------------------------------------------
+    # Extract region boundary:
+    #-------------------------------------------------------------------------
     B = np.ones(len(V))
     B[indices] = 2
-
     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
 
-    #---------------------------------------------------------------------------
-    # Initialize seeds with thresholded vertices:
-    #---------------------------------------------------------------------------
-    if use_threshold:
-
-        # Threshold at the median depth or within maximum values in boundary:
-        threshold = np.median(S[indices]) #+ np.std(S[indices])
-        indices_high = [x for x in indices if S[x] >= threshold]
-
+    #-------------------------------------------------------------------------
+    # Initialize seeds with vertices at the median-depth boundary:
+    #-------------------------------------------------------------------------
+    if do_threshold:
+        thresholdS = np.median(S[indices]) #+ np.std(S[indices])
+        indices_high = [x for x in indices if S[x] >= thresholdS]
         # Make sure threshold is within the maximum values of the boundary:
-        B = np.ones(len(S))
-        B[indices] = 2
-        borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
-        borders = [x for x in borders if S[x] != -1]
         if list(frozenset(indices_high).intersection(borders)):
-            threshold = np.max(S[borders]) + np.std(S[borders])
-            indices_high = [x for x in indices if S[x] >= threshold]
+            do_threshold = False
+        else:
+            print('  Initialize seeds at {0:.2f} of fold depth'.format(thresholdS))
+    #-------------------------------------------------------------------------
+    # Or initialize seeds with vertices at the shrunken region boundary:
+    #-------------------------------------------------------------------------
+    if not do_threshold:
+        print('  Initialize seeds to boundary after shrinking fold to '
+              '{0:.2f} of its depth'.format(1-remove_fraction))
+        thresholdS = remove_fraction * np.max(S[indices])
 
-        # Extract threshold boundary vertices as seeds:
-        B = -1 * np.ones(len(S))
-        B[indices_high] = 2
-        high_value_borders, foo1, foo2 = extract_borders(range(len(S)), B,
-                                                         neighbor_lists)
-        seeds = high_value_borders[:]
+    # Extract threshold boundary vertices as seeds:
+    indices_high = [x for x in indices if S[x] >= thresholdS]
+    B = np.ones(len(S))
+    B[indices_high] = 2
+    seeds, foo1, foo2 = extract_borders(range(len(S)), B, neighbor_lists)
 
-    # Or initialize seeds with the maximum value point:
-    else:
-        seeds = [indices[np.argmax(S[indices])]]
-        indices_high = []
-
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Segment the mesh from the seeds iteratively toward the boundary:
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     R = list(frozenset(R).difference(indices_high))
     R = list(frozenset(R).difference(seeds))
     segments = segment_rings(R, seeds, neighbor_lists, step=1)
 
     # Run tracks from the seeds through the segments toward the boundary:
     print('    Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
-          format(len(R), len(segments), threshold))
+          format(len(R), len(segments), thresholdS))
     for seed in seeds:
         track = track_segments(seed, segments, neighbor_lists, V, borders)
         if track:
             T.append(track)
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Filter the tracks in two ways:
-    # 1. Keep tracks that have a median track value above the background value.
+    # 1. Keep tracks that have a high median track value.
     # 2. Filter tracks so that there are no two track endpoint vertices
     # within a given number of edges between each other.  We select the track
     # with higher median value when their endpoints are close.
-    #---------------------------------------------------------------------------
-    if filter_tracks and T:
+    #-------------------------------------------------------------------------
+    if do_filter_tracks and T:
 
         # Compute median track values:
         Tvalues = []
         for track in T:
             Tvalues.append(np.median(V[track]))
 
-        # Keep tracks that have a median track value above the background value:
-        #background = np.median(V[[x for lst in segments for x in lst]])
-        background = np.median(V[indices])
+        # Keep tracks with a high median track value:
+        #background = np.median(V[indices])
+        background = np.median(V[R]) + np.std(V[R])
+        background = np.median(Tvalues) + np.std(Tvalues)
         T2 = []
         T2values = []
         for itrack, track in enumerate(T):
@@ -615,44 +623,50 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
         E = E2
         T = T2
 
-    #---------------------------------------------------------------------------
-    # Track backwards from the beginning vertices of the above tracks,
-    # finishing at the deepest point:
-    #---------------------------------------------------------------------------
-    if backtrack and use_threshold and indices_high:
+    #-------------------------------------------------------------------------
+    # Connect endpoints or outer tracks to each other:
+    #-------------------------------------------------------------------------
+    if connect_endpoints and indices_high:
 
-        # Define remaining vertices:
-        R = list(frozenset(indices_high).union(high_value_borders))
+        # Connect endpoints via a skeleton:
+        if do_skeletonize:
+            B = -1 * np.ones(len(S))
+            B[indices] = 1
+            T = skeletonize(B, E, neighbor_lists, V)
 
-        # Initialize seeds with beginning vertices of the above tracks:
-        seeds = [x[0] for x in T]
+        # OR connect endpoints via connect_points() function:
+        elif do_connect_points:
+            indices_skeleton = connect_points(E, R, values, neighbor_lists)
+            T = [x for lst in T for x in lst]
+            T.extend(indices_skeleton)
 
-        #-----------------------------------------------------------------------
-        # Segment the mesh from the seeds:
-        #-----------------------------------------------------------------------
-        T2 = []
-        for iseed, seed in enumerate(seeds):
+        # OR use tracking to connect the outer tracks to one another:
+        else:
+            # Define remaining vertices:
+            R = list(frozenset(indices_high).union(seeds))
 
-            segments = segment_rings(R, [seed], neighbor_lists, step=1)
+            # Initialize seeds with beginning vertices of the above tracks:
+            seeds = [x[0] for x in T]
 
-            # Reverse order of the segments:
-            segments = segments[::-1]
+            T2 = []
+            thresholdS2 = np.median(S[R]) + np.std(S[R])
+            sink = [x for x in R if S[x] > thresholdS2]
+            for iseed, seed in enumerate(seeds):
 
-            print('    Track back through {0} vertices'.format(len(R)))
+                # Segment the mesh from the seeds:
+                segments = segment_rings(R, [seed], neighbor_lists, step=1)
 
-            deepest = [x for x in R if S[x] == 1.0]
-            track = track_segments(seed, segments, neighbor_lists, V, deepest)
-            #track = track_values(seed, R, neighbor_lists, V, sink=[])
-            if track:
+                print('    Track back through {0} vertices'.format(len(R)))
 
-                #segments.append(seed)
+                track = track_segments(seed, segments, neighbor_lists, V, sink)
+                if track:
 
-                # Remove seed and reverse track direction:
-                track = track[1::][::-1]
-                # Combine forward and backward tracks:
-                track.extend(T[iseed])
-                T2.append(track)
-        T = T2
+                    # Remove seed and reverse track direction:
+                    track = track[1::][::-1]
+                    # Combine forward and backward tracks:
+                    track.extend(T[iseed])
+                    T2.append(track)
+            T = T2
 
     return T, E
 
@@ -829,7 +843,7 @@ def connect_points(indices_points, indices, L, neighbor_lists):
 
         return costs
 
-    #---------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Initialize all Hidden Markov Measure Field (HMMF) values with
     # likelihood values (except 0) normalized to the interval (0.5, 1.0]
     # (to guarantee correct topology). Assign a 1 for each anchor point.
@@ -1027,9 +1041,9 @@ if __name__ == "__main__" :
     min_edges = 5
     use_threshold = True
 
-    #-----------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Extract tracks and endpoints on a single fold:
-    #-----------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     if single_fold:
         fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
         fold, name = read_scalars(fold_file)
@@ -1045,9 +1059,9 @@ if __name__ == "__main__" :
         rewrite_scalars(depth_file, 'track_endpoints.vtk', \
                         values, 'endpoints_on_values_in_fold', fold)
         plot_vtk('track_endpoints.vtk')
-    #-----------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Extract tracks and endpoints on every fold in a hemisphere:
-    #-----------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     else:
         plot_each_fold = False
         folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
