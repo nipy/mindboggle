@@ -64,7 +64,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
 
     Returns
     -------
-    L : list of floats
+    likelihoods : list of floats
         likelihood values for all vertices (0 for non-fold vertices)
 
     Examples
@@ -139,9 +139,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
         expNB = -expNB / 2
         probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
 
-    L = probs_border / (probs_nonborder + probs_border + tiny)
+    likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
 
-    return L
+    return likelihoods
 
 #-------------------------------------------------------------------------------
 # Learn distributions from training data (different surface meshes).
