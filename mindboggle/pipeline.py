@@ -156,7 +156,7 @@ from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 from mindboggle.features.folds import extract_folds
-from mindboggle.features.likelihood import compute_likelihood
+from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -718,6 +718,7 @@ if run_featureFlow:
                                         input_names = ['folds_or_file',
                                                        'depth_file',
                                                        'likelihoods_or_file',
+                                                       'smooth_skeleton'
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
@@ -728,6 +729,7 @@ if run_featureFlow:
                          [('Depth.depth_file','Fundi.depth_file')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
                               [('likelihoods', 'likelihoods_or_file')])])
+        FundiNode.inputs.smooth_skeleton = False
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
