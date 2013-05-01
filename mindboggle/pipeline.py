@@ -83,7 +83,7 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = False  # Extract fundi
+do_fundi = True  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -697,7 +697,7 @@ if run_featureFlow:
                                              input_names = ['trained_file',
                                                             'depth_file',
                                                             'curvature_file',
-                                                            'sulci'],
+                                                            'folds'],
                                              output_names = ['likelihoods']))
 
         featureFlow.add_nodes([LikelihoodNode])
@@ -708,39 +708,26 @@ if run_featureFlow:
                            'Likelihood.depth_file'),
                           ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
-        featureFlow.connect([(SulciNode, LikelihoodNode, [('sulci','sulci')])])
+        featureFlow.connect([(FoldsNode, LikelihoodNode, [('folds','folds')])])
         # Save VTK file with likelihood values:
         mbFlow.connect([(featureFlow, Sink,
                          [('Likelihood.likelihoods','features.@likelihood')])])
 
-
-        fundi_from_sulci = False
-        min_distance = 5.0
-        thr = 0.5
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
                                         input_names = ['folds_or_file',
                                                        'depth_file',
-                                                       'min_curvature_vector_file',
                                                        'likelihoods_or_file',
-                                                       'min_distance',
-                                                       'thr',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
+                                                        'fundus_endpoints',
                                                         'fundi_file']))
-        if fundi_from_sulci:
-            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
-        else:
-            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
         mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature.min_curvature_vector_file',
-                           'Fundi.min_curvature_vector_file')])])
+                         [('Depth.depth_file','Fundi.depth_file')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
                               [('likelihoods', 'likelihoods_or_file')])])
-        FundiNode.inputs.min_distance = min_distance
-        FundiNode.inputs.thr = thr
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
