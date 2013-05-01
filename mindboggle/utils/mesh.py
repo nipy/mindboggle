@@ -739,7 +739,8 @@ def topo_test(index, values, neighbor_lists):
 #------------------------------------------------------------------------------
 # Skeletonize
 #------------------------------------------------------------------------------
-def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
+def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[],
+                test_ratio=1):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
 
@@ -756,6 +757,8 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     values : numpy array of floats
         values for binary_array elements, to optionally remove points
         in order of lowest to highest values
+    test_ratio : float
+        fraction of indices to test for removal at each iteration (if values)
 
     Returns
     -------
@@ -783,7 +786,7 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 11 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> binary_array = -1 * np.ones(len(folds))
     >>> binary_array[indices] = 1
@@ -793,8 +796,10 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
     >>> backtrack = False
     >>> tracks, indices_to_keep = track_endpoints(indices, neighbor_lists, \
     >>>     values, values_seeding, min_edges, backtrack)
+    >>> test_ratio = 0.5
     >>> #
-    >>> indices_skeleton = skeletonize(binary_array, indices_to_keep, neighbor_lists)
+    >>> indices_skeleton = skeletonize(binary_array, indices_to_keep,
+    >>>                        neighbor_lists, values, test_ratio=test_ratio)
     >>> #
     >>> # Write out vtk file and view:
     >>> skeleton = -1 * np.ones(len(values))
@@ -861,7 +866,13 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
                 indices = [indices[x] for x in I]
 
             # For each index:
-            for index in indices:
+            if 0 < test_ratio < 1:
+                use_test_ratio = True
+                ntests = int(len(indices) * test_ratio)
+            else:
+                use_test_ratio = False
+                ntests = len(indices)
+            for index in indices[0:ntests]:
 
                 # Test to see if index is a simple point:
                 update, n_in = topo_test(index, binary_array, neighbor_lists)
@@ -870,6 +881,15 @@ def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[]):
                 if update and n_in > 1:
                     binary_array[index] = -1
                     exist_simple = True
+
+            # If no simple points, test all of the indices:
+            if not exist_simple and use_test_ratio:
+                for index in indices[ntests::]:
+                    update, n_in = topo_test(index, binary_array, neighbor_lists)
+                    # If a simple point, remove and run again:
+                    if update and n_in > 1:
+                        binary_array[index] = -1
+                        exist_simple = True
 
     indices_skeleton = [i for i,x in enumerate(binary_array) if x != -1]
 
