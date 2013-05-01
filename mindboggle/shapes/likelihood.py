@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """
-Compute fundus likelihood values.
+Compute (fundus) likelihood values that highlight deep and highly curved
+portions of a surface mesh.
 
 Compute likelihood values for a VTK surface mesh:
 
@@ -71,7 +72,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.features.likelihood import compute_likelihood
+    >>> from mindboggle.shapes.likelihood import compute_likelihood
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
@@ -179,7 +180,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     --------
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.features.likelihood import estimate_distribution
+    >>> from mindboggle.shapes.likelihood import estimate_distribution
     >>> from mindboggle.utils.io_file import read_columns
     >>> do_test = False
     >>> # Train on a single surface mesh:
@@ -234,7 +235,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
 
     """
-    from mindboggle.features.likelihood import concatenate_sulcus_scalars, \
+    from mindboggle.shapes.likelihood import concatenate_sulcus_scalars, \
         fit_normals_to_histogram
 
     if not scalar_files or not fold_files or not label_files:
@@ -293,7 +294,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     --------
     >>> # Concatenate (duplicate) depth scalars:
     >>> import os
-    >>> from mindboggle.features.likelihood import concatenate_sulcus_scalars
+    >>> from mindboggle.shapes.likelihood import concatenate_sulcus_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -380,7 +381,7 @@ def fit_normals_to_histogram(data, x):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.features.likelihood import fit_normals_to_histogram
+    >>> from mindboggle.shapes.likelihood import fit_normals_to_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> scalars, name = read_scalars(depth_file)

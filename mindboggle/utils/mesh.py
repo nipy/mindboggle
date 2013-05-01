@@ -11,9 +11,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find all neighbors from faces in a VTK mesh file
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def find_neighbors_from_file(input_vtk):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -35,6 +35,7 @@ def find_neighbors_from_file(input_vtk):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
@@ -45,9 +46,8 @@ def find_neighbors_from_file(input_vtk):
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(depth_file, 'test_find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_find_neighbors_from_file.vtk')
+    >>> rewrite_scalars(depth_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
+    >>> plot_vtk('find_neighbors_from_file.vtk')
 
     """
     from mindboggle.utils.io_vtk import read_faces_points
@@ -59,9 +59,9 @@ def find_neighbors_from_file(input_vtk):
 
     return neighbor_lists
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find all neighbors from faces
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def find_neighbors(faces, npoints):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -131,9 +131,9 @@ def find_neighbors(faces, npoints):
 
     return neighbor_lists
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find neighbors for a given vertex
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def find_neighbors_vertex(faces, index):
     """
     Find neighbors to a surface mesh vertex.
@@ -180,9 +180,9 @@ def find_neighbors_vertex(faces, index):
 
     return neighbor_list
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Find neighborhood for given vertices
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def find_neighborhood(neighbor_lists, indices, nedges):
     """
     Find neighbors in the neighborhood of given surface mesh vertices.
@@ -361,9 +361,9 @@ def find_faces_at_vertices(faces, npoints):
 
     return faces_at_vertices
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Filter faces
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def remove_faces(faces, indices):
     """
     Remove surface mesh faces whose three vertices are not all in "indices"
@@ -401,9 +401,66 @@ def remove_faces(faces, indices):
 
     return faces.tolist()
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Dilate
+#-----------------------------------------------------------------------------
+def dilate(indices, nedges, neighbor_lists):
+    """
+    Dilate region on a surface mesh.
+
+    Parameters
+    ----------
+    indices : list of integers
+        indices of vertices to dilate
+    nedges : integer
+        number of edges to dilate across
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    dilated_indices : list of integers
+        indices of dilated vertices
+
+    Examples
+    --------
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file, dilate
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> nedges = 3
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11 #11
+    >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> #
+    >>> dilated_indices = dilate(indices, nedges, neighbor_lists)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> IDs = -1 * np.ones(len(folds))
+    >>> IDs[dilated_indices] = 2
+    >>> IDs[indices] = 1
+    >>> rewrite_scalars(depth_file, 'dilate.vtk', IDs, 'dilated_fold', IDs)
+    >>> plot_vtk('dilate.vtk')
+
+    """
+    from mindboggle.utils.mesh import find_neighborhood
+
+    N = find_neighborhood(neighbor_lists, indices, nedges)
+
+    dilated_indices = indices[:]
+    dilated_indices.extend(N)
+
+    return dilated_indices
+
+#-----------------------------------------------------------------------------
 # Fill holes
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def label_holes(holes, regions, neighbor_lists):
     """
     Fill holes in regions on a surface mesh.
@@ -568,9 +625,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     if not isinstance(regions, np.ndarray):
         regions = np.array(regions)
 
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Find boundaries to holes
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     hole_boundaries = -1 * np.ones(len(regions))
 
     # Identify vertices for each region
@@ -612,9 +669,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
                 hole_boundaries[indices] = count
                 count += 1
 
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Fill holes
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # If there are any holes
     if count > 0:
         hole_numbers = [x for x in np.unique(hole_boundaries) if x > -1]
@@ -639,9 +696,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
 
     return regions
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Test for simple points
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def topo_test(index, values, neighbor_lists):
     """
     Test to see if vertex is a "simple point".
@@ -735,357 +792,9 @@ def topo_test(index, values, neighbor_lists):
 
     return sp, n_inside
 
-
-#------------------------------------------------------------------------------
-# Skeletonize
-#------------------------------------------------------------------------------
-def skeletonize(binary_array, indices_to_keep, neighbor_lists, values=[],
-                test_ratio=1):
-    """
-    Skeletonize a binary numpy array into 1-vertex-thick curves.
-
-    This algorithm iteratively removes endpoints and simple points,
-    optionally in order of lowest to highest values.
-
-    Parameters
-    ----------
-    binary_array : numpy array of integers in {-1,1}
-        values of 1 or -1 for all vertices
-    indices_to_keep : indices with value 1 to keep
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-    values : numpy array of floats
-        values for binary_array elements, to optionally remove points
-        in order of lowest to highest values
-    test_ratio : float
-        fraction of indices to test for removal at each iteration (if values)
-
-    Returns
-    -------
-    indices_skeleton : list of integers
-        indices to vertices of skeleton
-
-    Examples
-    --------
-    >>> # Extract a skeleton from a fold through a couple of points:
-    >>> # (Alternative to connecting vertices with connect_points().
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file, skeletonize
-    >>> from mindboggle.features.fundi import track_endpoints
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> values, name = read_scalars(values_file, True, True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
-    >>> #
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11 #11
-    >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> binary_array = -1 * np.ones(len(folds))
-    >>> binary_array[indices] = 1
-    >>> #
-    >>> # Find endpoints:
-    >>> min_edges = 5
-    >>> backtrack = False
-    >>> tracks, indices_to_keep = track_endpoints(indices, neighbor_lists, \
-    >>>     values, values_seeding, min_edges, backtrack)
-    >>> test_ratio = 0.5
-    >>> #
-    >>> indices_skeleton = skeletonize(binary_array, indices_to_keep,
-    >>>                        neighbor_lists, values, test_ratio=test_ratio)
-    >>> #
-    >>> # Write out vtk file and view:
-    >>> skeleton = -1 * np.ones(len(values))
-    >>> skeleton[indices_skeleton] = 1
-    >>> skeleton[indices_to_keep] = 2
-    >>> folds[folds != fold_number] = -1
-    >>> rewrite_scalars(folds_file, 'skeletonize.vtk',
-    >>>                 skeleton, 'skeleton', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('skeletonize.vtk')
-
-    """
-    import numpy as np
-
-    # Make sure arguments are numpy arrays:
-    if not isinstance(binary_array, np.ndarray):
-        binary_array = np.array(binary_array)
-    if len(values):
-        sort_by_value = True
-        if not isinstance(values, np.ndarray):
-            values = np.array(values)
-    else:
-        sort_by_value = False
-
-    #-------------------------------------------------------------------------
-    # Iteratively remove simple points:
-    #-------------------------------------------------------------------------
-    exist_simple = True
-    while exist_simple:
-        exist_simple = False
-
-        #---------------------------------------------------------------------
-        # Iteratively remove endpoints:
-        #---------------------------------------------------------------------
-        exist_endpoint = True
-        while exist_endpoint:
-            exist_endpoint = False
-            endpoints = [i for i,x in enumerate(binary_array)
-                         if x == 1
-                         if i not in indices_to_keep
-                         if len([x for x in binary_array[neighbor_lists[i]]
-                                 if x == 1]) == 1]
-            if endpoints:
-                binary_array[endpoints] = -1
-                exist_endpoint = True
-
-        #---------------------------------------------------------------------
-        # Only consider updating vertices that are on the edge of the
-        # region and are not among the indices to keep:
-        #---------------------------------------------------------------------
-        indices = [i for i,x in enumerate(binary_array)
-                   if x==1
-                   if i not in indices_to_keep
-                   if -1 in binary_array[neighbor_lists[i]]
-                   if 1 in binary_array[neighbor_lists[i]]]
-        if indices:
-
-            #-----------------------------------------------------------------
-            # Sort indices to remove simple points
-            # in order of lowest to highest values:
-            #-----------------------------------------------------------------
-            if sort_by_value:
-                I = np.argsort(values[indices]).tolist()
-                indices = [indices[x] for x in I]
-
-            # For each index:
-            if 0 < test_ratio < 1:
-                use_test_ratio = True
-                ntests = int(len(indices) * test_ratio)
-            else:
-                use_test_ratio = False
-                ntests = len(indices)
-            for index in indices[0:ntests]:
-
-                # Test to see if index is a simple point:
-                update, n_in = topo_test(index, binary_array, neighbor_lists)
-
-                # If a simple point, remove and run again:
-                if update and n_in > 1:
-                    binary_array[index] = -1
-                    exist_simple = True
-
-            # If no simple points, test all of the indices:
-            if not exist_simple and use_test_ratio:
-                for index in indices[ntests::]:
-                    update, n_in = topo_test(index, binary_array, neighbor_lists)
-                    # If a simple point, remove and run again:
-                    if update and n_in > 1:
-                        binary_array[index] = -1
-                        exist_simple = True
-
-    indices_skeleton = [i for i,x in enumerate(binary_array) if x != -1]
-
-    return indices_skeleton
-
-#------------------------------------------------------------------------------
-# Extract endpoints
-#------------------------------------------------------------------------------
-def extract_skeleton_endpoints(indices_skeleton, neighbor_lists):
-    """
-    Extract endpoints from connected set of vertices
-
-    Parameters
-    ----------
-    indices_skeleton : list of integers
-        indices to connected vertices
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-
-    Returns
-    -------
-    indices_endpoints : list of integers
-        indices to endpoints of connected vertices
-
-    Examples
-    --------
-    >>> # Extract endpoints from a sulcus label boundary segment
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.label import extract_borders, extract_skeleton_endpoints
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
-    >>>     return_first=True, return_array=True)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> label_indices = [i for i,x in enumerate(labels) if x in label_pair_lists[0][0]]
-    >>> indices_boundaries, label_pairs, foo = extract_borders(label_indices,
-    >>>                                               labels, neighbor_lists)
-    >>> #
-    >>> indices_endpoints = extract_skeleton_endpoints(indices_boundaries, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> end_IDs = -1 * np.ones(len(points))
-    >>> end_IDs[indices_boundaries] = 1
-    >>> end_IDs[indices_endpoints] = 2
-    >>> rewrite_scalars(labels_file, 'test_extract_skeleton_endpoints.vtk',
-    >>>                 end_IDs, 'endpoints', end_IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_extract_skeleton_endpoints.vtk')
-
-    """
-
-    # Find vertices with only one connected neighbor
-    indices_endpoints = []
-    for index in indices_skeleton:
-        if len([x for x in neighbor_lists[index] if x in indices_skeleton]) == 1:
-            indices_endpoints.append(index)
-
-    return indices_endpoints
-
-#------------------------------------------------------------------------------
-# Find points with maximal values that are not too close together.
-#------------------------------------------------------------------------------
-def find_special_points(points, values, min_directions, min_distance, thr):
-    """
-    Find 'special' points with maximal values that are not too close together.
-
-    Steps ::
-
-        1. Sort values and find values above the threshold.
-
-        2. Initialize special points with the maximum value,
-           remove this value, and loop through the remaining high values.
-
-        3. If there are no nearby special points,
-           assign the maximum value vertex as a special point.
-
-    Parameters
-    ----------
-    points : numpy array of floats
-        coordinates for all vertices
-    values : list (or array) of integers
-        values of some kind to maximize over for all vertices (default -1)
-    min_directions : numpy array of floats
-        minimum directions for all vertices
-    min_distance : integer
-        minimum distance
-    thr : float
-        value threshold in [0,1]
-
-    Returns
-    -------
-    indices_special : list of integers
-        subset of surface mesh vertex indices
-
-    Examples
-    --------
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_special_points
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file)
-    >>> #
-    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
-    >>>                                          'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
-    >>>     return_first=True, return_array=True)
-    >>> # Select a single fold
-    >>> plot_single_fold = True
-    >>> if plot_single_fold:
-    >>>   fold_ID = 11
-    >>>   indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    >>>   indices_not_fold = [i for i,x in enumerate(folds) if x != fold_ID]
-    >>>   values[indices_not_fold] = 0
-    >>>   fold_array = -1 * np.ones(len(folds))
-    >>>   fold_array[indices_fold] = 1
-    >>>   folds = fold_array.tolist()
-    >>> #
-    >>> min_directions = np.loadtxt(min_curvature_vector_file)
-    >>> min_distance = 5
-    >>> thr = 0.5
-    >>> #
-    >>> indices_special = find_special_points(points, values, min_directions, min_distance, thr)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> values[indices_special] = np.max(values) + 0.1
-    >>> rewrite_scalars(likelihood_file, 'find_special_points.vtk',
-    >>>                 values, 'special_points_on_values_in_folds', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_special_points.vtk')
-
-    """
-    import numpy as np
-    from operator import itemgetter
-
-    # Make sure arguments are numpy arrays:
-    if not isinstance(points, np.ndarray):
-        points = np.array(points)
-    if not isinstance(min_directions, np.ndarray):
-        min_directions = np.array(min_directions)
-
-    max_distance = 2 * min_distance
-
-    # Sort values and find indices for values above the threshold:
-    L_table = [[i,x] for i,x in enumerate(values)]
-    L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
-    IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
-          if x > thr]
-
-    # Initialize special points list with the index of the maximum value,
-    # remove this value, and loop through the remaining high values:
-    if IL:
-        indices_special = [IL.pop(0)]
-        for imax in IL:
-
-            # Determine if there are any special points
-            # near to the current maximum value vertex:
-            i = 0
-            found = 0
-            while i < len(indices_special) and found == 0:
-
-                # Compute Euclidean distance between points:
-                D = np.linalg.norm(points[indices_special[i]] - points[imax])
-
-                # If distance less than threshold, consider the point found:
-                if D < min_distance:
-                    found = 1
-                # Compute directional distance between points if they are close:
-                elif D < max_distance:
-                    dirV = np.dot(points[indices_special[i]] - points[imax],
-                                  min_directions[indices_special[i]])
-                    # If distance less than threshold, consider the point found:
-                    if np.linalg.norm(dirV) < min_distance:
-                        found = 1
-
-                i += 1
-
-            # If there are no nearby special points,
-            # assign the maximum value vertex as a special point:
-            if not found:
-                indices_special.append(imax)
-    else:
-        indices_special = []
-
-    return indices_special
-
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Example: watershed() segmentation
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     import os
