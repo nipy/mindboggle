@@ -21,16 +21,17 @@ def plot_vtk(vtk_file):
     vtk_file : string
         name of VTK surface mesh file
     """
-    import subprocess
+    import os
+#    import subprocess
 
     cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface"]
     print(' '.join(cmd))
-    p = subprocess.Popen(cmd)
-    p.communicate()
 
-    #import os
-    #c = ' '.join(cmd)
-    #print(c); os.system(c)
+# Note: subprocess won't allow me to put the command in the background:
+#    p = subprocess.Popen(cmd)
+#    p.communicate()
+    c = ' '.join(cmd) + ' &'
+    print(c); os.system(c)
 
 
 #------------------------------------------------------------------------------
