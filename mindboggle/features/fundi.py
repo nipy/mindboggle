@@ -118,26 +118,17 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file, save_file=Fals
             print('  Fold {0}:'.format(int(fold_ID)))
 
             # Find fundus points
-            indices_endpoints, tracks = track_endpoints(indices_fold,
+            endpoints, tracks = track_endpoints(indices_fold,
                 neighbor_lists, likelihoods, depths, min_edges=5,
-                use_threshold=True)
-            n_endpoints = len(indices_endpoints)
-            if n_endpoints > 1:
-                fundus_endpoints.extend(indices_endpoints)
-                t2 = time()
+                connect_endpoints=True)
 
-                # Connect fundus points and extract fundi:
-                print('    Connect {0} fundus points...'.format(n_endpoints))
-                indices_skeleton = connect_points(indices_endpoints,
-                                   indices_fold, likelihoods, neighbor_lists)
-                if len(indices_skeleton) > 1:
-                    fundi[indices_skeleton] = fold_ID
-                    count += 1
-                    print('      ...Connected {0} fundus points ({1:.2f} seconds)'.
-                          format(n_endpoints, time() - t2))
+            if len(tracks) > 1:
+                fundi[tracks] = fold_ID
+                count += 1
 
     n_fundi = count
-    print('  ...Extracted {0} fundi ({1:.2f} seconds)'.format(n_fundi, time() - t1))
+    print('  ...Extracted {0} fundi ({1:.2f} seconds)'.
+          format(n_fundi, time() - t1))
 
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, fundus points, and file name:
@@ -441,7 +432,7 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
     >>>     values, values_seeding, min_edges, connect_endpoints)
     >>> #
     >>> # View results atop values:
-    >>> values[tracks] = max(values) + 0.5
+    >>> values[tracks] = max(values) + 0.03
     >>> values[endpoints] = max(values) + 0.1
     >>> rewrite_scalars(depth_file, 'track_endpoints.vtk', \
     >>>                 values, 'endpoints_on_values_in_fold', folds)
@@ -632,41 +623,11 @@ def track_endpoints(indices, neighbor_lists, values, values_seeding,
         if do_skeletonize:
             B = -1 * np.ones(len(S))
             B[indices] = 1
-            T = skeletonize(B, E, neighbor_lists, V)
+            T = skeletonize(B, E, neighbor_lists, V, test_ratio=0.10)
 
         # OR connect endpoints via connect_points() function:
         elif do_connect_points:
-            indices_skeleton = connect_points(E, R, values, neighbor_lists)
-            T = [x for lst in T for x in lst]
-            T.extend(indices_skeleton)
-
-        # OR use tracking to connect the outer tracks to one another:
-        else:
-            # Define remaining vertices:
-            R = list(frozenset(indices_high).union(seeds))
-
-            # Initialize seeds with beginning vertices of the above tracks:
-            seeds = [x[0] for x in T]
-
-            T2 = []
-            thresholdS2 = np.median(S[R]) + np.std(S[R])
-            sink = [x for x in R if S[x] > thresholdS2]
-            for iseed, seed in enumerate(seeds):
-
-                # Segment the mesh from the seeds:
-                segments = segment_rings(R, [seed], neighbor_lists, step=1)
-
-                print('    Track back through {0} vertices'.format(len(R)))
-
-                track = track_segments(seed, segments, neighbor_lists, V, sink)
-                if track:
-
-                    # Remove seed and reverse track direction:
-                    track = track[1::][::-1]
-                    # Combine forward and backward tracks:
-                    track.extend(T[iseed])
-                    T2.append(track)
-            T = T2
+            T = connect_points(E, R, values, neighbor_lists)
 
     return T, E
 
