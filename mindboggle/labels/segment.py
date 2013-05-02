@@ -83,10 +83,10 @@ def propagate(points, faces, region, seeds, labels,
     >>> segments = propagate(points, faces, fold_array, seeds, labels)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(labels_file, 'test_propagate.vtk',
+    >>> rewrite_scalars(labels_file, 'propagate.vtk',
     >>>                 segments, 'segments', segments)
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_propagate.vtk')
+    >>> plot_vtk('propagate.vtk')
 
     """
     import numpy as np
@@ -210,8 +210,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> # Example 1: without seed lists
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_segment.vtk', folds, 'folds', folds)
-    >>> plot_vtk('test_segment.vtk')
+    >>> rewrite_scalars(depth_file, 'segment.vtk', folds, 'folds', folds)
+    >>> plot_vtk('segment.vtk')
     >>> #
     >>> # Example 2: with seed lists
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
@@ -229,8 +229,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>>                 seed_lists, True, True, labels, label_lists, values=[])
     >>> #
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_segment_seeds.vtk', sulci, 'sulci', sulci)
-    >>> plot_vtk('test_segment_seeds.vtk')
+    >>> rewrite_scalars(depth_file, 'segment_seeds.vtk', sulci, 'sulci', sulci)
+    >>> plot_vtk('segment_seeds.vtk')
 
     """
     import numpy as np
@@ -489,9 +489,9 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> folds = segment_by_filling_boundaries(regions, neighbor_lists)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_segment_by_filling_boundaries.vtk', folds, 'folds', folds)
+    >>> rewrite_scalars(depth_file, 'segment_by_filling_boundaries.vtk', folds, 'folds', folds)
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_segment_by_filling_boundaries.vtk')
+    >>> plot_vtk('segment_by_filling_boundaries.vtk')
 
     """
     import numpy as np
@@ -1010,204 +1010,3 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
               format(i_segment + 1, time() - t0))
 
     return segments.tolist(), seed_indices
-
-#-----------------------------------------------------------------------------
-# Shrink segments
-#-----------------------------------------------------------------------------
-def shrink_segments(regions, segments, depths, shrink_factor=0.25,
-                    only_multiple_segments=False):
-    """
-    Shrink segments in a segmented surface mesh by a fraction of its maximum
-    depth, for all segments or for segments in regions with multiple segments.
-
-    Parameters
-    ----------
-    regions : list or array of integers
-        region IDs for all vertices, indicating inclusion in a region (default -1)
-    segments : numpy array of integers
-        segment IDs for all vertices, indicating inclusion in a segment (default -1)
-    depths : numpy array of floats
-        depth values for all vertices (default -1)
-    shrink_factor : float
-        shrink each region of connected vertices to this fraction
-        of its maximum depth
-    only_multiple_segments : Boolean
-        shrink only segments in regions with multiple segments
-        (otherwise shrink all segments)
-
-    Returns
-    -------
-    shrunken_segments : list of integers
-        shrunken segment numbers for all vertices (default -1)
-        -- non-shrunken segments are removed
-
-    Examples
-    --------
-    >>> # Segment folds with watershed(), then shrink these segments:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import watershed, shrink_segments
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
-    >>>     return_first=True, return_array=True)
-    >>> indices = np.where(depths > 0.11)[0]  # high to speed up
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> segments = watershed(depths, points, indices, neighbor_lists, min_size=1,
-    >>>     depth_factor=0.25, depth_ratio=0.1, tolerance=0.01)[0]
-    >>> #
-    >>> shrink_factor = 0.25
-    >>> shrunken_segments = shrink_segments(folds, segments, depths,
-    >>>     shrink_factor, only_multiple_segments=True)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'test_shrink_segments.vtk',
-    >>>     shrunken_segments, 'shrunken_segments', shrunken_segments)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_shrink_segments.vtk')
-
-    """
-    import numpy as np
-
-    print('Shrink segments')
-
-    remove_fraction = 1 - shrink_factor
-    shrunken_segments = -1 * np.ones(len(depths))
-
-    # Make sure arguments are numpy arrays
-    if not isinstance(segments, np.ndarray):
-        segments = np.array(segments)
-    if not isinstance(depths, np.ndarray):
-        depths = np.array(depths)
-
-    # Shrink only segments in regions with multiple segments
-    if only_multiple_segments:
-        print('  Shrink each segment to {0:.2f} of its depth for regions with '
-              'multiple segments'.format(shrink_factor))
-
-        # For each region
-        unique_regions = [x for x in np.unique(regions) if x > -1]
-        for n_region in unique_regions:
-
-            # Check to see if there are multiple segments in the region
-            indices_region = [i for i,x in enumerate(regions) if x == n_region]
-            segments_in_region = [x for x in np.unique(segments[indices_region])
-                                  if x > -1]
-            if len(segments_in_region) > 1:
-
-                # Shrink each segment in the region
-                for n_segment in segments_in_region:
-                    indices_segment = [i for i,x in enumerate(segments)
-                                       if x == n_segment]
-                    indices_segment = list(frozenset(indices_segment).intersection(indices_region))
-                    depth_threshold = remove_fraction * np.max(depths[indices_segment])
-                    indices_segment = [x for x in indices_segment
-                                       if depths[x] > depth_threshold]
-                    shrunken_segments[indices_segment] = n_segment
-
-    # Shrink all segments
-    else:
-        print('  Shrink each segment to {0:.2f} of its depth'.format(shrink_factor))
-        unique_segments = [x for x in np.unique(segments) if x != -1]
-        for n_segment in unique_segments:
-            indices_segment = [i for i,x in enumerate(segments) if x == n_segment]
-            depth_threshold = remove_fraction * np.max(depths[indices_segment])
-            indices_segment = [x for x in indices_segment
-                               if depths[x] > depth_threshold]
-            shrunken_segments[indices_segment] = n_segment
-
-    return shrunken_segments
-
-#-----------------------------------------------------------------------------
-# Find vertices with highest values within a fraction of the surface
-#-----------------------------------------------------------------------------
-def extract_high_values(values, areas, fraction):
-    """
-    Find the highest-valued vertices in a surface whose collective area
-    is a given fraction of the total surface area of the mesh.
-
-    Example: extract half of a surface with the highest depth values
-
-    Parameters
-    ----------
-    values : numpy array of floats
-        values for all vertices
-    areas : numpy array of floats
-        surface area values for all vertices
-    fraction : float
-        fraction of surface mesh to extract
-
-    Returns
-    -------
-    area_values : array of integers
-        an integer for every mesh vertex: 1 if extracted, -1 if not
-
-    Examples
-    --------
-    >>> # Extract the highest depth values constituting half of the surface area:
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.labels.segment import extract_high_values
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> values, name = read_scalars(vtk_file, return_first=True, return_array=True)
-    >>> areas, name = read_scalars(area_file, return_first=True, return_array=True)
-    >>> fraction = 0.50
-    >>> #
-    >>> area_values = extract_high_values(values, areas, fraction)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(vtk_file, 'test_extract_high_values.vtk',
-    >>>                 area_values, 'area values', area_values)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_extract_high_values.vtk')
-
-    """
-    import numpy as np
-
-    print("  Extract the highest-valued surface vertices ({0} of surface area)".
-          format(fraction))
-
-    # Make sure arguments are numpy arrays
-    if not isinstance(values, np.ndarray):
-        values = np.array(values)
-    if not isinstance(areas, np.ndarray):
-        areas = np.array(areas)
-
-    # Load depth and surface area values from VTK files
-    indices_asc = np.argsort(values)
-    indices_des = indices_asc[::-1]
-
-    total_area = np.sum(areas)
-    fraction_area = fraction * total_area
-    area_values = -1 * np.ones(len(areas))
-
-    # Start with fraction_area of the vertices
-    start = np.round(fraction * len(values))
-    area_values[indices_des[0:start]] = 1
-    sum_area = np.sum(areas[indices_des[0:start]])
-
-    # If these initial vertices cover less than fraction_area,
-    # add vertices until the remaining vertices' area exceeds fraction_area
-    if sum_area <= fraction_area:
-        for index in indices_des[start::]:
-            area_values[index] = 1
-            sum_area += areas[index]
-            if sum_area >= fraction_area:
-                break
-    # Otherwise, if these initial vertices cover more than fraction_area,
-    # remove vertices until the remaining vertices' area is less than fraction_area
-    else:
-        start = np.round((1-fraction) * len(values))
-        for index in indices_asc[start::]:
-            area_values[index] = -1
-            sum_area += areas[index]
-            if sum_area <= fraction_area:
-                break
-
-    return area_values
