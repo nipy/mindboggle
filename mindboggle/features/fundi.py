@@ -3,15 +3,14 @@
 Extract fundus curves from surface mesh patches (folds).
 
 Authors:
-Yrjo Hame, 2012-2013  .  yrjo.hame@gmail.com
-Arno Klein, 2012-2013  .  arno@mindboggle.info  .  www.binarybottle.com
+Arno Klein, 2013  .  arno@mindboggle.info  .  www.binarybottle.com
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
 #=============================================================================
-# Extract all fundi
+# Extract fundi
 #=============================================================================
 def extract_fundi(folds_or_file, depth_file, likelihoods_or_file,
                   smooth_skeleton=False, save_file=False):
@@ -22,8 +21,8 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file,
 
     Steps ::
 
-        1. Find fundus endpoints.
-        2. Connect fundus endpoints and extract fundi.
+        1. Find fundus endpoints using find_outer_anchors().
+        2. Connect fundus endpoints using connect_points_erosion().
 
     Parameters
     ----------
@@ -85,7 +84,8 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file,
 
     from mindboggle.utils.paths import find_outer_anchors, \
         connect_points_erosion, connect_points_hmmf
-    from mindboggle.utils.mesh import find_neighbors_from_file, dilate
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.morph import dilate
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
 
     # Load fold numbers:
@@ -174,109 +174,28 @@ def extract_fundi(folds_or_file, depth_file, likelihoods_or_file,
 # Example
 if __name__ == "__main__" :
 
-    # Extract fundus from a single fold or multiple folds:
-
-    """
+    # Extract fundus from one or more folds:
     import os
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.utils.plots import plot_vtk
     from mindboggle.features.fundi import extract_fundi
-
     path = os.environ['MINDBOGGLE_DATA']
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     likelihoods_or_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-
-    single_fold = False
+    single_fold = True
     if single_fold:
-        folds_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
+        folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+        folds, name = read_scalars(folds_file, True, True)
+        fold_number = 11 #11
+        folds[folds != fold_number] = -1
     else:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-
+        folds, name = read_scalars(folds_file, return_first=True, return_array=True)
+    #
+    smooth_skeleton = False
     fundi, n_fundi, endpoints, fundi_file = extract_fundi(folds, depth_file,
-        likelihoods_or_file, save_file=True)
-
+        likelihoods_or_file, smooth_skeleton, save_file=True)
+    #
     # View:
     plot_vtk(fundi_file)
-    """
-
-    # Setup:
-    import os
-    import numpy as np
-
-    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file
-    from mindboggle.utils.plots import plot_vtk
-    from mindboggle.utils.paths import track_endpoints
-
-    single_fold = False
-
-    path = os.environ['MINDBOGGLE_DATA']
-    values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
-    values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    values, name = read_scalars(values_file, True, True)
-    depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    values_seeding, name = read_scalars(values_seeding_file, True, True)
-    neighbor_lists = find_neighbors_from_file(depth_file)
-    min_size = 50
-    min_edges = 5
-    use_threshold = True
-
-    #-------------------------------------------------------------------------
-    # Extract tracks and endpoints on a single fold:
-    #-------------------------------------------------------------------------
-    if single_fold:
-        fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-        fold, name = read_scalars(fold_file)
-        indices = [i for i,x in enumerate(fold) if x != -1]
-
-        tracks, indices_endpoints = track_endpoints(indices, neighbor_lists, \
-            values, values_seeding, min_edges, use_threshold, backtrack=True)
-
-        # View results atop values:
-        indices_tracks = [x for lst in tracks for x in lst]
-        values[indices_tracks] = max(values) + 0.5
-        values[indices_endpoints] = max(values) + 0.1
-        rewrite_scalars(depth_file, 'track_endpoints.vtk', \
-                        values, 'endpoints_on_values_in_fold', fold)
-        plot_vtk('track_endpoints.vtk')
-    #-------------------------------------------------------------------------
-    # Extract tracks and endpoints on every fold in a hemisphere:
-    #-------------------------------------------------------------------------
-    else:
-        plot_each_fold = False
-        folds_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-        folds, name = read_scalars(folds_file)
-        fold_numbers = [x for x in np.unique(folds) if x != -1]
-        nfolds = len(fold_numbers)
-        all_endpoints = []
-        all_tracks = []
-        for ifold, fold_number in enumerate(fold_numbers):
-            print('Fold {0} ({1} of {2})'.format(int(fold_number), ifold+1, nfolds))
-            indices = [i for i,x in enumerate(folds) if x == fold_number]
-            if len(indices) > min_size:
-                tracks, indices_endpoints = track_endpoints(indices,
-                    neighbor_lists, values, values_seeding, min_edges,
-                    use_threshold, backtrack=True)
-                if tracks:
-                    indices_tracks = [x for lst in tracks for x in lst]
-                    all_endpoints.extend(indices_endpoints)
-                    all_tracks.extend(indices_tracks)
-                    # Plot each fold:
-                    if plot_each_fold:
-                        fold = -1 * np.ones(len(values))
-                        fold[indices] = 1
-                        values[indices_tracks] = max(values) + 0.5
-                        values[indices_endpoints] = max(values) + 0.1
-                        rewrite_scalars(depth_file, 'track_endpoints.vtk',
-                                values, 'endpoints_on_values_in_fold', fold)
-                        plot_vtk('track_endpoints.vtk')
-        T = -1 * np.ones(len(values))
-        T[all_tracks] = 1
-        T[all_endpoints] = 2
-
-        # Write results to VTK file and view:
-        rewrite_scalars(folds_file, 'track_endpoints.vtk',
-                        T, 'tracks_endpoints_on_folds', folds)
-        plot_vtk('track_endpoints.vtk')
