@@ -64,7 +64,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file, True, True)
-    >>> likelihoods_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
     >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -181,7 +181,7 @@ if __name__ == "__main__" :
     path = os.environ['MINDBOGGLE_DATA']
     sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     sulci, name = read_scalars(sulci_file, True, True)
-    likelihoods_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     likelihoods, name = read_scalars(likelihoods_file, True, True)
     rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
