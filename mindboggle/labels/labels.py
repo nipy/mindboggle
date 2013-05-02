@@ -1,25 +1,6 @@
 #!/usr/bin/env python
-
 """
-Functions for labeling brains.
-
-Notes regarding creation and use of a FreeSurfer Gaussian classifier atlas:
-
-Create the DKT classifier atlas (?h.DKTatlas40.gcs) --NEED TO VERIFY THIS:
-$ mris_ca_train -t $FREESURFERHOME/average/colortable_desikan_killiany.txt \
-                $hemi sphere.reg aparcNMMjt.annot $SCANS ./$hemi.DKTatlas40.gcs
-
-Label a brain with the DKT atlas (surface annotation file ?h.DKTatlas40.annot):
-$ mris_ca_label -l ./$x/label/$hemi.cortex.label $x/ $hemi sphere.reg \
-                ./$hemi.DKTatlas40.gcs ./$x/label/$hemi.DKTatlas40.annot
-
-Label the cortex of a subject's segmented volume according
-to the edited surface labels (?h.aparcNMMjt.annot):
-$ mri_aparc2aseg --s ./x --volmask --annot aparcNMMjt
-
-Label a brain with the DKT atlas using FreeSurfer's mris_ca_label:
-$ mris_ca_label MMRR-21-1 lh lh.sphere.reg ../lh.DKTatlas40.gcs ../out.annot
-
+Functions for labels.
 
 Authors:
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
@@ -29,71 +10,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#===============================================================================
-# Label with Gaussian classifier atlas
-#===============================================================================
-def label_with_classifier(hemi, subject, subjects_path, sphere_file,
-                          classifier_path, classifier_atlas):
-    """
-    Label a brain with the DKT atlas using FreeSurfer's mris_ca_label::
-
-        SYNOPSIS
-        mris_ca_label [options] <subject> <hemi> <canonsurf> <classifier> <outputfile>
-
-        DESCRIPTION
-        For a single subject, produces an annotation file, in which each
-        cortical surface vertex is assigned a neuroanatomical label.This
-        automatic procedure employs data from a previously-prepared atlas
-        file. An atlas file is created from a training set, capturing region
-        data manually drawn by neuroanatomists combined with statistics on
-        variability correlated to geometric information derived from the
-        cortical model (sulcus and curvature). Besides the atlases provided
-        with FreeSurfer, new ones can be prepared using mris_ca_train).
-
-    Parameters
-    ----------
-    hemi : string
-        hemisphere ['lh' or 'rh']
-    subject : string
-        subject corresponding to FreeSurfer subject directory
-    subjects_path : string
-        name of FreeSurfer subjects directory
-    sphere_file : string
-        name of FreeSurfer spherical surface file
-    classifier_path : string
-        name of FreeSurfer classifier atlas parent directory
-    classifier_atlas : string
-        name of FreeSurfer classifier atlas (no hemi)
-
-    Returns
-    -------
-    annot_file : string
-        name of output .annot file
-
-    Examples
-    --------
-    $ mris_ca_label MMRR-21-1 lh sphere ../lh.DKTatlas40.gcs ../out.annot
-    """
-    import os
-    from nipype.interfaces.base import CommandLine
-    from nipype import logging
-    logger = logging.getLogger('interface')
-
-    classifier_file = os.path.join(classifier_path, hemi + '.' + classifier_atlas)
-    annot_name = classifier_atlas
-    annot_file = os.path.join(subjects_path, subject, 'label',
-                              hemi + '.' + annot_name + '.annot')
-    cli = CommandLine(command='mris_ca_label')
-    cli.inputs.args = ' '.join([subject, hemi, sphere_file,
-                                classifier_file, annot_file])
-    logger.info(cli.cmdline)
-    cli.run()
-
-    return annot_name, annot_file
-
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Extract borders between labels
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def extract_borders(indices, labels, neighbor_lists,
                     ignore_values=[], return_label_pairs=False):
     """
@@ -125,7 +44,8 @@ def extract_borders(indices, labels, neighbor_lists,
     Examples
     --------
     >>> # Small example:
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.labels.labels import extract_borders
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> indices = [0,1,2,4,5,8,9]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
     >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3]]
@@ -137,7 +57,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -154,7 +74,6 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> IDs[indices_boundaries] = 1
     >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
     >>>                 IDs, 'boundaries', IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk('extract_borders.vtk')
 
     """
@@ -200,10 +119,10 @@ def extract_borders(indices, labels, neighbor_lists,
 
     return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
 
-#===============================================================================
-# Extract label borders
-#===============================================================================
-def extract_border_values(labels_file, mask_file='', values_file=''):
+#-----------------------------------------------------------------------------
+# Extract border values from a second surface
+#-----------------------------------------------------------------------------
+def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     """
     Extract borders (between labels) on a surface.
     Options: Mask out values; extract border values on a second surface.
@@ -228,15 +147,15 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     --------
     >>> # Extract depth values along label boundaries in sulci (mask):
     >>> import os
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.labels.labels import extract_borders_2nd_surface
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #
-    >>> border_file, border_values = extract_borders(labels_file, mask_file, values_file)
+    >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file)
     >>> #
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(border_file)
 
     """
@@ -244,7 +163,7 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.labels import extract_borders
 
     # Load labeled surface file
     faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
@@ -275,3 +194,142 @@ def extract_border_values(labels_file, mask_file='', values_file=''):
                     'label_borders_in_mask', mask_values)
 
     return border_file, border_values
+
+#-----------------------------------------------------------------------------
+# Majority vote on multiple labels
+#-----------------------------------------------------------------------------
+def vote_labels(label_lists):
+    """
+    For each vertex, vote on the majority label.
+
+    Parameters
+    ----------
+    label_lists : list of lists of integers
+        vertex labels assigned by each atlas
+
+    Returns
+    -------
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
+
+    Examples
+    --------
+    >>> from collections import Counter
+    >>> X = [1,1,2,3,4,2,1,2,1,2,1,2]
+    >>> Votes = Counter(X)
+    >>> Votes
+    Counter({1: 5, 2: 5, 3: 1, 4: 1})
+    >>> Votes.most_common(1)
+    [(1, 5)]
+    >>> Votes.most_common(2)
+    [(1, 5), (2, 5)]
+    >>> len(Votes)
+    4
+
+    """
+    from collections import Counter
+
+    print("Begin voting...")
+    n_atlases = len(label_lists)  # number of atlases used to label subject
+    npoints = len(label_lists[0])
+    labels_max = [-1 for i in xrange(npoints)]
+    label_counts = [1 for i in xrange(npoints)]
+    label_votes = [n_atlases for i in xrange(npoints)]
+
+    consensus_vertices = []
+    for vertex in xrange(npoints):
+        votes = Counter([label_lists[i][vertex] for i in xrange(n_atlases)])
+
+        labels_max[vertex] = votes.most_common(1)[0][0]
+        label_votes[vertex] = votes.most_common(1)[0][1]
+        label_counts[vertex] = len(votes)
+        if len(votes) == n_atlases:
+            consensus_vertices.append(vertex)
+
+    print("Voting done.")
+
+    return labels_max, label_votes, label_counts, consensus_vertices
+
+def majority_vote_label(surface_file, annot_files):
+    """
+    Load a VTK surface and corresponding FreeSurfer annot files.
+    Write majority vote labels, and label counts and votes as VTK files.
+
+    Parameters
+    ----------
+    surface_file : string
+        name of VTK surface file
+    annot_files : list of strings
+        names of FreeSurfer annot files
+
+    Returns
+    -------
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
+    consensus_vertices : list of integers
+        indicating which are consensus labels
+    maxlabel_file : string
+        name of VTK file containing majority vote labels
+    labelcounts_file : string
+        name of VTK file containing number of different label counts
+    labelvotes_file : string
+        name of VTK file containing number of votes per majority label
+
+    """
+    from os import path, getcwd
+    import nibabel as nb
+    import pyvtk
+    from mindboggle.labels.labels import vote_labels
+    from mindboggle.utils.io_file import string_vs_list_check
+
+    # Load multiple label sets
+    print("Load annotation files...")
+    label_lists = []
+    for annot_file in annot_files:
+        labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+        label_lists.append(labels)
+    print("Annotations loaded.")
+
+    # Vote on labels for each vertex
+    labels_max, label_votes, label_counts, \
+    consensus_vertices = vote_labels(label_lists)
+
+    # Check type to make sure the filename is a string
+    # (if a list, return the first element)
+    surface_file = string_vs_list_check(surface_file)
+
+    # Save files
+    VTKReader = pyvtk.VtkData(surface_file)
+    Vertices =  VTKReader.structure.points
+    Faces =     VTKReader.structure.polygons
+
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    maxlabel_file = output_stem + '.labels.max.vtk'
+    labelcounts_file = output_stem + '.labelcounts.vtk'
+    labelvotes_file = output_stem + '.labelvotes.vtk'
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
+                                  name='Max (majority labels)'))).\
+          tofile(maxlabel_file, 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
+                                  name='Counts (number of different labels)'))).\
+          tofile(labelcounts_file, 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
+                                  name='Votes (number of votes for majority labels)'))).\
+          tofile(labelvotes_file, 'ascii')
+
+    return labels_max, label_counts, label_votes, consensus_vertices, \
+           maxlabel_file, labelcounts_file, labelvotes_file
