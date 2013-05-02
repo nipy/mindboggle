@@ -248,7 +248,6 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
 
     """
     import numpy as np
-    from mindboggle.utils.mesh import label_holes
     from mindboggle.utils.segment import segment
 
     # Make sure argument is a numpy array

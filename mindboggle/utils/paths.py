@@ -60,14 +60,13 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11 #11
+    >>> fold_number = 1 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> binary_array = -1 * np.ones(len(folds))
     >>> binary_array[indices] = 1
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 5
-    >>> backtrack = False
     >>> indices_to_keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> test_ratio = 0.5
@@ -118,6 +117,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
         while endpoints:
             endpoints = find_endpoints(skeleton, neighbor_lists)
             endpoints = [x for x in endpoints if x not in indices_to_keep]
+            print('    Number of endpoints: {0}'.format(len(endpoints)))
             if endpoints:
                 binary_array[endpoints] = -1
                 skeleton = list(frozenset(skeleton).difference(endpoints))
@@ -131,6 +131,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
         #        if 1 in binary_array[neighbor_lists[x]]]
         edge = [x for x in skeleton if x not in indices_to_keep
                 if set(binary_array[neighbor_lists[x]]) == binset]
+        print('    Number of vertices in edge: {0}'.format(len(edge)))
         if edge:
 
             #-----------------------------------------------------------------
@@ -168,8 +169,6 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
                         binary_array[index] = -1
                         skeleton.remove(index)
                         exist_simple = True
-
-    #skeleton = [i for i,x in enumerate(binary_array) if x != -1]
 
     return skeleton
 
@@ -567,8 +566,6 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
             track.append(seed)
             value = values[seed]
 
-            print(prev_value, value, values[N])
-
             # If the track has run into the sink vertices, return the track:
             #if list(frozenset(N_segment).intersection(sink)):
             if sink and seed in sink:
@@ -870,7 +867,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     segments = segment_rings(R, seeds, neighbor_lists, step=1)
 
     # Run tracks from the seeds through the segments toward the boundary:
-    print('    Track through {0} vertices in {1} segments from threshold {2:0.3f}'.
+    print('    Track through {0} vertices in {1} segments from threshold {2:0.2f}'.
           format(len(R), len(segments), thresholdS))
     for seed in seeds:
         track = track_segments(seed, segments, neighbor_lists, V, borders)
@@ -885,6 +882,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     # with higher median value when their endpoints are close.
     #-------------------------------------------------------------------------
     if do_filter_tracks and T:
+
+        print('    Filter {0} tracks'.format(len(T)))
 
         # Compute median track values:
         Tvalues = []
@@ -1097,43 +1096,47 @@ def find_endpoints(indices, neighbor_lists):
 
     Examples
     --------
-    >>> # Extract endpoints from a sulcus label boundary segment
+    >>> # Extract endpoints from a track in a fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.labels import extract_borders
-    >>> from mindboggle.utils.paths import find_endpoints
-    >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
+    >>> from mindboggle.utils.paths import track_values, find_endpoints
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
-    >>>     return_first=True, return_array=True)
-    >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> label_indices = [i for i,x in enumerate(labels) if x in label_pair_lists[0][0]]
-    >>> indices_boundaries, label_pairs, foo = extract_borders(label_indices,
-    >>>                                               labels, neighbor_lists)
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> # Create a track from the minimum-depth vertex:
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> values, name = read_scalars(depth_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> seed = indices_fold[np.argmin(values[indices_fold])]
     >>> #
-    >>> indices_endpoints = find_endpoints(indices_boundaries, neighbor_lists)
+    >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
+    >>> #
+    >>> # Extract endpoints:
+    >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> end_IDs = -1 * np.ones(len(points))
-    >>> end_IDs[indices_boundaries] = 1
-    >>> end_IDs[indices_endpoints] = 2
-    >>> rewrite_scalars(labels_file, 'test_find_endpoints.vtk',
-    >>>                 end_IDs, 'endpoints', end_IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_find_endpoints.vtk')
+    >>> IDs = -1 * np.ones(len(values))
+    >>> IDs[indices_fold] = 1
+    >>> IDs[indices] = 2
+    >>> IDs[indices_endpoints] = 3
+    >>> rewrite_scalars(depth_file, 'find_endpoints.vtk',
+    >>>                 IDs, 'endpoints', IDs)
+    >>> plot_vtk('find_endpoints.vtk')
 
     """
 
-    # Find vertices with only one connected neighbor
-    indices_endpoints = []
-    for index in indices:
-        if len([x for x in neighbor_lists[index]
-                if x in indices]) == 1:
-            indices_endpoints.append(index)
+    # Find vertices with only one connected neighbor:
+    indices_endpoints = [i for i,x in enumerate(indices)
+        if len(list(frozenset(neighbor_lists[x]).intersection(indices))) == 1]
+
+    # Find original indices:
+    indices_endpoints = [indices[x] for x in indices_endpoints]
 
     return indices_endpoints
 
