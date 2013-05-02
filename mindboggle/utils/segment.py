@@ -52,7 +52,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> import numpy as np
     >>> import mindboggle.labels.rebound as rb
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.label import extract_borders, propagate
+    >>> from mindboggle.labels.labels import extract_borders
+    >>> from mindboggle.utils.segment import propagate
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -196,8 +197,8 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import segment
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.utils.segment import segment
+    >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -476,7 +477,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import segment_by_filling_boundaries
+    >>> from mindboggle.utils.segment import segment_by_filling_boundaries
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -495,7 +496,8 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
 
     """
     import numpy as np
-    from mindboggle.labels.label import extract_borders, segment
+    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import segment
 
     include_boundary = False
 
@@ -594,8 +596,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.labels.label import extract_borders
-    >>> from mindboggle.features.fundi import segment_rings
+    >>> from mindboggle.labels.labels import extract_borders
+    >>> from mindboggle.utils.segment import segment_rings
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
@@ -644,7 +646,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> #pickle.dump(segments, open(output_file, "wb" ))
 
     """
-    from mindboggle.labels.segment import segment
+    from mindboggle.utils.segment import segment
 
     segments = []
     while seeds:
@@ -731,7 +733,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> from mindboggle.labels.segment import watershed, segment
+    >>> from mindboggle.utils.segment import watershed, segment
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
@@ -764,8 +766,8 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     """
     import numpy as np
     from time import time
-    from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.segment import segment
+    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import segment
     from mindboggle.shapes.measure import point_distance
 
     # Make sure argument is a list
