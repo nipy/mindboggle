@@ -454,3 +454,114 @@ def track(R, P, T, L, B, neighbor_lists):
 
     return R, T
 
+#-----------------------------------------------------------------------------
+# Shrink segments
+#-----------------------------------------------------------------------------
+def shrink_segments(regions, segments, depths, shrink_factor=0.25,
+                    only_multiple_segments=False):
+    """
+    Shrink segments in a segmented surface mesh by a fraction of its maximum
+    depth, for all segments or for segments in regions with multiple segments.
+
+    Parameters
+    ----------
+    regions : list or array of integers
+        region IDs for all vertices, indicating inclusion in a region (default -1)
+    segments : numpy array of integers
+        segment IDs for all vertices, indicating inclusion in a segment (default -1)
+    depths : numpy array of floats
+        depth values for all vertices (default -1)
+    shrink_factor : float
+        shrink each region of connected vertices to this fraction
+        of its maximum depth
+    only_multiple_segments : Boolean
+        shrink only segments in regions with multiple segments
+        (otherwise shrink all segments)
+
+    Returns
+    -------
+    shrunken_segments : list of integers
+        shrunken segment numbers for all vertices (default -1)
+        -- non-shrunken segments are removed
+
+    Examples
+    --------
+    >>> # Segment folds with watershed(), then shrink these segments:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.mesh import find_neighbors
+    >>> from mindboggle.labels.segment import watershed
+    >>> from mindboggle.x.misc import shrink_segments
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
+    >>>     return_first=True, return_array=True)
+    >>> indices = np.where(depths > 0.11)[0]  # high to speed up
+    >>> neighbor_lists = find_neighbors(faces, npoints)
+    >>> segments = watershed(depths, points, indices, neighbor_lists, min_size=1,
+    >>>     depth_factor=0.25, depth_ratio=0.1, tolerance=0.01)[0]
+    >>> #
+    >>> shrink_factor = 0.25
+    >>> shrunken_segments = shrink_segments(folds, segments, depths,
+    >>>     shrink_factor, only_multiple_segments=True)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> rewrite_scalars(depth_file, 'shrink_segments.vtk',
+    >>>     shrunken_segments, 'shrunken_segments', shrunken_segments)
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> plot_vtk('shrink_segments.vtk')
+
+    """
+    import numpy as np
+
+    print('Shrink segments')
+
+    remove_fraction = 1 - shrink_factor
+    shrunken_segments = -1 * np.ones(len(depths))
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(segments, np.ndarray):
+        segments = np.array(segments)
+    if not isinstance(depths, np.ndarray):
+        depths = np.array(depths)
+
+    # Shrink only segments in regions with multiple segments
+    if only_multiple_segments:
+        print('  Shrink each segment to {0:.2f} of its depth for regions with '
+              'multiple segments'.format(shrink_factor))
+
+        # For each region
+        unique_regions = [x for x in np.unique(regions) if x > -1]
+        for n_region in unique_regions:
+
+            # Check to see if there are multiple segments in the region
+            indices_region = [i for i,x in enumerate(regions) if x == n_region]
+            segments_in_region = [x for x in np.unique(segments[indices_region])
+                                  if x > -1]
+            if len(segments_in_region) > 1:
+
+                # Shrink each segment in the region
+                for n_segment in segments_in_region:
+                    indices_segment = [i for i,x in enumerate(segments)
+                                       if x == n_segment]
+                    indices_segment = list(frozenset(indices_segment).intersection(indices_region))
+                    depth_threshold = remove_fraction * np.max(depths[indices_segment])
+                    indices_segment = [x for x in indices_segment
+                                       if depths[x] > depth_threshold]
+                    shrunken_segments[indices_segment] = n_segment
+
+    # Shrink all segments
+    else:
+        print('  Shrink each segment to {0:.2f} of its depth'.format(shrink_factor))
+        unique_segments = [x for x in np.unique(segments) if x != -1]
+        for n_segment in unique_segments:
+            indices_segment = [i for i,x in enumerate(segments) if x == n_segment]
+            depth_threshold = remove_fraction * np.max(depths[indices_segment])
+            indices_segment = [x for x in indices_segment
+                               if depths[x] > depth_threshold]
+            shrunken_segments[indices_segment] = n_segment
+
+    return shrunken_segments
