@@ -351,8 +351,8 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>> # Spectrum for a single fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_faces_points
+    >>> from mindboggle.utils.mesh import reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
@@ -450,8 +450,8 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None):
     >>>                    normalization="area")))
 
     """
-    from mindboggle.utils.io_vtk import read_vtk, reindex_faces_points
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.mesh import reindex_faces_points, remove_faces
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
     min_n_eigenvalues = 10 * n_eigenvalues
