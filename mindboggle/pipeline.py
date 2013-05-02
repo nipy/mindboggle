@@ -145,11 +145,11 @@ from mindboggle.utils.io_file import read_columns, write_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
     surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
 from mindboggle.utils.mesh import find_neighbors_from_file
-from mindboggle.labels.multiatlas import register_template,\
-     transform_atlas_labels, majority_vote_label
+from mindboggle.labels.label_free import register_template,\
+     transform_atlas_labels, label_with_classifier
+from mindboggle.labels.labels import majority_vote_label
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
-from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature,\
     volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
@@ -352,6 +352,7 @@ if run_labelFlow:
         #mbFlow.connect([(labelFlow, Sink,
         #                 [('Classifier2vtk.output_vtk', 'labels.@DKTsurface')])])
         init_labels_plug = 'DKT_annot_to_VTK.output_vtk'
+
     #=========================================================================
     # Initialize labels using multi-atlas registration
     #=========================================================================
@@ -429,6 +430,7 @@ if run_labelFlow:
                           ('Label_vote.labelcounts_file', 'labels.@counts'),
                           ('Label_vote.labelvotes_file', 'labels.@votes')])])
         init_labels_plug = 'Label_vote.maxlabel_file'
+
     #=========================================================================
     # Skip label initialization and process manual (atlas) labels
     #=========================================================================
@@ -718,7 +720,7 @@ if run_featureFlow:
                                         input_names = ['folds_or_file',
                                                        'depth_file',
                                                        'likelihoods_or_file',
-                                                       'smooth_skeleton'
+                                                       'smooth_skeleton',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
@@ -734,41 +736,6 @@ if run_featureFlow:
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
                          [('Fundi.fundi_file','features.@fundi')])])
-
-    #=========================================================================
-    # Segment fundi by sulcus divisions
-    #=========================================================================
-    """
-    if do_fundi and not fundi_from_sulci:
-
-        SegmentFundi = Node(name='Segment_fundi',
-                            interface = Fn(function = extract_fundi,
-                                           input_names = ['folds',
-                                                       'neighbor_lists',
-                                                       'depth_file',
-                                                       'mean_curvature_file',
-                                                       'min_curvature_vector_file',
-                                                       'min_distance',
-                                                       'thr',
-                                                       'use_only_endpoints',
-                                                       'compute_local_depth'],
-                                           output_names = ['fundi',
-                                                        'n_fundi',
-                                                        'likelihoods']))
-        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
-        featureFlow.connect([(NbrNode, FundiNode,
-                              [('neighbor_lists','neighbor_lists')])])
-        mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature.mean_curvature_file',
-                           'Fundi.mean_curvature_file'),
-                          ('Curvature.min_curvature_vector_file',
-                           'Fundi.min_curvature_vector_file')])])
-        FundiNode.inputs.min_distance = min_distance
-        FundiNode.inputs.thr = thr
-        FundiNode.inputs.use_only_endpoints = True
-        FundiNode.inputs.compute_local_depth = True
-    """
 
 ##############################################################################
 #
