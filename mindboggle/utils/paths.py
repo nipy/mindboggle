@@ -52,7 +52,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     >>> #
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
@@ -105,10 +105,11 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
     #-------------------------------------------------------------------------
-    skeleton = [i for i,x in enumerate(binary_array) if x == 1]
     exist_simple = True
     while exist_simple:
         exist_simple = False
+
+        skeleton = [i for i,x in enumerate(binary_array) if x == 1]
 
         #---------------------------------------------------------------------
         # Iteratively remove endpoints:
@@ -157,7 +158,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
                 # If a simple point, remove and run again:
                 if update and n_in > 1:
                     binary_array[index] = -1
-                    skeleton.remove(index)
+                    #skeleton.remove(index)
                     exist_simple = True
 
             # If no simple points, test all of the indices:
@@ -167,7 +168,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
                     # If a simple point, remove and run again:
                     if update and n_in > 1:
                         binary_array[index] = -1
-                        skeleton.remove(index)
+                        #skeleton.remove(index)
                         exist_simple = True
 
     return skeleton
@@ -238,12 +239,12 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>> # Find endpoints:
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> min_edges = 5
     >>> indices_points, endtracks = find_outer_anchors(indices, \
     >>>     neighbor_lists, values, values_seeding, min_edges)
-    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> L, name = read_scalars(likelihood_file,True,True)
     >>> #
     >>> S = connect_points_hmmf(indices_points, indices, L, neighbor_lists)
@@ -527,7 +528,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.utils.paths import track_values
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -621,7 +622,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> from mindboggle.utils.paths import track_segments
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -752,7 +753,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
-    >>> values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> #depths, n = read_scalars(depth_file, True, True)
@@ -809,8 +810,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     import numpy as np
 
     from mindboggle.labels.labels import extract_borders
-    from mindboggle.utils.segment import segment, segment_rings
-    from mindboggle.utils.paths import connect_points_erosion, track_segments, connect_points_hmmf
+    from mindboggle.utils.segment import segment_rings
+    from mindboggle.utils.paths import track_segments
+    from mindboggle.utils.mesh import find_neighborhood
 
     #-------------------------------------------------------------------------
     # Settings:
@@ -818,12 +820,11 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     # For finding outward tracks:
     do_threshold = True
     remove_fraction = 0.5
-    do_filter_tracks = True
+    do_filter_tracks = False #True
 
     # Initialize R, T, S, V:
     R = indices[:]
     T = []
-    E = []
     S = np.array(values_seeding)
     V = np.array(values)
 
@@ -904,8 +905,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         Tvalues = T2values
 
         # Gather endpoint vertex indices:
-        for track in T:
-            E.append(track[-1])
+        E = [x[-1] for x in T]
 
         # Loop through endpoints:
         E2 = []
@@ -913,11 +913,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         while E:
 
             # Find nearby endpoints to first endpoint:
-            near = segment(indices, neighbor_lists, min_region_size=1,
-                           seed_lists=[[E[0]]], keep_seeding=False,
-                           spread_within_labels=False, labels=[],
-                           label_lists=[], values=[], max_steps=min_edges)
-            near = [i for i,x in enumerate(near) if x != -1]
+            near = find_neighborhood(neighbor_lists, [E[0]], min_edges)
             E_near = [x for x in E if x in near]
             if len(E_near) > 1:
 
@@ -936,12 +932,16 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
             else:
                 E2.append(E[0])
                 T2.append(T[0])
-                E = E[1::]
-                T = T[1::]
-                Tvalues = Tvalues[1::]
+                del(E[0])
+                del(T[0])
+                del(Tvalues[0])
 
         endpoints = E2
         endtracks = T2
+    else:
+        # Gather endpoint vertex indices:
+        endtracks = T
+        endpoints = [x[-1] for x in T]
 
     return endpoints, endtracks
 
@@ -990,7 +990,7 @@ def find_anchors(points, values, min_directions, min_distance, thr):
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
-    >>> likelihood_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
     >>>                                          'lh.pial.curv.min.dir.txt')
     >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
@@ -1157,7 +1157,7 @@ if __name__ == "__main__":
     #
     values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     values_seeding, name = read_scalars(values_seeding_file, True, True)
-    values_file = os.path.join(path, 'arno', 'features', 'likelihoods.vtk')
+    values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     values, name = read_scalars(values_file, True, True)
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     neighbor_lists = find_neighbors_from_file(depth_file)
@@ -1171,7 +1171,7 @@ if __name__ == "__main__":
     binary_array[indices] = 1
     #
     # Find endpoints:
-    min_edges = 5
+    min_edges = 10
     backtrack = False
     indices_to_keep, tracks = find_outer_anchors(indices,
         neighbor_lists, values, values_seeding, min_edges)
