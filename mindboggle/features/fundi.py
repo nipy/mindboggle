@@ -185,11 +185,11 @@ if __name__ == "__main__" :
     likelihoods, name = read_scalars(likelihoods_file, True, True)
     rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    single_fold = False
+    single_fold = True
     if single_fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
-        fold_number = 11 #11
+        fold_number = 1 #11
         folds[folds != fold_number] = -1
     else:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
