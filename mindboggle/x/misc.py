@@ -155,7 +155,7 @@ def find_segment_endpoints(indices, neighbor_lists, likelihoods, step=1):
     """
     import numpy as np
 
-    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.labels import extract_borders
 
     # Make sure arguments are numpy arrays
     if isinstance(likelihoods, list):
@@ -225,7 +225,7 @@ def find_segment_endpoints(indices, neighbor_lists, likelihoods, step=1):
         """
         import numpy as np
 
-        from mindboggle.labels.segment import segment
+        from mindboggle.utils.segment import segment
 
         # Expand X and exclude endpoint selection?:
         rmX = False
@@ -490,7 +490,7 @@ def shrink_segments(regions, segments, depths, shrink_factor=0.25,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.segment import watershed
+    >>> from mindboggle.utils.segment import watershed
     >>> from mindboggle.x.misc import shrink_segments
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']

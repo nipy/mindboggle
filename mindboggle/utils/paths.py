@@ -261,7 +261,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     import numpy as np
     from mindboggle.utils.morph import topo_test
     from mindboggle.utils.paths import connect_points_erosion
-    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.labels import extract_borders
 
     # Make sure argument is a numpy array
     if not isinstance(L, np.ndarray):
@@ -620,7 +620,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.paths import track_segments
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -811,8 +811,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     """
     import numpy as np
 
-    from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.segment import segment, segment_rings
+    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import segment, segment_rings
     from mindboggle.utils.paths import connect_points_erosion, track_segments, connect_points_hmmf
 
     #-------------------------------------------------------------------------
@@ -1101,7 +1101,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.labels.label import extract_borders
+    >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.paths import find_endpoints
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
