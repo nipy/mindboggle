@@ -310,7 +310,7 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
 
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
-    from mindboggle.labels.label import extract_borders
+    from mindboggle.labels.labels import extract_borders
     from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 
 

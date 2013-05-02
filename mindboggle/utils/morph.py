@@ -166,7 +166,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors, remove_faces
     >>> from mindboggle.utils.morph import fill_holes
-    >>> from mindboggle.labels.segment import segment
+    >>> from mindboggle.utils.segment import segment
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
@@ -249,7 +249,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     """
     import numpy as np
     from mindboggle.utils.mesh import label_holes
-    from mindboggle.labels.segment import segment
+    from mindboggle.utils.segment import segment
 
     # Make sure argument is a numpy array
     if not isinstance(regions, np.ndarray):
