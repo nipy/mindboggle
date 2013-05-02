@@ -26,10 +26,10 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         - curvatures (mean, Gaussian, min, max, min directions)
         - area
         - thickness (from FreeSurfer)
-        - convexity (a depth measure from FreeSurfer)
+        - convexity (from FreeSurfer)
 
     * Construct tables:
-        - labeled region shapes
+        - label shapes
         - sulcus shapes
         - fundus shapes
         - per-vertex shape measures
@@ -40,7 +40,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         - fill gray matter with labels
         - measure label volumes
         - construct tables
-        - evaluate label volumes
+        -> evaluate label volumes
 
 
 .. Note::
@@ -49,7 +49,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
       by FreeSurfer (autorecon -all), so subject names correspond to directory
       names in FreeSurfer's subjects directory.
 
-For more information about Mindboggle (http://www.mindboggle.info)
+For more information about Mindboggle (http://mindboggle.info)
 and read the documentation: http://mindboggle.info/software/documentation.html
 
 For information on Nipype (http://www.nipy.org/nipype/):
@@ -83,7 +83,7 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = True  # Extract fundi
+do_fundi = False  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -711,26 +711,27 @@ if run_featureFlow:
                           ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
         featureFlow.connect([(FoldsNode, LikelihoodNode, [('folds','folds')])])
-        # Save VTK file with likelihood values:
-        mbFlow.connect([(featureFlow, Sink,
-                         [('Likelihood.likelihoods','features.@likelihood')])])
 
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
-                                        input_names = ['folds_or_file',
+                                        input_names = ['folds',
+                                                       'sulci',
+                                                       'likelihoods',
+                                                       'rescaled_depth_file',
                                                        'depth_file',
-                                                       'likelihoods_or_file',
                                                        'smooth_skeleton',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
-                                                        'fundus_endpoints',
                                                         'fundi_file']))
-        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
-        mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Depth.depth_file','Fundi.depth_file')])])
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+        featureFlow.connect([(SulciNode, FundiNode, [('sulci','sulci')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
-                              [('likelihoods', 'likelihoods_or_file')])])
+                              [('likelihoods', 'likelihoods')])])
+        mbFlow.connect([(shapeFlow, featureFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Fundi.rescaled_depth_file'),
+                          ('Depth.depth_file','Fundi.depth_file')])])
         FundiNode.inputs.smooth_skeleton = False
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
