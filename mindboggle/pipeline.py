@@ -167,18 +167,16 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 # Paths
 #-----------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+atlases_path = subjects_path  # Mindboggle-101 atlases directory
 data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
-temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-ccode_path = os.environ['MINDBOGGLE_TOOLS']
-#protocol_path = os.path.join(get_info()['pkg_path'], 'labels', 'protocol')
+ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
 protocol_path = os.path.join(os.environ['MINDBOGGLE'], 'labels', 'protocol')
 x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
-atlases_path = subjects_path
+temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 # Label with classifier atlas
-templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
-# Label with classifier atlas
-classifier_path = os.path.join(subjects_path, 'MindboggleClassifierAtlases')
-classifier_atlas = 'DKTatlas40.gcs'
+templates_path = os.path.join(data_path, 'atlases')
+classifier_path = os.path.join(data_path, 'atlases')
+classifier_atlas = 'DKTatlas40.gcs'  # 'DKTatlas100.gcs'
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -680,7 +678,7 @@ if run_featureFlow:
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         SulciNode.inputs.min_boundary = 1
-        sulcus_names_file = os.path.join(data_path, 'protocol', 'sulci.names.DKT25.txt')
+        sulcus_names_file = os.path.join(protocol_path, 'sulci.names.DKT25.txt')
         fid = open(sulcus_names_file, 'r')
         sulcus_names = fid.readlines()
         sulcus_names = [x.strip('\n') for x in sulcus_names]
@@ -703,7 +701,7 @@ if run_featureFlow:
                                              output_names = ['likelihoods']))
 
         featureFlow.add_nodes([LikelihoodNode])
-        LikelihoodNode.inputs.trained_file = os.path.join(data_path,
+        LikelihoodNode.inputs.trained_file = os.path.join(data_path, 'atlases',
             'depth_curv_border_nonborder_parameters.pkl')
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Rescale_depth.rescaled_scalars_file',
