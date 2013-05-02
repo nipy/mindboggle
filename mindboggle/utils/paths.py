@@ -88,7 +88,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     """
     import numpy as np
 
-    from mindboggle.utils.mesh import topo_test
+    from mindboggle.utils.morph import topo_test
     from mindboggle.utils.paths import find_endpoints
 
     # Make sure arguments are numpy arrays:
@@ -259,7 +259,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
 
     """
     import numpy as np
-    from mindboggle.utils.mesh import topo_test
+    from mindboggle.utils.morph import topo_test
     from mindboggle.utils.paths import connect_points_erosion
     from mindboggle.labels.label import extract_borders
 
