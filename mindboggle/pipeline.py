@@ -199,7 +199,8 @@ Info.iterables = ([('subject', subjects), ('hemi', hemis)])
 #-----------------------------------------------------------------------------
 Surf = Node(name = 'Surfaces',
             interface = DataGrabber(infields=['subject', 'hemi'],
-                                    outfields=['surface_files', 'sphere_files']))
+                                    outfields=['surface_files', 'sphere_files'],
+                                    sort_filelist=False))
 Surf.inputs.base_directory = subjects_path
 Surf.inputs.template = '%s/surf/%s.%s'
 Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
@@ -214,7 +215,8 @@ mbFlow.connect([(Info, Surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 Annot = Node(name = 'Annots',
              interface = DataGrabber(infields=['subject', 'hemi'],
-                                     outfields=['annot_files']))
+                                     outfields=['annot_files'],
+                                     sort_filelist=False))
 Annot.inputs.base_directory = subjects_path
 Annot.inputs.template = '%s/label/%s.aparc.annot'
 Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
@@ -224,7 +226,8 @@ Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 if do_fill:
     Vol = Node(name = 'Volumes',
         interface = DataGrabber(infields=['subject'],
-                                outfields=['original_volume']))
+                                outfields=['original_volume'],
+                                sort_filelist=False))
     Vol.inputs.base_directory = subjects_path
     Vol.inputs.template = '%s/mri/orig/001.mgz'
     Vol.inputs.template_args['original_volume'] = [['subject']]
@@ -250,7 +253,8 @@ if not do_input_vtk:
 if do_evaluate_surface or init_labels == 'manual':
     Atlas = Node(name = 'Atlases',
                  interface = DataGrabber(infields=['subject','hemi'],
-                                         outfields=['atlas_file']))
+                                         outfields=['atlas_file'],
+                                         sort_filelist=False))
     Atlas.inputs.base_directory = atlases_path
 
     Atlas.inputs.template = '%s/label/%s.labels.' +\
@@ -1161,8 +1165,9 @@ if run_volumeFlow:
         # Evaluation inputs: location and structure of atlas volumes
         #---------------------------------------------------------------------
         AtlasVol = Node(name = 'Atlas_volume',
-                         interface = DataGrabber(infields=['subject'],
-                         outfields=['atlas_vol_file']))
+                        interface = DataGrabber(infields=['subject'],
+                                                outfields=['atlas_vol_file'],
+                                                sort_filelist=False))
         AtlasVol.inputs.base_directory = atlases_path
         AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
         AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
