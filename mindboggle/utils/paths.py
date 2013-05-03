@@ -233,7 +233,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
+    >>> fold_number = 1 #11
     >>> folds[folds != fold_number] = -1
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Find endpoints:
@@ -361,6 +361,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     H[H_new > 0.5] = H_new[H_new > 0.5]
     H[indices_points] = 1
     H_new = H.copy()
+    H_tests = H.copy()
 
     # Find the HMMF values for the neighbors of each vertex:
     N = neighbor_lists
@@ -384,7 +385,6 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     C = np.zeros(len(L))
     C[indices] = compute_costs(L[indices], H[indices], H_N[:,indices],
                                N_sizes[indices], wN_max, Z)
-    H_tests = C.copy()
     npoints = len(indices)
 
     # Loop until count reaches max_count or until end_flag equals zero
@@ -409,6 +409,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
         H_decr[H_decr < 0] = 0.0
         C_decr = compute_costs(L[V], H_decr[V], H_N[:,V], N_sizes[V], wN, Z)
         H_tests[V] = H[V] - gradient_factor * (C[V] - C_decr)
+        H_tests[H_tests < 0] = 0.0
+        H_tests[H_tests > 1] = 1.0
 
         # For each index:
         for index in V:
@@ -426,10 +428,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
                         update, n_in = topo_test(index, 1 - H_new, N)
                     if update:
                         H_new[index] = H_tests[index]
-        # Update the test and cost values:
-        H_tests[H_tests < 0] = 0.0
-        H_tests[H_tests > 1] = 1.0
 
+        # Update the cost values:
         C[V] = compute_costs(L[V], H_new[V], H_N[:,V], N_sizes[V], wN, Z)
 
         # Sum the cost values across all vertices and tally the number
