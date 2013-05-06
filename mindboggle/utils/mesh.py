@@ -272,7 +272,7 @@ def find_edges(faces):
 #-----------------------------------------------------------------------------
 def find_faces_at_edges(faces):
     """
-    For each edges on the mesh, find the two faces that share the edge.
+    For each edge on the mesh, find the two faces that share the edge.
 
    Parameters
     ----------
@@ -365,7 +365,7 @@ def find_faces_at_vertices(faces, npoints):
 #-----------------------------------------------------------------------------
 def remove_faces(faces, indices):
     """
-    Remove surface mesh faces whose three vertices are not all in "indices"
+    Remove surface mesh faces whose three vertices are not all in "indices".
 
     Parameters
     ----------
@@ -452,3 +452,38 @@ def reindex_faces_points(faces, points=[]):
 
     return new_faces, new_points
 
+#-----------------------------------------------------------------------------
+# Filter neighbor_lists
+#-----------------------------------------------------------------------------
+def remove_neighbor_lists(neighbor_lists, indices):
+    """
+    Remove all but a given set of indices from surface mesh neighbor lists.
+
+    Note :: SLOW!
+
+    Parameters
+    ----------
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+    indices : integers
+        indices to vertices of the surface mesh
+
+    Returns
+    -------
+    neighbor_lists : list of lists of integers
+        each list has indices to remaining neighboring vertices for each vertex
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import remove_neighbor_lists
+    >>> neighbor_lists = [[1,2,3], [2,3,7], [12,43], [4,7,8], [3,2,5]]
+    >>> indices = [0,1,2,3,4,5]
+    >>> remove_neighbor_lists(neighbor_lists, indices)
+        [[1, 2, 3], [2, 3], [], [4], [2, 3, 5]]
+
+    """
+
+    neighbor_lists = [list(frozenset(indices).intersection(x))
+                      for x in neighbor_lists]
+
+    return neighbor_lists
