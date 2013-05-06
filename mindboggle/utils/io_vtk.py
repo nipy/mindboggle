@@ -1031,6 +1031,10 @@ def apply_affine_transform(transform_file, vtk_file):
                    [0, -2, 0, 128],
                    [0, 0, 0, 1]], dtype=float)
 
+
+    #transform[0:3,0:3] = np.eye(3,3)
+
+
     xfm = np.dot(native.get_affine(),
                  np.dot(np.linalg.inv(M),
                         np.dot(np.linalg.inv(transform), M1)))

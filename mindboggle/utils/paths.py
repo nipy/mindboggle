@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #------------------------------------------------------------------------------
 # Connect points by erosion:
 #------------------------------------------------------------------------------
-def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
+def connect_points_erosion(S, indices_to_keep, neighbor_lists,
                            values=[], test_ratio=0.5):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
@@ -23,13 +23,13 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
 
     Parameters
     ----------
-    binary_array : numpy array of integers in {-1,1}
+    S : numpy array of integers in {-1,1}
         values of 1 or -1 for all vertices
     indices_to_keep : indices with value 1 to keep
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     values : numpy array of floats
-        values for binary_array elements, to optionally remove points
+        values for S elements, to optionally remove points
         in order of lowest to highest values
     test_ratio : float
         fraction of indices to test for removal at each iteration (if values)
@@ -62,8 +62,8 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 1 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> binary_array = -1 * np.ones(len(folds))
-    >>> binary_array[indices] = 1
+    >>> S = -1 * np.ones(len(folds))
+    >>> S[indices] = 1
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 5
@@ -71,7 +71,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> test_ratio = 0.5
     >>> #
-    >>> skeleton = connect_points_erosion(binary_array,
+    >>> skeleton = connect_points_erosion(S,
     >>>     indices_to_keep, neighbor_lists, values, test_ratio=test_ratio)
     >>> #
     >>> # Write out vtk file and view:
@@ -91,8 +91,8 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     from mindboggle.utils.paths import find_endpoints
 
     # Make sure arguments are numpy arrays:
-    if not isinstance(binary_array, np.ndarray):
-        binary_array = np.array(binary_array)
+    if not isinstance(S, np.ndarray):
+        S = np.array(S)
     if len(values):
         sort_by_value = True
         if not isinstance(values, np.ndarray):
@@ -101,6 +101,27 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
         sort_by_value = False
 
     binset = set([-1,1])
+    skeleton = [i for i,x in enumerate(S) if x == 1]
+
+    # Create neighbor lists of indices, values, and {0,1}s for batch processing:
+    """
+    lenS = len(S)
+    N_sizes = np.array([len(x) for x in neighbor_lists])
+    max_num_neighbors = max(N_sizes[skeleton])
+    N = np.zeros((lenS, max_num_neighbors))
+    Z = np.zeros((lenS, max_num_neighbors))
+    for index in skeleton:
+        N[index, 0:N_sizes[index]] = neighbor_lists[index]
+        Z[index, 0:N_sizes[index]] = 1
+    nonskeleton = list(frozenset(skeleton).difference(range(lenS)))
+
+    N_flat = np.ravel(N)
+    N_flat = N_flat.tolist()
+    list(frozenset(skeleton).difference(range(lenS)))
+    H_N = np.reshape(H[N_flat], N_array_shape)
+    ind_flat = [i for i,x in enumerate(N_flat) if x > 0]
+    len_flat = len(N_flat)
+    """
 
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
@@ -109,7 +130,7 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
     while exist_simple:
         exist_simple = False
 
-        skeleton = [i for i,x in enumerate(binary_array) if x == 1]
+        skeleton = [i for i,x in enumerate(S) if x == 1]
 
         #---------------------------------------------------------------------
         # Iteratively remove endpoints:
@@ -118,9 +139,9 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
         while endpoints:
             endpoints = find_endpoints(skeleton, neighbor_lists)
             endpoints = [x for x in endpoints if x not in indices_to_keep]
-            print('    Number of endpoints: {0}'.format(len(endpoints)))
+            #print('    Number of endpoints: {0}'.format(len(endpoints)))
             if endpoints:
-                binary_array[endpoints] = -1
+                S[endpoints] = -1
                 skeleton = list(frozenset(skeleton).difference(endpoints))
 
         #---------------------------------------------------------------------
@@ -128,11 +149,11 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
         # region and are not among the indices to keep:
         #---------------------------------------------------------------------
         #edge = [x for x in skeleton if x not in indices_to_keep
-        #        if -1 in binary_array[neighbor_lists[x]]
-        #        if 1 in binary_array[neighbor_lists[x]]]
+        #        if -1 in S[neighbor_lists[x]]
+        #        if 1 in S[neighbor_lists[x]]]
         edge = [x for x in skeleton if x not in indices_to_keep
-                if set(binary_array[neighbor_lists[x]]) == binset]
-        print('    Number of vertices in edge: {0}'.format(len(edge)))
+                if set(S[neighbor_lists[x]]) == binset]
+        #print('    Number of vertices in edge: {0}'.format(len(edge)))
         if edge:
 
             #-----------------------------------------------------------------
@@ -153,21 +174,21 @@ def connect_points_erosion(binary_array, indices_to_keep, neighbor_lists,
             for index in edge[0:ntests]:
 
                 # Test to see if index is a simple point:
-                update, n_in = topo_test(index, binary_array, neighbor_lists)
+                update, n_in = topo_test(index, S, neighbor_lists)
 
                 # If a simple point, remove and run again:
                 if update and n_in > 1:
-                    binary_array[index] = -1
+                    S[index] = -1
                     #skeleton.remove(index)
                     exist_simple = True
 
             # If no simple points, test all of the indices:
             if not exist_simple and use_test_ratio:
                 for index in edge[ntests::]:
-                    update, n_in = topo_test(index, binary_array, neighbor_lists)
+                    update, n_in = topo_test(index, S, neighbor_lists)
                     # If a simple point, remove and run again:
                     if update and n_in > 1:
-                        binary_array[index] = -1
+                        S[index] = -1
                         #skeleton.remove(index)
                         exist_simple = True
 
@@ -282,7 +303,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     rate_factor = 0.9
     min_cost_change = 0.0001  # minimum change in the sum of costs
     n_tries_no_change = 3  # number of loops without sufficient change
-    min_count = 50  # minimum number of iterations (to overcome initial increasing costs)
+    min_count = 50  # min. iterations (to overcome initial increasing costs)
     max_count = 300  # maximum number of iterations (in case no convergence)
 
     # Miscellaneous parameters:
@@ -335,13 +356,13 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
             # Subtract each HMMF value from its neighbors:
             diff = abs(hmmfs - hmmfs_neighbors)
 
-            # Remove the padding from the neighbor array:
-            if np.shape(Z) == np.shape(hmmfs_neighbors):
-                diff = diff * Z
+            # Since the above neighbors may have been padded,
+            # remove the extra differences by multiplying them times zero:
+            diff = diff * Z
 
             # Compute the cost for each vertex:
             costs = hmmfs * (1.1 - likelihoods) + \
-                    wN * np.sum(diff,axis=0) / numbers_of_neighbors
+                    wN * np.sum(diff, axis=0) / numbers_of_neighbors
         else:
             import sys
             sys.exit('ERROR: No HMMF neighbors to compute cost.')
@@ -820,7 +841,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     # For finding outward tracks:
     do_threshold = True
     remove_fraction = 0.5
-    do_filter_tracks = False #True
+    do_filter_tracks = True
 
     # Initialize R, T, S, V:
     R = indices[:]
@@ -887,22 +908,14 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         print('    Filter {0} tracks'.format(len(T)))
 
         # Compute median track values:
-        Tvalues = []
-        for track in T:
-            Tvalues.append(np.median(V[track]))
+        Tvalues0 = [np.median(V[x]) for x in T]
 
         # Keep tracks with a high median track value:
         #background = np.median(V[indices])
+        #background = np.median(Tvalues0) + np.std(Tvalues0)
         background = np.median(V[R]) + np.std(V[R])
-        background = np.median(Tvalues) + np.std(Tvalues)
-        T2 = []
-        T2values = []
-        for itrack, track in enumerate(T):
-            if Tvalues[itrack] > background:
-                T2.append(track)
-                T2values.append(Tvalues[itrack])
-        T = T2
-        Tvalues = T2values
+        Tvalues = [Tvalues0[i] for i,x in enumerate(T) if Tvalues0[i] > background]
+        T = [x for i,x in enumerate(T) if Tvalues0[i] > background]
 
         # Gather endpoint vertex indices:
         E = [x[-1] for x in T]
@@ -1114,7 +1127,6 @@ def find_endpoints(indices, neighbor_lists):
     >>> values, name = read_scalars(depth_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> seed = indices_fold[np.argmin(values[indices_fold])]
-    >>> #
     >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
     >>> #
     >>> # Extract endpoints:
@@ -1131,12 +1143,10 @@ def find_endpoints(indices, neighbor_lists):
 
     """
 
-    # Find vertices with only one connected neighbor:
-    indices_endpoints = [i for i,x in enumerate(indices)
-        if len(list(frozenset(neighbor_lists[x]).intersection(indices))) == 1]
-
-    # Find original indices:
-    indices_endpoints = [indices[x] for x in indices_endpoints]
+    # Find vertices with only one neighbor in a set of given indices:
+    I = frozenset(indices)
+    indices_endpoints = [x for x in indices
+                         if len(list(I.intersection(neighbor_lists[x]))) == 1]
 
     return indices_endpoints
 
@@ -1165,10 +1175,10 @@ if __name__ == "__main__":
     # Select a single fold:
     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     folds, name = read_scalars(folds_file, True, True)
-    fold_number = 11 #11
+    fold_number = 1 #11
     indices = [i for i,x in enumerate(folds) if x == fold_number]
-    binary_array = -1 * np.ones(len(folds))
-    binary_array[indices] = 1
+    S = -1 * np.ones(len(folds))
+    S[indices] = 1
     #
     # Find endpoints:
     min_edges = 10
@@ -1177,7 +1187,7 @@ if __name__ == "__main__":
         neighbor_lists, values, values_seeding, min_edges)
     test_ratio = 0.5
     #
-    skeleton = connect_points_erosion(binary_array,
+    skeleton = connect_points_erosion(S,
         indices_to_keep, neighbor_lists, values, test_ratio=test_ratio)
     #
     # Write out vtk file and view:
