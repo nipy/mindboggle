@@ -1035,9 +1035,9 @@ def apply_affine_transform(transform_file, vtk_file):
                  np.dot(np.linalg.inv(M),
                         np.dot(np.linalg.inv(transform), M1)))
 
-#    s.affineTransform(np.dot(xfm[0:3,0:3],
-#                             np.diag(1./s.header['voxel_size'])),
-#                      xfm[0:3,3])
+    #    s.affineTransform(np.dot(xfm[0:3,0:3],
+    #                             np.diag(1./s.header['voxel_size'])),
+    #                      xfm[0:3,3])
 
     # Transform points:
     points = np.array(points)
@@ -1047,6 +1047,18 @@ def apply_affine_transform(transform_file, vtk_file):
     # Write transformed VTK file:
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
     write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
+
+    # Plot with pysurfer:
+    """
+    from surfer import Brain
+    subject_id = 'Twins-2-1'
+    hemi = 'lh'
+    surface = 'pial'
+    brain = Brain(subject_id, hemi, surface)
+    brain.add_morphometry("curv")
+    #brain.add_morphometry("thickness")
+    """
+
 
     return affine_points, output_file
 
