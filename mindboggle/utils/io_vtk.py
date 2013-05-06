@@ -1007,35 +1007,44 @@ def apply_affine_transform(transform_file, vtk_file):
 
     print("\n\n\nUNDER CONSTRUCTION!!!\n\n\n")
 
-    # Read ITK affine transform file
-#    transform, fixed_parameters = read_itk_transform(transform_file)
+    # Read ITK affine transform file:
+    transform, fixed_parameters = read_itk_transform(transform_file)
 
+    # Read VTK file:
+    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
+
+
+    # Test freesurfer data:
     import nibabel as nb
     path = os.environ['MINDBOGGLE_DATA']
     native_volume_mgz = os.path.join(path, 'arno', 'freesurfer', '001.mgz')
-    conformed_volume_mgz = os.path.join(path, 'arno', 'freesurfer', 'brain.mgz')
-    M = np.array([[-1,0,0,128],
-                  [0,0,1,-128],
-                  [0,-1,0,128],
-                  [0,0,0,1]],dtype=float)
     native = nb.freesurfer.load(native_volume_mgz)
-    conformed = nb.freesurfer.load(conformed_volume_mgz)
-    #affine_native = native.get_affine()
-    affine_conformed = conformed.get_affine()
-    transform = np.dot(affine_conformed, np.linalg.inv(M))
 
-    # Read VTK file
-    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
 
-    # Transform points
+    M = np.array([[-1, 0, 0, 128],
+                  [0, 0, 1, -128],
+                  [0, -1, 0, 128],
+                  [0, 0, 0, 1]], dtype=float)
+
+    M1 = np.array([[-2, 0, 0, 128],
+                   [0, 0, 2, -64],
+                   [0, -2, 0, 128],
+                   [0, 0, 0, 1]], dtype=float)
+
+    xfm = np.dot(native.get_affine(),
+                 np.dot(np.linalg.inv(M),
+                        np.dot(np.linalg.inv(transform), M1)))
+
+#    s.affineTransform(np.dot(xfm[0:3,0:3],
+#                             np.diag(1./s.header['voxel_size'])),
+#                      xfm[0:3,3])
+
+    # Transform points:
     points = np.array(points)
-#    points += fixed_parameters
-
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
-    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
-#    #affine_points += [0,256,0]
+    affine_points = np.transpose(np.dot(xfm, np.transpose(points)))[:,0:3]
 
-    # Write transformed VTK file
+    # Write transformed VTK file:
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
     write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
 
