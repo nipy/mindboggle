@@ -60,6 +60,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
@@ -79,23 +80,22 @@ def extract_borders(indices, labels, neighbor_lists,
     """
     import numpy as np
 
-    # Make sure arguments are numpy arrays
+    # Make sure arguments are numpy arrays:
     if not isinstance(labels, np.ndarray):
         labels = np.array(labels)
 
-    # Construct a list of labels corresponding to the neighbor lists
-    label_lists = [list(set(labels[lst])) for lst in neighbor_lists]
+    # Construct an array of labels corresponding to the neighbor lists:
+    L = np.array([list(set(labels[lst])) for lst in neighbor_lists])
 
-    # Find indices to sets of two labels
-    boundary_indices = [i for i,x in enumerate(label_lists)
-                        if len(set(x)) == 2
-                        if i in indices]
+    # Find indices to sets of two labels:
+    boundary_indices = [indices[y] for y in
+                        [i for i,x in enumerate(L[indices])
+                         if len(set(x)) == 2]]
 
     if return_label_pairs:
-        boundary_label_pairs = [np.sort(x).tolist()
-                                for i,x in enumerate(label_lists)
-                                if len(set(x)) == 2
-                                if i in indices]
+        boundary_label_pairs = [np.sort(L[indices[j]]) for j in
+                                [i for i,x in enumerate(L[indices])
+                                 if len(set(x)) == 2]]
     else:
         boundary_label_pairs = []
 
