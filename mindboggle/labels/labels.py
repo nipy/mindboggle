@@ -93,7 +93,7 @@ def extract_borders(indices, labels, neighbor_lists,
                          if len(set(x)) == 2]]
 
     if return_label_pairs:
-        boundary_label_pairs = [np.sort(L[indices[j]]) for j in
+        boundary_label_pairs = [np.sort(L[indices[j]]).tolist() for j in
                                 [i for i,x in enumerate(L[indices])
                                  if len(set(x)) == 2]]
     else:
@@ -105,8 +105,7 @@ def extract_borders(indices, labels, neighbor_lists,
         boundary_indices = [x for i,x in enumerate(boundary_indices)
                             if i in Ikeep]
         if return_label_pairs:
-            boundary_label_pairs = [np.sort(x).tolist()
-                                    for i,x in enumerate(boundary_label_pairs)
+            boundary_label_pairs = [x for i,x in enumerate(boundary_label_pairs)
                                     if i in Ikeep]
 
     if return_label_pairs:
