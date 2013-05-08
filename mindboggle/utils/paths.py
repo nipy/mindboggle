@@ -66,7 +66,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> S[indices] = 1
     >>> #
     >>> # Find endpoints:
-    >>> min_edges = 5
+    >>> min_edges = 10
     >>> indices_to_keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> test_ratio = 0.5
@@ -240,7 +240,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> min_edges = 5
+    >>> min_edges = 10
     >>> indices_points, endtracks = find_outer_anchors(indices, \
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
@@ -710,7 +710,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
 # Find endpoints
 #-----------------------------------------------------------------------------
 def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
-                       min_edges=5):
+                       min_edges=10):
     """
     Find vertices on the boundary of a surface mesh region that are the
     endpoints to multiple, high-value tracks through from the region's center.
@@ -759,7 +759,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> #depths, n = read_scalars(depth_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_size = 50
-    >>> min_edges = 5
+    >>> min_edges = 10
     >>> #
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks from a single fold:
@@ -819,7 +819,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     #-------------------------------------------------------------------------
     # For finding outward tracks:
     do_threshold = True
-    remove_fraction = 0.5
+    remove_fraction = 0.5  # Remove fraction of the surface (see below)
     do_filter_tracks = True
 
     # Initialize R, T, S, V:
@@ -887,14 +887,15 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         print('    Filter {0} tracks'.format(len(T)))
 
         # Compute median track values:
-        Tvalues0 = [np.median(V[x]) for x in T]
+        Tvalues = [np.median(V[x]) for x in T]
 
         # Keep tracks with a high median track value:
         #background = np.median(V[indices])
-        #background = np.median(Tvalues0) + np.std(Tvalues0)
+        #background = np.median(Tvalues) + np.std(Tvalues)
         background = np.median(V[R]) + np.std(V[R])
-        Tvalues = [Tvalues0[i] for i,x in enumerate(T) if Tvalues0[i] > background]
-        T = [x for i,x in enumerate(T) if Tvalues0[i] > background]
+        Ihigh = [i for i,x in enumerate(T) if Tvalues[i] > background]
+        T = [T[i] for i in Ihigh]
+        Tvalues = [Tvalues[i] for i in Ihigh]
 
         # Gather endpoint vertex indices:
         E = [x[-1] for x in T]
@@ -904,23 +905,25 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         T2 = []
         while E:
 
-            # Find nearby endpoints to first endpoint:
+            # Find endpoints close to the first endpoint:
             near = find_neighborhood(neighbor_lists, [E[0]], min_edges)
-            E_near = [x for x in E if x in near]
-            if len(E_near) > 1:
+            Isame = [i for i,x in enumerate(E) if x == E[0]]
+            Inear = [i for i,x in enumerate(E) if x in near]
+            if Inear or len(Isame) > 1:
+                Inear.extend(Isame)
 
                 # Select endpoint with the maximum median track value:
-                Inear = [i for i,x in enumerate(E) if x in E_near]
-                Imax = np.argmax([Tvalues[x] for x in Inear])
+                Imax = Inear[np.argmax([Tvalues[i] for i in Inear])]
                 E2.append(E[Imax])
                 T2.append(T[Imax])
 
-                # Remove nearby points for the next loop:
-                E = [x for i,x in enumerate(E) if i not in Inear]
-                T = [x for i,x in enumerate(T) if i not in Inear]
-                Tvalues = [x for i,x in enumerate(Tvalues) if i not in Inear]
+                # Keep data for points that are not nearby for the next loop:
+                Ikeep = [i for i in range(len(E)) if i not in Inear]
+                E = [E[i] for i in Ikeep]
+                T = [T[i] for i in Ikeep]
+                Tvalues = [Tvalues[i] for i in Ikeep]
 
-            # Otherwise keep endpoint:
+            # If nothing nearby, simply keep the endpoint:
             else:
                 E2.append(E[0])
                 T2.append(T[0])
@@ -932,8 +935,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         endtracks = T2
     else:
         # Gather endpoint vertex indices:
-        endtracks = T
         endpoints = [x[-1] for x in T]
+        endtracks = T
 
     return endpoints, endtracks
 
