@@ -185,7 +185,7 @@ def surface_to_vtk(surface_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import surface_to_vtk
+    >>> from mindboggle.utils.io_free import surface_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
     >>> #

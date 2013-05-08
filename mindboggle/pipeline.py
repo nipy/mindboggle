@@ -203,7 +203,7 @@ Surf = Node(name = 'Surfaces',
                                     sort_filelist=False))
 Surf.inputs.base_directory = subjects_path
 Surf.inputs.template = '%s/surf/%s.%s'
-Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
+Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'white']]
 Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 if do_thickness:
     Surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
