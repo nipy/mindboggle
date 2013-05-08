@@ -62,13 +62,25 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 1 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> S = -1 * np.ones(len(folds))
-    >>> S[indices] = 1
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 10
     >>> indices_to_keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
+
+
+    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> curvs, name = read_scalars(curv_file, True, True)
+    >>> indices2 = [indices[i] for i in np.where(np.abs(curvs[indices]) > 0.0)[0]]
+    >>> D = -1 * np.ones(len(values))
+    >>> D[indices] = -1
+    >>> D[indices2] = 2
+    >>> rewrite_scalars(depth_file, 'test.vtk', D, 'D', folds)
+    >>> plot_vtk('test.vtk')
+
+
     >>> test_ratio = 0.25
     >>> #
     >>> skeleton = connect_points_erosion(S,
@@ -113,20 +125,6 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         skeleton = np.where(S == 1)[0].tolist()
 
         #---------------------------------------------------------------------
-        # Iteratively remove endpoints:
-        #---------------------------------------------------------------------
-        endpoints = True
-        while endpoints:
-            endpoints = find_endpoints(skeleton, neighbor_lists)
-            endpoints = [x for x in endpoints if x not in indices_to_keep]
-            # Remove endpoints from the skeleton array and indices:
-            if endpoints:
-                S[endpoints] = -1
-                skeleton = list(frozenset(skeleton).difference(endpoints))
-            # Note: endpoints aren't necessarily neighbors of previous endpoints.
-            #print('    Number of endpoints: {0}'.format(len(endpoints)))
-
-        #---------------------------------------------------------------------
         # Only consider updating vertices that are on the edge of the
         # region and are not among the indices to keep:
         #---------------------------------------------------------------------
@@ -136,8 +134,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         if edge:
 
             #-----------------------------------------------------------------
-            # Sort indices to remove simple points
-            # in order of lowest to highest values:
+            # Remove simple points in order of lowest to highest values:
             #-----------------------------------------------------------------
             if sort_by_value:
                 I = np.argsort(values[edge]).tolist()
@@ -169,6 +166,20 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
                     if update and n_in > 1:
                         S[index] = -1
                         exist_simple = True
+
+        #---------------------------------------------------------------------
+        # Remove branches by iteratively removing endpoints:
+        #---------------------------------------------------------------------
+        endpoints = True
+        while endpoints:
+            endpoints = find_endpoints(skeleton, neighbor_lists)
+            endpoints = [x for x in endpoints if x not in indices_to_keep]
+            # Remove endpoints from the skeleton array and indices:
+            if endpoints:
+                S[endpoints] = -1
+                skeleton = list(frozenset(skeleton).difference(endpoints))
+            # Note: endpoints aren't necessarily neighbors of previous endpoints.
+            #print('    Number of endpoints: {0}'.format(len(endpoints)))
 
     return skeleton
 
