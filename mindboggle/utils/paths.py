@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Connect points by erosion:
 #------------------------------------------------------------------------------
 def connect_points_erosion(S, indices_to_keep, neighbor_lists,
-                           values=[], test_ratio=0.5):
+                           values=[], test_ratio=0.25):
     """
     Skeletonize a binary numpy array into 1-vertex-thick curves.
 
@@ -69,7 +69,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> min_edges = 10
     >>> indices_to_keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
-    >>> test_ratio = 0.5
+    >>> test_ratio = 0.25
     >>> #
     >>> skeleton = connect_points_erosion(S,
     >>>     indices_to_keep, neighbor_lists, values, test_ratio=test_ratio)
@@ -232,7 +232,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 1 #11
+    >>> fold_number = 11 #11
     >>> folds[folds != fold_number] = -1
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Find endpoints:
@@ -1138,6 +1138,9 @@ def find_endpoints(indices, neighbor_lists):
 #=============================================================================
 if __name__ == "__main__":
 
+    fold_number = 1 #11
+    min_edges = 10
+
     run_erosion = True
     if run_erosion:
 
@@ -1160,17 +1163,14 @@ if __name__ == "__main__":
         # Select a single fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
-        fold_number = 11 #11
         indices = [i for i,x in enumerate(folds) if x == fold_number]
         S = -1 * np.ones(len(folds))
         S[indices] = 1
         #
         # Find endpoints:
-        min_edges = 10
-        backtrack = False
         indices_to_keep, tracks = find_outer_anchors(indices,
             neighbor_lists, values, values_seeding, min_edges)
-        test_ratio = 0.5
+        test_ratio = 0.25
         #
         skeleton = connect_points_erosion(S,
             indices_to_keep, neighbor_lists, values, test_ratio=test_ratio)
@@ -1203,7 +1203,6 @@ if __name__ == "__main__":
         # Select a single fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
-        fold_number = 1 #11
         folds[folds != fold_number] = -1
         indices = [i for i,x in enumerate(folds) if x == fold_number]
         # Find endpoints:
@@ -1211,7 +1210,6 @@ if __name__ == "__main__":
         values_seeding, name = read_scalars(values_seeding_file, True, True)
         values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
         values, name = read_scalars(values_file, True, True)
-        min_edges = 5
         indices_points, endtracks = find_outer_anchors(indices, \
             neighbor_lists, values, values_seeding, min_edges)
         likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
