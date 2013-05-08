@@ -44,7 +44,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.mesh import plot_scalar_histogram
+    >>> from mindboggle.utils.plots import plot_scalar_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> plot_scalar_histogram(vtk_file, nbins=500)
