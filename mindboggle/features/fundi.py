@@ -24,7 +24,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
 
         1. Find fundus endpoints using find_outer_anchors().
         2. Connect fundus endpoints using connect_points_erosion().
-        3. FIX: Optionally smooth fundi using connect_points_hmmf().
+        3. To do: Optionally smooth fundi using connect_points_hmmf().
         4. Segment fundi by sulcus definitions.
 
     Parameters
@@ -39,7 +39,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
         surface mesh file in VTK format with scalar rescaled depth values
     depth_file :  string
         surface mesh file in VTK format with (complete) scalar depth values
-    smooth_skeleton : Boolean
+    smooth_skeleton : Boolean [Not yet implemented]
         smooth skeleton?
     save_file : Boolean
         save output VTK file?
@@ -78,7 +78,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
     >>> #
-    >>> smooth_skeleton = True
+    >>> smooth_skeleton = False
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
     >>>     rescaled_depth_file, depth_file, smooth_skeleton, save_file)
@@ -142,12 +142,13 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                 # Smooth skeleton:
                 #-------------------------------------------------------------
                 if run_erosion and smooth_skeleton:
+                    print('\n\nNOTE: Fundus smoothing not yet implemented.\n\n')
                     nedges = 2
                     print('    Dilate skeleton...')
                     padded_skeleton = dilate(skeleton, nedges, neighbor_lists)
                     print('    Smoothly re-skeletonize dilated skeleton...')
-                    skeleton = connect_points_hmmf(endpoints, padded_skeleton,
-                                                   likelihoods, neighbor_lists)
+                    skeleton = connect_points_hmmf(endpoints,
+                        padded_skeleton, likelihoods, neighbor_lists)
 
                 # Store skeleton:
                 skeletons.extend(skeleton)
@@ -203,7 +204,7 @@ if __name__ == "__main__" :
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
     #
-    smooth_skeleton = True
+    smooth_skeleton = False
     save_file = True
     fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
         rescaled_depth_file, depth_file, smooth_skeleton, save_file)
