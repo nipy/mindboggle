@@ -78,7 +78,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
     >>> #
-    >>> smooth_skeleton = False
+    >>> smooth_skeleton = True
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
     >>>     rescaled_depth_file, depth_file, smooth_skeleton, save_file)
@@ -96,6 +96,9 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.utils.morph import dilate
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+
+    # Run connect_points_erosion() or connect_points_hmmf():
+    run_erosion = True
 
     # Load depths and neighbors:
     neighbor_lists = find_neighbors_from_file(depth_file)
@@ -127,21 +130,26 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
             #-----------------------------------------------------------------
             B = -1 * np.ones(len(folds))
             B[indices_fold] = 1
-            skeleton = connect_points_erosion(B, endpoints, neighbor_lists,
-                                              likelihoods, test_ratio=0.5)
-            #skeleton = connect_points_hmmf(endpoints, indices_fold,
-            #                               likelihoods, neighbor_lists)
+            if run_erosion:
+                skeleton = connect_points_erosion(B, endpoints, neighbor_lists,
+                                                  likelihoods, test_ratio=0.5)
+            else:
+                skeleton = connect_points_hmmf(endpoints, indices_fold,
+                                               likelihoods, neighbor_lists)
             if skeleton:
 
                 #-------------------------------------------------------------
                 # Smooth skeleton:
                 #-------------------------------------------------------------
-                if smooth_skeleton:
+                if run_erosion and smooth_skeleton:
                     nedges = 2
+                    print('    Dilate skeleton...')
                     padded_skeleton = dilate(skeleton, nedges, neighbor_lists)
+                    print('    Smoothly re-skeletonize dilated skeleton...')
                     skeleton = connect_points_hmmf(endpoints, padded_skeleton,
                                                    likelihoods, neighbor_lists)
 
+                # Store skeleton:
                 skeletons.extend(skeleton)
 
     #-------------------------------------------------------------------------
@@ -189,13 +197,13 @@ if __name__ == "__main__" :
     if single_fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
-        fold_number = 1 #11
+        fold_number = 11 #11
         folds[folds != fold_number] = -1
     else:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
     #
-    smooth_skeleton = False
+    smooth_skeleton = True
     save_file = True
     fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
         rescaled_depth_file, depth_file, smooth_skeleton, save_file)
