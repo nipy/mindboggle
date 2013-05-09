@@ -1014,19 +1014,8 @@ def apply_affine_transform(transform_file, vtk_file):
 
     # Write transformed VTK file:
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-    write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
-
-    # Plot with pysurfer:
-    """
-    from surfer import Brain
-    subject_id = 'Twins-2-1'
-    hemi = 'lh'
-    surface = 'pial'
-    brain = Brain(subject_id, hemi, surface)
-    brain.add_morphometry("curv")
-    #brain.add_morphometry("thickness")
-    """
-
+    write_vtk(output_file, affine_points.tolist(), indices, lines, faces,
+              scalars, name)
 
     return affine_points, output_file
 
