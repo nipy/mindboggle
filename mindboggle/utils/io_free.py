@@ -180,9 +180,10 @@ def thickness_to_ascii(hemi, subject, subjects_path):
 #=============================================================================
 def surface_to_vtk(surface_file):
     """
-    Convert FreeSurfer surface file to VTK format. If a file named
-    orig.mgz exists in '../mri', the surface coordinates are
-    transformed into scanner RAS space during format conversion
+    Convert FreeSurfer surface file to VTK format.
+
+    If a file named orig.mgz exists in '../mri', the surface coordinates
+    are transformed into scanner RAS space during format conversion
     according to the vox2ras transform in that file.
 
     Examples
@@ -209,8 +210,7 @@ def surface_to_vtk(surface_file):
     faces = surf[1]
 
     # Transform surface coordinates into normal scanner RAS.
-    # See example 3 under "Transforms within a subject's anatomical
-    # space" on the page:
+    # See example 3 in "Transforms within a subject's anatomical space":
     # https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
     orig_file = os.path.join(os.path.dirname(surface_file),
                              "..", "mri", "orig.mgz")
