@@ -13,7 +13,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Extract fundi
 #=============================================================================
 def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
-                  depth_file, smooth_skeleton=False, save_file=False):
+                  depth_file, min_edges=10, erosion_ratio=0.25,
+                  smooth_skeleton=False, filter=False, filter_file='',
+                  save_file=False):
     """
     Extract fundi from folds.
 
@@ -23,9 +25,10 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     Steps ::
 
         1. Find fundus endpoints using find_outer_anchors().
-        2. Connect fundus endpoints using connect_points_erosion().
-        3. To do: Optionally smooth fundi using connect_points_hmmf().
-        4. Segment fundi by sulcus definitions.
+        2. Filter out large-value vertices by reducing their likelihoods.
+        3. Connect fundus endpoints using connect_points_erosion().
+        4. To do: Optionally smooth fundi.
+        5. Segment fundi by sulcus definitions.
 
     Parameters
     ----------
@@ -39,8 +42,17 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
         surface mesh file in VTK format with scalar rescaled depth values
     depth_file :  string
         surface mesh file in VTK format with (complete) scalar depth values
+    min_edges : integer
+        minimum number of edges between endpoints in find_outer_anchors()
+    erosion_ratio : float
+        fraction of indices to test for removal at each iteration
+        in connect_points_erosion()
     smooth_skeleton : Boolean [Not yet implemented]
         smooth skeleton?
+    filter : Boolean
+        filter vertices to connect based on values in a file?
+    filter_file : list of integers
+        values used to filter vertices by reducing their likelihoods
     save_file : Boolean
         save output VTK file?
 
@@ -68,11 +80,12 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
     >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> single_fold = True
     >>> if single_fold:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
-    >>>     fold_number = 11 #11
+    >>>     fold_number = 1 #11
     >>>     folds[folds != fold_number] = -1
     >>> else:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -81,7 +94,9 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> smooth_skeleton = False
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
-    >>>     rescaled_depth_file, depth_file, smooth_skeleton, save_file)
+    >>>     rescaled_depth_file, depth_file, min_edges=10, erosion_ratio=0.25,
+    >>>     smooth_skeleton=False, filter=True, filter_file=area_file,
+    >>>     save_file=True)
     >>> #
     >>> # View:
     >>> plot_vtk(fundi_file)
@@ -123,7 +138,16 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
             # Find fundus endpoints on the boundary of the surface region:
             #-----------------------------------------------------------------
             endpoints, endtracks = find_outer_anchors(indices_fold,
-                neighbor_lists, likelihoods, depths, min_edges=5)
+                neighbor_lists, likelihoods, depths, min_edges)
+
+            #-----------------------------------------------------------------
+            # Filter out large-value vertices by reducing their likelihoods:
+            #-----------------------------------------------------------------
+            if filter:
+                values, name = read_scalars(filter_file, True, True)
+                V = [x for x in values if x != -1]
+                threshold = np.median(V) + np.std(V)
+                likelihoods[np.where(np.abs(values) > threshold)[0]] /= 10
 
             #-----------------------------------------------------------------
             # Connect endpoints to create skeleton:
@@ -132,7 +156,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
             B[indices_fold] = 1
             if run_erosion:
                 skeleton = connect_points_erosion(B, endpoints, neighbor_lists,
-                                                  likelihoods, test_ratio=0.5)
+                                                  likelihoods, erosion_ratio)
             else:
                 skeleton = connect_points_hmmf(endpoints, indices_fold,
                                                likelihoods, neighbor_lists)
