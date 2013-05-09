@@ -83,7 +83,7 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = False  # Extract fundi
+do_fundi = True  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
@@ -203,7 +203,7 @@ Surf = Node(name = 'Surfaces',
                                     sort_filelist=False))
 Surf.inputs.base_directory = subjects_path
 Surf.inputs.template = '%s/surf/%s.%s'
-Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'white']]
+Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
 Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi', 'sphere']]
 if do_thickness:
     Surf.inputs.template_args['thickness_files'] = [['subject', 'hemi', 'thickness']]
@@ -721,7 +721,11 @@ if run_featureFlow:
                                                        'likelihoods',
                                                        'rescaled_depth_file',
                                                        'depth_file',
+                                                       'min_edges',
+                                                       'erosion_ratio',
                                                        'smooth_skeleton',
+                                                       'filter',
+                                                       'filter_file',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
@@ -733,8 +737,12 @@ if run_featureFlow:
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Rescale_depth.rescaled_scalars_file',
                            'Fundi.rescaled_depth_file'),
-                          ('Depth.depth_file','Fundi.depth_file')])])
+                          ('Depth.depth_file','Fundi.depth_file'),
+                          ('Area.area_file','Fundi.filter_file')])])
+        FundiNode.inputs.min_edges = 10
+        FundiNode.inputs.erosion_ratio = 0.25
         FundiNode.inputs.smooth_skeleton = False
+        FundiNode.inputs.filter = True
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
