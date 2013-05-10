@@ -67,6 +67,7 @@ def main(**extra_args):
                           'mindboggle.evaluate',
                           'mindboggle.features',
                           'mindboggle.labels',
+                          'mindboggle.labels.protocol',
                           'mindboggle.shapes',
                           'mindboggle.utils'],
           #                'mindboggle.testing',
