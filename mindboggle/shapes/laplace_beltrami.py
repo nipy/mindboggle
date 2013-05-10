@@ -351,8 +351,8 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>> # Spectrum for a single fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_faces_points
+    >>> from mindboggle.utils.mesh import reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
@@ -436,14 +436,22 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'tests', 'cube.vtk')
     >>> n_eigenvalues = 6
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
     >>> print("{0}".format(fem_laplacian_from_labels(vtk_file, n_eigenvalues)))
         The input size 6 should be much larger than n_eigenvalue 6. Skipped.
         ([None], [0.0])
+    >>> #
+    >>> # Spectra for multiple sulci:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectra:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(sulci_file, n_eigenvalues=6,
+    >>>                    normalization="area")))
 
     """
-    from mindboggle.utils.io_vtk import read_vtk, reindex_faces_points
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.mesh import reindex_faces_points, remove_faces
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
     min_n_eigenvalues = 10 * n_eigenvalues

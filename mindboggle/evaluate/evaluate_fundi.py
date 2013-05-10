@@ -94,7 +94,8 @@ if __name__ == "__main__":
     import numpy as np
     from mindboggle.utils.io_vtk import load_vtk, read_scalars, write_scalars
     from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
-    from mindboggle.labels.label import extract_borders, find_neighbors
+    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.labels.labels import extract_borders
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]
