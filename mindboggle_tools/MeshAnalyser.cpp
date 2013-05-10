@@ -93,6 +93,7 @@ void MeshAnalyser::Initialize()
 {
     this->simpl=vtkPolyData::New();
     this->depth=vtkDoubleArray::New();
+    this->geoDepth=vtkDoubleArray::New();
     this->euclideanDepth=vtkDoubleArray::New();
     this->pointSurf=vtkDoubleArray::New();
     this->pointSurfSimple=vtkDoubleArray::New();
@@ -124,6 +125,7 @@ MeshAnalyser::~MeshAnalyser()
     this->mesh->Delete();
     //	this->simpl->Delete();
     this->depth->Delete();
+    this->geoDepth->Delete();
     this->pointSurf->Delete();
     this->pointSurfSimple->Delete();
     this->geoDistRing->Delete();
@@ -523,6 +525,7 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
 
     if(strcmp("geoDist",prop)==0) this->mesh->GetPointData()->SetScalars(this->geoDistRing);
     else if(strcmp("depth",prop)==0) this->mesh->GetPointData()->SetScalars(this->depth);
+    else if(strcmp("geoDepth",prop)==0) this->mesh->GetPointData()->SetScalars(this->geoDepth);
     else if(strcmp("euclideanDepth",prop)==0) this->mesh->GetPointData()->SetScalars(this->euclideanDepth);
     else if(strcmp("curv",prop)==0) this->mesh->GetPointData()->SetScalars(this->curv);
     else if(strcmp("gCurv",prop)==0) this->mesh->GetPointData()->SetScalars(this->gCurv);
@@ -573,6 +576,9 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
     writer->Write();
     writer->Delete();
 
+    cout<<"vtk file written"<<endl;
+
+    return;
 }
 
 void MeshAnalyser::WriteIntoFile(char* fileName)
@@ -1186,6 +1192,168 @@ void MeshAnalyser::ComputeTravelDepth(bool norm, vtkPolyData* pq)
 
 }
 
+
+void MeshAnalyser::ComputeGeodesicDepthFromClosed(bool norm)
+{
+    if(this->closedMesh->GetNumberOfPoints()<1)
+    {
+        ComputeClosedMeshFast();
+    }
+
+    ComputeGeodesicDepth(norm,this->closedMesh);
+}
+
+
+void MeshAnalyser::ComputeGeodesicDepth(bool norm)
+{
+    //convex hull construction
+    int recPlan=3;
+
+    vtkHull *hull = vtkHull::New();
+    hull->SetInputConnection(this->mesh->GetProducerPort());
+    hull->AddRecursiveSpherePlanes(recPlan);
+    hull->Update();
+
+    vtkPolyData *pq = vtkPolyData::New();
+    pq->DeepCopy(hull->GetOutput());
+    pq->Update();
+
+    cout<<"Hull generated"<<endl;
+
+    ComputeGeodesicDepth(norm, pq);
+}
+
+
+void MeshAnalyser::ComputeGeodesicDepth(bool norm, vtkPolyData* pq)
+{
+    int maxBound=5000;
+
+    //Point locator for the closest point of the convex hull
+    vtkCellLocator *pl = vtkCellLocator::New();
+    pl->SetDataSet(pq);
+    pl->BuildLocator();
+
+    multimap<float,vtkIdType> frontier;
+
+    vtkDoubleArray* depths=vtkDoubleArray::New();
+
+    double point1[3], point2[3];
+    int  subid;
+    vtkIdType cellid;
+
+    double ec=0;
+
+    //-----------------------------------------------//
+    //allocation of the distance to the              //
+    //mesh if the point is visible                   //
+    //-----------------------------------------------//
+
+    double threshold=0.3;
+
+    for(int i = 0; i < this->nbPoints; i++)
+    {
+        this->mesh->GetPoint(i,point1);
+        pl->FindClosestPoint(point1,point2,cellid,subid, ec);
+        ec=sqrt(ec);
+
+        //If the point is very close
+        if (ec<threshold)
+        {
+            depths->InsertNextValue(ec);
+            frontier.insert(pair<float,vtkIdType>(ec,i));
+        }
+        else
+        {
+            depths->InsertNextValue(maxBound);
+        }
+    }
+
+    pl->Delete();
+
+    cout<<"Euclidean depth allocated for very close points"<<endl;
+
+
+    //-----------------------------------------------//
+    //allocation of the distance to the              //
+    //mesh if the point is  not visible              //
+    //-----------------------------------------------//
+
+
+    //temporary indexes
+    vtkIdType curId;
+    vtkIdType curFrontierId;
+
+    vtkIdList* curNeib=vtkIdList::New();
+    int nbNeib;
+    double upgDist;
+
+    multimap<float,vtkIdType>::iterator iter;
+
+    //iteration screening the neighbors of the front point with the smallest value
+    while(!frontier.empty())
+    {
+        iter=frontier.begin();
+        curFrontierId=iter->second;
+
+        this->mesh->GetPoint(curFrontierId,point1);
+        curNeib->Reset();
+        curNeib->Squeeze();
+        GetPointNeighbors(curFrontierId,curNeib);
+        nbNeib=curNeib->GetNumberOfIds();
+        //neighbors of the front point
+        for(int j=0;j<nbNeib;j++)
+        {
+            curId=curNeib->GetId(j);
+
+            this->mesh->GetPoint(curId,point2);
+            ec=vtkMath::Distance2BetweenPoints(point1,point2);
+            ec=sqrt(ec);
+            upgDist=depths->GetValue(curFrontierId)+ec;
+            //distance is upgraded if necessary
+            if(upgDist<depths->GetValue(curId))
+            {
+                depths->SetValue(curId,upgDist);
+                //if point is upgraded, it enters in the front
+                frontier.insert(pair<float,vtkIdType>(upgDist,curId));
+            }
+        }
+        frontier.erase(iter);
+
+    }
+    curNeib->Delete();
+
+
+    ////-----------------------------------------------//
+    ////normalization       		             //
+    ////-----------------------------------------------//
+
+    double MIN=1000;
+    double MAX=-1000;
+
+    if(norm==true)
+    {
+        for(int i = 0; i < this->nbPoints; i++)
+        {
+            if(MAX<depths->GetValue(i) && depths->GetValue(i)<maxBound) MAX=depths->GetValue(i);
+            if(MIN>depths->GetValue(i)) MIN=depths->GetValue(i);
+        }
+    }
+
+    double cc;
+    double tot=0;
+    for(int i = 0; i < this->nbPoints; i++)
+    {
+        if(norm==true) cc = (depths->GetValue(i)-MIN)/(MAX-MIN);
+        else cc=depths->GetValue(i);
+        this->geoDepth->InsertNextValue(cc);
+    }
+
+    depths->Delete();
+
+    cout<<"Geodesic depth computed"<<endl;
+}
+
+
 void MeshAnalyser::Simplify(double factor)
 {
     //if the last simplification was not exactly the same
@@ -1461,19 +1629,19 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 
 void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
 {
-
     double pt1[3],pt2[3],N[3]={0,0,0}, normv;
 
     vtkSmoothPolyDataFilter* smoothed = vtkSmoothPolyDataFilter::New();
     smoothed->SetInput(this->mesh);
     smoothed->SetRelaxationFactor(res);
-    smoothed->SetNumberOfIterations(nbIt);
+    smoothed->SetNumberOfIterations(200);
     smoothed->FeatureEdgeSmoothingOff();
     smoothed->BoundarySmoothingOff();
     smoothed->Update();
 
-    double maxCurv=-10;
-    double minCurv=1000;	this->curv->Reset();
+    double maxCurv=-10000;
+    double minCurv=10000;
+    this->curv->Reset();
 
     double pt1pt2[3];
 
@@ -1488,9 +1656,10 @@ void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
         {
             pt1pt2[w]=pt2[w]-pt1[w];
         }
-        //if(vtkMath::Norm(pt1pt2)==0)normv=1;
-        //else normv=vtkMath::Norm(pt1pt2);
+
         normv=vtkMath::Norm(pt1pt2);
+        if(normv<0.0001)normv=1;
+        else normv=vtkMath::Norm(pt1pt2);
         curCurv=(vtkMath::Dot(N,pt1pt2)/normv);
         //curCurv=normv;
         this->curv->InsertNextTuple1(curCurv);
@@ -1499,12 +1668,9 @@ void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
         if(isnan(this->curv->GetTuple1(i)))cout<<vtkMath::Norm(pt1pt2)<<" "<<vtkMath::Norm(N)<<endl;
     }
 
-    cout<<"curvature estimation done"<<endl;
-
-
-
     smoothed->Delete();
     cout<<"curvature estimation done"<<endl;
+    return;
 }
 
 vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
@@ -1897,7 +2063,7 @@ void MeshAnalyser::ComputeHistogram(char* prop, const int nbBins)
     ComputeHistogram(data, nbBins);
 }
 
-void MeshAnalyser::ComputeHistogram(vtkDataArray* data, const int nbBinsNU)
+void MeshAnalyser::ComputeHistogram(vtkDataArray* data, int nbBinsNU)
 {
     double min=10000000;
     double max=-100000000;
@@ -1937,6 +2103,5 @@ void MeshAnalyser::ComputeHistogram(vtkDataArray* data, const int nbBinsNU)
         cout<<hist[j]/this->nbPoints<<" ";
     }
     cout<<endl;
-
 }
 

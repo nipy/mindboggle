@@ -30,6 +30,10 @@ ADD_SUBDIRECTORY(
 gradient
 )
 
+ADD_SUBDIRECTORY(
+geodesic_depth
+)
+
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
