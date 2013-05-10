@@ -2,14 +2,10 @@
 """
 Functions related to reading and writing VTK format files.
 
-1. Functions for reading VTK files
-2. Functions for writing VTK files
-3. Functions for converting FreeSurfer files to VTK format
-
-
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Oliver Hinds, 2013 (ohinds@gmail.com)
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -171,57 +167,6 @@ def read_faces_points(filename):
         faces = []
 
     return faces, points, npoints
-
-def reindex_faces_points(faces, points=[]):
-    """
-    Renumber indices in faces and remove points (coordinates) not in faces.
-
-    Parameters
-    ----------
-    faces : list of lists of integers
-        each sublist contains 3 indices of vertices that form a face
-        on a surface mesh
-    points : list of lists of floats (optional)
-        each sublist contains 3-D coordinates of a vertex on a surface mesh
-
-    Returns
-    -------
-    new_faces : list of lists of integers
-        each sublist contains 3 (renumbered) indices of vertices
-        that form a face on a surface mesh
-    new_points : list of lists of floats
-        each (new) sublist contains 3-D coordinates of a vertex on a surface mesh
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points, reindex_faces_points
-    >>> # Reindex faces:
-    >>> faces = [[8,2,3], [2,3,7], [4,7,8], [3,2,5]]
-    >>> reindex_faces_points(faces, points=[])
-        ([[5, 0, 1], [0, 1, 4], [2, 4, 5], [1, 0, 3]], None)
-    >>> # Reindex faces of a single fold of the brain:
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, points, npoints = read_faces_points(fold_file)
-    >>> new_faces, new_points = reindex_faces_points(faces, points)
-
-    """
-    import itertools
-
-    # set() to remove repeated indices and list() to order them for later use:
-    indices_to_keep = list(set(itertools.chain(*faces)))
-    reindex = dict([(old_index, new_index)
-                    for new_index, old_index in enumerate(indices_to_keep)])
-
-    new_faces = [[reindex[old_index] for old_index in face] for face in faces]
-
-    if points:
-        new_points = [points[new_index] for new_index in indices_to_keep]
-    else:
-        new_points = None
-
-    return new_faces, new_points
 
 def read_scalars(filename, return_first=True, return_array=False):
     """
@@ -1056,42 +1001,21 @@ def apply_affine_transform(transform_file, vtk_file):
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
 
-    print("\n\n\nUNDER CONSTRUCTION!!!\n\n\n")
+    # Read ITK affine transform file:
+    transform, fixed_parameters = read_itk_transform(transform_file)
 
-    # Read ITK affine transform file
-#    transform, fixed_parameters = read_itk_transform(transform_file)
-
-    import nibabel as nb
-    subject_path = '/Applications/freesurfer/subjects/Twins-2-1'
-    native_volume_mgz = subject_path + '/mri/orig/001.mgz'
-    conformed_volume_mgz = subject_path + '/mri/brain.mgz'
-    M = np.array([[-1,0,0,128],
-                  [0,0,1,-128],
-                  [0,-1,0,128],
-                  [0,0,0,1]],dtype=float)
-    native = nb.freesurfer.load(native_volume_mgz)
-    conformed = nb.freesurfer.load(conformed_volume_mgz)
-    affine_native = native.get_affine()
-    affine_conformed = conformed.get_affine()
-    transform = np.dot(affine_conformed, np.linalg.inv(M))
-
-    # Read VTK file
+    # Read VTK file:
     faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
 
-    # Transform points
+    # Transform points:
     points = np.array(points)
-#    points += fixed_parameters
-
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
     affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
-#    affine_points -= fixed_parameters
-#    #affine_points += [0,256,0]
 
-    # Output transformed VTK file
+    # Write transformed VTK file:
     output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-
-    # Write VTK file
-    write_vtk(output_file, affine_points.tolist(), indices, lines, faces, scalars, name)
+    write_vtk(output_file, affine_points.tolist(), indices, lines, faces,
+              scalars, name)
 
     return affine_points, output_file
 
