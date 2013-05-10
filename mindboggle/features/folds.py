@@ -104,8 +104,9 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     from time import time
     from scipy.ndimage.filters import gaussian_filter1d
     from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
-    from mindboggle.utils.mesh import find_neighbors, fill_holes
-    from mindboggle.labels.segment import segment
+    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.utils.morph import fill_holes
+    from mindboggle.utils.segment import segment
 
     do_fill_holes = True
 
@@ -306,7 +307,7 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     from time import time
     from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.segment import segment, propagate, watershed
+    from mindboggle.utils.segment import segment, propagate, watershed
 
     print("Segment folds into subfolds")
     t0 = time()
