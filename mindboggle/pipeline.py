@@ -26,10 +26,10 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         - curvatures (mean, Gaussian, min, max, min directions)
         - area
         - thickness (from FreeSurfer)
-        - convexity (a depth measure from FreeSurfer)
+        - convexity (from FreeSurfer)
 
     * Construct tables:
-        - labeled region shapes
+        - label shapes
         - sulcus shapes
         - fundus shapes
         - per-vertex shape measures
@@ -40,7 +40,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         - fill gray matter with labels
         - measure label volumes
         - construct tables
-        - evaluate label volumes
+        -> evaluate label volumes
 
 
 .. Note::
@@ -49,7 +49,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
       by FreeSurfer (autorecon -all), so subject names correspond to directory
       names in FreeSurfer's subjects directory.
 
-For more information about Mindboggle (http://www.mindboggle.info)
+For more information about Mindboggle (http://mindboggle.info)
 and read the documentation: http://mindboggle.info/software/documentation.html
 
 For information on Nipype (http://www.nipy.org/nipype/):
@@ -83,11 +83,11 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_fundi = False  # Extract fundi
+do_fundi = True  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
+do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -145,18 +145,18 @@ from mindboggle.utils.io_file import read_columns, write_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
     surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
 from mindboggle.utils.mesh import find_neighbors_from_file
-from mindboggle.labels.multiatlas import register_template,\
-     transform_atlas_labels, majority_vote_label
+from mindboggle.labels.label_free import register_template,\
+     transform_atlas_labels, label_with_classifier
+from mindboggle.labels.labels import majority_vote_label
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
-from mindboggle.labels.label import label_with_classifier
 from mindboggle.shapes.measure import area, depth, curvature,\
     volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 from mindboggle.features.folds import extract_folds
-from mindboggle.features.likelihood import compute_likelihood
+from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
@@ -167,17 +167,16 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 # Paths
 #-----------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+atlases_path = subjects_path  # Mindboggle-101 atlases directory
 data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
-temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-ccode_path = os.environ['MINDBOGGLE_TOOLS']
-#protocol_path = os.path.join(get_info()['pkg_path'], 'labels', 'protocol')
+ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
 protocol_path = os.path.join(os.environ['MINDBOGGLE'], 'labels', 'protocol')
-atlases_path = subjects_path
+x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
+temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 # Label with classifier atlas
-templates_path = os.path.join(subjects_path, 'MindboggleTemplates')
-# Label with classifier atlas
-classifier_path = os.path.join(subjects_path, 'MindboggleClassifierAtlases')
-classifier_atlas = 'DKTatlas40.gcs'
+templates_path = os.path.join(data_path, 'atlases')
+classifier_path = os.path.join(data_path, 'atlases')
+classifier_atlas = 'DKTatlas40.gcs'  # 'DKTatlas100.gcs'
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -200,7 +199,8 @@ Info.iterables = ([('subject', subjects), ('hemi', hemis)])
 #-----------------------------------------------------------------------------
 Surf = Node(name = 'Surfaces',
             interface = DataGrabber(infields=['subject', 'hemi'],
-                                    outfields=['surface_files', 'sphere_files']))
+                                    outfields=['surface_files', 'sphere_files'],
+                                    sort_filelist=False))
 Surf.inputs.base_directory = subjects_path
 Surf.inputs.template = '%s/surf/%s.%s'
 Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
@@ -215,7 +215,8 @@ mbFlow.connect([(Info, Surf, [('subject','subject'), ('hemi','hemi')])])
 #-----------------------------------------------------------------------------
 Annot = Node(name = 'Annots',
              interface = DataGrabber(infields=['subject', 'hemi'],
-                                     outfields=['annot_files']))
+                                     outfields=['annot_files'],
+                                     sort_filelist=False))
 Annot.inputs.base_directory = subjects_path
 Annot.inputs.template = '%s/label/%s.aparc.annot'
 Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
@@ -225,7 +226,8 @@ Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 if do_fill:
     Vol = Node(name = 'Volumes',
         interface = DataGrabber(infields=['subject'],
-                                outfields=['original_volume']))
+                                outfields=['original_volume'],
+                                sort_filelist=False))
     Vol.inputs.base_directory = subjects_path
     Vol.inputs.template = '%s/mri/orig/001.mgz'
     Vol.inputs.template_args['original_volume'] = [['subject']]
@@ -251,7 +253,8 @@ if not do_input_vtk:
 if do_evaluate_surface or init_labels == 'manual':
     Atlas = Node(name = 'Atlases',
                  interface = DataGrabber(infields=['subject','hemi'],
-                                         outfields=['atlas_file']))
+                                         outfields=['atlas_file'],
+                                         sort_filelist=False))
     Atlas.inputs.base_directory = atlases_path
 
     Atlas.inputs.template = '%s/label/%s.labels.' +\
@@ -351,6 +354,7 @@ if run_labelFlow:
         #mbFlow.connect([(labelFlow, Sink,
         #                 [('Classifier2vtk.output_vtk', 'labels.@DKTsurface')])])
         init_labels_plug = 'DKT_annot_to_VTK.output_vtk'
+
     #=========================================================================
     # Initialize labels using multi-atlas registration
     #=========================================================================
@@ -379,7 +383,7 @@ if run_labelFlow:
         # Register atlases to subject via template
         #---------------------------------------------------------------------
         # Load atlas list
-        atlas_list_file = os.path.join(protocol_path, 'atlases.txt')
+        atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
         atlas_list = read_columns(atlas_list_file, 1)[0]
 
         Transform = MapNode(name = 'Transform_labels',
@@ -428,6 +432,7 @@ if run_labelFlow:
                           ('Label_vote.labelcounts_file', 'labels.@counts'),
                           ('Label_vote.labelvotes_file', 'labels.@votes')])])
         init_labels_plug = 'Label_vote.maxlabel_file'
+
     #=========================================================================
     # Skip label initialization and process manual (atlas) labels
     #=========================================================================
@@ -587,7 +592,10 @@ if run_featureFlow:
                      [('Depth.depth_file','Folds.depth_file')])])
     FoldsNode.inputs.min_fold_size = min_fold_size
     FoldsNode.inputs.tiny_depth = 0.001
-    FoldsNode.inputs.save_file = False
+    FoldsNode.inputs.save_file = True
+    # Save folds
+    mbFlow.connect([(featureFlow, Sink,
+                     [('Folds.folds_file','features.@folds')])])
 
     """
     # Subfolds
@@ -674,7 +682,7 @@ if run_featureFlow:
         featureFlow.connect([(LabelPairs, SulciNode,
                               [('label_pair_lists','label_pair_lists')])])
         SulciNode.inputs.min_boundary = 1
-        sulcus_names_file = os.path.join(data_path, 'protocol', 'sulci.names.DKT25.txt')
+        sulcus_names_file = os.path.join(protocol_path, 'sulci.names.DKT25.txt')
         fid = open(sulcus_names_file, 'r')
         sulcus_names = fid.readlines()
         sulcus_names = [x.strip('\n') for x in sulcus_names]
@@ -693,89 +701,52 @@ if run_featureFlow:
                                              input_names = ['trained_file',
                                                             'depth_file',
                                                             'curvature_file',
-                                                            'sulci'],
+                                                            'folds'],
                                              output_names = ['likelihoods']))
 
         featureFlow.add_nodes([LikelihoodNode])
-        LikelihoodNode.inputs.trained_file = os.path.join(data_path,
+        LikelihoodNode.inputs.trained_file = os.path.join(data_path, 'atlases',
             'depth_curv_border_nonborder_parameters.pkl')
         mbFlow.connect([(shapeFlow, featureFlow,
                          [('Rescale_depth.rescaled_scalars_file',
                            'Likelihood.depth_file'),
                           ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
-        featureFlow.connect([(SulciNode, LikelihoodNode, [('sulci','sulci')])])
-        # Save VTK file with likelihood values:
-        mbFlow.connect([(featureFlow, Sink,
-                         [('Likelihood.likelihoods','features.@likelihood')])])
+        featureFlow.connect([(FoldsNode, LikelihoodNode, [('folds','folds')])])
 
-
-        fundi_from_sulci = False
-        min_distance = 5.0
-        thr = 0.5
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
-                                        input_names = ['folds_or_file',
+                                        input_names = ['folds',
+                                                       'sulci',
+                                                       'likelihoods',
+                                                       'rescaled_depth_file',
                                                        'depth_file',
-                                                       'min_curvature_vector_file',
-                                                       'likelihoods_or_file',
-                                                       'min_distance',
-                                                       'thr',
+                                                       'min_edges',
+                                                       'erosion_ratio',
+                                                       'smooth_skeleton',
+                                                       'filter',
+                                                       'filter_file',
                                                        'save_file'],
                                         output_names = ['fundi',
                                                         'n_fundi',
                                                         'fundi_file']))
-        if fundi_from_sulci:
-            featureFlow.connect([(SulciNode, FundiNode, [('sulci','folds_or_file')])])
-        else:
-            featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds_or_file')])])
-        mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature.min_curvature_vector_file',
-                           'Fundi.min_curvature_vector_file')])])
+        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
+        featureFlow.connect([(SulciNode, FundiNode, [('sulci','sulci')])])
         featureFlow.connect([(LikelihoodNode, FundiNode,
-                              [('likelihoods', 'likelihoods_or_file')])])
-        FundiNode.inputs.min_distance = min_distance
-        FundiNode.inputs.thr = thr
+                              [('likelihoods', 'likelihoods')])])
+        mbFlow.connect([(shapeFlow, featureFlow,
+                         [('Rescale_depth.rescaled_scalars_file',
+                           'Fundi.rescaled_depth_file'),
+                          ('Depth.depth_file','Fundi.depth_file'),
+                          ('Area.area_file','Fundi.filter_file')])])
+        FundiNode.inputs.min_edges = 10
+        FundiNode.inputs.erosion_ratio = 0.25
+        FundiNode.inputs.smooth_skeleton = False
+        FundiNode.inputs.filter = True
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         mbFlow.connect([(featureFlow, Sink,
                          [('Fundi.fundi_file','features.@fundi')])])
-
-    #=========================================================================
-    # Segment fundi by sulcus divisions
-    #=========================================================================
-    """
-    if do_fundi and not fundi_from_sulci:
-
-        SegmentFundi = Node(name='Segment_fundi',
-                            interface = Fn(function = extract_fundi,
-                                           input_names = ['folds',
-                                                       'neighbor_lists',
-                                                       'depth_file',
-                                                       'mean_curvature_file',
-                                                       'min_curvature_vector_file',
-                                                       'min_distance',
-                                                       'thr',
-                                                       'use_only_endpoints',
-                                                       'compute_local_depth'],
-                                           output_names = ['fundi',
-                                                        'n_fundi',
-                                                        'likelihoods']))
-        featureFlow.connect([(FoldsNode, FundiNode, [('folds','folds')])])
-        featureFlow.connect([(NbrNode, FundiNode,
-                              [('neighbor_lists','neighbor_lists')])])
-        mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Depth.depth_file','Fundi.depth_file'),
-                          ('Curvature.mean_curvature_file',
-                           'Fundi.mean_curvature_file'),
-                          ('Curvature.min_curvature_vector_file',
-                           'Fundi.min_curvature_vector_file')])])
-        FundiNode.inputs.min_distance = min_distance
-        FundiNode.inputs.thr = thr
-        FundiNode.inputs.use_only_endpoints = True
-        FundiNode.inputs.compute_local_depth = True
-    """
 
 ##############################################################################
 #
@@ -1163,25 +1134,30 @@ if run_volumeFlow:
                                            input_names = ['columns',
                                                           'column_names',
                                                           'output_table',
+                                                          'delimiter',
                                                           'input_table'],
                                            output_names = ['output_table']))
         mbFlow2.add_nodes([InitVolTable])
         mbFlow2.connect([(MeasureVolumes, InitVolTable,
                           [('labels', 'columns')])])
         InitVolTable.inputs.column_names = ['label']
-        InitVolTable.inputs.output_table = 'volume_labels.txt'
+        InitVolTable.inputs.output_table = 'volume_labels.csv'
+        InitVolTable.inputs.delimiter = ','
+        InitVolTable.inputs.input_table = ''
 
         VolumeLabelTable = Node(name='Volume_label_table',
                                 interface = Fn(function = write_columns,
                                                input_names = ['columns',
                                                               'column_names',
                                                               'output_table',
+                                                              'delimiter',
                                                               'input_table'],
                                                output_names = ['output_table']))
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
                           [('volumes', 'columns')])])
         VolumeLabelTable.inputs.column_names = ['volume']
-        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.txt'
+        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.csv'
+        VolumeLabelTable.inputs.delimiter = ','
         mbFlow2.connect([(InitVolTable, VolumeLabelTable,
                           [('output_table', 'input_table')])])
         # Save table of label volumes
@@ -1197,8 +1173,9 @@ if run_volumeFlow:
         # Evaluation inputs: location and structure of atlas volumes
         #---------------------------------------------------------------------
         AtlasVol = Node(name = 'Atlas_volume',
-                         interface = DataGrabber(infields=['subject'],
-                         outfields=['atlas_vol_file']))
+                        interface = DataGrabber(infields=['subject'],
+                                                outfields=['atlas_vol_file'],
+                                                sort_filelist=False))
         AtlasVol.inputs.base_directory = atlases_path
         AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
         AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
@@ -1250,3 +1227,18 @@ if __name__== '__main__':
         mbFlow.run()
     if run_flow2:
         mbFlow2.run()
+
+"""
+import os
+from mindboggle.utils.io_file import read_columns
+
+out_path = '/Users/arno/Data/Mindboggle-101/'
+x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
+atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
+atlas_list = read_columns(atlas_list_file, 1)[0]
+
+for atlas in atlas_list:
+    if 'MMRR-21' in atlas:
+        cmd = ' '.join(['python pipeline.py', out_path, atlas])
+        print(cmd); os.system(cmd)
+"""
