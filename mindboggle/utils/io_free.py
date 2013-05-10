@@ -6,6 +6,7 @@ Functions for converting to/from FreeSurfer formats.
 Authors:
     - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Oliver Hinds, 2013  (ohinds@gmail.com)
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -177,15 +178,18 @@ def thickness_to_ascii(hemi, subject, subjects_path):
 #=============================================================================
 # Functions for converting FreeSurfer files to/from VTK format
 #=============================================================================
-
 def surface_to_vtk(surface_file):
     """
     Convert FreeSurfer surface file to VTK format.
 
+    If a file named orig.mgz exists in '../mri', the surface coordinates
+    are transformed into scanner RAS space during format conversion
+    according to the vox2ras transform in that file.
+
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import surface_to_vtk
+    >>> from mindboggle.utils.io_free import surface_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
     >>> #
@@ -204,6 +208,24 @@ def surface_to_vtk(surface_file):
     surf = nb.freesurfer.read_geometry(surface_file)
     points = surf[0]
     faces = surf[1]
+
+    # Transform surface coordinates into normal scanner RAS.
+    # See example 3 in "Transforms within a subject's anatomical space":
+    # https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+    orig_file = os.path.join(os.path.dirname(surface_file),
+                             "..", "mri", "orig.mgz")
+
+    if os.path.exists(orig_file):
+        import numpy as np
+        Norig = nb.load(orig_file).get_affine()
+        Torig = np.array([[-1, 0, 0, 128],
+                          [0, 0, 1, -128],
+                          [0, -1, 0, 128],
+                          [0, 0, 0, 1]], dtype=float)
+        xfm = np.dot(Norig, np.linalg.inv(Torig))
+        points = np.transpose(np.dot(xfm, np.transpose(
+            np.concatenate((points, np.ones((np.shape(points)[0],1))),
+                           axis=1))))[:,0:3]
 
     output_vtk = os.path.join(os.getcwd(),
                               os.path.basename(surface_file + '.vtk'))
@@ -429,4 +451,3 @@ def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
     #f_relabel.close()
 
     return label_files, colortable  #relabel_file
-
