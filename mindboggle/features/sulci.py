@@ -94,8 +94,8 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.label import extract_borders
-    from mindboggle.labels.segment import propagate, segment
+    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import propagate, segment
 
 
     # Load fold numbers if folds_or_file is a string
