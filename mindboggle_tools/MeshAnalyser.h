@@ -84,54 +84,88 @@ public:
     //Compute Travel Depth and fill this->depth
     void ComputeTravelDepth(bool norm);
 
-        //ComputeTravelDepth(bool arg1, vtkPolyData* arg2)
-        //
-        //Compute the travel depth, i.e., the shortest distance between the
-        //mesh surface and a reference mesh without going through the mesh
-        //interior.
-        //
-        //arg1 = bool (true -> depth normalized between 0 and 1)
-        //arg2 = vtkPolyData: reference mesh
-        //Compute Travel Depth and fill this->depth
-        void ComputeTravelDepth(bool norm, vtkPolyData* refMesh);
+    //ComputeTravelDepth(bool arg1, vtkPolyData* arg2)
+    //
+    //Compute the travel depth, i.e., the shortest distance between the
+    //mesh surface and a reference mesh without going through the mesh
+    //interior.
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //arg2 = vtkPolyData: reference mesh
+    //Compute Travel Depth and fill this->depth
+    void ComputeTravelDepth(bool norm, vtkPolyData* refMesh);
 
-        //ComputeTravelDepth(bool arg1)
-        //
-        //Compute the travel depth, i.e., the shortest distance between the
-        //mesh surface and a reference mesh (the closed mesh) without going
-        //through the mesh interior.
-        //
-        //arg1 = bool (true -> depth normalized between 0 and 1)
-        //Compute Travel Depth and fill this->depth
-        void ComputeTravelDepthFromClosed(bool norm);
+    //ComputeTravelDepth(bool arg1)
+    //
+    //Compute the travel depth, i.e., the shortest distance between the
+    //mesh surface and a reference mesh (the closed mesh) without going
+    //through the mesh interior.
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //Compute Travel Depth and fill this->depth
+    void ComputeTravelDepthFromClosed(bool norm);
 
-        //ComputeEuclideanDepth(bool arg1)
-        //
-        //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
-        //mesh surface and its convex hull
-        //
-        //arg1 = bool (true -> depth normalized between 0 and 1)
-        //Compute Travel Depth and fill this->euclideanDepth
-        void ComputeEuclideanDepth(bool norm);
 
-        //ComputeEuclideanDepth(bool arg1, vtkPolyData* arg2)
-        //
-        //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
-        //mesh surface and a reference mesh
-        //
-        //arg1 = bool (true -> depth normalized between 0 and 1)
-        //arg2 = vtkPolyData: reference mesh
-        //Compute Travel Depth and fill this->euclideanDepth
-        void ComputeEuclideanDepth(bool norm, vtkPolyData* refMesh);
+    //ComputeGeodesicDepth(bool arg1)
+    //
+    //Compute the geodesic depth, i.e., the shortest distance between the
+    //mesh surface and a reference mesh going along the surface mesh
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //Compute Geodesic Depth and fill this->geoDepth
+    void ComputeGeodesicDepth(bool norm);
 
-        //ComputeEuclideanDepth(bool arg1)
-        //
-        //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
-        //mesh surface and a reference mesh (the closed mesh)
-        //
-        //arg1 = bool (true -> depth normalized between 0 and 1)
-        //Compute Travel Depth and fill this->euclideanDepth
-        void ComputeEuclideanDepthFromClosed(bool norm);
+
+    //ComputeGeodesicDepth(bool arg1, vtkPolyData* arg2)
+    //
+    //Compute the geodesic depth, i.e., the shortest distance between the
+    //mesh surface and its convex hull going along the surface mesh
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //arg2 = vtkPolyData: reference mesh
+    //Compute Geodesic Depth and fill this->geoDepth
+    void ComputeGeodesicDepth(bool norm, vtkPolyData *pq);
+
+
+    //ComputeGeodesicDepth(bool arg1)
+    //
+    //Compute the geodesic depth, i.e., the shortest distance between the
+    //mesh surface and iand a reference mesh (the closed mesh)
+    //going along the surface mesh
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //Compute Geodesic Depth and fill this->geoDepth
+    void ComputeGeodesicDepthFromClosed(bool norm);
+
+
+
+    //ComputeEuclideanDepth(bool arg1)
+    //
+    //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
+    //mesh surface and its convex hull
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //Compute Travel Depth and fill this->euclideanDepth
+    void ComputeEuclideanDepth(bool norm);
+
+    //ComputeEuclideanDepth(bool arg1, vtkPolyData* arg2)
+    //
+    //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
+    //mesh surface and a reference mesh
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //arg2 = vtkPolyData: reference mesh
+    //Compute Travel Depth and fill this->euclideanDepth
+    void ComputeEuclideanDepth(bool norm, vtkPolyData* refMesh);
+
+    //ComputeEuclideanDepth(bool arg1)
+    //
+    //Compute the Euclidean depth, i.e., the shortest Euclidean distance between the
+    //mesh surface and a reference mesh (the closed mesh)
+    //
+    //arg1 = bool (true -> depth normalized between 0 and 1)
+    //Compute Travel Depth and fill this->euclideanDepth
+    void ComputeEuclideanDepthFromClosed(bool norm);
 
 
     //GeoDistRing(vtkIdType arg1, double arg2)
@@ -236,7 +270,7 @@ public:
     //Compute the number of occurance of the variable comprised in the arg2 bins
     //covering [min,max] the min and the max of the variable. Print out the result.
     void ComputeHistogram(char *prop, const int nbBins);
-    void ComputeHistogram(vtkDataArray *data, const int nbBins);
+    void ComputeHistogram(vtkDataArray *data, int nbBins);
 
 protected:
     //same as GeoDistRing but on this->simpl. Used in GeoDistRing(vtkIdType arg1, double arg2, double arg3)
@@ -260,12 +294,12 @@ protected:
 
 private:
 
-        //Initialize
-        //
-        //The common part of the constructors
-        void Initialize();
+    //Initialize
+    //
+    //The common part of the constructors
+    void Initialize();
 
-        double IsIntersecting(double point1[3], double point2[2]);
+    double IsIntersecting(double point1[3], double point2[2]);
 
 
     //Analysed mesh (constructor or SetMesh)
@@ -276,6 +310,9 @@ private:
 
     //vector containing travel depth values (ComputeTravelDepth)
     vtkDoubleArray* depth;
+
+    //vector containing geodesic depth values (ComputeGeodesicDepth)
+    vtkDoubleArray* geoDepth;
 
     //vector containing point surface areas (ComputePointSurface)
     vtkDoubleArray* pointSurf;
@@ -341,15 +378,15 @@ private:
     // (geoDistRing(arg1,arg2,arg3))
     vtkIdList* close;
 
-        //A mesh corresponding to the morphological closing
-        //of the interior volume of the original mesh.
-        vtkPolyData* closedMesh;
+    //A mesh corresponding to the morphological closing
+    //of the interior volume of the original mesh.
+    vtkPolyData* closedMesh;
 
-        //vector containing Euclidean depth values (ComputeEuclideanDepth)
-        vtkDoubleArray* euclideanDepth;
+    //vector containing Euclidean depth values (ComputeEuclideanDepth)
+    vtkDoubleArray* euclideanDepth;
 
-        vtkCellLocator* meshLocator;
-        vtkPolyData* medialSurface;
+    vtkCellLocator* meshLocator;
+    vtkPolyData* medialSurface;
 
 };
 
