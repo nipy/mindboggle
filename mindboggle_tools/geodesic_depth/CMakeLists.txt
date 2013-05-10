@@ -6,22 +6,21 @@ ENDIF(COMMAND CMAKE_POLICY)
 
 
 # This project is designed to be built outside the Insight source tree.
-PROJECT(point_area)
+PROJECT(geodesic_depth)
 
 # Find VTK.
 FIND_PACKAGE(VTK REQUIRED)
 INCLUDE(${VTK_USE_FILE})
 
 ADD_EXECUTABLE(
-PointAreaMain PointAreaMain.cpp
+GeodesicDepthMain GeodesicDepthMain.cpp
 )
-INSTALL(TARGETS PointAreaMain
+INSTALL(TARGETS GeodesicDepthMain
     RUNTIME DESTINATION /bin)
 
 TARGET_LINK_LIBRARIES(
-PointAreaMain
+GeodesicDepthMain
 MeshAnalyser
-PointAreaComputer
 vtkCommon
 vtkRendering
 vtkHybrid
