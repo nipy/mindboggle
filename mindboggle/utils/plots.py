@@ -21,16 +21,17 @@ def plot_vtk(vtk_file):
     vtk_file : string
         name of VTK surface mesh file
     """
-    import subprocess
+    import os
+#    import subprocess
 
     cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface"]
     print(' '.join(cmd))
-    p = subprocess.Popen(cmd)
-    p.communicate()
 
-    #import os
-    #c = ' '.join(cmd)
-    #print(c); os.system(c)
+# Note: subprocess won't allow me to put the command in the background:
+#    p = subprocess.Popen(cmd)
+#    p.communicate()
+    c = ' '.join(cmd) + ' &'
+    print(c); os.system(c)
 
 
 #------------------------------------------------------------------------------
@@ -43,7 +44,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.mesh import plot_scalar_histogram
+    >>> from mindboggle.utils.plots import plot_scalar_histogram
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> plot_scalar_histogram(vtk_file, nbins=500)
