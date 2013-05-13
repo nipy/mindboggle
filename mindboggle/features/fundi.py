@@ -80,7 +80,6 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
     >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> single_fold = True
     >>> if single_fold:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -91,12 +90,15 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
     >>> #
+    >>> min_edges = 10
+    >>> erosion_ratio = 0.25
     >>> smooth_skeleton = False
+    >>> filter = True
+    >>> filter_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
-    >>>     rescaled_depth_file, depth_file, min_edges=10, erosion_ratio=0.25,
-    >>>     smooth_skeleton=False, filter=True, filter_file=area_file,
-    >>>     save_file=True)
+    >>>     rescaled_depth_file, depth_file, min_edges, erosion_ratio,
+    >>>     smooth_skeleton, filter, filter_file, save_file)
     >>> #
     >>> # View:
     >>> plot_vtk(fundi_file)
@@ -152,9 +154,9 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
             #-----------------------------------------------------------------
             # Connect endpoints to create skeleton:
             #-----------------------------------------------------------------
-            B = -1 * np.ones(len(folds))
-            B[indices_fold] = 1
             if run_erosion:
+                B = -1 * np.ones(len(folds))
+                B[indices_fold] = 1
                 skeleton = connect_points_erosion(B, endpoints, neighbor_lists,
                                                   likelihoods, erosion_ratio)
             else:
@@ -166,15 +168,45 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                 # Smooth skeleton:
                 #-------------------------------------------------------------
                 if run_erosion and smooth_skeleton:
-                    print('\n\nNOTE: Fundus smoothing not yet implemented.\n\n')
-                    nedges = 2
-                    print('    Dilate skeleton...')
-                    padded_skeleton = dilate(skeleton, nedges, neighbor_lists)
-                    print('    Smoothly re-skeletonize dilated skeleton...')
-                    skeleton = connect_points_hmmf(endpoints,
-                        padded_skeleton, likelihoods, neighbor_lists)
 
+                    # Dilate the skeleton within the fold:
+                    nedges = 2
+                    print('    Dilate skeleton and intersect with fold...')
+                    dilated = dilate(skeleton, nedges, neighbor_lists)
+                    dilated = list(frozenset(dilated).intersection(indices_fold))
+
+                    # In case the dilation leads to topological changes,
+                    # erode the fold again to the dilated skeleton:
+                    re_erode = False
+                    if re_erode:
+                        print('    Erode fold again to dilated skeleton...')
+                        S = -1 * np.ones(len(depths))
+                        S[indices_fold] = 1
+                        dilated = connect_points_erosion(S, dilated,
+                            neighbor_lists, values=[], erosion_ratio=1)
+
+                    # Zero likelihoods for undilated portion of the fold:
+                    undilated = list(frozenset(indices_fold).difference(dilated))
+                    likelihoods_copy = likelihoods[:]
+                    likelihoods_copy[undilated] = 0
+                    likelihoods_copy.tolist()
+
+                    # Smoothly re-skeletonize the dilated skeleton:
+                    print('    Smoothly re-skeletonize dilated skeleton...')
+                    #skeleton = connect_points_hmmf(endpoints, dilated,
+                    #    likelihoods_copy, neighbor_lists)
+                    skeleton2 = connect_points_hmmf(endpoints, dilated,
+                        likelihoods_copy, neighbor_lists)
+
+                    # Plot test:
+                    D = -1*np.ones(len(depths))
+                    D[dilated]=1; D[skeleton]=2; D[skeleton2]=3
+                    rewrite_scalars(depth_file,'test.vtk',D,'D',folds)
+                    plot_vtk('test.vtk')
+
+                #-------------------------------------------------------------
                 # Store skeleton:
+                #-------------------------------------------------------------
                 skeletons.extend(skeleton)
 
     #-------------------------------------------------------------------------

@@ -203,7 +203,7 @@ def area(command, surface_file):
 
     return area_file
 
-def depth(command, surface_file):
+def travel_depth(command, surface_file):
     """
     Measure "travel depth" of each vertex in a surface mesh.
     (Calls Joachim Giard's C++ code)
@@ -218,7 +218,7 @@ def depth(command, surface_file):
     from nipype.interfaces.base import CommandLine
 
     depth_file = os.path.join(os.getcwd(),
-                 os.path.splitext(os.path.basename(surface_file))[0] + '.depth.vtk')
+                 os.path.splitext(os.path.basename(surface_file))[0] + '.travel_depth.vtk')
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join([surface_file, depth_file])
     cli.cmdline
@@ -226,25 +226,74 @@ def depth(command, surface_file):
 
     return depth_file
 
-def curvature(command, surface_file):
+def geodesic_depth(command, surface_file):
+    """
+    Measure "travel depth" of each vertex in a surface mesh.
+    (Calls Joachim Giard's C++ code)
+
+    Parameters
+    ----------
+    command : travel depth C++ executable command
+    surface_file : ``vtk file``
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    depth_file = os.path.join(os.getcwd(),
+                 os.path.splitext(os.path.basename(surface_file))[0] + '.geodesic_depth.vtk')
+    cli = CommandLine(command = command)
+    cli.inputs.args = ' '.join([surface_file, depth_file])
+    cli.cmdline
+    cli.run()
+
+    return depth_file
+
+def curvature(command, method, arguments, surface_file):
     """
     Measure curvature values of each vertex in a surface mesh (-m 0).
     (Calls Joachim Giard's C++ code)
 
-    The 3 methods (-m 0,1,2) take about the same amount of time to run
-    if one does not set a neighborhood.
-    -m 0 is best if you have a low resolution or want to localize local peaks,
-        but can be too sensitive to the local linear geometry of the mesh,
-        unless the neighborhood parameter is set high enough.
-    -m 1 is not well tested and the filtering is done using Euclidean distances,
-        so it's only good for incorrect but fast visualization.
-    -m 2 is a good approximation but very large curvatures (negative or positive)
-        are underestimated (saturation effect).
+    Usage: CurvatureMain [Options] InputVTKMesh MeanCurvatureOutput
+    Options:
+       -m Method: set the method used to compute curvature(s) (default 0)
+           0 -- Use ComputePrincipalCurvatures() function to compute both
+                mean and Gaussian curvatures based on the relative direction
+                of the normal vectors in a small neighborhood
+           1 -- Use ComputeBothCurvatures() function to compute both mean
+                and Gaussian curvatures based on the local ratios between
+                a filtered surface and the original surface area
+           2 -- Use ComputeCurvature() function to compute the mean curvature
+                based on the direction of the displacement vectors during
+                a Laplacian filtering
+       -n Neighborhood: neighborhood size (default 0.7)
+       -g GaussianCurvVTK: save Gaussian curvature (for -m 0 or 1)
+       -x MaxCurvVTK: save maximum curvature (for -m 0)
+       -i MinCurvVTK: save minimum curvature (for -m 0)
+       -d DirectionVTK: save minimal curvature's direction (for -m 0)
+    Example: CurvatureMain -m 2 -n 0.7  lh.pial.vtk  lh.mean_curv.vtk
+    Example: CurvatureMain -m 0 -n 2
+                -i lh.min_curv.vtk -x lh.max_curv.vtk -g lh.gaussian_curv.vtk
+                -d lh.min_dir.vtk lh.pial.vtk  lh.mean_curv.vtk
+
+    Note ::
+
+        -m 0 is best if you have low resolution or want local peaks,
+            but can be too sensitive to the local linear geometry of the mesh,
+            unless the neighborhood parameter is set high enough (like 2).
+        -m 1 is not well tested and the filtering is done using Euclidean
+            distances, so it's only good for incorrect but fast visualization.
+        -m 2 is a good approximation based on the Laplacian, but very large
+            curvatures (negative or positive) are underestimated (saturation).
 
     Parameters
     ----------
     command : string
         C++ executable command for computing curvature
+    method : integer {0,1,2}
+        method number
+    arguments : string
+        additional arguments, such as neighborhood parameter
     surface_file : string
         name of VTK surface mesh file
 
@@ -252,18 +301,27 @@ def curvature(command, surface_file):
     import os
     from nipype.interfaces.base import CommandLine
 
+    args = ['-m', str(method)]
+    gauss_curvature_file = None
+    max_curvature_file = None
+    min_curvature_file = None
+    min_curvature_vector_file = None
+
     stem = os.path.join(os.getcwd(),
                         os.path.splitext(os.path.basename(surface_file))[0])
-    mean_curvature_file = stem + '.curv.avg.vtk'
-    gauss_curvature_file = stem + '.curv.gauss.vtk'
-    max_curvature_file = stem + '.curv.max.vtk'
-    min_curvature_file = stem + '.curv.min.vtk'
-    min_curvature_vector_file = stem + '.curv.min.dir.txt'
-    args = ['-g', gauss_curvature_file,
-            '-x', max_curvature_file,
-            '-i', min_curvature_file,
-            '-d', min_curvature_vector_file,
-            surface_file, mean_curvature_file]
+    mean_curvature_file = stem + '.mean_curvature.vtk'
+    if method in [0,1]:
+        gauss_curvature_file = stem + '.gauss_curvature.vtk'
+        args.extend(['-g', gauss_curvature_file])
+    if method == 0:
+        max_curvature_file = stem + '.max_curvature.vtk'
+        min_curvature_file = stem + '.min_curvature.vtk'
+        min_curvature_vector_file = stem + '.min_curvature.txt'
+        args.extend(['-x', max_curvature_file,
+                     '-i', min_curvature_file,
+                     '-d', min_curvature_vector_file])
+    args.extend([surface_file, mean_curvature_file])
+
     cli = CommandLine(command = command)
     cli.inputs.args = ' '.join(args)
     cli.cmdline
@@ -271,47 +329,6 @@ def curvature(command, surface_file):
 
     return mean_curvature_file, gauss_curvature_file, \
            max_curvature_file, min_curvature_file, min_curvature_vector_file
-
-def curvature2(command, surface_file):
-    """
-    Measure curvature values of each vertex in a surface mesh (-m 2).
-    (Calls Joachim Giard's C++ code)
-
-    The 3 methods (-m 0,1,2) take about the same amount of time to run
-    if one does not set a neighborhood.
-    -m 0 is best if you have a low resolution or want to localize local peaks,
-        but can be too sensitive to the local linear geometry of the mesh,
-        unless the neighborhood parameter is set high enough.
-    -m 1 is not well tested and the filtering is done using Euclidean distances,
-        so it's only good for incorrect but fast visualization.
-    -m 2 is a good approximation but very large curvatures (negative or positive)
-        are underestimated (saturation effect).
-
-    Parameters
-    ----------
-    command : string
-        C++ executable command for computing curvature
-    surface_file : string
-        name of VTK surface mesh file
-
-    """
-    import os
-    from nipype.interfaces.base import CommandLine
-
-    stem = os.path.join(os.getcwd(),
-                        os.path.splitext(os.path.basename(surface_file))[0])
-    mean_curvature_file = stem + '.curv.avg.vtk'
-    max_curvature_file = stem + '.curv.max.vtk'
-    min_curvature_file = stem + '.curv.min.vtk'
-    args = ['-x', max_curvature_file,
-            '-i', min_curvature_file,
-            surface_file, mean_curvature_file]
-    cli = CommandLine(command = command)
-    cli.inputs.args = ' '.join(args)
-    cli.cmdline
-    cli.run()
-
-    return mean_curvature_file, max_curvature_file, min_curvature_file
 
 def mean_value_per_label(values, labels, exclude_labels,
                          normalize_by_area=False, areas=[]):
@@ -324,9 +341,12 @@ def mean_value_per_label(values, labels, exclude_labels,
 
     Parameters
     ----------
-    values : numpy array of integer or float values
-    labels : list or array of integer labels (same length as values)
-    exclude_labels : list of integer labels to be excluded
+    values : numpy array of individual or lists of integers or floats
+        values to average per label
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
     normalize_by_area : Boolean
         divide each mean value per label by the surface area of that label?
     areas : numpy array of floats (if normalize_by_area)
@@ -335,10 +355,10 @@ def mean_value_per_label(values, labels, exclude_labels,
     Returns
     -------
     mean_values : list of floats
-        mean values
+        mean value(s) for each label
     label_list : list of integers
         unique label numbers
-    surface_areas : list of floats (if normalize_by_area)
+    label_areas : list of floats (if normalize_by_area)
         surface area for each labeled set of vertices
     norm_mean_values : list of floats (if normalize_by_area)
         mean values normalized by vertex area
@@ -352,55 +372,62 @@ def mean_value_per_label(values, labels, exclude_labels,
     >>> depth_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> depths, name = read_scalars(depth_file, True, True)
+    >>> values, name = read_scalars(depth_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
-    >>> exclude_labels = [-1,0]
+    >>> exclude_labels = [-1]
     >>> normalize_by_area = True
-    >>> mean_values, label_list, surface_areas, norm_mean_values = mean_value_per_label(depths,
+    >>> mean_values, label_list, label_areas, norm_mean_values = mean_value_per_label(values,
     >>>     labels, exclude_labels, normalize_by_area, areas)
 
     """
     import numpy as np
 
-    # Define function for dividing by area:
-    if normalize_by_area:
-
-        def avg_by_area(values_label, areas_label):
-            return sum(areas_label * values_label) / sum(areas_label)
-
-        if not isinstance(areas, np.ndarray):
-            areas = np.asarray(areas)
-
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
+    if not isinstance(areas, np.ndarray):
+        areas = np.asarray(areas)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     mean_values = []
-    surface_areas = []
+    label_areas = []
     norm_mean_values = []
+    if values.ndim > 1:
+        dim = np.shape(values)[1]
+    else:
+        dim = 1
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
-            mean_value = np.mean(values[I])
+            if dim > 1:
+                mean_value = np.mean(values[I], axis=0)
+            else:
+                mean_value = np.mean(values[I])
             mean_values.append(mean_value)
 
             if normalize_by_area:
                 surface_area = sum(areas[I])
-                surface_areas.append(surface_area)
-                norm_mean_value = avg_by_area(values[I], areas[I])
+                label_areas.append(surface_area)
+                if dim > 1:
+                    areas_dup = np.transpose(np.tile(areas[I], (dim,1)))
+                    norm_mean_value = sum(values[I] * areas_dup) / sum(areas[I])
+                else:
+                    norm_mean_value = sum(values[I] * areas[I]) / sum(areas[I])
                 norm_mean_values.append(norm_mean_value)
         else:
             mean_values.append(0)
-
             if normalize_by_area:
-                surface_areas.append(0)
+                label_areas.append(0)
                 norm_mean_values.append(0)
 
-    return mean_values, label_list, surface_areas, norm_mean_values
+    mean_values = [x.tolist() for x in mean_values]
+    label_areas = [x.tolist() for x in label_areas]
+    norm_mean_values = [x.tolist() for x in norm_mean_values]
+
+    return mean_values, label_list, label_areas, norm_mean_values
 
 def volume_per_label(labels, input_file):
     """
