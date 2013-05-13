@@ -23,20 +23,21 @@ import os
 
 # Paths, template, and label conversion files
 mb101_path = '/hd2/Lab/Brains/Mindboggle101/'
-mb_info_path = '/projects/Mindboggle/mindboggle/mindboggle/info/'
-template = mb101_path+'MNI152space/MNI152_T1_1mm_brain.nii.gz'
-relabel_file = os.path.join(mb_info_path, 'labels.volume.DKT31to25.txt')
+mb_path = os.environ['MINDBOGGLE']
+data_path = os.environ['MINDBOGGLE_DATA']
+template = os.path.join(data_path, 'data', 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
+relabel_file = os.path.join(mb_path, 'labels', 'protocol', 'labels.volume.DKT31to25.txt')
 app = '.nii.gz'
 
 # Loop through subjects
-list_file = mb_info_path + 'atlases101.txt'
+list_file = os.path.join(mb_path, 'x', 'mindboggle101_atlases.txt')
 fid = open(list_file, 'r')
 subjects = fid.readlines()
 subjects = [''.join(x.split()) for x in subjects]
 for subject in subjects:
 
     print(">>> Process subject: {0}...".format(subject))
-    subject_path = mb101_path + 'subjects/' + subject + '/mri/'
+    subject_path = os.path.join(mb101_path, 'subjects', subject, 'mri/')
 
     # Identify original files
     full_labels_orig = subject_path+'aparcNMMjt+aseg.nii.gz'
@@ -60,7 +61,7 @@ for subject in subjects:
     print("Convert label volume from FreeSurfer 'unconformed' to original space...")
     #if 'OASIS-TRT-20-' in subject or 'NKI-TRT-20-' in subject:
     cmd = ' '.join(['mri_vol2vol --mov', full_labels_orig, '--targ', head,
-                    '--regheader --o', full_labels])
+                    '--interp nearest --regheader --o', full_labels])
     #cmd = ' '.join(['mri_convert -rl', head, '-rt nearest',
     #                full_labels_orig, full_labels])
     print(cmd); os.system(cmd)
@@ -76,7 +77,7 @@ for subject in subjects:
 
     # Remove subcortical labels
     print("Remove subcortical labels...")
-    from mindboggle.label.relabel import remove_volume_labels
+    from mindboggle.labels.relabel import remove_volume_labels
     labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     labels_to_remove.extend([1000,1001,2000,2001])
     remove_volume_labels(full_labels, labels_to_remove)
@@ -86,7 +87,7 @@ for subject in subjects:
     # Convert DKT31 to DKT25 labels
     print("Convert DKT31 to DKT25 labels...")
     from mindboggle.utils.io_file import read_columns
-    from mindboggle.label.relabel import relabel_volume
+    from mindboggle.labels.relabel import relabel_volume
     old_labels, new_labels = read_columns(relabel_file, 2)
     relabel_volume(DKT31_labels, old_labels, new_labels)
     cmd = ' '.join(['mv', local_labels, DKT25_labels])
