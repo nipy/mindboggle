@@ -1660,7 +1660,7 @@ void MeshAnalyser::ComputeCurvature(double res, int nbIt) // -m 2
         normv=vtkMath::Norm(pt1pt2);
         if(normv<0.0001)normv=1;
         else normv=vtkMath::Norm(pt1pt2);
-        curCurv=(vtkMath::Dot(N,pt1pt2)/normv);
+        curCurv=(vtkMath::Dot(N,pt1pt2));
         //curCurv=normv;
         this->curv->InsertNextTuple1(curCurv);
         if(curCurv<minCurv)minCurv=curCurv;

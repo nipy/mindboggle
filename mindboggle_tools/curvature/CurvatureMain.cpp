@@ -116,7 +116,7 @@ int main(int argc, char** argv)
     switch (Method)
     {
         case 2:
-            ma->ComputeCurvature(NeighborhoodSize, 200);
+            ma->ComputeCurvature(NeighborhoodSize, 20);
             break;
         case 1:
             ma->ComputeBothCurvatures(NeighborhoodSize);
