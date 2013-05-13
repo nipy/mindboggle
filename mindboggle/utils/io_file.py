@@ -49,7 +49,7 @@ def read_columns(filename, n_columns=1, trail=False):
     return columns
 
 def write_columns(columns, column_names, output_table, delimiter=',',
-                  input_table=''):
+                  quote=True, input_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
@@ -65,6 +65,8 @@ def write_columns(columns, column_names, output_table, delimiter=',',
         name of output table file
     delimiter : string
         delimiter between columns, such as ','
+    bracket : string
+        string bracketing each element, such as '"'
     input_table : string (default is empty string)
         name of table file to which the columns are to be appended
 
@@ -76,17 +78,18 @@ def write_columns(columns, column_names, output_table, delimiter=',',
     Examples
     --------
     >>> from mindboggle.utils.io_file import write_columns
-    >>> labels = ['1', '2', '3', '4']
+    >>> labels = ['category one', 'category two', 'category three', 'category four']
     >>> values = [0.12, 0.36, 0.75, 0.03]
     >>> values2 = [32, 87, 53, 23]
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
-    >>> output_table = 'write_columns.txt'
+    >>> output_table = 'write_columns.csv'
     >>> delimiter = ','
+    >>> quote = True
     >>> input_table = ''
-    >>> write_columns(columns, column_names, output_table, delimiter, input_table)
-    >>> write_columns(values2, 'value2', output_table, delimiter,
-    >>>               input_table=output_table)
+    >>> write_columns(columns, column_names, output_table, delimiter, quote, input_table)
+    >>> write_columns(values2, 'value 2', output_table, delimiter,
+    >>>               quote, input_table=output_table)
 
     """
     import os
@@ -94,6 +97,10 @@ def write_columns(columns, column_names, output_table, delimiter=',',
     from mindboggle.utils.io_file import read_columns
 
     output_table = os.path.join(os.getcwd(), output_table)
+    if quote:
+        q = '"'
+    else:
+        q = ''
 
     #-----------------------
     # Check format of inputs
@@ -141,6 +148,7 @@ def write_columns(columns, column_names, output_table, delimiter=',',
         #--------------
         Fp = open(output_table, 'wa')
         if column_names:
+            column_names = [q+x+q for x in column_names]
             if input_table:
                 Fp.write(delimiter.join([input_names,
                                          delimiter.join(column_names) + "\n"]))
@@ -154,9 +162,10 @@ def write_columns(columns, column_names, output_table, delimiter=',',
                 Fp.write(input_columns[irow] + delimiter)
             for icolumn, column in enumerate(columns):
                 if icolumn < len(columns)-1:
-                    Fp.write("{0}{1}".format(column[irow], delimiter))
+                    Fp.write('{0}{1}{2}{3}'.format(
+                        q, column[irow], q, delimiter))
                 else:
-                    Fp.write("{0}".format(column[irow]))
+                    Fp.write('{0}{1}{2}'.format(q, column[irow], q))
             Fp.write("\n")
 
         Fp.close()
