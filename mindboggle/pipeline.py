@@ -150,8 +150,8 @@ from mindboggle.labels.label_free import register_template,\
 from mindboggle.labels.labels import majority_vote_label
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
-from mindboggle.shapes.measure import area, depth, curvature,\
-    volume_per_label, rescale_by_neighborhood
+from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
+    curvature, volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
@@ -349,10 +349,9 @@ if run_labelFlow:
                                'DKT_annot_to_VTK.vtk_file')])])
         else:
             mbFlow.connect([(ConvertSurf, labelFlow,
-                             [('vtk_file',
-                               'DKT_annot_to_VTK.vtk_file')])])
+                [('vtk_file', 'DKT_annot_to_VTK.vtk_file')])])
         #mbFlow.connect([(labelFlow, Sink,
-        #                 [('Classifier2vtk.output_vtk', 'labels.@DKTsurface')])])
+        #       [('Classifier2vtk.output_vtk', 'labels.@DKTsurface')])])
         init_labels_plug = 'DKT_annot_to_VTK.output_vtk'
 
     #=========================================================================
@@ -478,15 +477,28 @@ if run_shapeFlow:
     AreaNode.inputs.command = area_command
 
     #=========================================================================
-    # Measure surface depth
+    # Measure surface travel depth
     #=========================================================================
-    DepthNode = Node(name='Depth',
-                     interface = Fn(function = depth,
+    TravelDepthNode = Node(name='TravelDepth',
+                     interface = Fn(function = travel_depth,
                                     input_names = ['command',
                                                    'surface_file'],
                                     output_names = ['depth_file']))
-    depth_command = os.path.join(ccode_path, 'travel_depth', 'TravelDepthMain')
-    DepthNode.inputs.command = depth_command
+    TravelDepthNode.inputs.command = os.path.join(ccode_path,
+                                                  'travel_depth',
+                                                  'TravelDepthMain')
+
+    #=========================================================================
+    # Measure surface geodesic depth
+    #=========================================================================
+    GeodesicDepthNode = Node(name='GeodesicDepth',
+                     interface = Fn(function = geodesic_depth,
+                                    input_names = ['command',
+                                                   'surface_file'],
+                                    output_names = ['depth_file']))
+    GeodesicDepthNode.inputs.command = os.path.join(ccode_path,
+                                                    'geodesic_depth',
+                                                    'GeodesicDepthMain')
 
     #=========================================================================
     # Measure surface curvature
@@ -494,15 +506,19 @@ if run_shapeFlow:
     CurvNode = Node(name='Curvature',
                      interface = Fn(function = curvature,
                                     input_names = ['command',
+                                                   'method',
+                                                   'arguments',
                                                    'surface_file'],
                                     output_names = ['mean_curvature_file',
                                                     'gauss_curvature_file',
                                                     'max_curvature_file',
                                                     'min_curvature_file',
                                                     'min_curvature_vector_file']))
-    curvature_command = os.path.join(ccode_path, 'curvature', 'CurvatureMain') +\
-                         ' -m 0 -n 2 '
-    CurvNode.inputs.command = curvature_command
+    CurvNode.inputs.command = os.path.join(ccode_path,
+                                           'curvature',
+                                           'CurvatureMain')
+    CurvNode.inputs.method = 2
+    CurvNode.inputs.arguments = '-n 0.7'
 
     #=========================================================================
     # Convert FreeSurfer surface measures to VTK
@@ -536,31 +552,24 @@ if run_shapeFlow:
     #-------------------------------------------------------------------------
     # Add and connect nodes, save output files
     #-------------------------------------------------------------------------
-    shapeFlow.add_nodes([AreaNode, DepthNode, CurvNode])
+    shapeFlow.add_nodes([AreaNode, TravelDepthNode, GeodesicDepthNode, CurvNode])
     if do_input_vtk:
         mbFlow.connect([(Surf, shapeFlow,
-                         [('surface_files','Area.surface_file')])])
-        mbFlow.connect([(Surf, shapeFlow,
-                         [('surface_files','Depth.surface_file')])])
-        mbFlow.connect([(Surf, shapeFlow,
-                         [('surface_files','Curvature.surface_file')])])
+                         [('surface_files','Area.surface_file'),
+                          ('surface_files','TravelDepth.surface_file'),
+                          ('surface_files','GeodesicDepth.surface_file'),
+                          ('surface_files','Curvature.surface_file')])])
     else:
         mbFlow.connect([(ConvertSurf, shapeFlow,
-                         [('vtk_file', 'Area.surface_file')])])
-        mbFlow.connect([(ConvertSurf, shapeFlow,
-                         [('vtk_file', 'Depth.surface_file')])])
-        mbFlow.connect([(ConvertSurf, shapeFlow,
-                         [('vtk_file', 'Curvature.surface_file')])])
+                         [('vtk_file', 'Area.surface_file'),
+                          ('vtk_file', 'TravelDepth.surface_file'),
+                          ('vtk_file', 'GeodesicDepth.surface_file'),
+                          ('vtk_file', 'Curvature.surface_file')])])
     mbFlow.connect([(shapeFlow, Sink,
-                     [('Area.area_file', 'shapes.@area')])])
-    mbFlow.connect([(shapeFlow, Sink,
-                     [('Depth.depth_file', 'shapes.@depth')])])
-    mbFlow.connect([(shapeFlow, Sink,
-     [('Curvature.mean_curvature_file', 'shapes.@mean_curvature'),
-      ('Curvature.gauss_curvature_file', 'shapes.@gauss_curvature'),
-      ('Curvature.max_curvature_file', 'shapes.@max_curvature'),
-      ('Curvature.min_curvature_file', 'shapes.@min_curvature'),
-      ('Curvature.min_curvature_vector_file', 'shapes.@min_curvature_vectors')])])
+                     [('Area.area_file', 'shapes.@area'),
+                      ('TravelDepth.depth_file', 'shapes.@travel_depth'),
+                      ('GeodesicDepth.depth_file', 'shapes.@geodesic_depth'),
+                      ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
 ##############################################################################
 #
@@ -589,7 +598,7 @@ if run_featureFlow:
                                                     'folds_file']))
     featureFlow.add_nodes([FoldsNode])
     mbFlow.connect([(shapeFlow, featureFlow,
-                     [('Depth.depth_file','Folds.depth_file')])])
+                     [('TravelDepth.depth_file','Folds.depth_file')])])
     FoldsNode.inputs.min_fold_size = min_fold_size
     FoldsNode.inputs.tiny_depth = 0.001
     FoldsNode.inputs.save_file = True
@@ -612,7 +621,7 @@ if run_featureFlow:
                                                        'subfolds_file']))
     featureFlow.add_nodes([SubfoldsNode])
     mbFlow.connect([(shapeFlow, featureFlow,
-                     [('Depth.depth_file','Subfolds.depth_file')])])
+                     [('TravelDepth.depth_file','Subfolds.depth_file')])])
     featureFlow.connect([(FoldsNode, SubfoldsNode, [('folds','folds')])])
     SubfoldsNode.inputs.depth_factor = 0.25
     SubfoldsNode.inputs.depth_ratio = 0.1
@@ -624,14 +633,14 @@ if run_featureFlow:
     """
 
     #=========================================================================
-    # Rescaled travel depth
+    # Rescaled depth
     #=========================================================================
     if run_shapeFlow:
 
         #=====================================================================
-        # Rescale surface depth
+        # Rescale travel depth
         #=====================================================================
-        RescaleDepth = Node(name='Rescale_depth',
+        RescaleTravelDepth = Node(name='Rescale_travel_depth',
                             interface = Fn(function = rescale_by_neighborhood,
                                            input_names = ['input_vtk',
                                                           'indices',
@@ -642,17 +651,47 @@ if run_featureFlow:
                                                           'output_filestring'],
                                            output_names = ['rescaled_scalars',
                                                            'rescaled_scalars_file']))
-        shapeFlow.add_nodes([RescaleDepth])
-        mbFlow.connect([(DepthNode, RescaleDepth, [('depth_file','input_vtk')])])
-        RescaleDepth.inputs.indices = []
-        RescaleDepth.inputs.nedges = 10
-        RescaleDepth.inputs.p = 99
-        RescaleDepth.inputs.set_max_to_1 = True
-        RescaleDepth.inputs.save_file = True
-        RescaleDepth.inputs.output_filestring = 'depth_rescaled'
+        shapeFlow.add_nodes([RescaleTravelDepth])
+        mbFlow.connect([(TravelDepthNode, RescaleTravelDepth,
+                         [('depth_file','input_vtk')])])
+        RescaleTravelDepth.inputs.indices = []
+        RescaleTravelDepth.inputs.nedges = 10
+        RescaleTravelDepth.inputs.p = 99
+        RescaleTravelDepth.inputs.set_max_to_1 = True
+        RescaleTravelDepth.inputs.save_file = True
+        RescaleTravelDepth.inputs.output_filestring = 'travel_depth_rescaled'
         # Save rescaled depth
         mbFlow.connect([(shapeFlow, Sink,
-                         [('Rescale_depth.rescaled_scalars_file','shapes.@depth_rescaled')])])
+                         [('Rescale_travel_depth.rescaled_scalars_file',
+                           'shapes.@travel_depth_rescaled')])])
+
+        #=====================================================================
+        # Rescale geodesic depth
+        #=====================================================================
+        RescaleGeodesicDepth = Node(name='Rescale_geodesic_depth',
+                            interface = Fn(function = rescale_by_neighborhood,
+                                           input_names = ['input_vtk',
+                                                          'indices',
+                                                          'nedges',
+                                                          'p',
+                                                          'set_max_to_1',
+                                                          'save_file',
+                                                          'output_filestring'],
+                                           output_names = ['rescaled_scalars',
+                                                           'rescaled_scalars_file']))
+        shapeFlow.add_nodes([RescaleGeodesicDepth])
+        mbFlow.connect([(TravelDepthNode, RescaleGeodesicDepth,
+                         [('depth_file','input_vtk')])])
+        RescaleGeodesicDepth.inputs.indices = []
+        RescaleGeodesicDepth.inputs.nedges = 10
+        RescaleGeodesicDepth.inputs.p = 99
+        RescaleGeodesicDepth.inputs.set_max_to_1 = True
+        RescaleGeodesicDepth.inputs.save_file = True
+        RescaleGeodesicDepth.inputs.output_filestring = 'geodesic_depth_rescaled'
+        # Save rescaled depth
+        mbFlow.connect([(shapeFlow, Sink,
+                         [('Rescale_geodesic_depth.rescaled_scalars_file',
+                           'shapes.@geodesic_depth_rescaled')])])
 
     #=========================================================================
     # Sulci
@@ -708,7 +747,7 @@ if run_featureFlow:
         LikelihoodNode.inputs.trained_file = os.path.join(data_path, 'atlases',
             'depth_curv_border_nonborder_parameters.pkl')
         mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Rescale_depth.rescaled_scalars_file',
+                         [('Rescale_travel_depth.rescaled_scalars_file',
                            'Likelihood.depth_file'),
                           ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
@@ -735,9 +774,9 @@ if run_featureFlow:
         featureFlow.connect([(LikelihoodNode, FundiNode,
                               [('likelihoods', 'likelihoods')])])
         mbFlow.connect([(shapeFlow, featureFlow,
-                         [('Rescale_depth.rescaled_scalars_file',
+                         [('Rescale_travel_depth.rescaled_scalars_file',
                            'Fundi.rescaled_depth_file'),
-                          ('Depth.depth_file','Fundi.depth_file'),
+                          ('TravelDepth.depth_file','Fundi.depth_file'),
                           ('Area.area_file','Fundi.filter_file')])])
         FundiNode.inputs.min_edges = 10
         FundiNode.inputs.erosion_ratio = 0.25
@@ -799,11 +838,9 @@ if run_tableFlow:
                                                      'sulci',
                                                      'fundi',
                                                      'area_file',
-                                                     'depth_file',
+                                                     'travel_depth_file',
+                                                     'geodesic_depth_file',
                                                      'mean_curvature_file',
-                                                     'gauss_curvature_file',
-                                                     'max_curvature_file',
-                                                     'min_curvature_file',
                                                      'thickness_file',
                                                      'convexity_file',
                                                      'labels_spectra',
@@ -832,21 +869,14 @@ if run_tableFlow:
         ShapeTables.inputs.fundi = []
     #-------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Area.area_file','Shape_tables.area_file')])])
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Depth.depth_file','Shape_tables.depth_file')])])
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature.mean_curvature_file',
+                     [('Area.area_file',
+                       'Shape_tables.area_file'),
+                      ('TravelDepth.depth_file',
+                       'Shape_tables.travel_depth_file'),
+                      ('GeodesicDepth.depth_file',
+                       'Shape_tables.geodesic_depth_file'),
+                      ('Curvature.mean_curvature_file',
                        'Shape_tables.mean_curvature_file')])])
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature.gauss_curvature_file',
-                       'Shape_tables.gauss_curvature_file')])])
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature.max_curvature_file',
-                       'Shape_tables.max_curvature_file')])])
-    mbFlow.connect([(shapeFlow, tableFlow,
-                     [('Curvature.min_curvature_file',
-                       'Shape_tables.min_curvature_file')])])
     if do_thickness:
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Thickness_to_VTK.output_vtk',
@@ -897,12 +927,9 @@ if run_tableFlow:
                                                          'sulci',
                                                          'fundi',
                                                          'area_file',
-                                                         'depth_file',
-                                                         'depth_rescaled_file',
+                                                         'travel_depth_file',
+                                                         'geodesic_depth_file',
                                                          'mean_curvature_file',
-                                                         'gauss_curvature_file',
-                                                         'max_curvature_file',
-                                                         'min_curvature_file',
                                                          'thickness_file',
                                                          'convexity_file',
                                                          'delimiter'],
@@ -920,24 +947,13 @@ if run_tableFlow:
             ShapeTables.inputs.fundi = []
         #---------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Area.area_file','Vertex_table.area_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Depth.depth_file','Vertex_table.depth_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Rescale_depth.rescaled_scalars_file',
-                           'Vertex_table.depth_rescaled_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.mean_curvature_file',
+                         [('Area.area_file','Vertex_table.area_file'),
+                          ('TravelDepth.depth_file',
+                           'Vertex_table.travel_depth_file'),
+                          ('GeodesicDepth.depth_file',
+                           'Vertex_table.geodesic_depth_file'),
+                          ('Curvature.mean_curvature_file',
                            'Vertex_table.mean_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.gauss_curvature_file',
-                           'Vertex_table.gauss_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.max_curvature_file',
-                           'Vertex_table.max_curvature_file')])])
-        mbFlow.connect([(shapeFlow, tableFlow,
-                         [('Curvature.min_curvature_file',
-                           'Vertex_table.min_curvature_file')])])
         if do_thickness:
             mbFlow.connect([(shapeFlow, tableFlow,
                              [('Thickness_to_VTK.output_vtk',
@@ -1032,13 +1048,11 @@ if run_volumeFlow and do_fill:
     WriteAnnot.inputs.subjects_path = subjects_path
     annotflow.add_nodes([WriteAnnot])
     mbFlow.connect([(Info, annotflow,
-                     [('hemi', 'Write_annot_file.hemi')])])
-    mbFlow.connect([(Info, annotflow,
-                     [('subject', 'Write_annot_file.subject')])])
+                     [('hemi', 'Write_annot_file.hemi'),
+                      ('subject', 'Write_annot_file.subject')])])
     annotflow.connect([(WriteLabels, WriteAnnot,
-                      [('label_files','label_files')])])
-    annotflow.connect([(WriteLabels, WriteAnnot,
-                      [('colortable','colortable')])])
+                      [('label_files','label_files'),
+                       ('colortable','colortable')])])
 
 ##############################################################################
 #
@@ -1135,6 +1149,7 @@ if run_volumeFlow:
                                                           'column_names',
                                                           'output_table',
                                                           'delimiter',
+                                                          'quote',
                                                           'input_table'],
                                            output_names = ['output_table']))
         mbFlow2.add_nodes([InitVolTable])
@@ -1143,6 +1158,7 @@ if run_volumeFlow:
         InitVolTable.inputs.column_names = ['label']
         InitVolTable.inputs.output_table = 'volume_labels.csv'
         InitVolTable.inputs.delimiter = ','
+        InitVolTable.inputs.quote = True
         InitVolTable.inputs.input_table = ''
 
         VolumeLabelTable = Node(name='Volume_label_table',
@@ -1151,6 +1167,7 @@ if run_volumeFlow:
                                                               'column_names',
                                                               'output_table',
                                                               'delimiter',
+                                                              'quote',
                                                               'input_table'],
                                                output_names = ['output_table']))
         mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
@@ -1158,6 +1175,7 @@ if run_volumeFlow:
         VolumeLabelTable.inputs.column_names = ['volume']
         VolumeLabelTable.inputs.output_table = 'label_volume_shapes.csv'
         VolumeLabelTable.inputs.delimiter = ','
+        VolumeLabelTable.inputs.quote = True
         mbFlow2.connect([(InitVolTable, VolumeLabelTable,
                           [('output_table', 'input_table')])])
         # Save table of label volumes
