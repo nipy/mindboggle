@@ -143,8 +143,8 @@ def read_faces_points(filename):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_faces_points
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> faces, points, npoints = read_faces_points(folds_file)
 
     """
     import vtk
@@ -193,8 +193,8 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depths, name = read_scalars(depth_file)
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> mean_curvatures, name = read_scalars(curv_file)
 
     """
     import os
@@ -286,7 +286,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
 
     """
@@ -580,19 +580,19 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> scalar_names = ['curv','depth']
     >>> scalars = [[random.random() for i in xrange(4)] for j in [1,2]]
     >>> #
-    >>> write_vtk('test_write_vtk.vtk', points,
+    >>> write_vtk('write_vtk.vtk', points,
     >>>          indices, lines, faces, scalars, scalar_names)
     >>> #
     >>> # View:
-    >>> plot_vtk('test_write_vtk.vtk')
+    >>> plot_vtk('write_vtk.vtk')
     >>> #
-    >>> # Write vtk file with depth values on sulci and view:
+    >>> # Write vtk file with curvature values on sulci and view:
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
-    >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
-    >>> plot_vtk('test_write_vtk.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(input_vtk)
+    >>> write_vtk('write_vtk.vtk', points, [], [], faces, curvs, 'curvatures')
+    >>> plot_vtk('write_vtk.vtk')
 
     """
     import os
@@ -656,17 +656,17 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     Examples
     --------
-    >>> # Write vtk file with depth values on sulci
+    >>> # Write vtk file with curvature values on sulci
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depths, name = read_scalars(depth_file, True,True)
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> curvs, name = read_scalars(curv_file, True,True)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> #
-    >>> rewrite_scalars(depth_file, 'rewrite_scalars.vtk',
-    >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
+    >>> rewrite_scalars(curv_file, 'rewrite_scalars.vtk',
+    >>>                 [curvs, sulci], ['curvs', 'sulci'], sulci)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -989,10 +989,10 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> apply_affine_transform(transform_file, vtk_file)
     >>> # View
-    >>> plot_vtk('affine_lh.pial.depth.vtk')
+    >>> plot_vtk('affine_lh.pial.mean_curvature.vtk')
 
 
     """
