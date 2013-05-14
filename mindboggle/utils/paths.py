@@ -54,8 +54,8 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -233,9 +233,9 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>> from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> # Get neighbor_lists, scalars
-    >>> faces, points, npoints = read_faces_points(depth_file)
+    >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -537,10 +537,10 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
     >>> # Start from initial track points on boundary of a thresholded indices:
@@ -553,7 +553,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> T = -1 * np.ones(len(values))
     >>> T[track] = 1
     >>> T[seed] = 2
-    >>> rewrite_scalars(depth_file, 'track.vtk', T, 'track', fold)
+    >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', fold)
     >>> plot_vtk('track.vtk')
 
     """
@@ -631,10 +631,10 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
     >>> # Start from the boundary of a thresholded indices:
@@ -658,7 +658,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> # View:
     >>> T = -1 * np.ones(len(values))
     >>> T[track] = 1
-    >>> rewrite_scalars(depth_file, 'track.vtk', T, 'track', fold)
+    >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', fold)
     >>> plot_vtk('track.vtk')
 
     """
@@ -763,9 +763,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> #depths, n = read_scalars(depth_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> #depths, n = read_scalars(vtk_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> min_edges = 10
     >>> #
     >>> #---------------------------------------------------------------------
@@ -784,7 +784,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> all_tracks = [x for lst in endtracks for x in lst]
     >>> values[all_tracks] = max(values) + 0.03
     >>> values[all_tracks] = max(values) + 0.1
-    >>> rewrite_scalars(depth_file, 'endpoints.vtk', \
+    >>> rewrite_scalars(vtk_file, 'endpoints.vtk', \
     >>>                 values, 'endpoints_on_values_in_fold', folds)
     >>> plot_vtk('endpoints.vtk')
     >>> #---------------------------------------------------------------------
@@ -1113,9 +1113,9 @@ def find_endpoints(indices, neighbor_lists):
     >>> fold_number = 11
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Create a track from the minimum-depth vertex:
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> values, name = read_scalars(depth_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> values, name = read_scalars(vtk_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> seed = indices_fold[np.argmin(values[indices_fold])]
     >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
     >>> #
@@ -1127,7 +1127,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> IDs[indices_fold] = 1
     >>> IDs[indices] = 2
     >>> IDs[indices_endpoints] = 3
-    >>> rewrite_scalars(depth_file, 'find_endpoints.vtk',
+    >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
     >>>                 IDs, 'endpoints', IDs)
     >>> plot_vtk('find_endpoints.vtk')
 
@@ -1165,8 +1165,8 @@ if __name__ == "__main__":
         values_seeding, name = read_scalars(values_seeding_file, True, True)
         values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
         values, name = read_scalars(values_file, True, True)
-        depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-        neighbor_lists = find_neighbors_from_file(depth_file)
+        vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+        neighbor_lists = find_neighbors_from_file(vtk_file)
         #
         # Select a single fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -1204,9 +1204,9 @@ if __name__ == "__main__":
         from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
         from mindboggle.utils.plots import plot_vtk
         path = os.environ['MINDBOGGLE_DATA']
-        depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+        vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
         # Get neighbor_lists, scalars
-        faces, points, npoints = read_faces_points(depth_file)
+        faces, points, npoints = read_faces_points(vtk_file)
         neighbor_lists = find_neighbors(faces, npoints)
         # Select a single fold:
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
