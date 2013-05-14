@@ -16,12 +16,12 @@
 
 #include "MeshAnalyser.h"
 
-#include "vtkMath.h"
-#include "vtkPointData.h"
-#include "vtkDoubleArray.h"
-#include "vtkIdList.h"
-#include "vtkCell.h"
-#include "vtkPolyDataNormals.h"
+#include <vtkMath.h>
+#include <vtkPointData.h>
+#include <vtkDoubleArray.h>
+#include <vtkIdList.h>
+#include <vtkCell.h>
+#include <vtkPolyDataNormals.h>
 
 #include <stdio.h>
 
