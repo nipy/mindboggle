@@ -13,7 +13,7 @@
 #ifndef GRADIENTCOMPUTER_H
 #define GRADIENTCOMPUTER_H
 
-#include "vtkPolyData.h"
+#include <vtkPolyData.h>
 
 class GradientComputer
 {
