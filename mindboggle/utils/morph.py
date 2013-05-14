@@ -40,8 +40,8 @@ def dilate(indices, nedges, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -55,7 +55,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> IDs = -1 * np.ones(len(folds))
     >>> IDs[dilated_indices] = 2
     >>> IDs[indices] = 1
-    >>> rewrite_scalars(depth_file, 'dilate.vtk', IDs, 'dilated_fold', IDs)
+    >>> rewrite_scalars(vtk_file, 'dilate.vtk', IDs, 'dilated_fold', IDs)
     >>> plot_vtk('dilate.vtk')
 
     """
@@ -98,8 +98,8 @@ def erode(indices, nedges, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> nedges = 3
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -113,7 +113,7 @@ def erode(indices, nedges, neighbor_lists):
     >>> IDs = -1 * np.ones(len(folds))
     >>> IDs[indices] = 1
     >>> IDs[eroded_indices] = 2
-    >>> rewrite_scalars(depth_file, 'erode.vtk', IDs, 'eroded_fold', IDs)
+    >>> rewrite_scalars(vtk_file, 'erode.vtk', IDs, 'eroded_fold', IDs)
     >>> plot_vtk('erode.vtk')
 
     """
@@ -173,8 +173,8 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> # Select one fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
@@ -229,10 +229,10 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> holes[index2] = 30
     >>> holes[N2] = 40
     >>> indices = [i for i,x in enumerate(holes) if x > -1]
-    >>> write_vtk('test_holes.vtk', points, indices, lines,
+    >>> write_vtk('holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_holes.vtk')
+    >>> plot_vtk('holes.vtk')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
@@ -241,10 +241,10 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> #
     >>> # Write results to vtk file and view:
     >>> indices = [i for i,x in enumerate(regions) if x > -1]
-    >>> write_vtk('test_fill_holes.vtk', points, indices, lines,
+    >>> write_vtk('fill_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_fill_holes.vtk')
+    >>> plot_vtk('fill_holes.vtk')
 
     """
     import numpy as np
