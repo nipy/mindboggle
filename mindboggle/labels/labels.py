@@ -151,7 +151,7 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> #
     >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file)
     >>> #
