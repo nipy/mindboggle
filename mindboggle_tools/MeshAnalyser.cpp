@@ -22,38 +22,24 @@
 #include <vtkPoints.h>
 #include <vtkSmoothPolyDataFilter.h>
 #include <vtkQuadricDecimation.h>
-#include <map>
 #include <vtkPolyDataNormals.h>
 #include <vtkDataArray.h>
-#include <algorithm>
-#include <vtkSphereSource.h>
-#include <vtkDelaunay3D.h>
 #include <vtkUnstructuredGrid.h>
-
 #include <vtkPolyDataToImageStencil.h>
 #include <vtkImageContinuousDilate3D.h>
 #include <vtkImageContinuousErode3D.h>
 #include <vtkPolyDataConnectivityFilter.h>
-
 #include <vtkSmartPointer.h>
-
-#include <vtkImageGridSource.h>
-
 #include <vtkImageStencil.h>
-
 #include <vtkImageStencilData.h>
-
 #include <vtkMarchingContourFilter.h>
-
 #include <vtkTriangleFilter.h>
 #include <vtkImageData.h>
-
-#include <vtkCurvatures.h>
-
-#include <vtkExtractEdges.h>
-
 #include <vtkLinearSubdivisionFilter.h>
 #include <vtkTubeFilter.h>
+
+#include <algorithm>
+#include <map>
 
 MeshAnalyser::MeshAnalyser(char* fileName)
 {
@@ -311,8 +297,8 @@ void MeshAnalyser::GeoDistRing(vtkIdType st, double maxDist, double approx)
 
 
     int nbInRing;
-    float minDist,sd,ed,nd;
-    vtkIdType sn,en,curId1,curId2;
+    float sd,nd;
+    vtkIdType curId1,curId2;
 
     this->geoDistRing->Reset();
 
@@ -1461,8 +1447,8 @@ void MeshAnalyser::ComputeEuclideanDepth(bool norm, vtkPolyData *refMesh)
     {
         for(int i = 0; i < this->nbPoints; i++)
         {
-            if(MAX<depths->GetValue(i)&depths->GetValue(i)<maxBound)MAX=depths->GetValue(i);
-            if(MIN>depths->GetValue(i))MIN=depths->GetValue(i);
+            if(MAX<depths->GetValue(i) && depths->GetValue(i)<maxBound) MAX=depths->GetValue(i);
+            if(MIN>depths->GetValue(i)) MIN=depths->GetValue(i);
         }
     }
 
@@ -1542,8 +1528,6 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
 
     upNormPoints->Delete();
 
-    int nbInRing;
-
     //using meshanalyser to compute the areas affected to each point
     MeshAnalyser* mat=new MeshAnalyser(upNorm);
 
@@ -1563,9 +1547,6 @@ void MeshAnalyser::ComputeBothCurvatures(double ray) // -m 1
     vtkPointLocator* pl=vtkPointLocator::New();
     pl->SetDataSet(this->mesh);
     pl->BuildLocator();
-    vtkIdList* Nclo = vtkIdList::New();
-
-    vtkIdType curId;
 
     double maxCurv=-10;
     double minCurv=1000;
@@ -1688,7 +1669,7 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
 
     double d1, d2, d;
 
-    double r, dc;
+    double dc;
 
     double maxD, minD;
 
@@ -1771,11 +1752,6 @@ vtkDoubleArray* MeshAnalyser::ComputePrincipalCurvatures(double nebSize) //-m0
                 else
                 {
                     dc = 0;
-                }
-
-                if(isnan(dc))
-                {
-                    cout<<"r: "<<r<<" "<<vtkMath::Norm(vecc1)<<endl;
                 }
 
                 d1 = vtkMath::Dot(vec, n1)/ec/ec; //one time to normallize the dot product and one time to regularize the gradient computatation.
