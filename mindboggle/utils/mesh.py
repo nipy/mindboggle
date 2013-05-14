@@ -36,16 +36,16 @@ def find_neighbors_from_file(input_vtk):
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> #
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
     >>> # Write results to vtk file and view:
     >>> index = 0
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(depth_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
+    >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
     >>> plot_vtk('find_neighbors_from_file.vtk')
 
     """
@@ -93,8 +93,8 @@ def find_neighbors(faces, npoints):
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.io_vtk import read_faces_points, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, points, npoints = read_faces_points(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> #
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
@@ -103,9 +103,9 @@ def find_neighbors(faces, npoints):
     >>> IDs = -1 * np.ones(npoints)
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
-    >>> rewrite_scalars(depth_file, 'test_find_neighbors.vtk', IDs, 'neighbors', IDs)
+    >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs)
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('test_find_neighbors.vtk')
+    >>> plot_vtk('find_neighbors.vtk')
 
     """
 
