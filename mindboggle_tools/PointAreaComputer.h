@@ -12,7 +12,7 @@
 #ifndef POINTAREACOMPUTER_H
 #define POINTAREACOMPUTER_H
 
-#include "vtkPolyData.h"
+#include <vtkPolyData.h>
 
 class PointAreaComputer
 {
