@@ -76,7 +76,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
@@ -187,7 +187,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> if do_test:
     >>>     path = os.environ['MINDBOGGLE_DATA']
     >>>     depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>>     depth_files = [depth_file]
@@ -212,7 +212,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
     >>>             '_hemi_'+h+'_subject_'+atlas, 'depth_rescaled.vtk')
     >>>         curv_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.curv.avg.vtk')
+    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.mean_curvature.vtk')
     >>>         folds_file = os.path.join(mindboggle_path, 'features',
     >>>             '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
     >>>         labels_file = os.path.join(label_path, atlas, 'label',
