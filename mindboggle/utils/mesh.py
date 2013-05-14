@@ -231,6 +231,8 @@ def find_neighborhood(neighbor_lists, indices, nedges):
             neighborhood.extend(seed_list)
             completed.extend(seed_list)
 
+            neighborhood = [int(x) for x in neighborhood]
+
     return neighborhood
 
 #-----------------------------------------------------------------------------
