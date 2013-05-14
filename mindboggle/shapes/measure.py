@@ -271,7 +271,7 @@ def curvature(command, method, arguments, surface_file):
        -x MaxCurvVTK: save maximum curvature (for -m 0)
        -i MinCurvVTK: save minimum curvature (for -m 0)
        -d DirectionVTK: save minimal curvature's direction (for -m 0)
-    Example: CurvatureMain -m 2 -n 0.7  lh.pial.vtk  lh.mean_curv.vtk
+    Example: CurvatureMain -m 2 -n 0.7  lh.pial.vtk  lh.pial.mean_curvature.vtk
     Example: CurvatureMain -m 0 -n 2
                 -i lh.min_curv.vtk -x lh.max_curv.vtk -g lh.gaussian_curv.vtk
                 -d lh.min_dir.vtk lh.pial.vtk  lh.mean_curv.vtk
@@ -369,10 +369,10 @@ def mean_value_per_label(values, labels, exclude_labels,
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.shapes.measure import mean_value_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> values, name = read_scalars(depth_file, True, True)
+    >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1]
@@ -521,7 +521,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> indices = []
     >>> nedges = 10
     >>> p = 99
@@ -630,7 +630,7 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
     >>> combine_all_labels = False
     >>> nedges = 10
