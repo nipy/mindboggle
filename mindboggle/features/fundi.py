@@ -84,7 +84,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> if single_fold:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
-    >>>     fold_number = 1 #11
+    >>>     fold_number = 11 #11
     >>>     folds[folds != fold_number] = -1
     >>> else:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -92,8 +92,8 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> #
     >>> min_edges = 10
     >>> erosion_ratio = 0.25
-    >>> smooth_skeleton = False
-    >>> filter = True
+    >>> smooth_skeleton = True
+    >>> filter = False
     >>> filter_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
@@ -110,16 +110,19 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
 
     from mindboggle.utils.paths import find_outer_anchors, \
         connect_points_erosion, connect_points_hmmf
-    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.mesh import find_neighbors_from_file, \
+        find_neighbors, remove_faces
+
     from mindboggle.utils.morph import dilate
-    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
 
     # Run connect_points_erosion() or connect_points_hmmf():
     run_erosion = True
 
     # Load depths and neighbors:
     neighbor_lists = find_neighbors_from_file(depth_file)
-    depths, name = read_scalars(rescaled_depth_file)
+    #depths, name = read_scalars(rescaled_depth_file)
+    faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(rescaled_depth_file)
 
     #-------------------------------------------------------------------------
     # Loop through folds:
@@ -155,7 +158,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
             # Connect endpoints to create skeleton:
             #-----------------------------------------------------------------
             if run_erosion:
-                B = -1 * np.ones(len(folds))
+                B = -1 * np.ones(npoints)
                 B[indices_fold] = 1
                 skeleton = connect_points_erosion(B, endpoints, neighbor_lists,
                                                   likelihoods, erosion_ratio)
@@ -176,33 +179,32 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                     dilated = list(frozenset(dilated).intersection(indices_fold))
 
                     # In case the dilation leads to topological changes,
-                    # erode the fold again to the dilated skeleton:
+                    # erode the fold again to the dilated skeleton (SLOW):
                     re_erode = False
                     if re_erode:
                         print('    Erode fold again to dilated skeleton...')
-                        S = -1 * np.ones(len(depths))
+                        S = -1 * np.ones(npoints)
                         S[indices_fold] = 1
                         dilated = connect_points_erosion(S, dilated,
                             neighbor_lists, values=[], erosion_ratio=1)
 
-                    # Zero likelihoods for undilated portion of the fold:
+                    # Set undilated likelihoods to -1 to preserve neighbors:
                     undilated = list(frozenset(indices_fold).difference(dilated))
                     likelihoods_copy = likelihoods[:]
-                    likelihoods_copy[undilated] = 0
-                    likelihoods_copy.tolist()
+                    likelihoods_copy[undilated] = -1
 
                     # Smoothly re-skeletonize the dilated skeleton:
                     print('    Smoothly re-skeletonize dilated skeleton...')
-                    #skeleton = connect_points_hmmf(endpoints, dilated,
-                    #    likelihoods_copy, neighbor_lists)
-                    skeleton2 = connect_points_hmmf(endpoints, dilated,
-                        likelihoods_copy, neighbor_lists)
+                    skeleton = connect_points_hmmf(endpoints, dilated,
+                        likelihoods_copy.tolist(), neighbor_lists)
 
-                    # Plot test:
-                    D = -1*np.ones(len(depths))
-                    D[dilated]=1; D[skeleton]=2; D[skeleton2]=3
-                    rewrite_scalars(depth_file,'test.vtk',D,'D',folds)
-                    plot_vtk('test.vtk')
+                    # Plot overlap of dilated and pre-/post-smoothed skeleton:
+                    #skeleton2 = connect_points_hmmf(endpoints, dilated,
+                    #    likelihoods_copy, neighbor_lists)
+                    #D = -1*np.ones(npoints)
+                    #D[dilated]=1; D[skeleton]=2; D[skeleton2]=3
+                    #rewrite_scalars(depth_file, 'test.vtk', D, 'D', folds)
+                    #plot_vtk('test.vtk')
 
                 #-------------------------------------------------------------
                 # Store skeleton:
@@ -212,7 +214,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     #-------------------------------------------------------------------------
     # Create fundi by segmenting skeletons with overlapping sulcus labels:
     #-------------------------------------------------------------------------
-    fundi = -1 * np.ones(len(folds))
+    fundi = -1 * np.ones(npoints)
     indices = [x for x in skeletons if sulci[x] != -1]
     fundi[indices] = sulci[indices]
 
@@ -260,10 +262,15 @@ if __name__ == "__main__" :
         folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
         folds, name = read_scalars(folds_file, True, True)
     #
-    smooth_skeleton = False
+    min_edges = 10
+    erosion_ratio = 0.25
+    smooth_skeleton = True
+    filter = False
+    filter_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     save_file = True
     fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
-        rescaled_depth_file, depth_file, smooth_skeleton, save_file)
+        rescaled_depth_file, depth_file, min_edges, erosion_ratio,
+        smooth_skeleton, filter, filter_file, save_file)
     #
     # View:
     plot_vtk(fundi_file)
