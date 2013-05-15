@@ -1021,32 +1021,8 @@ def apply_affine_transform(transform_file, vtk_file):
 
 def transform_to_volume(vtk_file, volume_file, output_volume=''):
     """
-    Transform vtk coordinates to voxel index coordinates in a target volume.
-
-    As per the description in
-    http://nifti.nimh.nih.gov/nifti-1/documentation/nifti1fields/
-           nifti1fields_pages/qsform.html
-    --------------------------------------------------------------------------
-    METHOD 2 (used when qform_code > 0, which should be the "normal" case):
-    The (x,y,z) coordinates are given by the pixdim[] scales, a rotation
-    matrix, and a shift...
-    The formula for (x,y,z) in terms of header parameters and (i,j,k) is:
-
-    [ x ]   [ R11 R12 R13 ] [      pixdim[1] * i ]   [ qoffset_x ]
-    [ y ] = [ R21 R22 R23 ] [      pixdim[2] * j ] + [ qoffset_y ]
-    [ z ]   [ R31 R32 R33 ] [ qfac pixdim[3] * k ]   [ qoffset_z ]
-
-    The qoffset_* shifts are in the NIFTI-1 header. Note that the center
-    of the (i,j,k)=(0,0,0) voxel (first value in the dataset array) is
-    just (x,y,z)=(qoffset_x,qoffset_y,qoffset_z).
-
-    The scaling factor qfac is either 1 or -1.
-    --------------------------------------------------------------------------
-
-    [ i j k ] = inv [ pixdim[1] 0         0              qoffset_x ]   [ x ]
-                    [ 0         pixdim[2] 0              qoffset_y ] * [ y ]
-                    [ 0         0         qfac*pixdim[3] qoffset_z ]   [ z ]
-                    [ 0         0         0                      1 ]   [ 1 ]
+    Transform vtk coordinates to voxel index coordinates in a target
+    volume by using the header transformation.
 
     This function assumes that the nibabel-readable volume has LPI orientation.
 
@@ -1092,45 +1068,26 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     # Read target image volume header information:
     img = nb.load(volume_file)
     affine = img.get_affine()
-    hdr = img.get_header()
-    qfac = hdr['pixdim'][0]
-    pixdims = hdr['pixdim'][1:4]
-    dims = hdr.get_data_shape()
-    ndims = len(dims)
-    qform = hdr.get_qform()
-    qoffset = qform[0:ndims, ndims]
+    inv_transform = np.linalg.inv(affine)
 
-    if qfac in [-1,1]:
+    # Transform vtk coordinates:
+    xyz = np.array(xyz)
+    xyz = np.concatenate((xyz, np.ones((npoints,1))), axis=1)
+    voxels = np.transpose(np.dot(inv_transform, np.transpose(xyz)))[:,0:ndims]
 
-        # Create an affine transform based on the header:
-        transform = np.eye(ndims+1, ndims+1)
-        transform[0:ndims, 0:ndims] = np.diag(pixdims)
-#        transform[2, 2] *= qfac
-        transform[0:ndims, ndims] = qoffset
-        inv_transform = np.linalg.inv(transform)
+    voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
+                        (-1,ndims))
+    # Write vtk scalar values to voxels:
+    data = np.zeros(dims)
+    for ivoxel, ijk in enumerate(voxels):
+        data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
 
-        # Transform vtk coordinates:
-        xyz = np.array(xyz)
-        xyz = np.concatenate((xyz, np.ones((npoints,1))), axis=1)
-        voxels = np.transpose(np.dot(inv_transform, np.transpose(xyz)))[:,0:ndims]
-        voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
-                            (-1,ndims))
-
-        # Write vtk scalar values to voxels:
-        data = np.zeros(dims)
-        for ivoxel, ijk in enumerate(voxels):
-            data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
-
-        # Write output image volume:
-        if not output_volume:
-            output_volume = os.path.join(os.getcwd(),
-                'affine_' + os.path.basename(vtk_file) + '.nii.gz')
-        img = nb.Nifti1Image(data, affine, header=hdr)
-        img.to_filename(output_volume)
-
-    else:
-        import sys
-        sys.error('qfac should equal -1 or 1.')
+    # Write output image volume:
+    if not output_volume:
+        output_volume = os.path.join(os.getcwd(),
+            'affine_' + os.path.basename(vtk_file) + '.nii.gz')
+    img = nb.Nifti1Image(data, affine, header=hdr)
+    img.to_filename(output_volume)
 
     return output_volume
 
