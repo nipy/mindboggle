@@ -1019,5 +1019,83 @@ def apply_affine_transform(transform_file, vtk_file):
 
     return affine_points, output_file
 
+def transform_to_volume(vtk_file, volume_file, output_volume=''):
+    """
+    Transform vtk coordinates to a target volume.
+
+    This function assumes that the nibabel-readable volume has LPI orientation.
+
+    Parameters
+    ----------
+    vtk_file : string
+        name of VTK file containing point coordinate data
+    volume_file : string
+        name of target nibabel-readable image volume file
+    output_volume : string
+        name of output nibabel-readable image volume file
+
+    Returns
+    -------
+    output_volume : string
+        name of nifti file containing transformed point data
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import apply_affine_transform
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> output_volume = ''
+    >>> #
+    >>> transform_to_volume(vtk_file, volume_file, output_volume)
+    >>> # View
+    >>> plot_vtk('affine_lh.pial.mean_curvature.nii.gz')
+
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+
+    # Read vtk file:
+    foo1, foo2, foo3, points, npoints, scalars, foo4, foo5 = read_vtk(vtk_file)
+
+    # Read target image volume header information:
+    img = nb.load(volume_file)
+    affine = img.get_affine()
+    hdr = img.get_header()
+    dims = hdr.get_data_shape()
+    pixdims = hdr.get_zooms()
+    ndims = len(dims)
+    #qform = hdr.get_qform(); q = qform[0:ndims, ndims]
+
+    # Create an affine transform based on the header:
+    transform = np.eye(ndims+1, ndims+1)
+    transform[0:ndims, 0:ndims] = np.diag([x for x in pixdims])
+    transform[0:ndims, ndims] = dims
+
+    # Transform vtk points:
+    points = np.array(points)
+    points = np.concatenate((points, np.ones((npoints,1))), axis=1)
+    voxels = np.transpose(np.dot(transform, np.transpose(points)))[:,0:ndims]
+    voxels = np.reshape([int(x) for lst in voxels for x in lst], (-1,3))
+
+    # Write vtk scalar values to voxels:
+    data = np.zeros(dims)
+    for ivoxel, ijk in enumerate(voxels):
+        data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
+
+    # Write output image volume:
+    if not output_volume:
+        output_volume = os.path.join(os.getcwd(),
+            'affine_' + os.path.basename(vtk_file) + '.nii.gz')
+    nb.Nifti1Image(data, affine, header=hdr)
+
+    return output_volume
+
 
 #if __name__ == "__main__" :
