@@ -740,8 +740,10 @@ if run_featureFlow:
                                              input_names = ['trained_file',
                                                             'depth_file',
                                                             'curvature_file',
-                                                            'folds'],
-                                             output_names = ['likelihoods']))
+                                                            'folds'
+                                                            'save_file'],
+                                             output_names = ['likelihoods',
+                                                             'likelihoods_file']))
 
         featureFlow.add_nodes([LikelihoodNode])
         LikelihoodNode.inputs.trained_file = os.path.join(data_path, 'atlases',
@@ -752,6 +754,10 @@ if run_featureFlow:
                           ('Curvature.mean_curvature_file',
                            'Likelihood.curvature_file')])])
         featureFlow.connect([(FoldsNode, LikelihoodNode, [('folds','folds')])])
+        LikelihoodNode.inputs.save_file = True
+        # Save likelihoods
+        mbFlow.connect([(featureFlow, Sink,
+                         [('Likelihood.likelihoods_file','features.@likelihoods')])])
 
         FundiNode = Node(name='Fundi',
                          interface = Fn(function = extract_fundi,
