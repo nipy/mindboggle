@@ -183,7 +183,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
 #------------------------------------------------------------------------------
 # Connect points using a Hidden Markov Measure Field:
 #------------------------------------------------------------------------------
-def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
+def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
     """
     Connect vertices in a surface mesh to create a curve.
 
@@ -216,6 +216,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
         likelihood values for all vertices in mesh
     neighbor_lists : list of lists of integers
         indices to neighboring vertices for each vertex
+    wN_max : float
+        maximum neighborhood weight (trust prior more for smoother fundi)
 
     Returns
     -------
@@ -253,8 +255,9 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> L, name = read_scalars(likelihood_file,True,True)
+    >>> wN_max = 2.0
     >>> #
-    >>> S = connect_points_hmmf(indices_points, indices, L, neighbor_lists)
+    >>> S = connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max)
     >>> #
     >>> # View:
     >>> skeleton = -1 * np.ones(npoints)
@@ -279,7 +282,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists):
     #-------------------------------------------------------------------------
     # Cost and cost gradient parameters:
     wN_min = 0.0  # minimum neighborhood weight
-    wN_max = 2.0  # maximum neighborhood weight (trust prior more for smoother fundi)
+    #wN_max = 2.0  # maximum neighborhood weight (trust prior more for smoother fundi)
     H_step = 0.1  # step down HMMF value
 
     # Parameters to speed up optimization and for termination of the algorithm:
@@ -1222,8 +1225,9 @@ if __name__ == "__main__":
             neighbor_lists, values, values_seeding, min_edges)
         likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
         L, name = read_scalars(likelihood_file,True,True)
+        wN_max = 2.0
         #
-        S = connect_points_hmmf(indices_points, indices, L, neighbor_lists)
+        S = connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max)
         #
         # View:
         skeleton = -1 * np.ones(npoints)
