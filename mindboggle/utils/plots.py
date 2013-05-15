@@ -9,9 +9,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Plot VTK surface mesh
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def plot_vtk(vtk_file, mask_file='', masked_output=''):
     """
     Use mayavi2 to visualize VTK surface mesh data.
@@ -60,9 +60,45 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
     os.system(cmd)
 
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+# Plot image volume
+#-----------------------------------------------------------------------------
+def plot_volume(volume_files):
+    """
+    Use fslview to visualize image volume data.
+
+    Inputs
+    ------
+    volume_files : list of strings
+        names of image volume files
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.plots import plot_volume
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> volume_file1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> volume_file2 = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> volume_files = [volume_file1, volume_file2]
+    >>> plot_volume(volume_files)
+
+    """
+    import os
+#    import subprocess
+
+    cmd = ["fslview", " ".join(volume_files)]
+
+# Note: subprocess won't allow me to put the command in the background:
+#    p = subprocess.Popen(cmd)
+#    p.communicate()
+    cmd = ' '.join(cmd) + ' &'
+    print(cmd)
+    os.system(cmd)
+
+
+#-----------------------------------------------------------------------------
 # Plot histogram of VTK surface mesh scalar values
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def plot_scalar_histogram(vtk_file, nbins=100):
     """
     Plot histogram of VTK surface mesh scalar values.
