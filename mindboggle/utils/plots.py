@@ -63,7 +63,7 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
 #-----------------------------------------------------------------------------
 # Plot image volume
 #-----------------------------------------------------------------------------
-def plot_volume(volume_files):
+def plot_volumes(volume_files):
     """
     Use fslview to visualize image volume data.
 
