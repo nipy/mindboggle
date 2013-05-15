@@ -110,19 +110,21 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
 
     from mindboggle.utils.paths import find_outer_anchors, \
         connect_points_erosion, connect_points_hmmf
-    from mindboggle.utils.mesh import find_neighbors_from_file, \
-        find_neighbors, remove_faces
-
+    from mindboggle.utils.mesh import find_neighbors_from_file, find_neighbors
     from mindboggle.utils.morph import dilate
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
 
     # Run connect_points_erosion() or connect_points_hmmf():
     run_erosion = True
 
+    # From connect_points_hmmf():
+    # maximum neighborhood weight (trust prior more for smoother fundi)
+    wN_max = 2.0
+
     # Load depths and neighbors:
     neighbor_lists = find_neighbors_from_file(depth_file)
-    #depths, name = read_scalars(rescaled_depth_file)
-    faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(rescaled_depth_file)
+    depths, name = read_scalars(rescaled_depth_file)
+    npoints = len(depths)
 
     #-------------------------------------------------------------------------
     # Loop through folds:
@@ -164,7 +166,8 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                                                   likelihoods, erosion_ratio)
             else:
                 skeleton = connect_points_hmmf(endpoints, indices_fold,
-                                               likelihoods, neighbor_lists)
+                                               likelihoods, neighbor_lists,
+                                               wN_max=2.0)
             if skeleton:
 
                 #-------------------------------------------------------------
@@ -196,7 +199,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                     # Smoothly re-skeletonize the dilated skeleton:
                     print('    Smoothly re-skeletonize dilated skeleton...')
                     skeleton = connect_points_hmmf(endpoints, dilated,
-                        likelihoods_copy.tolist(), neighbor_lists)
+                        likelihoods_copy.tolist(), neighbor_lists, wN_max)
 
                     # Plot overlap of dilated and pre-/post-smoothed skeleton:
                     #skeleton2 = connect_points_hmmf(endpoints, dilated,
