@@ -81,8 +81,8 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     >>> from mindboggle.shapes.likelihood import compute_likelihood
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> trained_file = os.path.join(path, 'atlases', 'depth_curv_border_nonborder_parameters.pkl')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> trained_file = os.path.join(path, 'atlases', 'travel_depth_curv_border_nonborder_parameters.pkl')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
@@ -215,7 +215,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     label_files = [labels_file]
     >>> # Train on many Mindboggle-101 surface meshes:
     >>> else:
-    >>>     mindboggle_path = '/Users/arno/Data/Mindboggle-101/results'
+    >>>     mindboggle_path = '../../Mindboggle101_mindboggle_results'
     >>>     label_path = os.environ['SUBJECTS_DIR']
     >>>     x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
     >>>     atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
@@ -229,7 +229,9 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>       print(atlas)
     >>>       for h in ['lh','rh']:
     >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, 'depth_rescaled.vtk')
+    >>>             '_hemi_'+h+'_subject_'+atlas, 'travel_depth_rescaled.vtk')
+    >>>         #depth_file = os.path.join(mindboggle_path, 'shapes',
+    >>>         #    '_hemi_'+h+'_subject_'+atlas, 'geodesic_depth_rescaled.vtk')
     >>>         curv_file = os.path.join(mindboggle_path, 'shapes',
     >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.mean_curvature.vtk')
     >>>         folds_file = os.path.join(mindboggle_path, 'features',
@@ -251,7 +253,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> #
     >>> import cPickle as pickle
     >>> pickle.dump( [depth_border, curv_border, depth_nonborder, curv_nonborder],
-    >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
+    >>>     open("travel_depth_curv_border_nonborder_parameters.pkl", "wb"))
 
     """
     from mindboggle.shapes.likelihood import concatenate_sulcus_scalars, \
