@@ -78,9 +78,9 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> sulci, name = read_scalars(sulci_file, True, True)
     >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
-    >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> single_fold = True
+    >>> single_fold = False
     >>> if single_fold:
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
