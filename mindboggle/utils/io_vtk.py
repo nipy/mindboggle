@@ -1067,6 +1067,9 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
 
     # Read target image volume header information:
     img = nb.load(volume_file)
+    hdr = img.get_header()
+    dims = img.get_shape()
+    ndims = len(dims)
     affine = img.get_affine()
     inv_transform = np.linalg.inv(affine)
 
