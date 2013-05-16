@@ -88,6 +88,7 @@ do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
+do_register_template = False  # Register image volume to template in MNI152
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -99,8 +100,8 @@ do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
 run_labelFlow = True
 run_shapeFlow = True
 run_featureFlow = True
-run_tableFlow = True
 run_volumeFlow = True
+run_tableFlow = True
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -150,6 +151,7 @@ from mindboggle.labels.label_free import register_template,\
 from mindboggle.labels.labels import majority_vote_label
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
+from mindboggle.utils.ants import register_volume
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
@@ -167,16 +169,20 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 # Paths
 #-----------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-atlases_path = subjects_path  # Mindboggle-101 atlases directory
 data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
 ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
 protocol_path = os.path.join(os.environ['MINDBOGGLE'], 'labels', 'protocol')
-x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
-# Label with classifier atlas
 templates_path = os.path.join(data_path, 'atlases')
-classifier_path = os.path.join(data_path, 'atlases')
+# Label classifier atlas:
 classifier_atlas = 'DKTatlas40.gcs'  # 'DKTatlas100.gcs'
+# Name of surface template for multi-atlas registration (FreeSurfer .tif file):
+free_template = 'OASIS-TRT-20'
+# Name of volume template for transforming data to a standard MNI152 space:
+ants_template = os.path.join(templates_path, 'OASIS-TRT-20_in_MNI152.nii.gz')
+# Evaluation files:
+atlases_path = subjects_path  # Mindboggle-101 atlases directory for evaluation
+x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
 #-----------------------------------------------------------------------------
 # Initialize main workflow
 #-----------------------------------------------------------------------------
@@ -328,7 +334,7 @@ if run_labelFlow:
         mbFlow.connect([(Surf, labelFlow,
                          [('sphere_files',
                            'Label_with_DKTatlas.sphere_file')])])
-        Classifier.inputs.classifier_path = classifier_path
+        Classifier.inputs.classifier_path = templates_path
         Classifier.inputs.classifier_atlas = classifier_atlas
 
         #---------------------------------------------------------------------
@@ -361,8 +367,6 @@ if run_labelFlow:
         #---------------------------------------------------------------------
         # Register surfaces to average template
         #---------------------------------------------------------------------
-        free_template = 'OASIS-TRT-20'  # FreeSurfer template
-
         Register = Node(name = 'Register_template',
                         interface = Fn(function = register_template,
                                        input_names = ['hemi',
@@ -376,7 +380,7 @@ if run_labelFlow:
                         (Surf, labelFlow, [('sphere_files',
                                             'Register_template.sphere_file')])])
         Register.inputs.transform = 'sphere_to_' + template + '_template.reg'
-        Register.inputs.templates_path = os.path.join(templates_path, 'freesurfer')
+        Register.inputs.templates_path = templates_path
         Register.inputs.template = free_template + '.tif'
         #---------------------------------------------------------------------
         # Register atlases to subject via template
@@ -680,7 +684,7 @@ if run_featureFlow:
                                            output_names = ['rescaled_scalars',
                                                            'rescaled_scalars_file']))
         shapeFlow.add_nodes([RescaleGeodesicDepth])
-        mbFlow.connect([(TravelDepthNode, RescaleGeodesicDepth,
+        mbFlow.connect([(GeodesicDepthNode, RescaleGeodesicDepth,
                          [('depth_file','input_vtk')])])
         RescaleGeodesicDepth.inputs.indices = []
         RescaleGeodesicDepth.inputs.nedges = 10
@@ -825,6 +829,303 @@ if run_shapeFlow:
             shapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect([(SulciNode, SpectraSulci,
                              [('sulci_file', 'vtk_file')])])
+
+#=============================================================================
+# Surface label evaluation
+#=============================================================================
+if do_evaluate_surface:
+
+    EvalSurfLabels = Node(name='Evaluate_surface_labels',
+                            interface = Fn(function = measure_surface_overlap,
+                                           input_names = ['command',
+                                                          'labels_file1',
+                                                          'labels_file2'],
+                                           output_names = ['overlap_file']))
+    mbFlow.add_nodes([EvalSurfLabels])
+    surface_overlap_command = os.path.join(ccode_path,
+        'surface_overlap', 'SurfaceOverlapMain')
+    EvalSurfLabels.inputs.command = surface_overlap_command
+    mbFlow.connect([(Atlas, EvalSurfLabels, [('atlas_file','labels_file1')])])
+    mbFlow.connect([(labelFlow, EvalSurfLabels,
+                     [(init_labels_plug, 'labels_file2')])])
+    mbFlow.connect([(EvalSurfLabels, Sink,
+                     [('overlap_file', 'evaluate_labels')])])
+
+##############################################################################
+#
+#   Fill volume prep workflow:
+#   Convert labels from VTK to .annot format
+#
+##############################################################################
+if run_volumeFlow and do_fill:
+
+    annotflow = Workflow(name='Fill_volume_prep')
+
+    #=========================================================================
+    # Convert VTK labels to .annot format.
+    #=========================================================================
+    #-------------------------------------------------------------------------
+    # Write .label files for surface vertices
+    #-------------------------------------------------------------------------
+    WriteLabels = Node(name='Write_label_files',
+                       interface = Fn(function = vtk_to_labels,
+                                      input_names = ['hemi',
+                                                     'surface_file',
+                                                     'label_numbers',
+                                                     'label_names',
+                                                     'RGBs',
+                                                     'scalar_name'],
+                                      output_names = ['label_files',
+                                                      'colortable']))
+    annotflow.add_nodes([WriteLabels])
+    mbFlow.connect([(Info, annotflow, [('hemi', 'Write_label_files.hemi')])])
+    WriteLabels.inputs.label_numbers = ctx_label_numbers
+    WriteLabels.inputs.label_names = ctx_label_names
+    WriteLabels.inputs.RGBs = RGBs
+    mbFlow.connect([(labelFlow, annotflow,
+                     [(init_labels_plug, 'Write_label_files.surface_file')])])
+    if init_labels == 'max':
+        WriteLabels.inputs.scalar_name = 'Max_(majority_labels)'
+    else:
+        WriteLabels.inputs.scalar_name = 'Labels'
+    #-------------------------------------------------------------------------
+    # Write .annot file from .label files
+    # NOTE:  incorrect labels to be corrected below!
+    #-------------------------------------------------------------------------
+    WriteAnnot = Node(name='Write_annot_file',
+                      interface = Fn(function = labels_to_annot,
+                                     input_names = ['hemi',
+                                                    'subjects_path',
+                                                    'subject',
+                                                    'label_files',
+                                                    'colortable',
+                                                    'annot_name'],
+                                     output_names = ['annot_name',
+                                                     'annot_file']))
+    WriteAnnot.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
+    WriteAnnot.inputs.subjects_path = subjects_path
+    annotflow.add_nodes([WriteAnnot])
+    mbFlow.connect([(Info, annotflow,
+                     [('hemi', 'Write_annot_file.hemi'),
+                      ('subject', 'Write_annot_file.subject')])])
+    annotflow.connect([(WriteLabels, WriteAnnot,
+                      [('label_files','label_files'),
+                       ('colortable','colortable')])])
+
+##############################################################################
+#
+#   Label volumes workflow:
+#   * Register image volume to template in MNI152 space using ANTs
+#   * Fill volume
+#   * Measure label volumes
+#   * Evaluate volume labels
+#
+##############################################################################
+if run_volumeFlow:
+
+    mbFlow2 = Workflow(name='Label_volumes')
+    mbFlow2.base_dir = temp_path
+
+    #-------------------------------------------------------------------------
+    # Iterate inputs over subjects
+    #-------------------------------------------------------------------------
+    Info2 = Info.clone('Inputs2')
+    Info2.iterables = ([('subject', subjects)])
+    Sink2 = Sink.clone('Results2')
+
+    #=========================================================================
+    # Register image volume to template in MNI152 space using ANTs
+    #=========================================================================
+    if do_register_template:
+
+        RegisterTemplate = Node(name='Register_template',
+                              interface = Fn(function = register_volume,
+                                             input_names = ['source',
+                                                            'target',
+                                                            'iterations',
+                                                            'output_stem'],
+                                            output_names = ['affine_transform',
+                                                            'nonlinear_transform']))
+        mbFlow2.add_nodes([RegisterTemplate])
+        mbFlow2.connect([(Info2, RegisterTemplate, [('subject','source')])])
+        RegisterTemplate.inputs.target = ants_template
+        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
+        RegisterTemplate.inputs.output_stem = ""
+        mbFlow2.connect([(RegisterTemplate, Sink2,
+                          [('affine_transform', 'transforms.@affine')])])
+
+    #=========================================================================
+    # Fill (gray matter) volume using FreeSurfer
+    #=========================================================================
+    #-------------------------------------------------------------------------
+    # Fill volume mask with surface vertex labels from .annot file.
+    # Convert label volume from FreeSurfer 'unconformed' to original space.
+    #-------------------------------------------------------------------------
+    if do_fill:
+
+        FillVolume = Node(name='Fill_volume',
+                          interface = Fn(function = labels_to_volume,
+                                         input_names = ['subject',
+                                                        'annot_name',
+                                                        'original_space',
+                                                        'reference'],
+                                         output_names = ['output_file']))
+        mbFlow2.add_nodes([FillVolume])
+        mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
+        FillVolume.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
+        FillVolume.inputs.original_space = True
+        mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
+        mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
+        #---------------------------------------------------------------------
+        # Relabel file, replacing colortable labels with real labels
+        #---------------------------------------------------------------------
+        Relabel = Node(name='Correct_labels',
+                       interface = Fn(function = relabel_volume,
+                                      input_names = ['input_file',
+                                                     'old_labels',
+                                                     'new_labels'],
+                                      output_names = ['output_file']))
+        mbFlow2.add_nodes([Relabel])
+        mbFlow2.connect([(FillVolume, Relabel, [('output_file', 'input_file')])])
+        relabel_file = os.path.join(protocol_path,
+                            'labels.volume.annot_errors.' + protocol + '.txt')
+        old_labels, new_labels = read_columns(relabel_file, 2)
+        Relabel.inputs.old_labels = old_labels
+        Relabel.inputs.new_labels = new_labels
+        mbFlow2.connect([(Relabel, Sink2, [('output_file', 'labels_volume')])])
+
+    #=========================================================================
+    # Compute volume per label
+    #=========================================================================
+    if do_measure_volume:
+
+        #---------------------------------------------------------------------
+        # Measure volume of each region of a labeled image file.
+        #---------------------------------------------------------------------
+        MeasureVolumes = Node(name='Measure_volumes',
+                              interface = Fn(function = volume_per_label,
+                                             input_names = ['labels',
+                                                            'input_file'],
+                                             output_names = ['volumes',
+                                                             'labels']))
+        mbFlow2.add_nodes([MeasureVolumes])
+        volume_labels_list_file = os.path.join(protocol_path,
+                                               'labels.volume.'+protocol+'.txt')
+        volume_labels_list = read_columns(volume_labels_list_file, 1)[0]
+        volume_labels_list = [int(x) for x in volume_labels_list]
+        MeasureVolumes.inputs.labels = volume_labels_list
+        if do_fill:
+            mbFlow2.connect([(Relabel, MeasureVolumes,
+                              [('output_file', 'input_file')])])
+        else:
+            sys.exit('No alternative set of label volumes provided...')
+
+        #---------------------------------------------------------------------
+        # Create a table to save the volume measures
+        #---------------------------------------------------------------------
+        InitVolTable = Node(name='Initialize_Volume_label_table',
+                            interface = Fn(function = write_columns,
+                                           input_names = ['columns',
+                                                          'column_names',
+                                                          'output_table',
+                                                          'delimiter',
+                                                          'quote',
+                                                          'input_table'],
+                                           output_names = ['output_table']))
+        mbFlow2.add_nodes([InitVolTable])
+        mbFlow2.connect([(MeasureVolumes, InitVolTable,
+                          [('labels', 'columns')])])
+        InitVolTable.inputs.column_names = ['label']
+        InitVolTable.inputs.output_table = 'volume_labels.csv'
+        InitVolTable.inputs.delimiter = ','
+        InitVolTable.inputs.quote = True
+        InitVolTable.inputs.input_table = ''
+
+        VolumeLabelTable = Node(name='Volume_label_table',
+                                interface = Fn(function = write_columns,
+                                               input_names = ['columns',
+                                                              'column_names',
+                                                              'output_table',
+                                                              'delimiter',
+                                                              'quote',
+                                                              'input_table'],
+                                               output_names = ['output_table']))
+        mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
+                          [('volumes', 'columns')])])
+        VolumeLabelTable.inputs.column_names = ['volume']
+        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.csv'
+        VolumeLabelTable.inputs.delimiter = ','
+        VolumeLabelTable.inputs.quote = True
+        mbFlow2.connect([(InitVolTable, VolumeLabelTable,
+                          [('output_table', 'input_table')])])
+        # Save table of label volumes
+        mbFlow2.connect([(VolumeLabelTable, Sink2,
+                          [('output_table', 'tables.@volume_labels')])])
+
+    #=========================================================================
+    # Evaluate label volume overlaps
+    #=========================================================================
+    if do_evaluate_volume:
+
+        #---------------------------------------------------------------------
+        # Evaluation inputs: location and structure of atlas volumes
+        #---------------------------------------------------------------------
+        AtlasVol = Node(name = 'Atlas_volume',
+                        interface = DataGrabber(infields=['subject'],
+                                                outfields=['atlas_vol_file'],
+                                                sort_filelist=False))
+        AtlasVol.inputs.base_directory = atlases_path
+        AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
+        AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
+        mbFlow2.connect([(Info2, AtlasVol, [('subject','subject')])])
+        #---------------------------------------------------------------------
+        # Evaluate volume labels
+        #---------------------------------------------------------------------
+        EvalVolLabels = Node(name='Evaluate_volume_labels',
+                               interface = Fn(function = measure_volume_overlap,
+                                              input_names = ['labels',
+                                                             'file2',
+                                                             'file1'],
+                                              output_names = ['overlaps',
+                                                              'out_file']))
+        labels_file = os.path.join(protocol_path, 'labels.volume.' + protocol + '.txt')
+        labels = read_columns(labels_file, 1)[0]
+        EvalVolLabels.inputs.labels = labels
+        mbFlow2.add_nodes([EvalVolLabels])
+        mbFlow2.connect([(AtlasVol, EvalVolLabels,
+                          [('atlas_vol_file','file2')])])
+        mbFlow2.connect([(Relabel, EvalVolLabels,
+                          [('output_file', 'file1')])])
+        mbFlow2.connect([(EvalVolLabels, Sink2,
+                          [('out_file', 'evaluate_labels_volume')])])
+
+##############################################################################
+#
+#   Continued surface workflow:
+#   * Transform vtk coordinates to template in MNI152 space
+#
+##############################################################################
+if run_volumeFlow:
+    #=========================================================================
+    # Register image volume to template in MNI152 space using ANTs
+    #=========================================================================
+    if do_register_template:
+
+        RegisterTemplate = Node(name='Register_template',
+                              interface = Fn(function = register_volume,
+                                             input_names = ['source',
+                                                            'target',
+                                                            'iterations',
+                                                            'output_stem'],
+                                            output_names = ['affine_transform',
+                                                            'nonlinear_transform']))
+        mbFlow2.add_nodes([RegisterTemplate])
+        mbFlow2.connect([(Info2, RegisterTemplate, [('subject','source')])])
+        RegisterTemplate.inputs.target = ants_template
+        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
+        RegisterTemplate.inputs.output_stem = ""
+        mbFlow2.connect([(RegisterTemplate, Sink2,
+                          [('affine_transform', 'transforms.@affine')])])
 
 ##############################################################################
 #
@@ -977,253 +1278,6 @@ if run_tableFlow:
         mbFlow.connect([(tableFlow, Sink,
                          [('Vertex_table.shapes_table',
                            'tables.@vertex_table')])])
-
-#=============================================================================
-# Surface label evaluation
-#=============================================================================
-if do_evaluate_surface:
-
-    EvalSurfLabels = Node(name='Evaluate_surface_labels',
-                            interface = Fn(function = measure_surface_overlap,
-                                           input_names = ['command',
-                                                          'labels_file1',
-                                                          'labels_file2'],
-                                           output_names = ['overlap_file']))
-    mbFlow.add_nodes([EvalSurfLabels])
-    surface_overlap_command = os.path.join(ccode_path,
-        'surface_overlap', 'SurfaceOverlapMain')
-    EvalSurfLabels.inputs.command = surface_overlap_command
-    mbFlow.connect([(Atlas, EvalSurfLabels, [('atlas_file','labels_file1')])])
-    mbFlow.connect([(labelFlow, EvalSurfLabels,
-                     [(init_labels_plug, 'labels_file2')])])
-    mbFlow.connect([(EvalSurfLabels, Sink,
-                     [('overlap_file', 'evaluate_labels')])])
-
-##############################################################################
-#
-#   Fill volume prep workflow:
-#   Convert labels from VTK to .annot format
-#
-##############################################################################
-if run_volumeFlow and do_fill:
-
-    annotflow = Workflow(name='Fill_volume_prep')
-
-    #=========================================================================
-    # Convert VTK labels to .annot format.
-    #=========================================================================
-    #-------------------------------------------------------------------------
-    # Write .label files for surface vertices
-    #-------------------------------------------------------------------------
-    WriteLabels = Node(name='Write_label_files',
-                       interface = Fn(function = vtk_to_labels,
-                                      input_names = ['hemi',
-                                                     'surface_file',
-                                                     'label_numbers',
-                                                     'label_names',
-                                                     'RGBs',
-                                                     'scalar_name'],
-                                      output_names = ['label_files',
-                                                      'colortable']))
-    annotflow.add_nodes([WriteLabels])
-    mbFlow.connect([(Info, annotflow, [('hemi', 'Write_label_files.hemi')])])
-    WriteLabels.inputs.label_numbers = ctx_label_numbers
-    WriteLabels.inputs.label_names = ctx_label_names
-    WriteLabels.inputs.RGBs = RGBs
-    mbFlow.connect([(labelFlow, annotflow,
-                     [(init_labels_plug, 'Write_label_files.surface_file')])])
-    if init_labels == 'max':
-        WriteLabels.inputs.scalar_name = 'Max_(majority_labels)'
-    else:
-        WriteLabels.inputs.scalar_name = 'Labels'
-    #-------------------------------------------------------------------------
-    # Write .annot file from .label files
-    # NOTE:  incorrect labels to be corrected below!
-    #-------------------------------------------------------------------------
-    WriteAnnot = Node(name='Write_annot_file',
-                      interface = Fn(function = labels_to_annot,
-                                     input_names = ['hemi',
-                                                    'subjects_path',
-                                                    'subject',
-                                                    'label_files',
-                                                    'colortable',
-                                                    'annot_name'],
-                                     output_names = ['annot_name',
-                                                     'annot_file']))
-    WriteAnnot.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
-    WriteAnnot.inputs.subjects_path = subjects_path
-    annotflow.add_nodes([WriteAnnot])
-    mbFlow.connect([(Info, annotflow,
-                     [('hemi', 'Write_annot_file.hemi'),
-                      ('subject', 'Write_annot_file.subject')])])
-    annotflow.connect([(WriteLabels, WriteAnnot,
-                      [('label_files','label_files'),
-                       ('colortable','colortable')])])
-
-##############################################################################
-#
-#   Label volumes workflow:
-#   * Fill volume
-#   * Measure label volumes
-#   * Evaluate volume labels
-#
-##############################################################################
-if run_volumeFlow:
-
-    mbFlow2 = Workflow(name='Label_volumes')
-    mbFlow2.base_dir = temp_path
-
-    #=========================================================================
-    # Fill (gray matter) volume using FreeSurfer
-    #=========================================================================
-    #-------------------------------------------------------------------------
-    # Iterate inputs over subjects
-    #-------------------------------------------------------------------------
-    Info2 = Info.clone('Inputs2')
-    Info2.iterables = ([('subject', subjects)])
-    Sink2 = Sink.clone('Results2')
-
-    #-------------------------------------------------------------------------
-    # Fill volume mask with surface vertex labels from .annot file.
-    # Convert label volume from FreeSurfer 'unconformed' to original space.
-    #-------------------------------------------------------------------------
-    if do_fill:
-
-        FillVolume = Node(name='Fill_volume',
-                          interface = Fn(function = labels_to_volume,
-                                         input_names = ['subject',
-                                                        'annot_name',
-                                                        'original_space',
-                                                        'reference'],
-                                         output_names = ['output_file']))
-        mbFlow2.add_nodes([FillVolume])
-        mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
-        FillVolume.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
-        FillVolume.inputs.original_space = True
-        mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
-        mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
-        #---------------------------------------------------------------------
-        # Relabel file, replacing colortable labels with real labels
-        #---------------------------------------------------------------------
-        Relabel = Node(name='Correct_labels',
-                       interface = Fn(function = relabel_volume,
-                                      input_names = ['input_file',
-                                                     'old_labels',
-                                                     'new_labels'],
-                                      output_names = ['output_file']))
-        mbFlow2.add_nodes([Relabel])
-        mbFlow2.connect([(FillVolume, Relabel, [('output_file', 'input_file')])])
-        relabel_file = os.path.join(protocol_path,
-                            'labels.volume.annot_errors.' + protocol + '.txt')
-        old_labels, new_labels = read_columns(relabel_file, 2)
-        Relabel.inputs.old_labels = old_labels
-        Relabel.inputs.new_labels = new_labels
-        mbFlow2.connect([(Relabel, Sink2, [('output_file', 'labels_volume')])])
-
-    #=========================================================================
-    # Compute volume per label.
-    #=========================================================================
-    if do_measure_volume:
-
-        #---------------------------------------------------------------------
-        # Measure volume of each region of a labeled image file.
-        #---------------------------------------------------------------------
-        MeasureVolumes = Node(name='Measure_volumes',
-                              interface = Fn(function = volume_per_label,
-                                             input_names = ['labels',
-                                                            'input_file'],
-                                             output_names = ['volumes',
-                                                             'labels']))
-        mbFlow2.add_nodes([MeasureVolumes])
-        volume_labels_list_file = os.path.join(protocol_path,
-                                               'labels.volume.'+protocol+'.txt')
-        volume_labels_list = read_columns(volume_labels_list_file, 1)[0]
-        volume_labels_list = [int(x) for x in volume_labels_list]
-        MeasureVolumes.inputs.labels = volume_labels_list
-        if do_fill:
-            mbFlow2.connect([(Relabel, MeasureVolumes,
-                              [('output_file', 'input_file')])])
-        else:
-            sys.exit('No alternative set of label volumes provided...')
-
-        #---------------------------------------------------------------------
-        # Create a table to save the volume measures.
-        #---------------------------------------------------------------------
-        InitVolTable = Node(name='Initialize_Volume_label_table',
-                            interface = Fn(function = write_columns,
-                                           input_names = ['columns',
-                                                          'column_names',
-                                                          'output_table',
-                                                          'delimiter',
-                                                          'quote',
-                                                          'input_table'],
-                                           output_names = ['output_table']))
-        mbFlow2.add_nodes([InitVolTable])
-        mbFlow2.connect([(MeasureVolumes, InitVolTable,
-                          [('labels', 'columns')])])
-        InitVolTable.inputs.column_names = ['label']
-        InitVolTable.inputs.output_table = 'volume_labels.csv'
-        InitVolTable.inputs.delimiter = ','
-        InitVolTable.inputs.quote = True
-        InitVolTable.inputs.input_table = ''
-
-        VolumeLabelTable = Node(name='Volume_label_table',
-                                interface = Fn(function = write_columns,
-                                               input_names = ['columns',
-                                                              'column_names',
-                                                              'output_table',
-                                                              'delimiter',
-                                                              'quote',
-                                                              'input_table'],
-                                               output_names = ['output_table']))
-        mbFlow2.connect([(MeasureVolumes, VolumeLabelTable,
-                          [('volumes', 'columns')])])
-        VolumeLabelTable.inputs.column_names = ['volume']
-        VolumeLabelTable.inputs.output_table = 'label_volume_shapes.csv'
-        VolumeLabelTable.inputs.delimiter = ','
-        VolumeLabelTable.inputs.quote = True
-        mbFlow2.connect([(InitVolTable, VolumeLabelTable,
-                          [('output_table', 'input_table')])])
-        # Save table of label volumes
-        mbFlow2.connect([(VolumeLabelTable, Sink2,
-                          [('output_table', 'tables.@volume_labels')])])
-
-    #=========================================================================
-    # Evaluate label volume overlaps.
-    #=========================================================================
-    if do_evaluate_volume:
-
-        #---------------------------------------------------------------------
-        # Evaluation inputs: location and structure of atlas volumes
-        #---------------------------------------------------------------------
-        AtlasVol = Node(name = 'Atlas_volume',
-                        interface = DataGrabber(infields=['subject'],
-                                                outfields=['atlas_vol_file'],
-                                                sort_filelist=False))
-        AtlasVol.inputs.base_directory = atlases_path
-        AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
-        AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
-        mbFlow2.connect([(Info2, AtlasVol, [('subject','subject')])])
-        #---------------------------------------------------------------------
-        # Evaluate volume labels
-        #---------------------------------------------------------------------
-        EvalVolLabels = Node(name='Evaluate_volume_labels',
-                               interface = Fn(function = measure_volume_overlap,
-                                              input_names = ['labels',
-                                                             'file2',
-                                                             'file1'],
-                                              output_names = ['overlaps',
-                                                              'out_file']))
-        labels_file = os.path.join(protocol_path, 'labels.volume.' + protocol + '.txt')
-        labels = read_columns(labels_file, 1)[0]
-        EvalVolLabels.inputs.labels = labels
-        mbFlow2.add_nodes([EvalVolLabels])
-        mbFlow2.connect([(AtlasVol, EvalVolLabels,
-                          [('atlas_vol_file','file2')])])
-        mbFlow2.connect([(Relabel, EvalVolLabels,
-                          [('output_file', 'file1')])])
-        mbFlow2.connect([(EvalVolLabels, Sink2,
-                          [('out_file', 'evaluate_labels_volume')])])
 
 ##############################################################################
 #
