@@ -22,11 +22,14 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
         - sulci
 
     * Measure shapes:
+        - position (native and MNI152 spaces)
         - travel depth
-        - curvatures (mean, Gaussian, min, max, min directions)
+        - geodesic depth
+        - mean curvature
         - area
         - thickness (from FreeSurfer)
         - convexity (from FreeSurfer)
+        - Laplace-Beltrami spectra
 
     * Construct tables:
         - label shapes
@@ -88,7 +91,7 @@ do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_register_template = False  # Register image volume to template in MNI152
+do_register_template = True  # Register volume to template in MNI152 (ANTs)
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -101,7 +104,7 @@ run_labelFlow = True
 run_shapeFlow = True
 run_featureFlow = True
 run_volumeFlow = True
-run_tableFlow = True
+run_tableFlow = 0#True
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -115,7 +118,7 @@ protocol = 'DKT25'
 # 'max': maximum probability (majority vote) labels from multiple atlases
 # 'manual': process manual labels (atlas)
 #-----------------------------------------------------------------------------
-init_labels = 'manual'
+init_labels = 'DKTatlas'
 #-----------------------------------------------------------------------------
 # Labeling source:
 # 'manual': manual edits
@@ -123,10 +126,6 @@ init_labels = 'manual'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-----------------------------------------------------------------------------
 label_method = 'manual'
-hemis = ['lh','rh']  # Prepend ('lh.'/'rh.') indicating left/right surfaces
-#-----------------------------------------------------------------------------
-# Evaluation options
-#-----------------------------------------------------------------------------
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -141,13 +140,14 @@ from nipype.interfaces.io import DataGrabber, DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk
+from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk, \
+    apply_affine_transform
 from mindboggle.utils.io_file import read_columns, write_columns
 from mindboggle.utils.io_free import labels_to_annot, labels_to_volume, \
     surface_to_vtk, curvature_to_vtk, annot_to_vtk, vtk_to_labels
 from mindboggle.utils.mesh import find_neighbors_from_file
 from mindboggle.labels.label_free import register_template,\
-     transform_atlas_labels, label_with_classifier
+    transform_atlas_labels, label_with_classifier
 from mindboggle.labels.labels import majority_vote_label
 from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
@@ -162,7 +162,7 @@ from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.fundi import extract_fundi
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
-     measure_volume_overlap
+    measure_volume_overlap
 
 #from mindboggle import get_info
 #-----------------------------------------------------------------------------
@@ -179,7 +179,8 @@ classifier_atlas = 'DKTatlas40.gcs'  # 'DKTatlas100.gcs'
 # Name of surface template for multi-atlas registration (FreeSurfer .tif file):
 free_template = 'OASIS-TRT-20'
 # Name of volume template for transforming data to a standard MNI152 space:
-ants_template = os.path.join(templates_path, 'OASIS-TRT-20_in_MNI152.nii.gz')
+ants_template = os.path.join(templates_path, 'MNI152_T1_1mm_brain.nii.gz')
+                                             #'OASIS-TRT-20_in_MNI152.nii.gz')
 # Evaluation files:
 atlases_path = subjects_path  # Mindboggle-101 atlases directory for evaluation
 x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
@@ -199,7 +200,7 @@ if not os.path.isdir(temp_path):  os.makedirs(temp_path)
 #-----------------------------------------------------------------------------
 Info = Node(name = 'Inputs',
             interface = IdentityInterface(fields=['subject', 'hemi']))
-Info.iterables = ([('subject', subjects), ('hemi', hemis)])
+Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
 #-----------------------------------------------------------------------------
 # Location and structure of the surface inputs
 #-----------------------------------------------------------------------------
@@ -575,6 +576,54 @@ if run_shapeFlow:
                       ('GeodesicDepth.depth_file', 'shapes.@geodesic_depth'),
                       ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
+
+    #=========================================================================
+    # Transform vtk coordinates to a template in MNI152 space
+    #=========================================================================
+    if do_register_template:
+
+        #---------------------------------------------------------------------
+        # Register image volume to template in MNI152 space using ANTs:
+        #---------------------------------------------------------------------
+        """
+        RegisterTemplate = Node(name='Register_template',
+                                interface = Fn(function = register_volume,
+                                               input_names = ['source',
+                                                              'target',
+                                                              'iterations',
+                                                              'output_stem'],
+                                               output_names = ['affine_transform',
+                                                               'nonlinear_transform']))
+        mbFlow.add_nodes([RegisterTemplate])
+        mbFlow.connect([(Info, RegisterTemplate, [('subject','source')])])
+        RegisterTemplate.inputs.target = ants_template
+        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
+        RegisterTemplate.inputs.output_stem = ""
+        mbFlow.connect([(RegisterTemplate, Sink,
+                         [('affine_transform', 'transforms.@affine')])])
+        """
+        #---------------------------------------------------------------------
+        # Apply affine transform to vtk coordinates:
+        #---------------------------------------------------------------------
+        """
+        TransformPoints = Node(name='Transform_points',
+                               interface = Fn(function = apply_affine_transform,
+                                              input_names = ['transform_file',
+                                                             'vtk_or_points',
+                                                             'save_file'],
+                                              output_names = ['affine_points',
+                                                              'output_file']))
+        mbFlow.add_nodes([TransformPoints])
+        TransformPoints.inputs.transform_file = "/Users/arno/Dropbox/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
+        #mbFlow.connect([(RegisterTemplate, TransformPoints,
+        #                 [('affine_transform', 'transform_file')])])
+        mbFlow.connect([(TravelDepthNode, TransformPoints,
+                         [('depth_file', 'vtk_or_points')])])
+        TransformPoints.inputs.save_file = False
+        mbFlow.connect([(TransformPoints, Sink,
+                         [('output_file', 'transforms.@points_to_template')])])
+        """
+
 ##############################################################################
 #
 #   Feature extraction workflow
@@ -668,34 +717,6 @@ if run_featureFlow:
         mbFlow.connect([(shapeFlow, Sink,
                          [('Rescale_travel_depth.rescaled_scalars_file',
                            'shapes.@travel_depth_rescaled')])])
-
-        #=====================================================================
-        # Rescale geodesic depth
-        #=====================================================================
-        RescaleGeodesicDepth = Node(name='Rescale_geodesic_depth',
-                            interface = Fn(function = rescale_by_neighborhood,
-                                           input_names = ['input_vtk',
-                                                          'indices',
-                                                          'nedges',
-                                                          'p',
-                                                          'set_max_to_1',
-                                                          'save_file',
-                                                          'output_filestring'],
-                                           output_names = ['rescaled_scalars',
-                                                           'rescaled_scalars_file']))
-        shapeFlow.add_nodes([RescaleGeodesicDepth])
-        mbFlow.connect([(GeodesicDepthNode, RescaleGeodesicDepth,
-                         [('depth_file','input_vtk')])])
-        RescaleGeodesicDepth.inputs.indices = []
-        RescaleGeodesicDepth.inputs.nedges = 10
-        RescaleGeodesicDepth.inputs.p = 99
-        RescaleGeodesicDepth.inputs.set_max_to_1 = True
-        RescaleGeodesicDepth.inputs.save_file = True
-        RescaleGeodesicDepth.inputs.output_filestring = 'geodesic_depth_rescaled'
-        # Save rescaled depth
-        mbFlow.connect([(shapeFlow, Sink,
-                         [('Rescale_geodesic_depth.rescaled_scalars_file',
-                           'shapes.@geodesic_depth_rescaled')])])
 
     #=========================================================================
     # Sulci
@@ -934,27 +955,6 @@ if run_volumeFlow:
     Sink2 = Sink.clone('Results2')
 
     #=========================================================================
-    # Register image volume to template in MNI152 space using ANTs
-    #=========================================================================
-    if do_register_template:
-
-        RegisterTemplate = Node(name='Register_template',
-                              interface = Fn(function = register_volume,
-                                             input_names = ['source',
-                                                            'target',
-                                                            'iterations',
-                                                            'output_stem'],
-                                            output_names = ['affine_transform',
-                                                            'nonlinear_transform']))
-        mbFlow2.add_nodes([RegisterTemplate])
-        mbFlow2.connect([(Info2, RegisterTemplate, [('subject','source')])])
-        RegisterTemplate.inputs.target = ants_template
-        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
-        RegisterTemplate.inputs.output_stem = ""
-        mbFlow2.connect([(RegisterTemplate, Sink2,
-                          [('affine_transform', 'transforms.@affine')])])
-
-    #=========================================================================
     # Fill (gray matter) volume using FreeSurfer
     #=========================================================================
     #-------------------------------------------------------------------------
@@ -1098,34 +1098,6 @@ if run_volumeFlow:
                           [('output_file', 'file1')])])
         mbFlow2.connect([(EvalVolLabels, Sink2,
                           [('out_file', 'evaluate_labels_volume')])])
-
-##############################################################################
-#
-#   Continued surface workflow:
-#   * Transform vtk coordinates to template in MNI152 space
-#
-##############################################################################
-if run_volumeFlow:
-    #=========================================================================
-    # Register image volume to template in MNI152 space using ANTs
-    #=========================================================================
-    if do_register_template:
-
-        RegisterTemplate = Node(name='Register_template',
-                              interface = Fn(function = register_volume,
-                                             input_names = ['source',
-                                                            'target',
-                                                            'iterations',
-                                                            'output_stem'],
-                                            output_names = ['affine_transform',
-                                                            'nonlinear_transform']))
-        mbFlow2.add_nodes([RegisterTemplate])
-        mbFlow2.connect([(Info2, RegisterTemplate, [('subject','source')])])
-        RegisterTemplate.inputs.target = ants_template
-        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
-        RegisterTemplate.inputs.output_stem = ""
-        mbFlow2.connect([(RegisterTemplate, Sink2,
-                          [('affine_transform', 'transforms.@affine')])])
 
 ##############################################################################
 #
