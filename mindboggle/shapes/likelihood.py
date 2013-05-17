@@ -81,7 +81,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
     >>> from mindboggle.shapes.likelihood import compute_likelihood
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> trained_file = os.path.join(path, 'atlases', 'travel_depth_curv_border_nonborder_parameters.pkl')
+    >>> trained_file = os.path.join(path, 'atlases', 'depth_curv_border_nonborder_parameters.pkl')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
