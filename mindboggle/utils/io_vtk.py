@@ -963,7 +963,7 @@ def read_itk_transform(affine_transform_file):
 
     return affine_transform, fixed_parameters
 
-def apply_affine_transform(transform_file, vtk_file):
+def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
     """
     Transform coordinates using an affine matrix.
 
@@ -971,14 +971,17 @@ def apply_affine_transform(transform_file, vtk_file):
     ----------
     transform file : string
         name of ITK affine transform file
-    vtk_file : string
-        name of VTK file containing point coordinate data
+    vtk_or_points : string or list of lists of three integers
+        name of VTK file containing point coordinate data, or the data
+    save_file : Boolean
+        save transformed coordinates in a vtk file?
+        (False if vtk_or_points is points)
 
     Returns
     -------
-    affined_points : list of lists of floats
+    affine_points : list of lists of floats
         transformed coordinates
-    output_file : string
+    output_file : string or None (if save_file==False or vtk_or_points is points)
         name of VTK file containing transformed point data
 
     Examples
@@ -989,33 +992,48 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> apply_affine_transform(transform_file, vtk_file)
+    >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> save_file = True
+    >>> #
+    >>> apply_affine_transform(transform_file, vtk_or_points, save_file)
     >>> # View
     >>> plot_vtk('affine_lh.pial.mean_curvature.vtk')
-
 
     """
     import os
     import numpy as np
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
+    from mindboggle.utils.io_vtk import read_vtk, read_faces_points, \
+        read_itk_transform, write_vtk
 
     # Read ITK affine transform file:
     transform, fixed_parameters = read_itk_transform(transform_file)
 
     # Read VTK file:
-    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
+    if isinstance(vtk_or_points, str):
+        faces, lines, indices, points, npoints, scalars, name, \
+            foo1 = read_vtk(vtk_or_points)
+        points = np.array(points)
+    elif isinstance(vtk_or_points, list):
+        points = np.array(vtk_or_points)
+        save_file = False
+    elif isinstance(vtk_or_points, np.ndarray):
+        points = vtk_or_points.copy()
+        save_file = False
 
     # Transform points:
-    points = np.array(points)
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
     affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+    affine_points.tolist()
+    affine_points = [x.tolist() for x in affine_points]
 
     # Write transformed VTK file:
-    output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-    write_vtk(output_file, affine_points.tolist(), indices, lines, faces,
-              scalars, name)
+    if save_file:
+        output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_or_points))
+        write_vtk(output_file, affine_points, indices, lines, faces,
+                  scalars, name)
+    else:
+        output_file = None
 
     return affine_points, output_file
 
@@ -1067,7 +1085,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
 
     # Read target image volume header information:
     img = nb.load(volume_file)
-    hdr = img.get_header()
+    hdr = img.get_shape()
     dims = img.get_shape()
     ndims = len(dims)
     affine = img.get_affine()
