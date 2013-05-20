@@ -41,8 +41,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
 
     Examples
     --------
-    >>> # Extract a skeleton connect endpoints in a fold:
-    >>> # (Alternative to connecting vertices with connect_points_hmmf().
+    >>> # Extract a skeleton to connect endpoints in a fold:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
@@ -58,9 +57,9 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
     >>> # Select a single fold:
+    >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11 #11
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> S = -1 * np.ones(len(values))
     >>> S[indices] = 1
@@ -113,7 +112,10 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
     #-------------------------------------------------------------------------
+    plot_edge_less_than = 0  # Set to zero not to plot
     exist_simple = True
+    print('  Iteratively remove up to {0} of edge vertices'.format(
+        erosion_ratio))
     while exist_simple:
         exist_simple = False
 
@@ -126,6 +128,13 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         if edge:
             edge = np.array(list(set(edge).difference(indices_to_keep)))
             len_edge = np.shape(edge)[0]
+            if len_edge < plot_edge_less_than:
+                from mindboggle.utils.plots import plot_vtk
+                IDs = -1 * np.ones(len(values))
+                IDs[indices] = values[indices]
+                IDs[edge] = 2
+                rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', IDs)
+                plot_vtk('edge.vtk')
             #print('    Number of vertices in edge: {0}'.format(len_edge))
             #-----------------------------------------------------------------
             # Remove simple points in order of lowest to highest values:
@@ -136,7 +145,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
                 edge = edge[Isort]
                 if erosion_ratio > 0:
                     ntests = int(len_edge * erosion_ratio) + 1
-            print('    Number of vertices to test: {0}'.format(ntests))
+            #print('    Number of vertices to test: {0}'.format(ntests))
             for index in edge[0:ntests]:
 
                 # Test to see if each index is a simple point:
@@ -221,7 +230,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
 
     Examples
     --------
-    >>> # Connect vertices according to likelihood values in a single fold
+    >>> # Connect vertices according to likelihood values in a single fold:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
