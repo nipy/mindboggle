@@ -160,7 +160,7 @@ def read_faces_points(filename):
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
-        faces = [[Data.GetPolys().GetData().GetValue(j)
+        faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in xrange(i*4 + 1, i*4 + 4)]
                   for i in xrange(Data.GetPolys().GetNumberOfCells())]
     else:
@@ -307,7 +307,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
-        faces = [[Data.GetPolys().GetData().GetValue(j)
+        faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in xrange(i*4 + 1, i*4 + 4)]
                   for i in xrange(Data.GetPolys().GetNumberOfCells())]
     else:

@@ -86,6 +86,7 @@ else:
 # User settings
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
+do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
 do_fundi = False  # Extract fundi
 do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
@@ -137,6 +138,8 @@ from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
+from nipype.interfaces.freesurfer.preprocess import MRIConvert
+from nipype.interfaces.ants import Registration
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
@@ -230,14 +233,22 @@ Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 #-----------------------------------------------------------------------------
 # Location and structure of the volume inputs
 #-----------------------------------------------------------------------------
-if do_fill:
-    Vol = Node(name = 'Volumes',
-        interface = DataGrabber(infields=['subject'],
-                                outfields=['original_volume'],
-                                sort_filelist=False))
-    Vol.inputs.base_directory = subjects_path
-    Vol.inputs.template = '%s/mri/orig/001.mgz'
-    Vol.inputs.template_args['original_volume'] = [['subject']]
+if do_fill or (do_register_template and not do_input_nifti):
+    mghVol = Node(name = 'mgh_Volumes',
+                  interface = DataGrabber(infields=['subject'],
+                                          outfields=['mgh_volume'],
+                                          sort_filelist=False))
+    mghVol.inputs.base_directory = subjects_path
+    mghVol.inputs.template = '%s/mri/orig/001.mgz'
+    mghVol.inputs.template_args['mgh_volume'] = [['subject']]
+elif do_register_template and do_input_nifti:
+    niftiVol = Node(name = 'nifti_Volumes',
+                    interface = DataGrabber(infields=['subject'],
+                                            outfields=['nifti_volume'],
+                                            sort_filelist=False))
+    niftiVol.inputs.base_directory = subjects_path
+    niftiVol.inputs.template = '%s/mri/orig/001.nii.gz'
+    niftiVol.inputs.template_args['nifti_volume'] = [['subject']]
 #-----------------------------------------------------------------------------
 # Outputs
 #-----------------------------------------------------------------------------
@@ -583,27 +594,52 @@ if run_shapeFlow:
     if do_register_template:
 
         #---------------------------------------------------------------------
+        # Convert mgh image volume format to nifti format:
+        # 'mri_convert --out_type mgz --input_volume structural.nii
+        #              --output_volume outfile.mgz'
+        #---------------------------------------------------------------------
+        if not do_input_nifti:
+            mgh2nifti = Node(name='mgh_to_nifti', interface = MRIConvert())
+            mbFlow.add_nodes([mgh2nifti])
+            mbFlow.connect([(Info, mghVol, [('subject','subject')])])
+            mbFlow.connect([(mghVol, mgh2nifti, [('mgh_volume', 'in_file')])])
+            mgh2nifti.inputs.out_file = '001.nii.gz'
+            mgh2nifti.inputs.out_type = 'niigz'
+            mbFlow.connect([(mgh2nifti, Sink, [('out_file', 'nifti_volume')])])
+
+        #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
-        """
-        RegisterTemplate = Node(name='Register_template',
-                                interface = Fn(function = register_volume,
-                                               input_names = ['source',
-                                                              'target',
-                                                              'iterations',
-                                                              'output_stem'],
-                                               output_names = ['affine_transform',
-                                                               'nonlinear_transform']))
-        mbFlow.add_nodes([RegisterTemplate])
-        mbFlow.connect([(Info, RegisterTemplate, [('subject','source')])])
-        RegisterTemplate.inputs.target = ants_template
-        RegisterTemplate.inputs.iterations = "0"  #"30x99x11"
-        RegisterTemplate.inputs.output_stem = ""
-        mbFlow.connect([(RegisterTemplate, Sink,
-                         [('affine_transform', 'transforms.@affine')])])
-        """
+        RegTemplate = Node(name='Register_template', interface = Registration())
+        mbFlow.add_nodes([RegTemplate])
+        if do_input_nifti:
+            mbFlow.connect([(niftiVol, RegTemplate,
+                             [('nifti_volume','moving_image')])])
+        else:
+            mbFlow.connect([(mgh2nifti, RegTemplate,
+                             [('out_file','moving_image')])])
+        RegTemplate.inputs.fixed_image = [ants_template]
+        RegTemplate.inputs.output_transform_prefix = "output_"
+        RegTemplate.inputs.transforms = ['Affine']
+        RegTemplate.inputs.transform_parameters = [(2.0,)]
+        RegTemplate.inputs.number_of_iterations = [[150,20]]
+        RegTemplate.inputs.dimension = 3
+        RegTemplate.inputs.metric = ['CC']
+        RegTemplate.inputs.metric_weight = [1]
+        RegTemplate.inputs.smoothing_sigmas = [[1,0]]
+        RegTemplate.inputs.shrink_factors = [[2,1]]
+        RegTemplate.inputs.radius_or_number_of_bins = [2]
+        RegTemplate.inputs.use_histogram_matching = [True]
+        RegTemplate.inputs.interpolation = 'Linear'
+        RegTemplate.inputs.write_composite_transform = True
+        #RegTemplate.inputs.composite_transform = 'transform.mat'
+        RegTemplate.inputs.output_transform_prefix = 'transformed_'
+        RegTemplate.inputs.output_warped_image = 'transformed_file.nii.gz'
+        #mbFlow.connect([(RegTemplate, Sink,
+        #                 [('composite_transform', 'transforms.@affine')])])
+
         #---------------------------------------------------------------------
-        # Apply affine transform to vtk coordinates:
+        # Apply affine transform to vtk coordinates (UNTESTED):
         #---------------------------------------------------------------------
         """
         TransformPoints = Node(name='Transform_points',
@@ -616,7 +652,7 @@ if run_shapeFlow:
         mbFlow.add_nodes([TransformPoints])
         TransformPoints.inputs.transform_file = "/Users/arno/Dropbox/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
         #mbFlow.connect([(RegisterTemplate, TransformPoints,
-        #                 [('affine_transform', 'transform_file')])])
+        #                 [('affine_transform_file', 'transform_file')])])
         mbFlow.connect([(TravelDepthNode, TransformPoints,
                          [('depth_file', 'vtk_or_points')])])
         TransformPoints.inputs.save_file = False
@@ -974,8 +1010,8 @@ if run_volumeFlow:
         mbFlow2.connect([(Info2, FillVolume, [('subject', 'subject')])])
         FillVolume.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
         FillVolume.inputs.original_space = True
-        mbFlow2.connect([(Info2, Vol, [('subject','subject')])])
-        mbFlow2.connect([(Vol, FillVolume, [('original_volume', 'reference')])])
+        mbFlow2.connect([(Info2, mghVol, [('subject','subject')])])
+        mbFlow2.connect([(mghVol, FillVolume, [('mgh_volume', 'reference')])])
         #---------------------------------------------------------------------
         # Relabel file, replacing colortable labels with real labels
         #---------------------------------------------------------------------
@@ -1116,6 +1152,7 @@ if run_tableFlow:
                                       input_names = ['labels_or_file',
                                                      'sulci',
                                                      'fundi',
+                                                     'affine_transform_file',
                                                      'area_file',
                                                      'travel_depth_file',
                                                      'geodesic_depth_file',
@@ -1146,6 +1183,8 @@ if run_tableFlow:
                          [('Fundi.fundi', 'Shape_tables.fundi')])])
     else:
         ShapeTables.inputs.fundi = []
+    mbFlow.connect([(RegisterTemplate, Shape_tables,
+                     [('affine_transform_file', 'affine_transform_file')])])
     #-------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Area.area_file',
@@ -1205,6 +1244,7 @@ if run_tableFlow:
                                                          'labels_or_file',
                                                          'sulci',
                                                          'fundi',
+                                                         'affine_transform_file',
                                                          'area_file',
                                                          'travel_depth_file',
                                                          'geodesic_depth_file',
@@ -1224,6 +1264,8 @@ if run_tableFlow:
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
         else:
             ShapeTables.inputs.fundi = []
+        mbFlow.connect([(RegisterTemplate, Vertex_table,
+                         [('affine_transform_file', 'affine_transform_file')])])
         #---------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file'),
