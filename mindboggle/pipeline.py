@@ -617,25 +617,62 @@ if run_shapeFlow:
         else:
             mbFlow.connect([(mgh2nifti, RegTemplate,
                              [('out_file','moving_image')])])
+
+        # Registration parameters:
+        reg_dim = 3
+        reg_params = (0.1,)
+        reg_params_syn = (2.0, 3, 0)
+        reg_iters = [10000, 111110, 11110]
+        reg_iters_syn = [100, 100, 50]
+        reg_sigmas = [4, 2, 1]
+        reg_sigmas_syn = [1, 0.5, 0]
+        reg_sample = 'Regular'
+        reg_percent = 0.3
+        reg_converge = 1e-8
+        reg_window = 20
+        reg_hist = True          #reg_interp = 'Linear'
+        # Repeat parameters for translation, rigid, and affine:
+        reg_transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
+        reg_params = [reg_params, reg_params, reg_params, reg_params_syn]
+        reg_metrics = ['Mattes', 'Mattes', 'Mattes', ['Mattes', 'CC']]
+        reg_iters = [reg_iters, reg_iters, reg_iters, reg_iters_syn]
+        reg_sigmas = [reg_sigmas, reg_sigmas, reg_sigmas, reg_sigmas_syn]
+        reg_sigma_units = ['vox'] * 4
+        reg_sample = [reg_sample, reg_sample, reg_sample, None]
+        reg_percent = [reg_percent, reg_percent, reg_percent, None]
+        reg_metric_weights = [1] * 4
+        reg_radius_or_nbins = [32] * 4
+        reg_converge = [reg_converge, reg_converge, reg_converge, None]
+        reg_window = [reg_window, reg_window, reg_window, None]
+        reg_shrinks = [[6,4,2], [3,2,1], [3,2,1], [4,2,1]]
+        reg_hist = [True] * 4     #reg_interp = [reg_interp] * 4
+        # Nipype setup:
         RegTemplate.inputs.fixed_image = [ants_template]
+        RegTemplate.inputs.dimension = reg_dim
+        RegTemplate.inputs.transforms = reg_transforms
+        RegTemplate.inputs.transform_parameters = reg_params
+        RegTemplate.inputs.metric = reg_metrics
+        RegTemplate.inputs.number_of_iterations = reg_iters
+        RegTemplate.inputs.metric_weight = reg_metric_weights
+        RegTemplate.inputs.radius_or_number_of_bins = reg_radius_or_nbins
+        RegTemplate.inputs.sampling_strategy = reg_sample
+        RegTemplate.inputs.sampling_percentage = reg_percent
+        RegTemplate.inputs.convergence_threshold = reg_converge
+        RegTemplate.inputs.convergence_window_size = reg_window
+        RegTemplate.inputs.smoothing_sigmas = reg_sigmas
+        RegTemplate.inputs.sigma_units = reg_sigma_units
+        RegTemplate.inputs.shrink_factors = reg_shrinks
+        RegTemplate.inputs.use_histogram_matching = reg_hist   #RegTemplate.inputs.interpolation = reg_interp
+        # Nipype output:
         RegTemplate.inputs.output_transform_prefix = "output_"
-        RegTemplate.inputs.transforms = ['Affine']
-        RegTemplate.inputs.transform_parameters = [(2.0,)]
-        RegTemplate.inputs.number_of_iterations = [[150,20]]
-        RegTemplate.inputs.dimension = 3
-        RegTemplate.inputs.metric = ['CC']
-        RegTemplate.inputs.metric_weight = [1]
-        RegTemplate.inputs.smoothing_sigmas = [[1,0]]
-        RegTemplate.inputs.shrink_factors = [[2,1]]
-        RegTemplate.inputs.radius_or_number_of_bins = [2]
-        RegTemplate.inputs.use_histogram_matching = [True]
-        RegTemplate.inputs.interpolation = 'Linear'
         RegTemplate.inputs.write_composite_transform = True
         #RegTemplate.inputs.composite_transform = 'transform.mat'
         RegTemplate.inputs.output_transform_prefix = 'transformed_'
         RegTemplate.inputs.output_warped_image = 'transformed_file.nii.gz'
-        #mbFlow.connect([(RegTemplate, Sink,
-        #                 [('composite_transform', 'transforms.@affine')])])
+        mbFlow.connect([(RegTemplate, Sink,
+                         [('composite_transform', 'transforms.@affine')])])
+        mbFlow.connect([(RegTemplate, Sink,
+                         [('output_warped_image', 'transforms.@affine_volume')])])
 
         #---------------------------------------------------------------------
         # Apply affine transform to vtk coordinates (UNTESTED):
