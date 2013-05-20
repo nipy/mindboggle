@@ -182,7 +182,7 @@ def find_neighbors_vertex(faces, index):
 #-----------------------------------------------------------------------------
 # Find neighborhood for given vertices
 #-----------------------------------------------------------------------------
-def find_neighborhood(neighbor_lists, indices, nedges):
+def find_neighborhood(neighbor_lists, indices, nedges=1):
     """
     Find neighbors in the neighborhood of given surface mesh vertices.
 
@@ -225,7 +225,7 @@ def find_neighborhood(neighbor_lists, indices, nedges):
             [local_neighbors.extend(neighbor_lists[x]) for x in seed_list]
 
             # Select neighbors that have not been previously selected:
-            seed_list = list(frozenset(local_neighbors).difference(completed))
+            seed_list = list(set(local_neighbors).difference(completed))
 
             # Add to neighborhood:
             neighborhood.extend(seed_list)
