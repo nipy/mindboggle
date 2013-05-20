@@ -101,7 +101,7 @@ def extract_borders(indices, labels, neighbor_lists,
 
     if ignore_values:
         Ikeep = [i for i,x in enumerate(boundary_label_pairs)
-                 if not len(frozenset(x).intersection(ignore_values))]
+                 if not len(set(x).intersection(ignore_values))]
         boundary_indices = [x for i,x in enumerate(boundary_indices)
                             if i in Ikeep]
         if return_label_pairs:
