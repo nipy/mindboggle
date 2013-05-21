@@ -92,7 +92,7 @@ do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_register_template = False  # Register volume to template in MNI152
+do_register_template = True  # Register volume to template in MNI152
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -130,8 +130,8 @@ label_method = 'manual'
 #-----------------------------------------------------------------------------
 # Registration algorithm to standard space template (ANTS or FLIRT):
 #-----------------------------------------------------------------------------
-use_ANTS = True
-use_FLIRT = False
+use_ANTS = 0#True
+use_FLIRT = True
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -612,7 +612,7 @@ if run_shapeFlow:
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
         if use_ANTS:
-            regAnts = Node(name='Register_standard', interface=Registration())
+            regAnts = Node(name='antsRegister_standard', interface=Registration())
             flow.add_nodes([regAnts])
             if do_input_nifti:
                 flow.connect(niftiVol, 'nifti_volume', regAnts, 'moving_image')
@@ -646,7 +646,7 @@ if run_shapeFlow:
             flow.connect(regAnts, 'composite_transform', 
                          Sink, 'transforms.@affine')
         elif use_FLIRT:
-            regFlirt = Node(name='Register_standard', interface=FLIRT())
+            regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
             flow.add_nodes([regFlirt])
             if do_input_nifti:
                 flow.connect(niftiVol, 'nifti_volume', regFlirt, 'in_file')
@@ -1162,6 +1162,7 @@ if run_tableFlow:
                                                  'sulci',
                                                  'fundi',
                                                  'affine_transform_file',
+                                                 'transform_format',
                                                  'area_file',
                                                  'travel_depth_file',
                                                  'geodesic_depth_file',
@@ -1200,9 +1201,14 @@ if run_tableFlow:
             #  return lambda x: x[:1]
             #flow.connect(regAnts, ('forward_transforms', pickfirst),
             #             ShapeTables, 'affine_transform_file')
+            ShapeTables.inputs.transform_format = 'itk'
         elif use_FLIRT:
             flow.connect(regFlirt, 'out_matrix_file',
                          ShapeTables, 'affine_transform_file')
+            ShapeTables.inputs.transform_format = 'flirt'
+    else:
+        ShapeTables.inputs.affine_transform_file = None
+        ShapeTables.inputs.transform_format = None
 
     #-------------------------------------------------------------------------
     flow.connect([(shapeFlow, tableFlow,
@@ -1261,6 +1267,7 @@ if run_tableFlow:
                                                      'sulci',
                                                      'fundi',
                                                      'affine_transform_file',
+                                                     'transform_format',
                                                      'area_file',
                                                      'travel_depth_file',
                                                      'geodesic_depth_file',
@@ -1288,9 +1295,14 @@ if run_tableFlow:
                 #pickfirst = lambda x: x[:1]
                 #flow.connect(regAnts, ('forward_transforms', pickfirst),
                 #             VertexTable, 'affine_transform_file')
+                VertexTable.inputs.transform_format = 'itk'
             elif use_FLIRT:
                 flow.connect(regFlirt, 'out_matrix_file',
                              VertexTable, 'affine_transform_file')
+                VertexTable.inputs.transform_format = 'flirt'
+        else:
+            VertexTable.inputs.affine_transform_file = None
+            VertexTable.inputs.transform_format = None
         #---------------------------------------------------------------------
         flow.connect([(shapeFlow, tableFlow,
                        [('Area.area_file','Vertex_table.area_file'),
