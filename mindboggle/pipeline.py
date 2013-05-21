@@ -105,7 +105,7 @@ run_labelFlow = True
 run_shapeFlow = True
 run_featureFlow = True
 run_volumeFlow = True
-run_tableFlow = 0#True
+run_tableFlow = True
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -609,38 +609,38 @@ if run_shapeFlow:
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
-        reg = Node(name='Register_template', interface = Registration())
-        mbFlow.add_nodes([reg])
+        regAnts = Node(name='Register_standard', interface = Registration())
+        mbFlow.add_nodes([regAnts])
         if do_input_nifti:
-            mbFlow.connect([(niftiVol, reg, [('nifti_volume','moving_image')])])
+            mbFlow.connect([(niftiVol, regAnts, [('nifti_volume','moving_image')])])
         else:
-            mbFlow.connect([(mgh2nifti, reg, [('out_file','moving_image')])])
-        reg.inputs.fixed_image = [ants_template]
-        reg.inputs.num_threads = 2
-        reg.inputs.transforms = ['Rigid', 'Affine']
-        reg.inputs.transform_parameters = [(0.1,), (0.1,)]
-        reg.inputs.number_of_iterations = [[1000,500,250,100]]*2
-        reg.inputs.dimension = 3
-        reg.inputs.write_composite_transform = True
-        reg.inputs.collapse_output_transforms = True
-        reg.inputs.metric = ['MI']*2
-        reg.inputs.metric_weight = [1]*2
-        reg.inputs.radius_or_number_of_bins = [32]*2
-        reg.inputs.sampling_strategy = ['Regular']*2
-        reg.inputs.sampling_percentage = [0.25]*2
-        reg.inputs.convergence_threshold = [1.e-8]*2
-        reg.inputs.convergence_window_size = [10]*2
-        reg.inputs.smoothing_sigmas = [[3,2,1,0]]*2
-        reg.inputs.sigma_units = ['mm']*2
-        reg.inputs.shrink_factors = [[8,4,2,1]]*2
-        reg.inputs.use_estimate_learning_rate_once = [True, True]
-        reg.inputs.use_histogram_matching = [False]*2
-        reg.inputs.output_warped_image = True
-        reg.inputs.winsorize_lower_quantile = 0.01
-        reg.inputs.winsorize_upper_quantile = 0.99
-        # Nipype output:
-        reg.inputs.write_composite_transform = True
-        mbFlow.connect([(reg, Sink,
+            mbFlow.connect([(mgh2nifti, regAnts, [('out_file','moving_image')])])
+        regAnts.inputs.fixed_image = [ants_template]
+        regAnts.inputs.num_threads = 2
+        regAnts.inputs.transforms = ['Rigid', 'Affine']
+        regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
+        regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+        regAnts.inputs.dimension = 3
+        regAnts.inputs.write_composite_transform = True
+        regAnts.inputs.collapse_output_transforms = True
+        regAnts.inputs.metric = ['MI']*2
+        regAnts.inputs.metric_weight = [1]*2
+        regAnts.inputs.radius_or_number_of_bins = [32]*2
+        regAnts.inputs.sampling_strategy = ['Regular']*2
+        regAnts.inputs.sampling_percentage = [0.25]*2
+        regAnts.inputs.convergence_threshold = [1.e-8]*2
+        regAnts.inputs.convergence_window_size = [10]*2
+        regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
+        regAnts.inputs.sigma_units = ['mm']*2
+        regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
+        regAnts.inputs.use_estimate_learning_rate_once = [True, True]
+        regAnts.inputs.use_histogram_matching = [False]*2
+        regAnts.inputs.output_warped_image = True
+        regAnts.inputs.winsorize_lower_quantile = 0.01
+        regAnts.inputs.winsorize_upper_quantile = 0.99
+        regAnts.inputs.write_composite_transform = True
+        regAnts.inputs.output_transform_prefix = 'affine_'
+        mbFlow.connect([(regAnts, Sink,
                          [('composite_transform', 'transforms.@affine')])])
 
         #---------------------------------------------------------------------
@@ -656,7 +656,7 @@ if run_shapeFlow:
                                                               'output_file']))
         mbFlow.add_nodes([TransformPoints])
         TransformPoints.inputs.transform_file = "/Users/arno/Dropbox/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
-        #mbFlow.connect([(RegisterTemplate, TransformPoints,
+        #mbFlow.connect([(regAnts, TransformPoints,
         #                 [('affine_transform_file', 'transform_file')])])
         mbFlow.connect([(TravelDepthNode, TransformPoints,
                          [('depth_file', 'vtk_or_points')])])
@@ -1188,8 +1188,8 @@ if run_tableFlow:
                          [('Fundi.fundi', 'Shape_tables.fundi')])])
     else:
         ShapeTables.inputs.fundi = []
-    mbFlow.connect([(RegisterTemplate, Shape_tables,
-                     [('affine_transform_file', 'affine_transform_file')])])
+    #mbFlow.connect([(regAnts, ShapeTables,
+    #                 [('output_transform_prefix', 'affine_transform_file')])])
     #-------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Area.area_file',
@@ -1269,8 +1269,8 @@ if run_tableFlow:
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
         else:
             ShapeTables.inputs.fundi = []
-        mbFlow.connect([(RegisterTemplate, Vertex_table,
-                         [('affine_transform_file', 'affine_transform_file')])])
+        #mbFlow.connect([(regAnts, VertexTable,
+        #                 [('output_transform_prefix', 'affine_transform_file')])])
         #---------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file'),
