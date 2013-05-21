@@ -900,9 +900,11 @@ def scalars_checker(scalars, scalar_names):
 #------------------------------------------------------------------------------
 # Apply affine transform to the points of a VTK surface mesh
 #------------------------------------------------------------------------------
-def read_itk_transform(affine_transform_file):
+def read_itk_transform(transform_file):
     """
     Read ITK transform file and output transform array.
+
+    Daniel Haehn's implementation: https://gist.github.com/haehn/5614966
 
     ..ITK affine transform file format ::
 
@@ -915,53 +917,67 @@ def read_itk_transform(affine_transform_file):
 
     Parameters
     ----------
-    affine_transform_file : string
+    transform_file : string
         name of ITK affine transform file
 
     Returns
     -------
-    affine_transform : numpy array
+    transform : numpy array
         4x4 affine transform matrix
-    fixed_parameters : numpy array
-        FixedParameters vector
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                             't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(affine_transform_file)
-        (array([[  9.07680e-01,   4.35290e-02,   1.28917e-02, -7.94889e-01],
-               [ -4.54455e-02,   8.68937e-01,   4.06098e-01, -1.83346e+01],
-               [  1.79439e-02,  -4.30013e-01,   7.83074e-01, -3.14767e+00],
-               [  0.00000e+00,   0.00000e+00,   0.00000e+00, 1.00000e+00]]),
-         [-0.60936, 21.1593, 10.6148])
-
+    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>> read_itk_transform(transform_file)
+        array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
+               [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
+               [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
+               [  0 0 0 1]])
     """
     import numpy as np
 
-    affine_transform = np.eye(4)
+    # Read the transform:
+    transform = None
+    with open( transform_file, 'r' ) as f:
+      for line in f:
 
-    # Read ITK transform file
-    fid = open(affine_transform_file, 'r')
-    affine_lines = fid.readlines()
+        # Check for Parameters:
+        if line.startswith( 'Parameters:' ):
+          values = line.split( ': ' )[1].split( ' ' )
 
-    transform = affine_lines[3]
-    transform = transform.split()
-    transform = [np.float(x) for x in transform[1::]]
-    transform = np.reshape(transform, (4,3))
-    linear_transform = transform[0:3,:]
-    translation = transform[3,:]
-    affine_transform[0:3,0:3] = linear_transform
-    affine_transform[0:3,3] = translation
+          # Filter empty spaces and line breaks:
+          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+          # Create the upper left of the matrix:
+          transform_upper_left = np.reshape( values[0:9], ( 3, 3 ) )
+          # Grab the translation as well:
+          translation = values[9:]
 
-    fixed_parameters = affine_lines[4]
-    fixed_parameters = fixed_parameters.split()
-    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+        # Check for FixedParameters:
+        if line.startswith( 'FixedParameters:' ):
+          values = line.split( ': ' )[1].split( ' ' )
 
-    return affine_transform, fixed_parameters
+          # Filter empty spaces and line breaks:
+          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+          # Set up the center:
+          center = values
+
+    # Compute the offset:
+    offset = np.ones( 4 )
+    for i in range( 0, 3 ):
+      offset[i] = translation[i] + center[i];
+      for j in range( 0, 3 ):
+        offset[i] -= transform_upper_left[i][j] * center[i]
+
+    # add the [0, 0, 0] line:
+    transform = np.vstack( ( transform_upper_left, [0, 0, 0] ) )
+    # and the [offset, 1] column:
+    transform = np.hstack( ( transform, np.reshape( offset, ( 4, 1 ) ) ) )
+
+    return transform
 
 def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
     """
@@ -1007,7 +1023,7 @@ def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
         read_itk_transform, write_vtk
 
     # Read ITK affine transform file:
-    transform, fixed_parameters = read_itk_transform(transform_file)
+    transform = read_itk_transform(transform_file)
 
     # Read VTK file:
     if isinstance(vtk_or_points, str):
