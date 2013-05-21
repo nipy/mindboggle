@@ -642,10 +642,10 @@ if run_shapeFlow:
             regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
             regAnts.inputs.use_estimate_learning_rate_once = [True, True]
             regAnts.inputs.use_histogram_matching = [False]*2
-            regAnts.inputs.output_warped_image = True
             regAnts.inputs.winsorize_lower_quantile = 0.01
             regAnts.inputs.winsorize_upper_quantile = 0.99
-            regAnts.inputs.write_composite_transform = True
+            regAnts.inputs.output_warped_image = False
+            regAnts.inputs.write_composite_transform = False
             regAnts.inputs.output_transform_prefix = 'affine_'
             mbFlow.connect([(regAnts, Sink,
                              [('composite_transform', 'transforms.@affine')])])
