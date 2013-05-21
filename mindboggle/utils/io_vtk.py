@@ -981,7 +981,7 @@ def read_itk_transform(transform_file):
     return transform
 
 def apply_affine_transform(transform_file, vtk_or_points,
-                           transform_format='itk', save_file=False):
+                           transform_format='txt', save_file=False):
     """
     Transform coordinates using an affine matrix.
 
@@ -992,7 +992,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     vtk_or_points : string or list of lists of three integers
         name of VTK file containing point coordinate data, or the data
     transform_format : string
-        format for transform file (Ex: 'itk', 'flirt')
+        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
     save_file : Boolean
         save transformed coordinates in a vtk file?
         (False if vtk_or_points is points)
@@ -1029,7 +1029,9 @@ def apply_affine_transform(transform_file, vtk_or_points,
         read_itk_transform, write_vtk
 
     # Read ITK affine transform file:
-    if transform_format == 'itk':
+    if transform_format == 'txt':
+        transform = np.loadtxt(transform_file)
+    elif transform_format == 'itk':
         transform = read_itk_transform(transform_file)
     else:
         import sys
