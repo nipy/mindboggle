@@ -12,9 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         affine_transform_file=[], transform_format='itk',
-        area_file='', travel_depth_file='',
-        geodesic_depth_file='', mean_curvature_file='',
-        thickness_file='', convexity_file='',
+        area_file='', mean_curvature_file='', travel_depth_file='',
+        geodesic_depth_file='', convexity_file='', thickness_file='',
         labels_spectra=[], labels_spectra_norm=[], labels_spectra_IDs=[],
         sulci_spectra=[], sulci_spectra_norm=[], sulci_spectra_IDs=[],
         exclude_labels=[-1], delimiter=','):
@@ -35,16 +34,16 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
     area_file :  string
         name of VTK file with surface area scalar values
+    mean_curvature_file :  string
+        name of VTK file with mean curvature scalar values
     travel_depth_file :  string
         name of VTK file with travel depth scalar values
     geodesic_depth_file :  string
         name of VTK file with geodesic depth scalar values
-    mean_curvature_file :  string
-        name of VTK file with mean curvature scalar values
-    thickness_file :  string
-        name of VTK file with thickness scalar values
     convexity_file :  string
         name of VTK file with convexity scalar values
+    thickness_file :  string
+        name of VTK file with thickness scalar values
     labels_spectra : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
     labels_spectra_norm : list of lists of floats
@@ -92,12 +91,11 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>>     't1weighted_brain.MNI152Affine.txt')
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> standard_space_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.standard_space.vtk')
-    >>> thickness_file = ''
     >>> convexity_file = ''
+    >>> thickness_file = ''
     >>> delimiter = ','
     >>> #
     >>> import numpy as np
@@ -112,8 +110,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> #
     >>> write_mean_shapes_tables(labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
-    >>>     travel_depth_file, geodesic_depth_file, mean_curvature_file,
-    >>>     thickness_file, convexity_file, labels_spectra,
+    >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
+    >>>     convexity_file, thickness_file, labels_spectra,
     >>>     labels_spectra_norm, labels_spectra_IDs, sulci_spectra,
     >>>     sulci_spectra_norm, sulci_spectra_IDs, exclude_labels, delimiter)
 
@@ -121,7 +119,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     import os
     import numpy as np
     from mindboggle.shapes.measure import mean_value_per_label
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk, apply_affine_transform
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
+        apply_affine_transform
     from mindboggle.utils.io_file import write_columns
 
     # Make sure inputs are lists:
@@ -149,12 +148,12 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
-    shape_names = ['area', 'travel depth', 'geodesic depth', 'mean curvature',
-                   'thickness', 'convexity']
+    shape_names = ['area', 'mean curvature', 'travel depth', 'geodesic depth',
+                   'convexity', 'thickness']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
-    shape_files = [area_file, travel_depth_file, geodesic_depth_file,
-                   mean_curvature_file, thickness_file, convexity_file]
+    shape_files = [area_file, mean_curvature_file, travel_depth_file,
+                   geodesic_depth_file, convexity_file, thickness_file]
     shape_arrays = []
     column_names = []
     normalize_by_area = False
@@ -167,8 +166,9 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 points = np.array(points)
                 first_pass = False
                 if affine_transform_file:
-                    affine_points = apply_affine_transform(affine_transform_file,
-                                        points, transform_format)
+                    affine_points, \
+                        foo1 = apply_affine_transform(affine_transform_file,
+                                    points, transform_format)
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -263,30 +263,26 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 if normalize_by_area:
                     spectra_norm = spectra_norm_lists[itable]
 
-                # Order spectra and convert to comma-delimited strings:
-                spectrum_strings = []
+                # Order spectra into a list:
+                spectrum_list = []
                 if normalize_by_area:
-                    spectrum_norm_strings = []
+                    spectrum_norm_list = []
                 for label in label_list:
                     if label in spectra_IDs:
                         spectrum = spectra[spectra_IDs.index(label)]
-                        spectrum_string = ','.join([str(x) for x in spectrum])
-                        spectrum_strings.append('"' + spectrum_string + '"')
+                        spectrum_list.append(spectrum)
                         if normalize_by_area:
                             spectrum_norm = spectra_norm[spectra_IDs.index(label)]
-                            spectrum_norm_string = ','.\
-                                join([str(x) for x in spectrum_norm])
-                            spectrum_norm_strings.\
-                                append('"' + spectrum_norm_string + '"')
+                            spectrum_norm_list.append(spectrum_norm)
                     else:
-                        spectrum_strings.append('')
-                        spectrum_norm_strings.append('')
+                        spectrum_list.append('')
+                        spectrum_norm_list.append('')
 
                 # Append spectral shape name and values to relevant columns:
-                columns.append(spectrum_strings)
+                columns.append(spectrum_list)
                 table_column_names.append(spectra_name)
                 if normalize_by_area:
-                    norm_columns.append(spectrum_norm_strings)
+                    norm_columns.append(spectrum_norm_list)
 
             #-----------------------------------------------------------------
             # Write labels and values to table:
@@ -332,9 +328,10 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
 
 
 def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
-        affine_transform_file=[], transform_format='itk', area_file='',
-        travel_depth_file='', geodesic_depth_file='', mean_curvature_file='',
-        thickness_file='', convexity_file='', delimiter=','):
+        affine_transform_file=[], transform_format='itk',
+        area_file='', mean_curvature_file='', travel_depth_file='',
+        geodesic_depth_file='', convexity_file='', thickness_file='',
+        delimiter=','):
     """
     Make a table of shape values per vertex.
 
@@ -353,16 +350,16 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
         format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
     area_file :  string
         name of VTK file with surface area scalar values
+    mean_curvature_file :  string
+        name of VTK file with mean curvature scalar values
     travel_depth_file :  string
         name of VTK file with travel depth scalar values
     geodesic_depth_file :  string
         name of VTK file with geodesic depth scalar values
-    mean_curvature_file :  string
-        name of VTK file with mean curvature scalar values
-    thickness_file :  string
-        name of VTK file with thickness scalar values
     convexity_file :  string
         name of VTK file with convexity scalar values
+    thickness_file :  string
+        name of VTK file with thickness scalar values
     delimiter : string
         delimiter between columns, such as ','
 
@@ -387,17 +384,17 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     >>>     't1weighted_brain.MNI152Affine.txt')
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> thickness_file = ''
     >>> convexity_file = ''
+    >>> thickness_file = ''
     >>> delimiter = ','
     >>> #
     >>> write_vertex_shapes_table(table_file, labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
-    >>>     travel_depth_file, geodesic_depth_file, mean_curvature_file,
-    >>>     thickness_file, convexity_file, delimiter)
+    >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
+    >>>     convexity_file, thickness_file, delimiter)
 
     """
     import os
@@ -422,12 +419,12 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     feature_lists = [labels, sulci, fundi]
 
     # Shape names corresponding to shape files below:
-    shape_names = ['area', 'travel depth', 'geodesic depth',
-                   'mean curvature', 'thickness', 'convexity']
+    shape_names = ['area', 'mean curvature', 'travel depth', 'geodesic depth',
+                   'convexity', 'thickness']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
-    shape_files = [area_file, travel_depth_file, geodesic_depth_file,
-                   mean_curvature_file, thickness_file, convexity_file]
+    shape_files = [area_file, mean_curvature_file, travel_depth_file,
+                   geodesic_depth_file, convexity_file, thickness_file]
 
     # Append columns of per-vertex scalar values:
     columns = []
@@ -449,8 +446,9 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
                 column_names.append('coordinates')
                 first_pass = False
                 if affine_transform_file:
-                    affine_points = apply_affine_transform(affine_transform_file,
-                                        points, transform_format)
+                    affine_points, \
+                        foo1 = apply_affine_transform(affine_transform_file,
+                                    points, transform_format)
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:
