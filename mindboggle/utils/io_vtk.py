@@ -980,7 +980,8 @@ def read_itk_transform(transform_file):
 
     return transform
 
-def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
+def apply_affine_transform(transform_file, vtk_or_points,
+                           transform_format='itk', save_file=False):
     """
     Transform coordinates using an affine matrix.
 
@@ -990,6 +991,8 @@ def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
         name of ITK affine transform file
     vtk_or_points : string or list of lists of three integers
         name of VTK file containing point coordinate data, or the data
+    transform_format : string
+        format for transform file (Ex: 'itk', 'flirt')
     save_file : Boolean
         save transformed coordinates in a vtk file?
         (False if vtk_or_points is points)
@@ -1010,9 +1013,11 @@ def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>                               't1weighted_brain.MNI152Affine.txt')
     >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> transform_format = 'itk'
     >>> save_file = True
     >>> #
-    >>> apply_affine_transform(transform_file, vtk_or_points, save_file)
+    >>> apply_affine_transform(transform_file, vtk_or_points,
+    >>>                        transform_format, save_file)
     >>> # View
     >>> plot_vtk('affine_lh.pial.mean_curvature.vtk')
 
@@ -1024,7 +1029,11 @@ def apply_affine_transform(transform_file, vtk_or_points, save_file=False):
         read_itk_transform, write_vtk
 
     # Read ITK affine transform file:
-    transform = read_itk_transform(transform_file)
+    if transform_format == 'itk':
+        transform = read_itk_transform(transform_file)
+    else:
+        import sys
+        sys.exit('Transform file format not understood.')
 
     # Read VTK file:
     if isinstance(vtk_or_points, str):
