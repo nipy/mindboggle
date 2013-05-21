@@ -1205,7 +1205,7 @@ if run_tableFlow:
         elif use_FLIRT:
             flow.connect(regFlirt, 'out_matrix_file',
                          ShapeTables, 'affine_transform_file')
-            ShapeTables.inputs.transform_format = 'flirt'
+            ShapeTables.inputs.transform_format = 'txt'
     else:
         ShapeTables.inputs.affine_transform_file = None
         ShapeTables.inputs.transform_format = None
@@ -1299,7 +1299,7 @@ if run_tableFlow:
             elif use_FLIRT:
                 flow.connect(regFlirt, 'out_matrix_file',
                              VertexTable, 'affine_transform_file')
-                VertexTable.inputs.transform_format = 'flirt'
+                VertexTable.inputs.transform_format = 'txt'
         else:
             VertexTable.inputs.affine_transform_file = None
             VertexTable.inputs.transform_format = None

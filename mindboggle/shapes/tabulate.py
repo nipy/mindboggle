@@ -32,7 +32,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     affine_transform_file : string
         affine transform file to standard space
     transform_format : string
-        format for transform file (Ex: 'itk', 'flirt')
+        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
     area_file :  string
         name of VTK file with surface area scalar values
     travel_depth_file :  string
@@ -350,7 +350,7 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     affine_transform_file : string
         affine transform file to standard space
     transform_format : string
-        format for transform file (Ex: 'itk', 'flirt')
+        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
     area_file :  string
         name of VTK file with surface area scalar values
     travel_depth_file :  string
