@@ -11,7 +11,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
-        affine_transform_file=[], area_file='', travel_depth_file='',
+        affine_transform_file=[], transform_format='itk',
+        area_file='', travel_depth_file='',
         geodesic_depth_file='', mean_curvature_file='',
         thickness_file='', convexity_file='',
         labels_spectra=[], labels_spectra_norm=[], labels_spectra_IDs=[],
@@ -30,6 +31,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         indices to fundi, one per vertex, with -1 indicating no fundus
     affine_transform_file : string
         affine transform file to standard space
+    transform_format : string
+        format for transform file (Ex: 'itk', 'flirt')
     area_file :  string
         name of VTK file with surface area scalar values
     travel_depth_file :  string
@@ -87,6 +90,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
     >>>     't1weighted_brain.MNI152Affine.txt')
+    >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
@@ -107,11 +111,11 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> exclude_labels = [-1]
     >>> #
     >>> write_mean_shapes_tables(labels_or_file, sulci, fundi,
-    >>>     affine_transform_file, area_file, travel_depth_file,
-    >>>     geodesic_depth_file, mean_curvature_file, thickness_file,
-    >>>     convexity_file, labels_spectra, labels_spectra_norm,
-    >>>     labels_spectra_IDs, sulci_spectra, sulci_spectra_norm,
-    >>>     sulci_spectra_IDs, exclude_labels, delimiter)
+    >>>     affine_transform_file, transform_format, area_file,
+    >>>     travel_depth_file, geodesic_depth_file, mean_curvature_file,
+    >>>     thickness_file, convexity_file, labels_spectra,
+    >>>     labels_spectra_norm, labels_spectra_IDs, sulci_spectra,
+    >>>     sulci_spectra_norm, sulci_spectra_IDs, exclude_labels, delimiter)
 
     """
     import os
@@ -163,9 +167,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 points = np.array(points)
                 first_pass = False
                 if affine_transform_file:
-                    affine_points, \
-                        foo1 = apply_affine_transform(affine_transform_file,
-                                                      points)
+                    affine_points = apply_affine_transform(affine_transform_file,
+                                        points, transform_format)
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -329,9 +332,9 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
 
 
 def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
-        affine_transform_file=[], area_file='', travel_depth_file='',
-        geodesic_depth_file='', mean_curvature_file='', thickness_file='',
-        convexity_file='', delimiter=','):
+        affine_transform_file=[], transform_format='itk', area_file='',
+        travel_depth_file='', geodesic_depth_file='', mean_curvature_file='',
+        thickness_file='', convexity_file='', delimiter=','):
     """
     Make a table of shape values per vertex.
 
@@ -346,6 +349,8 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
         indices to fundi, one per vertex, with -1 indicating no fundus
     affine_transform_file : string
         affine transform file to standard space
+    transform_format : string
+        format for transform file (Ex: 'itk', 'flirt')
     area_file :  string
         name of VTK file with surface area scalar values
     travel_depth_file :  string
@@ -380,6 +385,7 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
     >>>     't1weighted_brain.MNI152Affine.txt')
+    >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
@@ -389,9 +395,9 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     >>> delimiter = ','
     >>> #
     >>> write_vertex_shapes_table(table_file, labels_or_file, sulci, fundi,
-    >>>     affine_transform_file, area_file, travel_depth_file,
-    >>>     geodesic_depth_file, mean_curvature_file, thickness_file,
-    >>>     convexity_file, delimiter)
+    >>>     affine_transform_file, transform_format, area_file,
+    >>>     travel_depth_file, geodesic_depth_file, mean_curvature_file,
+    >>>     thickness_file, convexity_file, delimiter)
 
     """
     import os
@@ -443,9 +449,8 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
                 column_names.append('coordinates')
                 first_pass = False
                 if affine_transform_file:
-                    affine_points, \
-                        foo1 = apply_affine_transform(affine_transform_file,
-                                                      points)
+                    affine_points = apply_affine_transform(affine_transform_file,
+                                        points, transform_format)
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:
