@@ -6,6 +6,7 @@ Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013 (ohinds@gmail.com)
+    - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -898,7 +899,7 @@ def scalars_checker(scalars, scalar_names):
     return scalars, scalar_names
 
 #------------------------------------------------------------------------------
-# Apply affine transform to the points of a VTK surface mesh
+# Read and apply an affine transform to the points of a VTK surface mesh
 #------------------------------------------------------------------------------
 def read_itk_transform(transform_file):
     """
