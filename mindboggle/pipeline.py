@@ -92,7 +92,7 @@ do_sulci = True  # Extract sulci
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_register_template = True  # Register volume to template in MNI152 (ANTs)
+do_register_template = True  # Register volume to template in MNI152
 do_vertex_tables = True  # Create per-vertex shape tables
 do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
 do_measure_volume = True  # Measure volumes of labeled regions
@@ -127,6 +127,11 @@ init_labels = 'DKTatlas'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-----------------------------------------------------------------------------
 label_method = 'manual'
+#-----------------------------------------------------------------------------
+# Registration algorithm to standard space template (ANTS or FLIRT):
+#-----------------------------------------------------------------------------
+use_ANTS = False
+use_FLIRT = True
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -140,6 +145,7 @@ from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer.preprocess import MRIConvert
 from nipype.interfaces.ants import Registration
+from nipype.interfaces.fsl import FLIRT
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
@@ -609,39 +615,54 @@ if run_shapeFlow:
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
-        regAnts = Node(name='Register_standard', interface = Registration())
-        mbFlow.add_nodes([regAnts])
-        if do_input_nifti:
-            mbFlow.connect([(niftiVol, regAnts, [('nifti_volume','moving_image')])])
-        else:
-            mbFlow.connect([(mgh2nifti, regAnts, [('out_file','moving_image')])])
-        regAnts.inputs.fixed_image = [ants_template]
-        regAnts.inputs.num_threads = 2
-        regAnts.inputs.transforms = ['Rigid', 'Affine']
-        regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-        regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
-        regAnts.inputs.dimension = 3
-        regAnts.inputs.write_composite_transform = True
-        regAnts.inputs.collapse_output_transforms = True
-        regAnts.inputs.metric = ['MI']*2
-        regAnts.inputs.metric_weight = [1]*2
-        regAnts.inputs.radius_or_number_of_bins = [32]*2
-        regAnts.inputs.sampling_strategy = ['Regular']*2
-        regAnts.inputs.sampling_percentage = [0.25]*2
-        regAnts.inputs.convergence_threshold = [1.e-8]*2
-        regAnts.inputs.convergence_window_size = [10]*2
-        regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
-        regAnts.inputs.sigma_units = ['mm']*2
-        regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
-        regAnts.inputs.use_estimate_learning_rate_once = [True, True]
-        regAnts.inputs.use_histogram_matching = [False]*2
-        regAnts.inputs.output_warped_image = True
-        regAnts.inputs.winsorize_lower_quantile = 0.01
-        regAnts.inputs.winsorize_upper_quantile = 0.99
-        regAnts.inputs.write_composite_transform = True
-        regAnts.inputs.output_transform_prefix = 'affine_'
-        mbFlow.connect([(regAnts, Sink,
-                         [('composite_transform', 'transforms.@affine')])])
+        if use_ANTS:
+            regAnts = Node(name='Register_standard', interface = Registration())
+            mbFlow.add_nodes([regAnts])
+            if do_input_nifti:
+                mbFlow.connect([(niftiVol, regAnts, [('nifti_volume','moving_image')])])
+            else:
+                mbFlow.connect([(mgh2nifti, regAnts, [('out_file','moving_image')])])
+            regAnts.inputs.fixed_image = [ants_template]
+            regAnts.inputs.num_threads = 2
+            regAnts.inputs.transforms = ['Rigid', 'Affine']
+            regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
+            regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+            regAnts.inputs.dimension = 3
+            regAnts.inputs.write_composite_transform = True
+            regAnts.inputs.collapse_output_transforms = True
+            regAnts.inputs.metric = ['MI']*2
+            regAnts.inputs.metric_weight = [1]*2
+            regAnts.inputs.radius_or_number_of_bins = [32]*2
+            regAnts.inputs.sampling_strategy = ['Regular']*2
+            regAnts.inputs.sampling_percentage = [0.25]*2
+            regAnts.inputs.convergence_threshold = [1.e-8]*2
+            regAnts.inputs.convergence_window_size = [10]*2
+            regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
+            regAnts.inputs.sigma_units = ['mm']*2
+            regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
+            regAnts.inputs.use_estimate_learning_rate_once = [True, True]
+            regAnts.inputs.use_histogram_matching = [False]*2
+            regAnts.inputs.output_warped_image = True
+            regAnts.inputs.winsorize_lower_quantile = 0.01
+            regAnts.inputs.winsorize_upper_quantile = 0.99
+            regAnts.inputs.write_composite_transform = True
+            regAnts.inputs.output_transform_prefix = 'affine_'
+            mbFlow.connect([(regAnts, Sink,
+                             [('composite_transform', 'transforms.@affine')])])
+        elif use_FLIRT:
+            regFlirt = Node(name='Register_standard', interface = FLIRT())
+            mbFlow.add_nodes([regFlirt])
+            if do_input_nifti:
+                mbFlow.connect([(niftiVol, regFlirt, [('nifti_volume','in_file')])])
+            else:
+                mbFlow.connect([(mgh2nifti, regFlirt, [('out_file','in_file')])])
+            regFlirt.inputs.bins = 640
+            regFlirt.inputs.cost_func = 'mutualinfo'
+            regFlirt.inputs.dof = 12
+            regFlirt.inputs.reference = ants_template
+            regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
+            mbFlow.connect([(regFlirt, Sink,
+                             [('out_matrix_file', 'transforms.@affine')])])
 
         #---------------------------------------------------------------------
         # Apply affine transform to vtk coordinates (UNTESTED):
@@ -656,7 +677,7 @@ if run_shapeFlow:
                                                               'output_file']))
         mbFlow.add_nodes([TransformPoints])
         TransformPoints.inputs.transform_file = "/Users/arno/Dropbox/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
-        #mbFlow.connect([(regAnts, TransformPoints,
+        #mbFlow.connect([(regFlirt, TransformPoints,
         #                 [('affine_transform_file', 'transform_file')])])
         mbFlow.connect([(TravelDepthNode, TransformPoints,
                          [('depth_file', 'vtk_or_points')])])
@@ -1188,8 +1209,14 @@ if run_tableFlow:
                          [('Fundi.fundi', 'Shape_tables.fundi')])])
     else:
         ShapeTables.inputs.fundi = []
+    if use_ANTS:
+        pass
     #mbFlow.connect([(regAnts, ShapeTables,
     #                 [('output_transform_prefix', 'affine_transform_file')])])
+    elif use_FLIRT:
+        mbFlow.connect([(regFlirt, ShapeTables,
+                         [('out_matrix_file', 'affine_transform_file')])])
+
     #-------------------------------------------------------------------------
     mbFlow.connect([(shapeFlow, tableFlow,
                      [('Area.area_file',
@@ -1269,8 +1296,13 @@ if run_tableFlow:
                              [('Fundi.fundi', 'Vertex_table.fundi')])])
         else:
             ShapeTables.inputs.fundi = []
+        if use_ANTS:
+            pass
         #mbFlow.connect([(regAnts, VertexTable,
         #                 [('output_transform_prefix', 'affine_transform_file')])])
+        elif use_FLIRT:
+            mbFlow.connect([(regFlirt, VertexTable,
+                             [('out_matrix_file', 'affine_transform_file')])])
         #---------------------------------------------------------------------
         mbFlow.connect([(shapeFlow, tableFlow,
                          [('Area.area_file','Vertex_table.area_file'),
