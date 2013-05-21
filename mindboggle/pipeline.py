@@ -130,8 +130,8 @@ label_method = 'manual'
 #-----------------------------------------------------------------------------
 # Registration algorithm to standard space template (ANTS or FLIRT):
 #-----------------------------------------------------------------------------
-use_ANTS = 0#True
-use_FLIRT = True
+use_ANTS = True
+use_FLIRT = 0#True
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -622,7 +622,8 @@ if run_shapeFlow:
             regAnts.inputs.num_threads = 2
             regAnts.inputs.transforms = ['Rigid', 'Affine']
             regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-            regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+            regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
+#            regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
             regAnts.inputs.dimension = 3
             regAnts.inputs.write_composite_transform = True
             regAnts.inputs.collapse_output_transforms = True
