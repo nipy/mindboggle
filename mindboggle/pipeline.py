@@ -87,25 +87,33 @@ else:
 #=============================================================================
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
-do_fundi = False  # Extract fundi
-do_sulci = True  # Extract sulci
-do_thickness = True  # Include FreeSurfer's thickness measure
-do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_register_template = True  # Register volume to template in MNI152
-do_vertex_tables = True  # Create per-vertex shape tables
-do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
-do_measure_volume = True  # Measure volumes of labeled regions
-do_evaluate_surface = False  # Surface overlap: auto vs. manual labels
-do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
 #-----------------------------------------------------------------------------
 # Mindboggle workflows
 #-----------------------------------------------------------------------------
 run_labelFlow = True
+do_evaluate_surface = False  # Surface overlap: auto vs. manual labels
+
 run_shapeFlow = True
+do_thickness = True  # Include FreeSurfer's thickness measure
+do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
+do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
+do_register_standard = False  # Register volume to template in MNI152
+reg_standard_algorithm = 'ants'  # 'fsl' # Registration to standard space
+
 run_featureFlow = True
+do_fundi = False  # Extract fundi
+do_sulci = True  # Extract sulci
+
 run_volumeFlow = True
+do_fill = True  # Fill (gray matter) volumes with surface labels (FreeSurfer)
+do_measure_volume = True  # Measure volumes of labeled regions
+do_evaluate_volume = False  # Volume overlap: auto vs. manual labels
+
+run_subctxFlow = True
+
 run_tableFlow = True
+do_vertex_tables = True  # Create per-vertex shape tables
+
 #-----------------------------------------------------------------------------
 # Labeling protocol used by Mindboggle:
 # 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 labeled regions
@@ -127,11 +135,6 @@ init_labels = 'DKTatlas'
 # <'adjusted': manual edits after automated alignment to fundi>
 #-----------------------------------------------------------------------------
 label_method = 'manual'
-#-----------------------------------------------------------------------------
-# Registration algorithm to standard space template (ANTS or FLIRT):
-#-----------------------------------------------------------------------------
-use_ANTS = True
-use_FLIRT = 0#True
 
 #=============================================================================
 # Setup: import libraries, set file paths, and initialize main workflow
@@ -238,7 +241,7 @@ Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 #-----------------------------------------------------------------------------
 # Location and structure of the volume inputs
 #-----------------------------------------------------------------------------
-if do_fill or (do_register_template and not do_input_nifti):
+if do_fill or (do_register_standard and not do_input_nifti):
     mghVol = Node(name='mgh_Volumes',
                   interface=DataGrabber(infields=['subject'],
                                         outfields=['mgh_volume'],
@@ -246,7 +249,7 @@ if do_fill or (do_register_template and not do_input_nifti):
     mghVol.inputs.base_directory = subjects_path
     mghVol.inputs.template = '%s/mri/orig/001.mgz'
     mghVol.inputs.template_args['mgh_volume'] = [['subject']]
-elif do_register_template and do_input_nifti:
+elif do_register_standard and do_input_nifti:
     niftiVol = Node(name='nifti_Volumes',
                     interface=DataGrabber(infields=['subject'],
                                           outfields=['nifti_volume'],
@@ -473,6 +476,25 @@ if run_labelFlow:
         AtlasLabels.inputs.return_array = 'False'
         init_labels_plug = 'Atlas_labels.input_vtk'
 
+    #=========================================================================
+    # Surface label evaluation
+    #=========================================================================
+    if do_evaluate_surface:
+
+        EvalSurfLabels = Node(name='Evaluate_surface_labels',
+                                interface=Fn(function = measure_surface_overlap,
+                                             input_names=['command',
+                                                          'labels_file1',
+                                                          'labels_file2'],
+                                             output_names=['overlap_file']))
+        flow.add_nodes([EvalSurfLabels])
+        surface_overlap_command = os.path.join(ccode_path,
+            'surface_overlap', 'SurfaceOverlapMain')
+        EvalSurfLabels.inputs.command = surface_overlap_command
+        flow.connect(Atlas, 'atlas_file', EvalSurfLabels, 'labels_file1')
+        flow.connect(labelFlow, init_labels_plug, EvalSurfLabels, 'labels_file2')
+        flow.connect(EvalSurfLabels, 'overlap_file', Sink, 'evaluate_labels')
+
 ##############################################################################
 #
 #   Surface shape measurement workflow
@@ -592,7 +614,7 @@ if run_shapeFlow:
     #=========================================================================
     # Transform vtk coordinates to a template in MNI152 space
     #=========================================================================
-    if do_register_template:
+    if do_register_standard:
 
         #---------------------------------------------------------------------
         # Convert mgh image volume format to nifti format:
@@ -611,7 +633,7 @@ if run_shapeFlow:
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
-        if use_ANTS:
+        if reg_standard_algorithm == 'ants':
             regAnts = Node(name='antsRegister_standard', interface=Registration())
             flow.add_nodes([regAnts])
             if do_input_nifti:
@@ -620,33 +642,52 @@ if run_shapeFlow:
                 flow.connect(mgh2nifti, 'out_file', regAnts, 'moving_image')
             regAnts.inputs.fixed_image = [ants_template]
             regAnts.inputs.num_threads = 2
-            regAnts.inputs.transforms = ['Rigid', 'Affine']
-            regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-            regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
-#            regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
-            regAnts.inputs.dimension = 3
-            regAnts.inputs.write_composite_transform = True
-            regAnts.inputs.collapse_output_transforms = True
-            regAnts.inputs.metric = ['MI']*2
-            regAnts.inputs.metric_weight = [1]*2
-            regAnts.inputs.radius_or_number_of_bins = [32]*2
-            regAnts.inputs.sampling_strategy = ['Regular']*2
-            regAnts.inputs.sampling_percentage = [0.25]*2
-            regAnts.inputs.convergence_threshold = [1.e-8]*2
-            regAnts.inputs.convergence_window_size = [10]*2
-            regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
-            regAnts.inputs.sigma_units = ['mm']*2
-            regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
-            regAnts.inputs.use_estimate_learning_rate_once = [True, True]
-            regAnts.inputs.use_histogram_matching = [False]*2
             regAnts.inputs.winsorize_lower_quantile = 0.01
             regAnts.inputs.winsorize_upper_quantile = 0.99
             regAnts.inputs.output_warped_image = False
+            regAnts.inputs.dimension = 3
+            regAnts.inputs.write_composite_transform = True
+            regAnts.inputs.collapse_output_transforms = True
             regAnts.inputs.write_composite_transform = True
             regAnts.inputs.output_transform_prefix = 'affine_'
-            flow.connect(regAnts, 'composite_transform', 
+            if run_subctxFlow:
+                regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
+                regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
+#               regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
+                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
+                regAnts.inputs.metric = ['MI']*2 + ['CC']
+                regAnts.inputs.metric_weight = [1]*3
+                regAnts.inputs.radius_or_number_of_bins = [32]*2 + [4]
+                regAnts.inputs.sampling_strategy = ['Regular']*2 + [None]
+                regAnts.inputs.sampling_percentage = [0.25]*2 + [None]
+                regAnts.inputs.convergence_threshold = [1.e-8]*2 + [1e-9]
+                regAnts.inputs.convergence_window_size = [10]*2 + [15]
+                regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*3
+                regAnts.inputs.sigma_units = ['mm']*3
+                regAnts.inputs.shrink_factors = [[8,4,2,1]]*2 + [[6,4,2,1]]
+                regAnts.inputs.use_estimate_learning_rate_once = [True, True, True]
+                regAnts.inputs.use_histogram_matching = [False]*2 + [True]
+                regAnts.inputs.initial_moving_transform_com = True
+            else:
+                regAnts.inputs.transforms = ['Rigid', 'Affine']
+                regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
+                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
+#               regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+                regAnts.inputs.metric = ['MI']*2
+                regAnts.inputs.metric_weight = [1]*2
+                regAnts.inputs.radius_or_number_of_bins = [32]*2
+                regAnts.inputs.sampling_strategy = ['Regular']*2
+                regAnts.inputs.sampling_percentage = [0.25]*2
+                regAnts.inputs.convergence_threshold = [1.e-8]*2
+                regAnts.inputs.convergence_window_size = [10]*2
+                regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
+                regAnts.inputs.sigma_units = ['mm']*2
+                regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
+                regAnts.inputs.use_estimate_learning_rate_once = [True, True]
+                regAnts.inputs.use_histogram_matching = [False]*2
+            flow.connect(regAnts, 'composite_transform',
                          Sink, 'transforms.@affine')
-        elif use_FLIRT:
+        if reg_standard_algorithm == 'flirt':
             regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
             flow.add_nodes([regFlirt])
             if do_input_nifti:
@@ -668,12 +709,14 @@ if run_shapeFlow:
                                interface=Fn(function = apply_affine_transform,
                                             input_names=['transform_file',
                                                          'vtk_or_points',
+                                                         'transform_format',
                                                          'save_file'],
                                             output_names=['affine_points',
                                                           'output_file']))
         flow.add_nodes([TransformPoints])
-        TransformPoints.inputs.transform_file = "/Users/arno/Dropbox/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
-        #flow.connect(regFlirt, 'affine_transform_file', 
+        TransformPoints.inputs.transform_file = "/drop/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
+        TransformPoints.inputs.transform_format = "itk"
+        #flow.connect(regFlirt, 'affine_transform_file',
         #             TransformPoints, 'transform_file')
         flow.connect(TravelDepthNode, 'depth_file',
                      TransformPoints, 'vtk_or_points')
@@ -904,24 +947,6 @@ if run_shapeFlow:
             shapeFlow.add_nodes([SpectraSulci])
             flow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
 
-#=============================================================================
-# Surface label evaluation
-#=============================================================================
-if do_evaluate_surface:
-
-    EvalSurfLabels = Node(name='Evaluate_surface_labels',
-                            interface=Fn(function = measure_surface_overlap,
-                                         input_names=['command',
-                                                      'labels_file1',
-                                                      'labels_file2'],
-                                         output_names=['overlap_file']))
-    flow.add_nodes([EvalSurfLabels])
-    surface_overlap_command = os.path.join(ccode_path,
-        'surface_overlap', 'SurfaceOverlapMain')
-    EvalSurfLabels.inputs.command = surface_overlap_command
-    flow.connect(Atlas, 'atlas_file', EvalSurfLabels, 'labels_file1')
-    flow.connect(labelFlow, init_labels_plug, EvalSurfLabels, 'labels_file2')
-    flow.connect(EvalSurfLabels, 'overlap_file', Sink, 'evaluate_labels')
 
 ##############################################################################
 #
@@ -1192,8 +1217,8 @@ if run_tableFlow:
         flow.connect(featureFlow, 'Fundi.fundi', tableFlow, 'Shape_tables.fundi')
     else:
         ShapeTables.inputs.fundi = []
-    if do_register_template:
-        if use_ANTS:
+    if do_register_standard:
+        if reg_standard_algorithm == 'ants':
             flow.connect(regAnts, 'composite_transform',
                          ShapeTables, 'affine_transform_file')
             # Apply the affine part of a complex transform:
@@ -1202,8 +1227,8 @@ if run_tableFlow:
             #  return lambda x: x[:1]
             #flow.connect(regAnts, ('forward_transforms', pickfirst),
             #             ShapeTables, 'affine_transform_file')
-            ShapeTables.inputs.transform_format = 'itk'
-        elif use_FLIRT:
+            ShapeTables.inputs.transform_format = 'mat'
+        elif reg_standard_algorithm == 'flirt':
             flow.connect(regFlirt, 'out_matrix_file',
                          ShapeTables, 'affine_transform_file')
             ShapeTables.inputs.transform_format = 'txt'
@@ -1288,16 +1313,16 @@ if run_tableFlow:
                          tableFlow, 'Vertex_table.fundi')
         else:
             ShapeTables.inputs.fundi = []
-        if do_register_template:
-            if use_ANTS:
+        if do_register_standard:
+            if reg_standard_algorithm == 'ants':
                 flow.connect(regAnts, 'composite_transform',
                              VertexTable, 'affine_transform_file')
                 # Apply the affine part of a complex transform:
                 #pickfirst = lambda x: x[:1]
                 #flow.connect(regAnts, ('forward_transforms', pickfirst),
                 #             VertexTable, 'affine_transform_file')
-                VertexTable.inputs.transform_format = 'itk'
-            elif use_FLIRT:
+                VertexTable.inputs.transform_format = 'mat'
+            elif reg_standard_algorithm == 'flirt':
                 flow.connect(regFlirt, 'out_matrix_file',
                              VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'txt'
