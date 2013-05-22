@@ -992,7 +992,8 @@ def apply_affine_transform(transform_file, vtk_or_points,
     vtk_or_points : string or list of lists of three integers
         name of VTK file containing point coordinate data, or the data
     transform_format : string
-        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
+        format for transform file
+        Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
     save_file : Boolean
         save transformed coordinates in a vtk file?
         (False if vtk_or_points is points)
@@ -1011,9 +1012,11 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>>     'affine_to_template.mat')
+    >>> #   't1weighted_brain.MNI152Affine.txt')
+    >>> #transform_format = 'itk'
+    >>> transform_format = 'mat'
     >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> transform_format = 'itk'
     >>> save_file = True
     >>> #
     >>> apply_affine_transform(transform_file, vtk_or_points,
@@ -1024,6 +1027,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     """
     import os
     import numpy as np
+    from scipy.io import loadmat
 
     from mindboggle.utils.io_vtk import read_vtk, read_faces_points, \
         read_itk_transform, write_vtk
@@ -1031,6 +1035,8 @@ def apply_affine_transform(transform_file, vtk_or_points,
     # Read ITK affine transform file:
     if transform_format == 'txt':
         transform = np.loadtxt(transform_file)
+    elif transform_format == 'mat':
+        transform = loadmat(transform_file)
     elif transform_format == 'itk':
         transform = read_itk_transform(transform_file)
     else:

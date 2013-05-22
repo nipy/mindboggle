@@ -31,7 +31,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     affine_transform_file : string
         affine transform file to standard space
     transform_format : string
-        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
+        format for transform file
+        Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
     area_file :  string
         name of VTK file with surface area scalar values
     mean_curvature_file :  string
@@ -88,8 +89,10 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>     't1weighted_brain.MNI152Affine.txt')
-    >>> transform_format = 'itk'
+    >>>     'affine_to_template.mat')
+    >>> #    't1weighted_brain.MNI152Affine.txt')
+    >>> #transform_format = 'itk'
+    >>> transform_format = 'mat'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -347,7 +350,8 @@ def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
     affine_transform_file : string
         affine transform file to standard space
     transform_format : string
-        format for transform file (Ex: 'txt' for text, 'itk' for ITK format)
+        format for transform file
+        Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
     area_file :  string
         name of VTK file with surface area scalar values
     mean_curvature_file :  string
