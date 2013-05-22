@@ -42,7 +42,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Compute likelihood values for any surface mesh based on learned parameters.
 #-------------------------------------------------------------------------------
 
-def compute_likelihood(trained_file, depth_file, curvature_file, folds):
+def compute_likelihood(trained_file, depth_file, curvature_file, folds,
+                       save_file=False):
     """
     Compute likelihoods based on input values, folds, and estimated parameters.
 
@@ -62,36 +63,42 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
         VTK surface mesh file with curvature values in [-1,1] for all vertices
     folds : list of integers
         fold number for all vertices (-1 for non-fold vertices)
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
     likelihoods : list of floats
         likelihood values for all vertices (0 for non-fold vertices)
+    likelihoods_file : string (if save_file)
+        name of output VTK file with likelihood scalars
+        (-1 for non-fold vertices)
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.shapes.likelihood import compute_likelihood
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> trained_file = os.path.join(path, 'depth_curv_border_nonborder_parameters.pkl')
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>> trained_file = os.path.join(path, 'atlases', 'depth_curv_border_nonborder_parameters.pkl')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    >>> curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
+    >>> save_file = True
     >>> #
-    >>> L = compute_likelihood(trained_file, depth_file, curvature_file, folds)
+    >>> compute_likelihood(trained_file, depth_file, curvature_file, folds, save_file)
     >>> # View:
-    >>> rewrite_scalars(curvature_file, 'compute_likelihood.vtk', L, 'likelihoods', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('compute_likelihood.vtk')
+    >>> plot_vtk('likelihoods.vtk', folds_file)
 
     """
+    import os
     import numpy as np
     from math import pi
     import cPickle as pickle
 
-    from mindboggle.utils.io_vtk import read_scalars
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
 
 
     # Initialize variables:
@@ -141,8 +148,20 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds):
         probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
 
     likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
+    likelihoods.tolist()
 
-    return likelihoods
+    #-------------------------------------------------------------------------
+    # Return likelihoods and output file name
+    #-------------------------------------------------------------------------
+    if save_file:
+
+        likelihoods_file = os.path.join(os.getcwd(), 'likelihoods.vtk')
+        rewrite_scalars(depth_file, likelihoods_file, likelihoods,
+                        'likelihoods', likelihoods)
+    else:
+        likelihoods_file = None
+
+    return likelihoods, likelihoods_file
 
 #-------------------------------------------------------------------------------
 # Learn distributions from training data (different surface meshes).
@@ -187,7 +206,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> if do_test:
     >>>     path = os.environ['MINDBOGGLE_DATA']
     >>>     depth_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.curv.avg.vtk')
+    >>>     curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>>     depth_files = [depth_file]
@@ -196,7 +215,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>     label_files = [labels_file]
     >>> # Train on many Mindboggle-101 surface meshes:
     >>> else:
-    >>>     mindboggle_path = '/Users/arno/Data/Mindboggle-101/results'
+    >>>     mindboggle_path = '../../Mindboggle101_mindboggle_results'
     >>>     label_path = os.environ['SUBJECTS_DIR']
     >>>     x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
     >>>     atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
@@ -210,9 +229,11 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>>       print(atlas)
     >>>       for h in ['lh','rh']:
     >>>         depth_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, 'depth_rescaled.vtk')
+    >>>             '_hemi_'+h+'_subject_'+atlas, 'travel_depth_rescaled.vtk')
+    >>>         #depth_file = os.path.join(mindboggle_path, 'shapes',
+    >>>         #    '_hemi_'+h+'_subject_'+atlas, 'geodesic_depth_rescaled.vtk')
     >>>         curv_file = os.path.join(mindboggle_path, 'shapes',
-    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.curv.avg.vtk')
+    >>>             '_hemi_'+h+'_subject_'+atlas, h+'.pial.mean_curvature.vtk')
     >>>         folds_file = os.path.join(mindboggle_path, 'features',
     >>>             '_hemi_'+h+'_subject_'+atlas, 'folds.vtk')
     >>>         labels_file = os.path.join(label_path, atlas, 'label',
@@ -232,7 +253,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> #
     >>> import cPickle as pickle
     >>> pickle.dump( [depth_border, curv_border, depth_nonborder, curv_nonborder],
-    >>>     open("depth_curv_border_nonborder_parameters.pkl", "wb"))
+    >>>     open("travel_depth_curv_border_nonborder_parameters.pkl", "wb"))
 
     """
     from mindboggle.shapes.likelihood import concatenate_sulcus_scalars, \
