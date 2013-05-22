@@ -47,13 +47,10 @@ int main(int argc, char** argv)
         } // end of switch
     } // end of looping thru arguments
 
-    MeshAnalyser* depthComputer = new MeshAnalyser(argv[argc-2]);
+    MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
     depthComputer->ComputeTravelDepthFromClosed(normalized);
-    depthComputer->WriteIntoFile(argv[argc-1],(char*)"depth");
+    depthComputer->WriteIntoFile(argv[2],(char*)"depth");
 
     cout<<"Elapsed time (meshTest): "<<time(NULL)-start<<" s"<<endl;
     return 0;
 }
-
-
-
