@@ -202,7 +202,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> vertices_to_segment = np.where(depths > 0.50)[0].tolist()  # higher to speed up
@@ -480,7 +480,7 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> from mindboggle.utils.segment import segment_by_filling_boundaries
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> regions = -1 * np.ones(npoints)
@@ -602,8 +602,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
     >>> indices = [i for i,x in enumerate(fold) if x != -1]
@@ -638,7 +638,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> S = -1 * np.ones(len(values))
     >>> for i, segment in enumerate(segments):
     >>>     S[segment] = i
-    >>> rewrite_scalars(depth_file, 'segment_rings.vtk', S, 'segment_rings', fold)
+    >>> rewrite_scalars(vtk_file, 'segment_rings.vtk', S, 'segment_rings', fold)
     >>> plot_vtk('segment_rings.vtk')
     >>> # Store:
     >>> #import pickle
@@ -736,7 +736,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> from mindboggle.utils.segment import watershed, segment
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
     >>> indices = np.where(depths > 0.01)[0]  # high to speed up

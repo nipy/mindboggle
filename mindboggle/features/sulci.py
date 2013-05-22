@@ -359,24 +359,23 @@ if __name__ == "__main__":
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.features.sulci import extract_sulci
     from mindboggle.utils.plots import plot_vtk
+
     path = os.environ['MINDBOGGLE_DATA']
 
     # Load labels, folds, neighbor lists, and sulcus names and label pairs
     labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     folds, name = read_scalars(folds_file)
-    neighbor_lists = find_neighbors(labels_file)
     label_pair_lists = sulcus_boundaries()
     min_boundary = 10
-    sulcus_names_file = os.path.join(path, 'info', 'sulcus_names.txt')
+    save_file = True
+    sulcus_names_file = os.path.join(path, 'protocol', 'sulci.names.DKT25.txt')
     fid = open(sulcus_names_file, 'r')
     sulcus_names = fid.readlines()
     sulcus_names = [x.strip('\n') for x in sulcus_names]
 
-    # Extract sulci
-    sulci, n_sulci = extract_sulci(labels_file, folds, neighbor_lists,
-                                   label_pair_lists, min_boundary, sulcus_names)
+    sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds,
+        label_pair_lists, min_boundary, sulcus_names, save_file)
 
-    # Finally, write points, faces and sulci to a new vtk file and view:
-    rewrite_scalars(labels_file, 'test_extract_sulci.vtk', sulci, 'sulci', sulci)
-    plot_vtk('test_extract_sulci.vtk')
+    # View:
+    plot_vtk('sulci.vtk')
