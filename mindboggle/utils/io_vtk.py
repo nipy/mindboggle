@@ -6,6 +6,7 @@ Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013 (ohinds@gmail.com)
+    - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -143,8 +144,8 @@ def read_faces_points(filename):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_faces_points
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
-    >>> faces, points, npoints = read_faces_points(fold_file)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> faces, points, npoints = read_faces_points(folds_file)
 
     """
     import vtk
@@ -160,7 +161,7 @@ def read_faces_points(filename):
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
-        faces = [[Data.GetPolys().GetData().GetValue(j)
+        faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in xrange(i*4 + 1, i*4 + 4)]
                   for i in xrange(Data.GetPolys().GetNumberOfCells())]
     else:
@@ -193,8 +194,8 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depths, name = read_scalars(depth_file)
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> mean_curvatures, name = read_scalars(curv_file)
 
     """
     import os
@@ -286,7 +287,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
 
     """
@@ -307,7 +308,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
-        faces = [[Data.GetPolys().GetData().GetValue(j)
+        faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in xrange(i*4 + 1, i*4 + 4)]
                   for i in xrange(Data.GetPolys().GetNumberOfCells())]
     else:
@@ -580,19 +581,19 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> scalar_names = ['curv','depth']
     >>> scalars = [[random.random() for i in xrange(4)] for j in [1,2]]
     >>> #
-    >>> write_vtk('test_write_vtk.vtk', points,
+    >>> write_vtk('write_vtk.vtk', points,
     >>>          indices, lines, faces, scalars, scalar_names)
     >>> #
     >>> # View:
-    >>> plot_vtk('test_write_vtk.vtk')
+    >>> plot_vtk('write_vtk.vtk')
     >>> #
-    >>> # Write vtk file with depth values on sulci and view:
+    >>> # Write vtk file with curvature values on sulci and view:
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
-    >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
-    >>> plot_vtk('test_write_vtk.vtk')
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(input_vtk)
+    >>> write_vtk('write_vtk.vtk', points, [], [], faces, curvs, 'curvatures')
+    >>> plot_vtk('write_vtk.vtk')
 
     """
     import os
@@ -656,17 +657,17 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     Examples
     --------
-    >>> # Write vtk file with depth values on sulci
+    >>> # Write vtk file with curvature values on sulci
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> depths, name = read_scalars(depth_file, True,True)
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> curvs, name = read_scalars(curv_file, True,True)
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> #
-    >>> rewrite_scalars(depth_file, 'rewrite_scalars.vtk',
-    >>>                 [depths, sulci], ['depths', 'sulci'], sulci)
+    >>> rewrite_scalars(curv_file, 'rewrite_scalars.vtk',
+    >>>                 [curvs, sulci], ['curvs', 'sulci'], sulci)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -898,11 +899,13 @@ def scalars_checker(scalars, scalar_names):
     return scalars, scalar_names
 
 #------------------------------------------------------------------------------
-# Apply affine transform to the points of a VTK surface mesh
+# Read and apply an affine transform to the points of a VTK surface mesh
 #------------------------------------------------------------------------------
-def read_itk_transform(affine_transform_file):
+def read_itk_transform(transform_file):
     """
     Read ITK transform file and output transform array.
+
+    Daniel Haehn's implementation: https://gist.github.com/haehn/5614966
 
     ..ITK affine transform file format ::
 
@@ -915,55 +918,70 @@ def read_itk_transform(affine_transform_file):
 
     Parameters
     ----------
-    affine_transform_file : string
+    transform_file : string
         name of ITK affine transform file
 
     Returns
     -------
-    affine_transform : numpy array
+    transform : numpy array
         4x4 affine transform matrix
-    fixed_parameters : numpy array
-        FixedParameters vector
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_itk_transform
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                             't1weighted_brain.MNI152Affine.txt')
-    >>> read_itk_transform(affine_transform_file)
-        (array([[  9.07680e-01,   4.35290e-02,   1.28917e-02, -7.94889e-01],
-               [ -4.54455e-02,   8.68937e-01,   4.06098e-01, -1.83346e+01],
-               [  1.79439e-02,  -4.30013e-01,   7.83074e-01, -3.14767e+00],
-               [  0.00000e+00,   0.00000e+00,   0.00000e+00, 1.00000e+00]]),
-         [-0.60936, 21.1593, 10.6148])
-
+    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>> read_itk_transform(transform_file)
+        array([[  9.07680e-01,   4.35290e-02,   1.28917e-02,   -8.16765e-01],
+               [ -4.54455e-02,   8.68937e-01,   4.06098e-01,   -2.31926e+01],
+               [  1.79439e-02,  -4.30013e-01,   7.83074e-01,   3.52899e+00],
+               [  0 0 0 1]])
     """
     import numpy as np
 
-    affine_transform = np.eye(4)
+    # Read the transform:
+    transform = None
+    with open( transform_file, 'r' ) as f:
+      for line in f:
 
-    # Read ITK transform file
-    fid = open(affine_transform_file, 'r')
-    affine_lines = fid.readlines()
+        # Check for Parameters:
+        if line.startswith( 'Parameters:' ):
+          values = line.split( ': ' )[1].split( ' ' )
 
-    transform = affine_lines[3]
-    transform = transform.split()
-    transform = [np.float(x) for x in transform[1::]]
-    transform = np.reshape(transform, (4,3))
-    linear_transform = transform[0:3,:]
-    translation = transform[3,:]
-    affine_transform[0:3,0:3] = linear_transform
-    affine_transform[0:3,3] = translation
+          # Filter empty spaces and line breaks:
+          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+          # Create the upper left of the matrix:
+          transform_upper_left = np.reshape( values[0:9], ( 3, 3 ) )
+          # Grab the translation as well:
+          translation = values[9:]
 
-    fixed_parameters = affine_lines[4]
-    fixed_parameters = fixed_parameters.split()
-    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+        # Check for FixedParameters:
+        if line.startswith( 'FixedParameters:' ):
+          values = line.split( ': ' )[1].split( ' ' )
 
-    return affine_transform, fixed_parameters
+          # Filter empty spaces and line breaks:
+          values = [float( e ) for e in values if ( e != '' and e != '\n' )]
+          # Set up the center:
+          center = values
 
-def apply_affine_transform(transform_file, vtk_file):
+    # Compute the offset:
+    offset = np.ones( 4 )
+    for i in range( 0, 3 ):
+      offset[i] = translation[i] + center[i];
+      for j in range( 0, 3 ):
+        offset[i] -= transform_upper_left[i][j] * center[i]
+
+    # add the [0, 0, 0] line:
+    transform = np.vstack( ( transform_upper_left, [0, 0, 0] ) )
+    # and the [offset, 1] column:
+    transform = np.hstack( ( transform, np.reshape( offset, ( 4, 1 ) ) ) )
+
+    return transform
+
+def apply_affine_transform(transform_file, vtk_or_points,
+                           transform_format='txt', save_file=False):
     """
     Transform coordinates using an affine matrix.
 
@@ -971,14 +989,20 @@ def apply_affine_transform(transform_file, vtk_file):
     ----------
     transform file : string
         name of ITK affine transform file
-    vtk_file : string
-        name of VTK file containing point coordinate data
+    vtk_or_points : string or list of lists of three integers
+        name of VTK file containing point coordinate data, or the data
+    transform_format : string
+        format for transform file
+        Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
+    save_file : Boolean
+        save transformed coordinates in a vtk file?
+        (False if vtk_or_points is points)
 
     Returns
     -------
-    affined_points : list of lists of floats
+    affine_points : list of lists of floats
         transformed coordinates
-    output_file : string
+    output_file : string or None (if save_file==False or vtk_or_points is points)
         name of VTK file containing transformed point data
 
     Examples
@@ -988,36 +1012,140 @@ def apply_affine_transform(transform_file, vtk_file):
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>                               't1weighted_brain.MNI152Affine.txt')
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.depth.vtk')
-    >>> apply_affine_transform(transform_file, vtk_file)
+    >>>     'affine_to_template.mat')
+    >>> #   't1weighted_brain.MNI152Affine.txt')
+    >>> #transform_format = 'itk'
+    >>> transform_format = 'mat'
+    >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> save_file = True
+    >>> #
+    >>> apply_affine_transform(transform_file, vtk_or_points,
+    >>>                        transform_format, save_file)
     >>> # View
-    >>> plot_vtk('affine_lh.pial.depth.vtk')
+    >>> plot_vtk('affine_lh.pial.mean_curvature.vtk')
+
+    """
+    import os
+    import numpy as np
+    from scipy.io import loadmat
+
+    from mindboggle.utils.io_vtk import read_vtk, read_faces_points, \
+        read_itk_transform, write_vtk
+
+    # Read ITK affine transform file:
+    if transform_format == 'txt':
+        transform = np.loadtxt(transform_file)
+    elif transform_format == 'mat':
+        transform = loadmat(transform_file)
+    elif transform_format == 'itk':
+        transform = read_itk_transform(transform_file)
+    else:
+        import sys
+        sys.exit('Transform file format not understood.')
+
+    # Read VTK file:
+    if isinstance(vtk_or_points, str):
+        faces, lines, indices, points, npoints, scalars, name, \
+            foo1 = read_vtk(vtk_or_points)
+        points = np.array(points)
+    elif isinstance(vtk_or_points, list):
+        points = np.array(vtk_or_points)
+        save_file = False
+    elif isinstance(vtk_or_points, np.ndarray):
+        points = vtk_or_points.copy()
+        save_file = False
+
+    # Transform points:
+    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
+    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+    affine_points.tolist()
+    affine_points = [x.tolist() for x in affine_points]
+
+    # Write transformed VTK file:
+    if save_file:
+        output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_or_points))
+        write_vtk(output_file, affine_points, indices, lines, faces,
+                  scalars, name)
+    else:
+        output_file = None
+
+    return affine_points, output_file
+
+def transform_to_volume(vtk_file, volume_file, output_volume=''):
+    """
+    Transform vtk coordinates to voxel index coordinates in a target
+    volume by using the header transformation.
+
+    This function assumes that the nibabel-readable volume has LPI orientation.
+
+    Parameters
+    ----------
+    vtk_file : string
+        name of VTK file containing point coordinate data
+    volume_file : string
+        name of target nibabel-readable image volume file
+    output_volume : string
+        name of output nibabel-readable image volume file
+
+    Returns
+    -------
+    output_volume : string
+        name of nifti file containing transformed point data
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import transform_to_volume
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> output_volume = ''
+    >>> #
+    >>> transform_to_volume(vtk_file, volume_file, output_volume)
+    >>> # View
+    >>> plot_volumes([volume_file, 'affine_lh.pial.mean_curvature.vtk.nii.gz'])
 
 
     """
     import os
     import numpy as np
+    import nibabel as nb
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
 
-    # Read ITK affine transform file:
-    transform, fixed_parameters = read_itk_transform(transform_file)
+    # Read vtk file:
+    foo1, foo2, foo3, xyz, npoints, scalars, foo4, foo5 = read_vtk(vtk_file)
 
-    # Read VTK file:
-    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
+    # Read target image volume header information:
+    img = nb.load(volume_file)
+    hdr = img.get_shape()
+    dims = img.get_shape()
+    ndims = len(dims)
+    affine = img.get_affine()
+    inv_transform = np.linalg.inv(affine)
 
-    # Transform points:
-    points = np.array(points)
-    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
-    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+    # Transform vtk coordinates:
+    xyz = np.array(xyz)
+    xyz = np.concatenate((xyz, np.ones((npoints,1))), axis=1)
+    voxels = np.transpose(np.dot(inv_transform, np.transpose(xyz)))[:,0:ndims]
 
-    # Write transformed VTK file:
-    output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_file))
-    write_vtk(output_file, affine_points.tolist(), indices, lines, faces,
-              scalars, name)
+    voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
+                        (-1,ndims))
+    # Write vtk scalar values to voxels:
+    data = np.zeros(dims)
+    for ivoxel, ijk in enumerate(voxels):
+        data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
 
-    return affine_points, output_file
+    # Write output image volume:
+    if not output_volume:
+        output_volume = os.path.join(os.getcwd(),
+            'affine_' + os.path.basename(vtk_file) + '.nii.gz')
+    img = nb.Nifti1Image(data, affine, header=hdr)
+    img.to_filename(output_volume)
+
+    return output_volume
+
 
 
 #if __name__ == "__main__" :
