@@ -97,8 +97,8 @@ run_shapeFlow = True
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_register_standard = False  # Register volume to template in MNI152
-reg_standard_algorithm = 'ants'  # 'fsl' # Registration to standard space
+do_register_standard = True  # Register volume to template in MNI152
+reg_standard_method = 'flirt'  # 'ants' # Registration to standard space
 
 run_featureFlow = True
 do_fundi = False  # Extract fundi
@@ -242,21 +242,21 @@ Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 # Location and structure of the volume inputs
 #-----------------------------------------------------------------------------
 if do_fill or (do_register_standard and not do_input_nifti):
-    mghVol = Node(name='mgh_Volumes',
+    mghBrainVol = Node(name='mgh_Volumes',
                   interface=DataGrabber(infields=['subject'],
                                         outfields=['mgh_volume'],
                                         sort_filelist=False))
-    mghVol.inputs.base_directory = subjects_path
-    mghVol.inputs.template = '%s/mri/orig/001.mgz'
-    mghVol.inputs.template_args['mgh_volume'] = [['subject']]
+    mghBrainVol.inputs.base_directory = subjects_path
+    mghBrainVol.inputs.template = '%s/mri/brain.mgz'
+    mghBrainVol.inputs.template_args['mgh_volume'] = [['subject']]
 elif do_register_standard and do_input_nifti:
-    niftiVol = Node(name='nifti_Volumes',
+    niftiBrainVol = Node(name='nifti_Volumes',
                     interface=DataGrabber(infields=['subject'],
                                           outfields=['nifti_volume'],
                                           sort_filelist=False))
-    niftiVol.inputs.base_directory = subjects_path
-    niftiVol.inputs.template = '%s/mri/orig/001.nii.gz'
-    niftiVol.inputs.template_args['nifti_volume'] = [['subject']]
+    niftiBrainVol.inputs.base_directory = subjects_path
+    niftiBrainVol.inputs.template = '%s/mri/brain.nii.gz'
+    niftiBrainVol.inputs.template_args['nifti_volume'] = [['subject']]
 #-----------------------------------------------------------------------------
 # Outputs
 #-----------------------------------------------------------------------------
@@ -624,20 +624,20 @@ if run_shapeFlow:
         if not do_input_nifti:
             mgh2nifti = Node(name='mgh_to_nifti', interface=MRIConvert())
             flow.add_nodes([mgh2nifti])
-            flow.connect(Info, 'subject', mghVol, 'subject')
-            flow.connect(mghVol, 'mgh_volume', mgh2nifti, 'in_file')
-            mgh2nifti.inputs.out_file = '001.nii.gz'
+            flow.connect(Info, 'subject', mghBrainVol, 'subject')
+            flow.connect(mghBrainVol, 'mgh_volume', mgh2nifti, 'in_file')
+            mgh2nifti.inputs.out_file = 'brain.nii.gz'
             mgh2nifti.inputs.out_type = 'niigz'
             flow.connect(mgh2nifti, 'out_file', Sink, 'nifti_volume')
 
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTs:
         #---------------------------------------------------------------------
-        if reg_standard_algorithm == 'ants':
+        if reg_standard_method == 'ants':
             regAnts = Node(name='antsRegister_standard', interface=Registration())
             flow.add_nodes([regAnts])
             if do_input_nifti:
-                flow.connect(niftiVol, 'nifti_volume', regAnts, 'moving_image')
+                flow.connect(niftiBrainVol, 'nifti_volume', regAnts, 'moving_image')
             else:
                 flow.connect(mgh2nifti, 'out_file', regAnts, 'moving_image')
             regAnts.inputs.fixed_image = [ants_template]
@@ -653,8 +653,8 @@ if run_shapeFlow:
             if run_subctxFlow:
                 regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
                 regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
-#               regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
-                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
+                regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
+#                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
                 regAnts.inputs.metric = ['MI']*2 + ['CC']
                 regAnts.inputs.metric_weight = [1]*3
                 regAnts.inputs.radius_or_number_of_bins = [32]*2 + [4]
@@ -671,8 +671,8 @@ if run_shapeFlow:
             else:
                 regAnts.inputs.transforms = ['Rigid', 'Affine']
                 regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
-#               regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+#                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
+                regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
                 regAnts.inputs.metric = ['MI']*2
                 regAnts.inputs.metric_weight = [1]*2
                 regAnts.inputs.radius_or_number_of_bins = [32]*2
@@ -687,11 +687,11 @@ if run_shapeFlow:
                 regAnts.inputs.use_histogram_matching = [False]*2
             flow.connect(regAnts, 'composite_transform',
                          Sink, 'transforms.@affine')
-        if reg_standard_algorithm == 'flirt':
+        elif reg_standard_method == 'flirt':
             regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
             flow.add_nodes([regFlirt])
             if do_input_nifti:
-                flow.connect(niftiVol, 'nifti_volume', regFlirt, 'in_file')
+                flow.connect(niftiBrainVol, 'nifti_volume', regFlirt, 'in_file')
             else:
                 flow.connect(mgh2nifti, 'out_file', regFlirt, 'in_file')
             regFlirt.inputs.bins = 640
@@ -699,7 +699,9 @@ if run_shapeFlow:
             regFlirt.inputs.dof = 12
             regFlirt.inputs.reference = ants_template
             regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
+            regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
             flow.connect(regFlirt, 'out_matrix_file', Sink, 'transforms.@affine')
+            flow.connect(regFlirt, 'out_file', Sink, 'transforms.@affine_volume')
 
         #---------------------------------------------------------------------
         # Apply affine transform to vtk coordinates (UNTESTED):
@@ -1050,8 +1052,8 @@ if run_volumeFlow:
         flow2.connect(Info2, 'subject', FillVolume, 'subject')
         FillVolume.inputs.annot_name = 'labels.' + protocol + '.' + init_labels
         FillVolume.inputs.original_space = True
-        flow2.connect(Info2, 'subject', mghVol, 'subject')
-        flow2.connect(mghVol, 'mgh_volume', FillVolume, 'reference')
+        flow2.connect(Info2, 'subject', mghBrainVol, 'subject')
+        flow2.connect(mghBrainVol, 'mgh_volume', FillVolume, 'reference')
         #---------------------------------------------------------------------
         # Relabel file, replacing colortable labels with real labels
         #---------------------------------------------------------------------
@@ -1218,7 +1220,7 @@ if run_tableFlow:
     else:
         ShapeTables.inputs.fundi = []
     if do_register_standard:
-        if reg_standard_algorithm == 'ants':
+        if reg_standard_method == 'ants':
             flow.connect(regAnts, 'composite_transform',
                          ShapeTables, 'affine_transform_file')
             # Apply the affine part of a complex transform:
@@ -1228,7 +1230,7 @@ if run_tableFlow:
             #flow.connect(regAnts, ('forward_transforms', pickfirst),
             #             ShapeTables, 'affine_transform_file')
             ShapeTables.inputs.transform_format = 'mat'
-        elif reg_standard_algorithm == 'flirt':
+        elif reg_standard_method == 'flirt':
             flow.connect(regFlirt, 'out_matrix_file',
                          ShapeTables, 'affine_transform_file')
             ShapeTables.inputs.transform_format = 'txt'
@@ -1314,7 +1316,7 @@ if run_tableFlow:
         else:
             ShapeTables.inputs.fundi = []
         if do_register_standard:
-            if reg_standard_algorithm == 'ants':
+            if reg_standard_method == 'ants':
                 flow.connect(regAnts, 'composite_transform',
                              VertexTable, 'affine_transform_file')
                 # Apply the affine part of a complex transform:
@@ -1322,7 +1324,7 @@ if run_tableFlow:
                 #flow.connect(regAnts, ('forward_transforms', pickfirst),
                 #             VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'mat'
-            elif reg_standard_algorithm == 'flirt':
+            elif reg_standard_method == 'flirt':
                 flow.connect(regFlirt, 'out_matrix_file',
                              VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'txt'
