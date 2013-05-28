@@ -895,8 +895,6 @@ if run_featureFlow:
                                                    'erosion_ratio',
                                                    'normalize_likelihoods',
                                                    'smooth_skeleton',
-                                                   'filter',
-                                                   'filter_file',
                                                    'save_file'],
                                       output_names=['fundi',
                                                     'n_fundi',
@@ -908,13 +906,11 @@ if run_featureFlow:
         flow.connect([(shapeFlow, featureFlow,
                        [('Rescale_travel_depth.rescaled_scalars_file',
                          'Fundi.rescaled_depth_file'),
-                        ('TravelDepth.depth_file','Fundi.depth_file'),
-                        ('Area.area_file','Fundi.filter_file')])])
+                        ('TravelDepth.depth_file','Fundi.depth_file')])])
         FundiNode.inputs.min_edges = 10
         FundiNode.inputs.erosion_ratio = 0.25
         FundiNode.inputs.normalize_likelihoods = True
         FundiNode.inputs.smooth_skeleton = False
-        FundiNode.inputs.filter = True
         FundiNode.inputs.save_file = True
         # Save VTK file with fundi:
         flow.connect(featureFlow, 'Fundi.fundi_file', Sink, 'features.@fundi')
