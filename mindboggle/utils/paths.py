@@ -56,6 +56,12 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
+    >>> # Normalize likelihood values:
+    >>> normalize_likelihoods = True
+    >>> if normalize_likelihoods:
+    >>>     L = values - min(values)
+    >>>     values = L / max(L)
+    >>> #
     >>> # Select a single fold:
     >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -70,7 +76,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> #
     >>> # Filter out large-area vertices:
-    >>> filter_by_area = True
+    >>> filter_by_area = False
     >>> if filter_by_area:
     >>>     area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>>     values2, name = read_scalars(area_file, True, True)
@@ -80,8 +86,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> #
     >>> erosion_ratio = 0.25
     >>> skeleton = connect_points_erosion(S, indices_to_keep,
-    >>>     neighbor_lists, values_seeding, erosion_ratio=erosion_ratio)
-    >>> #    neighbor_lists, values, erosion_ratio=erosion_ratio)
+    >>>     neighbor_lists, values, erosion_ratio=erosion_ratio)
     >>> #
     >>> # Write out vtk file and view:
     >>> D = -1 * np.ones(len(values))
