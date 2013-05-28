@@ -14,8 +14,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
                   depth_file, min_edges=10, erosion_ratio=0.25,
-                  smooth_skeleton=False, filter=False, filter_file='',
-                  save_file=False):
+                  normalize_likelihoods=True, smooth_skeleton=False,
+                  filter=False, filter_file='', save_file=False):
     """
     Extract fundi from folds.
 
@@ -47,6 +47,8 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     erosion_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
+    normalize_likelihoods : Boolean
+        normalize the likelihood values so they are in [0,1]?
     smooth_skeleton : Boolean [Not yet implemented]
         smooth skeleton?
     filter : Boolean
@@ -90,6 +92,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>>     folds, name = read_scalars(folds_file, True, True)
     >>> #
+    >>> normalize_likelihoods = True
     >>> min_edges = 10
     >>> erosion_ratio = 0.25
     >>> smooth_skeleton = True
@@ -98,7 +101,7 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
     >>>     rescaled_depth_file, depth_file, min_edges, erosion_ratio,
-    >>>     smooth_skeleton, filter, filter_file, save_file)
+    >>>     normalize_likelihoods, smooth_skeleton, filter, filter_file, save_file)
     >>> #
     >>> # View:
     >>> plot_vtk(fundi_file)
@@ -120,6 +123,11 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     # From connect_points_hmmf():
     # maximum neighborhood weight (trust prior more for smoother fundi)
     wN_max = 2.0
+
+    # Normalize likelihood values:
+    if normalize_likelihoods:
+        L = likelihoods - min(likelihoods)
+        likelihoods = L / max(L)
 
     # Load depths and neighbors:
     neighbor_lists = find_neighbors_from_file(depth_file)
