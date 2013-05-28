@@ -98,7 +98,7 @@ do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_register_standard = True  # Register volume to template in MNI152
-reg_standard_method = 'flirt'  # 'ants' # Registration to standard space
+reg_standard_method = 'ants'  # 'ants' # Registration to standard space
 
 run_featureFlow = True
 do_fundi = False  # Extract fundi
@@ -893,6 +893,7 @@ if run_featureFlow:
                                                    'depth_file',
                                                    'min_edges',
                                                    'erosion_ratio',
+                                                   'normalize_likelihoods',
                                                    'smooth_skeleton',
                                                    'filter',
                                                    'filter_file',
@@ -911,6 +912,7 @@ if run_featureFlow:
                         ('Area.area_file','Fundi.filter_file')])])
         FundiNode.inputs.min_edges = 10
         FundiNode.inputs.erosion_ratio = 0.25
+        FundiNode.inputs.normalize_likelihoods = True
         FundiNode.inputs.smooth_skeleton = False
         FundiNode.inputs.filter = True
         FundiNode.inputs.save_file = True
