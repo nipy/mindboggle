@@ -48,7 +48,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     """
     import numpy as np
-    from mindboggle.shapes.measure import point_distance
+    from mindboggle.utils.compute import point_distance
 
     npoints = len(points)
 

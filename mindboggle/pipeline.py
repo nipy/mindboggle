@@ -649,7 +649,7 @@ if run_shapeFlow:
             regAnts.inputs.write_composite_transform = True
             regAnts.inputs.collapse_output_transforms = True
             regAnts.inputs.write_composite_transform = True
-            regAnts.inputs.output_transform_prefix = 'affine_'
+            regAnts.inputs.output_transform_prefix = 'standard_'
             if run_subctxFlow:
                 regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
                 regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
@@ -706,7 +706,6 @@ if run_shapeFlow:
         #---------------------------------------------------------------------
         # Apply affine transform to vtk coordinates (UNTESTED):
         #---------------------------------------------------------------------
-        """
         TransformPoints = Node(name='Transform_points',
                                interface=Fn(function = apply_affine_transform,
                                             input_names=['transform_file',
@@ -716,16 +715,19 @@ if run_shapeFlow:
                                             output_names=['affine_points',
                                                           'output_file']))
         flow.add_nodes([TransformPoints])
-        TransformPoints.inputs.transform_file = "/drop/MB/data/arno/mri/t1weighted_brain.MNI152Affine.txt"
-        TransformPoints.inputs.transform_format = "itk"
-        #flow.connect(regFlirt, 'affine_transform_file',
-        #             TransformPoints, 'transform_file')
+        if reg_standard_method == 'ants':
+            TransformPoints.inputs.transform_format = 'mat'
+            flow.connect(regAnts, 'output_transform_prefix',
+                         TransformPoints, 'transform_file')
+        elif reg_standard_method == 'flirt':
+            TransformPoints.inputs.transform_format = 'txt'
+            flow.connect(regFlirt, 'out_matrix_file',
+                         TransformPoints, 'transform_file')
         flow.connect(TravelDepthNode, 'depth_file',
                      TransformPoints, 'vtk_or_points')
-        TransformPoints.inputs.save_file = False
+        TransformPoints.inputs.save_file = True
         flow.connect(TransformPoints, 'output_file',
                      Sink, 'transforms.@points_to_template')
-        """
 
 ##############################################################################
 #
