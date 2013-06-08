@@ -171,7 +171,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 if affine_transform_file:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format)
+                                    points, transform_format, save_file=False)
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)

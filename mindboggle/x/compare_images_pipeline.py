@@ -92,7 +92,7 @@ from nipype.interfaces.io import DataSink
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.shapes.measure import pairwise_vector_distances
+from mindboggle.utils.compute import pairwise_vector_distances
 from mindboggle.evaluate.compare_images import compute_image_histograms, \
     compute_image_similarities, compute_image_overlaps, \
     register_images_to_ref_images, apply_transforms, threshold_images

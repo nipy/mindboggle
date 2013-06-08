@@ -901,6 +901,69 @@ def scalars_checker(scalars, scalar_names):
 #------------------------------------------------------------------------------
 # Read and apply an affine transform to the points of a VTK surface mesh
 #------------------------------------------------------------------------------
+def read_itk_transform_old(transform_file):
+    """
+    Read ITK transform file and output transform array.
+
+    ..ITK affine transform file format ::
+
+    #Insight Transform File V1.0
+    #Transform 0
+    Transform: MatrixOffsetTransformBase_double_3_3
+    Parameters: 0.90768 0.043529 0.0128917 -0.0454455 0.868937 0.406098 \
+    0.0179439 -0.430013 0.783074 -0.794889 -18.3346 -3.14767
+    FixedParameters: -0.60936 21.1593 10.6148
+
+    Parameters
+    ----------
+    transform_file : string
+        name of ITK affine transform file
+
+    Returns
+    -------
+    transform : numpy array
+        4x4 affine transform matrix
+    fixed_parameters : numpy array
+        FixedParameters vector
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_itk_transform
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> transform_file = os.path.join(path, 'arno', 'mri',
+    >>>                               't1weighted_brain.MNI152Affine.txt')
+    >>> read_itk_transform(transform_file)
+    (array([[ 9.07680e-01, 4.35290e-02, 1.28917e-02, -7.94889e-01],
+    [ -4.54455e-02, 8.68937e-01, 4.06098e-01, -1.83346e+01],
+    [ 1.79439e-02, -4.30013e-01, 7.83074e-01, -3.14767e+00],
+    [ 0.00000e+00, 0.00000e+00, 0.00000e+00, 1.00000e+00]]),
+    [-0.60936, 21.1593, 10.6148])
+
+    """
+    import numpy as np
+
+    transform = np.eye(4)
+
+    # Read ITK transform file
+    fid = open(transform_file, 'r')
+    affine_lines = fid.readlines()
+
+    affine = affine_lines[3]
+    affine = affine.split()
+    affine = [np.float(x) for x in affine[1::]]
+    affine = np.reshape(affine, (4,3))
+    linear_transform = affine[0:3,:]
+    translation = affine[3,:]
+    transform[0:3,0:3] = linear_transform
+    transform[0:3,3] = translation
+
+    fixed_parameters = affine_lines[4]
+    fixed_parameters = fixed_parameters.split()
+    fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
+
+    return transform, fixed_parameters
+
 def read_itk_transform(transform_file):
     """
     Read ITK transform file and output transform array.
