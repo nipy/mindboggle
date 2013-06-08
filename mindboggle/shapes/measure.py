@@ -5,180 +5,10 @@ Shape calculations.
 
 Authors:
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
-    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-
-#------------------------------------------------------------------------------
-# Compute distance
-#------------------------------------------------------------------------------
-def point_distance(point, points):
-    """
-    Compute the Euclidean distance from one point to a second (set) of points.
-
-    Parameters
-    ----------
-    point : list of three floats
-        coordinates for a single point
-    points : list with one or more lists of three floats
-        coordinates for a second point (or multiple points)
-
-    Returns
-    -------
-    min_distance : float
-        Euclidean distance between two points,
-        or the minimum distance between a point and a set of points
-    min_index : int
-        index of closest of the points (zero if only one)
-
-    Examples
-    --------
-    >>> from mindboggle.shapes.measure import point_distance
-    >>> point = [1,2,3]
-    >>> points = [[10,2.0,3], [0,1.5,2]]
-    >>> point_distance(point, points)
-      (1.5, 1)
-
-    """
-    import numpy as np
-
-    # If points is a single point
-    if np.ndim(points) == 1:
-        return np.sqrt((point[0] - points[0]) ** 2 + \
-                       (point[1] - points[1]) ** 2 + \
-                       (point[2] - points[2]) ** 2), 0
-
-    # If points is a set of multiple points
-    elif np.ndim(points) == 2:
-        min_distance = np.Inf
-        min_index = 0
-        for index, point2 in enumerate(points):
-            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
-                               (point[1] - point2[1]) ** 2 + \
-                               (point[2] - point2[2]) ** 2)
-            if distance < min_distance:
-                min_distance = distance
-                min_index = index
-        return min_distance, min_index
-
-    # Else return None
-    else:
-        return None, None
-
-def vector_distance(vector1, vector2, normalize=False):
-    """
-    Compute the Euclidean distance between two equal-sized vectors.
-
-    Parameters
-    ----------
-    vector1 : numpy array of floats
-        vector of values
-    vector2 : numpy array of floats
-        vector of values
-    normalize : Boolean
-        normalize each element of the vectors?
-
-    Returns
-    -------
-    distance : float
-        Euclidean distance between two vectors
-
-    Examples
-    --------
-    >>> import numpy as np
-    >>> from mindboggle.shapes.measure import vector_distance
-    >>> vector1 = np.array([1.,2.,3.])
-    >>> vector2 = np.array([0,1,5])
-    >>> vector_distance(vector1, vector2)
-      0.81649658092772592
-
-    """
-    import numpy as np
-
-    if np.size(vector1) == np.size(vector2):
-    # Make sure arguments are numpy arrays
-        if not isinstance(vector1, np.ndarray):
-            vector1 = np.asarray(vector1)
-        if not isinstance(vector2, np.ndarray):
-            vector2 = np.asarray(vector2)
-        if normalize:
-            vector_diff = np.zeros(len(vector1))
-            for i in range(len(vector1)):
-                max_v1v2 = max([vector1[i], vector2[i]])
-                if max_v1v2 > 0:
-                    vector_diff[i] = (vector1[i] - vector2[i]) / max_v1v2
-        else:
-            vector_diff = vector1 - vector2
-        return np.sqrt(sum((vector_diff)**2)) / np.size(vector1)
-    else:
-        print("Vectors have to be of equal size to compute distance.")
-        return None
-
-def pairwise_vector_distances(vectors, save_file=False, normalize=False):
-    """
-    Compare every pair of equal-sized vectors.
-
-    Parameters
-    ----------
-    vectors : array of 1-D lists or arrays of integers or floats
-    save_file : Boolean
-        save file?
-    normalize : Boolean
-        normalize each element of the vectors?
-
-    Returns
-    -------
-    vector_distances : numpy array of integers or floats
-        distances between each pair of vectors
-    outfile : string [optional]
-        output filename for pairwise_vector_distances
-
-    Examples
-    --------
-    >>> from mindboggle.shapes.measure import pairwise_vector_distances
-    >>> pairwise_vector_distances([[1,2,3],[0,3,5],[0,3.5,5],[1,1,1]])
-        (array([[ 0.        ,  0.81649658,  0.89752747,  0.74535599],
-               [ 0.        ,  0.        ,  0.16666667,  1.52752523],
-               [ 0.        ,  0.        ,  0.        ,  1.60727513],
-               [ 0.        ,  0.        ,  0.        ,  0.        ]]),
-         '')
-
-    """
-    import os
-    import numpy as np
-    from mindboggle.shapes.measure import vector_distance
-
-    # Make sure argument is a numpy array
-    if not isinstance(vectors, np.ndarray):
-        vectors = np.array(vectors)
-
-    # Initialize output
-    vector_distances = np.zeros((len(vectors), len(vectors)))
-
-    #---------------------------------------------------------------------------
-    # Compute distance between each pair of vectors
-    #---------------------------------------------------------------------------
-    # Loop through every pair of vectors
-    for ihist1 in range(len(vectors)):
-        for ihist2 in range(len(vectors)):
-            if ihist2 >= ihist1:
-
-                # Store pairwise distances between histogram values
-                d = vector_distance(1.0*vectors[ihist1],
-                                            1.0*vectors[ihist2],
-                                            normalize=normalize)
-                vector_distances[ihist1, ihist2] = d
-
-    if save_file:
-        outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
-        np.savetxt(outfile, vector_distances,
-                   fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
-    else:
-        outfile = ''
-
-    return vector_distances, outfile
 
 def area(command, surface_file):
     """
@@ -417,6 +247,131 @@ def mean_value_per_label(values, labels, exclude_labels,
                 else:
                     norm_mean_value = sum(values[I] * areas[I]) / sum(areas[I])
                 norm_mean_values.append(norm_mean_value)
+        else:
+            mean_values.append(0)
+            if normalize_by_area:
+                label_areas.append(0)
+                norm_mean_values.append(0)
+
+    mean_values = [x.tolist() for x in mean_values]
+    label_areas = [x.tolist() for x in label_areas]
+    norm_mean_values = [x.tolist() for x in norm_mean_values]
+
+    return mean_values, label_list, label_areas, norm_mean_values
+
+def stats_per_label(values, labels, exclude_labels,
+                    normalize_by_area=False, areas=[]):
+    """
+    Compute various statistical measures across vertices per label,
+    optionally taking into account surface area per vertex.
+
+    Example:
+    average value = sum(a_i * v_i) / total_surface_area,
+    where *a_i* and *v_i* are the area and value for each vertex *i*.
+
+    Parameters
+    ----------
+    values : numpy array of individual or lists of integers or floats
+        values to average per label
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
+    normalize_by_area : Boolean
+        divide each mean value per label by the surface area of that label?
+    areas : numpy array of floats (if normalize_by_area)
+        surface areas
+
+    Returns
+    -------
+    medians : list of floats
+        median(s) for each label
+    mads : list of floats
+        median absolute deviation(s) for each label
+    means : list of floats
+        mean(s) for each label
+    sds : list of floats
+        standard deviation(s) for each label
+    skews : list of floats
+        skew(s) for each label
+    kurtoses : list of floats
+        kurtosis value(s) for each label
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.shapes.measure import mean_value_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> areas, name = read_scalars(area_file, True, True)
+    >>> labels, name = read_scalars(labels_file)
+    >>> exclude_labels = [-1]
+    >>> normalize_by_area = True
+    >>> mean_values, label_list, label_areas, norm_mean_values = mean_value_per_label(values,
+    >>>     labels, exclude_labels, normalize_by_area, areas)
+
+    """
+    import numpy as np
+    from scipy.stats import skew, kurtosis
+    from mindboggle.shapes.measure import mad
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
+        values = np.asarray(values)
+    if not isinstance(areas, np.ndarray):
+        areas = np.asarray(areas)
+
+    label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    medians = []
+    mads = []
+    means = []
+    sds = []
+    skews = []
+    kurtoses = []
+    label_areas = []
+    if values.ndim > 1:
+        dim = np.shape(values)[1]
+    else:
+        dim = 1
+
+    for label in label_list:
+        I = [i for i,x in enumerate(labels) if x == label]
+        if I:
+            if normalize_by_area:
+                surface_area = sum(areas[I])
+                label_areas.append(surface_area)
+                if dim > 1:
+                    areas_dup = np.transpose(np.tile(areas[I], (dim,1)))
+                    norm_values = (values[I] * areas_dup) / sum(areas[I])
+                else:
+                    norm_values = (values[I] * areas[I]) / sum(areas[I])
+                medians.append(sum(values[I] * areas_dup) / sum(areas[I]))
+                mads.append(sum(values[I] * areas_dup) / sum(areas[I]))
+                means.append(sum(values[I] * areas_dup) / sum(areas[I]))
+                sds.append(sum(values[I] * areas_dup) / sum(areas[I]))
+                skews.append(sum(values[I] * areas_dup) / sum(areas[I]))
+                kurtoses.append(sum(values[I] * areas_dup) / sum(areas[I]))
+            else:
+                if dim > 1:
+                    medians.append(np.median(values[I], axis=0))
+                    mads.append(np.median(values[I], axis=0))
+                    means.append(np.median(values[I], axis=0))
+                    sds.append(np.median(values[I], axis=0))
+                    skews.append(np.median(values[I], axis=0))
+                    kurtoses.append(np.median(values[I], axis=0))
+                else:
+                    medians.append(np.median(values[I]))
+                    mads.append(mad(values[I]))
+                    means.append(np.mean(values[I]))
+                    sds.append(np.std(values[I]))
+                    skews.append(skew(values[I]))
+                    kurtoses.append(kurtosis(values[I]))
+
         else:
             mean_values.append(0)
             if normalize_by_area:
@@ -694,4 +649,3 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
         rescaled_scalars_file = None
 
     return rescaled_scalars, rescaled_scalars_file
-

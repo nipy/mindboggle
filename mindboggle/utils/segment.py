@@ -768,7 +768,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     from time import time
     from mindboggle.labels.labels import extract_borders
     from mindboggle.utils.segment import segment
-    from mindboggle.shapes.measure import point_distance
+    from mindboggle.utils.compute import point_distance
 
     # Make sure argument is a list
     if isinstance(indices, np.ndarray):
