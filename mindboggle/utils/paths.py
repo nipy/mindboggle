@@ -56,42 +56,40 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
-    >>> # Normalize likelihood values:
-    >>> normalize_likelihoods = True
-    >>> if normalize_likelihoods:
-    >>>     L = values - min(values)
-    >>>     values = L / max(L)
-    >>> #
     >>> # Select a single fold:
     >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> # Filter low values:
+    >>> filter_low_values = False
+    >>> if filter_low_values:
+    >>>     threshold_value = np.median(values_seeding[indices]) #- \
+    >>>                       #np.std(values_seeding[indices])
+    >>>     indices = [i for i in indices if values_seeding[i] >= threshold_value]
     >>> S = -1 * np.ones(len(values))
     >>> S[indices] = 1
+    >>> #
+    >>> # Normalize likelihood values within fold:
+    >>> normalize_likelihoods = True
+    >>> if normalize_likelihoods:
+    >>>     L = values[indices] - min(values[indices])
+    >>>     values[indices] = L / max(L)
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 10
     >>> indices_to_keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> #
-    >>> # Filter out large-area vertices:
-    >>> filter_by_area = False
-    >>> if filter_by_area:
-    >>>     area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>>     values2, name = read_scalars(area_file, True, True)
-    >>>     V2 = [x for x in values2 if x != -1]
-    >>>     threshold = np.median(V2) + np.std(V2)
-    >>>     values[np.where(np.abs(values2) > threshold)[0]] /= 10
-    >>> #
-    >>> erosion_ratio = 0.25
+    >>> erosion_ratio = 0.10
     >>> skeleton = connect_points_erosion(S, indices_to_keep,
     >>>     neighbor_lists, values, erosion_ratio=erosion_ratio)
     >>> #
     >>> # Write out vtk file and view:
     >>> D = -1 * np.ones(len(values))
-    >>> D[skeleton] = 1
-    >>> D[indices_to_keep] = 2
+    >>> D[indices] = 1
+    >>> D[skeleton] = 2
+    >>> D[indices_to_keep] = 3
     >>> folds[folds != fold_number] = -1
     >>> rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
     >>>                 D, 'skeleton', folds)
@@ -117,12 +115,21 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
     #-------------------------------------------------------------------------
-    plot_edge_less_than = 0  # Set to zero not to plot
+    plot_iter = 280  # Stop and plot at given iteration; set to zero not to plot
+    if plot_iter:
+        S0 = S.copy()
+        count = 0
+    retain_max_sum = True  # Erode only if sume of edge values increases
+    if retain_max_sum:
+        prev_sum_edge = 0
     exist_simple = True
     print('  Iteratively remove up to {0} of edge vertices'.format(
         erosion_ratio))
     while exist_simple:
         exist_simple = False
+        if plot_iter:
+            count += 1
+            print(count)
 
         #---------------------------------------------------------------------
         # Only consider updating vertices that are on the edge of the
@@ -133,57 +140,74 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         if edge:
             edge = np.array(list(set(edge).difference(indices_to_keep)))
             len_edge = np.shape(edge)[0]
-            if len_edge < plot_edge_less_than:
-                from mindboggle.utils.plots import plot_vtk
-                IDs = -1 * np.ones(len(values))
-                IDs[indices] = values[indices]
-                IDs[edge] = 2
-                rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', IDs)
-                plot_vtk('edge.vtk')
-            #print('    Number of vertices in edge: {0}'.format(len_edge))
-            #-----------------------------------------------------------------
-            # Remove simple points in order of lowest to highest values:
-            #-----------------------------------------------------------------
-            ntests = len_edge
-            if erode_by_value:
-                Isort = np.argsort(values[edge])
-                edge = edge[Isort]
-                if erosion_ratio > 0:
-                    ntests = int(len_edge * erosion_ratio) + 1
-            #print('    Number of vertices to test: {0}'.format(ntests))
-            for index in edge[0:ntests]:
 
-                # Test to see if each index is a simple point:
-                update, n_in = topo_test(index, S, neighbor_lists)
+            retain_max_sum = False
+            continue_loop = True
+            if retain_max_sum:
+                sum_edge = sum(values[edge])
+                if sum_edge < prev_sum_edge:
+                    exist_simple = False
+                else:
+                    prev_sum_edge = sum_edge
+                    prev_edge = edge
+            if continue_loop:
+                if plot_iter and count == plot_iter:
+                    import sys
+                    from mindboggle.utils.plots import plot_vtk
+                    from mindboggle.utils.io_vtk import read_scalars, write_vtk
+                    IDs = -1 * np.ones(len(values))
+                    IDs[indices] = values[indices]
+                    IDs[edge] = 2
+                    rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', S0)
+                    #write_vtk('edge.vtk', points, [], [], faces, values, 'values')
+                    plot_vtk('edge.vtk')
+                    sys.exit()
+                #print('    Number of vertices in edge: {0}'.format(len_edge))
+                #-----------------------------------------------------------------
+                # Remove simple points in order of lowest to highest values:
+                #-----------------------------------------------------------------
+                ntests = len_edge
+                if erode_by_value:
+                    Isort = np.argsort(values[edge])
+                    edge = edge[Isort]
+                    if erosion_ratio > 0:
+                        ntests = int(len_edge * erosion_ratio) + 1
+                #print('    Number of vertices to test: {0}'.format(ntests))
+                for index in edge[0:ntests]:
 
-                # If a simple point, remove and run again:
-                # (Note: Ineffective unless removed at each iteration)
-                if update and n_in > 1:
-                    S[index] = -1
-                    exist_simple = True
-
-            # If no simple points, test all of the indices:
-            if not exist_simple and erode_by_value:
-                for index in edge[ntests::]:
+                    # Test to see if each index is a simple point:
                     update, n_in = topo_test(index, S, neighbor_lists)
+
                     # If a simple point, remove and run again:
+                    # (Note: Ineffective unless removed at each iteration)
                     if update and n_in > 1:
                         S[index] = -1
                         exist_simple = True
 
+                # If no simple points, test all of the indices:
+                if not exist_simple and erode_by_value:
+                    for index in edge[ntests::]:
+                        update, n_in = topo_test(index, S, neighbor_lists)
+                        # If a simple point, remove and run again:
+                        if update and n_in > 1:
+                            S[index] = -1
+                            exist_simple = True
+
         #---------------------------------------------------------------------
         # Remove branches by iteratively removing endpoints:
         #---------------------------------------------------------------------
-        indices = np.where(S == 1)[0].tolist()
-        endpoints = True
-        while endpoints:
-            endpoints = find_endpoints(indices, neighbor_lists)
-            if endpoints:
-                endpoints = [x for x in endpoints if x not in indices_to_keep]
+        remove_endpoints = True
+        if remove_endpoints:
+            indices = np.where(S == 1)[0].tolist()
+            endpoints = True
+            while endpoints:
+                endpoints = find_endpoints(indices, neighbor_lists)
                 if endpoints:
-                    S[endpoints] = -1
-                    indices = list(frozenset(indices).difference(endpoints))
-            #print('    Number of endpoints: {0}'.format(len(endpoints)))
+                    endpoints = [x for x in endpoints if x not in indices_to_keep]
+                    if endpoints:
+                        S[endpoints] = -1
+                        indices = list(frozenset(indices).difference(endpoints))
+                #print('    Number of endpoints: {0}'.format(len(endpoints)))
 
     skeleton = indices
 
@@ -771,7 +795,6 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    >>> #depths, n = read_scalars(vtk_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> min_edges = 10
     >>> #
