@@ -73,24 +73,23 @@ def extract_fundi(folds, sulci, likelihoods, rescaled_depth_file,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file, True, True)
-    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> #likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods_rescaled_depth.vtk')
     >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
+    >>> #rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> rescaled_depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> single_fold = False
+    >>> single_fold = True
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
-    >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>>     folds, name = read_scalars(folds_file, True, True)
-    >>>     fold_number = 11 #11
+    >>>     fold_number = 1 #11
     >>>     folds[folds != fold_number] = -1
-    >>> else:
-    >>>     folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>>     folds, name = read_scalars(folds_file, True, True)
     >>> #
     >>> normalize_likelihoods = True
     >>> min_edges = 10
     >>> erosion_ratio = 0.25
-    >>> smooth_skeleton = True
+    >>> smooth_skeleton = False
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, likelihoods,
     >>>     rescaled_depth_file, depth_file, min_edges, erosion_ratio,
