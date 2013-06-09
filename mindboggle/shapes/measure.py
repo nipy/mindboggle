@@ -171,7 +171,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
 
     Note ::
         This function is different than stats_per_label() in two ways:
-            1. It only computes the (weighted) mean.
+            1. It only computes the (weighted) mean and sdev.
             2. It can accept 2-D arrays (such as [x,y,z] coordinates).
 
     Parameters
@@ -281,7 +281,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
 
     Note ::
         This function is different than means_per_label() in two ways:
-            1. It computes more than simply the (weighted) mean.
+            1. It computes more than simply the (weighted) mean and sdev.
             2. It only accepts 1-D arrays of values.
 
     Parameters
@@ -356,7 +356,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             X = values[I]
-            if p.shape(weights):
+            if np.shape(weights):
                 label_weight = sum(weights[I])
                 label_weights.append(label_weight)
                 W = weights[I] / label_weight
