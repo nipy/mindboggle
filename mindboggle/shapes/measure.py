@@ -334,7 +334,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
     """
     import numpy as np
     from scipy.stats import skew, kurtosis
-    from mindboggle.utils.compute import mad
+    from mindboggle.utils.compute import weighted_median, weighted_mad, mad
 
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
@@ -361,8 +361,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
                 label_weights.append(label_weight)
                 W = weights[I] / label_weight
 
-                #medians.append(np.median(X))
-                #mads.append(mad(X))
+                medians.append(weighted_median(X,W))
+                mads.append(weighted_mad(X))
                 means.append(sum(W * X))
                 sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X))**2)))
                 #skews.append(skew(X))
