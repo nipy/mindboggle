@@ -160,44 +160,47 @@ def curvature(command, method, arguments, surface_file):
     return mean_curvature_file, gauss_curvature_file, \
            max_curvature_file, min_curvature_file, min_curvature_vector_file
 
-def mean_value_per_label(values, labels, exclude_labels,
-                         normalize_by_area=False, areas=[]):
+def means_per_label(values, labels, exclude_labels, areas=[]):
     """
     Compute the mean value across vertices per label,
     optionally taking into account surface area per vertex.
 
+    Formula:
     average value = sum(a_i * v_i) / total_surface_area,
     where *a_i* and *v_i* are the area and value for each vertex *i*.
 
+    Note ::
+        This function is different than stats_per_label() in two ways:
+            1. It only computes the (weighted) mean.
+            2. It can accept 2-D arrays (such as [x,y,z] coordinates).
+
     Parameters
     ----------
-    values : numpy array of individual or lists of integers or floats
+    values : numpy array of one or more lists of integers or floats
         values to average per label
     labels : list or array of integers
         label for each value
     exclude_labels : list of integers
         labels to be excluded
-    normalize_by_area : Boolean
-        divide each mean value per label by the surface area of that label?
-    areas : numpy array of floats (if normalize_by_area)
+    areas : numpy array of floats
         surface areas
 
     Returns
     -------
-    mean_values : list of floats
-        mean value(s) for each label
+    means : list of floats
+        mean(s) for each label
+    sdevs : list of floats
+        standard deviation(s) for each label
     label_list : list of integers
         unique label numbers
     label_areas : list of floats (if normalize_by_area)
         surface area for each labeled set of vertices
-    norm_mean_values : list of floats (if normalize_by_area)
-        mean values normalized by vertex area
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.shapes.measure import mean_value_per_label
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
+    >>> from mindboggle.shapes.measure import means_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -206,9 +209,16 @@ def mean_value_per_label(values, labels, exclude_labels,
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1]
-    >>> normalize_by_area = True
-    >>> mean_values, label_list, label_areas, norm_mean_values = mean_value_per_label(values,
-    >>>     labels, exclude_labels, normalize_by_area, areas)
+    >>> areas = areas
+    >>> #
+    >>> # Example 1: compute mean curvature per label:
+    >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
+    >>>     exclude_labels, areas)
+    >>> #
+    >>> # Example 2: compute mean coordinates per label:
+    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(values_file)
+    >>> means, sdevs, label_list, label_areas = means_per_label(points, labels,
+    >>>     exclude_labels, areas)
 
     """
     import numpy as np
@@ -221,9 +231,9 @@ def mean_value_per_label(values, labels, exclude_labels,
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
-    mean_values = []
+    means = []
+    sdevs = []
     label_areas = []
-    norm_mean_values = []
     if values.ndim > 1:
         dim = np.shape(values)[1]
     else:
@@ -232,42 +242,47 @@ def mean_value_per_label(values, labels, exclude_labels,
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
-            if dim > 1:
-                mean_value = np.mean(values[I], axis=0)
-            else:
-                mean_value = np.mean(values[I])
-            mean_values.append(mean_value)
-
-            if normalize_by_area:
-                surface_area = sum(areas[I])
-                label_areas.append(surface_area)
+            X = values[I]
+            if np.shape(areas):
+                W = areas[I]
+                label_weight = sum(W)
+                label_areas.append(label_weight)
                 if dim > 1:
-                    areas_dup = np.transpose(np.tile(areas[I], (dim,1)))
-                    norm_mean_value = sum(values[I] * areas_dup) / sum(areas[I])
+                    W = np.transpose(np.tile(W, (dim,1)))
+                means.append(np.sum(W * X, axis=0) / label_weight)
+                sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X, axis=0))**2,
+                                            axis=0) / label_weight))
+            else:
+                if dim > 1:
+                    means.append(np.mean(X, axis=0))
+                    sdevs.append(np.std(X, axis=0))
                 else:
-                    norm_mean_value = sum(values[I] * areas[I]) / sum(areas[I])
-                norm_mean_values.append(norm_mean_value)
+                    means.append(np.mean(X))
+                    sdevs.append(np.std(X))
         else:
-            mean_values.append(0)
-            if normalize_by_area:
-                label_areas.append(0)
-                norm_mean_values.append(0)
+            means.append(0)
+            sdevs.append(0)
+            label_areas.append(0)
 
-    mean_values = [x.tolist() for x in mean_values]
+    means = [x.tolist() for x in means]
+    sdevs = [x.tolist() for x in sdevs]
     label_areas = [x.tolist() for x in label_areas]
-    norm_mean_values = [x.tolist() for x in norm_mean_values]
 
-    return mean_values, label_list, label_areas, norm_mean_values
+    return means, sdevs, label_list, label_areas
 
-def stats_per_label(values, labels, exclude_labels,
-                    normalize_by_area=False, areas=[]):
+def stats_per_label(values, labels, exclude_labels, weights=[]):
     """
     Compute various statistical measures across vertices per label,
-    optionally taking into account surface area per vertex.
+    optionally using weights (such as surface area per vertex).
 
-    Example:
+    Example (area-weighted mean):
     average value = sum(a_i * v_i) / total_surface_area,
     where *a_i* and *v_i* are the area and value for each vertex *i*.
+
+    Note ::
+        This function is different than means_per_label() in two ways:
+            1. It computes more than simply the (weighted) mean.
+            2. It only accepts 1-D arrays of values.
 
     Parameters
     ----------
@@ -277,25 +292,27 @@ def stats_per_label(values, labels, exclude_labels,
         label for each value
     exclude_labels : list of integers
         labels to be excluded
-    normalize_by_area : Boolean
-        divide each mean value per label by the surface area of that label?
-    areas : numpy array of floats (if normalize_by_area)
-        surface areas
+    weights : numpy array of floats
+        weights to compute weighted statistical measures
 
     Returns
     -------
     medians : list of floats
-        median(s) for each label
+        median for each label
     mads : list of floats
-        median absolute deviation(s) for each label
+        median absolute deviation for each label
     means : list of floats
-        mean(s) for each label
-    sds : list of floats
-        standard deviation(s) for each label
+        mean for each label
+    sdevs : list of floats
+        standard deviation for each label
     skews : list of floats
-        skew(s) for each label
+        skew for each label
     kurtoses : list of floats
-        kurtosis value(s) for each label
+        kurtosis value for each label
+    label_list : list of integers
+        list of unique labels
+    label_weights : list of floats
+        total weight per label
 
     Examples
     --------
@@ -310,79 +327,71 @@ def stats_per_label(values, labels, exclude_labels,
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1]
-    >>> normalize_by_area = True
-    >>> mean_values, label_list, label_areas, norm_mean_values = mean_value_per_label(values,
-    >>>     labels, exclude_labels, normalize_by_area, areas)
+    >>> weights = areas
+    >>> medians, mads, sdevs, skews, kurtoses, label_list, label_weights  = stats_per_label(values,
+    >>>     labels, exclude_labels, weights)
 
     """
     import numpy as np
     from scipy.stats import skew, kurtosis
-    from mindboggle.shapes.measure import mad
+    from mindboggle.utils.compute import mad
 
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
-    if not isinstance(areas, np.ndarray):
-        areas = np.asarray(areas)
+    if not isinstance(weights, np.ndarray):
+        weights = np.asarray(weights)
 
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     medians = []
     mads = []
     means = []
-    sds = []
+    sdevs = []
     skews = []
     kurtoses = []
-    label_areas = []
-    if values.ndim > 1:
-        dim = np.shape(values)[1]
-    else:
-        dim = 1
+    label_weights = []
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
-            if normalize_by_area:
-                surface_area = sum(areas[I])
-                label_areas.append(surface_area)
-                if dim > 1:
-                    areas_dup = np.transpose(np.tile(areas[I], (dim,1)))
-                    norm_values = (values[I] * areas_dup) / sum(areas[I])
-                else:
-                    norm_values = (values[I] * areas[I]) / sum(areas[I])
-                medians.append(sum(values[I] * areas_dup) / sum(areas[I]))
-                mads.append(sum(values[I] * areas_dup) / sum(areas[I]))
-                means.append(sum(values[I] * areas_dup) / sum(areas[I]))
-                sds.append(sum(values[I] * areas_dup) / sum(areas[I]))
-                skews.append(sum(values[I] * areas_dup) / sum(areas[I]))
-                kurtoses.append(sum(values[I] * areas_dup) / sum(areas[I]))
+            X = values[I]
+            if p.shape(weights):
+                label_weight = sum(weights[I])
+                label_weights.append(label_weight)
+                W = weights[I] / label_weight
+
+                #medians.append(np.median(X))
+                #mads.append(mad(X))
+                means.append(sum(W * X))
+                sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X))**2)))
+                #skews.append(skew(X))
+                #kurtoses.append(kurtosis(X))
             else:
-                if dim > 1:
-                    medians.append(np.median(values[I], axis=0))
-                    mads.append(np.median(values[I], axis=0))
-                    means.append(np.median(values[I], axis=0))
-                    sds.append(np.median(values[I], axis=0))
-                    skews.append(np.median(values[I], axis=0))
-                    kurtoses.append(np.median(values[I], axis=0))
-                else:
-                    medians.append(np.median(values[I]))
-                    mads.append(mad(values[I]))
-                    means.append(np.mean(values[I]))
-                    sds.append(np.std(values[I]))
-                    skews.append(skew(values[I]))
-                    kurtoses.append(kurtosis(values[I]))
-
+                medians.append(np.median(X))
+                mads.append(mad(X))
+                means.append(np.mean(X))
+                sdevs.append(np.std(X))
+                skews.append(skew(X))
+                kurtoses.append(kurtosis(X))
         else:
-            mean_values.append(0)
-            if normalize_by_area:
-                label_areas.append(0)
-                norm_mean_values.append(0)
+            medians.append(0)
+            mads.append(0)
+            means.append(0)
+            sdevs.append(0)
+            skews.append(0)
+            kurtoses.append(0)
+            label_weights.append(0)
 
-    mean_values = [x.tolist() for x in mean_values]
-    label_areas = [x.tolist() for x in label_areas]
-    norm_mean_values = [x.tolist() for x in norm_mean_values]
+    medians = [x.tolist() for x in medians]
+    mads = [x.tolist() for x in mads]
+    means = [x.tolist() for x in means]
+    sdevs = [x.tolist() for x in sdevs]
+    skews = [x.tolist() for x in skews]
+    kurtoses = [x.tolist() for x in kurtoses]
+    weights = [x.tolist() for x in weights]
 
-    return mean_values, label_list, label_areas, norm_mean_values
+    return medians, mads, sdevs, skews, kurtoses, label_list, label_weights
 
 def volume_per_label(labels, input_file):
     """

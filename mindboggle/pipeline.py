@@ -1207,10 +1207,7 @@ if run_tableFlow:
                                                  'delimiter'],
                                     output_names=['label_table',
                                                   'fundus_table',
-                                                  'sulcus_table',
-                                                  'norm_label_table',
-                                                  'norm_fundus_table',
-                                                  'norm_sulcus_table']))
+                                                  'sulcus_table']))
     tableFlow.add_nodes([ShapeTables])
     flow.connect(labelFlow, init_labels_plug,
                  tableFlow, 'Shape_tables.labels_or_file')
