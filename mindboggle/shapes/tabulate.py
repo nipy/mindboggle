@@ -70,12 +70,6 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         output table filename for sulcus shapes
     fundus_table :  string
         output table filename for fundus shapes
-    norm_label_table :  string
-        output table filename for label shapes normalized by area
-    norm_sulcus_table :  string
-        output table filename for sulcus shapes normalized by area
-    norm_fundus_table :  string
-        output table filename for fundus shapes normalized by area
 
     Examples
     --------
@@ -121,7 +115,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     """
     import os
     import numpy as np
-    from mindboggle.shapes.measure import mean_value_per_label
+    from mindboggle.shapes.measure import means_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
     from mindboggle.utils.io_file import write_columns
@@ -159,7 +153,6 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                    geodesic_depth_file, convexity_file, thickness_file]
     shape_arrays = []
     column_names = []
-    normalize_by_area = False
     first_pass = True
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
@@ -181,14 +174,11 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
 
                 # Store area array:
                 if ishape == 0:
-                    normalize_by_area = True
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
     fundus_table = None
     sulcus_table = None
-    norm_fundus_table = None
-    norm_sulcus_table = None
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
@@ -199,41 +189,31 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         # For each feature, construct a table of average shape values:
         #---------------------------------------------------------------------
         table_file = os.path.join(os.getcwd(), table_names[itable])
-        if normalize_by_area:
-            norm_table_file = os.path.join(os.getcwd(),
-                                           'norm_' + table_names[itable])
         if feature_list:
             columns = []
-            norm_columns = []
 
             #-----------------------------------------------------------------
             # Mean positions in the original space:
             #-----------------------------------------------------------------
             # Compute mean position per feature:
-            mean_positions, label_list, label_areas, \
-            norm_mean_positions = mean_value_per_label(points,
-                feature_list, exclude_labels, normalize_by_area, area_array)
+            positions, sdevs, label_list, foo = means_per_label(points, feature_list,
+                exclude_labels, area_array)
 
             # Append mean position per feature to columns:
             table_column_names.append('mean position')
-            columns.append(mean_positions)
-            if normalize_by_area:
-                norm_columns.append(norm_mean_positions)
+            columns.append(positions)
 
             #-----------------------------------------------------------------
             # Mean positions in standard space:
             #-----------------------------------------------------------------
             if affine_transform_file:
                 # Compute standard space mean position per feature:
-                mean_standard_positions, label_list, label_areas, \
-                norm_mean_standard_positions = mean_value_per_label(affine_points,
-                    feature_list, exclude_labels, normalize_by_area, area_array)
+                standard_positions, sdevs, label_list, foo = means_per_label(affine_points,
+                    feature_list, exclude_labels, area_array)
 
                 # Append standard space mean position per feature to columns:
                 table_column_names.append('mean position in standard space')
-                columns.append(mean_standard_positions)
-                if normalize_by_area:
-                    norm_columns.append(norm_mean_standard_positions)
+                columns.append(standard_positions)
 
             #-----------------------------------------------------------------
             # Loop through shape measures:
@@ -247,14 +227,11 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 # Mean shapes:
                 #-------------------------------------------------------------
                 # Compute mean shape value per feature:
-                mean_values, label_list, label_areas, \
-                norm_mean_values = mean_value_per_label(shape_array,
-                    feature_list, exclude_labels, normalize_by_area, area_array)
+                medians, mads, sdevs, skews, kurtoses, label_list, label_weights = stats_per_label(shape_array,
+                    feature_list, exclude_labels, area_array)
 
                 # Append mean shape value per feature to columns:
                 columns.append(mean_values)
-                if normalize_by_area:
-                    norm_columns.append(norm_mean_values)
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
@@ -263,20 +240,17 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 spectra = spectra_lists[itable]
                 spectra_name = spectra_names[itable]
                 spectra_IDs = spectra_ID_lists[itable]
-                if normalize_by_area:
-                    spectra_norm = spectra_norm_lists[itable]
+                spectra_norm = spectra_norm_lists[itable]
 
                 # Order spectra into a list:
                 spectrum_list = []
-                if normalize_by_area:
-                    spectrum_norm_list = []
+                spectrum_norm_list = []
                 for label in label_list:
                     if label in spectra_IDs:
                         spectrum = spectra[spectra_IDs.index(label)]
                         spectrum_list.append(spectrum)
-                        if normalize_by_area:
-                            spectrum_norm = spectra_norm[spectra_IDs.index(label)]
-                            spectrum_norm_list.append(spectrum_norm)
+                        spectrum_norm = spectra_norm[spectra_IDs.index(label)]
+                        spectrum_norm_list.append(spectrum_norm)
                     else:
                         spectrum_list.append('')
                         spectrum_norm_list.append('')
@@ -284,30 +258,22 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 # Append spectral shape name and values to relevant columns:
                 columns.append(spectrum_list)
                 table_column_names.append(spectra_name)
-                if normalize_by_area:
-                    norm_columns.append(spectrum_norm_list)
+                columns.append(spectrum_norm_list)
+                table_column_names.append(spectra_name)
 
             #-----------------------------------------------------------------
             # Write labels and values to table:
             #-----------------------------------------------------------------
             # Write labels to table:
             write_columns(label_list, 'label', table_file, delimiter)
-            if normalize_by_area:
-                write_columns(label_list, 'label', norm_table_file, delimiter)
 
             # Append columns of shape values to table:
             if columns:
                 write_columns(columns, table_column_names, table_file,
                               delimiter, quote=True, input_table=table_file)
-                if normalize_by_area:
-                    write_columns(norm_columns, table_column_names,
-                                  norm_table_file, delimiter, quote=True,
-                                  input_table=norm_table_file)
         else:
             # Write something to table:
             write_columns([], '', table_file, delimiter)
-            if normalize_by_area:
-                write_columns([], '', norm_table_file, delimiter)
 
         #---------------------------------------------------------------------
         # Return correct table file name:
@@ -318,16 +284,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
             sulcus_table = table_file
         elif itable == 2:
             fundus_table = table_file
-        if normalize_by_area:
-            if itable == 0:
-                norm_label_table = norm_table_file
-            elif itable == 1:
-                norm_sulcus_table = norm_table_file
-            elif itable == 2:
-                norm_fundus_table = norm_table_file
 
-    return label_table, sulcus_table, fundus_table, \
-           norm_label_table, norm_sulcus_table, norm_fundus_table
+    return label_table, sulcus_table, fundus_table
 
 
 def write_vertex_shapes_table(table_file, labels_or_file, sulci=[], fundi=[],
