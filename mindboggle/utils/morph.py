@@ -547,6 +547,8 @@ def ridge_test(index, depths, curvatures, neighbor_lists):
         ridge point or not?
 
     """
+    pass
+    """
     import numpy as np
 
     # Make sure argument is a numpy array:
@@ -599,3 +601,4 @@ def ridge_test(index, depths, curvatures, neighbor_lists):
             N.append(new_neighbors)
 
     return rp
+    """
