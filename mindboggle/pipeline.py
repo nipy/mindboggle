@@ -165,7 +165,7 @@ from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
 from mindboggle.labels.relabel import relabel_volume
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
-from mindboggle.shapes.tabulate import write_mean_shapes_tables, \
+from mindboggle.shapes.tabulate import write_shape_stats_tables, \
     write_vertex_shapes_table
 from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 from mindboggle.features.folds import extract_folds
@@ -1185,7 +1185,7 @@ if run_tableFlow:
     # Shape tables of surface: labels, fundi, and sulci
     #=========================================================================
     ShapeTables = Node(name='Shape_tables',
-                       interface=Fn(function = write_mean_shapes_tables,
+                       interface=Fn(function = write_shape_stats_tables,
                                     input_names=['labels_or_file',
                                                  'sulci',
                                                  'fundi',
