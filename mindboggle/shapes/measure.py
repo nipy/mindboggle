@@ -243,7 +243,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             X = values[I]
-            if np.shape(areas) and len(areas):
+            if np.size(areas):
                 W = areas[I]
                 label_weight = sum(W)
                 label_areas.append(label_weight)
@@ -308,14 +308,14 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
         mean for each label
     sdevs : list of floats
         standard deviation for each label
-    lower_quarts : list of floats
-        lower quartile for each label
-    upper_quarts : list of floats
-        upper quartile for each label
     skews : list of floats
         skew for each label
     kurts : list of floats
         kurtosis value for each label
+    lower_quarts : list of floats
+        lower quartile for each label
+    upper_quarts : list of floats
+        upper quartile for each label
     label_list : list of integers
         list of unique labels
 
@@ -334,8 +334,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     >>> exclude_labels = [-1]
     >>> weights = areas
     >>> precision = 1
-    >>> #medians, mads, means, sdevs, lower_quarts, upper_quarts, \
-    >>> #    skews, kurts, label_list  = stats_per_label(values,
+    >>> #medians, mads, means, sdevs, skews, kurts, \
+    >>> #lower_quarts, upper_quarts, label_list  = stats_per_label(values,
     >>> #    labels, exclude_labels, weights, precision)
     >>> stats_per_label(values, labels, exclude_labels, weights, precision)
 
@@ -365,7 +365,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             X = values[I]
-            if np.shape(weights) and len(weights):
+            if np.size(weights):
                 X = weighted_to_repeated_values(X, weights[I], precision)
             medians.append(np.median(X))
             mads.append(median_abs_dev(X))
@@ -385,8 +385,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
             lower_quarts.append(0)
             upper_quarts.append(0)
 
-    return medians, mads, means, sdevs, lower_quarts, upper_quarts, \
-           skews, kurts, label_list
+    return medians, mads, means, sdevs, skews, kurts, \
+           lower_quarts, upper_quarts, label_list
 
 def volume_per_label(labels, input_file):
     """
