@@ -243,7 +243,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             X = values[I]
-            if np.shape(areas):
+            if np.shape(areas) and len(areas):
                 W = areas[I]
                 label_weight = sum(W)
                 label_areas.append(label_weight)
@@ -264,13 +264,14 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
             sdevs.append(0)
             label_areas.append(0)
 
-    means = [x.tolist() for x in means]
-    sdevs = [x.tolist() for x in sdevs]
-    label_areas = [x.tolist() for x in label_areas]
+    if dim > 1:
+        means = [x.tolist() for x in means]
+        sdevs = [x.tolist() for x in sdevs]
+        label_areas = [x.tolist() for x in label_areas]
 
     return means, sdevs, label_list, label_areas
 
-def stats_per_label(values, labels, exclude_labels, weights=[]):
+def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     """
     Compute various statistical measures across vertices per label,
     optionally using weights (such as surface area per vertex).
@@ -287,13 +288,15 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
     Parameters
     ----------
     values : numpy array of individual or lists of integers or floats
-        values to average per label
+        values for all vertices
     labels : list or array of integers
         label for each value
     exclude_labels : list of integers
         labels to be excluded
     weights : numpy array of floats
         weights to compute weighted statistical measures
+    precision : integer
+        number of decimal places to consider weights
 
     Returns
     -------
@@ -305,20 +308,22 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
         mean for each label
     sdevs : list of floats
         standard deviation for each label
+    lower_quarts : list of floats
+        lower quartile for each label
+    upper_quarts : list of floats
+        upper quartile for each label
     skews : list of floats
         skew for each label
-    kurtoses : list of floats
+    kurts : list of floats
         kurtosis value for each label
     label_list : list of integers
         list of unique labels
-    label_weights : list of floats
-        total weight per label
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.shapes.measure import mean_value_per_label
+    >>> from mindboggle.shapes.measure import stats_per_label
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -328,13 +333,16 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
     >>> labels, name = read_scalars(labels_file)
     >>> exclude_labels = [-1]
     >>> weights = areas
-    >>> medians, mads, sdevs, skews, kurtoses, label_list, label_weights  = stats_per_label(values,
-    >>>     labels, exclude_labels, weights)
+    >>> precision = 1
+    >>> #medians, mads, means, sdevs, lower_quarts, upper_quarts, \
+    >>> #    skews, kurts, label_list  = stats_per_label(values,
+    >>> #    labels, exclude_labels, weights, precision)
+    >>> stats_per_label(values, labels, exclude_labels, weights, precision)
 
     """
     import numpy as np
-    from scipy.stats import skew, kurtosis
-    from mindboggle.utils.compute import weighted_median, weighted_mad, mad
+    from scipy.stats import skew, kurtosis, scoreatpercentile
+    from mindboggle.utils.compute import weighted_to_repeated_values, median_abs_dev
 
     # Make sure arguments are numpy arrays
     if not isinstance(values, np.ndarray):
@@ -349,49 +357,36 @@ def stats_per_label(values, labels, exclude_labels, weights=[]):
     means = []
     sdevs = []
     skews = []
-    kurtoses = []
-    label_weights = []
+    kurts = []
+    lower_quarts = []
+    upper_quarts = []
 
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
             X = values[I]
-            if np.shape(weights):
-                label_weight = sum(weights[I])
-                label_weights.append(label_weight)
-                W = weights[I] / label_weight
-
-                medians.append(weighted_median(X,W))
-                mads.append(weighted_mad(X))
-                means.append(sum(W * X))
-                sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X))**2)))
-                #skews.append(skew(X))
-                #kurtoses.append(kurtosis(X))
-            else:
-                medians.append(np.median(X))
-                mads.append(mad(X))
-                means.append(np.mean(X))
-                sdevs.append(np.std(X))
-                skews.append(skew(X))
-                kurtoses.append(kurtosis(X))
+            if np.shape(weights) and len(weights):
+                X = weighted_to_repeated_values(X, weights[I], precision)
+            medians.append(np.median(X))
+            mads.append(median_abs_dev(X))
+            means.append(np.mean(X))
+            sdevs.append(np.std(X))
+            skews.append(skew(X))
+            kurts.append(kurtosis(X))
+            lower_quarts.append(scoreatpercentile(X, 25))
+            upper_quarts.append(scoreatpercentile(X, 75))
         else:
             medians.append(0)
             mads.append(0)
             means.append(0)
             sdevs.append(0)
             skews.append(0)
-            kurtoses.append(0)
-            label_weights.append(0)
+            kurts.append(0)
+            lower_quarts.append(0)
+            upper_quarts.append(0)
 
-    medians = [x.tolist() for x in medians]
-    mads = [x.tolist() for x in mads]
-    means = [x.tolist() for x in means]
-    sdevs = [x.tolist() for x in sdevs]
-    skews = [x.tolist() for x in skews]
-    kurtoses = [x.tolist() for x in kurtoses]
-    weights = [x.tolist() for x in weights]
-
-    return medians, mads, sdevs, skews, kurtoses, label_list, label_weights
+    return medians, mads, means, sdevs, lower_quarts, upper_quarts, \
+           skews, kurts, label_list
 
 def volume_per_label(labels, input_file):
     """
