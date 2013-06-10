@@ -83,10 +83,10 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>     'affine_to_template.mat')
-    >>> #    't1weighted_brain.MNI152Affine.txt')
-    >>> #transform_format = 'itk'
-    >>> transform_format = 'mat'
+    >>> #    'affine_to_template.mat')
+    >>>     't1weighted_brain.MNI152Affine.txt')
+    >>> #transform_format = 'mat'
+    >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -115,7 +115,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     """
     import os
     import numpy as np
-    from mindboggle.shapes.measure import means_per_label
+    from mindboggle.shapes.measure import means_per_label, stats_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
     from mindboggle.utils.io_file import write_columns
@@ -142,6 +142,8 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     spectra_norm_lists = [labels_spectra_norm, sulci_spectra_norm]
     spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
     spectra_names = ['label spectrum', 'sulcus spectrum']
+    spectra_norm_names = ['label spectrum (normalized)',
+                          'sulcus spectrum (normalized)']
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
@@ -154,6 +156,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     shape_arrays = []
     column_names = []
     first_pass = True
+    area_array = []
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
             if first_pass:
@@ -170,7 +173,6 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 scalars_array, name = read_scalars(shape_file, True, True)
             if scalars_array.size:
                 shape_arrays.append(scalars_array)
-                column_names.append(shape_names[ishape])
 
                 # Store area array:
                 if ishape == 0:
@@ -190,6 +192,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         #---------------------------------------------------------------------
         table_file = os.path.join(os.getcwd(), table_names[itable])
         if feature_list:
+            feature_name = feature_names[itable]
             columns = []
 
             #-----------------------------------------------------------------
@@ -220,18 +223,41 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
             #-----------------------------------------------------------------
             table_column_names.extend(column_names[:])
             for ishape, shape_array in enumerate(shape_arrays):
-                print('  Compute mean {0} {1}'.format(feature_names[itable],
-                                                      shape_names[ishape]))
+                shape_name = shape_names[ishape]
+                print('  Compute statistics on {0} {1}'.
+                      format(feature_name, shape_name))
 
                 #-------------------------------------------------------------
                 # Mean shapes:
                 #-------------------------------------------------------------
                 # Compute mean shape value per feature:
-                medians, mads, sdevs, skews, kurtoses, label_list, label_weights = stats_per_label(shape_array,
-                    feature_list, exclude_labels, area_array)
+                medians, mads, means, sdevs, skews, kurts, \
+                lower_quarts, upper_quarts, \
+                label_list = stats_per_label(shape_array,
+                    feature_list, exclude_labels, area_array, precision=1)
 
-                # Append mean shape value per feature to columns:
-                columns.append(mean_values)
+                # Append shape names and values per feature to columns:
+                pr = feature_name + ": " + shape_name + ": "
+                if np.size(area_array):
+                    po = " (weighted)"
+                else:
+                    po = ""
+                table_column_names.append(pr + 'median' + po)
+                table_column_names.append(pr + 'median absolute deviation' + po)
+                table_column_names.append(pr + 'mean' + po)
+                table_column_names.append(pr + 'standard deviation' + po)
+                table_column_names.append(pr + 'skew' + po)
+                table_column_names.append(pr + 'kurtosis' + po)
+                table_column_names.append(pr + 'lower quartile' + po)
+                table_column_names.append(pr + 'upper quartile' + po)
+                columns.append(medians)
+                columns.append(mads)
+                columns.append(means)
+                columns.append(sdevs)
+                columns.append(skews)
+                columns.append(kurts)
+                columns.append(lower_quarts)
+                columns.append(upper_quarts)
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
@@ -239,6 +265,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
             if itable in [0,1]:
                 spectra = spectra_lists[itable]
                 spectra_name = spectra_names[itable]
+                spectra_norm_name = spectra_norm_names[itable]
                 spectra_IDs = spectra_ID_lists[itable]
                 spectra_norm = spectra_norm_lists[itable]
 
@@ -259,7 +286,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
                 columns.append(spectrum_list)
                 table_column_names.append(spectra_name)
                 columns.append(spectrum_norm_list)
-                table_column_names.append(spectra_name)
+                table_column_names.append(spectra_norm_name)
 
             #-----------------------------------------------------------------
             # Write labels and values to table:
