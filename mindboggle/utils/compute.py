@@ -224,7 +224,7 @@ def weighted_to_repeated_values(X, W=[], precision=1):
     if not isinstance(precision, int):
         precision = int(precision)
 
-    if np.shape(W) and len(W):
+    if np.size(W):
         # If weights are decimals, multiply by 10 until they are whole numbers.
         # If after multiplying precision times they are not whole, round them:
         whole = True
@@ -338,7 +338,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
     if not isinstance(precision, int):
         precision = int(precision)
 
-    if np.shape(W) and len(W):
+    if np.size(W):
         X = weighted_to_repeated_values(X, W, precision)
 
     mad = np.median(np.abs(X - np.median(X))) / c
