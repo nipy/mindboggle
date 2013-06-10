@@ -10,7 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
+def write_shape_stats_tables(labels_or_file, sulci=[], fundi=[],
         affine_transform_file=[], transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
@@ -18,7 +18,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
         sulci_spectra=[], sulci_spectra_norm=[], sulci_spectra_IDs=[],
         exclude_labels=[-1], delimiter=','):
     """
-    Make tables of mean shape values per label, fundus, and/or sulcus.
+    Make tables of shape statistics per label, fundus, and/or sulcus.
 
     Parameters
     ----------
@@ -75,7 +75,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.shapes.tabulate import write_mean_shapes_tables
+    >>> from mindboggle.shapes.tabulate import write_shape_stats_tables
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -105,7 +105,7 @@ def write_mean_shapes_tables(labels_or_file, sulci=[], fundi=[],
     >>> sulci_spectra_IDs = np.unique(sulci).tolist()
     >>> exclude_labels = [-1]
     >>> #
-    >>> write_mean_shapes_tables(labels_or_file, sulci, fundi,
+    >>> write_shape_stats_tables(labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     convexity_file, thickness_file, labels_spectra,
