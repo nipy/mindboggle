@@ -98,7 +98,7 @@ do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_register_standard = True  # Register volume to template in MNI152
-reg_standard_method = 'ants'  # 'ants' # Registration to standard space
+reg_standard_method = 'flirt'  # 'ants' # Registration to standard space
 
 run_featureFlow = True
 do_fundi = False  # Extract fundi
@@ -1275,10 +1275,7 @@ if run_tableFlow:
     flow.connect([(tableFlow, Sink,
                    [('Shape_tables.label_table', 'tables.@labels'),
                     ('Shape_tables.sulcus_table', 'tables.@sulci'),
-                    ('Shape_tables.fundus_table', 'tables.@fundi'),
-                    ('Shape_tables.norm_label_table', 'tables.@labels_norm'),
-                    ('Shape_tables.norm_fundus_table', 'tables.@fundi_norm'),
-                    ('Shape_tables.norm_sulcus_table', 'tables.@sulci_norm')])])
+                    ('Shape_tables.fundus_table', 'tables.@fundi')])])
 
     #=========================================================================
     # Per-vertex shapes
