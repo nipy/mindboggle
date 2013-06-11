@@ -379,7 +379,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
                 sdevs.append(np.sum(W * Xdiff**2) / sumW)
                 skews.append(np.sum(W * Xdiff**3) / sumW)
                 kurts.append(np.sum(W * Xdiff**4) / sumW)
-                X = weighted_to_repeated_values(X, weights[I], precision)
+                X = weighted_to_repeated_values(X, W, precision)
             else:
                 means.append(np.mean(X))
                 sdevs.append(np.std(X))
