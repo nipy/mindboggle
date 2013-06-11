@@ -285,6 +285,12 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
             1. It computes more than simply the (weighted) mean and sdev.
             2. It only accepts 1-D arrays of values.
 
+    Reference
+    ---------
+    Weighted skewness and kurtosis unbiased by sample size
+    Lorenzo Rimoldini, arXiv:1304.6564 (2013)
+    http://arxiv.org/abs/1304.6564
+
     Parameters
     ----------
     values : numpy array of individual or lists of integers or floats
@@ -366,13 +372,21 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
         if I:
             X = values[I]
             if np.size(weights):
+                W = weights[I]
+                sumW = np.sum(W)
+                Xdiff = X - np.mean(X)
+                means.append(np.sum(W * X) / sumW)
+                sdevs.append(np.sum(W * Xdiff**2) / sumW)
+                skews.append(np.sum(W * Xdiff**3) / sumW)
+                kurts.append(np.sum(W * Xdiff**4) / sumW)
                 X = weighted_to_repeated_values(X, weights[I], precision)
+            else:
+                means.append(np.mean(X))
+                sdevs.append(np.std(X))
+                skews.append(skew(X))
+                kurts.append(kurtosis(X))
             medians.append(np.median(X))
             mads.append(median_abs_dev(X))
-            means.append(np.mean(X))
-            sdevs.append(np.std(X))
-            skews.append(skew(X))
-            kurts.append(kurtosis(X))
             lower_quarts.append(scoreatpercentile(X, 25))
             upper_quarts.append(scoreatpercentile(X, 75))
         else:
