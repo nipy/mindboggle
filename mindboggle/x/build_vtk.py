@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Build simple VTK files to test realignment of label boundaries to polylines.
+Build simple VTK files to test realignment of label borders to polylines.
 
 Multiple triangular meshes will be split horizontally into labeled vertices,
 and the label boundary will be flanked or intersected by polylines

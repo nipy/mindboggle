@@ -8,7 +8,7 @@ Author:  Arno Klein  .  arno@mindboggle.info  .  www.binarybottle.com
 
 """
 import os
-from mindboggle.utils.io_file import read_columns
+from mindboggle.utils.io_table import read_columns
 
 command = 'python ../pipeline.py'
 output_path = '/desk/output'
