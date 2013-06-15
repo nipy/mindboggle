@@ -86,7 +86,7 @@ for subject in subjects:
 
     # Convert DKT31 to DKT25 labels
     print("Convert DKT31 to DKT25 labels...")
-    from mindboggle.utils.io_file import read_columns
+    from mindboggle.utils.io_table import read_columns
     from mindboggle.labels.relabel import relabel_volume
     old_labels, new_labels = read_columns(relabel_file, 2)
     relabel_volume(DKT31_labels, old_labels, new_labels)
