@@ -243,14 +243,14 @@ def extract_sulci(labels_file, folds_or_file, label_pair_lists,
                 #-------------------------------------------------------------
                 # Vertex labels shared by multiple label pairs
                 #-------------------------------------------------------------
-                # Propagate labels from label boundaries to vertices with labels
+                # Propagate labels from label borders to vertices with labels
                 # that are shared by multiple label pairs in the fold.
                 #-------------------------------------------------------------
                 if len(nonunique_labels):
                     # For each label shared by different label pairs
                     for label in nonunique_labels:
                         # Print statement
-                        print("    Propagate sulcus label boundaries with label {0}".
+                        print("    Propagate sulcus label borders with label {0}".
                               format(int(label)))
 
                         # Construct seeds from label boundary vertices
