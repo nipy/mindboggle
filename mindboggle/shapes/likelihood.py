@@ -201,7 +201,7 @@ def estimate_distribution(scalar_files, scalar_range, fold_files, label_files):
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.shapes.likelihood import estimate_distribution
-    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.utils.io_table import read_columns
     >>> do_test = False
     >>> # Train on a single surface mesh:
     >>> if do_test:
