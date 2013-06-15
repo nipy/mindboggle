@@ -165,7 +165,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         # Slightly slower alternative -- fill boundaries:
         #regions = -1 * np.ones(len(points))
         #regions[indices_deep] = 1
-        #folds = segment_by_filling_boundaries(regions, neighbor_lists)
+        #folds = segment_by_filling_borders(regions, neighbor_lists)
         print('  ...Segmented folds ({0:.2f} seconds)'.format(time() - t1))
 
         #---------------------------------------------------------------------
@@ -241,7 +241,7 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     touches a boundary. The function segment() fills in the rest. Finally
     segments are joined if their seeds are too close to each other.
     Despite these precautions, the order of seed selection in segment() could
-    possibly influence the resulting boundaries between adjoining segments.
+    possibly influence the resulting borders between adjoining segments.
     [The propagate() function is slower and insensitive to depth,
      but is not biased by seed order.]
 
