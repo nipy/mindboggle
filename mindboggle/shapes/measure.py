@@ -423,7 +423,7 @@ def volume_per_label(labels, input_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.utils.io_table import read_columns
     >>> from mindboggle.shapes.measure import volume_per_label
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
