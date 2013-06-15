@@ -95,7 +95,6 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 #=============================================================================
 # Template registration, multi-atlas-based labeling
 #=============================================================================
-
 def register_template(hemi, sphere_file, transform,
                       templates_path, template):
     """
@@ -182,3 +181,77 @@ def transform_atlas_labels(hemi, subject, transform,
     sxfm.run()
 
     return output_file
+
+#=============================================================================
+# Gray matter label filling
+#=============================================================================
+def labels_to_volume(subject, annot_name, original_space, reference):
+    """
+    Propagate surface labels through hemisphere's gray matter volume
+    and convert label volume from FreeSurfer 'unconformed' to original space
+    using FreeSurfer's mri_aparc2aseg and mri_vol2vol.
+
+    Note ::
+        From the mri_aparc2aseg documentation:
+        The volumes of the cortical labels will be different than
+        reported by mris_anatomical_stats because partial volume information
+        is lost when mapping the surface to the volume. The values reported by
+        mris_anatomical_stats will be more accurate than the volumes from the
+        aparc+aseg volume.
+
+    Parameters
+    ----------
+    subject : string
+        subject name
+    annot_name: string
+        FreeSurfer annot filename without the hemisphere prepend or .annot append
+    original_space: Boolean
+        convert from FreeSurfer unconformed to original space?
+    reference : string
+        file in original space
+
+    Returns
+    -------
+    output_file : string
+        name of output file
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
+    print("Fill gray matter volume with surface labels using FreeSurfer...")
+
+    output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
+
+    args = ['--s', subject,
+            '--annot', annot_name,
+            '--o', output_file1]
+
+    cli = CommandLine(command='mri_aparc2aseg')
+    cli.inputs.args = ' '.join(args)
+    cli.cmdline
+    cli.run()
+
+    # Convert label volume from FreeSurfer to original space:
+    if original_space:
+        print("Convert label volume from FreeSurfer 'unconformed' to original space...")
+
+        output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
+
+        interp = 'nearest'
+        args = ['--mov', output_file1,
+                '--targ', reference,
+                '--interp', interp,
+                '--regheader --o', output_file2]
+
+        cli = CommandLine(command='mri_vol2vol')
+        cli.inputs.args = ' '.join(args)
+        cli.cmdline
+        cli.run()
+        output_file = output_file2
+    else:
+        output_file = output_file1
+
+    return output_file
+

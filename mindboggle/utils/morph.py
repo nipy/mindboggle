@@ -378,9 +378,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
             max_size = 0
             max_number = 0
             for n_boundary in boundary_numbers:
-                boundary_indices = np.where(boundaries == n_boundary)[0]
-                if len(boundary_indices) > max_size:
-                    max_size = len(boundary_indices)
+                border_indices = np.where(boundaries == n_boundary)[0]
+                if len(border_indices) > max_size:
+                    max_size = len(border_indices)
                     max_number = n_boundary
             boundaries[boundaries == max_number] = -1
             boundary_numbers = [x for x in boundary_numbers if x != max_number]

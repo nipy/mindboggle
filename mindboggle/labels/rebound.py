@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Python module for adjusting label boundaries on a surface mesh.
+Python module for adjusting label borders on a surface mesh.
 
 
 Authors:
