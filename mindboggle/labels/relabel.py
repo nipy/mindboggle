@@ -27,7 +27,7 @@ def relabel_volume(input_file, old_labels, new_labels):
     --------
     >>> # Convert DKT31 to DKT25 labels
     >>> import os
-    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.utils.io_table import read_columns
     >>> from mindboggle.labels.relabel import relabel_volume
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
@@ -136,7 +136,7 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.io_file import read_columns
+    from mindboggle.utils.io_table import read_columns
 
     # Load labeled vtk surfaces
     faces, lines, indices, points, npoints, scalars, \
