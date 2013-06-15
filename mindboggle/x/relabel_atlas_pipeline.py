@@ -53,7 +53,7 @@ hemis = ['lh','rh']
 #-----------------------------------------------------------------------------
 # Subjects to process
 #-----------------------------------------------------------------------------
-from mindboggle.utils.io_file import read_columns
+from mindboggle.utils.io_table import read_columns
 atlas_list_file = os.path.join(info_path, 'atlases101.txt')
 subjects = read_columns(atlas_list_file, 1)[0]
 subjects = ['OASIS-TRT-20-11']
