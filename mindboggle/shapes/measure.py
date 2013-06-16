@@ -271,6 +271,60 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
 
     return means, sdevs, label_list, label_areas
 
+def sum_per_label(values, labels, exclude_labels):
+    """
+    Compute the sum value across vertices per label.
+
+    Parameters
+    ----------
+    values : numpy array of one or more lists of integers or floats
+        values to average per label
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
+
+    Returns
+    -------
+    sums : list of floats
+        sum for each label
+    label_list : list of integers
+        unique label numbers
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
+    >>> from mindboggle.shapes.measure import sum_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> labels, name = read_scalars(labels_file)
+    >>> exclude_labels = [-1]
+    >>> # Compute sum area per label:
+    >>> sums, label_list = sum_per_label(values, labels, exclude_labels)
+
+    """
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
+        values = np.asarray(values)
+
+    label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    sums = []
+    for label in label_list:
+        I = [i for i,x in enumerate(labels) if x == label]
+        if I:
+            X = values[I]
+            sums.append(np.sum(X))
+        else:
+            sums.append(0)
+
+    return sums, label_list
+
 def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     """
     Compute various statistical measures across vertices per label,
