@@ -264,8 +264,8 @@ mbFlow.base_dir = temp_path
 #-----------------------------------------------------------------------------
 Info = Node(name='Inputs',
             interface=IdentityInterface(fields=['subject', 'hemi']))
-Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
-#Info.iterables = ([('subject', subjects), ('hemi', ['rh'])])
+#Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
+Info.iterables = ([('subject', subjects), ('hemi', ['rh'])])
 #-------------------------------------------------------------------------
 # Outputs
 #-------------------------------------------------------------------------
@@ -365,6 +365,7 @@ if run_RegFlows:
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using antsRegister:
         #---------------------------------------------------------------------
+        """
         if vol_reg_method == 'antsRegister':
             regAnts = Node(name='antsRegister_standard', interface=Registration())
             mbFlow.add_nodes([regAnts])
@@ -420,11 +421,12 @@ if run_RegFlows:
                 regAnts.inputs.use_estimate_learning_rate_once = [True, True]
                 regAnts.inputs.use_histogram_matching = [False]*2
             mbFlow.connect(regAnts, 'composite_transform',
-                            Sink, 'transforms.@affine')
+                           Sink, 'transforms.@affine_antsRegistration')
+        """
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using ANTS:
         #---------------------------------------------------------------------
-        elif vol_reg_method == 'ANTS':
+        if vol_reg_method == 'ANTS':
             regAnts0 = Node(name='ANTS_legacy',
                             interface=Fn(function = register_volume,
                                          input_names=['source',
@@ -447,9 +449,9 @@ if run_RegFlows:
                 regAnts0.inputs.iterations = '0'
             regAnts0.inputs.output_stem = ''
             mbFlow.connect(regAnts0, 'affine_transform',
-                            Sink, 'transforms.@affine')
+                           Sink, 'transforms.@affine_ANTS')
             mbFlow.connect(regAnts0, 'nonlinear_transform',
-                            Sink, 'transforms.@nonlinear')
+                           Sink, 'transforms.@nonlinear_ANTS')
         #---------------------------------------------------------------------
         # Register image volume to template in MNI152 space using FSL's flirt:
         #---------------------------------------------------------------------
@@ -458,7 +460,7 @@ if run_RegFlows:
             mbFlow.add_nodes([regFlirt])
             if do_input_nifti:
                 mbFlow.connect(niftiBrainVol, 'nifti_volume',
-                                regFlirt, 'in_file')
+                               regFlirt, 'in_file')
             else:
                 mbFlow.connect(mgh2nifti, 'out_file', regFlirt, 'in_file')
             regFlirt.inputs.bins = 640
@@ -468,9 +470,9 @@ if run_RegFlows:
             regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
             regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
             mbFlow.connect(regFlirt, 'out_matrix_file',
-                            Sink, 'transforms.@affine')
+                           Sink, 'transforms.@affine_flirt')
             mbFlow.connect(regFlirt, 'out_file',
-                            Sink, 'transforms.@affine_volume')
+                           Sink, 'transforms.@affine_volume')
 
 
 #=============================================================================
@@ -1115,18 +1117,18 @@ if run_SurfFlows:
                          ShapeTables, 'labels_or_file')
         if do_sulci:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
-                             ShapeTables, 'sulci')
+                           ShapeTables, 'sulci')
         else:
             ShapeTables.inputs.sulci = []
         if do_fundi:
             mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi',
-                             ShapeTables, 'fundi')
+                           ShapeTables, 'fundi')
         else:
             ShapeTables.inputs.fundi = []
         if do_register_standard:
             if vol_reg_method == 'antsRegister':
                 mbFlow.connect(regAnts, 'composite_transform',
-                                 ShapeTables, 'affine_transform_file')
+                               ShapeTables, 'affine_transform_file')
                 # Apply the affine part of a complex transform:
                 #pickfirst = lambda x: x[:1]
                 #def pickfirst(x):
@@ -1136,10 +1138,10 @@ if run_SurfFlows:
                 ShapeTables.inputs.transform_format = 'mat'
             elif vol_reg_method == 'ANTS':
                 mbFlow.connect(regAnts0, 'affine_transform',
-                                 ShapeTables, 'affine_transform_file')
+                               ShapeTables, 'affine_transform_file')
             elif vol_reg_method == 'flirt':
                 mbFlow.connect(regFlirt, 'out_matrix_file',
-                                 ShapeTables, 'affine_transform_file')
+                               ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'txt'
         else:
             ShapeTables.inputs.affine_transform_file = None
@@ -1157,20 +1159,20 @@ if run_SurfFlows:
                              'mean_curvature_file')])])
         if do_thickness:
             mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_VTK.output_vtk',
-                             ShapeTables, 'thickness_file')
+                           ShapeTables, 'thickness_file')
         else:
             ShapeTables.inputs.thickness_file = ''
         if do_convexity:
             mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_VTK.output_vtk',
-                             ShapeTables, 'convexity_file')
+                           ShapeTables, 'convexity_file')
         else:
             ShapeTables.inputs.convexity_file = ''
         if do_measure_spectra:
             mbFlow.connect(SurfShapeFlow, 'Spectra_labels.spectrum_lists',
-                             ShapeTables, 'labels_spectra')
+                           ShapeTables, 'labels_spectra')
             if do_sulci:
                 mbFlow.connect(SurfShapeFlow, 'Spectra_sulci.spectrum_lists',
-                                 ShapeTables, 'sulci_spectra')
+                               ShapeTables, 'sulci_spectra')
             else:
                 ShapeTables.inputs.sulci_spectra = []
         else:
@@ -1212,18 +1214,18 @@ if run_SurfFlows:
                          VertexTable, 'labels_or_file')
         if do_sulci:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
-                             VertexTable, 'sulci')
+                           VertexTable, 'sulci')
         else:
             ShapeTables.inputs.sulci = []
         if do_fundi:
             mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi',
-                             VertexTable, 'fundi')
+                           VertexTable, 'fundi')
         else:
             ShapeTables.inputs.fundi = []
         if do_register_standard:
             if vol_reg_method == 'antsRegister':
                 mbFlow.connect(regAnts, 'composite_transform',
-                                 VertexTable, 'affine_transform_file')
+                               VertexTable, 'affine_transform_file')
                 # Apply the affine part of a complex transform:
                 #pickfirst = lambda x: x[:1]
                 #mbFlow.connect(regAnts, ('forward_transforms', pickfirst),
@@ -1231,10 +1233,10 @@ if run_SurfFlows:
                 VertexTable.inputs.transform_format = 'mat'
             elif vol_reg_method == 'ANTS':
                 mbFlow.connect(regAnts0, 'affine_transform',
-                                 VertexTable, 'affine_transform_file')
+                               VertexTable, 'affine_transform_file')
             elif vol_reg_method == 'flirt':
                 mbFlow.connect(regFlirt, 'out_matrix_file',
-                                 VertexTable, 'affine_transform_file')
+                               VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'txt'
         else:
             VertexTable.inputs.affine_transform_file = None
@@ -1250,12 +1252,12 @@ if run_SurfFlows:
                              'mean_curvature_file')])])
         if do_thickness:
             mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_VTK.output_vtk',
-                             VertexTable, 'thickness_file')
+                           VertexTable, 'thickness_file')
         else:
             VertexTable.inputs.thickness_file = ''
         if do_convexity:
             mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_VTK.output_vtk',
-                             VertexTable, 'convexity_file')
+                           VertexTable, 'convexity_file')
         else:
             VertexTable.inputs.convexity_file = ''
         #---------------------------------------------------------------------
@@ -1340,7 +1342,6 @@ if run_VolLabelFlow and run_VolFlows:
                                                       'colortable']))
         VolLabelFlow.add_nodes([WriteLabels])
         mbFlow.connect(Info, 'hemi', VolLabelFlow, 'Write_label_files.hemi')
-#@
         if run_SurfLabelFlow and run_SurfFlows:
             mbFlow.connect(SurfLabelFlow, init_labels_plug,
                            VolLabelFlow, 'Write_label_files.surface_file')
@@ -1614,28 +1615,6 @@ if __name__== '__main__':
         mbFlow.write_graph(graph2use='flat')
         mbFlow.write_graph(graph2use='hierarchical')
     mbFlow.run()
-    """
-    run_RegFlows = True
-    run_SurfFlows = True
-    run_VolFlows = True
-    generate_graphs = True
-    if generate_graphs:
-        if run_RegFlows:
-            RegFlows.write_graph(graph2use='flat')
-            RegFlows.write_graph(graph2use='hierarchical')
-        if run_SurfFlows:
-            SurfFlows.write_graph(graph2use='flat')
-            SurfFlows.write_graph(graph2use='hierarchical')
-        if run_VolFlows:
-            VolFlows.write_graph(graph2use='flat')
-            VolFlows.write_graph(graph2use='hierarchical')
-    if run_RegFlows:
-        RegFlows.run()
-    if run_SurfFlows:
-        SurfFlows.run()
-    if run_VolFlows:
-        VolFlows.run()
-    """
 
 """
 # Script for running Mindboggle on Mindboggle-101 set
