@@ -1182,7 +1182,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
 
     # Read target image volume header information:
     img = nb.load(volume_file)
-    hdr = img.get_shape()
+    hdr = img.get_header()
     dims = img.get_shape()
     ndims = len(dims)
     affine = img.get_affine()
@@ -1204,6 +1204,7 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     if not output_volume:
         output_volume = os.path.join(os.getcwd(),
             'affine_' + os.path.basename(vtk_file) + '.nii.gz')
+
     img = nb.Nifti1Image(data, affine, header=hdr)
     img.to_filename(output_volume)
 
