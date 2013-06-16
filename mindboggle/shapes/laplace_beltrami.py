@@ -487,6 +487,35 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None):
 
     return spectrum_lists, label_list
 
+def fem_laplacian_from_single_vtk(vtk_file, num_eigen=6):
+    """Compute linear FEM Laplace-Beltrami spectrum of a 3D shape in a VTK file
+
+    Parameters
+    --------------
+
+    vtk_file : string
+        the input vtk file 
+
+    num_eigen : integer
+        number of eigen values to be computed, thus the length of the spetrum
+
+    """
+
+    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.shapes.laplace_beltrami import fem_laplacian
+    from mindboggle.shapes.laplace_beltrami import computeAB
+    from numpy import array
+
+    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
+
+    [points, faces] = map(array, [points, faces])
+    A, B = computeAB(points, faces)
+    
+    try:
+        print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=num_eigen)))
+    except RuntimeError:
+        print "failed to compute LBS due to RuntimeError (e.g., singularity error)"
+
 
 if __name__ == "__main__":
 
