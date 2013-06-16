@@ -313,7 +313,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     """
     import os
     import numpy as np
-    from mindboggle.shapes.measure import means_per_label, stats_per_label
+    from mindboggle.shapes.measure import means_per_label, stats_per_label, \
+        sum_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
     from mindboggle.utils.io_table import write_columns
@@ -382,7 +383,6 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
-
         table_column_names = []
 
         #---------------------------------------------------------------------
@@ -425,37 +425,45 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
                 print('  Compute statistics on {0} {1}'.
                       format(feature_name, shape_name))
 
-                #-------------------------------------------------------------
-                # Mean shapes:
-                #-------------------------------------------------------------
-                # Compute mean shape value per feature:
-                medians, mads, means, sdevs, skews, kurts, \
-                lower_quarts, upper_quarts, \
-                label_list = stats_per_label(shape_array,
-                    feature_list, exclude_labels, area_array, precision=1)
-
                 # Append shape names and values per feature to columns:
                 pr = feature_name + ": " + shape_name + ": "
                 if np.size(area_array):
                     po = " (weighted)"
                 else:
                     po = ""
-                table_column_names.append(pr + 'median' + po)
-                table_column_names.append(pr + 'median absolute deviation' + po)
-                table_column_names.append(pr + 'mean' + po)
-                table_column_names.append(pr + 'standard deviation' + po)
-                table_column_names.append(pr + 'skew' + po)
-                table_column_names.append(pr + 'kurtosis' + po)
-                table_column_names.append(pr + 'lower quartile' + po)
-                table_column_names.append(pr + 'upper quartile' + po)
-                columns.append(medians)
-                columns.append(mads)
-                columns.append(means)
-                columns.append(sdevs)
-                columns.append(skews)
-                columns.append(kurts)
-                columns.append(lower_quarts)
-                columns.append(upper_quarts)
+                #-------------------------------------------------------------
+                # Append total feature areas to columns:
+                #-------------------------------------------------------------
+                if ishape == 0 and np.size(area_array):
+                    sums, label_list = sum_per_label(shape_array,
+                        feature_list, exclude_labels)
+                    table_column_names.append(pr + 'total')
+                    columns.append(sums)
+                #-------------------------------------------------------------
+                # Append feature shape statistics to columns:
+                #-------------------------------------------------------------
+                else:
+                    medians, mads, means, sdevs, skews, kurts, \
+                    lower_quarts, upper_quarts, \
+                    label_list = stats_per_label(shape_array,
+                        feature_list, exclude_labels, area_array, precision=1)
+
+                    table_column_names.append(pr + 'median' + po)
+                    table_column_names.append(pr + 'median absolute deviation' + po)
+                    table_column_names.append(pr + 'mean' + po)
+                    table_column_names.append(pr + 'standard deviation' + po)
+                    table_column_names.append(pr + 'skew' + po)
+                    table_column_names.append(pr + 'kurtosis' + po)
+                    table_column_names.append(pr + 'lower quartile' + po)
+                    table_column_names.append(pr + 'upper quartile' + po)
+                    columns.append(medians)
+                    columns.append(mads)
+                    columns.append(means)
+                    columns.append(sdevs)
+                    columns.append(skews)
+                    columns.append(kurts)
+                    columns.append(lower_quarts)
+                    columns.append(upper_quarts)
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
