@@ -386,7 +386,6 @@ private:
     vtkDoubleArray* euclideanDepth;
 
     vtkCellLocator* meshLocator;
-    vtkPolyData* medialSurface;
 
 };
 
