@@ -98,7 +98,6 @@ void MeshAnalyser::Initialize()
     this->close=vtkIdList::New();
     this->closedMesh=vtkPolyData::New();
     this->meshLocator=vtkCellLocator::New();
-    this->medialSurface=vtkPolyData::New();
 
     this->nbPoints=this->mesh->GetNumberOfPoints();
 
@@ -556,7 +555,6 @@ void MeshAnalyser::WriteIntoFile(char* fileName, char* prop)
         writer->SetInput(this->simpl);
     }
     else if(strcmp("closed",prop)==0) writer->SetInput(this->closedMesh);
-    else if(strcmp("medial",prop)==0) writer->SetInput(this->medialSurface);
     else writer->SetInput(this->mesh);
     writer->Update();
     writer->Write();
