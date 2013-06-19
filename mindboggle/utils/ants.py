@@ -2,10 +2,6 @@
 """
 Functions that call the legacy ANTs package created by PICSL at UPenn.
 
-The ANTS command has been superceded by antsRegistration.
-(I'm having trouble reading in its binary .mat output,
- so currently reverting to ANTS, which outputs an ascii ITK file.)
-
 Authors:
 Arno Klein, 2011-2013  .  arno@mindboggle.info  .  www.binarybottle.com
 
