@@ -508,7 +508,7 @@ if run_SurfFlows:
                                            outfields=['atlas_file'],
                                            sort_filelist=False))
         Atlas.inputs.base_directory = atlases_path
-    
+
         Atlas.inputs.template = '%s/label/%s.labels.' +\
                                 protocol + '.' + atlas_label_type + '.vtk'
         Atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
@@ -965,7 +965,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
         mbFlow.connect(SurfLabelFlow, init_labels_plug,
                          SurfFeatureFlow, 'Sulci.labels_file')
         SurfFeatureFlow.connect(FoldsNode, 'folds', SulciNode, 'folds_or_file')
-        SurfFeatureFlow.connect(LabelPairs, 'label_pair_lists', 
+        SurfFeatureFlow.connect(LabelPairs, 'label_pair_lists',
                                 SulciNode, 'label_pair_lists')
         SulciNode.inputs.min_boundary = 1
         sulcus_names_file = os.path.join(protocol_path, 'sulci.names.DKT25.txt')
@@ -1021,7 +1021,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
                                                     'fundi_file']))
         SurfFeatureFlow.connect(FoldsNode, 'folds', FundiNode, 'folds')
         SurfFeatureFlow.connect(SulciNode, 'sulci', FundiNode, 'sulci')
-        SurfFeatureFlow.connect(LikelihoodNode, 'likelihoods', 
+        SurfFeatureFlow.connect(LikelihoodNode, 'likelihoods',
                             FundiNode, 'likelihoods')
         mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
                        [('Rescale_travel_depth.rescaled_scalars_file',
