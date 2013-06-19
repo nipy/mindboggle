@@ -484,7 +484,7 @@ def dot_plot_no_overlaps(table_file, pairs_to_process,
                 y.append(item)
                 pos += 0.04
     plt.figure(figsize=[figsize,figsize], dpi=dpi, facecolor='white', edgecolor=None,
-        linewidth=0.0, frameon=True, subplotpars=None, tight_layout=None)
+        linewidth=0.0, frameon=True, subplotpars=None) #, tight_layout=None)
 
     plt.plot(x, y, 'o')
     plt.xlim((0,len(data_lists) + 1))
@@ -516,6 +516,29 @@ if __name__ == "__main__":
     # type 2: same_subject_pairs_per_site
     # type 3: same_subject_intersite_pairs_per_site
     #-----------------------------------------------------------------------------
+    def pairs_types_mri_phantoms():
+
+        pairs_type1 = [[],[],[],[]]
+        pairs_type2 = [[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7]],
+                       [[8,9],[9,10],[10,11],[11,12],[12,13],[13,14],[14,15]],
+                       [[16,17],[17,18],[18,19],[19,20],[20,21],[21,22]],
+                       [[23,24],[24,25],[25,26],[26,27],[27,28],[28,29],[29,30]]]
+        pairs_type3 = [[],[],[],[]]
+
+        return pairs_type1, pairs_type2, pairs_type3
+
+
+    def pairs_types_dmri_phantoms():
+
+        pairs_type1 = [[],[],[],[]]
+        pairs_type2 = [[[0,1],[1,2],[2,3],[3,4],[4,5],[5,6],[6,7],[7,8]],
+                       [[9,10],[10,11],[11,12],[12,13],[13,14],[14,15]],
+                       [[16,17],[17,18],[18,19],[19,20],[20,21],[21,22]],
+                       [[23,24],[24,25],[25,26],[26,27],[27,28],[28,29]]]
+        pairs_type3 = [[],[],[],[]]
+
+        return pairs_type1, pairs_type2, pairs_type3
+
     def pairs_types_mri():
 
         pairs_type1 = [[[0,2],[0,4],[0,7],[0,10],[0,13],[0,15],
@@ -554,25 +577,30 @@ if __name__ == "__main__":
     #-----------------------------------------------------------------------------
     # Data to run
     #-----------------------------------------------------------------------------
-    process_phantoms = False  # use phantom (or human) data?
-    process_DTI = False  # use diffusion (or structural) data?
+    process_phantoms = True  # use phantom (or human) data?
+    process_dmri = False  # use diffusion (or structural) data?
     do_similarity = True  # use image similarity (or histogram) table?
     # Choose one:
-    pairs_type = 3  # {1,2,3}
+    pairs_type = 2  # {1,2,3}
                     # 1: different_subject_pairs_per_site
                     # 2: same_subject_pairs_per_site
                     # 3: same_subject_intersite_pairs_per_site
     site_names = ['CU','MG','TX','UM']
-    base_path = '/Users/arno/Data/EMBARC/retest'
+    base_path = '/homedir/Data/EMBARC/Data'
 
     if process_phantoms:
-        pass
+        if process_dmri:
+            base_path = os.path.join(base_path, 'Scratch_dmri/Scratch')
+            pairs_type1, pairs_type2, pairs_type3 = pairs_types_dmri_phantoms()
+        else:
+            base_path = os.path.join(base_path, 'Scratch/Scratch')
+            pairs_type1, pairs_type2, pairs_type3 = pairs_types_mri_phantoms()
     else:
-        if process_DTI:
-            base_path = os.path.join(base_path, 'Scratch_dmri/Image_comparison_workflow')
+        if process_dmri:
+            base_path = os.path.join(base_path, 'Scratch_dmri/Scratch2')
             pairs_type1, pairs_type2, pairs_type3 = pairs_types_dmri()
         else:
-            base_path = os.path.join(base_path, 'Scratch/Image_comparison_workflow')
+            base_path = os.path.join(base_path, 'Scratch/Scratch2')
             pairs_type1, pairs_type2, pairs_type3 = pairs_types_mri()
     if pairs_type == 1:
         pairs = pairs_type1
@@ -582,7 +610,7 @@ if __name__ == "__main__":
         pairs = pairs_type3
 
     if do_similarity:
-        yrange = [0.75,1.0]
+        yrange = [0.0,1.0]
         table = os.path.join(base_path, 'Similarity', 'pairwise_similarities.txt')
         plot_ylabel = 'Image similarity (correlation coefficient)'
         plot_title = 'Similarities per site'
