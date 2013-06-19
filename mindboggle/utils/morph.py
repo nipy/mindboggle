@@ -378,9 +378,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
             max_size = 0
             max_number = 0
             for n_boundary in boundary_numbers:
-                boundary_indices = np.where(boundaries == n_boundary)[0]
-                if len(boundary_indices) > max_size:
-                    max_size = len(boundary_indices)
+                border_indices = np.where(boundaries == n_boundary)[0]
+                if len(border_indices) > max_size:
+                    max_size = len(border_indices)
                     max_number = n_boundary
             boundaries[boundaries == max_number] = -1
             boundary_numbers = [x for x in boundary_numbers if x != max_number]
@@ -428,6 +428,11 @@ def topo_test(index, values, neighbor_lists):
     A simple point is a vertex that when added to or removed from an object
     (e.g., a curve) on a surface mesh does not alter the object's topology.
 
+    "Simple" is not to be mistaken with the following usage:
+    "A vertex is usually assigned one of five possible classifications:
+    simple, complex, boundary, interior edge, or corner vertex.
+     A simple vertex is surrounded by a closed fan of triangles".
+
     Parameters
     ----------
     index : integer
@@ -442,18 +447,18 @@ def topo_test(index, values, neighbor_lists):
     sp : Boolean
         simple point or not?
     n_inside : integer
-        number of neighboring vertices greater than threshold
+        number of neighboring vertices with a value greater than threshold
 
     """
     import numpy as np
 
-    # Make sure argument is a numpy array
+    # Make sure argument is a numpy array:
     if not isinstance(values, np.ndarray):
         values = np.array(values)
 
     # Find neighbors to the input vertex, and binarize them
-    # into those greater or less than the class boundary threshold for HMMF (0.5)
-    # ("inside" and "outside"); count the number of inside and outside neighbors
+    # into those greater or less than a class boundary threshold equal to 0.5
+    # ("inside" and "outside"); count inside and outside neighbors:
     I_neighbors = neighbor_lists[index]
     neighbor_values = values[I_neighbors]
     inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > 0.5]
@@ -461,9 +466,110 @@ def topo_test(index, values, neighbor_lists):
     n_outside = len(I_neighbors) - n_inside
 
     # If the number of inside or outside neighbors is zero,
-    # than the vertex IS NOT a simple point
+    # than the vertex IS NOT a simple point:
     if n_outside * n_inside == 0:
         sp = False
+    # Or if either the number of inside or outside neighbors is one,
+    # than the vertex IS a simple point:
+    elif n_outside == 1 or n_inside == 1:
+        sp = True
+    # Otherwise, test to see if all of the inside neighbors share neighbors
+    # with each other, in which case the vertex IS a simple point:
+    else:
+        # For each neighbor exceeding the threshold,
+        # find its neighbors that also exceed the threshold,
+        # then store these neighbors' indices in a sublist of "N":
+        labels = range(1, n_inside + 1)
+        N = []
+        for i_in in range(n_inside):
+            new_neighbors = neighbor_lists[inside[i_in]]
+            new_neighbors = [x for x in new_neighbors
+                             if values[x] > 0.5 if x != index]
+            new_neighbors.extend([inside[i_in]])
+            N.append(new_neighbors)
+
+        # Consolidate labels of connected vertices --
+        # Loop through neighbors (lists within "N"),
+        # reassigning the labels for the lists until each label's
+        # list(s) has a unique set of vertices:
+        change = True
+        while change:
+            change = False
+
+            # Loop through pairs of inside neighbors
+            # and continue if their two labels are different:
+            for i in range(n_inside - 1):
+                for j in range(i + 1, n_inside):
+                    if labels[i] != labels[j]:
+                        # Assign the two subsets the same label
+                        # if they share at least one vertex,
+                        # and continue looping:
+                        if set(N[i]).intersection(N[j]):
+                            labels[i] = max([labels[i], labels[j]])
+                            labels[j] = labels[i]
+                            change = True
+
+        # The vertex is a simple point if all of its neighbors
+        # (if any) share neighbors with each other (one unique label):
+        D = []
+        if len([D.append(x) for x in labels if x not in D]) == 1:
+            sp = True
+        else:
+            sp = False
+
+    return sp, n_inside
+
+#-----------------------------------------------------------------------------
+# Test for simple points
+#-----------------------------------------------------------------------------
+def ridge_test(index, depths, curvatures, neighbor_lists):
+    """
+    Test to see if vertex is a "ridge point".
+
+    A ridge point is a vertex that sits on a cusp, where along at least one
+    curve running through the vertex has higher depth and curvature values
+    and along at least one other direction has lower values.
+
+    Parameters
+    ----------
+    index : integer
+        index of vertex
+    depths : numpy array of integers or floats
+        depth values for all vertices
+    curvatures : numpy array of integers or floats
+        curvature values for all vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    rp : Boolean
+        ridge point or not?
+
+    """
+    pass
+    """
+    import numpy as np
+
+    # Make sure argument is a numpy array:
+    if not isinstance(depths, np.ndarray):
+        depths = np.array(depths)
+    if not isinstance(curvatures, np.ndarray):
+        curvatures = np.array(curvatures)
+
+    # Find neighbors to the input vertex, and binarize them
+    # into those greater or less than a class boundary threshold equal to 0.5
+    # ("inside" and "outside"); count the number of inside and outside neighbors:
+    I_neighbors = neighbor_lists[index]
+    neighbor_values = values[I_neighbors]
+    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > 0.5]
+    n_inside = len(inside)
+    n_outside = len(I_neighbors) - n_inside
+
+    # If the number of inside or outside neighbors is less than two,
+    # than the vertex IS NOT a ridge point:
+    if n_outside < 2 or n_inside < 2:
+        rp = False
     # Or if either the number of inside or outside neighbors is one,
     # than the vertex IS a simple point
     elif n_outside == 1 or n_inside == 1:
@@ -482,34 +588,17 @@ def topo_test(index, values, neighbor_lists):
                              if values[x] > 0.5 if x != index]
             new_neighbors.extend([inside[i_in]])
             N.append(new_neighbors)
+        # For each neighbor exceeding the threshold,
+        # find its neighbors that also exceed the threshold,
+        # then store these neighbors' indices in a sublist of "N"
+        labels = range(1, n_inside + 1)
+        N = []
+        for i_in in range(n_inside):
+            new_neighbors = neighbor_lists[inside[i_in]]
+            new_neighbors = [x for x in new_neighbors
+                             if values[x] > 0.5 if x != index]
+            new_neighbors.extend([inside[i_in]])
+            N.append(new_neighbors)
 
-        # Consolidate labels of connected vertices:
-        # Loop through neighbors (lists within "N"),
-        # reassigning the labels for the lists until each label's
-        # list(s) has a unique set of vertices
-        change = True
-        while change:
-            change = False
-
-            # Loop through pairs of inside neighbors
-            # and continue if their two labels are different
-            for i in range(n_inside - 1):
-                for j in range(i + 1, n_inside):
-                    if labels[i] != labels[j]:
-                        # Assign the two subsets the same label
-                        # if they share at least one vertex,
-                        # and continue looping
-                        if frozenset(N[i]).intersection(N[j]):
-                            labels[i] = max([labels[i], labels[j]])
-                            labels[j] = labels[i]
-                            change = True
-
-        # The vertex is a simple point if all of its neighbors
-        # (if any) share neighbors with each other (one unique label)
-        D = []
-        if len([D.append(x) for x in labels if x not in D]) == 1:
-            sp = True
-        else:
-            sp = False
-
-    return sp, n_inside
+    return rp
+    """

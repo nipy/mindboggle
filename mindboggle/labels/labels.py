@@ -16,9 +16,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 def extract_borders(indices, labels, neighbor_lists,
                     ignore_values=[], return_label_pairs=False):
     """
-    Detect the label boundaries in a collection of vertices such as a region.
+    Detect the label borders in a collection of vertices such as a region.
 
-    Label boundaries are the set of all vertices
+    Label borders are the set of all vertices
     whose neighbors do not share the same label.
 
     Parameters
@@ -34,11 +34,11 @@ def extract_borders(indices, labels, neighbor_lists,
 
     Returns
     -------
-    boundary_indices : list of integers
+    border_indices : list of integers
         indices to label boundary vertices
-    boundary_label_pairs : list of lists of sorted pairs of integers
+    border_label_tuples : list of lists of sorted pairs of integers
         sorted label pairs
-    unique_boundary_label_pairs : list of sorted pairs of integers
+    unique_border_label_tuples : list of sorted pairs of integers
         unique, sorted label pairs
 
     Examples
@@ -67,14 +67,14 @@ def extract_borders(indices, labels, neighbor_lists,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
-    >>> indices_boundaries, label_pairs, foo = extract_borders(range(npoints),
+    >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
     >>>     labels, neighbor_lists)
     >>> #
     >>> # Write results to vtk file and view:
     >>> IDs = -1 * np.ones(npoints)
-    >>> IDs[indices_boundaries] = 1
+    >>> IDs[indices_borders] = 1
     >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
-    >>>                 IDs, 'boundaries', IDs)
+    >>>                 IDs, 'borders', IDs)
     >>> plot_vtk('extract_borders.vtk')
 
     """
@@ -88,35 +88,35 @@ def extract_borders(indices, labels, neighbor_lists,
     L = np.array([list(set(labels[lst])) for lst in neighbor_lists])
 
     # Find indices to sets of two labels:
-    boundary_indices = [indices[y] for y in
+    border_indices = [indices[y] for y in
                         [i for i,x in enumerate(L[indices])
-                         if len(set(x)) == 2]]
+                         if len(set(x)) >= 2]]
 
     if return_label_pairs:
-        boundary_label_pairs = [np.sort(L[indices[j]]).tolist() for j in
+        border_label_tuples = [np.sort(L[indices[j]]).tolist() for j in
                                 [i for i,x in enumerate(L[indices])
-                                 if len(set(x)) == 2]]
+                                 if len(set(x)) >= 2]]
     else:
-        boundary_label_pairs = []
+        border_label_tuples = []
 
     if ignore_values:
-        Ikeep = [i for i,x in enumerate(boundary_label_pairs)
+        Ikeep = [i for i,x in enumerate(border_label_tuples)
                  if not len(set(x).intersection(ignore_values))]
-        boundary_indices = [x for i,x in enumerate(boundary_indices)
+        border_indices = [x for i,x in enumerate(border_indices)
                             if i in Ikeep]
         if return_label_pairs:
-            boundary_label_pairs = [x for i,x in enumerate(boundary_label_pairs)
+            border_label_tuples = [x for i,x in enumerate(border_label_tuples)
                                     if i in Ikeep]
 
     if return_label_pairs:
-        unique_boundary_label_pairs = []
-        for pair in boundary_label_pairs:
-            if pair not in unique_boundary_label_pairs:
-                unique_boundary_label_pairs.append(pair)
+        unique_border_label_tuples = []
+        for pair in border_label_tuples:
+            if pair not in unique_border_label_tuples:
+                unique_border_label_tuples.append(pair)
     else:
-        unique_boundary_label_pairs = []
+        unique_border_label_tuples = []
 
-    return boundary_indices, boundary_label_pairs, unique_boundary_label_pairs
+    return border_indices, border_label_tuples, unique_border_label_tuples
 
 #-----------------------------------------------------------------------------
 # Extract border values from a second surface
@@ -144,7 +144,7 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
 
     Examples
     --------
-    >>> # Extract depth values along label boundaries in sulci (mask):
+    >>> # Extract depth values along label borders in sulci (mask):
     >>> import os
     >>> from mindboggle.labels.labels import extract_borders_2nd_surface
     >>> from mindboggle.utils.plots import plot_vtk
@@ -165,21 +165,21 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     from mindboggle.labels.labels import extract_borders
 
     # Load labeled surface file
-    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
-                                                                    return_first=True, return_array=True)
+    faces, foo1, foo2, foo3, npoints, labels, foo4, foo5 = read_vtk(labels_file,
+        return_first=True, return_array=True)
 
-    # Detect boundaries
+    # Detect borders
     neighbor_lists = find_neighbors(faces, npoints)
-    indices_boundaries, label_pairs, foo = extract_borders(range(npoints),
-                                                           labels, neighbor_lists)
+    indices_borders, foo1, foo2 = extract_borders(range(npoints),
+                                        labels, neighbor_lists)
 
-    # Filter values with label boundaries
+    # Filter values with label borders
     border_values = -1 * np.ones(npoints)
     if values_file:
         values, name = read_scalars(values_file, return_first=True, return_array=True)
-        border_values[indices_boundaries] = values[indices_boundaries]
+        border_values[indices_borders] = values[indices_borders]
     else:
-        border_values[indices_boundaries] = 1
+        border_values[indices_borders] = 1
 
     # Mask values (for mask >-1)
     if mask_file:
@@ -287,7 +287,7 @@ def majority_vote_label(surface_file, annot_files):
     import nibabel as nb
     import pyvtk
     from mindboggle.labels.labels import vote_labels
-    from mindboggle.utils.io_file import string_vs_list_check
+    from mindboggle.utils.io_table import string_vs_list_check
 
     # Load multiple label sets
     print("Load annotation files...")
