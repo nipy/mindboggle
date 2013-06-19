@@ -150,14 +150,14 @@ run_SurfLabelFlow = True
 # * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
 # * 'max_prob': majority vote labels from multiple atlases
 # * 'manual': process manual labels (individual atlas)
-init_labels = 'DKT_atlas'
+init_labels = 'manual'
 classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
 #
 # Labeling protocol used by Mindboggle:
 # * 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 label regions
 # * 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
-protocol = 'DKT25'
+protocol = 'DKT31'
 #
 # Type of atlas labels:
 # * 'manual': manual edits
@@ -187,7 +187,7 @@ run_SurfShapeFlow = True
 run_VolLabelFlow = True
 #-----------------------------------------------------------------------------
 do_fill_cortex = True  # Fill cortical gray matter with surface labels
-do_label_subcortex = True  # Label subcortical volume
+do_label_subcortex = 0#True  # Label subcortical volume
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #-----------------------------------------------------------------------------
@@ -205,7 +205,7 @@ from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer.preprocess import MRIConvert
-from nipype.interfaces.ants import Registration
+#from nipype.interfaces.ants import Registration
 from nipype.interfaces.fsl import FLIRT
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
@@ -264,8 +264,8 @@ mbFlow.base_dir = temp_path
 #-----------------------------------------------------------------------------
 Info = Node(name='Inputs',
             interface=IdentityInterface(fields=['subject', 'hemi']))
-#Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
-Info.iterables = ([('subject', subjects), ('hemi', ['rh'])])
+Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
+#Info.iterables = ([('subject', subjects), ('hemi', ['rh'])])
 #-------------------------------------------------------------------------
 # Outputs
 #-------------------------------------------------------------------------
@@ -512,8 +512,9 @@ if run_SurfFlows:
         Atlas.inputs.template = '%s/label/%s.labels.' +\
                                 protocol + '.' + atlas_label_type + '.vtk'
         Atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
-    
-        mbFlow.connect(Info, ('subject','subject'), Atlas, ('hemi','hemi'))
+
+        mbFlow.connect([(Info, Atlas, [('subject','subject'), ('hemi','hemi')])])
+
     #-------------------------------------------------------------------------
     # Load data
     #-------------------------------------------------------------------------
@@ -535,7 +536,6 @@ if run_SurfFlows:
 if run_SurfLabelFlow and run_SurfFlows:
 
     SurfLabelFlow = Workflow(name='Surface_labels')
-
     #=========================================================================
     # Initialize labels with the DKT classifier atlas
     #=========================================================================
@@ -1610,7 +1610,7 @@ if __name__== '__main__':
     #config.set('logging', 'workflow_level', 'DEBUG')
     #logging.update_logging(config)
 
-    generate_graphs = True
+    generate_graphs = 0#True
     if generate_graphs:
         mbFlow.write_graph(graph2use='flat')
         mbFlow.write_graph(graph2use='hierarchical')
