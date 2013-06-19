@@ -63,7 +63,7 @@ def propagate(points, faces, region, seeds, labels,
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
-    >>> indices_boundaries, label_pairs, foo = extract_borders(range(npoints),
+    >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
     >>>     labels, neighbor_lists)
     >>> label_pair_lists = sulcus_boundaries()
     >>> # Select a single fold
@@ -72,12 +72,12 @@ def propagate(points, faces, region, seeds, labels,
     >>> fold_array = -1 * np.ones(npoints)
     >>> fold_array[indices_fold] = 1
     >>> # Extract the boundary for this fold
-    >>> indices_boundaries, label_pairs, foo = extract_borders(indices_fold,
+    >>> indices_borders, label_pairs, foo = extract_borders(indices_fold,
     >>>     labels, neighbor_lists)
     >>> # Select boundary segments in the sulcus labeling protocol
     >>> seeds = -1 * np.ones(npoints)
     >>> for ilist,label_pair_list in enumerate(label_pair_lists):
-    >>>     I = [x for i,x in enumerate(indices_boundaries)
+    >>>     I = [x for i,x in enumerate(indices_borders)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
     >>> #
@@ -220,11 +220,11 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
-    >>> indices_boundaries, label_pairs, foo = extract_borders(vertices_to_segment,
+    >>> indices_borders, label_pairs, foo = extract_borders(vertices_to_segment,
     >>>     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
     >>> for label_pair_list in label_pair_lists:
-    >>>     seed_lists.append([x for i,x in enumerate(indices_boundaries) if np.sort(label_pairs[i]).tolist() in label_pair_list])
+    >>>     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
     >>> #
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
     >>>                 seed_lists, True, True, labels, label_lists, values=[])
@@ -443,16 +443,16 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     return segments
 
 #-----------------------------------------------------------------------------
-# Fill boundaries on a surface mesh to segment vertices into contiguous regions
+# Fill borders on a surface mesh to segment vertices into contiguous regions
 #-----------------------------------------------------------------------------
-def segment_by_filling_boundaries(regions, neighbor_lists):
+def segment_by_filling_borders(regions, neighbor_lists):
     """
-    Fill boundaries (contours) on a surface mesh
+    Fill borders (contours) on a surface mesh
     to segment vertices into contiguous regions.
 
     Steps ::
-        1. Extract region boundaries (assumed to be closed contours)
-        2. Segment boundaries into separate, contiguous boundaries
+        1. Extract region borders (assumed to be closed contours)
+        2. Segment borders into separate, contiguous borders
         3. For each boundary
             4. Find the neighbors to either side of the boundary
             5. Segment the neighbors into exterior and interior sets of neighbors
@@ -473,11 +473,11 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
 
     Examples
     --------
-    >>> # Segment folds by extracting their boundaries and filling them in separately:
+    >>> # Segment folds by extracting their borders and filling them in separately:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.segment import segment_by_filling_boundaries
+    >>> from mindboggle.utils.segment import segment_by_filling_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -487,12 +487,12 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     >>> regions[depths > 0.50] = 1
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
-    >>> folds = segment_by_filling_boundaries(regions, neighbor_lists)
+    >>> folds = segment_by_filling_borders(regions, neighbor_lists)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> rewrite_scalars(depth_file, 'segment_by_filling_boundaries.vtk', folds, 'folds', folds)
+    >>> rewrite_scalars(depth_file, 'segment_by_filling_borders.vtk', folds, 'folds', folds)
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('segment_by_filling_boundaries.vtk')
+    >>> plot_vtk('segment_by_filling_borders.vtk')
 
     """
     import numpy as np
@@ -505,36 +505,36 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
     if not isinstance(regions, np.ndarray):
         regions = np.array(regions)
 
-    print('Segment vertices using region boundaries')
+    print('Segment vertices using region borders')
 
-    # Extract region boundaries (assumed to be closed contours)
-    print('  Extract region boundaries (assumed to be closed contours)')
-    indices_boundaries, label_pairs, foo = extract_borders(range(len(regions)),
-                                                           regions, neighbor_lists)
+    # Extract region borders (assumed to be closed contours)
+    print('  Extract region borders (assumed to be closed contours)')
+    indices_borders, foo1, foo2 = extract_borders(range(len(regions)),
+                                        regions, neighbor_lists)
     # Extract background
     indices_background = list(frozenset(range(len(regions))).
-    difference(indices_boundaries))
+    difference(indices_borders))
 
-    # Segment boundaries into separate, contiguous boundaries
-    print('  Segment boundaries into separate, contiguous boundaries')
-    boundaries = segment(indices_boundaries, neighbor_lists, 1)
+    # Segment borders into separate, contiguous borders
+    print('  Segment borders into separate, contiguous borders')
+    borders = segment(indices_borders, neighbor_lists, 1)
 
     # For each boundary
-    unique_boundaries = [x for x in np.unique(boundaries) if x > -1]
+    unique_borders = [x for x in np.unique(borders) if x > -1]
     segments = -1 * np.ones(len(regions))
-    for boundary_number in unique_boundaries:
+    for boundary_number in unique_borders:
 
         print('  Boundary {0} of {1}:'.format(int(boundary_number),
-                                              len(unique_boundaries)))
-        boundary_indices = [i for i,x in enumerate(boundaries)
-                            if x == boundary_number]
+                                              len(unique_borders)))
+        border_indices = [i for i,x in enumerate(borders)
+                          if x == boundary_number]
         # Find the neighbors to either side of the boundary
         indices_neighbors = []
-        [indices_neighbors.extend(neighbor_lists[i]) for i in boundary_indices]
+        [indices_neighbors.extend(neighbor_lists[i]) for i in border_indices]
         #indices_neighbors2 = indices_neighbors[:]
         #[indices_neighbors2.extend(neighbor_lists[i]) for i in indices_neighbors]
         indices_neighbors = list(frozenset(indices_neighbors).
-        difference(indices_boundaries))
+        difference(indices_borders))
 
         # Segment the neighbors into exterior and interior sets of neighbors
         print('    Segment the neighbors into exterior and interior sets of neighbors')
@@ -560,11 +560,11 @@ def segment_by_filling_boundaries(regions, neighbor_lists):
         # Fill the contours formed by the interior neighbors
         print('    Fill the contour formed by the interior neighbors')
         vertices_to_segment = list(frozenset(indices_background).
-        difference(indices_boundaries))
+        difference(indices_borders))
         segment_region = segment(vertices_to_segment, neighbor_lists, 1, [seed_list])
 
         if include_boundary:
-            segment_region[boundary_indices] = 1
+            segment_region[border_indices] = 1
 
         segments[segment_region > -1] = boundary_number
 
@@ -690,7 +690,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     Note ::
 
         Despite the above precautions, the order of seed selection in segment()
-        could possibly influence the resulting boundaries between adjoining
+        could possibly influence the resulting borders between adjoining
         segments (vs. propagate(), which is slower and insensitive to depth,
         but is not biased by seed order).
 
@@ -768,7 +768,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     from time import time
     from mindboggle.labels.labels import extract_borders
     from mindboggle.utils.segment import segment
-    from mindboggle.shapes.measure import point_distance
+    from mindboggle.utils.compute import point_distance
 
     # Make sure argument is a list
     if isinstance(indices, np.ndarray):
@@ -784,7 +784,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     use_depth_ratio = True
 
     #-------------------------------------------------------------------------
-    # Find the boundaries of the given mesh vertices (indices):
+    # Find the borders of the given mesh vertices (indices):
     #-------------------------------------------------------------------------
     D = np.ones(len(depths))
     D[indices] = 2
@@ -957,10 +957,10 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     #-------------------------------------------------------------------------
     if merge:
 
-        # Extract segments pairs at boundaries between watershed basins:
+        # Extract segments pairs at borders between watershed basins:
         print('  Merge watershed catchment basins with deeper neighboring basins')
         if verbose:
-            print('    Extract basin boundaries')
+            print('    Extract basin borders')
         foo1, foo2, pairs = extract_borders(original_indices, segments,
                                             neighbor_lists, ignore_values=[-1],
                                             return_label_pairs=True)
