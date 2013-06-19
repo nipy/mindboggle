@@ -48,7 +48,7 @@ def compute_fundus_distances(label_boundary_fundi, fundi, folds, points, n_fundi
 
     """
     import numpy as np
-    from mindboggle.shapes.measure import point_distance
+    from mindboggle.utils.compute import point_distance
 
     npoints = len(points)
 
@@ -126,9 +126,9 @@ if __name__ == "__main__":
 
     # Find label boundary points in any of the folds
     print('Find label boundary points in any of the folds...')
-    boundary_indices, boundary_label_pairs, unique_boundary_label_pairs = \
+    border_indices, border_label_tuples, unique_border_label_tuples = \
         extract_borders(fold_indices, labels, neighbor_lists)
-    if not len(boundary_indices):
+    if not len(border_indices):
         sys.exit('There are no label boundary points!')
 
     # Initialize an array of label boundaries fundus IDs
@@ -141,8 +141,8 @@ if __name__ == "__main__":
         print('  Sulcus ' + str(isulcus + 1))
 
         # Keep the boundary points with label pair labels
-        fundus_indices = [x for i,x in enumerate(boundary_indices)
-                          if np.unique(boundary_label_pairs[i]).tolist()
+        fundus_indices = [x for i,x in enumerate(border_indices)
+                          if np.unique(border_label_tuples[i]).tolist()
                               in label_pairs]
 
         # Store the points as sulcus IDs in the fundus IDs array
