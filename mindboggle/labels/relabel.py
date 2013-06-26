@@ -197,3 +197,76 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     cli.run()
 
     return new_annot_name
+
+def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
+    """
+    Overwrite target labels with source labels (same volume dimensions).
+
+    Parameters
+    ----------
+    source : string
+        labeled nibabel-readable (e.g., nifti) file
+    target : string
+        labeled nibabel-readable (e.g., nifti) file
+    output_file : string
+        labeled nibabel-readable (e.g., nifti) file
+    ignore_labels : list
+        list of source labels to ignore
+
+    Returns
+    -------
+    output_file : string
+        labeled nibabel-readable (e.g., nifti) file
+
+    Examples
+    --------
+    >>> # Overwrite DKT25 with DKT31 labels
+    >>> import os
+    >>> from mindboggle.labels.relabel import overwrite_volume_labels
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> source = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> target = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> output_file = ''
+    >>> ignore_labels = [0]
+    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels)
+    >>> # View
+    >>> plot_volumes(output_file)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(),
+                                   os.path.basename(source).split('.')[0] +
+                                   '_and_' +
+                                   os.path.basename(target).split('.')[0] +
+                                   '.nii.gz')
+
+    # Load labeled image volumes:
+    vol_source = nb.load(source)
+    vol_target = nb.load(target)
+    xfm = vol_target.get_affine()
+    data_source = vol_source.get_data().ravel()
+    data_target = vol_target.get_data().ravel()
+
+    # Initialize output:
+    new_data = data_target.copy()
+
+    # Overwrite target labels with source labels:
+    IX = [(i,x) for i,x in enumerate(data_source) if x not in ignore_labels]
+    I = [x[0] for x in IX]
+    X = [x[1] for x in IX]
+    new_data[I] = X
+
+    # Reshape to original dimensions:
+    new_data = np.reshape(new_data, vol_target.shape)
+
+    # Save relabeled file:
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
+
+    return output_file
+
