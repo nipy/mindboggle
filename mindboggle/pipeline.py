@@ -177,7 +177,7 @@ do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
 #-----------------------------------------------------------------------------
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
-do_sulci = 0#True  # Extract sulci
+do_sulci = True  # Extract sulci
 do_fundi = False  # Extract fundi
 
 #-----------------------------------------------------------------------------
@@ -207,7 +207,7 @@ from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer.preprocess import MRIConvert
-from nipype.interfaces.ants import Registration
+#from nipype.interfaces.ants import Registration
 from nipype.interfaces.fsl import FLIRT
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
