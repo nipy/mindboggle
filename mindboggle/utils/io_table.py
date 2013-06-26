@@ -209,7 +209,7 @@ def write_rows(filename, list_of_lines, header=""):
     return filename
 
 def write_shape_stats(labels_or_file, sulci=[], fundi=[],
-        affine_transform_file=[], transform_format='itk',
+        affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
         labels_spectra=[], labels_spectra_norm=[], labels_spectra_IDs=[],
@@ -522,7 +522,7 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
 
 
 def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
-        affine_transform_file=[], transform_format='itk',
+        affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
         delimiter=','):
@@ -640,6 +640,8 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
+                #import sys
+                #sys.exit(affine_transform_file)
                 if affine_transform_file:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
@@ -661,3 +663,177 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
                   input_table=shapes_table)
 
     return shapes_table
+
+
+def write_face_vertex_averages(input_file, area_file='', delimiter=','):
+    """
+    Make table of average vertex values per face.
+
+    Parameters
+    ----------
+    input_file : string
+        name of VTK file with scalars to average
+    area_file :  string
+        name of VTK file with surface area scalar values
+    delimiter : string
+        delimiter between columns, such as ','
+
+    Returns
+    -------
+    output_table :  string
+        output table filename
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.utils.io_table import write_face_vertex_averages
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> input_file = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> delimiter = ','
+    >>> #
+    >>> write_face_vertex_averages(input_file, area_file, delimiter)
+
+    """
+    import os
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars
+    from mindboggle.utils.io_table import write_columns
+
+    faces, lines, indices, points, npoints, scalars, name, \
+        input_vtk = read_vtk(input_file, True, True)
+    if area_file:
+        area_scalars, name = read_scalars(area_file, True, True)
+
+    #---------------------------------------------------------------------
+    # For each face, average vertex values:
+    #---------------------------------------------------------------------
+    output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
+    columns = []
+    for face in faces:
+        values = []
+        for index in face:
+            if area_file:
+                values.append(scalars[index] / area_scalars[index])
+            else:
+                values.append(scalars[index])
+        columns.append(np.mean(values))
+
+    #-----------------------------------------------------------------
+    # Write to table:
+    #-----------------------------------------------------------------
+    write_columns(columns, '', output_table, delimiter, quote=False)
+
+    return output_table
+
+
+def write_average_face_values_per_label(input_indices_vtk,
+                    input_values_vtk='', area_file='',
+                    output_stem='', exclude_values=[-1], background_value=-1):
+    """
+    Write out a separate VTK file for each integer (>-1)
+    in (the first) scalar list of an input VTK file.
+    Optionally write the values drawn from a second VTK file.
+
+    Parameters
+    ----------
+    input_indices_vtk : string
+        path of the input VTK file that contains indices as scalars
+    input_values_vtk : string
+        path of the input VTK file that contains values as scalars
+    output_stem : string
+        path and stem of the output VTK file
+    exclude_values : list or array
+        values to exclude
+    background_value : integer or float
+        background value in output VTK files
+    scalar_name : string
+        name of a lookup table of scalars values
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_table import write_average_face_values_per_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_indices_vtk = os.path.join(path, 'allen', 'labels', 'lh.DKTatlas100.gcs.vtk')
+    >>> input_values_vtk = os.path.join(path, 'allen', 'shapes', 'lh.thickness.vtk')
+    >>> area_file = os.path.join(path, 'allen', 'shapes', 'lh.pial.area.vtk')
+    >>> output_stem = 'labels_thickness'
+    >>> exclude_values = [-1]
+    >>> background_value = -1
+    >>> #
+    >>> write_average_face_values_per_label(input_indices_vtk,
+    >>>     input_values_vtk, area_file, output_stem, exclude_values, background_value)
+    >>> #
+    >>> # View:
+    >>> #example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
+    >>> #from mindboggle.utils.plots import plot_vtk
+    >>> #plot_vtk(example_vtk)
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
+    from mindboggle.utils.io_table import write_columns
+    from mindboggle.utils.mesh import remove_faces
+
+    # Load VTK file:
+    faces, lines, indices, points, npoints, scalars, scalar_names, \
+        foo1 = read_vtk(input_indices_vtk, True, True)
+    if area_file:
+        area_scalars, name = read_scalars(area_file, True, True)
+    print("Explode the scalar list in {0}".
+          format(os.path.basename(input_indices_vtk)))
+    if input_values_vtk != input_indices_vtk:
+        values, name = read_scalars(input_values_vtk, True, True)
+        print("Explode the scalar list of values in {0} "
+              "with the scalar list of indices in {1}".
+              format(os.path.basename(input_values_vtk),
+                     os.path.basename(input_indices_vtk)))
+    else:
+        values = np.copy(scalars)
+
+    # Loop through unique (non-excluded) scalar values:
+    unique_scalars = [int(x) for x in np.unique(scalars)
+                      if x not in exclude_values]
+    for scalar in unique_scalars:
+
+        keep_indices = [x for sublst in faces for x in sublst]
+        new_faces = remove_faces(faces, keep_indices)
+
+        # Create array and indices for scalar value:
+        select_scalars = np.copy(scalars)
+        select_scalars[scalars != scalar] = background_value
+        scalar_indices = [i for i,x in enumerate(select_scalars) if x == scalar]
+        print("  Scalar {0}: {1} vertices".format(scalar, len(scalar_indices)))
+
+        #---------------------------------------------------------------------
+        # For each face, average vertex values:
+        #---------------------------------------------------------------------
+        output_table = os.path.join(os.getcwd(),
+                                    output_stem+str(scalar)+'.csv')
+        columns = []
+        for face in new_faces:
+            values = []
+            for index in face:
+                if area_file:
+                    values.append(scalars[index] / area_scalars[index])
+                else:
+                    values.append(scalars[index])
+            columns.append(np.mean(values))
+
+        #-----------------------------------------------------------------
+        # Write to table:
+        #-----------------------------------------------------------------
+        write_columns(columns, '', output_table, delimiter=',', quote=False)
+
+        # Write VTK file with scalar value:
+        #output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
+        #write_vtk(output_vtk, points, indices, lines, new_faces,
+        #          [select_values.tolist()], [output_scalar_name])
+
+
