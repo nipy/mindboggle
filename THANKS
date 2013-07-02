@@ -1,17 +1,22 @@
 
 Mindboggle is an open source project for brain image analysis using Python.  
-It is a community project.  Many people have contributed to Mindboggle.  
-Below is a partial list.  If you've been left off, please let us know (info@mindboggle.info).
+It is a community project to which many people have contributed.
+Below is a partial list of software contributors in chronological order.
 
-Contributors
-------------
+Contributors    Contact        Primary contributions
+------------    -------        ---------------------
 
-Arno Klein       <arno@binarybottle.com>
-Forrest Bao      <forrest.bao@gmail.com>
-Yrjo Hame        <yrjo.hame@gmail.com>
-Joachim Giard    <joachimgiard@gmail.com>
-Eliezer Stavsky  <eli.stavsky@gmail.com>
-Satrajit Ghosh   <satra@mit.edu>
-Nolan Nichols    <nolan.nichols@gmail.com>
+Arno Klein    <arno@binarybottle.com>    Main developer
+Forrest Bao    <forrest.bao@gmail.com>    VTK i/o, LB port, MST fundi
+Joachim Giard    <joachimgiard@gmail.com>    Surface shapes (depth, curvature)
+Yrjo Hame    <yrjo.hame@gmail.com>    HMMF fundi
+Eliezer Stavsky    <eli.stavsky@gmail.com>    Label propagation
+Oliver Hinds    <ohinds@gmail.com>    Label propagation
+Martin Reuter    <mreuter@nmr.mgh.harvard.edu>    Laplace-Beltrami (Matlab)
+Arthur Mikhno    <arthur.mikhno@gmail.com>    Zernike moments (Matlab)
+Brian Rossa    <brian.rossa@gmail.com>    Zernike moments port from Matlab
 
+Coming up...
+Satrajit S. Ghosh    <satra@mit.edu>    Linked data i/o
+Nolan Nichols    <nolan.nichols@gmail.com>    Linked data i/o
 
