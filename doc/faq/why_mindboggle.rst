@@ -10,9 +10,9 @@ Purpose
 -------
 
 The purpose of Mindboggle is to improve the accuracy, precision, and
-consistency of labeling and morphometry of brain imaging data,
-and to promote open science by making all data, software, and documentation
-freely and openly available.
+consistency of labeling, feature extraction, and shape analysis of brain
+imaging data, and to promote open science by making all of our data, software,
+documentation, and publications freely and openly available.
 
 
 .. _motivation:
@@ -39,7 +39,7 @@ answering the neuroscientific and clinical questions that interest them.
 History
 -------
 
-Back in 1998, Arno Klein left Caltech to visit Cornell Medical School for a summer,
+Back in 1998, `Arno Klein`_ left Caltech to visit Cornell Medical School for a summer
 to learn a bit about human brain imaging.  Within a day of arriving in New York, 
 he witnessed two medical students arguing over what regions of a patient's brain 
 were active according to fMRI BOLD data printed on some sheets of paper.
@@ -58,15 +58,15 @@ In 2009, with generous funding from the National Institute of Mental Health
 People who have contributed to the codebase during this period include:
  
     - Forrest Sheng Bao
-    - Satrajit S. Ghosh
     - Joachim Giard
     - Yrjö Häme
     - Eliezer Stavsky
+    - Satrajit S. Ghosh
 
 In 2012, the NIMH funded a 1-year U01 supplement to expand this work to 
 integrate multiple imaging modalities (fMRI and dMRI) with the structural MRI 
-shape analysis.  Joining this effort will be:
+shape analysis.  After `Arno Klein`_ moved to Stony Brook University,
+more collaborators joined the Mindboggle `team`_. The `Github repository`_
+has since been opened to the world to foster wider collaboration.
 
-    - Nolan Nichols
-
-For more information about the Mindboggle team, see http://mindboggle.info/people/.
+.. include:: ../links_names.txt
