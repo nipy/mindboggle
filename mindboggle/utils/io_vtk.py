@@ -734,16 +734,20 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     return output_vtk
 
-def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
-                    background_value=-1, output_scalar_name='scalars'):
+def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
+                    exclude_values=[-1], background_value=-1,
+                    output_scalar_name='scalars'):
     """
     Write out a separate VTK file for each integer (>-1)
     in (the first) scalar list of an input VTK file.
+    Optionally write the values drawn from a second VTK file.
 
     Parameters
     ----------
-    input_vtk : string
-        path of the input VTK file
+    input_indices_vtk : string
+        path of the input VTK file that contains indices as scalars
+    input_values_vtk : string
+        path of the input VTK file that contains values as scalars
     output_stem : string
         path and stem of the output VTK file
     exclude_values : list or array
@@ -758,10 +762,11 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> output_stem = 'sulcus'
+    >>> input_indices_file = os.path.join(path, 'allen', 'labels', 'lh.DKTatlas100.gcs.vtk')
+    >>> input_values_file = os.path.join(path, 'allen', 'shapes', 'lh.thickness.vtk')
+    >>> output_stem = 'labels_thickness'
     >>> #
-    >>> explode_scalars(sulci_file, output_stem)
+    >>> explode_scalars(input_indices_file, input_values_file, output_stem)
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
@@ -771,30 +776,39 @@ def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
 
-    # Load VTK file
-    faces, lines, indices, points, npoints, scalars, \
-        scalar_names, input_vtk = read_vtk(input_vtk, return_first=False, return_array=False)
-    print("Explode the scalar list in {0}".format(os.path.basename(input_vtk)))
+    # Load VTK file:
+    faces, lines, indices, points, npoints, scalars, scalar_names, \
+        foo1 = read_vtk(input_indices_vtk, True, True)
+    print("Explode the scalar list in {0}".
+          format(os.path.basename(input_indices_vtk)))
+    if input_values_vtk != input_indices_vtk:
+        values, name = read_scalars(input_values_vtk, True, True)
+        print("Explode the scalar list of values in {0} "
+              "with the scalar list of indices in {1}".
+              format(os.path.basename(input_values_vtk),
+                     os.path.basename(input_indices_vtk)))
+    else:
+        values = np.copy(scalars)
 
-    # Use first scalar list as a numpy array
-    scalars = np.array(scalars[0])
-
-    # Loop through unique (non-excluded) scalar values
-    unique_scalars = [int(x) for x in np.unique(scalars) if x not in exclude_values]
+    # Loop through unique (non-excluded) scalar values:
+    unique_scalars = [int(x) for x in np.unique(scalars)
+                      if x not in exclude_values]
     for scalar in unique_scalars:
 
-        # Create array and indices for scalar value
-        new_scalars = np.copy(scalars)
-        new_scalars[scalars != scalar] = background_value
-        indices = [i for i,x in enumerate(new_scalars) if x == scalar]
+        # Create array and indices for scalar value:
+        select_scalars = np.copy(scalars)
+        select_scalars[scalars != scalar] = background_value
+        select_values = np.copy(values)
+        select_values[scalars != scalar] = background_value
+        indices = [i for i,x in enumerate(select_scalars) if x == scalar]
         print("  Scalar {0}: {1} vertices".format(scalar, len(indices)))
 
-        # Write VTK file with scalar value
+        # Write VTK file with scalar value:
         output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
         write_vtk(output_vtk, points, indices, lines, faces,
-                  [new_scalars.tolist()], [output_scalar_name])
+                  [select_values.tolist()], [output_scalar_name])
 
 def scalars_checker(scalars, scalar_names):
     """
@@ -1075,10 +1089,10 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>     'affine_to_template.mat')
-    >>> #   't1weighted_brain.MNI152Affine.txt')
-    >>> #transform_format = 'itk'
-    >>> transform_format = 'mat'
+    >>>    't1weighted_brain.MNI152Affine.txt')
+    >>> #    'affine_to_template.mat')
+    >>> transform_format = 'itk'
+    >>> #transform_format = 'mat'
     >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> save_file = True
     >>> #
@@ -1134,7 +1148,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
 
     return affine_points, output_file
 
-def transform_to_volume(vtk_file, volume_file, output_volume='', use_affine=True):
+def transform_to_volume(vtk_file, volume_file, output_volume=''):
     """
     Transform vtk coordinates to voxel index coordinates in a target
     volume by using the header transformation.
@@ -1149,8 +1163,6 @@ def transform_to_volume(vtk_file, volume_file, output_volume='', use_affine=True
         name of target nibabel-readable image volume file
     output_volume : string
         name of output nibabel-readable image volume file
-    use_affine : Boolean
-        apply volume image's affine transform?
 
     Returns
     -------
@@ -1163,17 +1175,14 @@ def transform_to_volume(vtk_file, volume_file, output_volume='', use_affine=True
     >>> from mindboggle.utils.io_vtk import transform_to_volume
     >>> from mindboggle.utils.plots import plot_volumes
     >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> output_volume = ''
-    >>> use_affine = True
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> transform_to_volume(vtk_file, volume_file, output_volume, use_affine)
-    >>> use_affine = True
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> transform_to_volume(vtk_file, volume_file, output_volume, use_affine)
+    >>> #
+    >>> transform_to_volume(vtk_file, volume_file, output_volume)
     >>> # View
-    >>> plot_volumes([volume_file, 'affine_lh.pial.mean_curvature.vtk.nii.gz',
-    >>>                            'affine_lh.labels.DKT25.manual.vtk.nii.gz'])
+    >>> plot_volumes(['affine_lh.pial.mean_curvature.vtk.nii.gz', volume_file])
+
 
     """
     import os
@@ -1181,92 +1190,6 @@ def transform_to_volume(vtk_file, volume_file, output_volume='', use_affine=True
     import nibabel as nb
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
-
-    # Read vtk file:
-    foo1, foo2, foo3, xyz, npoints, scalars, foo4, foo5 = read_vtk(vtk_file)
-
-    # Read target image volume header information:
-    img = nb.load(volume_file)
-    hdr = img.get_header()
-    dims = img.get_shape()
-    ndims = len(dims)
-    if use_affine:
-        affine = img.get_affine()
-        inv_transform = np.linalg.inv(affine)
-        xfm = affine
-    else:
-        xfm = np.eye(4)
-
-    # Transform vtk coordinates:
-    xyz = np.array(xyz)
-    xyz = np.concatenate((xyz, np.ones((npoints,1))), axis=1)
-    if use_affine:
-        voxels = np.transpose(np.dot(inv_transform, np.transpose(xyz)))[:,0:ndims]
-        voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
-                            (-1,ndims))
-    else:
-        voxels = np.reshape([int(np.round(x)) for lst in xyz[:,0:ndims]
-                             for x in lst], (-1,ndims))
-
-    # Write vtk scalar values to voxels:
-    data = np.zeros(dims)
-    for ivoxel, ijk in enumerate(voxels):
-        data[ijk[0], ijk[1], ijk[2]] = scalars[ivoxel]
-
-    # Write output image volume:
-    if not output_volume:
-        output_volume = os.path.join(os.getcwd(),
-            'affine_' + os.path.basename(vtk_file) + '.nii.gz')
-
-    img = nb.Nifti1Image(data, xfm, header=hdr)
-    img.to_filename(output_volume)
-
-    return output_volume
-
-def surface_to_volume(vtk_file, volume_file, output_volume=''):
-    """
-    Convert vtk surface coordinates to voxel index coordinates in a
-    target volume, and write their scalar values to an output volume.
-
-    Parameters
-    ----------
-    vtk_file : string
-        name of VTK file containing point coordinate and scalar data
-    volume_file : string
-        name of target nibabel-readable image volume file
-    output_volume : string
-        name of output nibabel-readable image volume file
-
-    Returns
-    -------
-    output_volume : string
-        name of nifti file containing vtk scalar data
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import surface_to_volume
-    >>> from mindboggle.utils.plots import plot_volumes
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> volume_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
-    >>> output_volume = ''
-    >>> #
-    >>> surface_to_volume(vtk_file, volume_file, output_volume)
-    >>> # View
-<<<<<<< HEAD
-    >>> plot_volumes([volume_file, 'lh.pial.mean_curvature.vtk.nii.gz'])
-=======
-    >>> plot_volumes([volume_file, 'affine_lh.pial.mean_curvature.vtk.nii.gz'])
-
->>>>>>> parent of a921987... Add ANTS registration-based noncortical labeling via an ANTS OASIS-TRT-20 template with BrainCOLOR sucbcortical and cerebellar labels.
-
-    """
-    import os
-    import numpy as np
-    import nibabel as nb
-
-    from mindboggle.utils.io_vtk import read_vtk
 
     # Read vtk file:
     foo1, foo2, foo3, xyz, npoints, scalars, foo4, foo5 = read_vtk(vtk_file)
@@ -1286,7 +1209,6 @@ def surface_to_volume(vtk_file, volume_file, output_volume=''):
 
     voxels = np.reshape([int(np.round(x)) for lst in voxels for x in lst],
                         (-1,ndims))
-
     # Write vtk scalar values to voxels:
     data = np.zeros(dims)
     for ivoxel, ijk in enumerate(voxels):
@@ -1301,6 +1223,7 @@ def surface_to_volume(vtk_file, volume_file, output_volume=''):
     img.to_filename(output_volume)
 
     return output_volume
+
 
 
 #if __name__ == "__main__" :
