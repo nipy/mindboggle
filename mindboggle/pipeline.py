@@ -821,6 +821,7 @@ if run_WholeSurfShapeFlow and run_SurfFlows:
                                     input_names=['command',
                                                  'surface_file'],
                                     output_names=['depth_file']))
+    WholeSurfShapeFlow.add_nodes([TravelDepth])
     TravelDepth.inputs.command = os.path.join(ccode_path,
                                               'travel_depth',
                                               'TravelDepthMain')
@@ -828,28 +829,29 @@ if run_WholeSurfShapeFlow and run_SurfFlows:
     #=========================================================================
     # Rescale surface travel depth
     #=========================================================================
-    RescaleTravelDepth = Node(name='Rescale_travel_depth',
-                        interface=Fn(function = rescale_by_neighborhood,
-                                     input_names=['input_vtk',
-                                                  'indices',
-                                                  'nedges',
-                                                  'p',
-                                                  'set_max_to_1',
-                                                  'save_file',
-                                                  'output_filestring'],
-                                     output_names=['rescaled_scalars',
-                                                   'rescaled_scalars_file']))
-    WholeSurfShapeFlow.add_nodes([RescaleTravelDepth])
-    WholeSurfShapeFlow.connect(TravelDepth, 'depth_file',
-                               RescaleTravelDepth, 'input_vtk')
-    RescaleTravelDepth.inputs.indices = []
-    RescaleTravelDepth.inputs.nedges = 10
-    RescaleTravelDepth.inputs.p = 99
-    RescaleTravelDepth.inputs.set_max_to_1 = True
-    RescaleTravelDepth.inputs.save_file = True
-    RescaleTravelDepth.inputs.output_filestring = 'travel_depth_rescaled'
-    #mbFlow.connect(WholeSurfShapeFlow, 'Rescale_travel_depth.rescaled_scalars_file',
-    #                 Sink, 'shapes.@travel_depth_rescaled')
+    if do_fundi:
+        RescaleTravelDepth = Node(name='Rescale_travel_depth',
+                            interface=Fn(function = rescale_by_neighborhood,
+                                         input_names=['input_vtk',
+                                                      'indices',
+                                                      'nedges',
+                                                      'p',
+                                                      'set_max_to_1',
+                                                      'save_file',
+                                                      'output_filestring'],
+                                         output_names=['rescaled_scalars',
+                                                       'rescaled_scalars_file']))
+        WholeSurfShapeFlow.add_nodes([RescaleTravelDepth])
+        WholeSurfShapeFlow.connect(TravelDepth, 'depth_file',
+                                   RescaleTravelDepth, 'input_vtk')
+        RescaleTravelDepth.inputs.indices = []
+        RescaleTravelDepth.inputs.nedges = 10
+        RescaleTravelDepth.inputs.p = 99
+        RescaleTravelDepth.inputs.set_max_to_1 = True
+        RescaleTravelDepth.inputs.save_file = True
+        RescaleTravelDepth.inputs.output_filestring = 'travel_depth_rescaled'
+        #mbFlow.connect(WholeSurfShapeFlow, 'Rescale_travel_depth.rescaled_scalars_file',
+        #                 Sink, 'shapes.@travel_depth_rescaled')
 
     #=========================================================================
     # Measure surface geodesic depth
@@ -916,7 +918,6 @@ if run_WholeSurfShapeFlow and run_SurfFlows:
     # Add and connect nodes, save output files
     #-------------------------------------------------------------------------
     WholeSurfShapeFlow.add_nodes([SurfaceArea, GeodesicDepth, CurvNode])
-        #TravelDepth
     if do_input_vtk:
         mbFlow.connect([(Surf, WholeSurfShapeFlow,
                            [('surface_files','Surface_area.surface_file'),
@@ -1453,7 +1454,7 @@ if run_VolLabelFlow and run_VolFlows:
                        Sink, 'labels.@noncortex_volume')
 
         #=====================================================================
-        # Combine cortical and subcortical volume labels
+        # Combine cortical and noncortical volume labels
         #=====================================================================
         if do_fill_cortex:
             CombineLabels = Node(name='Combine_labels',
