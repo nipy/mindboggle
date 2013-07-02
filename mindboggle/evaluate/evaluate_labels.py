@@ -81,12 +81,15 @@ def measure_volume_overlap(labels, file1, file2):
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
     >>> from mindboggle.utils.io_table import read_columns
+    >>> from mindboggle.labels.protocol import dkt_protocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> labels_file = os.path.join(path, 'info', 'labels.volume.DKT25.txt')
-    >>> labels = read_columns(labels_file, 1)[0]
-    >>> measure_volume_overlap(labels, file1, file2)
+    >>> protocol = 'DKT31'
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
+    >>>    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> measure_volume_overlap(label_numbers, file1, file2)
 
     """
     import os
