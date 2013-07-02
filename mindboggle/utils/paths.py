@@ -56,6 +56,12 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
+    >>> # Normalize likelihood values:
+    >>> normalize_likelihoods = True
+    >>> if normalize_likelihoods:
+    >>>     L = values - min(values)
+    >>>     values = L / max(L)
+    >>> #
     >>> # Select a single fold:
     >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
