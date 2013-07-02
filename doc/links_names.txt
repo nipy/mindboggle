@@ -10,10 +10,16 @@
    mindboggle, MINDBOGGLE, Mindboggle, etc...
 
 .. _mindboggle: http://mindboggle.info
+.. _`FAQ`: http://mindboggle.info/faq/index.html
 .. _documentation: http://mindboggle.info/documentation.html
+.. _software: http://github.com/binarybottle/mindboggle
 .. _Github repository: http://github.com/binarybottle/mindboggle
 .. _available releases: http://github.com/binarybottle/mindboggle/downloads
 .. _bugs: http://github.com/binarybottle/mindboggle/issues
+.. _publications: http://mindboggle.info/papers
+.. _glossary: http://mindboggle.info/glossary.html
+.. _data: http://mindboggle.info/data
+.. _team: http://mindboggle.info/people
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/

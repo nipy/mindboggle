@@ -75,22 +75,16 @@ def plot_volumes(volume_files):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import plot_volumes
+    >>> from mindboggle.utils.plots import plot_volume
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> volume_file1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
     >>> volume_file2 = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> volume_files = [volume_file1, volume_file2]
-    >>> plot_volumes(volume_files)
+    >>> plot_volume(volume_files)
 
     """
     import os
 #    import subprocess
-
-    if isinstance(volume_files, str):
-        volume_files = [volume_files]
-    elif not isinstance(volume_files, list):
-        import sys
-        sys.error('plot_volumes() requires volume_files to be a list or string.')
 
     cmd = ["fslview", " ".join(volume_files)]
 
