@@ -1,8 +1,5 @@
 '''VALID'''
 
-import numpy
-from .trinomial_m import trinomial
-
 def trinomial_matrix(N) :                                            #function tri_matrix=trinomial_matrix(N)
                                                                      #% Computes the trinomial of
                                                                      #% the three input arguments

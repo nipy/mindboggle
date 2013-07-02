@@ -1,7 +1,5 @@
 '''VALID'''
 
-from scipy.misc import factorial
-
 def trinomial(i,j,k) :                             #function t=trinomial(i,j,k)
                                                    #% Computes the trinomial of
                                                    #% the three input arguments

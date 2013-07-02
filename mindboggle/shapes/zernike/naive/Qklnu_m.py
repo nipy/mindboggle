@@ -1,9 +1,5 @@
 '''VALID'''
 
-from math import sqrt
-from scipy.misc import comb as nchoosek
-from numpy import power, sqrt
-from .trinomial_m import trinomial
 
 def Qklnu(k,l,nu) :                                                                               #function q=Qklnu(k,l,nu)
                                                                                                   # 

@@ -1,9 +1,5 @@
 '''VALID'''
 
-from numpy import zeros, sum
-
-from .D_SG_orig_part_m import D_SG_orig_part
-
 def D_SG_orig(num_facets,i,N,C,D,Vol,F) :                           #function G = D_SG_orig(num_facets,i,N,C,D,Vol,F)
                                                                     #
     G = zeros((N+1,N+1))                                            #G=zeros(N+1,N+1);

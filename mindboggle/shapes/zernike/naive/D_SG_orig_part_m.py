@@ -1,8 +1,5 @@
 '''VALID'''
 
-from numpy import savez
-import sys
-
 def D_SG_orig_part(num_facets,i,j,k,C,D,S,Vol,F) :                               #function S = D_SG_orig_part(num_facets,i,j,k,C,D,S,Vol,F)
                                                                                  #
     for facet in xrange(num_facets) :                                            #for facet=1:num_facets

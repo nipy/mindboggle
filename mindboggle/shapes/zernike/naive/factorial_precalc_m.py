@@ -1,9 +1,5 @@
 '''VALID'''
 
-from scipy.misc import factorial
-from numpy import array, zeros
-import pdb
-
 def factorial_precalc(N) :                                 #function F = factorial_precalc(N)
                                                            #
     if N == 0 : return zeros(N,dtype='int')

@@ -1,14 +1,8 @@
 '''UNVALIDATED'''
 
-from numpy import zeros, mod, savez
-from scipy.io import loadmat
-import time
-
-from .trinomial_matrix_m import trinomial_matrix
-from .D_CV_orig_m import D_CV_orig
-from .Dabc_orig_m import Dabc_orig
-from .factorial_precalc_m import factorial_precalc
-from .D_SG_orig_m import D_SG_orig
+#from numpy import zeros, mod, savez
+#from scipy.io import loadmat
+#import time
 
 def geometric_moments_orig(X,K,N,num_facets,num_vertices) :                             #function G = geometric_moments_orig(X,K,N,num_facets,num_vertices)
                                                                                         #% Computes the geometric moments

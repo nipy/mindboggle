@@ -1,7 +1,5 @@
 '''VALID'''
 
-from numpy import zeros
-
 def Dabc_orig(C,N) :                                                               #function D=Dabc_orig(C,N)
                                                                                    #% Pre-computes the values for D
                                                                                    #% and store them in matrix form

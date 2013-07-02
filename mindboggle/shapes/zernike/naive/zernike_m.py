@@ -1,28 +1,19 @@
 '''UNVALIDATED'''
 
-                                                                                          #%% ZERNIKE 3D FROM GEOMETRIC MOMENTS
-from numpy import mod, hstack, sum, imag, real, conj, pi, power, zeros, savez, save, array
-from scipy import sqrt # numpy.sqrt does not return imaginary numbers
-from scipy.misc import comb as nchoosek
-
-from .Qklnu_m import Qklnu
-from .Yljm_m import Yljm
-
-import sys
-                                                                                          #
-def zernike(G,N) :                                                                        #function Z=zernike(G,N)
+                                                                                          #%% ZERNIKE 3D FROM GEOMETRIC MOMENTS                                                                                                                              #
+def zernike(cfg,G,N) :                                                                    #function Z=zernike(G,N)
                                                                                           #
                                                                                           #% Compute the 3D Zernike moments
                                                                                           #% from the geometric moments
-    V = zeros((N+1,N+1,N+1),dtype=complex)                                                #V=zeros(N+1,N+1,N+1);
-    W = zeros((N+1,N+1,N+1),dtype=complex)                                                #W=zeros(N+1,N+1,N+1);
-    X = zeros((N+1,N+1,N+1),dtype=complex)                                                #X=zeros(N+1,N+1,N+1);
-    Y = zeros((N+1,N+1,N+1),dtype=complex)                                                #Y=zeros(N+1,N+1,N+1);
-    Z = zeros((N+1,N+1,N+1),dtype=complex)                                                #Z=zeros(N+1,N+1,N+1);
+    V = cfg.zeros((N+1,N+1,N+1),dtype=complex)                                            #V=zeros(N+1,N+1,N+1);
+    W = cfg.zeros((N+1,N+1,N+1),dtype=complex)                                            #W=zeros(N+1,N+1,N+1);
+    X = cfg.zeros((N+1,N+1,N+1),dtype=complex)                                            #X=zeros(N+1,N+1,N+1);
+    Y = cfg.zeros((N+1,N+1,N+1),dtype=complex)                                            #Y=zeros(N+1,N+1,N+1);
+    Z = cfg.zeros((N+1,N+1,N+1),dtype=complex)                                            #Z=zeros(N+1,N+1,N+1);
 
                                                                                           #%% FOR a,b,c
                                                                                           #% Computing V
-    i = sqrt(-1)                                                                          #i=sqrt(-1);
+    i = cfg.sqrt(-1)                                                                          #i=sqrt(-1);
     everything = []
     for a in xrange((N/2)+1) :  #Warn: xrange                                             #for a=0:floor(N/2)
         for b in xrange(N-2*a+1) :  #Warn: xrange                                         #for b=0:(N-2*a)
@@ -85,8 +76,8 @@ def zernike(G,N) :                                                              
                                                                                           #        end
                                                                                           #    end
                                                                                           #end
-    foo = array(foo)
-    save('foo',foo)
+    #foo = array(foo)
+    #save('foo',foo)
                                                                                           #%Computing Zernike moments
     for n in xrange(N+1) :  #Warn: xrange                                                 #for n=0:N
         for l in xrange(n+1) :  #Warn: xrange                                             #for l=0:n
@@ -122,7 +113,7 @@ def zernike(G,N) :                                                              
                                                                                           #end
                                                                                           #end
 
-    savez("confusion",G=G,N=N,V=V,W=W,X=X,Y=Y,Z=Z)
-    sys.exit()
+    #savez("confusion",G=G,N=N,V=V,W=W,X=X,Y=Y,Z=Z)
+    #sys.exit()
 
     return Z

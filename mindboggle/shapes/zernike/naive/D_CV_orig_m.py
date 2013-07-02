@@ -39,6 +39,7 @@ def D_CV_orig(facet,num_vertices,N,X,K,tri_matrix) :               #function [C,
     tmp = (vx,vy,vz)
     C[2,:,:,:] = mon_comb(tri_matrix,tmp,N) #Warn: 0-1             #    C(3,:,:,:)=mon_comb(tri_matrix,[vx vy vz],N);
                                                                    #    %Calculate Volume
-    foo = array( [vertex_1, vertex_2, vertex_3] ).T
-    Vol = det(foo)    #    Vol=det(cat(2,vertex_1',vertex_2',vertex_3'));
+    arr = array( [vertex_1, vertex_2, vertex_3] ).T
+    print arr
+    Vol = det(arr)    #    Vol=det(cat(2,vertex_1',vertex_2',vertex_3'));
     return C,Vol

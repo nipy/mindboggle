@@ -1,9 +1,5 @@
 '''VALID'''
 
-from scipy.misc import comb as nchoosek
-from numpy import power, sqrt
-from .trinomial_m import trinomial
-
 def Yljm(l,j,m) :                                        #function y=Yljm(l,j,m)
                                                          #
                                                          #% Computes a constant used in Zernike moments

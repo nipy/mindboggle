@@ -1,8 +1,5 @@
 '''VALID'''
 
-from scipy.io import loadmat as load
-from numpy import zeros, sum
-
 def reformat_zernike(Z,N,coord_file) :                                #function ZM = reformat_zernike(Z,N)
                                                                       #
     coord = load(coord_file)['coord'] #Warn 0-1                       #load coord;
