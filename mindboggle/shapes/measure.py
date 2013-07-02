@@ -469,23 +469,21 @@ def volume_per_label(labels, input_file):
 
     Returns
     -------
-    volumes : list of floats
-        volume for each labeled region
-    labels : list of integers
-        label numbers for image volumes
+    labels_volumes : list of integer list and float list
+        label numbers for image volumes, and volume for each labeled region
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_table import read_columns
+    >>> from mindboggle.labels.protocol import dkt_protocol
     >>> from mindboggle.shapes.measure import volume_per_label
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> labels_file = os.path.join(path, 'info', 'labels.volume.DKT25.txt')
-    >>> labels = read_columns(labels_file, 1)[0]
-    >>> labels = [int(x) for x in labels]
-    >>> volumes, labels = volume_per_label(labels, input_file)
-    >>> print(volumes)
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
+    >>>    noncortex_names, noncortex_numbers = dkt_protocol()
+    >>> labels_volumes = volume_per_label(label_numbers, input_file)
+    >>> print(labels_volumes)
 
     """
     import numpy as np
@@ -509,7 +507,9 @@ def volume_per_label(labels, input_file):
         indices = np.where(data==label)[0]
         volumes[ilabel] = volume_per_voxel * len(indices)
 
-    return volumes.tolist(), labels
+    labels_volumes = [labels, volumes.tolist()]
+
+    return labels_volumes
 
 def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars'):
