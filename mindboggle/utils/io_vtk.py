@@ -762,9 +762,9 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_file = os.path.join(path, 'allen', 'labels', 'lh.DKTatlas100.gcs.vtk')
-    >>> input_values_file = os.path.join(path, 'allen', 'shapes', 'lh.thickness.vtk')
-    >>> output_stem = 'labels_thickness'
+    >>> input_indices_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> input_values_file = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
+    >>> output_stem = 'sulci_thickness'
     >>> #
     >>> explode_scalars(input_indices_file, input_values_file, output_stem)
     >>> #
