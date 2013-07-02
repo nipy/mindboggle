@@ -2,11 +2,13 @@
 Mindboggle
 ==========
 
-This package enables a user to automate anatomical labeling,
-feature extraction, and shape analysis of MRI brain image data.
+This package enables a user to automate anatomical labeling and shape analysis
+of MRI brain image data.
 
 Website
 =======
+
+Current information can always be found at the Mindboggle website:
 
     http://www.mindboggle.info
 
@@ -14,6 +16,15 @@ Documentation
 =============
 
     http://www.mindboggle.info/software/documentation.html
+
+Software
+========
+
+You can find our sources and single-click downloads::
+
+* Documentation_
+* `Github repository`_
+* Download as a tar/zip file from the `available releases`_
 
 License
 =======

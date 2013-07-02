@@ -26,8 +26,8 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 
         DESCRIPTION
         For a single subject, produces an annotation file, in which each
-        cortical surface vertex is assigned a neuroanatomical label.
-        This automatic procedure employs data from a previously-prepared atlas
+        cortical surface vertex is assigned a neuroanatomical label.This
+        automatic procedure employs data from a previously-prepared atlas
         file. An atlas file is created from a training set, capturing region
         data manually drawn by neuroanatomists combined with statistics on
         variability correlated to geometric information derived from the
@@ -185,7 +185,7 @@ def transform_atlas_labels(hemi, subject, transform,
 #=============================================================================
 # Gray matter label filling
 #=============================================================================
-def annot_labels_to_volume(subject, annot_name, original_space, reference):
+def labels_to_volume(subject, annot_name, original_space, reference):
     """
     Propagate surface labels through hemisphere's gray matter volume
     and convert label volume from FreeSurfer 'unconformed' to original space

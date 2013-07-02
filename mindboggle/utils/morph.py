@@ -518,3 +518,87 @@ def topo_test(index, values, neighbor_lists):
             sp = False
 
     return sp, n_inside
+
+#-----------------------------------------------------------------------------
+# Test for simple points
+#-----------------------------------------------------------------------------
+def ridge_test(index, depths, curvatures, neighbor_lists):
+    """
+    Test to see if vertex is a "ridge point".
+
+    A ridge point is a vertex that sits on a cusp, where along at least one
+    curve running through the vertex has higher depth and curvature values
+    and along at least one other direction has lower values.
+
+    Parameters
+    ----------
+    index : integer
+        index of vertex
+    depths : numpy array of integers or floats
+        depth values for all vertices
+    curvatures : numpy array of integers or floats
+        curvature values for all vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    rp : Boolean
+        ridge point or not?
+
+    """
+    pass
+    """
+    import numpy as np
+
+    # Make sure argument is a numpy array:
+    if not isinstance(depths, np.ndarray):
+        depths = np.array(depths)
+    if not isinstance(curvatures, np.ndarray):
+        curvatures = np.array(curvatures)
+
+    # Find neighbors to the input vertex, and binarize them
+    # into those greater or less than a class boundary threshold equal to 0.5
+    # ("inside" and "outside"); count the number of inside and outside neighbors:
+    I_neighbors = neighbor_lists[index]
+    neighbor_values = values[I_neighbors]
+    inside = [I_neighbors[i] for i,x in enumerate(neighbor_values) if x > 0.5]
+    n_inside = len(inside)
+    n_outside = len(I_neighbors) - n_inside
+
+    # If the number of inside or outside neighbors is less than two,
+    # than the vertex IS NOT a ridge point:
+    if n_outside < 2 or n_inside < 2:
+        rp = False
+    # Or if either the number of inside or outside neighbors is one,
+    # than the vertex IS a simple point
+    elif n_outside == 1 or n_inside == 1:
+        sp = True
+    # Otherwise, test to see if all of the inside neighbors share neighbors
+    # with each other, in which case the vertex IS a simple point
+    else:
+        # For each neighbor exceeding the threshold,
+        # find its neighbors that also exceed the threshold,
+        # then store these neighbors' indices in a sublist of "N"
+        labels = range(1, n_inside + 1)
+        N = []
+        for i_in in range(n_inside):
+            new_neighbors = neighbor_lists[inside[i_in]]
+            new_neighbors = [x for x in new_neighbors
+                             if values[x] > 0.5 if x != index]
+            new_neighbors.extend([inside[i_in]])
+            N.append(new_neighbors)
+        # For each neighbor exceeding the threshold,
+        # find its neighbors that also exceed the threshold,
+        # then store these neighbors' indices in a sublist of "N"
+        labels = range(1, n_inside + 1)
+        N = []
+        for i_in in range(n_inside):
+            new_neighbors = neighbor_lists[inside[i_in]]
+            new_neighbors = [x for x in new_neighbors
+                             if values[x] > 0.5 if x != index]
+            new_neighbors.extend([inside[i_in]])
+            N.append(new_neighbors)
+
+    return rp
+    """
