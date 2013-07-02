@@ -258,7 +258,7 @@ def annot_to_vtk(annot_file, vtk_file):
     return labels, output_vtk
 
 def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
-                      RGBs, scalar_name):
+                  RGBs, scalar_name):
     """
     Write FreeSurfer .label files from a labeled VTK surface mesh.
 
@@ -276,18 +276,26 @@ def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
 
     Parameters
     ----------
-    hemi :  hemisphere [string]
-    surface_file :  vtk surface mesh file with labels [string]
-    label_numbers :  label numbers [list of strings]
-    label_names :  label names [list of strings]
-    RGBs :  list of label RGB values for later conversion to a .annot file
-    scalar_name :  name of scalar values in vtk file [string]
+    hemi :  string
+        hemisphere
+    surface_file :  string
+        vtk surface mesh file with labels
+    label_numbers :  list of integers
+        label numbers
+    label_names :  list of strings
+        label names
+    RGBs :  list of lists of 3-tuples
+        label RGB values for later conversion to a .annot file
+    scalar_name :  string
+        name of scalar values in vtk file
 
     Returns
     -------
-    label_files :  list of .label file names (order must match label list)
-    colortable :  file with list of labels and RGB values
-                 NOTE: labels are identified by the colortable's RGB values
+    label_files :  list of strings
+        label file names (order must match label list)
+    colortable :  string
+        file with list of labels and RGB values
+        NOTE: labels are identified by the colortable's RGB values
 
     """
     import os
@@ -358,7 +366,7 @@ def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
 
             # Write to colortable
             f_rgb.writelines('{0} {1} {2}\n'.format(
-                irgb, label_name, RGBs[ilabel]))
+                irgb, label_name, "0 0 0 0")) # ".join(RGBs[ilabel])))
 
             # Store in list of .label files
             label_file = hemi + '.' + label_name + '.label'
@@ -379,4 +387,4 @@ def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
     f_rgb.close()
     #f_relabel.close()
 
-    return label_files, colortable  #relabel_file
+    return label_files, colortable
