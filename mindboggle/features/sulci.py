@@ -4,6 +4,7 @@ Functions to extract sulci from folds.
 
 Authors:
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -12,22 +13,29 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract sulci
 #=============================================================================
-def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
-                  unique_sulcus_label_pairs, min_boundary=1, sulcus_names=[]):
+def extract_sulci(labels_file, folds_or_file, label_pair_lists,
+                  min_boundary=1, sulcus_names=[], save_file=False):
     """
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
 
-    A fold is a group of connected, deep vertices.
+    Definitions ::
+        ``fold``: a group of connected, deep vertices
+        ``label list``: list of labels used to define a single sulcus
+        ``label pair list``: list of pairs of labels, where each pair
+                             defines a boundary between two labeled regions;
+                             no two label pair lists share a label pair
+        ``sulcus ID``: ID to uniquely identify a sulcus,
+                       as index to a sulcus label pair list
 
-    Steps for each fold  ::
+    Steps for each fold::
         1. Remove fold if it has fewer than two labels.
         2. Remove fold if its labels do not contain a sulcus label pair.
         3. Find vertices with labels that are in only one of the fold's
            label boundary pairs. Assign the vertices the sulcus with the
            label pair if they are connected to the label boundary for that pair.
         4. If there are remaining vertices, segment into sets of vertices
-           connected to label boundaries, and assign a unique ID to each segment.
+           connected to label boundaries, and assign a sulcus ID to each segment.
 
     Parameters
     ----------
@@ -35,17 +43,15 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
         file name for surface mesh VTK containing labels for all vertices
     folds_or_file : list or string
         fold number for each vertex or name of VTK file containing folds scalars
-    hemi : string
-        hemisphere ('lh' or 'rh')
-    sulcus_label_pair_lists : list of two lists of multiple lists of integer pairs
-        list containing left and right lists, each with multiple lists of
-        integer pairs corresponding to label boundaries / sulcus / fundus
-    unique_sulcus_label_pairs : list of unique pairs of integers
-        unique label pairs
+    label_pair_lists : list of sublists of subsublists of integers
+        each subsublist contains a pair of labels, and the sublist of these
+        label pairs represents the label boundaries defining a sulcus
     min_boundary : integer
         minimum number of vertices for a sulcus label boundary segment
-    sulcus_names : list of strings
+    sulcus_names : list of strings (optional)
         names of sulci
+    save_file : Boolean
+        save output VTK file?
 
     Returns
     -------
@@ -53,31 +59,32 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
         sulcus numbers for all vertices (-1 for non-sulcus vertices)
     n_sulci : integers
         number of sulci
-    sulci_file : string
+    sulci_file : string (if save_file)
         name of output VTK file with sulcus numbers (-1 for non-sulcus vertices)
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.labels.protocol import dkt_protocol
+    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.sulci import extract_sulci
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
-    >>> labels_file = os.path.join(path, 'arno', 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
+    >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds_or_file, name = read_scalars(folds_file)
-    >>> protocol = 'DKT31'
-    >>> hemi = 'lh'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> folds, name = read_scalars(folds_file)
+    >>> label_pair_lists = sulcus_boundaries()
     >>> min_boundary = 10
+    >>> save_file = True
+    >>> sulcus_names_file = os.path.join(path, 'protocol', 'sulci.names.DKT25.txt')
+    >>> fid = open(sulcus_names_file, 'r')
+    >>> sulcus_names = fid.readlines()
+    >>> sulcus_names = [x.strip('\n') for x in sulcus_names]
     >>> #
-    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
-    >>>     hemi, sulcus_label_pair_lists, unique_sulcus_label_pairs,
-    >>>     min_boundary, sulcus_names)
+    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds,
+    >>>     label_pair_lists, min_boundary, sulcus_names, save_file)
     >>> # View:
     >>> plot_vtk('sulci.vtk')
 
@@ -97,15 +104,18 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     elif isinstance(folds_or_file, list):
         folds = folds_or_file
 
-    if hemi == 'lh':
-        sulcus_label_pair_lists = sulcus_label_pair_lists[0]
-    elif hemi == 'rh':
-        sulcus_label_pair_lists = sulcus_label_pair_lists[1]
-    else:
-        print("Warning: hemisphere not properly specified ('lh' or 'rh').")
+    # Prepare list of sulcus label lists (labels within a sulcus)
+    label_lists = []
+    for row in label_pair_lists:
+        label_lists.append(list(np.unique(np.asarray(row))))
+
+    # Prepare list of all unique sorted label pairs in the labeling protocol
+    protocol_pairs = []
+    [protocol_pairs.append(np.unique(x).tolist()) for lst in label_pair_lists
+     for x in lst if np.unique(x).tolist() not in protocol_pairs]
 
     # Load points, faces, and neighbors
-    faces, foo1, foo2, points, npoints, labels, foo3, foo4 = read_vtk(labels_file)
+    faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
     # Array of sulcus IDs for fold vertices, initialized as -1.
@@ -150,15 +160,17 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
             # Find fold label pairs in the protocol (pairs are already sorted)
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
-                                      if x in unique_sulcus_label_pairs]
+                                      if x in protocol_pairs]
 
-            if unique_fold_labels:
-                print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
-                      ', '.join([str(x) for x in unique_fold_labels]), len_fold))
+            print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
+                  ', '.join([str(x) for x in unique_fold_labels]), len_fold))
+            print("  Fold {0} label pairs in protocol: {1}".format(n_fold,
+                  ', '.join([str(x) for x in fold_pairs_in_protocol])))
+
             #-----------------------------------------------------------------
             # NO MATCH -- fold has no sulcus label pair
             #-----------------------------------------------------------------
-            if not fold_pairs_in_protocol:
+            if not len(fold_pairs_in_protocol):
                 print("  Fold {0}: NO MATCH -- fold has no sulcus label pair".
                       format(n_fold, len_fold))
 
@@ -166,9 +178,6 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
             # Possible matches
             #-----------------------------------------------------------------
             else:
-                print("  Fold {0} label pairs in protocol: {1}".format(n_fold,
-                      ', '.join([str(x) for x in fold_pairs_in_protocol])))
-
                 # Labels in the protocol (includes repeats across label pairs)
                 labels_in_pairs = [x for lst in fold_pairs_in_protocol for x in lst]
 
@@ -197,7 +206,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                         n_unique = len(unique_labels_in_pair)
                         if n_unique:
 
-                            ID = [i for i,x in enumerate(sulcus_label_pair_lists)
+                            ID = [i for i,x in enumerate(label_pair_lists)
                                   if pair in x][0]
 
                             # Construct seeds from label boundary vertices
@@ -208,7 +217,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                             # Identify vertices with unique label(s) in pair
                             indices_unique_labels = [fold[i]
                                                      for i,x in enumerate(fold_labels)
-                                                     if x in unique_sulcus_label_pairs]
+                                                     if x in unique_labels_in_pair]
 
                             # Propagate from seeds to labels in label pair
                             sulci2 = segment(indices_unique_labels, neighbor_lists,
@@ -246,12 +255,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
                         # Construct seeds from label boundary vertices
                         seeds = -1 * np.ones(len(points))
-                        for ID, label_pair_list in enumerate(sulcus_label_pair_lists):
+                        for ID, label_pair_list in enumerate(label_pair_lists):
                             label_pairs = [x for x in label_pair_list if label in x]
                             for label_pair in label_pairs:
                                 indices_pair = [x for i,x in enumerate(indices_fold_pairs)
                                     if np.sort(fold_pairs[i]).tolist() == label_pair]
-                                if indices_pair:
+                                if len(indices_pair):
 
                                     # Do not include short boundary segments
                                     if min_boundary > 1:
@@ -312,7 +321,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     #-------------------------------------------------------------------------
     # Print out unresolved sulci
     #-------------------------------------------------------------------------
-    unresolved = [i for i in range(len(sulcus_label_pair_lists))
+    unresolved = [i for i in range(len(label_pair_lists))
                   if i not in sulcus_numbers]
     if len(unresolved) == 1:
         print("The following sulcus is unaccounted for:")
@@ -327,11 +336,46 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     #-------------------------------------------------------------------------
     # Return sulci, number of sulci, and file name
     #-------------------------------------------------------------------------
-    sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
-    rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', sulci)
+    if save_file:
+
+        sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
+        rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', sulci)
+
+    else:
+        sulci_file = None
+
     sulci.tolist()
 
     return sulci, n_sulci, sulci_file
 
+#=============================================================================
+# Example: extract_sulci()
+#=============================================================================
+if __name__ == "__main__":
 
-#if __name__ == "__main__":
+    import os
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.features.sulci import extract_sulci
+    from mindboggle.utils.plots import plot_vtk
+
+    path = os.environ['MINDBOGGLE_DATA']
+
+    # Load labels, folds, neighbor lists, and sulcus names and label pairs
+    labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    folds, name = read_scalars(folds_file)
+    label_pair_lists = sulcus_boundaries()
+    min_boundary = 10
+    save_file = True
+    sulcus_names_file = os.path.join(path, 'protocol', 'sulci.names.DKT25.txt')
+    fid = open(sulcus_names_file, 'r')
+    sulcus_names = fid.readlines()
+    sulcus_names = [x.strip('\n') for x in sulcus_names]
+
+    sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds,
+        label_pair_lists, min_boundary, sulcus_names, save_file)
+
+    # View:
+    plot_vtk('sulci.vtk')
