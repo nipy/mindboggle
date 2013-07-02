@@ -33,6 +33,10 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
         file name for affine transform matrix
     nonlinear_transform : string
         file name for nonlinear transform nifti file
+    nonlinear_inverse_transform : string
+        file name for nonlinear inverse transform nifti file
+    output_stem : string
+        file name stem for output transform matrix
 
     Examples
     --------
@@ -63,8 +67,10 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
 
     affine_transform = output_stem + 'Affine.txt'
     nonlinear_transform = output_stem + 'Warp.nii.gz'
+    nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
 
-    return affine_transform, nonlinear_transform
+    return affine_transform, nonlinear_transform, \
+           nonlinear_inverse_transform, output_stem
 
 
 def WarpImageMultiTransform(source, target, output='',
