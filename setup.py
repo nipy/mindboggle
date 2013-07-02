@@ -34,7 +34,7 @@ ver_file = os.path.join('mindboggle', 'info.py')
 exec(open(ver_file).read())
 
 # Do dependency checking
-package_check('numpy', NUMPY_MIN_VERSION)
+#package_check('numpy', NUMPY_MIN_VERSION)
 
 extra_setuptools_args = {}
 if 'setuptools' in sys.modules:
@@ -67,9 +67,7 @@ def main(**extra_args):
                           'mindboggle.evaluate',
                           'mindboggle.features',
                           'mindboggle.labels',
-                          'mindboggle.labels.protocol',
                           'mindboggle.shapes',
-                          'mindboggle.tables',
                           'mindboggle.utils'],
           #                'mindboggle.testing',
           #                'mindboggle.tests',
@@ -81,11 +79,11 @@ def main(**extra_args):
           # python -- duplicating things into MANIFEST.in but this is admittedly
           # only a workaround to get things started -- not a solution
 
-          package_data = {'mindboggle':
-                          [pjoin('labels', 'protocol', '*.txt')
-                           #pjoin('extract', 'medial_surfaces', '*'),
-                           #pjoin('measure', 'surface_measures', '*.cpp')
-                          ]},
+          #package_data = {'mindboggle':
+          #                [pjoin('labels', 'protocol', '*.txt')
+          #                 #pjoin('extract', 'medial_surfaces', '*'),
+          #                 #pjoin('measure', 'surface_measures', '*.cpp')
+          #                ]},
           #scripts      = [pjoin('bin', 'parrec2nii'),
           #                pjoin('bin', 'nib-ls'),
           #                ],

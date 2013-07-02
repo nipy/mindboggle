@@ -27,12 +27,11 @@ def relabel_volume(input_file, old_labels, new_labels):
     --------
     >>> # Convert DKT31 to DKT25 labels
     >>> import os
-    >>> from mindboggle.utils.io_table import read_columns
     >>> from mindboggle.labels.relabel import relabel_volume
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
-    >>> old_labels, new_labels = read_columns(relabel_file, 2)
+    >>> old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
+    >>> new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
     >>> relabel_volume(input_file, old_labels, new_labels)
 
     """
@@ -118,7 +117,8 @@ def remove_volume_labels(input_file, labels_to_remove):
 
     return output_file
 
-def relabel_surface(vtk_file, relabel_list, new_string):
+def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
+                    output_file=''):
     """
     Relabel surface in a VTK file.
 
@@ -126,38 +126,67 @@ def relabel_surface(vtk_file, relabel_list, new_string):
     ----------
     vtk_file : string
         input labeled VTK file
-    relabel_list : string
-        text file with two columns of label numbers --
-        all regions receive the 2nd label per row.
-    new_string : string
-        new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
+    hemi : string
+        hemisphere ('lh' or 'rh' or '')
+    old_labels : list of integers
+        old labels
+    new_labels : list of integers
+        new labels
+    output_file : string
+        new vtk file name
+
+    Returns
+    -------
+    output_file : string
+        new vtk file name
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.labels.relabel import relabel_surface
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> hemi = 'lh'
+    >>> old_labels = []
+    >>> new_labels = []
+    >>> output_file = ''
+    >>> #
+    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, output_file)
+    >>> # View
+    >>> plot_vtk('relabeled_lh.labels.DKT25.manual.vtk')
 
     """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.io_table import read_columns
 
-    # Load labeled vtk surfaces
+    # Load labeled vtk surfaces:
     faces, lines, indices, points, npoints, scalars, \
         name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
-    indices = range(1, npoints + 1)
 
-    # Load label lists
-    labels_to_replace, new_labels = read_columns(relabel_list, 2)
-    for i, new_label in enumerate(new_labels):
+    # Add a hemisphere value to each label:
+    if hemi:
+        ulabels = np.unique(scalars)
+        for label in ulabels:
+            I = np.where(scalars == int(label))[0]
+            if hemi == 'lh':
+                scalars[I] = 1000 + int(label)
+            elif hemi == 'rh':
+                scalars[I] = 2000 + int(label)
+    # OR replace each old label with a corresponding new label:
+    else:
+        for ilabel, new_label in enumerate(new_labels):
+            I = np.where(scalars == int(old_labels[ilabel]))[0]
+            scalars[I] = int(new_label)
 
-        # Find which vertices have the label
-        indices = np.where(scalars == int(labels_to_replace[i]))[0]
-        scalars[indices] = int(new_label)
-
-    relabeled_vtk = os.path.join(os.getcwd(),
-                                 os.path.basename(vtk_file).split('.')[0] + \
-                                 '.' + new_string)
-    write_vtk(relabeled_vtk, points, indices, lines, faces,
+    if not output_file:
+        output_file = os.path.join(os.getcwd(),
+                                   'relabeled_' + os.path.basename(vtk_file))
+    write_vtk(output_file, points, indices, lines, faces,
               [scalars.tolist()], ['Labels'])
 
-    return relabeled_vtk
+    return output_file
 
 def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     """
