@@ -212,8 +212,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
-        labels_spectra=[], labels_spectra_norm=[], labels_spectra_IDs=[],
-        sulci_spectra=[], sulci_spectra_norm=[], sulci_spectra_IDs=[],
+        labels_spectra=[], labels_spectra_IDs=[],
+        sulci_spectra=[], sulci_spectra_IDs=[],
         exclude_labels=[-1], delimiter=','):
     """
     Make tables of shape statistics per label, fundus, and/or sulcus.
@@ -245,14 +245,10 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         name of VTK file with thickness scalar values
     labels_spectra : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
-    labels_spectra_norm : list of lists of floats
-        Laplace-Beltrami spectra for labeled regions normalized by area
     labels_spectra_IDs : list of integers
         unique ID numbers (labels) for labels_spectra
     sulci_spectra : list of lists of floats
         Laplace-Beltrami spectra for sulci
-    sulci_spectra_norm : list of lists of floats
-        Laplace-Beltrami spectra for sulci normalized by area
     sulci_spectra_IDs : list of integers
         unique ID numbers (labels) for sulci_spectra
     exclude_labels : list of lists of integers
@@ -296,10 +292,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     >>> import numpy as np
     >>> labels, name = read_scalars(labels_or_file)
     >>> labels_spectra = [[1,2,3] for x in labels]
-    >>> labels_spectra_norm = [[1,2,3] for x in labels]
     >>> labels_spectra_IDs = np.unique(labels).tolist()
     >>> sulci_spectra = [[1,2,3] for x in sulci]
-    >>> sulci_spectra_norm = [[1,2,3] for x in sulci]
     >>> sulci_spectra_IDs = np.unique(sulci).tolist()
     >>> exclude_labels = [-1]
     >>> #
@@ -307,8 +301,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     convexity_file, thickness_file, labels_spectra,
-    >>>     labels_spectra_norm, labels_spectra_IDs, sulci_spectra,
-    >>>     sulci_spectra_norm, sulci_spectra_IDs, exclude_labels, delimiter)
+    >>>     labels_spectra_IDs, sulci_spectra,
+    >>>     sulci_spectra_IDs, exclude_labels, delimiter)
 
     """
     import os
@@ -338,11 +332,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     feature_lists = [labels, sulci, fundi]
     feature_names = ['label', 'sulcus', 'fundus']
     spectra_lists = [labels_spectra, sulci_spectra]
-    spectra_norm_lists = [labels_spectra_norm, sulci_spectra_norm]
     spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
     spectra_names = ['label spectrum', 'sulcus spectrum']
-    spectra_norm_names = ['label spectrum (normalized)',
-                          'sulcus spectrum (normalized)']
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
@@ -378,8 +369,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
-    fundus_table = None
     sulcus_table = None
+    fundus_table = None
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
@@ -397,8 +388,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
             # Mean positions in the original space:
             #-----------------------------------------------------------------
             # Compute mean position per feature:
-            positions, sdevs, label_list, foo = means_per_label(points, feature_list,
-                exclude_labels, area_array)
+            positions, sdevs, label_list, foo = means_per_label(points,
+                feature_list, exclude_labels, area_array)
 
             # Append mean position per feature to columns:
             table_column_names.append('mean position')
@@ -471,34 +462,26 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
             if itable in [0,1]:
                 spectra = spectra_lists[itable]
                 spectra_name = spectra_names[itable]
-                spectra_norm_name = spectra_norm_names[itable]
                 spectra_IDs = spectra_ID_lists[itable]
-                spectra_norm = spectra_norm_lists[itable]
 
                 # Order spectra into a list:
                 spectrum_list = []
-                spectrum_norm_list = []
                 for label in label_list:
                     if label in spectra_IDs:
                         spectrum = spectra[spectra_IDs.index(label)]
                         spectrum_list.append(spectrum)
-                        spectrum_norm = spectra_norm[spectra_IDs.index(label)]
-                        spectrum_norm_list.append(spectrum_norm)
                     else:
                         spectrum_list.append('')
-                        spectrum_norm_list.append('')
 
                 # Append spectral shape name and values to relevant columns:
                 columns.append(spectrum_list)
                 table_column_names.append(spectra_name)
-                columns.append(spectrum_norm_list)
-                table_column_names.append(spectra_norm_name)
 
             #-----------------------------------------------------------------
-            # Write labels and values to table:
+            # Write labels/IDs and values to table:
             #-----------------------------------------------------------------
-            # Write labels to table:
-            write_columns(label_list, 'label', table_file, delimiter)
+            # Write labels/IDs to table:
+            write_columns(label_list, feature_name, table_file, delimiter)
 
             # Append columns of shape values to table:
             if columns:
@@ -640,8 +623,6 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
-                #import sys
-                #sys.exit(affine_transform_file)
                 if affine_transform_file:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
