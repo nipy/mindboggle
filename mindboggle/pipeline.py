@@ -151,7 +151,7 @@ run_SurfLabelFlow = True
 # * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
-init_labels = 'manual'
+init_labels = 'DKT_atlas'
 classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 #free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
 #atlas_list = read_columns('mindboggle101_atlases.txt', 1)[0]
@@ -159,7 +159,7 @@ classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 # Labeling protocol used by Mindboggle:
 # * 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 label regions
 # * 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
-protocol = 'DKT31'
+protocol = 'DKT25'
 #
 # Type of atlas labels:
 # * 'manual': manual edits
