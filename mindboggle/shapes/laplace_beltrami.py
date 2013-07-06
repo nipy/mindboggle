@@ -363,11 +363,12 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
         [8.6598495496215578e-20, 4.214922171245502e-19, 1.7613177561957697e-05,
          3.9602772997696686e-05, 7.1740562223650042e-05, 8.5687655524969452e-05]
     """
-    from scipy.sparse.linalg import eigsh
+    from scipy.sparse.linalg import eigsh, lobpcg
+    import scipy
 
     from mindboggle.shapes.laplace_beltrami import computeAB
 
-    min_n_eigenvalues = 10 * n_eigenvalues
+    min_n_eigenvalues = 0# 10 * n_eigenvalues
     npoints = len(points)
 
     if npoints < min_n_eigenvalues:
@@ -379,11 +380,20 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     A, B = computeAB(points, faces)
 
-    # Note: eigs is for nonsymmetric matrices while
-    #       eigsh is for real-symmetric or complex-Hermitian matrices.
-    eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, sigma=0)
-
-    spectrum = eigenvalues.tolist()
+    try :
+        eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, sigma=0)
+        # Note: eigs is for nonsymmetric matrices while
+        #       eigsh is for real-symmetric or complex-Hermitian matrices.
+        spectrum = eigenvalues.tolist()
+    except RuntimeError:
+        init_eigenvecs = scipy.rand(A.shape[0], n_eigenvalues) # initial eigenvector values 
+            
+        eigenvalues, eigenvectors =  lobpcg(A, init_eigenvecs, B=B, largest=True, maxiter = 40)
+        # maxiter = 40 (forty) forces lobpcg to use 20 (twenty) iterations
+        # Strangely, largest=false finds largest eigenvalues. 
+        # I had to use largest=True to find smallest eigenvalues. 
+        spectrum = [value.real for value in eigenvalues] # take the real parts out
+        spectrum.sort() # for some reason, the eigenvalues from lobpcg is not sorted
 
     if normalization == "area":
         spectrum = area_normalize(points, faces, spectrum)
@@ -530,7 +540,7 @@ if __name__ == "__main__":
     faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
 
     print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, n_eigenvalues=3)))
+        fem_laplacian(points, faces, n_eigenvalues=5)))
 
-    print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+    #print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
+    #    fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
