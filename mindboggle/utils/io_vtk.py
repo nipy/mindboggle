@@ -772,6 +772,22 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(example_vtk)
+    >>> #
+    >>> Example 2:
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import explode_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_indices_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> input_values_file = input_indices_file
+    >>> output_stem = 'label'
+    >>> #
+    >>> explode_scalars(input_indices_file, input_values_file, output_stem)
+    >>> #
+    >>> # View:
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> plot_vtk(example_vtk)
+
 
     """
     import os
