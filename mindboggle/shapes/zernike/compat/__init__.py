@@ -3,6 +3,7 @@ import numpy.linalg
 import scipy
 import scipy.misc
 import time
+import profilehooks
 
 from .Dabc_orig_m import Dabc_orig
 from .D_CV_orig_m import D_CV_orig
@@ -20,6 +21,7 @@ from .trinomial_matrix_m import trinomial_matrix
 from .trinomial_m import trinomial
 from .Yljm_m import Yljm
 from .zernike_m import zernike
+from .zk_demo_m import zk_demo
 
 #from ..naive.feature_extraction_m import feature_extraction as f_old
 #from ..naive.D_CV_orig_m import D_CV_orig as D_old
@@ -92,3 +94,9 @@ class CompatPipeline(object) :
         if len(arr.shape) == 1 and k == 2 : return numpy.flipud(arr)
         else : raise NotImplementedError()
     def find(self,bool_arr) : return bool_arr
+    def size(self,arr,dim=None) :
+        if dim is None : return arr.shape
+        else : return arr.shape[dim]
+    @profilehooks.profile(filename='demo.prfl')
+    def demo(self,V,F,ZMvtk) : return zk_demo(self,V,F,ZMvtk)
+

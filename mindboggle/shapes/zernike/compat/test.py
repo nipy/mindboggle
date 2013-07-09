@@ -15,19 +15,20 @@ head,tail = os.path.split(__file__)
 DATA_DIR = os.path.join(head,'test_data')
 ALLOWED_ERROR = 1e-8
 
-FNS_AND_ARGS = [ ('D_CV_orig',              ('facet','num_vertices','N','X','K','tri_matrix',), ('C','Vol',) ),
-                 ('trinomial',              ('i','j','k',),                                     ('t',) ),
-                 ('trinomial_matrix',       ('N',),                                             ('tri_matrix',) ),
-                 ('mon_comb',               ('tri_matrix','vertex','N',),                       ('c',) ),
-                 ('D_SG_orig_part',         ('num_facets','i','j','k','C','D','S','Vol','F',),  ('S',) ),
-                 ('D_SG_orig',              ('num_facets','i','N','C','D','Vol','F',),          ('G',) ),
-                 ('Dabc_orig',              ('C','N',),                                         ('D',) ), #slow
-                 ('factorial_precalc',      ('N',),                                             ('F',) ),
-                 ('Yljm',                   ('l','j','m',),                                     ('y',) ),
-                 ('Qklnu',                  ('k','l','nu',),                                    ('q',) ),
-                 ('zernike',                ('G','N',),                                         ('Z',) ),
-                 ('feature_extraction',     ('Z','N',),                                         ('Descriptors',) ),
+FNS_AND_ARGS = [ #('D_CV_orig',              ('facet','num_vertices','N','X','K','tri_matrix',), ('C','Vol',) ),
+                 #('trinomial',              ('i','j','k',),                                     ('t',) ),
+                 #('trinomial_matrix',       ('N',),                                             ('tri_matrix',) ),
+                 #('mon_comb',               ('tri_matrix','vertex','N',),                       ('c',) ),
+                 #('D_SG_orig_part',         ('num_facets','i','j','k','C','D','S','Vol','F',),  ('S',) ),
+                 #('D_SG_orig',              ('num_facets','i','N','C','D','Vol','F',),          ('G',) ),
+                 #('Dabc_orig',              ('C','N',),                                         ('D',) ), #slow
+                 #('factorial_precalc',      ('N',),                                             ('F',) ),
+                 #('Yljm',                   ('l','j','m',),                                     ('y',) ),
+                 #('Qklnu',                  ('k','l','nu',),                                    ('q',) ),
+                 #('zernike',                ('G','N',),                                         ('Z',) ),
+                 #('feature_extraction',     ('Z','N',),                                         ('Descriptors',) ),
                  #('geometric_moments_orig', ('X','K','N','num_facets','num_vertices',),         ('G',) ), #slow
+                 ('demo',                   ('V','F','ZMvtk'),                                   ('Descriptors',) ),
                  #('reformat_zernike',      ('Z','N',),                                         ('ZM,') ),
                  ]
 
