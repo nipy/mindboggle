@@ -552,7 +552,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         default=[]
     faces : list of 3-tuples of integers
         indices to the three vertices of a face on the mesh, default=[]
-    scalars : list of lists of floats (or single list of floats)
+    scalars : list of, or list of lists of, floats (or single list of floats)
         each list (lookup table) contains values assigned to the vertices, default=[]
     scalar_names : string or list of strings
         each element is the name of a lookup table, default=['scalars']
@@ -615,8 +615,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         write_faces(Fp, lines) # write_faces can write either lines or faces
     if faces:
         write_faces(Fp, faces)
-    if scalars:
-        scalars, scalar_names = scalars_checker(scalars, scalar_names)
+    scalars, scalar_names = scalars_checker(scalars, scalar_names)
+    if len(scalars):
 
         for i, scalar_list in enumerate(scalars):
             if i == 0:
