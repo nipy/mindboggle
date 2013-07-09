@@ -9,9 +9,7 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
-# Flip axes
-#------------------------------------------------------------------------------
+
 def make_voxels_isometric(input_file):
     """
     Pad smaller dimensions to reach maximum dimension (max_dim).
@@ -31,7 +29,7 @@ def make_voxels_isometric(input_file):
     --------
     >>> # Example without proper inputs specified:
     >>> import os
-    >>> from mindboggle.utils.matrix_operations import make_voxels_isometric
+    >>> from mindboggle.utils.matrix import make_voxels_isometric
     >>> d = os.listdir('.')
     >>> for f in d:
     >>>     make_voxels_isometric(f)
@@ -67,9 +65,7 @@ def make_voxels_isometric(input_file):
 
     return out_file
 
-#------------------------------------------------------------------------------
-# Flip axes
-#------------------------------------------------------------------------------
+
 def flip_axes(input_file, flipx=True, flipy=True, flipz=False,
               use_matrix=False, use_header=True):
     """
@@ -143,14 +139,15 @@ def flip_axes(input_file, flipx=True, flipy=True, flipz=False,
 
     return out_file
 
-#------------------------------------------------------------------------------
-# Flip axes
-#------------------------------------------------------------------------------
+
 def rotate90(input_file, rotations=[1,0,0],
              use_matrix=True, use_header=True):
     """
-    Rotate image volume data 90 degrees about the x, y, or z axis
-    without regard to the file header.  Assumes isometric voxels.
+    Pad and rotate image volume data 90 degrees about the x, y, or z axis
+    without regard to the file header.
+
+    Note ::
+        Assumes isometric voxels and equal dimensions along each axis.
 
     Parameters
     ----------
@@ -172,7 +169,7 @@ def rotate90(input_file, rotations=[1,0,0],
     --------
     >>> # Example without proper inputs specified:
     >>> import os
-    >>> from mindboggle.utils.matrix_operations import rotate90
+    >>> from mindboggle.utils.matrix import rotate90
     >>> d = os.listdir('.')
     >>> for f in d:
     >>>     # Rotate 90 degrees about x-axis:
@@ -191,13 +188,17 @@ def rotate90(input_file, rotations=[1,0,0],
     if use_header:
         hdr = img.get_header()
         pixdims = hdr.get_zooms()
+        if pixdims[0] != pixdims[1] or \
+           pixdims[0] != pixdims[2] or \
+           pixdims[1] != pixdims[2]:
+            os.error('This function assumes isometric voxels.')
     else:
         pixdims = [1,1,1]
     dims = img.get_shape()
     if dims[0] != dims[1] or \
        dims[0] != dims[2] or \
        dims[1] != dims[2]:
-        os.error('Input file should have isometric voxels.')
+        os.error('This function assumes same dimensions along each axis.')
 
     dat_new = np.zeros(dims)
     lenx = dims[0]
@@ -254,9 +255,78 @@ def rotate90(input_file, rotations=[1,0,0],
 
     return out_file
 
-#------------------------------------------------------------------------------
+
+def crop_to_match_volume(source, target, output=''):
+    """
+    Crop source volume to match target volume.
+
+    Center source image in target dimensions; save with target header.
+
+    Parameters
+    ----------
+    source : string
+        nibabel-readable (e.g., nifti) file
+    target : string
+        nibabel-readable (e.g., nifti) file
+    output : string
+        nibabel-readable (e.g., nifti) file
+
+    Returns
+    -------
+    output : string
+        nibabel-readable (e.g., nifti) file
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.matrix import crop_to_match_volume
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> source = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> target = os.path.join(data_path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
+    >>> output = ''
+    >>> ignore_labels = [0]
+    >>> output = crop_source_to_match_target_volume(source, target, output)
+    >>> # View
+    >>> plot_volumes(output)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    # Load source and target image volumes:
+    vol_source = nb.load(source)
+    vol_target = nb.load(target)
+    source_shape = vol_source.shape
+    target_shape = vol_target.shape
+    xfm = vol_target.get_affine()
+    data_source = vol_source.get_data()
+
+    # Crop source to target dimensions:
+    shifts = [np.floor((source_shape[0] - target_shape[0]) / 2),
+              np.floor((source_shape[1] - target_shape[1]) / 2),
+              np.floor((source_shape[2] - target_shape[2]) / 2)]
+    data_source_crop = data_source[shifts[0]:target_shape[0]+shifts[0],
+                                   shifts[1]:target_shape[1]+shifts[1],
+                                   shifts[2]:target_shape[2]+shifts[2]]
+
+    # Save cropped source file:
+    if not output:
+        output = os.path.join(os.getcwd(),
+                              os.path.basename(source).split('.')[0] +
+                              '_to_' +
+                              os.path.basename(target).split('.')[0] +
+                              '.nii.gz')
+    img = nb.Nifti1Image(data_source_crop, xfm)
+    img.to_filename(output)
+
+    return output
+
+
+#-----------------------------------------------------------------------------
 # Example
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 if __name__ == "__main__":
 
     import os
@@ -264,11 +334,6 @@ if __name__ == "__main__":
 
     input_dir = '/drop/phantoms_dmri'
     input_files = ['isometric_PhDif_1stvol_CU_20120607.nii.gz',
-                   'isometric_PhDif_1stvol_CU_20120711.nii.gz',
-                   'isometric_PhDif_1stvol_CU_20120915.nii.gz',
-                   'isometric_PhDif_1stvol_CU_20121206.nii.gz',
-                   'isometric_PhDif_1stvol_UM_20120803.nii.gz',
-                   'isometric_PhDif_1stvol_UM_20121105.nii.gz',
                    'isometric_PhDif_1stvol_UM_20121204.nii.gz']
     input_dir = '/drop/phantoms_adni'
     input_files = ['PhStr_CU_20121130.nii.gz',

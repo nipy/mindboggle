@@ -334,12 +334,15 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
     from mindboggle.labels.labels import extract_borders
-    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    from mindboggle.labels.protocol import dkt_protocol
 
+    protocol = 'DKT25'
+    sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+        label_names, label_numbers, cortex_names, cortex_numbers, \
+        noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
     # Prepare (non-unique) list of sulcus label pairs:
-    protocol_label_pair_lists = sulcus_boundaries()
-    protocol_label_pairs = [x for lst in protocol_label_pair_lists for x in lst]
+    protocol_label_pairs = [x for lst in sulcus_label_pair_lists for x in lst]
 
     border_scalars = []
     nonborder_scalars = []

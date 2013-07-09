@@ -59,7 +59,6 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
