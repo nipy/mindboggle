@@ -93,9 +93,14 @@ if __name__ == "__main__":
     import sys
     import numpy as np
     from mindboggle.utils.io_vtk import load_vtk, read_scalars, write_scalars
-    from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.labels.labels import extract_borders
+    from mindboggle.labels.protocol import dkt_protocol
+
+    protocol = 'DKT25'
+    sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+        label_names, label_numbers, cortex_names, cortex_numbers, \
+        noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]
@@ -121,8 +126,7 @@ if __name__ == "__main__":
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     print('Prepare a list of unique, sorted label pairs in the protocol...')
-    label_pair_lists = sulcus_boundaries()
-    n_fundi = len(label_pair_lists)
+    n_fundi = len(sulcus_label_pair_lists)
 
     # Find label boundary points in any of the folds
     print('Find label boundary points in any of the folds...')
@@ -137,7 +141,7 @@ if __name__ == "__main__":
     label_boundary_fundi = np.zeros(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus)
-    for isulcus, label_pairs in enumerate(label_pair_lists):
+    for isulcus, label_pairs in enumerate(sulcus_label_pair_lists):
         print('  Sulcus ' + str(isulcus + 1))
 
         # Keep the boundary points with label pair labels
