@@ -400,8 +400,8 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     return spectrum
 
-def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
-                              area_file=''):
+def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
+                              normalization=None, area_file=''):
     """
     Compute linear FEM Laplace-Beltrami spectra from each labeled region in a file.
 
@@ -411,6 +411,8 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
         name of VTK surface mesh file containing index scalars (labels)
     n_eigenvalues : integer
         number of eigenvalues to return
+    exclude_labels : list of integers
+        labels to be excluded
     normalization : string
         the method used to normalize eigenvalues (default: None)
         if "area", use area of the 2D structure as mentioned in Reuter et al. 2006
@@ -432,9 +434,11 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> n_eigenvalues = 6
+    >>> exclude_labels = [0]  #[-1]
     >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
-    >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues=6,
-    >>>                    normalization=None, area_file='')))
+    >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues,
+    >>>                    exclude_labels, normalization=None, area_file='')))
         ([[3.991471403036072e-17, 0.0008361843957687868, 0.0017871320208401006,
            0.0029994050521529613, 0.004667334518265755, 0.00513033437385627],
           [1.2391703345286005e-17, 0.0006134752952690859, 0.002609362442309575,
@@ -467,8 +471,6 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
            0.0017301461686759227, 0.003424463355560629, 0.004280982704174603],
           [2.9604028746491564e-17, 0.0004528887382893767, 0.0015515885375304076,
            0.00331602414788001, 0.006619976369902932, 0.008205020906938507],
-          [-1.6732080952167914e-14, 2.2454692860974014e-17, 0.0010449040440004595,
-           0.0023630142520321357, 0.004057782232580889, 0.004276236943999624],
           [5.554957412505596e-18, 0.00035601986106019174, 0.001488072212933648,
            0.002028217741427394, 0.0021391981684121676, 0.0034678968678893123],
           [1.4259486522787315e-18, 0.009618295295697915, 0.025378077629970915,
@@ -485,11 +487,95 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
            0.0054584077589882075, 0.00849735356103569, 0.011539236288697796],
           [4.852325972754763e-18, 0.0021908963589592333, 0.008674907947474586,
            0.014228894730428161, 0.017777570383697067, 0.018289655756614703]],
-          [11, 29, 5, 25, 21, 8, 13, 22, 7, 31, 17, 30, 15, 24, 2, 9, 0, 28,
-           34, 35, 16, 3, 18, 12, 14])
+         [11, 29, 5, 25, 21, 8, 13, 22, 7, 31, 17, 30, 15, 24, 2, 9, 28,
+          34, 35, 16, 3, 18, 12, 14])
     >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
-    >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues=6,
-    >>>                    normalization="area", area_file=area_file)))
+    >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues,
+    >>>       exclude_labels, normalization="area", area_file=area_file)))
+        ([[5.9892025481818609e-21, 1.2546946246637232e-07, 2.6815914664981521e-07,
+           4.5006070612756651e-07, 7.0033351031280842e-07, 7.6980663525618909e-07],
+          [2.7442346880662513e-21, 1.3585865789706364e-07, 5.7786268186021908e-07,
+           1.0326933848595218e-06, 1.4054856477642631e-06, 1.9437850730544671e-06],
+          [4.8805153037603019e-21, 1.0912940233859737e-06, 3.3976932271045499e-06,
+           4.4480435993556758e-06, 7.627988514532606e-06, 8.7307963792695699e-06],
+          [-5.1999639167835664e-21, 2.3940442345569276e-07, 7.8486369788702351e-07,
+           1.2482008788412443e-06, 1.9499491686589686e-06, 2.2792665675755041e-06],
+          [8.4014236052977723e-21, 2.0589712135796223e-06, 6.6171788776208509e-06,
+           8.8355927465686025e-06, 1.4776021423767969e-05, 1.5633101276778638e-05],
+          [-1.1006988107353173e-21, 4.20773687917598e-07, 5.6704787343180347e-07,
+           1.3186868416272294e-06, 1.5612046472757615e-06, 1.743840430287706e-06],
+          [-2.0046182128355467e-20, 4.8315675713134583e-07, 1.2525549584453889e-06,
+           1.9352763157144804e-06, 2.5945020677304866e-06, 3.9415342027628951e-06],
+          [1.1410192787181146e-21, 9.3102680973672023e-08, 3.1343504525679774e-07,
+           6.5933366810380837e-07, 9.7599836081654615e-07, 1.1342589857996225e-06],
+          [-1.5130736911650156e-20, 3.6966099139584188e-07, 8.8417233966858203e-07,
+           1.1776997267875037e-06, 2.209552219076263e-06, 3.174443092062819e-06],
+          [1.8271159943703549e-21, 3.2004014381797145e-07, 4.6558784554276701e-07,
+           9.3430926759838256e-07, 1.1468103137685179e-06, 1.5580203243313131e-06],
+          [1.708810453193922e-20, 1.7813050163853839e-06, 4.5817466385126638e-06,
+           6.8511615545240659e-06, 8.0485528960522633e-06, 1.2745402324205791e-05],
+          [1.6992092565908249e-21, 6.197935624565444e-08, 2.4773886468983949e-07,
+           4.442673618545527e-07, 6.5582536035063397e-07, 9.0032262897599203e-07],
+          [6.6897355001613741e-22, 1.0775633815356515e-07, 3.7126080734338119e-07,
+           7.8755215249623579e-07, 1.0090525442788043e-06, 1.2130755391790322e-06],
+          [4.7563412979122466e-21, 7.708131187717483e-08, 2.5619436601068196e-07,
+           4.1063592844973614e-07, 7.0605142027144236e-07, 1.0591890245777766e-06],
+          [-1.6433030975833292e-21, 5.2729107225041559e-08, 2.0515299130701178e-07,
+           3.2441092366550234e-07, 6.4210373686882643e-07, 8.0270533114561409e-07],
+          [6.9244702442049931e-21, 1.0593202091090364e-07, 3.6292116695948432e-07,
+           7.7562789638155606e-07, 1.5484321334529694e-06, 1.919178758057007e-06],
+          [5.8885618235010395e-22, 3.7740072633636524e-08, 1.5774387763922336e-07,
+           2.1500228849692985e-07, 2.2676682703375354e-07, 3.6761623155056537e-07],
+          [2.2893255609858778e-21, 1.5441937013905384e-05, 4.074388072398815e-05,
+           5.2161335424161561e-05, 8.1715492358327841e-05, 0.00010787745160225522],
+          [-1.3823289456126841e-20, 1.4990965291904323e-06, 5.4295490891180001e-06,
+           7.0167359356926422e-06, 1.0734035013065644e-05, 1.1996897236242909e-05],
+          [-9.3212921887028401e-21, 1.0054658029823185e-05, 2.100366371930318e-05,
+           2.9581071991349561e-05, 4.7096730648923597e-05, 6.1878442865411084e-05],
+          [1.1610612220265047e-21, 5.3034152878328213e-08, 2.0647655253468472e-07,
+           3.8813363311789536e-07, 4.2925372230907662e-07, 5.7786442341843429e-07],
+          [4.204097029473209e-21, 3.2014460689876505e-07, 6.3473723229424336e-07,
+           9.3531801076312435e-07, 1.2321077909034258e-06, 1.9490396100206598e-06],
+          [4.9725555443470894e-21, 4.3150342819845607e-07, 1.2372421410133957e-06,
+           1.5436778361815317e-06, 2.4031140467234829e-06, 3.2633808414170716e-06],
+          [2.8658799060884637e-21, 1.2939868192529975e-06, 5.1235725945510507e-06,
+           8.4038672840092365e-06, 1.0499785469438766e-05, 1.0802233241638491e-05]],
+         [11, 29, 5, 25, 21, 8, 13, 22, 7, 31, 17, 30, 15, 24, 2, 9, 28,
+          34, 35, 16, 3, 18, 12, 14])
+    >>> # Spectrum for one label (artificial composite), two pieces:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> n_eigenvalues = 6
+    >>> exclude_labels = [0]  #[-1]
+    >>> #
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    >>> faces, lines, indices, points, foo1, labels, foo2, foo3 = read_vtk(label_file,
+    >>>      return_first=True, return_array=True)
+    >>> I2 = [i for i,x in enumerate(labels) if x==2]
+    >>> I11 = [i for i,x in enumerate(labels) if x==11]
+    >>> scalars = np.zeros(np.shape(labels))
+    >>> scalars[I2] = 1
+    >>> scalars[I11] = 1
+    >>> vtk_file = 'test_two_labels.vtk'
+    >>> write_vtk(vtk_file, points, indices, lines, faces,
+    >>>           scalars, scalar_names='scalars')
+    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("{0}".format(fem_laplacian_from_labels(vtk_file,
+    >>>       n_eigenvalues, exclude_labels, normalization=None,
+    >>>       area_file=area_file)))
+        Load "scalars" scalars from test_two_labels.vtk
+        Load "scalars" scalars from lh.pial.area.vtk
+        16647 vertices for label 1
+        2 segments for label 1
+        Reduced 290134 to 14498 triangular faces
+        ([[-8.764053090852845e-18, 0.00028121452203987146, 0.0010941205613292243,
+           0.0017301461686759188, 0.0034244633555606295, 0.004280982704174599]],
+         [1])
+
     """
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
@@ -509,7 +595,8 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
 
     # Loop through labeled regions:
     ulabels = []
-    [ulabels.append(int(x)) for x in labels if x not in ulabels if x != -1]
+    [ulabels.append(int(x)) for x in labels if x not in ulabels
+     if x not in exclude_labels]
     label_list = []
     spectrum_lists = []
     for label in ulabels:
@@ -527,7 +614,8 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, normalization=None,
         # Select the largest segment (connected set of indices for the label):
         select_indices = []
         max_segment_area = 0
-        unique_segments = [x for x in np.unique(segment_label) if x != -1]
+        unique_segments = [x for x in np.unique(segment_label)
+                           if x not in exclude_labels]
         if len(unique_segments) > 1:
             print('{0} segments for label {1}'.
                   format(len(unique_segments), label))
