@@ -298,4 +298,3 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
     img.to_filename(output_file)
 
     return output_file
-

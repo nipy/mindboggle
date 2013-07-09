@@ -55,7 +55,11 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.segment import propagate
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
+    >>> from mindboggle.labels.protocol import dkt_protocol
+    >>> protocol = 'DKT25'
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+    >>>     label_names, label_numbers, cortex_names, cortex_numbers, \
+    >>>     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
@@ -65,7 +69,6 @@ def propagate(points, faces, region, seeds, labels,
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
     >>>     labels, neighbor_lists)
-    >>> label_pair_lists = sulcus_boundaries()
     >>> # Select a single fold
     >>> fold_ID = 2
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
@@ -76,7 +79,7 @@ def propagate(points, faces, region, seeds, labels,
     >>>     labels, neighbor_lists)
     >>> # Select boundary segments in the sulcus labeling protocol
     >>> seeds = -1 * np.ones(npoints)
-    >>> for ilist,label_pair_list in enumerate(label_pair_lists):
+    >>> for ilist,label_pair_list in enumerate(sulcus_label_pair_lists):
     >>>     I = [x for i,x in enumerate(indices_borders)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
@@ -215,15 +218,18 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> plot_vtk('segment.vtk')
     >>> #
     >>> # Example 2: with seed lists
-    >>> from mindboggle.labels.protocol.sulci_labelpairs_DKT import sulcus_boundaries
-    >>> label_pair_lists = sulcus_boundaries()
-    >>> label_lists = [np.unique(np.ravel(x)) for x in label_pair_lists]
+    >>> from mindboggle.labels.protocol import dkt_protocol
+    >>> protocol = 'DKT25'
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+    >>>     label_names, label_numbers, cortex_names, cortex_numbers, \
+    >>>     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> label_lists = [np.unique(np.ravel(x)) for x in sulcus_label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     >>> indices_borders, label_pairs, foo = extract_borders(vertices_to_segment,
     >>>     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
-    >>> for label_pair_list in label_pair_lists:
+    >>> for label_pair_list in sulcus_label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
     >>> #
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
