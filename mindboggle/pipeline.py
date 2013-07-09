@@ -173,7 +173,7 @@ run_WholeSurfShapeFlow = True
 #-----------------------------------------------------------------------------
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = False  # Measure Laplace-Beltrami spectra for features
+do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
 
 #-----------------------------------------------------------------------------
 run_SurfFeatureFlow = True
@@ -1091,32 +1091,32 @@ if run_SurfFeatureFlow and run_SurfFlows:
 #
 ##############################################################################
 if run_SurfShapeFlow and run_SurfFlows:
-    SurfShapeFlow = Workflow(name='Surface_shapes')
+    SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
-    # if do_measure_spectra:
-    #     #=====================================================================
-    #     # Measure Laplace-Beltrami spectra of labeled regions
-    #     #=====================================================================
-    #     SpectraLabels = Node(name='Spectra_labels',
-    #                          interface=Fn(function = fem_laplacian_from_labels,
-    #                                       input_names=['vtk_file',
-    #                                                    'n_eigenvalues',
-    #                                                    'normalization'],
-    #                                       output_names=['spectrum_lists',
-    #                                                     'label_list']))
-    #     SurfShapeFlow.add_nodes([SpectraLabels])
-    #     mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-    #                    SurfShapeFlow, 'Spectra_labels.vtk_file')
-    #     SpectraLabels.inputs.n_eigenvalues = 6
-    #     SpectraLabels.inputs.normalization = "area"
-    #
-    #     #=====================================================================
-    #     # Measure Laplace-Beltrami spectra of sulci
-    #     #=====================================================================
-    #     if do_sulci:
-    #         SpectraSulci = SpectraLabels.clone('Spectra_sulci')
-    #         SurfShapeFlow.add_nodes([SpectraSulci])
-    #         mbFlow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
+    if do_measure_spectra:
+        #=====================================================================
+        # Measure Laplace-Beltrami spectra of labeled regions
+        #=====================================================================
+        SpectraLabels = Node(name='Spectra_labels',
+                             interface=Fn(function = fem_laplacian_from_labels,
+                                          input_names=['vtk_file',
+                                                       'n_eigenvalues',
+                                                       'normalization'],
+                                          output_names=['spectrum_lists',
+                                                        'label_list']))
+        SurfFeatureShapeFlow.add_nodes([SpectraLabels])
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
+        SpectraLabels.inputs.n_eigenvalues = 6
+        SpectraLabels.inputs.normalization = "area"
+
+        #=====================================================================
+        # Measure Laplace-Beltrami spectra of sulci
+        #=====================================================================
+        if do_sulci:
+            SpectraSulci = SpectraLabels.clone('Spectra_sulci')
+            SurfFeatureShapeFlow.add_nodes([SpectraSulci])
+            mbFlow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
 
 
 ##############################################################################
@@ -1215,14 +1215,14 @@ if run_SurfFlows:
         else:
             ShapeTables.inputs.thickness_file = ''
         if do_measure_spectra:
-            mbFlow.connect(SurfShapeFlow, 'Spectra_labels.spectrum_lists',
+            mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_labels.spectrum_lists',
                            ShapeTables, 'labels_spectra')
-            mbFlow.connect(SurfShapeFlow, 'Spectra_labels.label_list',
+            mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_labels.label_list',
                            ShapeTables, 'labels_spectra_IDs')
             if do_sulci:
-                mbFlow.connect(SurfShapeFlow, 'Spectra_sulci.spectrum_lists',
+                mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_sulci.spectrum_lists',
                                ShapeTables, 'sulci_spectra')
-                mbFlow.connect(SurfShapeFlow, 'Spectra_sulci.label_list',
+                mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_sulci.label_list',
                                ShapeTables, 'sulci_spectra_IDs')
             else:
                 ShapeTables.inputs.sulci_spectra = []
