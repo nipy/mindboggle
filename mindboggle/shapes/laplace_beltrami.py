@@ -315,6 +315,16 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     """
     Linear FEM laplacian code after Martin Reuter's MATLAB code.
 
+    Note ::
+        Output for label 2 in Twins-2-1 left hemisphere:
+        [4.829758648026223e-18, 0.00012841730024671977,
+         0.0002715181572272744, 0.00032051508471594173,
+         0.000470162807048644, 0.0005768904023010327]
+        Martin Reuter's code:
+        {-4.7207711983791511358e-18 ; 0.00012841730024672144738 ;
+          0.00027151815722727096853 ; 0.00032051508471592313632 ;
+          0.0004701628070486902353  ; 0.00057689040230097490998 }
+
     Parameters
     ----------
     points : list of lists of 3 floats
@@ -650,32 +660,42 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
 
     return spectrum_lists, label_list
 
-def fem_laplacian_from_single_vtk(vtk_file, num_eigen=6):
-    """Compute linear FEM Laplace-Beltrami spectrum of a 3D shape in a VTK file
+def fem_laplacian_from_single_vtk(vtk_file, n_eigenvalues=6):
+    """
+    Compute linear FEM Laplace-Beltrami spectrum of a 3D shape in a VTK file.
+
+    Note ::
+        Output for label 2 in Twins-2-1 left hemisphere:
+        [4.829758648026223e-18, 0.00012841730024671977,
+         0.0002715181572272744, 0.00032051508471594173,
+         0.000470162807048644, 0.0005768904023010327]
+        Martin Reuter's code:
+        {-4.7207711983791511358e-18 ; 0.00012841730024672144738 ;
+          0.00027151815722727096853 ; 0.00032051508471592313632 ;
+          0.0004701628070486902353  ; 0.00057689040230097490998 }
 
     Parameters
-    --------------
-
+    ----------
     vtk_file : string
-        the input vtk file 
+        the input vtk file
+    n_eigenvalues : integer
+        number of eigenvalues to be computed (the length of the spectrum)
 
-    num_eigen : integer
-        number of eigen values to be computed, thus the length of the spetrum
+    >>> # Spectrum for one label (artificial composite), two pieces:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_single_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> fem_laplacian_from_single_vtk(vtk_file, n_eigenvalues=6)
 
     """
-
     from mindboggle.utils.io_vtk import read_vtk
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
-    from mindboggle.shapes.laplace_beltrami import computeAB
-    from numpy import array
 
     faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(vtk_file)
 
-    [points, faces] = map(array, [points, faces])
-    A, B = computeAB(points, faces)
-    
     try:
-        print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=num_eigen)))
+        print("{0}".format(fem_laplacian(points, faces, n_eigenvalues)))
     except RuntimeError:
         print "failed to compute LBS due to RuntimeError (e.g., singularity error)"
 
