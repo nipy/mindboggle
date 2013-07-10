@@ -362,6 +362,84 @@ def find_faces_at_vertices(faces, npoints):
 
     return faces_at_vertices
 
+
+def find_adjacent_faces(faces):
+    """
+    For each face in a list of faces, find adjacent faces.
+
+    Parameters
+    ----------
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    -------
+    adjacent_faces: list of pairs of lists of three integers
+        list 1 indexes three faces adjacent to the three face's edges; 
+        list 2 indexes three vertices opposite the adjacent faces:
+        adjacent_faces[i]: two lists, each of length 3
+        adjacent_faces[i][0] = [face0, face1, face2]: 
+                                face0 is the neighbor of face i facing vertex0
+        adjacent_faces[i][1] = [vertex0, vertex1, vertex2], which is face i:
+                                vertex0 is the vertex of face0 not in face i
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh import find_adjacent_faces
+    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
+    >>> find_adjacent_faces(faces)
+        [[[-1, 1, 3], [-1, 3, 4]],
+         [[-1, 2, 0], [-1, 4, 1]],
+         [[4, 3, 1], [1, 1, 2]],
+         [[4, 2, 0], [3, 3, 2]],
+         [[-1, 3, 2], [-1, 0, 0]]]
+
+    """
+
+    print "Calculating face neighbor list"
+
+    n_faces = len(faces)
+
+    adjacent_faces = []
+    [adjacent_faces.append([[-1,-1,-1], [-1,-1,-1]]) for i in range(n_faces)]
+
+    Done =[]
+    [Done.append(0) for i in range(n_faces)]
+
+    # Loop through faces:
+    for i1, face1 in enumerate(faces):
+        # Loop through remaining faces:
+        for i2 in range(i1+1, n_faces):
+            face2 = faces[i2]
+
+            # Loop through first two vertices of face:
+            for ivertex in [0,1]:
+                index1 = face1[ivertex]
+                # Loop through remaining vertices of face:
+                for index2 in face1[ivertex+1:3]:
+
+                    # If pair of vertices in face2:
+                    if index1 in face2 and index2 in face2:
+
+                        # Determine if it is face0, face1 or face2:
+                        NbrID1 = 3 - face1.index(index1) - face1.index(index2)
+                        NbrID2 = 3 - face2.index(index1) - face2.index(index2)
+
+                        adjacent_faces[i1][0][NbrID1] = i2
+                        adjacent_faces[i2][0][NbrID2] = i1
+                        adjacent_faces[i1][1][NbrID1] = face2[NbrID2]
+                        adjacent_faces[i2][1][NbrID2] = face1[NbrID1]
+
+                        Done[i1] += 1
+                        Done[i2] += 1
+
+            # Break if all three neighbors of face1 have been found:
+            if Done[i] == 3:
+                break
+
+    return adjacent_faces
+
 #-----------------------------------------------------------------------------
 # Filter faces
 #-----------------------------------------------------------------------------
