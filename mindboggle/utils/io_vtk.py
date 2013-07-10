@@ -321,12 +321,11 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     else:
         lines = []
 
-#    if Data.GetNumberOfVerts() > 0:
-#        indices = [Data.GetVerts().GetData().GetValue(i)
-#                   for i in xrange(1, Data.GetVerts().GetSize() )]
-#        # The reason the reading starts from 1 is because we need to avoid the
-#    else:
-#        indices = []
+    if Data.GetNumberOfVerts() > 0:
+       indices = [Data.GetVerts().GetData().GetValue(i)
+                  for i in xrange(1, Data.GetVerts().GetSize() )]
+    else:
+       indices = []
 
     scalars = []
     scalar_names = []
@@ -359,8 +358,6 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             scalar_names = scalar_names[0]
         else:
             scalar_names = ''
-
-    indices = [i for i,x in enumerate(scalars) if x != -1]
 
     return faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk
 
@@ -606,7 +603,6 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     Fp = open(output_vtk,'w')
     write_header(Fp)
     write_points(Fp, points)
-
     if indices:
         write_vertices(Fp, indices)
     if lines:
@@ -759,29 +755,30 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
     Examples
     --------
+    >>> Example 1:  explode sulci with thickness values
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> input_values_file = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
+    >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
     >>> output_stem = 'sulci_thickness'
     >>> #
-    >>> explode_scalars(input_indices_file, input_values_file, output_stem)
+    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(example_vtk)
     >>> #
-    >>> Example 2:
+    >>> Example 2:  explode labels
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_indices_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> input_values_file = input_indices_file
+    >>> input_values_vtk = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> input_indices_vtk = input_values_vtk
     >>> output_stem = 'label'
     >>> #
-    >>> explode_scalars(input_indices_file, input_values_file, output_stem)
+    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
@@ -818,8 +815,9 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         select_scalars[scalars != scalar] = background_value
         select_values = np.copy(values)
         select_values[scalars != scalar] = background_value
-        indices = [i for i,x in enumerate(select_scalars) if x == scalar]
-        print("  Scalar {0}: {1} vertices".format(scalar, len(indices)))
+        len_indices = len([i for i,x in enumerate(select_scalars)
+                           if x == scalar])
+        print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
         # Write VTK file with scalar value:
         output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
@@ -1122,8 +1120,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     import numpy as np
     from scipy.io import loadmat
 
-    from mindboggle.utils.io_vtk import read_vtk, read_faces_points, \
-        read_itk_transform, write_vtk
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
 
     # Read ITK affine transform file:
     if transform_format == 'txt':
