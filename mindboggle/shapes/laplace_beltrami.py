@@ -1,10 +1,9 @@
 #!/usr/bin/python
 """
-Compute the Laplace-Beltrami Spectrum (LBS) using a linear finite element method.
+Compute the Laplace-Beltrami Spectrum using a linear finite element method.
 
 We follow the definitions and steps given in Martin Reuter et al.'s 2009 paper:
     ``Discrete Laplace-Beltrami Operators for Shape Analysis and Segmentation''
-
 
 Dependency:
     Scipy 0.10 or later to solve the generalized eigenvalue problem.
@@ -13,21 +12,21 @@ Dependency:
 
 NOTE ::
     For ``points``, only include coordinates of vertices in the 3-D structure
-    whose LBS is to be calculated. For example, do not use coordinates of all
-    POINTS from a VTK file as ``points`` and only corresponding faces as ``faces``.
-    Otherwise this will cause a singular matrix error when inverting matrices
-    because some rows are all zeros.
+    whose spectrum is to be calculated. For example, do not use coordinates
+    of all POINTS from a VTK file as ``points`` and use only corresponding
+    faces as ``faces``. Otherwise this will cause a singular matrix error
+    when inverting matrices because some rows are all zeros.
 
 Acknowledgments:
-    - Dr. Martin Reuter, MIT, helped us to better understand his articles about
-      the Laplace-Beltrami operator and us with provided his MATLAB code.
+    - Dr. Martin Reuter, MIT, provided his MATLAB code and assisted us in
+      understanding his articles about the Laplace-Beltrami operator.
     - Dr. Eric You Xu, Google (http://www.youxu.info/),
       explained how eigenvalue problems are solved numerically.
 
 Authors:
-    - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
-    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
     - Martin Reuter, 2009, http://reuter.mit.edu/ (original MATLAB code)
+    - Eliezer Stavsky, 2012  (eli.stavsky@gmail.com)
+    - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -45,7 +44,7 @@ def computeAB(points, faces):
         x,y,z coordinates for each vertex
 
     faces : list of lists of 3 integers
-        each list contains indices to vertices that form a triangle on the mesh
+        each list contains indices to vertices that form a triangle on a mesh
 
     Returns
     -------
@@ -111,7 +110,7 @@ def computeAB(points, faces):
                        [-0.5, 0.5, 0.0]])
 
     # Replicate into third dimension for each triangle
-    # (For tB, 1st index is the 3rd index in MATLAB.):
+    # (for tB, 1st index is the 3rd index in MATLAB):
     tB = np.array([np.tile(tB, (1, 1)) for i in xrange(nfaces)])
     tA00 = np.array([np.tile(tA00, (1, 1)) for i in xrange(nfaces)])
     tA11 = np.array([np.tile(tA11, (1, 1)) for i in xrange(nfaces)])
@@ -306,8 +305,8 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     if show_error:
         WN = (C + K * (sum([n**(-1*2*p/d) for n in range(3,N+1)])))**(1/p)
         # the second term on the right-hand side of Eq.(9)
-        print "Truncation error of WESD is: ", W - WN
-        print "Truncation error of nWESD is: ", 1 -  WN/W
+        print("Truncation error of WESD is: {0}".format(W - WN))
+        print("Truncation error of nWESD is: {1}".format(1 -  WN/W))
 
     return WESD
 
@@ -320,7 +319,29 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
         [4.829758648026223e-18, 0.00012841730024671977,
          0.0002715181572272744, 0.00032051508471594173,
          0.000470162807048644, 0.0005768904023010327]
+
         Martin Reuter's code:
+         Creator: ./shapeDNA-tria
+         File: /home/forrest/Dropbox/Share_Research/NYTX/label2.vtk
+         User: Forrest Bao s.bao@ttu.edu Stony Brook
+         Refine: 0
+         Degree: 1
+         Dimension: 2
+         Elements: 290134
+         DoF: 145069
+         NumEW: 6
+
+         Area: 110016
+         Volume: 534346
+         BLength: 0
+         EulerChar: 2
+
+         Time(pre) : 2
+         Time(calcAB) : 0
+         Time(calcEW) : 7
+         Time(total ) : 9
+
+        Eigenvalues:
         {-4.7207711983791511358e-18 ; 0.00012841730024672144738 ;
           0.00027151815722727096853 ; 0.00032051508471592313632 ;
           0.0004701628070486902353  ; 0.00057689040230097490998 }
@@ -350,11 +371,11 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
     >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
     >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("Computing the un-normalized linear FEM Laplace-Beltrami Spectrum\n")
     >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3)))
         The un-normalized linear FEM Laplace-Beltrami Spectrum is:
         [-2.74238008172841e-16, 4.583592135001265, 4.800000000000001]
-    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("Computing the area-normalized linear FEM Laplace-Beltrami Spectrum\n")
     >>> print("{0}".format(fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
         The area-normalized linear FEM Laplace-Beltrami Spectrum is:
         [-7.4014869016002383e-16, 0.76393202250021075, 0.80000000000000049]
@@ -378,12 +399,12 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
 
     from mindboggle.shapes.laplace_beltrami import computeAB
 
-    min_n_eigenvalues = 0# 10 * n_eigenvalues
+    min_npoints = 10 * n_eigenvalues
     npoints = len(points)
 
-    if npoints < min_n_eigenvalues:
-        print "The input size {0} should be much larger than n_eigenvalue {1}. Skipped.".\
-            format(npoints, n_eigenvalues)
+    if npoints < min_npoints:
+        print("The input size {0} should be much larger than n_eigenvalues {1}".\
+            format(npoints, n_eigenvalues))
         return None
     elif npoints < n_eigenvalues:
         n_eigenvalues = npoints
@@ -393,17 +414,21 @@ def fem_laplacian(points, faces, n_eigenvalues=200, normalization=None):
     try :
         eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B, sigma=0)
         # Note: eigs is for nonsymmetric matrices while
-        #       eigsh is for real-symmetric or complex-Hermitian matrices.
+        #       eigsh is for real-symmetric or complex-Hermitian matrices:
         spectrum = eigenvalues.tolist()
     except RuntimeError:
-        init_eigenvecs = scipy.rand(A.shape[0], n_eigenvalues) # initial eigenvector values 
-            
-        eigenvalues, eigenvectors =  lobpcg(A, init_eigenvecs, B=B, largest=True, maxiter = 40)
-        # maxiter = 40 (forty) forces lobpcg to use 20 (twenty) iterations
-        # Strangely, largest=false finds largest eigenvalues. 
-        # I had to use largest=True to find smallest eigenvalues. 
-        spectrum = [value.real for value in eigenvalues] # take the real parts out
-        spectrum.sort() # for some reason, the eigenvalues from lobpcg is not sorted
+        # Initial eigenvector values:
+        init_eigenvecs = scipy.rand(A.shape[0], n_eigenvalues)
+
+        # maxiter = 40 forces lobpcg to use 20 iterations.
+        # Strangely, largest=false finds largest eigenvalues
+        # and largest=True gives the smallest eigenvalues:
+        eigenvalues, eigenvectors =  lobpcg(A, init_eigenvecs, B=B,
+                                            largest=True, maxiter = 40)
+        # Extract the real parts:
+        spectrum = [value.real for value in eigenvalues]
+        # For some reason, the eigenvalues from lobpcg are not sorted:
+        spectrum.sort()
 
     if normalization == "area":
         spectrum = area_normalize(points, faces, spectrum)
@@ -446,7 +471,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> n_eigenvalues = 6
     >>> exclude_labels = [0]  #[-1]
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("Computing the un-normalized linear FEM Laplace-Beltrami Spectrum\n")
     >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues,
     >>>                    exclude_labels, normalization=None, area_file='')))
         ([[3.991471403036072e-17, 0.0008361843957687868, 0.0017871320208401006,
@@ -499,7 +524,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
            0.014228894730428161, 0.017777570383697067, 0.018289655756614703]],
          [11, 29, 5, 25, 21, 8, 13, 22, 7, 31, 17, 30, 15, 24, 2, 9, 28,
           34, 35, 16, 3, 18, 12, 14])
-    >>> print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("Computing the area-normalized linear FEM Laplace-Beltrami Spectrum\n")
     >>> print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues,
     >>>       exclude_labels, normalization="area", area_file=area_file)))
         ([[5.9892025481818609e-21, 1.2546946246637232e-07, 2.6815914664981521e-07,
@@ -573,7 +598,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
-    >>> print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n")
+    >>> print("Computing the un-normalized linear FEM Laplace-Beltrami Spectrum\n")
     >>> print("{0}".format(fem_laplacian_from_labels(vtk_file,
     >>>       n_eigenvalues, exclude_labels, normalization=None,
     >>>       area_file=area_file)))
@@ -594,7 +619,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
-    min_n_eigenvalues = 10 * n_eigenvalues
+    min_npoints = 10 * n_eigenvalues
 
     # Read VTK surface mesh file:
     faces, foo1, foo2, points, npoints, labels, foo4, foo5 = read_vtk(vtk_file)
@@ -610,11 +635,11 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     label_list = []
     spectrum_lists = []
     for label in ulabels:
+#      if label==2:
 
         # Determine the indices per label:
         label_indices = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.
-              format(len(label_indices), label))
+        print('{0} vertices for label {1}'.format(len(label_indices), label))
 
         # Segment the label indices into connected sets of indices:
         segment_label = segment(label_indices, neighbor_lists, min_region_size=1,
@@ -641,22 +666,35 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
                     select_indices = segment_indices
 
         # Extract points and renumber faces for the selected indices:
-        if len(select_indices) >= min_n_eigenvalues:
+        if len(select_indices) >= min_npoints:
             select_faces = remove_faces(faces, select_indices)
             if select_faces:
                 select_faces, label_points = reindex_faces_points(select_faces,
                                                                   points)
 
+
+                vtk_file = '/Users/arno/Documents/Projects/Mindboggle/mindboggle/mindboggle/label2.vtk'
+                new_faces, lines, indices, new_points, npoints, scalars, \
+                name, input_vtk = read_vtk(vtk_file)
+
+                print(len(new_faces), len(new_points), new_faces[0], new_points[0])
+                print(len(select_faces), len(points), select_faces[0], points[0])
+
+                spectrum = fem_laplacian(points, faces, n_eigenvalues)
+
+
+
+
                 # Compute Laplace-Beltrami spectrum for the labeled region:
-                spectrum = fem_laplacian(label_points, select_faces,
-                                         n_eigenvalues, normalization)
+#                spectrum = fem_laplacian(label_points, select_faces,
+#                                         n_eigenvalues, normalization)
 
                 # Append to a list of lists of spectra:
                 spectrum_lists.append(spectrum)
                 label_list.append(label)
         else:
-            print "The input size {0} for label {1} is too small. Skipped.".\
-                format(len(select_indices), label)
+            print("The input size {0} for label {1} is too small. Skipped.".\
+                format(len(select_indices), label))
 
     return spectrum_lists, label_list
 
@@ -697,23 +735,35 @@ def fem_laplacian_from_single_vtk(vtk_file, n_eigenvalues=6):
     try:
         print("{0}".format(fem_laplacian(points, faces, n_eigenvalues)))
     except RuntimeError:
-        print "failed to compute LBS due to RuntimeError (e.g., singularity error)"
+        print("Failed to compute Laplace-Beltrami spectrum " \
+              "due to RuntimeError (e.g., singularity error)")
 
 
 if __name__ == "__main__":
 
-    import numpy as np
-    # You should get different outputs if you change the coordinates of points.
-    # If you do NOT see changes, you may be computing the graph Laplacian.
+    import os
+    from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
 
-    # Define a cube:
-    points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1],
-              [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
-    # Pick some faces:
-    faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
+    path = os.environ['MINDBOGGLE_DATA']
+    label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    n_eigenvalues = 6
+    exclude_labels = [0]  #[-1]
+    print("Computing the un-normalized linear FEM Laplace-Beltrami Spectrum\n")
+    print("{0}".format(fem_laplacian_from_labels(label_file, n_eigenvalues,
+                       exclude_labels, normalization=None, area_file=area_file)))
 
-    print("The un-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-        fem_laplacian(points, faces, n_eigenvalues=5)))
 
-    #print("The area-normalized linear FEM Laplace-Beltrami Spectrum is:\n\t{0}\n".format(
-    #    fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")))
+    # import numpy as np
+    # # You should get different outputs if you change the coordinates of points.
+    # # If you do NOT see changes, you may be computing the graph Laplacian.
+    #
+    # # Define a cube:
+    # points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1],
+    #           [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
+    # # Pick some faces:
+    # faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
+    #
+    # print("Computing the un-normalized linear FEM Laplace-Beltrami Spectrum\n\t{0}\n".format(
+    #     fem_laplacian(points, faces, n_eigenvalues=5)))
+
