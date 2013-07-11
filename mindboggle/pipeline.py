@@ -1277,7 +1277,8 @@ if run_SurfFlows:
                            VertexTable, 'fundi')
         else:
             ShapeTables.inputs.fundi = []
-        if do_register_standard:
+
+        if run_VolFlows and run_RegFlows and do_register_standard:
             # if vol_reg_method == 'antsRegister':
             #     mbFlow.connect(regAnts, 'composite_transform',
             #                    VertexTable, 'affine_transform_file')
@@ -1415,7 +1416,7 @@ if run_VolLabelFlow and run_VolFlows:
     #=========================================================================
     # Label non-cortical volumes
     #=========================================================================
-    if do_label_whole_volume and do_register_standard:
+    if run_RegFlows and do_register_standard and do_label_whole_volume:
 
         # Inverse transform subcortical label volumes to subject via template
         LabelVolume = Node(name='Label_volume',
