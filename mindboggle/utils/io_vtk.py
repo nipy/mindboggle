@@ -734,7 +734,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                     exclude_values=[-1], background_value=-1,
                     output_scalar_name='scalars'):
     """
-    Write out a separate VTK file for each integer (>-1)
+    Write out a separate VTK file for each integer (not in exclude_values)
     in (the first) scalar list of an input VTK file.
     Optionally write the values drawn from a second VTK file.
 
@@ -758,6 +758,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> Example 1:  explode sulci with thickness values
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
@@ -767,12 +768,12 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> plot_vtk(example_vtk)
     >>> #
     >>> Example 2:  explode labels
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_values_vtk = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> input_indices_vtk = input_values_vtk
@@ -781,15 +782,14 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
     >>> #
     >>> # View:
-    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '2.vtk')
     >>> plot_vtk(example_vtk)
-
 
     """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
+    from mindboggle.utils.mesh import remove_faces
 
     # Load VTK file:
     faces, lines, indices, points, npoints, scalars, scalar_names, \
@@ -806,23 +806,32 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         values = np.copy(scalars)
 
     # Loop through unique (non-excluded) scalar values:
-    unique_scalars = [int(x) for x in np.unique(scalars)
-                      if x not in exclude_values]
+    unique_scalars = np.unique(scalars)
+    if all(unique_scalars==np.round(unique_scalars)):
+        unique_scalars = [int(x) for x in unique_scalars
+                          if x not in exclude_values]
+    else:
+        unique_scalars = [x for x in unique_scalars
+                          if x not in exclude_values]
+
     for scalar in unique_scalars:
 
+        # Keep only faces with the scalar:
+        scalar_indices = [i for i,x in enumerate(scalars) if x == scalar]
+        scalar_faces = remove_faces(faces, scalar_indices)
+
         # Create array and indices for scalar value:
-        select_scalars = np.copy(scalars)
-        select_scalars[scalars != scalar] = background_value
         select_values = np.copy(values)
         select_values[scalars != scalar] = background_value
-        len_indices = len([i for i,x in enumerate(select_scalars)
-                           if x == scalar])
+        len_indices = len([i for i,x in enumerate(select_values)
+                           if x != background_value])
         print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
         # Write VTK file with scalar value:
-        output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
-        write_vtk(output_vtk, points, indices, lines, faces,
-                  [select_values.tolist()], [output_scalar_name])
+        output_vtk = os.path.join(os.getcwd(),
+                                  output_stem + str(scalar) + '.vtk')
+        write_vtk(output_vtk, points, indices, lines, scalar_faces,
+                  select_values.tolist(), output_scalar_name)
 
 def scalars_checker(scalars, scalar_names):
     """
