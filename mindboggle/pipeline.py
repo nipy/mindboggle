@@ -126,7 +126,7 @@ else:
 # Workflow options
 #=============================================================================
 #-----------------------------------------------------------------------------
-run_RegFlows = True  # Run Mindboggle's registration workflows
+run_RegFlows = 0#True  # Run Mindboggle's registration workflows
 #-----------------------------------------------------------------------------
 do_register_standard = True  # Register volume to standard template
 vol_reg_method = 'ANTS' # Volume registration: 'antsRegister', 'ANTS', 'flirt'
@@ -139,9 +139,9 @@ run_VolFlows = True  # Run Mindboggle's volume workflows
 #-----------------------------------------------------------------------------
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
-do_surf_table = True  # Store surface feature shape measures in a table
-do_vertex_table = True  # Create per-vertex shape table
-do_vol_table = True  # Store volume feature shape measures in a table
+do_surf_table = 0#True  # Store surface feature shape measures in a table
+do_vertex_table = 0#True  # Create per-vertex shape table
+do_vol_table = 0#True  # Store volume feature shape measures in a table
 
 #-----------------------------------------------------------------------------
 run_SurfLabelFlow = True
@@ -151,7 +151,7 @@ run_SurfLabelFlow = True
 # * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
-init_labels = 'DKT_atlas'
+init_labels = 'manual'
 classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 #free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
 #atlas_list = read_columns('mindboggle101_atlases.txt', 1)[0]
@@ -159,7 +159,7 @@ classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 # Labeling protocol used by Mindboggle:
 # * 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 label regions
 # * 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
-protocol = 'DKT25'
+protocol = 'DKT31'
 #
 # Type of atlas labels:
 # * 'manual': manual edits
@@ -169,20 +169,20 @@ atlas_label_type = 'manual'
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
 
 #-----------------------------------------------------------------------------
-run_WholeSurfShapeFlow = True
+run_WholeSurfShapeFlow = 0#True
 #-----------------------------------------------------------------------------
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
 
 #-----------------------------------------------------------------------------
-run_SurfFeatureFlow = True
+run_SurfFeatureFlow = 0#True
 #-----------------------------------------------------------------------------
 do_sulci = True  # Extract sulci
 do_fundi = False  # Extract fundi
 
 #-----------------------------------------------------------------------------
-run_SurfShapeFlow = True
+run_SurfShapeFlow = 0#True
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
@@ -190,12 +190,12 @@ run_VolLabelFlow = True
 #-----------------------------------------------------------------------------
 do_fill_cortex = True  # Fill cortical gray matter with surface labels
 do_input_mask = False
-do_label_whole_volume = True  # Label whole brain (not just cortex)
+do_label_whole_volume = 0#True  # Label whole brain (not just cortex)
 atlas_volume = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #-----------------------------------------------------------------------------
-run_VolShapeFlow = True
+run_VolShapeFlow = 0#True
 #-----------------------------------------------------------------------------
 
 #=============================================================================
@@ -1595,17 +1595,17 @@ from mindboggle.utils.io_table import read_columns
 
 out_path = '/homedir/Data/Mindboggle-101/'
 x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
-atlas_list_file = os.path.join(x_path, 'mindboggle101_atlases.txt')
+atlas_list_file = '/home/arno/Data/Brains/Mindboggle101/code/mindboggle101_atlases.txt'
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
-    #if 'HLN' in atlas or 'Twins' in atlas or
-    #   'Colin' in atlas or 'After' in atlas or
-    #   'MMRR-3T7T' in atlas:
+    if 'HLN' in atlas or 'Twins' in atlas or \
+       'Colin' in atlas or 'After' in atlas or \
+       'MMRR-3T7T' in atlas:
     #if 'MMRR-21' in atlas:
     #if 'OASIS-TRT' in atlas:
     #if 'NKI-TRT' in atlas:
-    if 'NKI-RS' in atlas:
+    #if 'NKI-RS' in atlas:
         cmd = ' '.join(['python pipeline.py', out_path, atlas])
         print(cmd); os.system(cmd)
 """
