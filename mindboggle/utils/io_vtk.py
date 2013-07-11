@@ -732,11 +732,13 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
 def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                     exclude_values=[-1], background_value=-1,
-                    output_scalar_name='scalars'):
+                    output_scalar_name='scalars', remove_background=True,
+                    reindex=True):
     """
     Write out a separate VTK file for each integer (not in exclude_values)
     in (the first) scalar list of an input VTK file.
-    Optionally write the values drawn from a second VTK file.
+    Optionally write the values drawn from a second VTK file,
+    remove background values, and reindex indices.
 
     Parameters
     ----------
@@ -750,8 +752,10 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         values to exclude
     background_value : integer or float
         background value in output VTK files
-    scalar_name : string
-        name of a lookup table of scalars values
+    remove_background : Boolean
+        for each scalar index, replace all other indices with -1?
+    reindex : Boolean
+        reindex all indices in faces?
 
     Examples
     --------
@@ -789,7 +793,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.utils.mesh import reindex_faces_points, remove_faces
 
     # Load VTK file:
     faces, lines, indices, points, npoints, scalars, scalar_names, \
@@ -816,21 +820,36 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
     for scalar in unique_scalars:
 
-        # Keep only faces with the scalar:
-        scalar_indices = [i for i,x in enumerate(scalars) if x == scalar]
-        scalar_faces = remove_faces(faces, scalar_indices)
+        # Remove background (keep only faces with the scalar):
+        if remove_background:
+            scalar_indices = [i for i,x in enumerate(scalars) if x == scalar]
+            scalar_faces = remove_faces(faces, scalar_indices)
+        else:
+            scalar_faces = faces
+
+        # Reindex:
+        if reindex:
+            scalar_faces, select_points = reindex_faces_points(scalar_faces,
+                                                               points)
+        else:
+            select_points = points
 
         # Create array and indices for scalar value:
-        select_values = np.copy(values)
-        select_values[scalars != scalar] = background_value
-        len_indices = len([i for i,x in enumerate(select_values)
-                           if x != background_value])
+        if reindex:
+            len_indices = len(select_points)
+            select_values = scalar * np.ones(len_indices)
+        else:
+            select_values = np.copy(values)
+            select_values[scalars != scalar] = background_value
+            len_indices = len([i for i,x in enumerate(select_values)
+                               if x != background_value])
+
         print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
         # Write VTK file with scalar value:
         output_vtk = os.path.join(os.getcwd(),
                                   output_stem + str(scalar) + '.vtk')
-        write_vtk(output_vtk, points, indices, lines, scalar_faces,
+        write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
                   select_values.tolist(), output_scalar_name)
 
 def scalars_checker(scalars, scalar_names):
