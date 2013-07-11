@@ -371,6 +371,7 @@ def find_adjacent_faces(faces):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
+        (-1 indicates no result for a given face or vertex)
 
     Returns
     -------
