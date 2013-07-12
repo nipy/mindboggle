@@ -8,7 +8,7 @@ import copy_reg
 import types
 import itertools
 
-from .Dabc_orig_m import orig as Dabc_orig
+from .Dabc_orig_m import iter_rev_sum as Dabc_orig
 from .D_CV_orig_m import D_CV_orig
 from .D_SG_orig_m import D_SG_orig
 from .D_SG_orig_part_m import D_SG_orig_part
@@ -45,7 +45,7 @@ class MultiprocPipeline(object) :
     def __init__(self) :
         self.tic_time = None
 
-    def Dabc_orig(*args,**dargs) : return Dabc_orig(*args,**dargs)
+    def Dabc_orig(*args,**dargs) : return Dabc_orig(*args,**dargs) # you have to do this for "import ... as ..." functions that are run asynch
     def display(self,astring,*args) :
         if len(args) > 0 : astring = astring.format(*args)
         print astring
@@ -55,7 +55,7 @@ class MultiprocPipeline(object) :
         elif len(args) == 2 : return xrange(args[0],args[1]+1)
         elif len(args) == 3 : return xrange(args[0],args[1]+1,args[2])
         else : raise Exception()
-    def irng(self,*args,**dargs) :
+    def rng_prod(self,*args,**dargs) :
         args = tuple([ self.rng(*a) for a in args ])
         return itertools.product(*args,**dargs)
     def factorial(self,*args,**dargs) : return scipy.misc.factorial(*args,**dargs)

@@ -79,7 +79,7 @@ def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #
     cfg.display('D_CV_orig')                                                  #display('Dabc_orig')
                                                                               #%matlabpool close
     POOL = multiprocessing.Pool()                                             #%matlabpool local 8
-    def callback_factory(fct) :
+    def D_CV_callback_factory(fct) :
         def callback(result) :
             C_temp, Vol_temp = result
             C_temp_lookup[fct] = C_temp
@@ -92,7 +92,7 @@ def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #
         #if cfg.mod(facet,1000) == 0 :                                         #    if mod(facet,1000) == 0
         #    cfg.display('Facet: {} of {}',facet,num_facets)                   #        display(['Facet: ' num2str(facet) ' of ' num2str(num_facets)])
                                                                               #    end
-        POOL.apply_async( cfg.D_CV_orig, (facet,num_vertices,N,X,K,tri_matrix), callback=callback_factory(facet) ) #    [C_temp Vol_temp] = D_CV_orig(facet,num_vertices,N,X,K,tri_matrix);
+        POOL.apply_async( cfg.D_CV_orig, (facet,num_vertices,N,X,K,tri_matrix), callback=D_CV_callback_factory(facet) ) #    [C_temp Vol_temp] = D_CV_orig(facet,num_vertices,N,X,K,tri_matrix);
     POOL.close()
     POOL.join()
 
@@ -105,13 +105,13 @@ def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #
                                                                               #end
     cfg.display('Dabc_orig')
     POOL = multiprocessing.Pool()
-    def callback_factory(fct) :
+    def Dabc_callback_factory(fct) :
         def callback(result) :
             D[fct-1,:,:,:] = result #!
         return callback
 
     for facet in cfg.rng(1,num_facets) :
-        POOL.apply_async( cfg.Dabc_orig, (C_temp_lookup[facet], N), callback=callback_factory(facet))        #    D(facet,:,:,:)=Dabc_orig(C_temp,N);               
+        POOL.apply_async( cfg.Dabc_orig, (C_temp_lookup[facet], N), callback=Dabc_callback_factory(facet))        #    D(facet,:,:,:)=Dabc_orig(C_temp,N);              
     POOL.close()
     POOL.join()
                                                                               #clear C_temp Vol_temp
@@ -122,11 +122,16 @@ def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #
                                                                               #% GEOMETRIC MOMENTS;
     F = cfg.factorial_precalc(N)                                              #F = factorial_precalc(N);
     G = cfg.zeros(N+1,N+1,N+1)                                                #G=zeros(N+1,N+1,N+1);
+    POOL = multiprocessing.Pool()
+    def D_SG_callback_factory(ii) :
+        def callback(result) :
+            G[ii,:,:] = result
+        return callback
+
     for i in cfg.rng(0,N) :                                                   #for i=0:N
-        cfg.tic()                                                             #    tic
-        cfg.display('Order: {} of {}',i,N)                                    #    display(['Order: ' num2str(i) ' of ' num2str(N)])
-        G[i,:,:] = cfg.D_SG_orig(num_facets,i,N,C1,D,Vol,F) #!                #    G(i+1,:,:)=D_SG_orig(num_facets,i,N,C1,D,Vol,F);
-        cfg.display('Computed Order {} in {} seconds',i,cfg.toc())            #    display(['Computed Order ' num2str(i) ' in ' num2str(toc) 'seconds'])
+        POOL.apply_async( cfg.D_SG_orig, (num_facets,i,N,C1,D,Vol,F), callback=D_SG_callback_factory(i)) #!                #    G(i+1,:,:)=D_SG_orig(num_facets,i,N,C1,D,Vol,F);
+    POOL.close()
+    POOL.join()
                                                                               #end
     return G
 

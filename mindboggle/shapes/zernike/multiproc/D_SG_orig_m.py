@@ -8,7 +8,7 @@ def D_SG_orig(cfg,num_facets,i,N,C,D,Vol,F) :                    #function G = D
                                                                  #        
             S = cfg.D_SG_orig_part(num_facets,i,j,k,C,D,S,Vol,F) #        S = D_SG_orig_part(num_facets,i,j,k,C,D,S,Vol,F);
                                                                  #        % Geometric moments after summing through all facets
-            G[j,k]=cfg.sum(S[:,i,j,k]) #!                          #        G(j+1,k+1)=sum(S(:,i+1,j+1,k+1));
+            G[j,k]=cfg.sum(S[:,i,j,k]) #!                        #        G(j+1,k+1)=sum(S(:,i+1,j+1,k+1));
                                                                  #    end
                                                                  #end
     return G
