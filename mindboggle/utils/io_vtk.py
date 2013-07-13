@@ -732,8 +732,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
 def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                     exclude_values=[-1], background_value=-1,
-                    output_scalar_name='scalars', remove_background=True,
-                    reindex=True):
+                    output_scalar_name='scalars',
+                    remove_background_faces=True, reindex=True):
     """
     Write out a separate VTK file for each integer (not in exclude_values)
     in (the first) scalar list of an input VTK file.
@@ -752,8 +752,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         values to exclude
     background_value : integer or float
         background value in output VTK files
-    remove_background : Boolean
-        for each scalar index, replace all other indices with -1?
+    remove_background_faces : Boolean
+        remove all faces whose three vertices are not all a given index?
     reindex : Boolean
         reindex all indices in faces?
 
@@ -779,7 +779,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_values_vtk = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> input_values_vtk = os.path.join(path, 'arno', 'labels',
+    >>>                                 'lh.labels.DKT25.manual.vtk')
     >>> input_indices_vtk = input_values_vtk
     >>> output_stem = 'label'
     >>> #
@@ -821,7 +822,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     for scalar in unique_scalars:
 
         # Remove background (keep only faces with the scalar):
-        if remove_background:
+        if remove_background_faces:
             scalar_indices = [i for i,x in enumerate(scalars) if x == scalar]
             scalar_faces = remove_faces(faces, scalar_indices)
         else:
