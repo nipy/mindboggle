@@ -133,7 +133,7 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
             weighted_edges = np.asarray([[edge_mat[i,0],
                                           edge_mat[i,1],
                                           affinity_matrix[edge_mat[i]]]
-                                          for i in xrange(affinity_matrix.shape[0])])
+                                          for i in range(affinity_matrix.shape[0])])
             print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
