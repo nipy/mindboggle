@@ -101,7 +101,7 @@ class Bounds:
                 print('Please enter a fractional number less than or equal to 1.')
                 return
             randoms = np.array([np.mod(i, int(1.0/fraction))
-                                for i in xrange(self.num_points)])
+                                for i in range(self.num_points)])
             self.seed_labels[randoms==0] = 1
 
         # Replace the 1s in self.seed_labels with the seed label values
@@ -145,7 +145,7 @@ class Bounds:
 
         # Populate the label assignment matrix with -1s and 1s for seed labels
         # For each row...
-        for i in xrange(n):
+        for i in range(n):
             if self.seed_labels[i] >= self.min_label:
                 self.label_matrix[i, :] = -1
                 unique_label_index = np.where(self.unique_labels == self.seed_labels[i])[0]
@@ -633,7 +633,7 @@ class Bounds:
         print('Finding intersection of segment with polylines...')
         intersection = [0,0]
 
-        for i in xrange(2):
+        for i in range(2):
             pointer = endpoint[i]
             used_vertices = [pointer]
             neighbors = []
@@ -804,7 +804,7 @@ class Bounds:
               closest_distances.shape, closest_distances[:10]))
 
         second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]]
-                                               for i in xrange(self.polyline_elements.size)])
+                                               for i in range(self.polyline_elements.size)])
         print('Got second closest distances. Bounds is {0}. First few values are {1}'.format(
               second_closest_distances.shape, second_closest_distances[:10]))
 
@@ -815,10 +815,10 @@ class Bounds:
         polylines_lb = dict((self.polyline_elements[i],
                              (self.label_boundary[closest_label_boundary[i]],
                               distance_matrix[i,closest_label_boundary[i]]))
-                                              for i in xrange(self.polyline_elements.size))
+                                              for i in range(self.polyline_elements.size))
         lb_polylines = dict((self.label_boundary[i],
                              (self.polyline_elements[closest_polylines[i]],
-                              distance_matrix[closest_polylines[i],i])) for i in xrange(self.label_boundary.size))
+                              distance_matrix[closest_polylines[i],i])) for i in range(self.label_boundary.size))
 
         print('The polylines to label boundary mapping is: {0}'.format(polylines_lb))
         print('The label boundary to polylines mapping is: {0}'.format(lb_polylines))
@@ -861,8 +861,8 @@ class Bounds:
             top_five_indices = sorted_distances[fundus_index,:5].flatten()
             top_five_lbvertices = self.label_boundary[top_five_indices]
             spread_matrix = np.zeros((top_five_lbvertices.size,top_five_lbvertices.size))
-            for i in xrange(top_five_lbvertices.size):
-                for j in xrange(top_five_lbvertices.size):
+            for i in range(top_five_lbvertices.size):
+                for j in range(top_five_lbvertices.size):
                     v1 = top_five_lbvertices[i]
                     v2 = top_five_lbvertices[j]
                     spread_matrix[i,j] = np.linalg.norm(self.Points[v1] - self.Points[v2])

@@ -234,13 +234,13 @@ def vote_labels(label_lists):
     print("Begin voting...")
     n_atlases = len(label_lists)  # number of atlases used to label subject
     npoints = len(label_lists[0])
-    labels_max = [-1 for i in xrange(npoints)]
-    label_counts = [1 for i in xrange(npoints)]
-    label_votes = [n_atlases for i in xrange(npoints)]
+    labels_max = [-1 for i in range(npoints)]
+    label_counts = [1 for i in range(npoints)]
+    label_votes = [n_atlases for i in range(npoints)]
 
     consensus_vertices = []
-    for vertex in xrange(npoints):
-        votes = Counter([label_lists[i][vertex] for i in xrange(n_atlases)])
+    for vertex in range(npoints):
+        votes = Counter([label_lists[i][vertex] for i in range(n_atlases)])
 
         labels_max[vertex] = votes.most_common(1)[0][0]
         label_votes[vertex] = votes.most_common(1)[0][1]
