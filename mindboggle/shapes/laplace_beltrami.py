@@ -465,9 +465,10 @@ def fem_laplacian(points, faces, n_eigenvalues=6, background=-1,
     # Check to see if there are enough points:
     min_npoints = n_eigenvalues
     npoints = len(points)
-    if npoints < min_npoints:
-        print("The input size {0} should be much larger than n_eigenvalues {1}".\
-              format(npoints, n_eigenvalues))
+    if npoints < min_npoints or len(faces) < min_npoints:
+        print("The input size {0} ({1} faces) should be much larger "
+              "than n_eigenvalues {2}".\
+              format(npoints, len(faces), n_eigenvalues))
         return None
     else:
 
