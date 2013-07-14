@@ -126,7 +126,7 @@ else:
 # Workflow options
 #=============================================================================
 #-----------------------------------------------------------------------------
-run_RegFlows = 0#True  # Run Mindboggle's registration workflows
+run_RegFlows = True  # Run Mindboggle's registration workflows
 #-----------------------------------------------------------------------------
 do_register_standard = True  # Register volume to standard template
 vol_reg_method = 'ANTS' # Volume registration: 'antsRegister', 'ANTS', 'flirt'
@@ -169,20 +169,20 @@ atlas_label_type = 'manual'
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
 
 #-----------------------------------------------------------------------------
-run_WholeSurfShapeFlow = 0#True
+run_WholeSurfShapeFlow = True
 #-----------------------------------------------------------------------------
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
 
 #-----------------------------------------------------------------------------
-run_SurfFeatureFlow = 0#True
+run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
 do_sulci = True  # Extract sulci
 do_fundi = False  # Extract fundi
 
 #-----------------------------------------------------------------------------
-run_SurfShapeFlow = 0#True
+run_SurfShapeFlow = True
 #-----------------------------------------------------------------------------
 
 #-----------------------------------------------------------------------------
