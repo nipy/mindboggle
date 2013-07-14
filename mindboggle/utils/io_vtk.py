@@ -46,7 +46,7 @@ def read_vertices(Filename):
     Data = Reader.GetOutput()
 
     Vrts = Data.GetVerts()
-    indices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+    indices = [Vrts.GetData().GetValue(i) for i in range(1, Vrts.GetSize())]
 
     return indices
 
@@ -80,15 +80,15 @@ def read_lines(Filename):
     Data = Reader.GetOutput()
     Lns = Data.GetLines()
 
-    lines  = [[Lns.GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ]
-              for i in xrange(Data.GetNumberOfLines())]
+    lines  = [[Lns.GetData().GetValue(j) for j in range(i*3+1, i*3+3) ]
+              for i in range(Data.GetNumberOfLines())]
 
     PointData = Data.GetPointData()
     print("There are {0} scalars in file {1}".format(
         Reader.GetNumberOfscalarsInFile(), Filename))
     print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+    scalars = [ScalarsArray.GetValue(i) for i in range(0, ScalarsArray.GetSize())]
 
     return lines, scalars
 
@@ -116,7 +116,7 @@ def read_points(filename):
 
     Data = Reader.GetOutput()
     points = [list(Data.GetPoint(point_id))
-              for point_id in xrange(Data.GetNumberOfPoints())]
+              for point_id in range(Data.GetNumberOfPoints())]
 
     return points
 
@@ -157,13 +157,13 @@ def read_faces_points(filename):
 
     Data = Reader.GetOutput()
     points = [list(Data.GetPoint(point_id))
-              for point_id in xrange(Data.GetNumberOfPoints())]
+              for point_id in range(Data.GetNumberOfPoints())]
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
         faces = [[int(Data.GetPolys().GetData().GetValue(j))
-                  for j in xrange(i*4 + 1, i*4 + 4)]
-                  for i in xrange(Data.GetPolys().GetNumberOfCells())]
+                  for j in range(i*4 + 1, i*4 + 4)]
+                  for i in range(Data.GetPolys().GetNumberOfCells())]
     else:
         faces = []
 
@@ -304,26 +304,26 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     Data = Reader.GetOutput()
     PointData = Data.GetPointData()
     points = [list(Data.GetPoint(point_id))
-              for point_id in xrange(0, Data.GetNumberOfPoints())]
+              for point_id in range(0, Data.GetNumberOfPoints())]
     npoints = len(points)
 
     if Data.GetNumberOfPolys() > 0:
         faces = [[int(Data.GetPolys().GetData().GetValue(j))
-                  for j in xrange(i*4 + 1, i*4 + 4)]
-                  for i in xrange(Data.GetPolys().GetNumberOfCells())]
+                  for j in range(i*4 + 1, i*4 + 4)]
+                  for i in range(Data.GetPolys().GetNumberOfCells())]
     else:
         faces = []
 
     if Data.GetNumberOfLines() > 0:
         lines  = [[Data.GetLines().GetData().GetValue(j)
-                   for j in xrange(i*3+1, i*3+3) ]
-                   for i in xrange(Data.GetNumberOfLines())]
+                   for j in range(i*3+1, i*3+3) ]
+                   for i in range(Data.GetNumberOfLines())]
     else:
         lines = []
 
     if Data.GetNumberOfVerts() > 0:
        indices = [Data.GetVerts().GetData().GetValue(i)
-                  for i in xrange(1, Data.GetVerts().GetSize() )]
+                  for i in range(1, Data.GetVerts().GetSize() )]
     else:
        indices = []
 
@@ -345,7 +345,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
                 scalar = [scalar_array.GetValue(i)
-                          for i in xrange(scalar_array.GetSize())]
+                          for i in range(scalar_array.GetSize())]
                 scalars.append(scalar)
                 scalar_names.append(scalar_name)
 
@@ -571,12 +571,12 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
+    >>> points = [[random.random() for i in [1,2,3]] for j in range(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
     >>> faces = [[1,2,3],[0,1,3]]
     >>> scalar_names = ['curv','depth']
-    >>> scalars = [[random.random() for i in xrange(4)] for j in [1,2]]
+    >>> scalars = [[random.random() for i in range(4)] for j in [1,2]]
     >>> #
     >>> write_vtk('write_vtk.vtk', points,
     >>>          indices, lines, faces, scalars, scalar_names)
@@ -606,7 +606,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     if indices:
         write_vertices(Fp, indices)
     if lines:
-        for i in xrange(0,len(lines)):
+        for i in range(0,len(lines)):
             lines[i] = [lines[i][0], lines[i][1]]
         write_faces(Fp, lines) # write_faces can write either lines or faces
     if faces:
