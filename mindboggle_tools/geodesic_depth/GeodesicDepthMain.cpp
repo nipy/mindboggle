@@ -16,6 +16,10 @@ int main(int argc, char** argv)
     MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
     depthComputer->ComputeGeodesicDepthFromClosed(true);
     depthComputer->WriteIntoFile(argv[2],(char*)"geoDepth");
+    
+    if(argc > 3) {
+        depthComputer->WriteIntoFile(argv[3],(char*)"closed");
+    }
 
     cout<<"Elapsed time (geodesic depth): "<<time(NULL)-start<<" s"<<endl;
     return 0;
