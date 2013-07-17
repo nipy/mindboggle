@@ -33,6 +33,42 @@ def area(command, surface_file):
 
     return area_file
 
+
+def area_of_faces(points, faces):
+    """
+    Compute the areas of all triangles on the mesh.
+
+    Parameters
+    ----------
+    points : list of lists of 3 floats
+        x,y,z coordinates for each vertex of the structure
+    faces : list of lists of 3 integers
+        3 indices to vertices that form a triangle on the mesh
+
+    Returns
+    -------
+    area: 1-D numpy array
+        area[i] is the area of the i-th triangle
+
+    """
+    import numpy as np
+
+    area = np.zeros(len(faces))
+
+    points = np.array(points)
+
+    for i, triangle in enumerate(faces):
+
+        a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
+        b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
+        c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
+        s = (a+b+c) / 2.0
+
+        area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
+
+    return area
+
+
 def travel_depth(command, surface_file):
     """
     Measure "travel depth" of each vertex in a surface mesh.
@@ -56,6 +92,7 @@ def travel_depth(command, surface_file):
 
     return depth_file
 
+
 def geodesic_depth(command, surface_file):
     """
     Measure "travel depth" of each vertex in a surface mesh.
@@ -78,6 +115,7 @@ def geodesic_depth(command, surface_file):
     cli.run()
 
     return depth_file
+
 
 def curvature(command, method, arguments, surface_file):
     """
@@ -159,6 +197,7 @@ def curvature(command, method, arguments, surface_file):
 
     return mean_curvature_file, gauss_curvature_file, \
            max_curvature_file, min_curvature_file, min_curvature_vector_file
+
 
 def means_per_label(values, labels, exclude_labels, areas=[]):
     """
@@ -271,6 +310,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
 
     return means, sdevs, label_list, label_areas
 
+
 def sum_per_label(values, labels, exclude_labels):
     """
     Compute the sum value across vertices per label.
@@ -324,6 +364,7 @@ def sum_per_label(values, labels, exclude_labels):
             sums.append(0)
 
     return sums, label_list
+
 
 def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     """
@@ -456,6 +497,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     return medians, mads, means, sdevs, skews, kurts, \
            lower_quarts, upper_quarts, label_list
 
+
 def volume_per_label(labels, input_file):
     """
     Compute volume per labeled region in a nibabel-readable (e.g., nifti) image.
@@ -510,6 +552,7 @@ def volume_per_label(labels, input_file):
     labels_volumes = [labels, volumes.tolist()]
 
     return labels_volumes
+
 
 def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars'):
