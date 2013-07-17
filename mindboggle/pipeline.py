@@ -1120,6 +1120,7 @@ if run_SurfShapeFlow and run_SurfFlows:
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
 
+    """
     if do_measure_zernike:
         #=====================================================================
         # Measure Zernike moments of labeled regions
@@ -1140,7 +1141,7 @@ if run_SurfShapeFlow and run_SurfFlows:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
             mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
-        """
+    """
 
 ##############################################################################
 #
