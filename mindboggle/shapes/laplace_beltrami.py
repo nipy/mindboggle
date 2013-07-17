@@ -540,7 +540,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
     npoints = len(points)
     if npoints < min_npoints or len(faces) < min_npoints:
         print("The input size {0} ({1} faces) should be much larger "
-              "than n_eigenvalues {2}".\
+              "than n_eigenvalues {2}".
               format(npoints, len(faces), n_eigenvalues))
         return None
     else:
