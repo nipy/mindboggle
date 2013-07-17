@@ -33,11 +33,16 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+
 def computeAB(points, faces):
     """
     Compute matrices for the Laplace-Beltrami operator.
 
     The matrices correspond to A and B from Reuter's 2009 article.
+
+    Note ::
+        All points must be on faces. Otherwise, a singular matrix error
+        is generated when inverting D.
 
     Parameters
     ----------
@@ -56,36 +61,32 @@ def computeAB(points, faces):
     --------
     >>> # Define a cube, then compute A and B on a selection of faces.
     >>> import numpy as np
-    >>> from mindboggle.shapes.laplace_beltrami import computeAB, print_sparse_matrix
+    >>> from mindboggle.shapes.laplace_beltrami import computeAB
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> points = np.array(points)
-    >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]] # note, all points must be on faces. O/w, you get singular matrix error when inverting D
+    >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> faces = np.array(faces)
     >>> #
     >>> A, B = computeAB(points, faces)
     >>> #
-    >>> print_sparse_matrix(A)
-        The sparse matrix:
-
-        1.5000-1.0000-0.5000    0    0    0    0    0
-        -1.00002.0000    0    0-0.5000    0    0-0.5000
-        -0.5000    02.0000-0.5000-1.0000    0    0    0
-        0    0-0.50002.5607-0.3536-1.2071-0.5000    0
-        0-0.5000-1.0000-0.35361.8536    0    0    0
-        0    0    0-1.2071    01.2071    0    0
-        0    0    0-0.5000    0    00.5000    0
-        0-0.5000    0    0    0    0    00.5000
-    >>> print_sparse_matrix(B)
-        The sparse matrix:
-
-        0.25000.08330.0417    00.0833    0    00.0417
-        0.08330.1667    0    00.0417    0    00.0417
-        0.0417    00.16670.04170.0833    0    0    0
-        0    00.04170.28450.10060.10060.0417    0
-        0.08330.04170.08330.10060.36790.0589    0    0
-        0    0    00.10060.05890.20120.0417    0
-        0    0    00.0417    00.04170.0833    0
-        0.04170.0417    0    0    0    0    00.0833
+    >>> print(A.toarray())
+        [[ 1.5  -1.   -0.5   0.    0.    0.    0.    0.  ]
+         [-1.    2.    0.    0.   -0.5   0.    0.    -0.5  ]
+         [-0.5   0.    2.   -0.5  -1.    0.    0.    0.  ]
+         [ 0.    0.   -0.5   2.56066017 -0.35355339 -1.20710678 -0.5   0.  ]
+         [ 0.   -0.5  -1.   -0.35355339  1.85355339  0.    0.    0.  ]
+         [ 0.    0.    0.   -1.20710678  0.    1.20710678    0.    0.  ]
+         [ 0.    0.    0.   -0.5   0.    0.    0.5    0.  ]
+         [ 0.   -0.5   0.    0.    0.    0.    0.    0.5]]
+    >>> print(B.toarray())
+        [[ 0.25  0.08333333  0.04166667  0.    0.08333333  0.    0.    0.04166667]
+         [ 0.08333333  0.16666667  0.    0.    0.04166667  0.    0.    0.04166667]
+         [ 0.04166667  0.    0.16666667  0.04166667  0.08333333  0.    0.    0.  ]
+         [ 0.    0.    0.04166667  0.2845178   0.10059223  0.10059223    0.04166667  0.  ]
+         [ 0.08333333  0.04166667  0.08333333  0.10059223  0.36785113  0.05892557  0.  0.  ]
+         [ 0.    0.    0.    0.10059223  0.05892557  0.20118446    0.04166667  0.  ]
+         [ 0.    0.    0.    0.04166667  0.    0.04166667    0.08333333  0.  ]
+         [ 0.04166667  0.04166667  0.    0.    0.    0.    0.     0.08333333]]
 
     """
     import numpy as np
@@ -179,58 +180,10 @@ def computeAB(points, faces):
 
     return A, B
 
-def print_sparse_matrix(M):
-    """
-    Print sparse matrix.
-
-    Note ::
-        print() command not suitable for Python 3.0.
-    """
-    print("\nThe sparse matrix:\n")
-    for Row in M.toarray().tolist():
-        for E in Row:
-            if E == 0:
-                print "0\t".rjust(6),
-            else:
-                print "{0:2.4f}\t".format(E),
-        print("")
-
-def compute_area(points, faces):
-    """
-    Compute the areas of all triangles on the mesh.
-
-    Parameters
-    ----------
-    points : list of lists of 3 floats
-        x,y,z coordinates for each vertex of the structure
-    faces : list of lists of 3 integers
-        3 indices to vertices that form a triangle on the mesh
-
-    Returns
-    -------
-    area: 1-D numpy array
-        area[i] is the area of the i-th triangle
-
-    """
-    import numpy as np
-
-    area = np.zeros(len(faces))
-
-    points = np.array(points)
-
-    for i, triangle in enumerate(faces):
-
-        a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
-        b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
-        c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
-        s = (a+b+c) / 2.0
-
-        area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
-
-    return area
 
 def area_normalize(points, faces, spectrum):
-    """Normalize the spectrum for one shape using areas as suggested in Reuter et al. 2006
+    """
+    Normalize a spectrum using areas as suggested in Reuter et al. (2006)
 
     Parameters
     ------------
@@ -246,42 +199,41 @@ def area_normalize(points, faces, spectrum):
     new_spectrum : list of floats
         LB spectrum normalized by area
     """
+    from mindboggle.shapes.measure import area_of_faces
 
-    area = compute_area(points, faces)
-    total_area = sum(area) # the area of the entire shape
+    area = area_of_faces(points, faces)
+    total_area = sum(area)
 
     new_spectrum = [x/total_area for x in spectrum]
 
     return new_spectrum
 
+
 def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     """
     Weighted Spectral Distance. See Konukoglu et al. (2012)
 
-    Parameters
-    ---------------
+    Note ::
+        At present, algorithm doesn't return normalized result.
+        It therefore doesn't require calculation of volume.
 
+    Parameters
+    ----------
     EVAL1 : numpy array of floats
         LB spectrum from the 1st shape
-
     EVAL2 : numpy array of floats
         LB spectrum from the 2nd shape
-
     Vol1: float
         Volume (area for 2D) of the 1st shape
-
     Vol2: float
         Volume (area for 2D) of the 2nd shape
-
     show_error: boolean
         Whether display the error of WESD using Eqs.(9) and (10) in Konukoglu et al. (2012).
         default: false
-
     N : integer
         The length of spetrum used (N>=3, default: 3)
 
     """
-    # At present, algorithm doesn't return normalized result. It therefore doesn't require calculation of volume.
 
     d = 2.0 # " a surface is a 2d manifold. It doesn't matter that it is usually embedded in 3d Euclidean space. -Martin"
     Ball = 4.0/3*np.pi # For Three Dimensions
@@ -311,13 +263,15 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
 
     return WESD
 
+
 def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     """
-    Compute linear FEM Laplace-Beltrami after Martin Reuter's MATLAB code.
+    Compute linear finite-element method Laplace-Beltrami spectrum
+    after Martin Reuter's MATLAB code.
 
     Note ::
 
-        Compare fem_laplacian with Martin Reuter's Matlab code output:
+        Compare fem_laplacian() with Martin Reuter's Matlab code output:
 
         fem_laplacian() results for Twins-2-1 left hemisphere:
         [4.829758648026223e-18,
@@ -435,6 +389,7 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
          6.593336681038091e-07,
          9.759983608165455e-07,
          1.1342589857996225e-06]
+
     """
     from scipy.sparse.linalg import eigsh, lobpcg
     import numpy as np
@@ -488,10 +443,10 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     return spectrum
 
 
-def fem_laplacian_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
-                          normalization=None, areas=None):
+def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
+                        normalization=None, areas=None):
     """
-    Compute linear FEM Laplace-Beltrami spectra on largest connected segment.
+    Compute Laplace-Beltrami spectrum on largest connected segment.
 
     In case a surface patch is fragmented, we select the largest fragment,
     remove extraneous triangular faces, and reindex indices.
@@ -524,7 +479,7 @@ def fem_laplacian_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import remove_faces
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_largest
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -539,7 +494,7 @@ def fem_laplacian_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
     >>> faces = remove_faces(faces, I2)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
-    >>> fem_laplacian_largest(points, faces, n_eigenvalues, exclude_labels,
+    >>> spectrum_of_largest(points, faces, n_eigenvalues, exclude_labels,
     >>>                       normalization, areas)
     >>> #
     >>> # View:
@@ -653,10 +608,10 @@ def fem_laplacian_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
             return None
 
 
-def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
-                              normalization='area', area_file=''):
+def spectrum_per_label(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
+                       normalization='area', area_file=''):
     """
-    Compute linear FEM Laplace-Beltrami spectra from each labeled region in a file.
+    Compute Laplace-Beltrami spectrum per labeled region in a file.
 
     Parameters
     ----------
@@ -683,13 +638,13 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     --------
     >>> # Spectrum for label 22 (postcentral) in Twins-2-1:
     >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+    >>> from mindboggle.shapes.laplace_beltrami import laplacian_per_label
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> n_eigenvalues = 6
     >>> exclude_labels = [0]  #[-1]
-    >>> fem_laplacian_from_labels(vtk_file, n_eigenvalues, exclude_labels,
+    >>> laplacian_per_label(vtk_file, n_eigenvalues, exclude_labels,
     >>>                           normalization=None, area_file=area_file)
         Load "Labels" scalars from lh.labels.DKT25.manual.vtk
         Load "scalars" scalars from lh.pial.area.vtk
@@ -707,7 +662,7 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
     from mindboggle.utils.mesh import remove_faces
-    from mindboggle.shapes.laplace_beltrami import fem_laplacian_largest
+    from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
 
     # Read VTK surface mesh file:
     faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(vtk_file)
@@ -735,8 +690,8 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
         select_faces = remove_faces(faces, label_indices)
 
         # Compute Laplace-Beltrami spectrum for the label:
-        spectrum = fem_laplacian_largest(points, select_faces, n_eigenvalues,
-                                         exclude_labels, normalization, areas)
+        spectrum = spectrum_of_largest(points, select_faces, n_eigenvalues,
+                                       exclude_labels, normalization, areas)
 
         # Append to a list of lists of spectra:
         spectrum_lists.append(spectrum)
@@ -744,10 +699,11 @@ def fem_laplacian_from_labels(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
 
     return spectrum_lists, label_list
 
-def fem_laplacian_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
-                            normalization=None, area_file=''):
+
+def spectrum_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
+                       normalization=None, area_file=''):
     """
-    Compute linear FEM Laplace-Beltrami spectrum of a 3D shape in a VTK file.
+    Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
 
     Parameters
     ----------
@@ -772,10 +728,10 @@ def fem_laplacian_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
     --------
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
     >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_file
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> fem_laplacian_from_file(vtk_file, n_eigenvalues=6)
+    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
         Load "Labels" scalars from lh.labels.DKT25.manual.vtk
         Linear FEM Laplace-Beltrami spectrum:
         [4.829758648026221e-18,
@@ -786,10 +742,10 @@ def fem_laplacian_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
          0.0005768904023010338]
     >>> # Spectrum for label 22 (postcentral) (after running explode_scalars()):
     >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_file
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> fem_laplacian_from_file(vtk_file, n_eigenvalues=6)
+    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
         Load "scalars" scalars from label22.vtk
         Linear FEM Laplace-Beltrami spectrum:
         [6.3469513010430304e-18,
@@ -801,7 +757,7 @@ def fem_laplacian_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
 
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.shapes.laplace_beltrami import fem_laplacian_largest
+    from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
 
     faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(vtk_file)
 
@@ -811,8 +767,8 @@ def fem_laplacian_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
     else:
         areas = None
 
-    spectrum = fem_laplacian_largest(points, faces, n_eigenvalues,
-                                     exclude_labels, normalization, areas)
+    spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
+                                   exclude_labels, normalization, areas)
 
     return spectrum
 
