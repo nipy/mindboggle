@@ -759,14 +759,14 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
     Examples
     --------
-    >>> Example 1:  explode sulci with thickness values
+    >>> # Example 1:  explode sulci with thickness values
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
-    >>> output_stem = 'sulci_thickness'
+    >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> output_stem = 'sulci_depth'
     >>> #
     >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
     >>> #
@@ -774,7 +774,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
     >>> plot_vtk(example_vtk)
     >>> #
-    >>> Example 2:  explode labels
+    >>> # Example 2:  explode labels
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
     >>> from mindboggle.utils.plots import plot_vtk
