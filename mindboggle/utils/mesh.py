@@ -572,7 +572,7 @@ def remove_neighbor_lists(neighbor_lists, indices):
 #-----------------------------------------------------------------------------
 # Decimate mesh
 #-----------------------------------------------------------------------------
-def decimate(points, faces, reduction=0.5, smooth_steps=100):
+def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     """
     Decimate vtk triangular mesh with vtk.vtkDecimatePro.
 
@@ -587,6 +587,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100):
         fraction of mesh faces to remove
     smooth_steps : integer
         number of smoothing steps
+    output_vtk : string
+        output decimated vtk file
 
     Returns
     -------
@@ -594,6 +596,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100):
         decimated points
     faces : list of lists of integers
         decimated faces
+    output_vtk : string
+        output decimated vtk file
 
     Examples
     --------
@@ -606,15 +610,18 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100):
     >>> smooth_steps = 100
     >>> faces, lines, indices, points, npoints, scalars, scalar_names, \
     >>>     o2  = read_vtk(input_vtk)
-    >>> points, faces = decimate(points, faces, reduction=reduction,
-    >>>                          smooth_steps=smooth_steps)
+    >>> points, faces, output_vtk = decimate(points, faces, reduction,
+    >>>                                      smooth_steps, output_vtk='')
     >>> # View:
     >>> write_vtk('decimated.vtk', points, indices, lines, faces, scalars,
     >>>           scalar_names)
     >>> os.system('mayavi2 -d ' + output_vtk + ' -m Surface &')
 
     """
+    import os
     import vtk
+
+    from mindboggle.utils.io_vtk import read_vtk
 
     # vtk points:
     vtk_points = vtk.vtkPoints()
@@ -642,22 +649,35 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100):
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
+    # Export output:
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(), 'decimated_file.vtk')
+    exporter = vtk.vtkPolyDataWriter()
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
         smoother.SetInputConnection(decimate.GetOutputPort())
         smoother.SetNumberOfIterations(smooth_steps)
-        output = smoother.GetOutput()
+        exporter.SetInput(smoother.GetOutput())
     else:
-        output = decimate.GetOutput()
+        exporter.SetInput(decimate.GetOutput())
+    exporter.SetFileName(output_vtk)
+    exporter.Write()
 
     # Extract points and faces:
-    points = [list(output.GetPoint(x))
-              for x in range(output.GetNumberOfPoints())]
-    faces = [[int(output.GetPolys().GetData().GetValue(j))
-              for j in range(i*3 + 1, i*3 + 3)]
-              for i in range(output.GetPolys().GetNumberOfCells())]
+    faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(output_vtk)
 
-    return points, faces
+
+#    points = [list(out.GetPoint(point_id))
+#              for point_id in range(0, out.GetNumberOfPoints())]
+#
+#    if out.GetNumberOfPolys() > 0:
+#        faces = [[int(out.GetPolys().Getout().GetValue(j))
+#                  for j in range(i*4 + 1, i*4 + 4)]
+#                  for i in range(out.GetPolys().GetNumberOfCells())]
+#    else:
+#        faces = []
+
+    return points, faces, output_vtk
 
 
 def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
