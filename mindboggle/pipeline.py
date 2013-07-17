@@ -174,6 +174,7 @@ run_WholeSurfShapeFlow = True
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
+do_measure_zernike = False  # Measure Zernike moments for features
 
 #-----------------------------------------------------------------------------
 run_SurfFeatureFlow = True
@@ -228,7 +229,7 @@ from mindboggle.labels.relabel import relabel_volume, relabel_surface, \
     overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
-from mindboggle.shapes.laplace_beltrami import fem_laplacian_from_labels
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi
@@ -786,6 +787,7 @@ if run_SurfLabelFlow and run_SurfFlows:
     mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                    Sink, 'labels.@surface')
 
+
 ##############################################################################
 #
 #   Surface shape measurement workflow
@@ -1098,7 +1100,7 @@ if run_SurfShapeFlow and run_SurfFlows:
         # Measure Laplace-Beltrami spectra of labeled regions
         #=====================================================================
         SpectraLabels = Node(name='Spectra_labels',
-                             interface=Fn(function = fem_laplacian_from_labels,
+                             interface=Fn(function = spectrum_per_label,
                                           input_names=['vtk_file',
                                                        'n_eigenvalues',
                                                        'normalization'],
@@ -1118,6 +1120,27 @@ if run_SurfShapeFlow and run_SurfFlows:
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
 
+    if do_measure_zernike:
+        #=====================================================================
+        # Measure Zernike moments of labeled regions
+        #=====================================================================
+        ZernikeLabels = Node(name='Zernike_labels',
+                             interface=Fn(function = zernike_from_labels,
+                                          input_names=['vtk_file'],
+                                          output_names=['moments']))
+        SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
+        ZernikeLabels.inputs.? = ""
+
+        #=====================================================================
+        # Measure Zernike moments of sulci
+        #=====================================================================
+        if do_sulci:
+            ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
+            SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
+            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
+        """
 
 ##############################################################################
 #
