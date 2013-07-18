@@ -139,9 +139,9 @@ run_VolFlows = True  # Run Mindboggle's volume workflows
 #-----------------------------------------------------------------------------
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
-do_surf_table = 0#True  # Store surface feature shape measures in a table
-do_vertex_table = 0#True  # Create per-vertex shape table
-do_vol_table = 0#True  # Store volume feature shape measures in a table
+do_surf_table = True  # Store surface feature shape measures in a table
+do_vertex_table = True  # Create per-vertex shape table
+do_vol_table = True  # Store volume feature shape measures in a table
 
 #-----------------------------------------------------------------------------
 run_SurfLabelFlow = True
@@ -151,7 +151,7 @@ run_SurfLabelFlow = True
 # * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
-init_labels = 'manual'
+init_labels = 'DKT_atlas'
 classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 #free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
 #atlas_list = read_columns('mindboggle101_atlases.txt', 1)[0]
@@ -191,12 +191,12 @@ run_VolLabelFlow = True
 #-----------------------------------------------------------------------------
 do_fill_cortex = True  # Fill cortical gray matter with surface labels
 do_input_mask = False
-do_label_whole_volume = 0#True  # Label whole brain (not just cortex)
+do_label_whole_volume = True  # Label whole brain (not just cortex)
 atlas_volume = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #-----------------------------------------------------------------------------
-run_VolShapeFlow = 0#True
+run_VolShapeFlow = True
 #-----------------------------------------------------------------------------
 
 #=============================================================================
