@@ -609,8 +609,6 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
     column_names = []
     for ifeature, values in enumerate(feature_lists):
         if values:
-            if not columns:
-                indices = range(len(values))
             columns.append(values)
             column_names.append(feature_names[ifeature])
 
@@ -618,8 +616,7 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
             if first_pass:
-                faces, lines, indices, points, npoints, scalars, name, \
-                    input_vtk = read_vtk(shape_file)
+                u1, u2, u3, points, u4, scalars, u5, u6 = read_vtk(shape_file)
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
@@ -632,14 +629,12 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
             else:
                 scalars, name = read_scalars(shape_file)
             if len(scalars):
-                if not columns:
-                    indices = range(len(scalars))
                 columns.append(scalars)
                 column_names.append(shape_names[ishape])
 
     # Prepend with column of indices and write table
     shapes_table = os.path.join(os.getcwd(), table_file)
-    write_columns(indices, 'index', shapes_table, delimiter)
+    write_columns(range(len(columns[0])), 'index', shapes_table, delimiter)
     write_columns(columns, column_names, shapes_table, delimiter, quote=True,
                   input_table=shapes_table)
 
