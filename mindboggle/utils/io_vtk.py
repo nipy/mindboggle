@@ -1231,10 +1231,10 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
     import numpy as np
     import nibabel as nb
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.utils.io_vtk import read_vtk
 
     # Read vtk file:
-    foo1, foo2, foo3, xyz, npoints, scalars, foo4, foo5 = read_vtk(vtk_file)
+    u1, u2, u3, xyz, npoints, scalars, u4, u5 = read_vtk(vtk_file)
 
     # Read target image volume header information:
     img = nb.load(volume_file)
