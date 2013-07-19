@@ -1493,8 +1493,7 @@ if run_VolLabelFlow and run_VolFlows:
                                  CombineLabels, 'source')
             VolLabelFlow.connect(LabelVolume, 'output',
                                  CombineLabels, 'target')
-            CombineLabels.inputs.output_file = os.path.join(os.getcwd(),
-                                                            'combined_labels.nii.gz')
+            CombineLabels.inputs.output_file = ''
             CombineLabels.inputs.ignore_labels = [0]
             mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
                            Sink, 'labels.@brain')
