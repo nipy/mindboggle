@@ -152,7 +152,7 @@ run_SurfLabelFlow = True
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
 init_labels = 'DKT_atlas'
-classifier_atlas = 'DKTatlas40.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
+classifier_atlas = 'DKTatlas100.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 #free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
 #atlas_list = read_columns('mindboggle101_atlases.txt', 1)[0]
 #
@@ -484,7 +484,7 @@ if run_RegFlows:
                                regANTS, 'source')
             regANTS.inputs.target = volume_template
             if do_label_whole_volume:
-                regANTS.inputs.iterations = '1' #'33x99x11'
+                regANTS.inputs.iterations = '33x99x11'
             else:
                 regANTS.inputs.iterations = '0'
             regANTS.inputs.output_stem = ''
@@ -1431,8 +1431,7 @@ if run_VolLabelFlow and run_VolFlows:
                                VolLabelFlow, 'Fill_cortex.surface_files')
             else:
                 sys.exit('No input surface file specified for Fill_cortex.')
-            FillCortex.inputs.output_file = os.path.join(os.getcwd(),
-                                                         'filled_cortex.nii.gz')
+            FillCortex.inputs.output_file = ''
             FillCortex.inputs.binarize = False
             mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
                            Sink, 'labels.@cortex_volume')
@@ -1623,9 +1622,7 @@ atlas_list_file = '/home/arno/Data/Brains/Mindboggle101/code/mindboggle101_atlas
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
-    if 'HLN' in atlas or 'Twins' in atlas or \
-       'Colin' in atlas or 'After' in atlas or \
-       'MMRR-3T7T' in atlas:
+    if 'HLN' in atlas or 'Twins' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
     #if 'MMRR-21' in atlas:
     #if 'OASIS-TRT' in atlas:
     #if 'NKI-TRT' in atlas:
