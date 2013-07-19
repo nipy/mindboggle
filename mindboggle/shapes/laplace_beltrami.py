@@ -407,12 +407,12 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     from mindboggle.shapes.laplace_beltrami import computeAB
 
     #-----------------------------------------------------------------
-    # Compute A and B matrices (from Reuter's et al., 2009):
+    # Compute A and B matrices (from Reuter et al., 2009):
     #-----------------------------------------------------------------
     A, B = computeAB(points, faces)
-    print A.shape[0], n_eigenvalues
     if A.shape[0] <= n_eigenvalues:
-        print "The 3D shape has too few vertices. Skip. "
+        print("The 3D shape has too few vertices ({0} <= {1}). Skip.".
+              format(A.shape[0], n_eigenvalues))
         return None
 
     #-----------------------------------------------------------------
@@ -431,7 +431,9 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     #-----------------------------------------------------------------
     except RuntimeError:     
            
-        print "eigsh() failed. Now try lobpcg."
+        print("eigsh() failed. Now try lobpcg.")
+        print("Warning: lobpcg can produce different results from Reuter"
+              "et al.'s (2006) shapeDNA-tria software.")
         # Initial eigenvector values:
         init_eigenvecs = np.random.random((A.shape[0], n_eigenvalues))
 
@@ -510,7 +512,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
     >>> spectrum_of_largest(points, faces, n_eigenvalues, exclude_labels,
-    >>>                       normalization, areas)
+    >>>                     normalization, areas)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -544,9 +546,9 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
 
     # Areas:
     use_area = False
-    if isinstance(areas, np.ndarray):
+    if isinstance(areas, np.ndarray) and np.shape(areas):
         use_area = True
-    elif isinstance(areas, list):
+    elif isinstance(areas, list) and len(areas):
         areas = np.array(areas)
         use_area = True
 
@@ -582,7 +584,6 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
         if len(unique_segments) > 1:
             select_indices = []
             max_segment_area = 0
-            print('{0} segments'.format(len(unique_segments)))
             for segment_number in unique_segments:
                 segment_indices = [i for i,x in enumerate(segments)
                                    if x == segment_number]
@@ -592,6 +593,9 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
                     segment_area = len(segment_indices)
                 if segment_area > max_segment_area:
                     select_indices = segment_indices
+                    max_segment_area = len(select_indices)
+            print('Maximum size of {0} segments: {1} vertices'.
+                  format(len(unique_segments), len(select_indices)))
 
             #-----------------------------------------------------------------
             # Extract points and renumber faces for the selected indices:
