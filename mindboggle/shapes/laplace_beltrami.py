@@ -389,6 +389,16 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
          6.593336681038091e-07,
          9.759983608165455e-07,
          1.1342589857996225e-06]
+         
+    >>> # testing LBO on previously failed folds 
+    >>> import subprocess
+    >>> cmd = ["find", "/media/USBDATA/data/Mindboggle_MRI/MB101/results/features/", "-name", "fold_*.vtk"]
+    >>> process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    >>> out, err = process.communicate()
+    >>> pblm_vtks = out.split()
+    >>> import mindboggle.shapes.laplace_beltrami
+    >>> for vtk_file in pblm_vtks:
+        mindboggle.shapes.laplace_beltrami.spectrum_from_file(vtk_file)
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
@@ -400,6 +410,10 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     # Compute A and B matrices (from Reuter's et al., 2009):
     #-----------------------------------------------------------------
     A, B = computeAB(points, faces)
+    print A.shape[0], n_eigenvalues
+    if A.shape[0] <= n_eigenvalues:
+        print "The 3D shape has too few vertices. Skip. "
+        return None
 
     #-----------------------------------------------------------------
     # Use the eigsh eigensolver:
@@ -415,8 +429,9 @@ def fem_laplacian(points, faces, n_eigenvalues=6, normalization=None):
     #-----------------------------------------------------------------
     # Use the lobpcg eigensolver:
     #-----------------------------------------------------------------
-    except RuntimeError:
-
+    except RuntimeError:     
+           
+        print "eigsh() failed. Now try lobpcg."
         # Initial eigenvector values:
         init_eigenvecs = np.random.random((A.shape[0], n_eigenvalues))
 
@@ -537,7 +552,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=6, exclude_labels=[-1],
 
     # Check to see if there are enough points:
     min_npoints = n_eigenvalues
-    npoints = len(points)
+    npoints = len(points) 
     if npoints < min_npoints or len(faces) < min_npoints:
         print("The input size {0} ({1} faces) should be much larger "
               "than n_eigenvalues {2}".
@@ -767,6 +782,7 @@ def spectrum_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
     else:
         areas = None
 
+#    spectrum = fem_laplacian(points, faces, n_eigenvalues)
     spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
                                    exclude_labels, normalization, areas)
 
