@@ -608,14 +608,15 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> reduction = 0.5
     >>> smooth_steps = 100
+    >>> output_vtk = ''
     >>> faces, lines, indices, points, npoints, scalars, scalar_names, \
     >>>     o2  = read_vtk(input_vtk)
     >>> points, faces, output_vtk = decimate(points, faces, reduction,
-    >>>                                      smooth_steps, output_vtk='')
+    >>>                                      smooth_steps, output_vtk)
     >>> # View:
     >>> write_vtk('decimated.vtk', points, indices, lines, faces, scalars,
     >>>           scalar_names)
-    >>> os.system('mayavi2 -d ' + output_vtk + ' -m Surface &')
+    >>> os.system('mayavi2 -d decimated.vtk -m Surface &')
 
     """
     import os
@@ -652,30 +653,33 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     # Export output:
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(), 'decimated_file.vtk')
-    exporter = vtk.vtkPolyDataWriter()
+    #exporter = vtk.vtkPolyDataWriter()
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInputConnection(decimate.GetOutputPort())
+        smoother.SetInput(decimate.GetOutput())
         smoother.SetNumberOfIterations(smooth_steps)
-        exporter.SetInput(smoother.GetOutput())
+        smoother.Update()
+        out = smoother.GetOutput()
+        #exporter.SetInput(smoother.GetOutput())
     else:
-        exporter.SetInput(decimate.GetOutput())
-    exporter.SetFileName(output_vtk)
-    exporter.Write()
+        decimate.Update()
+        out = decimate.GetOutput()
+        #exporter.SetInput(decimate.GetOutput())
+    #exporter.SetFileName(output_vtk)
+    #exporter.Write()
+    ## Extract points and faces:
+    #faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(output_vtk)
 
-    # Extract points and faces:
-    faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(output_vtk)
+    points = [list(out.GetPoint(point_id))
+              for point_id in range(out.GetNumberOfPoints())]
 
-
-#    points = [list(out.GetPoint(point_id))
-#              for point_id in range(0, out.GetNumberOfPoints())]
-#
-#    if out.GetNumberOfPolys() > 0:
-#        faces = [[int(out.GetPolys().Getout().GetValue(j))
-#                  for j in range(i*4 + 1, i*4 + 4)]
-#                  for i in range(out.GetPolys().GetNumberOfCells())]
-#    else:
-#        faces = []
+    if out.GetNumberOfPolys() > 0:
+        polys = out.GetPolys()
+        faces = [[int(polys.GetData().GetValue(j))
+                  for j in range(i*4 + 1, i*4 + 4)]
+                  for i in range(polys.GetNumberOfCells())]
+    else:
+        faces = []
 
     return points, faces, output_vtk
 
