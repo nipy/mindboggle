@@ -195,6 +195,8 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
         each list contains indices to neighboring vertices for each vertex
     indices : list of integers
         indices of surface vertices
+    nedges : integer
+        number of edges to propagate from indices
 
     Returns
     -------
@@ -613,10 +615,14 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     >>>     o2  = read_vtk(input_vtk)
     >>> points, faces, output_vtk = decimate(points, faces, reduction,
     >>>                                      smooth_steps, output_vtk)
+    >>> len(points) == 4567
+    True
+    >>> len(points)
+    4567
     >>> # View:
     >>> write_vtk('decimated.vtk', points, indices, lines, faces, scalars,
-    >>>           scalar_names)
-    >>> os.system('mayavi2 -d decimated.vtk -m Surface &')
+    >>>           scalar_names) # doctest: +SKIP
+    >>> os.system('mayavi2 -d decimated.vtk -m Surface &') # doctest: +SKIP
 
     """
     import os
