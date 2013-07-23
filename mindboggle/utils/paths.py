@@ -49,38 +49,20 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
-    >>> # Normalize likelihood values:
-    >>> normalize_likelihoods = True
-    >>> if normalize_likelihoods:
-    >>>     L = values - min(values)
-    >>>     values = L / max(L)
-    >>> #
     >>> # Select a single fold:
     >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> # Filter low values:
-    >>> filter_low_values = False
-    >>> if filter_low_values:
-    >>>     threshold_value = np.median(values_seeding[indices]) #- \
-    >>>                       #np.std(values_seeding[indices])
-    >>>     indices = [i for i in indices if values_seeding[i] >= threshold_value]
     >>> S = -1 * np.ones(len(values))
     >>> S[indices] = 1
-    >>> #
-    >>> # Normalize likelihood values within fold:
-    >>> normalize_likelihoods = True
-    >>> if normalize_likelihoods:
-    >>>     L = values[indices] - min(values[indices])
-    >>>     values[indices] = L / max(L)
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 10
@@ -105,7 +87,6 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     """
     import numpy as np
 
-    from mindboggle.utils.mesh import find_neighborhood
     from mindboggle.utils.morph import topo_test, extract_edge
     from mindboggle.utils.paths import find_endpoints
 
@@ -118,106 +99,110 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         if not isinstance(values, np.ndarray):
             values = np.array(values)
 
+    remove_endpoints = True
+    plot_iter = 150  # DEBUG: Plot at given iteration (zero not to plot)
+
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
     #-------------------------------------------------------------------------
-    plot_iter = 280  # Stop and plot at given iteration; set to zero not to plot
     if plot_iter:
         S0 = S.copy()
         count = 0
-    retain_max_sum = True  # Erode only if sume of edge values increases
-    if retain_max_sum:
-        prev_sum_edge = 0
+    print('  Remove up to {0} of edge vertices'.format(erosion_ratio))
+    complex = []
     exist_simple = True
-    print('  Iteratively remove up to {0} of edge vertices'.format(
-        erosion_ratio))
     while exist_simple:
         exist_simple = False
         if plot_iter:
             count += 1
-            print(count)
+            print('plot_iter count: ' + str(count))
 
         #---------------------------------------------------------------------
         # Only consider updating vertices that are on the edge of the
-        # region and are not among the indices to keep:
+        # region and are not among the indices to keep or known simple points:
         #---------------------------------------------------------------------
         indices = np.where(S == 1)[0].tolist()
         edge = extract_edge(indices, neighbor_lists)
         if edge:
             edge = np.array(list(set(edge).difference(indices_to_keep)))
+            edge = np.array(list(set(edge).difference(complex)))
             len_edge = np.shape(edge)[0]
+            if len_edge:
 
-            retain_max_sum = False
-            continue_loop = True
-            if retain_max_sum:
-                sum_edge = sum(values[edge])
-                if sum_edge < prev_sum_edge:
-                    exist_simple = False
-                else:
-                    prev_sum_edge = sum_edge
-                    prev_edge = edge
-            if continue_loop:
-                if plot_iter and count == plot_iter:
-                    import sys
-                    from mindboggle.utils.plots import plot_vtk
-                    from mindboggle.utils.io_vtk import read_scalars, write_vtk
-                    IDs = -1 * np.ones(len(values))
-                    IDs[indices] = values[indices]
-                    IDs[edge] = 2
-                    rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', S0)
-                    #write_vtk('edge.vtk', points, [], [], faces, values, 'values')
-                    plot_vtk('edge.vtk')
-                    sys.exit()
-                #print('    Number of vertices in edge: {0}'.format(len_edge))
-                #-----------------------------------------------------------------
+                #-------------------------------------------------------------
                 # Remove simple points in order of lowest to highest values:
-                #-----------------------------------------------------------------
+                #-------------------------------------------------------------
                 ntests = len_edge
                 if erode_by_value:
                     Isort = np.argsort(values[edge])
                     edge = edge[Isort]
                     if erosion_ratio > 0:
                         ntests = int(len_edge * erosion_ratio) + 1
+                #print('    Number of vertices in edge: {0}'.format(len_edge))
                 #print('    Number of vertices to test: {0}'.format(ntests))
                 for index in edge[0:ntests]:
 
                     # Test to see if each index is a simple point:
-                    update, n_in = topo_test(index, S, neighbor_lists)
+                    simple, n_in = topo_test(index, S, neighbor_lists)
 
                     # If a simple point, remove and run again:
                     # (Note: Ineffective unless removed at each iteration)
-                    if update and n_in > 1:
+                    if simple:  # and n_in > 1:
                         S[index] = -1
                         exist_simple = True
+                    # Else store to exclude in future:
+                    else:  # elif not simple:
+                        complex.append(index)
 
                 # If no simple points, test all of the indices:
                 if not exist_simple and erode_by_value:
+                    print('    No simple points')
                     for index in edge[ntests::]:
-                        update, n_in = topo_test(index, S, neighbor_lists)
+                        simple, n_in = topo_test(index, S, neighbor_lists)
                         # If a simple point, remove and run again:
-                        if update and n_in > 1:
+                        if simple:  # and n_in > 1:
                             S[index] = -1
                             exist_simple = True
+                        # Else store to exclude in future:
+                        else:
+                            complex.append(index)
+
+                # Plot for debugging:
+                if plot_iter and count == plot_iter:
+                    import os, sys
+                    from mindboggle.utils.plots import plot_vtk
+                    from mindboggle.utils.io_vtk import rewrite_scalars
+                    IDs = -1 * np.ones(len(values))
+                    IDs[indices] = values[indices]
+                    #IDs[complex] = 2
+                    IDs[edge] = 3
+                    IDs[edge[0:ntests]] = 4
+                    path = os.environ['MINDBOGGLE_DATA']
+                    vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+                    rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', S0)
+                    plot_vtk('edge.vtk')
+                    sys.exit()
 
         #---------------------------------------------------------------------
         # Remove branches by iteratively removing endpoints:
         #---------------------------------------------------------------------
-        remove_endpoints = True
         if remove_endpoints:
             indices = np.where(S == 1)[0].tolist()
             endpoints = True
             while endpoints:
                 endpoints = find_endpoints(indices, neighbor_lists)
                 if endpoints:
-                    endpoints = [x for x in endpoints if x not in indices_to_keep]
+                    endpoints = [x for x in endpoints
+                                 if x not in indices_to_keep]
                     if endpoints:
+                        #print('    {0} endpoints'.format(len(endpoints)))
                         S[endpoints] = -1
-                        indices = list(frozenset(indices).difference(endpoints))
-                #print('    Number of endpoints: {0}'.format(len(endpoints)))
+                        indices = list(set(indices).difference(endpoints))
 
     skeleton = indices
 
     return skeleton
+
 
 #------------------------------------------------------------------------------
 # Connect points using a Hidden Markov Measure Field:
@@ -285,7 +270,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
     >>> folds[folds != fold_number] = -1
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Find endpoints:
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -539,6 +524,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
 
     return skeleton
 
+
 def track_values(seed, indices, neighbor_lists, values, sink=[]):
     """
     Build a track from a seed vertex along increasing vertex values of a mesh.
@@ -632,6 +618,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
         return track
     else:
         return None
+
 
 def track_segments(seed, segments, neighbor_lists, values, sink):
     """
@@ -751,6 +738,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     # If the track remains empty or does not reach the border, return the track:
     return None
 
+
 #-----------------------------------------------------------------------------
 # Find endpoints
 #-----------------------------------------------------------------------------
@@ -796,7 +784,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.utils.paths import find_outer_anchors
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
+    >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -889,14 +877,15 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         if list(frozenset(indices_high).intersection(borders)):
             do_threshold = False
         else:
-            print('  Initialize seeds at {0:.2f} of fold depth'.format(thresholdS))
+            print('  Initialize seeds at {0:.2f} (median of fold depth)'.
+                  format(thresholdS))
     #-------------------------------------------------------------------------
     # Or initialize seeds with vertices at the shrunken region boundary:
     #-------------------------------------------------------------------------
     if not do_threshold:
-        print('  Initialize seeds to boundary after shrinking fold to '
-              '{0:.2f} of its depth'.format(1-remove_fraction))
         thresholdS = remove_fraction * np.max(S[indices])
+        print('  Initialize seeds at {0:.2f} of fold depth'.
+              format(1-remove_fraction))
 
     # Extract threshold boundary vertices as seeds:
     indices_high = [x for x in indices if S[x] >= thresholdS]
@@ -912,8 +901,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     segments = segment_rings(R, seeds, neighbor_lists, step=1)
 
     # Run tracks from the seeds through the segments toward the boundary:
-    print('    Track through {0} vertices in {1} segments from threshold {2:0.2f}'.
-          format(len(R), len(segments), thresholdS))
+    print('    Track through {0} concentric segments ({1} vertices) '
+          'from threshold {2:0.2f}'.format(len(segments), len(R), thresholdS))
     for seed in seeds:
         track = track_segments(seed, segments, neighbor_lists, V, borders)
         if track:
@@ -977,12 +966,16 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
 
         endpoints = E2
         endtracks = T2
+
+        print('    Retain {0} tracks'.format(len(T2)))
+
     else:
         # Gather endpoint vertex indices:
         endpoints = [x[-1] for x in T]
         endtracks = T
 
     return endpoints, endtracks
+
 
 #------------------------------------------------------------------------------
 # Find points with maximal values that are not too close together.
@@ -1113,6 +1106,7 @@ def find_anchors(points, values, min_directions, min_distance, thr):
 
     return indices_special
 
+
 #------------------------------------------------------------------------------
 # Extract endpoints:
 #------------------------------------------------------------------------------
@@ -1182,90 +1176,45 @@ def find_endpoints(indices, neighbor_lists):
 #=============================================================================
 if __name__ == "__main__":
 
+    # Extract a skeleton to connect endpoints in a fold:
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
+    path = os.environ['MINDBOGGLE_DATA']
+
+    values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    values_seeding, name = read_scalars(values_seeding_file, True, True)
+    values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    values, name = read_scalars(values_file, True, True)
+    vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    neighbor_lists = find_neighbors_from_file(vtk_file)
+
+    # Select a single fold:
     fold_number = 1 #11
+    folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    folds, name = read_scalars(folds_file, True, True)
+    indices = [i for i,x in enumerate(folds) if x == fold_number]
+    S = -1 * np.ones(len(values))
+    S[indices] = 1
+
+    # Find endpoints:
     min_edges = 10
+    indices_to_keep, tracks = find_outer_anchors(indices,
+        neighbor_lists, values, values_seeding, min_edges)
 
-    run_erosion = True
-    if run_erosion:
+    erosion_ratio = 0.10
+    skeleton = connect_points_erosion(S, indices_to_keep,
+        neighbor_lists, values, erosion_ratio=erosion_ratio)
 
-        # Extract a skeleton connect endpoints in a fold:
-        # (Alternative to connecting vertices with connect_points_hmmf().
-        import os
-        import numpy as np
-        from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-        from mindboggle.utils.mesh import find_neighbors_from_file
-        from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
-        path = os.environ['MINDBOGGLE_DATA']
-        #
-        values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-        values_seeding, name = read_scalars(values_seeding_file, True, True)
-        values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-        values, name = read_scalars(values_file, True, True)
-        vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-        neighbor_lists = find_neighbors_from_file(vtk_file)
-        #
-        # Select a single fold:
-        folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-        folds, name = read_scalars(folds_file, True, True)
-        indices = [i for i,x in enumerate(folds) if x == fold_number]
-        S = -1 * np.ones(len(folds))
-        S[indices] = 1
-        erosion_ratio = 0.25
-        #
-        # Find endpoints:
-        indices_to_keep, tracks = find_outer_anchors(indices,
-            neighbor_lists, values, values_seeding, min_edges)
-        #
-        skeleton = connect_points_erosion(S, indices_to_keep, neighbor_lists,
-                                          values, erosion_ratio)
-        #
-        # Write out vtk file and view:
-        S = -1 * np.ones(len(values))
-        S[skeleton] = 1
-        S[indices_to_keep] = 2
-        folds[folds != fold_number] = -1
-        rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
-                        S, 'skeleton', folds)
-        from mindboggle.utils.plots import plot_vtk
-        plot_vtk('connect_points_erosion.vtk')
-
-    else:
-
-        # Connect vertices according to likelihood values in a single fold:
-        import os
-        import numpy as np
-        from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
-                                            read_faces_points, rewrite_scalars
-        from mindboggle.utils.mesh import find_neighbors
-        from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
-        from mindboggle.utils.plots import plot_vtk
-        path = os.environ['MINDBOGGLE_DATA']
-        vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-        # Get neighbor_lists, scalars
-        faces, points, npoints = read_faces_points(vtk_file)
-        neighbor_lists = find_neighbors(faces, npoints)
-        # Select a single fold:
-        folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-        folds, name = read_scalars(folds_file, True, True)
-        folds[folds != fold_number] = -1
-        indices = [i for i,x in enumerate(folds) if x == fold_number]
-        # Find endpoints:
-        values_seeding_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
-        values_seeding, name = read_scalars(values_seeding_file, True, True)
-        values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-        values, name = read_scalars(values_file, True, True)
-        indices_points, endtracks = find_outer_anchors(indices, \
-            neighbor_lists, values, values_seeding, min_edges)
-        likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-        L, name = read_scalars(likelihood_file,True,True)
-        wN_max = 2.0
-        #
-        S = connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max)
-        #
-        # View:
-        skeleton = -1 * np.ones(npoints)
-        skeleton[S] = 1
-        skeleton[indices_points] = 2
-        rewrite_scalars(folds_file, 'connect_points_hmmf.vtk',
-                        skeleton, 'skeleton', folds)
-        plot_vtk('connect_points_hmmf.vtk')
+    # Write out vtk file and view:
+    D = -1 * np.ones(len(values))
+    D[indices] = 1
+    D[skeleton] = 2
+    D[indices_to_keep] = 3
+    folds[folds != fold_number] = -1
+    rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
+                    D, 'skeleton', folds)
+    from mindboggle.utils.plots import plot_vtk
+    plot_vtk('connect_points_erosion.vtk')
