@@ -122,8 +122,8 @@ def WarpImageMultiTransform(source, target, output='',
     else:
         xfm_stem = os.path.join(os.getcwd(),
                                 os.path.basename(source).split('.')[0] +
-                               '_to_' +
-                               os.path.basename(target).split('.')[0])
+                                '_to_' +
+                                os.path.basename(target).split('.')[0])
 
     if not output:
         output = xfm_stem + '.nii.gz'
@@ -201,8 +201,7 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     import os
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(),
-            'propagated_' + os.path.basename(label_volume))
+        output_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
 
     # Binarize image volume:
     if binarize:
