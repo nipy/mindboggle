@@ -63,7 +63,8 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
             '-o', output_stem, '--use-Histogram-Matching',
             '--number-of-affine-iterations 10000x10000x10000x10000x10000']
     cmd = ' '.join(args)
-    print(cmd); os.system(cmd); # p = Popen(args);
+    print(cmd)
+    os.system(cmd)  # p = Popen(args);
 
     affine_transform = output_stem + 'Affine.txt'
     nonlinear_transform = output_stem + 'Warp.nii.gz'
@@ -191,10 +192,10 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     >>> mask_volume = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> output_file = ''
     >>> binarize = True
-    >>> out = PropagateLabelsThroughMask(mask_volume, label_volume,
-    >>>                                  output_file, binarize)
+    >>> output_file = PropagateLabelsThroughMask(mask_volume, label_volume,
+    >>>                                          output_file, binarize)
     >>> # View
-    >>> plot_volumes(output)
+    >>> plot_volumes(output_file)
 
     """
     import os
@@ -207,11 +208,11 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     if binarize:
         temp_file = os.path.join(os.getcwd(),
             'propagated_' + os.path.basename(label_volume))
-        args = ['ThresholdImage 3', mask_volume, output_file, '0 1 0 1']
+        args = ['ThresholdImage 3', mask_volume, temp_file, '0 1 0 1']
         cmd = ' '.join(args)
         print(cmd)
         os.system(cmd)  # p = Popen(args);
-        mask_volume = output_file
+        mask_volume = temp_file
 
     # Propagate labels:
     args = ['ImageMath 3', output_file, 'PropagateLabelsThroughMask',
@@ -291,4 +292,4 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
                                              output_file, binarize)
 
-    return output_file
+    return output_file  # surface_in_volume
