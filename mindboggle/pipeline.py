@@ -1423,7 +1423,6 @@ if run_VolLabelFlow and run_VolFlows:
             else:
                 mbFlow.connect([(Info, mghMask,
                                  [('hemi', 'hemi'), ('subject', 'subject')])])
-
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
                                VolLabelFlow, 'Fill_cortex.volume_mask')
             if run_SurfFlows and run_SurfLabelFlow:
@@ -1616,16 +1615,15 @@ import os
 from mindboggle.utils.io_table import read_columns
 
 out_path = '/homedir/Data/Mindboggle-101/'
-x_path = os.path.join(os.environ['MINDBOGGLE'], 'x')
 atlas_list_file = '/home/arno/Data/Brains/Mindboggle101/code/mindboggle101_atlases.txt'
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
-    if 'HLN' in atlas or 'Twins' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
-    #if 'MMRR-21' in atlas:
-    #if 'OASIS-TRT' in atlas:
-    #if 'NKI-TRT' in atlas:
-    #if 'NKI-RS' in atlas:
+    #if 'HLN-' in atlas or 'Twins-' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
+    #if 'MMRR-21-' in atlas:
+    if 'OASIS-TRT-20' in atlas:
+    #if 'NKI-TRT-' in atlas:
+    #if 'NKI-RS-' in atlas:
         cmd = ' '.join(['python pipeline.py', out_path, atlas])
         print(cmd); os.system(cmd)
 """

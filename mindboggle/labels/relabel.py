@@ -273,7 +273,6 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
                                    '_and_' +
                                    os.path.basename(target).split('.')[0] +
                                    '.nii.gz')
-
     # Load labeled image volumes:
     vol_source = nb.load(source)
     vol_target = nb.load(target)
