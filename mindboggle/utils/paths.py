@@ -13,10 +13,10 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #------------------------------------------------------------------------------
 # Connect points by erosion:
 #------------------------------------------------------------------------------
-def connect_points_erosion(S, indices_to_keep, neighbor_lists,
-                           values=[], erosion_ratio=0.25):
+def connect_points_erosion(S, keep, neighbor_lists,
+                           values=[], erosion_ratio=0.25, min_size=10):
     """
-    Skeletonize a binary numpy array into 1-vertex-thick curves.
+    Connect mesh vertices with a skeleton of 1-vertex-thick curves by erosion.
 
     This algorithm iteratively removes simple topological points and endpoints,
     optionally in order of lowest to highest values.
@@ -25,7 +25,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     ----------
     S : numpy array of integers in {-1,1}
         values of 1 or -1 for all vertices
-    indices_to_keep : indices with value 1 to keep
+    keep : indices with value 1 to keep
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     values : numpy array of floats
@@ -33,6 +33,8 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         in order of lowest to highest values
     erosion_ratio : float
         fraction of indices to test for removal at each iteration (if values)
+    min_size : integer
+        minimum number of vertices when considering erosion_ratio
 
     Returns
     -------
@@ -57,7 +59,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
     >>> #
     >>> # Select a single fold:
-    >>> fold_number = 1 #11
+    >>> fold_number = 11 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
@@ -66,18 +68,23 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     >>> #
     >>> # Find endpoints:
     >>> min_edges = 10
-    >>> indices_to_keep, tracks = find_outer_anchors(indices,
+    >>> keep, tracks = find_outer_anchors(indices,
+    >>>     neighbor_lists, values, values_seeding, min_edges)
+    >>> #
+    >>> # Add deepest points:
+    >>> keep, tracks = find_outer_anchors(indices,
     >>>     neighbor_lists, values, values_seeding, min_edges)
     >>> #
     >>> erosion_ratio = 0.10
-    >>> skeleton = connect_points_erosion(S, indices_to_keep,
-    >>>     neighbor_lists, values, erosion_ratio=erosion_ratio)
+    >>> min_size = 10
+    >>> skeleton = connect_points_erosion(S, keep,
+    >>>     neighbor_lists, values, erosion_ratio, min_size)
     >>> #
     >>> # Write out vtk file and view:
     >>> D = -1 * np.ones(len(values))
     >>> D[indices] = 1
     >>> D[skeleton] = 2
-    >>> D[indices_to_keep] = 3
+    >>> D[keep] = 3
     >>> folds[folds != fold_number] = -1
     >>> rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
     >>>                 D, 'skeleton', folds)
@@ -88,6 +95,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
     import numpy as np
 
     from mindboggle.utils.morph import topo_test, extract_edge
+    from mindboggle.utils.segment import segment
     from mindboggle.utils.paths import find_endpoints
 
     # Make sure arguments are numpy arrays:
@@ -100,22 +108,21 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
             values = np.array(values)
 
     remove_endpoints = True
-    plot_iter = 150  # DEBUG: Plot at given iteration (zero not to plot)
+    plot_iter = 0  # DEBUG: Plot at given iteration (zero not to plot)
 
     #-------------------------------------------------------------------------
     # Iteratively remove simple points:
     #-------------------------------------------------------------------------
     if plot_iter:
         S0 = S.copy()
-        count = 0
-    print('  Remove up to {0} of edge vertices'.format(erosion_ratio))
+    print('  Remove up to {0} of edge vertices per iteration'.
+          format(erosion_ratio))
     complex = []
+    count = 0
     exist_simple = True
     while exist_simple:
         exist_simple = False
-        if plot_iter:
-            count += 1
-            print('plot_iter count: ' + str(count))
+        count += 1
 
         #---------------------------------------------------------------------
         # Only consider updating vertices that are on the edge of the
@@ -124,80 +131,95 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
         indices = np.where(S == 1)[0].tolist()
         edge = extract_edge(indices, neighbor_lists)
         if edge:
-            edge = np.array(list(set(edge).difference(indices_to_keep)))
             edge = np.array(list(set(edge).difference(complex)))
-            len_edge = np.shape(edge)[0]
+            len_edge = np.shape(edge)[0] - len(keep)
             if len_edge:
 
                 #-------------------------------------------------------------
-                # Remove simple points in order of lowest to highest values:
+                # Segment edge vertices into separate connected groups:
                 #-------------------------------------------------------------
-                ntests = len_edge
-                if erode_by_value:
-                    Isort = np.argsort(values[edge])
-                    edge = edge[Isort]
-                    if erosion_ratio > 0:
-                        ntests = int(len_edge * erosion_ratio) + 1
-                #print('    Number of vertices in edge: {0}'.format(len_edge))
-                #print('    Number of vertices to test: {0}'.format(ntests))
-                for index in edge[0:ntests]:
+                edge_segs = segment(edge, neighbor_lists)
+                edge_seg_numbers = [x for x in np.unique(edge_segs)
+                                    if x != -1]
+                print('    {0}: {1} edge points in {2} segments'.
+                      format(count, len_edge, len(edge_seg_numbers)))
+                for edge_seg_number in edge_seg_numbers:
+                    edge_seg = np.where(edge_segs == edge_seg_number)[0]
+                    edge_seg = np.array(list(set(edge_seg).difference(keep)))
+                    len_edge_seg = np.shape(edge_seg)[0]
+                    if len_edge_seg:
 
-                    # Test to see if each index is a simple point:
-                    simple, n_in = topo_test(index, S, neighbor_lists)
+                        #-----------------------------------------------------
+                        # Remove topologically simple points
+                        # in order of lowest to highest values:
+                        #-----------------------------------------------------
+                        ntests = len_edge_seg
+                        if erode_by_value and ntests > min_size:
+                            Isort = np.argsort(values[edge_seg])
+                            edge_seg = edge_seg[Isort]
+                            if erosion_ratio > 0:
+                                ntests = int(len_edge_seg * erosion_ratio) + 1
+                        for index in edge_seg[0:ntests]:
 
-                    # If a simple point, remove and run again:
-                    # (Note: Ineffective unless removed at each iteration)
-                    if simple:  # and n_in > 1:
-                        S[index] = -1
-                        exist_simple = True
-                    # Else store to exclude in future:
-                    else:  # elif not simple:
-                        complex.append(index)
+                            # Test to see if each index is a simple point:
+                            simple, d = topo_test(index, S, neighbor_lists)
 
-                # If no simple points, test all of the indices:
-                if not exist_simple and erode_by_value:
-                    print('    No simple points')
-                    for index in edge[ntests::]:
-                        simple, n_in = topo_test(index, S, neighbor_lists)
-                        # If a simple point, remove and run again:
-                        if simple:  # and n_in > 1:
-                            S[index] = -1
-                            exist_simple = True
-                        # Else store to exclude in future:
-                        else:
-                            complex.append(index)
+                            # If a simple point, remove and run again:
+                            # (Note: Must remove at each iteration)
+                            if simple:  # and d > 1:
+                                S[index] = -1
+                                exist_simple = True
+                            # Else store to exclude in future:
+                            else:  # elif not simple:
+                                complex.append(index)
 
-                # Plot for debugging:
-                if plot_iter and count == plot_iter:
-                    import os, sys
-                    from mindboggle.utils.plots import plot_vtk
-                    from mindboggle.utils.io_vtk import rewrite_scalars
-                    IDs = -1 * np.ones(len(values))
-                    IDs[indices] = values[indices]
-                    #IDs[complex] = 2
-                    IDs[edge] = 3
-                    IDs[edge[0:ntests]] = 4
-                    path = os.environ['MINDBOGGLE_DATA']
-                    vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-                    rewrite_scalars(vtk_file, 'edge.vtk', IDs, 'edge', S0)
-                    plot_vtk('edge.vtk')
-                    sys.exit()
+                        # If no simple points, test all of the indices:
+                        if not exist_simple and erode_by_value:
+                            print('    No simple points')
+                            for index in edge_seg[ntests::]:
+                                simple, d = topo_test(index, S, neighbor_lists)
+                                # If a simple point, remove and run again:
+                                if simple:  # and d > 1:
+                                    S[index] = -1
+                                    exist_simple = True
+                                # Else store to exclude in future:
+                                else:
+                                    complex.append(index)
 
-        #---------------------------------------------------------------------
-        # Remove branches by iteratively removing endpoints:
-        #---------------------------------------------------------------------
-        if remove_endpoints:
-            indices = np.where(S == 1)[0].tolist()
-            endpoints = True
-            while endpoints:
-                endpoints = find_endpoints(indices, neighbor_lists)
-                if endpoints:
-                    endpoints = [x for x in endpoints
-                                 if x not in indices_to_keep]
-                    if endpoints:
-                        #print('    {0} endpoints'.format(len(endpoints)))
-                        S[endpoints] = -1
-                        indices = list(set(indices).difference(endpoints))
+                        # Plot for debugging:
+                        if plot_iter and count == plot_iter:
+                            import os, sys
+                            from mindboggle.utils.plots import plot_vtk
+                            from mindboggle.utils.io_vtk import rewrite_scalars
+                            IDs = -1 * np.ones(len(values))
+                            IDs[indices] = values[indices]
+                            #IDs[complex] = 2
+                            IDs[edge] = 2
+                            IDs[edge_seg] = 3
+                            IDs[edge_seg[0:ntests]] = 4
+                            path = os.environ['MINDBOGGLE_DATA']
+                            vtk_file = os.path.join(path, 'arno',
+                                            'freesurfer', 'lh.pial.vtk')
+                            rewrite_scalars(vtk_file, 'edge.vtk', IDs,
+                                            'edge', S0)
+                            plot_vtk('edge.vtk')
+                            sys.exit()
+
+                #-------------------------------------------------------------
+                # Remove branches by iteratively removing endpoints:
+                #-------------------------------------------------------------
+                if remove_endpoints:
+                    indices = np.where(S == 1)[0].tolist()
+                    endpts = True
+                    while endpts:
+                        endpts = find_endpoints(indices, neighbor_lists)
+                        if endpts:
+                            endpts = [x for x in endpts
+                                      if x not in keep]
+                            if endpts:
+                                #print('    {0} endpts'.format(len(endpts)))
+                                S[endpts] = -1
+                                indices = list(set(indices).difference(endpts))
 
     skeleton = indices
 
@@ -209,7 +231,7 @@ def connect_points_erosion(S, indices_to_keep, neighbor_lists,
 #------------------------------------------------------------------------------
 def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
     """
-    Connect vertices in a surface mesh to create a curve.
+    Connect mesh vertices with a skeleton of 1-vertex-thick curves using HMMF.
 
     The goal of this algorithm is to assign each vertex a locally optimal
     Hidden Markov Measure Field (HMMF) value and to connect vertices according
@@ -740,7 +762,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
 
 
 #-----------------------------------------------------------------------------
-# Find endpoints
+# Find high-value boundary points:
 #-----------------------------------------------------------------------------
 def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
                        min_edges=10):
@@ -980,9 +1002,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
 #------------------------------------------------------------------------------
 # Find points with maximal values that are not too close together.
 #------------------------------------------------------------------------------
-def find_anchors(points, values, min_directions, min_distance, thr):
+def find_high_values(points, values, min_distance=10, thr=0.5):
     """
-    Find 'special' points with maximal values that are not too close together.
+    Find highest value 'special' points that are not too close together.
 
     Steps ::
 
@@ -1000,37 +1022,34 @@ def find_anchors(points, values, min_directions, min_distance, thr):
         coordinates for all vertices
     values : list (or array) of integers
         values of some kind to maximize over for all vertices (default -1)
-    min_directions : numpy array of floats
-        minimum directions for all vertices
     min_distance : integer
-        minimum distance
+        minimum distance between extracted points
     thr : float
         value threshold in [0,1]
 
     Returns
     -------
-    indices_special : list of integers
-        subset of surface mesh vertex indices
+    highest : list of integers
+        subset of surface mesh vertex indices with the highest values
 
     Examples
     --------
     >>> import os
     >>> import numpy as np
+    >>> from mindboggle.utils.compute import median_abs_dev
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.paths import find_anchors
+    >>> from mindboggle.utils.paths import find_high_values
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file)
     >>> #
     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
-    >>>                                          'lh.pial.curv.min.dir.txt')
-    >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
+    >>> u1, u2, u3, points, u4, values, u5, u6 = read_vtk(likelihood_file,
     >>>     return_first=True, return_array=True)
     >>> # Select a single fold
     >>> plot_single_fold = True
     >>> if plot_single_fold:
-    >>>   fold_ID = 11
+    >>>   fold_ID = 1
     >>>   indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
     >>>   indices_not_fold = [i for i,x in enumerate(folds) if x != fold_ID]
     >>>   values[indices_not_fold] = 0
@@ -1038,18 +1057,19 @@ def find_anchors(points, values, min_directions, min_distance, thr):
     >>>   fold_array[indices_fold] = 1
     >>>   folds = fold_array.tolist()
     >>> #
-    >>> min_directions = np.loadtxt(min_curvature_vector_file)
-    >>> min_distance = 5
-    >>> thr = 0.5
+    >>> min_distance = 10
+    >>> values0 = [x for x in values if x > 0]
+    >>> thr = np.median(values0) + median_abs_dev(values0)
+    >>> print(thr)
     >>> #
-    >>> indices_special = find_anchors(points, values, min_directions, min_distance, thr)
+    >>> highest = find_high_values(points, values, min_distance, thr)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> values[indices_special] = np.max(values) + 0.1
-    >>> rewrite_scalars(likelihood_file, 'find_anchors.vtk',
-    >>>                 values, 'find_anchors_on_values_in_folds', folds)
+    >>> values[highest] = np.max(values) + 0.1
+    >>> rewrite_scalars(likelihood_file, 'find_high_values.vtk',
+    >>>                 values, 'find_high_values_in_folds', folds)
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_anchors.vtk')
+    >>> plot_vtk('find_high_values.vtk')
 
     """
     import numpy as np
@@ -1058,10 +1078,6 @@ def find_anchors(points, values, min_directions, min_distance, thr):
     # Make sure arguments are numpy arrays:
     if not isinstance(points, np.ndarray):
         points = np.array(points)
-    if not isinstance(min_directions, np.ndarray):
-        min_directions = np.array(min_directions)
-
-    max_distance = 2 * min_distance
 
     # Sort values and find indices for values above the threshold:
     L_table = [[i,x] for i,x in enumerate(values)]
@@ -1072,39 +1088,32 @@ def find_anchors(points, values, min_directions, min_distance, thr):
     # Initialize special points list with the index of the maximum value,
     # remove this value, and loop through the remaining high values:
     if IL:
-        indices_special = [IL.pop(0)]
+        highest = [IL.pop(0)]
         for imax in IL:
 
             # Determine if there are any special points
             # near to the current maximum value vertex:
             i = 0
             found = 0
-            while i < len(indices_special) and found == 0:
+            while i < len(highest) and found == 0:
 
                 # Compute Euclidean distance between points:
-                D = np.linalg.norm(points[indices_special[i]] - points[imax])
+                D = np.linalg.norm(points[highest[i]] - points[imax])
 
                 # If distance less than threshold, consider the point found:
                 if D < min_distance:
                     found = 1
-                # Compute directional distance between points if they are close:
-                elif D < max_distance:
-                    dirV = np.dot(points[indices_special[i]] - points[imax],
-                                  min_directions[indices_special[i]])
-                    # If distance less than threshold, consider the point found:
-                    if np.linalg.norm(dirV) < min_distance:
-                        found = 1
 
                 i += 1
 
             # If there are no nearby special points,
             # assign the maximum value vertex as a special point:
             if not found:
-                indices_special.append(imax)
+                highest.append(imax)
     else:
-        indices_special = []
+        highest = []
 
-    return indices_special
+    return highest
 
 
 #------------------------------------------------------------------------------
@@ -1120,7 +1129,6 @@ def find_endpoints(indices, neighbor_lists):
         indices to connected vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
-                         if i not in indices_to_keep
 
     Returns
     -------
@@ -1171,6 +1179,136 @@ def find_endpoints(indices, neighbor_lists):
     return indices_endpoints
 
 
+# #------------------------------------------------------------------------------
+# # Find points with maximal values that are not too close together.
+# #------------------------------------------------------------------------------
+# def find_anchors(points, values, min_directions, min_distance, thr):
+#     """
+#     Find 'special' points with maximal values that are not too close together.
+#
+#     Steps ::
+#
+#         1. Sort values and find values above the threshold.
+#
+#         2. Initialize special points with the maximum value,
+#            remove this value, and loop through the remaining high values.
+#
+#         3. If there are no nearby special points,
+#            assign the maximum value vertex as a special point.
+#
+#     Parameters
+#     ----------
+#     points : numpy array of floats
+#         coordinates for all vertices
+#     values : list (or array) of integers
+#         values of some kind to maximize over for all vertices (default -1)
+#     min_directions : numpy array of floats
+#         minimum directions for all vertices
+#     min_distance : integer
+#         minimum distance
+#     thr : float
+#         value threshold in [0,1]
+#
+#     Returns
+#     -------
+#     indices_special : list of integers
+#         subset of surface mesh vertex indices
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> import numpy as np
+#     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
+#     >>> from mindboggle.utils.paths import find_anchors
+#     >>> path = os.environ['MINDBOGGLE_DATA']
+#     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+#     >>> folds, name = read_scalars(folds_file)
+#     >>> #
+#     >>> likelihood_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+#     >>> min_curvature_vector_file = os.path.join(path, 'arno', 'shapes',
+#     >>>                                          'lh.pial.curv.min.dir.txt')
+#     >>> faces, lines, indices, points, npoints, values, name, input_vtk = read_vtk(likelihood_file,
+#     >>>     return_first=True, return_array=True)
+#     >>> # Select a single fold
+#     >>> plot_single_fold = True
+#     >>> if plot_single_fold:
+#     >>>   fold_ID = 11
+#     >>>   indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
+#     >>>   indices_not_fold = [i for i,x in enumerate(folds) if x != fold_ID]
+#     >>>   values[indices_not_fold] = 0
+#     >>>   fold_array = -1 * np.ones(len(folds))
+#     >>>   fold_array[indices_fold] = 1
+#     >>>   folds = fold_array.tolist()
+#     >>> #
+#     >>> min_directions = np.loadtxt(min_curvature_vector_file)
+#     >>> min_distance = 5
+#     >>> thr = 0.5
+#     >>> #
+#     >>> indices_special = find_anchors(points, values, min_directions, min_distance, thr)
+#     >>> #
+#     >>> # Write results to vtk file and view:
+#     >>> values[indices_special] = np.max(values) + 0.1
+#     >>> rewrite_scalars(likelihood_file, 'find_anchors.vtk',
+#     >>>                 values, 'find_anchors_on_values_in_folds', folds)
+#     >>> from mindboggle.utils.plots import plot_vtk
+#     >>> plot_vtk('find_anchors.vtk')
+#
+#     """
+#     import numpy as np
+#     from operator import itemgetter
+#
+#     # Make sure arguments are numpy arrays:
+#     if not isinstance(points, np.ndarray):
+#         points = np.array(points)
+#     if not isinstance(min_directions, np.ndarray):
+#         min_directions = np.array(min_directions)
+#
+#     max_distance = 2 * min_distance
+#
+#     # Sort values and find indices for values above the threshold:
+#     L_table = [[i,x] for i,x in enumerate(values)]
+#     L_table_sort = np.transpose(sorted(L_table, key=itemgetter(1)))[:, ::-1]
+#     IL = [int(L_table_sort[0,i]) for i,x in enumerate(L_table_sort[1,:])
+#           if x > thr]
+#
+#     # Initialize special points list with the index of the maximum value,
+#     # remove this value, and loop through the remaining high values:
+#     if IL:
+#         indices_special = [IL.pop(0)]
+#         for imax in IL:
+#
+#             # Determine if there are any special points
+#             # near to the current maximum value vertex:
+#             i = 0
+#             found = 0
+#             while i < len(indices_special) and found == 0:
+#
+#                 # Compute Euclidean distance between points:
+#                 D = np.linalg.norm(points[indices_special[i]] - points[imax])
+#
+#                 # If distance less than threshold, consider the point found:
+#                 if D < min_distance:
+#                     found = 1
+#                 # Compute directional distance between points if they are close:
+#                 elif D < max_distance:
+#                     dirV = np.dot(points[indices_special[i]] - points[imax],
+#                                   min_directions[indices_special[i]])
+#                     # If distance less than threshold, consider the point found:
+#                     if np.linalg.norm(dirV) < min_distance:
+#                         found = 1
+#
+#                 i += 1
+#
+#             # If there are no nearby special points,
+#             # assign the maximum value vertex as a special point:
+#             if not found:
+#                 indices_special.append(imax)
+#     else:
+#         indices_special = []
+#
+#     return indices_special
+
+
 #=============================================================================
 # Example: connect_points_erosion()
 #=============================================================================
@@ -1184,7 +1322,8 @@ if __name__ == "__main__":
     from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
     path = os.environ['MINDBOGGLE_DATA']
 
-    values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    values_seeding_file = os.path.join(path, 'arno', 'shapes',
+                                       'travel_depth_rescaled.vtk')
     values_seeding, name = read_scalars(values_seeding_file, True, True)
     values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     values, name = read_scalars(values_file, True, True)
@@ -1201,18 +1340,19 @@ if __name__ == "__main__":
 
     # Find endpoints:
     min_edges = 10
-    indices_to_keep, tracks = find_outer_anchors(indices,
+    keep, tracks = find_outer_anchors(indices,
         neighbor_lists, values, values_seeding, min_edges)
 
     erosion_ratio = 0.10
-    skeleton = connect_points_erosion(S, indices_to_keep,
-        neighbor_lists, values, erosion_ratio=erosion_ratio)
+    min_size = 10
+    skeleton = connect_points_erosion(S, keep, neighbor_lists, values,
+                                      erosion_ratio, min_size)
 
     # Write out vtk file and view:
     D = -1 * np.ones(len(values))
     D[indices] = 1
     D[skeleton] = 2
-    D[indices_to_keep] = 3
+    D[keep] = 3
     folds[folds != fold_number] = -1
     rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
                     D, 'skeleton', folds)
