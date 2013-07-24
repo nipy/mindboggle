@@ -205,8 +205,7 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
 
     # Binarize image volume:
     if binarize:
-        temp_file = os.path.join(os.getcwd(),
-            'propagated_' + os.path.basename(label_volume))
+        temp_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
         args = ['ThresholdImage 3', mask_volume, temp_file, '0 1 0 1']
         cmd = ' '.join(args)
         print(cmd)
