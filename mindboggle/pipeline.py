@@ -1614,7 +1614,7 @@ if __name__== '__main__':
 import os
 from mindboggle.utils.io_table import read_columns
 
-out_path = '/homedir/Data/Mindboggle-101/'
+out_path = '/homedir/Data/Mindboggle-101_mindboggle_output/'
 atlas_list_file = '/home/arno/Data/Brains/Mindboggle101/code/mindboggle101_atlases.txt'
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
