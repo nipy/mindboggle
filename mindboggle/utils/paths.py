@@ -70,7 +70,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
     >>> #
     >>> # Single fold:
-    >>> fold_number = 11 #11
+    >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
@@ -78,15 +78,14 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> S[indices] = 1
     >>> #
     >>> # Outer anchors:
-    >>> min_edges = 10
+    >>> min_separation = 10
     >>> outer_anchors, tracks = find_outer_anchors(indices, neighbor_lists,
-    >>>                             values, depths, min_edges)
+    >>>                             values, depths, min_separation)
     >>> #
     >>> # Inner anchors:
-    >>> min_distance = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + 2 * median_abs_dev(values0)
-    >>> inner_anchors = find_max_values(points, values, min_distance, thr)
+    >>> inner_anchors = find_max_values(points, values, min_separation, thr)
     >>> #
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
@@ -184,6 +183,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                             edge_seg = edge_seg[Isort]
                             if erode_ratio > 0:
                                 ntests = int(len_edge_seg * erode_ratio) + 1
+
                         for index in edge_seg[0:ntests]:
 
                             # Test to see if each index is a simple point:
@@ -309,9 +309,9 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> min_edges = 10
+    >>> min_separation = 10
     >>> keep, tracks = find_outer_anchors(indices, \
-    >>>     neighbor_lists, values, values_seeding, min_edges)
+    >>>     neighbor_lists, values, values_seeding, min_separation)
     >>> wN_max = 2.0
     >>> #
     >>> S = connect_points_hmmf(keep, indices, values, neighbor_lists, wN_max)
