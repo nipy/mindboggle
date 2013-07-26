@@ -1036,8 +1036,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
                                                    'sulci',
                                                    'curv_file',
                                                    'depth_file',
-                                                   'min_edges',
-                                                   'min_distance',
+                                                   'min_separation',
                                                    'erode_ratio',
                                                    'erode_min_size',
                                                    'save_file'],
@@ -1050,8 +1049,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
                        [('Curvature.mean_curvature_file', 'Fundi.curv_file'),
                         ('Rescale_travel_depth.rescaled_scalars_file',
                          'Fundi.depth_file')])])
-        FundiNode.inputs.min_edges = 10
-        FundiNode.inputs.min_distance = 10
+        FundiNode.inputs.min_separation = 10
         FundiNode.inputs.erode_ratio = 0.10
         FundiNode.inputs.erode_min_size = 10
         FundiNode.inputs.save_file = True
