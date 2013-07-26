@@ -2,4 +2,4 @@
 
 .. include:: ../../INSTALL
 
-.. include:: ../links_names.txt
+.. include:: ../links.txt

@@ -78,4 +78,4 @@ for writing docstrings.
 .. _`numpy coding style guideline`:
    http://scipy.org/scipy/numpy/wiki/CodingStyleGuidelines
 
-.. include:: links_names.txt
+.. include:: links.txt
