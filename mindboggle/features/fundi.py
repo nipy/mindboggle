@@ -12,9 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract fundi
 #=============================================================================
-def extract_fundi(folds, sulci, curv_file, depth_file,
-                  likelihoods, min_edges, min_distance,
-                  erode_ratio, erode_min_size, smooth_skeleton, save_file):
+def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
+                  min_distance, erode_ratio, erode_min_size, save_file):
     """
     Extract fundi from folds.
 
@@ -25,8 +24,7 @@ def extract_fundi(folds, sulci, curv_file, depth_file,
         1. Find fundus endpoints (outer anchors) with find_outer_anchors().
         2. Include inner anchor points.
         3. Connect anchor points using connect_points_erosion().
-        4. To do: Optionally smooth fundi.
-        5. Segment fundi by sulcus definitions.
+        4. Segment fundi by sulcus definitions.
 
     Parameters
     ----------
@@ -45,8 +43,6 @@ def extract_fundi(folds, sulci, curv_file, depth_file,
     erosion_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
-    smooth_skeleton : Boolean [Not yet implemented]
-        smooth skeleton?
     save_file : Boolean
         save output VTK file?
 
@@ -62,32 +58,29 @@ def extract_fundi(folds, sulci, curv_file, depth_file,
     Examples
     --------
     >>> # Extract fundus from one or more folds:
+    >>> single_fold = True
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> from mindboggle.features.fundi import extract_fundi
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file, True, True)
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
-    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
-    >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
-    >>> single_fold = True
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> if single_fold:
-    >>>     fold_number = 11 #11
+    >>>     fold_number = 2 #11
     >>>     folds[folds != fold_number] = -1
     >>> min_edges = 10
     >>> min_distance = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
-    >>> smooth_skeleton = False
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, curv_file,
-    >>>     depth_file, likelihoods, min_edges, min_distance,
-    >>>     erode_ratio, erode_min_size, smooth_skeleton, save_file)
+    >>>     depth_file, min_edges, min_distance,
+    >>>     erode_ratio, erode_min_size, save_file)
     >>> #
     >>> # View:
     >>> plot_vtk(fundi_file)
@@ -103,13 +96,7 @@ def extract_fundi(folds, sulci, curv_file, depth_file,
     from mindboggle.utils.compute import median_abs_dev
     from mindboggle.utils.paths import find_max_values
     from mindboggle.utils.mesh import find_neighbors_from_file
-    from mindboggle.utils.morph import dilate
-    from mindboggle.utils.paths import find_outer_anchors, \
-        connect_points_erosion, connect_points_hmmf
-
-    # From connect_points_hmmf(): maximum neighborhood weight
-    # (trust prior more for smoother fundi)
-    wN_max = 2.0
+    from mindboggle.utils.paths import find_outer_anchors, connect_points_erosion
 
     # Load values, threshold, and neighbors:
     u1,u2,u3, points, npoints, curvs, u4,u5 = read_vtk(curv_file, True,True)
@@ -158,48 +145,6 @@ def extract_fundi(folds, sulci, curv_file, depth_file,
                 outer_anchors, inner_anchors, values,
                 erode_ratio, erode_min_size, save_steps=[], save_vtk='')
             if skeleton:
-
-                #-------------------------------------------------------------
-                # Smooth skeleton:
-                #-------------------------------------------------------------
-                if smooth_skeleton:
-
-                    # Dilate the skeleton within the fold:
-                    nedges = 2
-                    print('    Dilate skeleton and intersect with fold...')
-                    dilated = dilate(skeleton, nedges, neighbor_lists)
-                    dilated = list(set(dilated).intersection(indices_fold))
-
-                    # In case the dilation leads to topological changes,
-                    # erode the fold again to the dilated skeleton (SLOW):
-                    re_erode = False
-                    if re_erode:
-                        print('    Erode fold again to dilated skeleton...')
-                        S = -1 * np.ones(npoints)
-                        S[indices_fold] = 1
-                        dilated = connect_points_erosion(S, neighbor_lists,
-                            dilated, [], [], 1, 0, [], '')
-
-                    # Set undilated likelihoods to -1 to preserve neighbors:
-                    undilated = list(set(indices_fold).difference(dilated))
-                    likelihoods_copy = likelihoods[:]
-                    likelihoods_copy[undilated] = -1
-
-                    # Smoothly re-skeletonize the dilated skeleton:
-                    print('    Smoothly re-skeletonize dilated skeleton...')
-                    skeleton = connect_points_hmmf(outer_anchors, dilated,
-                        likelihoods_copy.tolist(), neighbor_lists, wN_max)
-
-                    ## Plot overlap of dilated and pre-/post-smoothed skeleton:
-                    #from mindboggle.utils.plots import plot_vtk
-                    #D = -1*np.ones(npoints)
-                    #D[dilated]=1; D[skeleton]=2; D[skeleton2]=3
-                    #rewrite_scalars(curv_file, 'test.vtk', D, 'D', folds)
-                    #plot_vtk('test.vtk')
-
-                #-------------------------------------------------------------
-                # Store skeleton:
-                #-------------------------------------------------------------
                 skeletons.extend(skeleton)
 
     #-------------------------------------------------------------------------
