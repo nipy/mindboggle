@@ -180,8 +180,8 @@ do_measure_zernike = False  # Measure Zernike moments for features
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
 do_sulci = True  # Extract sulci
-do_fundi = False  # Extract fundi
-
+do_fundi = True  # Extract fundi
+do_smooth_fundi = True
 #-----------------------------------------------------------------------------
 run_SurfShapeFlow = True
 #-----------------------------------------------------------------------------
@@ -231,6 +231,7 @@ from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi
+from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
     measure_volume_overlap
@@ -1029,59 +1030,90 @@ if run_SurfFeatureFlow and run_SurfFlows:
     # Fundi
     #=========================================================================
     if do_fundi:
-        LikelihoodNode = Node(name='Likelihood',
-                              interface=Fn(function = compute_likelihood,
-                                           input_names=['trained_file',
-                                                        'depth_file',
-                                                        'curvature_file',
-                                                        'folds'
-                                                        'save_file'],
-                                           output_names=['likelihoods',
-                                                         'likelihoods_file']))
-
-        SurfFeatureFlow.add_nodes([LikelihoodNode])
-        LikelihoodNode.inputs.trained_file = os.path.join(atlas_path,
-            'depth_curv_border_nonborder_parameters.pkl')
-        mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
-                           [('Rescale_travel_depth.rescaled_scalars_file',
-                             'Likelihood.depth_file'),
-                            ('Curvature.mean_curvature_file',
-                             'Likelihood.curvature_file')])])
-        SurfFeatureFlow.connect(FoldsNode, 'folds', LikelihoodNode, 'folds')
-        LikelihoodNode.inputs.save_file = True
-        mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
-                         Sink, 'features.@likelihoods')
-
         FundiNode = Node(name='Fundi',
                          interface=Fn(function = extract_fundi,
                                       input_names=['folds',
                                                    'sulci',
-                                                   'likelihoods',
-                                                   'rescaled_depth_file',
+                                                   'curv_file',
                                                    'depth_file',
                                                    'min_edges',
-                                                   'erosion_ratio',
-                                                   'normalize_likelihoods',
-                                                   'smooth_skeleton',
+                                                   'min_distance',
+                                                   'erode_ratio',
+                                                   'erode_min_size',
                                                    'save_file'],
                                       output_names=['fundi',
                                                     'n_fundi',
                                                     'fundi_file']))
         SurfFeatureFlow.connect(FoldsNode, 'folds', FundiNode, 'folds')
         SurfFeatureFlow.connect(SulciNode, 'sulci', FundiNode, 'sulci')
-        SurfFeatureFlow.connect(LikelihoodNode, 'likelihoods', 
-                            FundiNode, 'likelihoods')
         mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
-                       [('Rescale_travel_depth.rescaled_scalars_file',
-                         'Fundi.rescaled_depth_file'),
-                        ('Travel_depth.depth_file','Fundi.depth_file')])])
+                       [('Curvature.mean_curvature_file', 'Fundi.curv_file'),
+                        ('Rescale_travel_depth.rescaled_scalars_file',
+                         'Fundi.depth_file')])])
         FundiNode.inputs.min_edges = 10
-        FundiNode.inputs.erosion_ratio = 0.25
-        FundiNode.inputs.normalize_likelihoods = True
-        FundiNode.inputs.smooth_skeleton = False
+        FundiNode.inputs.min_distance = 10
+        FundiNode.inputs.erode_ratio = 0.10
+        FundiNode.inputs.erode_min_size = 10
         FundiNode.inputs.save_file = True
         mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi_file',
-                         Sink, 'features.@fundi')
+                       Sink, 'features.@fundi')
+
+        if do_smooth_fundi:
+
+            #-----------------------------------------------------------------
+            # Compute likelihoods for smoothing fundi:
+            #-----------------------------------------------------------------
+            LikelihoodNode = Node(name='Likelihood',
+                                  interface=Fn(function = compute_likelihood,
+                                               input_names=['trained_file',
+                                                            'depth_file',
+                                                            'curvature_file',
+                                                            'folds',
+                                                            'save_file'],
+                                               output_names=['likelihoods',
+                                                             'likelihoods_file']))
+            SurfFeatureFlow.add_nodes([LikelihoodNode])
+            LikelihoodNode.inputs.trained_file = os.path.join(atlas_path,
+                'depth_curv_border_nonborder_parameters.pkl')
+            mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
+                               [('Rescale_travel_depth.rescaled_scalars_file',
+                                 'Likelihood.depth_file'),
+                                ('Curvature.mean_curvature_file',
+                                 'Likelihood.curvature_file')])])
+            SurfFeatureFlow.connect(FoldsNode, 'folds',
+                                    LikelihoodNode, 'folds')
+            LikelihoodNode.inputs.save_file = True
+            mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
+                             Sink, 'features.@likelihoods')
+
+            #-----------------------------------------------------------------
+            # Smooth fundi:
+            #-----------------------------------------------------------------
+            SmoothFundi = Node(name='Smooth_fundi',
+                             interface=Fn(function = smooth_skeleton,
+                                          input_names=['skeletons',
+                                                       'bounds',
+                                                       'vtk_file',
+                                                       'likelihoods',
+                                                       'wN_max',
+                                                       'erode_again',
+                                                       'save_file'],
+                                          output_names=['smooth_skeletons',
+                                                        'n_skeletons',
+                                                        'skeletons_file']))
+            SurfFeatureFlow.connect(FundiNode, 'fundi',
+                                    SmoothFundi, 'skeletons')
+            SurfFeatureFlow.connect(FoldsNode, 'folds', SmoothFundi, 'bounds')
+            mbFlow.connect(WholeSurfShapeFlow, 'Curvature.mean_curvature_file',
+                           SurfFeatureFlow, 'Smooth_fundi.vtk_file')
+            SurfFeatureFlow.connect(LikelihoodNode, 'likelihoods',
+                                    SmoothFundi, 'likelihoods')
+            SmoothFundi.inputs.wN_max = 1.0
+            SmoothFundi.inputs.erode_again = False
+            SmoothFundi.inputs.save_file = True
+            mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
+                           Sink, 'features.@smooth_fundi')
+
 
 ##############################################################################
 #
