@@ -4,8 +4,8 @@
  Introduction
 ==============
 
-Please see our :ref:`documentation-main`, :ref:`mindboggle-faq` FAQ, and our :ref:`glossary` 
-to get started.  We will be adding user notes and tutorials here soon...
+Please see our :ref:`documentation-main`, and our :ref:`mindboggle-faq`
+FAQ to get started.  We will be adding user notes and tutorials here soon...
 
 
 *The Mingboggle team*

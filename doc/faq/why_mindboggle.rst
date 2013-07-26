@@ -1,8 +1,8 @@
 .. _mindboggle-faq:
 
-======
- Why?
-======
+================
+ Why Mindboggle?
+================
 
 .. _purpose:
 
@@ -39,7 +39,7 @@ answering the neuroscientific and clinical questions that interest them.
 History
 -------
 
-Back in 1998, Arno Klein left Caltech to visit Cornell Medical School for a summer,
+Back in 1998, `Arno Klein`_ left Caltech to visit Cornell Medical School for a summer,
 to learn a bit about human brain imaging.  Within a day of arriving in New York, 
 he witnessed two medical students arguing over what regions of a patient's brain 
 were active according to fMRI BOLD data printed on some sheets of paper.
@@ -58,7 +58,7 @@ In 2009, with generous funding from the National Institute of Mental Health
 People who have contributed to the codebase during this period include:
  
     - Forrest Sheng Bao
-    - Satrajit S. Ghosh
+    - Satrajit Ghosh
     - Joachim Giard
     - Yrjö Häme
     - Eliezer Stavsky
@@ -70,3 +70,5 @@ shape analysis.  Joining this effort will be:
     - Nolan Nichols
 
 For more information about the Mindboggle team, see http://mindboggle.info/people/.
+
+.. include:: ../links.txt
