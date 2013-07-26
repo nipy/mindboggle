@@ -4,7 +4,7 @@
 
 Note::
   make html
-  cp -R build/html/* ../../
+  rsync -avz --sparse --exclude-from=/homedir/.rsync-exclude -e /usr/bin/ssh build/html/* binarybottle@binarybottle.com:/home/binarybottle/mindboggle.info
 
 This is the top level build directory for the Mindboggle documentation.  
 The Mindboggle documentation is adapted from the documentation for nipy_,
