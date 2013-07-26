@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Connect points by erosion:
 #------------------------------------------------------------------------------
 def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
-                           values=[], erode_ratio=0.25, erode_min_size=10,
+                           values=[], erode_ratio=0.1, erode_min_size=10,
                            save_steps=[], save_vtk=''):
     """
     Connect mesh vertices with a skeleton of 1-vertex-thick curves by erosion.
@@ -242,7 +242,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
 #------------------------------------------------------------------------------
 # Connect points using a Hidden Markov Measure Field:
 #------------------------------------------------------------------------------
-def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
+def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     """
     Connect mesh vertices with a skeleton of 1-vertex-thick curves using HMMF.
 
@@ -958,7 +958,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
 # Find high-value boundary points:
 #-----------------------------------------------------------------------------
 def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
-                       min_edges=10):
+                       min_separation=10):
     """
     Find vertices on the boundary of a surface mesh region that are the
     endpoints to multiple, high-value tracks through from the region's center.
@@ -979,8 +979,8 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         values for all vertices (e.g., fundus likelihood values)
     values_seeding : numpy array of floats
         values for all vertices to threshold for initial seeds
-    min_edges : integer
-        minimum number of edges between endpoint vertices
+    min_separation : integer
+        minimum number of edges between anchor vertices
 
     Returns
     -------
@@ -1005,7 +1005,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> values, name = read_scalars(values_file, True, True)
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
-    >>> min_edges = 10
+    >>> min_separation = 10
     >>> #
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks from a single fold:
@@ -1017,7 +1017,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> #
     >>> endpoints, endtracks = find_outer_anchors(indices, neighbor_lists, \
-    >>>     values, values_seeding, min_edges)
+    >>>     values, values_seeding, min_separation)
     >>> #
     >>> # View results atop values:
     >>> all_tracks = [x for lst in endtracks for x in lst]
@@ -1041,7 +1041,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>>     indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>>     if len(indices) > min_size:
     >>>         endpoints, endtracks = find_outer_anchors(indices, neighbor_lists,
-    >>>             values, values_seeding, min_edges)
+    >>>             values, values_seeding, min_separation)
     >>>         all_endpoints.extend(endpoints)
     >>>         all_tracks.extend([x for lst in endtracks for x in lst])
     >>> P = -1 * np.ones(len(values))
@@ -1154,7 +1154,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         while E:
 
             # Find endpoints close to the first endpoint:
-            near = find_neighborhood(neighbor_lists, [E[0]], min_edges)
+            near = find_neighborhood(neighbor_lists, [E[0]], min_separation)
             Isame = [i for i,x in enumerate(E) if x == E[0]]
             Inear = [i for i,x in enumerate(E) if x in near]
             if Inear or len(Isame) > 1:
@@ -1195,7 +1195,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
 #------------------------------------------------------------------------------
 # Find points with maximal values that are not too close together.
 #------------------------------------------------------------------------------
-def find_max_values(points, values, min_distance=10, thr=0.5):
+def find_max_values(points, values, min_separation=10, thr=0.5):
     """
     Find highest value 'special' points that are not too close together.
 
@@ -1215,8 +1215,8 @@ def find_max_values(points, values, min_distance=10, thr=0.5):
         coordinates for all vertices
     values : list (or array) of integers
         values of some kind to maximize over for all vertices (default -1)
-    min_distance : integer
-        minimum distance between extracted points
+    min_separation : integer
+        minimum number of edges between maximum value vertices
     thr : float
         value threshold in [0,1]
 
@@ -1250,12 +1250,12 @@ def find_max_values(points, values, min_distance=10, thr=0.5):
     >>>   fold_array[indices_fold] = 1
     >>>   folds = fold_array.tolist()
     >>> #
-    >>> min_distance = 10
+    >>> min_separation = 10
     >>> values0 = [x for x in values if x > 0]
     >>> thr = np.median(values0) + median_abs_dev(values0)
     >>> print(thr)
     >>> #
-    >>> highest = find_max_values(points, values, min_distance, thr)
+    >>> highest = find_max_values(points, values, min_separation, thr)
     >>> #
     >>> # Write results to vtk file and view:
     >>> values[highest] = np.max(values) + 0.1
@@ -1294,7 +1294,7 @@ def find_max_values(points, values, min_distance=10, thr=0.5):
                 D = np.linalg.norm(points[highest[i]] - points[imax])
 
                 # If distance less than threshold, consider the point found:
-                if D < min_distance:
+                if D < min_separation:
                     found = 1
 
                 i += 1
@@ -1375,7 +1375,7 @@ def find_endpoints(indices, neighbor_lists):
 # #------------------------------------------------------------------------------
 # # Find points with maximal values that are not too close together.
 # #------------------------------------------------------------------------------
-# def find_anchors(points, values, min_directions, min_distance, thr):
+# def find_anchors(points, values, min_directions, min_separation, thr):
 #     """
 #     Find 'special' points with maximal values that are not too close together.
 #
@@ -1397,8 +1397,8 @@ def find_endpoints(indices, neighbor_lists):
 #         values of some kind to maximize over for all vertices (default -1)
 #     min_directions : numpy array of floats
 #         minimum directions for all vertices
-#     min_distance : integer
-#         minimum distance
+#     min_separation : integer
+#         minimum number of edges between anchor vertices
 #     thr : float
 #         value threshold in [0,1]
 #
@@ -1434,10 +1434,10 @@ def find_endpoints(indices, neighbor_lists):
 #     >>>   folds = fold_array.tolist()
 #     >>> #
 #     >>> min_directions = np.loadtxt(min_curvature_vector_file)
-#     >>> min_distance = 5
+#     >>> min_separation = 5
 #     >>> thr = 0.5
 #     >>> #
-#     >>> indices_special = find_anchors(points, values, min_directions, min_distance, thr)
+#     >>> indices_special = find_anchors(points, values, min_directions, min_separation, thr)
 #     >>> #
 #     >>> # Write results to vtk file and view:
 #     >>> values[indices_special] = np.max(values) + 0.1
@@ -1456,7 +1456,7 @@ def find_endpoints(indices, neighbor_lists):
 #     if not isinstance(min_directions, np.ndarray):
 #         min_directions = np.array(min_directions)
 #
-#     max_distance = 2 * min_distance
+#     max_distance = 2 * min_separation
 #
 #     # Sort values and find indices for values above the threshold:
 #     L_table = [[i,x] for i,x in enumerate(values)]
@@ -1480,14 +1480,14 @@ def find_endpoints(indices, neighbor_lists):
 #                 D = np.linalg.norm(points[indices_special[i]] - points[imax])
 #
 #                 # If distance less than threshold, consider the point found:
-#                 if D < min_distance:
+#                 if D < min_separation:
 #                     found = 1
 #                 # Compute directional distance between points if they are close:
 #                 elif D < max_distance:
 #                     dirV = np.dot(points[indices_special[i]] - points[imax],
 #                                   min_directions[indices_special[i]])
 #                     # If distance less than threshold, consider the point found:
-#                     if np.linalg.norm(dirV) < min_distance:
+#                     if np.linalg.norm(dirV) < min_separation:
 #                         found = 1
 #
 #                 i += 1
@@ -1532,9 +1532,9 @@ if __name__ == "__main__":
     S[indices] = 1
 
     # Find endpoints:
-    min_edges = 10
+    min_separation = 10
     keep, tracks = find_outer_anchors(indices,
-        neighbor_lists, values, values_seeding, min_edges)
+        neighbor_lists, values, values_seeding, min_separation)
 
     erode_ratio = 0.10
     min_size = 10
