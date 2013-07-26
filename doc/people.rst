@@ -10,37 +10,45 @@
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic1|     | |blurb1|     |
+| |picAK|    | |blurbAK|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic2|     | |blurb2|     |
+| |picFB|    | |blurbFB|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic3|     | |blurb3|     |
+| |picJG|    | |blurbJG|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic4|     | |blurb4|     |
+| |picYH|    | |blurbYH|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic5|     | |blurb5|     |
+| |picSG|    | |blurbSG|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic6|     | |blurb6|     |
+| |picNN|    | |blurbNN|    |
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| |pic7|     | |blurb7|     |
+| |picMR|    | |blurbMR|    |
++------------+--------------+
+|            |              |
++------------+--------------+
+| **Past contributors**     |
++------------+--------------+
+|            |              |
++------------+--------------+
+| |picES|    | |blurbES|    |
 +------------+--------------+
 
 
-.. |pic1| image:: http://media.mindboggle.info/images/people/ArnoKlein_gallery.jpg
+.. |picAK| image:: http://media.mindboggle.info/images/people/ArnoKlein_gallery.jpg
                     :width: 200px
-.. |blurb1| replace::
+.. |blurbAK| replace::
     `Arno Klein`_ (CV_) is a Research Asst. Professor of Psychiatry and Behavioral Science
     at Stony Brook University.
     He was the Principal Investigator of the NIMH R01 grant (MH084029-02) 
@@ -58,9 +66,9 @@
 .. _`information visualization`: http://www.infovis.info
 
 
-.. |pic2| image:: http://media.mindboggle.info/images/people/ForrestBao.jpg
+.. |picFB| image:: http://media.mindboggle.info/images/people/ForrestBao.jpg
                     :width: 200px
-.. |blurb2| replace::
+.. |blurbFB| replace::
     `Forrest Bao`_ recently defended his doctoral thesis on
     `knowledge representation and reasoning`_
     and is a postdoctoral associate working from Texas Tech University.
@@ -69,9 +77,9 @@
 .. _`knowledge representation and reasoning`: http://narnia.cs.ttu.edu/drupal/node/4
 
 
-.. |pic3| image:: http://media.mindboggle.info/images/people/JoachimGiard.jpg
+.. |picJG| image:: http://media.mindboggle.info/images/people/JoachimGiard.jpg
                     :width: 200px
-.. |blurb3| replace::
+.. |blurbJG| replace::
     Joachim Giard is a postdoctoral researcher of electrical engineering at
     UCL, Belgium.  He is currently working at the Information and Communication Technologies, 
     Electronics and Applied Mathematics Institute (ICTEAM) in the Communications and 
@@ -82,25 +90,25 @@
 .. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
 
 
-.. |pic4| image:: http://media.mindboggle.info/images/people/YrjoHame.jpg
+.. |picYH| image:: http://media.mindboggle.info/images/people/YrjoHame.jpg
                     :width: 200px
-.. |blurb4| replace::
+.. |blurbYH| replace::
     Yrjo Hame is a graduate student in the Biomedical Engineering Department
     of Columbia University.  Yrjo wrote the Hidden Markov Measure Field algorithm
     for extracting sulcus features from brain images for Mindboggle.
 
 
-.. |pic5| image:: http://media.mindboggle.info/images/people/EliezerStavsky.jpg
+.. |picES| image:: http://media.mindboggle.info/images/people/EliezerStavsky.jpg
                     :width: 200px
-.. |blurb5| replace::
+.. |blurbES| replace::
     Eliezer Stavsky is a graduate student of Neurobiology and Behavior at Columbia University.
     Eliezer worked on spectral shape analysis and semi-supervised learning approaches to 
     propagate labels across a brain surface.
 
 
-.. |pic6| image:: http://media.mindboggle.info/images/people/SatrajitGhosh.jpg
+.. |picSG| image:: http://media.mindboggle.info/images/people/SatrajitGhosh.jpg
                     :width: 200px
-.. |blurb6| replace::
+.. |blurbSG| replace::
     `Satrajit Ghosh`_ is a Research Scientist in the Research Lab of Electronics at MIT.
     Satrajit is developing the software pipeline framework, NiPype_, 
     that we are building Mindboggle in.  
@@ -110,9 +118,9 @@
 .. _nipype: http://nipy.sourceforge.net/nipype/
 
 
-.. |pic7| image:: http://media.mindboggle.info/images/people/NolanNichols.jpg
+.. |picNN| image:: http://media.mindboggle.info/images/people/NolanNichols.jpg
                     :width: 200px
-.. |blurb7| replace::
+.. |blurbNN| replace::
     `Nolan Nichols`_ is a PhD student in Biomedical and Health Informatics at the
     University of Washington.  Nolan is building a graph database to support the 
     informatics infrastructure underlying Mindboggle. He is excited about the 
@@ -120,4 +128,16 @@
     complement to his thesis work in the areas of semantic data integration and sharing 
     of human neuroimaging data.
 .. _`Nolan Nichols`: https://www.ibic.washington.edu/wiki/display/~bnniii/Nolan+Nichols
+
+
+.. |picMR| image:: http://media.mindboggle.info/images/people/MartinReuter.jpg
+                    :width: 200px
+.. |blurbMR| replace::
+    `Martin Reuter`_ is Instructor in Neurology at Harvard Medical School 
+    (Massachusetts General Hospital) and works on computational methods for spectral shape analysis, 
+    image registration and processing of longitudinal brain MRI data implemented in FreeSurfer. 
+    His research interests include computational neuroimaging, computational geometry and toplogy. 
+    Mindboggle's Laplace-Beltrami spectra code is a Python port of Martin's Matlab version. 
+    Martin has helped the team to develop and evaluate this spectral shape measure.
+.. _`Martin Reuter`: http://reuter.mit.edu
 
