@@ -288,8 +288,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     >>> # Connect vertices according to likelihood values in a single fold:
     >>> import os
     >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, \
-    >>>                                     read_faces_points, rewrite_scalars
+    >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars,
+    ...                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
     >>> from mindboggle.utils.plots import plot_vtk
@@ -310,8 +310,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> min_separation = 10
-    >>> keep, tracks = find_outer_anchors(indices, \
-    >>>     neighbor_lists, values, values_seeding, min_separation)
+    >>> keep, tracks = find_outer_anchors(indices,
+    ...     neighbor_lists, values, values_seeding, min_separation)
     >>> wN_max = 2.0
     >>> #
     >>> S = connect_points_hmmf(keep, indices, values, neighbor_lists, wN_max)
@@ -1016,15 +1016,15 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> folds[folds != fold_number] = -1
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> #
-    >>> endpoints, endtracks = find_outer_anchors(indices, neighbor_lists, \
-    >>>     values, values_seeding, min_separation)
+    >>> endpoints, endtracks = find_outer_anchors(indices, neighbor_lists,
+    ...   values, values_seeding, min_separation)
     >>> #
     >>> # View results atop values:
     >>> all_tracks = [x for lst in endtracks for x in lst]
     >>> values[all_tracks] = max(values) + 0.03
     >>> values[all_tracks] = max(values) + 0.1
-    >>> rewrite_scalars(vtk_file, 'endpoints.vtk', \
-    >>>                 values, 'endpoints_on_values_in_fold', folds)
+    >>> rewrite_scalars(vtk_file, 'endpoints.vtk',
+    ...                 values, 'endpoints_on_values_in_fold', folds)
     >>> plot_vtk('endpoints.vtk')
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks on every fold in a hemisphere:

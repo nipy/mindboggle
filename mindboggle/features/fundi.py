@@ -41,7 +41,7 @@ def extract_fundi(folds, sulci, curv_file, depth_file, min_separation=10,
         fundus likelihood value for each vertex
     min_separation : integer
         minimum number of edges between inner/outer anchor points
-    erosion_ratio : float
+    erode_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
     save_file : Boolean
