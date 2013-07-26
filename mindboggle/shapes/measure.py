@@ -435,9 +435,6 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     >>> exclude_labels = [-1]
     >>> weights = areas
     >>> precision = 1
-    >>> #medians, mads, means, sdevs, skews, kurts, \
-    >>> #lower_quarts, upper_quarts, label_list  = stats_per_label(values,
-    >>> #    labels, exclude_labels, weights, precision)
     >>> stats_per_label(values, labels, exclude_labels, weights, precision)
 
     """
@@ -521,9 +518,9 @@ def volume_per_label(labels, input_file):
     >>> from mindboggle.shapes.measure import volume_per_label
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>    noncortex_names, noncortex_numbers = dkt_protocol()
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...    label_names, label_numbers, cortex_names, cortex_numbers,
+    ...    noncortex_names, noncortex_numbers = dkt_protocol()
     >>> labels_volumes = volume_per_label(label_numbers, input_file)
     >>> print(labels_volumes)
 

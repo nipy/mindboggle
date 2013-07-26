@@ -86,9 +86,9 @@ def measure_volume_overlap(labels, file1, file2):
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> protocol = 'DKT31'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...    label_names, label_numbers, cortex_names, cortex_numbers,
+    ...    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
     >>> measure_volume_overlap(label_numbers, file1, file2)
 
     """

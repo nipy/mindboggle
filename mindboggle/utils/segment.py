@@ -57,9 +57,9 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     >>> from mindboggle.labels.protocol import dkt_protocol
     >>> protocol = 'DKT25'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>     label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...     label_names, label_numbers, cortex_names, cortex_numbers,
+    ...     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
@@ -220,9 +220,9 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> # Example 2: with seed lists
     >>> from mindboggle.labels.protocol import dkt_protocol
     >>> protocol = 'DKT25'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>     label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...     label_names, label_numbers, cortex_names, cortex_numbers,
+    ...     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
     >>> label_lists = [np.unique(np.ravel(x)) for x in sulcus_label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
