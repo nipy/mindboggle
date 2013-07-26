@@ -215,9 +215,8 @@ from nipype.interfaces.freesurfer import MRIConvert
 #-----------------------------------------------------------------------------
 # Import Mindboggle Python libraries
 #-----------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import rewrite_scalars, read_vtk, \
-    apply_affine_transform
-from mindboggle.utils.io_table import read_columns, write_columns, \
+from mindboggle.utils.io_vtk import read_vtk
+from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
 from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk
@@ -225,8 +224,7 @@ from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, \
     fill_volume_with_surface_labels
 from mindboggle.labels.protocol import dkt_protocol
 from mindboggle.labels.label_free import label_with_classifier
-from mindboggle.labels.relabel import relabel_volume, relabel_surface, \
-    overwrite_volume_labels
+from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
