@@ -17,7 +17,7 @@ This directory contains:
 * Makefile - the build script to build the HTML or PDF docs.
   Type ``make help`` for a list of options.
 
-* links_names.txt - reST document with hyperlink targets for common
+* links.txt - reST document with hyperlink targets for common
   links used throughout the documentation
 
 * .rst files - some top-level documentation source files
