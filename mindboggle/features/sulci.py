@@ -70,9 +70,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     >>> folds_or_file, name = read_scalars(folds_file)
     >>> protocol = 'DKT31'
     >>> hemi = 'lh'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    >>>    label_names, label_numbers, cortex_names, cortex_numbers, \
-    >>>    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...    label_names, label_numbers, cortex_names, cortex_numbers,
+    ...    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
     >>> min_boundary = 10
     >>> #
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
