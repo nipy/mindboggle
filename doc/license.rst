@@ -24,4 +24,4 @@ Except where otherwise noted, all Mindboggle documentation is licensed under a
 
 All code fragments in the documentation are licensed under our software license.
 
-.. include:: links_names.txt
+.. include:: links.txt
