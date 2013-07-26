@@ -16,7 +16,6 @@
 
    introduction
    installation
-   ../glossary
 
 .. htmlonly::
 
