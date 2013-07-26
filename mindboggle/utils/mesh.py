@@ -611,8 +611,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     >>> reduction = 0.5
     >>> smooth_steps = 100
     >>> output_vtk = ''
-    >>> faces, lines, indices, points, npoints, scalars, scalar_names, \
-    >>>     o2  = read_vtk(input_vtk)
+    >>> faces, lines, indices, points, npoints, scalars, scalar_names,
+    ...     o2  = read_vtk(input_vtk)
     >>> points, faces, output_vtk = decimate(points, faces, reduction,
     >>>                                      smooth_steps, output_vtk)
     >>> len(points) == 4567
