@@ -560,6 +560,186 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=2.0):
     return skeleton
 
 
+def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
+                    wN_max=1.0, erode_again=False, save_file=False):
+    """
+    Smooth skeleton by dilation followed by connect_points_hmmf().
+
+    Steps ::
+        1. Segment skeleton into separate sets of connected vertices.
+        2. For each skeleton segment, extract endpoints.
+        3. Dilate skeleton segment.
+        4. Connect endpoints through dilated segment by connect_points_hmmf().
+        5. Store smoothed output from #4.
+
+    Parameters
+    ----------
+    skeletons : list of integers
+        skeleton number for each vertex
+    bounds : list of integers
+        region number for each vertex; if not -1, constrains smoothed skeletons
+    vtk_file : string
+        file from which to extract neighboring vertices for each vertex
+    likelihoods : list of integers
+        fundus likelihood value for each vertex
+    wN_max : float
+        maximum neighborhood weight (trust prior more for smoother skeletons)
+    erode_again : Boolean
+        smooth skeleton?
+    save_file : Boolean
+        save output VTK file?
+
+    Returns
+    -------
+    skeletons : list of integers
+        skeleton numbers for all vertices (-1 for non-skeleton vertices)
+    n_skeletons :  integer
+        number of skeletons
+    skeletons_file : string (if save_file)
+        name of output VTK file with skeleton numbers (-1 default)
+
+    Examples
+    --------
+    >>> # Extract fundus from one or more folds:
+    >>> single_fold = True
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.paths import smooth_skeleton
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
+    >>> likelihoods, name = read_scalars(likelihoods_file, True, True)
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> skeletons_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
+    >>> skeletons, name = read_scalars(skeletons_file, True, True)
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> bounds, name = read_scalars(folds_file, True, True)
+    >>> if single_fold:
+    >>>     fold_number = 1 #11
+    >>>     bounds[bounds != fold_number] = -1
+    >>> wN_max = 1.0
+    >>> erode_again = False
+    >>> save_file = True
+    >>> smooth_skeletons, n_skeletons, skeletons_file = smooth_skeleton(skeletons,
+    >>>     bounds, vtk_file, likelihoods, wN_max, erode_again, save_file)
+    >>> #
+    >>> # View:
+    >>> plot_vtk(skeletons_file)
+
+    """
+
+    import os
+    import numpy as np
+    from time import time
+
+    from mindboggle.utils.io_vtk import rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.segment import segment
+    from mindboggle.utils.morph import dilate
+    from mindboggle.utils.paths import find_endpoints, \
+        connect_points_erosion, connect_points_hmmf
+
+    t0 = time()
+
+    neighbor_lists = find_neighbors_from_file(vtk_file)
+    indices = np.where(bounds != -1)[0]
+    npoints = len(bounds)
+
+    #-------------------------------------------------------------------------
+    # Loop through skeletons:
+    #-------------------------------------------------------------------------
+    unique_IDs = [x for x in np.unique(skeletons) if x != -1]
+    n_skeletons = len(unique_IDs)
+    if n_skeletons == 1:
+        sdum = ''
+    else:
+        sdum = 's'
+    print("Smooth {0} skeleton{1}...".format(n_skeletons, sdum))
+    Z = -1 * np.ones(npoints)
+    smooth_skeletons = Z.copy()
+    for ID in unique_IDs:
+        skeleton = [i for i,x in enumerate(skeletons) if x == ID]
+        print('  Skeleton {0}:'.format(int(ID)))
+
+        #---------------------------------------------------------------------
+        # Segment skeleton vertices into separate connected groups:
+        #---------------------------------------------------------------------
+        skel_segs = segment(skeleton, neighbor_lists)
+        skel_seg_numbers = [x for x in np.unique(skel_segs) if x != -1]
+        len_numbers = len(skel_seg_numbers)
+        if len_numbers > 1:
+            print('    {0} segments'.format(len_numbers))
+        for skel_seg_number in skel_seg_numbers:
+            skel_seg = np.where(skel_segs == skel_seg_number)[0].tolist()
+
+            #-----------------------------------------------------------------
+            # Find endpoints:
+            #-----------------------------------------------------------------
+            endpoints = find_endpoints(skel_seg, neighbor_lists)
+    
+            #-----------------------------------------------------------------
+            # Dilate the skeleton within the bounds:
+            #-----------------------------------------------------------------
+            nedges = 2
+            print('    Dilate skeleton within bounds...')
+            dilated = dilate(skel_seg, nedges, neighbor_lists)
+            dilated = list(set(dilated).intersection(indices))
+            if dilated:
+    
+                #-------------------------------------------------------------
+                # In case the dilation leads to topological changes,
+                # erode the fold again to the dilated skeleton (SLOW):
+                #-------------------------------------------------------------
+                if erode_again:
+                    print('    Erode fold again to dilated skeleton...')
+                    S = Z.copy()
+                    S[indices] = 1
+                    dilated = connect_points_erosion(S, neighbor_lists,
+                        dilated, [], [], 1, 0, [], '')
+    
+                #-------------------------------------------------------------
+                # Set undilated likelihoods to -1 to preserve neighbors:
+                #-------------------------------------------------------------
+                L = Z.copy()
+                L[dilated] = likelihoods[dilated]
+    
+                #-------------------------------------------------------------
+                # Smoothly re-skeletonize the dilated skeleton:
+                #-------------------------------------------------------------
+                print('    Smoothly re-skeletonize dilated skeleton...')
+                new_skeleton = connect_points_hmmf(endpoints, dilated, L,
+                    neighbor_lists, wN_max)
+    
+                ## Plot overlap of dilated and pre-/post-smoothed skeleton:
+                #from mindboggle.utils.plots import plot_vtk
+                #D = -1*np.ones(npoints)
+                #D[dilated]=1; D[skel_seg]=2; D[new_skeleton]=3
+                #rewrite_scalars(vtk_file, 'test.vtk', D, 'D', bounds)
+                #plot_vtk('test.vtk')
+    
+                #-------------------------------------------------------------
+                # Store skeleton:
+                #-------------------------------------------------------------
+                smooth_skeletons[new_skeleton] = ID
+
+    print('  ...Smoothed {0} skeleton{1} ({2:.2f} seconds)'.
+          format(n_skeletons, sdum, time() - t0))
+
+    #-------------------------------------------------------------------------
+    # Return skeletons, number of skeletons, and file name:
+    #-------------------------------------------------------------------------
+    smooth_skeletons = smooth_skeletons.tolist()
+
+    if save_file:
+        skeletons_file = os.path.join(os.getcwd(), 'smooth_skeletons.vtk')
+        rewrite_scalars(vtk_file, skeletons_file, smooth_skeletons,
+                        'smooth_skeletons', bounds)
+    else:
+        skeletons_file = None
+
+    return smooth_skeletons, n_skeletons, skeletons_file
+
+
 def track_values(seed, indices, neighbor_lists, values, sink=[]):
     """
     Build a track from a seed vertex along increasing vertex values of a mesh.
