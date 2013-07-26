@@ -12,8 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract fundi
 #=============================================================================
-def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
-                  min_distance, erode_ratio, erode_min_size, save_file):
+def extract_fundi(folds, sulci, curv_file, depth_file, min_separation=10,
+                  erode_ratio=0.1, erode_min_size=1, save_file=False):
     """
     Extract fundi from folds.
 
@@ -25,6 +25,7 @@ def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
         2. Include inner anchor points.
         3. Connect anchor points using connect_points_erosion().
         4. Segment fundi by sulcus definitions.
+        Possible postprocessing step: smooth with smooth_skeleton().
 
     Parameters
     ----------
@@ -38,8 +39,8 @@ def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
         sulcus number for each vertex
     likelihoods : list of integers
         fundus likelihood value for each vertex
-    min_edges : integer
-        minimum number of edges between endpoints in find_outer_anchors()
+    min_separation : integer
+        minimum number of edges between inner/outer anchor points
     erosion_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
@@ -73,14 +74,12 @@ def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
     >>> if single_fold:
     >>>     fold_number = 2 #11
     >>>     folds[folds != fold_number] = -1
-    >>> min_edges = 10
-    >>> min_distance = 10
+    >>> min_separation = 10
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
     >>> fundi, n_fundi, fundi_file = extract_fundi(folds, sulci, curv_file,
-    >>>     depth_file, min_edges, min_distance,
-    >>>     erode_ratio, erode_min_size, save_file)
+    >>>     depth_file, min_separation, erode_ratio, erode_min_size, save_file)
     >>> #
     >>> # View:
     >>> plot_vtk(fundi_file)
@@ -129,12 +128,12 @@ def extract_fundi(folds, sulci, curv_file, depth_file, min_edges,
             # to serve as fundus endpoints :
             #-----------------------------------------------------------------
             outer_anchors, tracks = find_outer_anchors(indices_fold,
-                neighbor_lists, values, depths, min_edges)
+                neighbor_lists, values, depths, min_separation)
 
             #-----------------------------------------------------------------
             # Find inner anchor points:
             #-----------------------------------------------------------------
-            inner_anchors = find_max_values(points, values, min_distance, thr)
+            inner_anchors = find_max_values(points, values, min_separation, thr)
 
             #-----------------------------------------------------------------
             # Connect endpoints to create skeleton:
