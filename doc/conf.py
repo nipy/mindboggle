@@ -35,7 +35,6 @@ extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.autosummary',
               'ipython_console_highlighting', 
-              'inheritance_diagram', 
               ]
 
 # Current version (as of 11/2010) of numpydoc is only compatible with sphinx >
