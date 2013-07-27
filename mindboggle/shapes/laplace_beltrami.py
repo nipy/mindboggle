@@ -774,6 +774,13 @@ def spectrum_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
          0.005429017880363778,
          0.006309346984678918]
 
+    >>> # Loop thru all MB 101 brains
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
+    >>> for hemidir in os.listdir(header):
+    >>>     print hemidir
+    >>>     sulci_file = os.path.join(header, hemidir, "sulci.vtk")
+    >>>     spectrum = spectrum_from_file(sulci_file)
+
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
     from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
