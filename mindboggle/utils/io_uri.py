@@ -47,7 +47,7 @@ def retrieve_data(data_file, uri, hashes={}, cache_env='', cache_dir=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.utils import retrieve_data
+    >>> from mindboggle.utils.io_uri import retrieve_data
     >>> data_file = 'OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz'
     >>> uri = 'http://mindboggle.info/data/atlases/jointfusion/'
     >>> hashes = {}
@@ -59,9 +59,9 @@ def retrieve_data(data_file, uri, hashes={}, cache_env='', cache_dir=''):
     """
     import os
     import sys
-    import urllib
-    import hashlib
     import shutil
+
+    from mindboggle.utils.io_uri import get_data, get_hash
 
     #-------------------------------------------------------------------------
     # If hashes provided, go through steps to check/download file:
@@ -108,10 +108,10 @@ def retrieve_data(data_file, uri, hashes={}, cache_env='', cache_dir=''):
             print("Retrieve file: {0}".format(uri+data_file))
 
             # Download file as a temporary file:
-            temp_file, foo = urllib.urlretrieve(uri+data_file)
+            temp_file = get_data(uri+data_file)
 
             # Compute the file's hash:
-            data_hash = hashlib.md5(open(temp_file, 'rb').read()).hexdigest()
+            data_hash = get_hash(data_file)
 
             # If hash matches name of the hash directory, save file:
             if os.path.join(cache_dir, data_hash) == hash_dir:
@@ -126,6 +126,73 @@ def retrieve_data(data_file, uri, hashes={}, cache_env='', cache_dir=''):
     #-------------------------------------------------------------------------
     else:
         # Download file as a temporary file:
-        data_path, foo = urllib.urlretrieve(uri+data_file)
+        data_path = get_data(uri+data_file)
         print("Retrieved file: {0}".format(data_path))
         return data_path
+
+
+def get_data(url, output_file=''):
+    """
+    Get data from URL.
+
+    Parameters
+    ----------
+    url : string
+        URL for data file
+    output_file : string
+        name of output file (full path)
+
+    Returns
+    -------
+    output_file : string
+        name of output file (full path)
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_uri import get_data
+    >>> data_file = 'OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz'
+    >>> uri = 'http://mindboggle.info/data/atlases/jointfusion/'
+    >>> url = uri + data_file
+    >>> output_file = 'test_output.nii.gz'
+    >>> get_data(url, output_file)
+
+    """
+    import urllib
+
+    # Download file as a temporary file:
+    if output_file:
+        output_file, foo = urllib.urlretrieve(url, output_file)
+    # Download file to specified output:
+    else:
+        output_file, foo = urllib.urlretrieve(url)
+
+    return output_file
+
+
+def get_hash(data_file):
+    """
+    Get hash of data file.
+
+    Parameters
+    ----------
+    data_file : string
+        data file name
+
+    Returns
+    -------
+    hash : string
+        hash of data file
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_uri import get_hash
+    >>> data_file = 'OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz'
+    >>> get_hash(data_file)
+
+    """
+    import hashlib
+
+    # Compute the file's hash:
+    hash = hashlib.md5(open(data_file, 'rb').read()).hexdigest()
+
+    return hash
