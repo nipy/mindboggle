@@ -19,7 +19,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
           are not converted to DKT25 protocol labels.
       - FreeSurfer labels
           Version 5.2 or greater recommended (see above).
-      - Multi-atlas labeling
+      - Multi-atlas labeling (deactivated because DKT result more accurate)
           If surface template and labeled surface atlases are supplied,
           this option uses FreeSurfer registration and
           majority vote rule on multiple label assignments.
@@ -48,11 +48,7 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
     * Surface feature shape workflow *
       ==============================
       - Laplace-Beltrami spectra
-
-      ==========================
-    * Label volume prep workflow *
-      ==========================
-      - Label format conversion
+      - Zernike moments
 
 ..VOLUME workflows ::
 
@@ -125,13 +121,14 @@ else:
 #=============================================================================
 # Workflow options
 #=============================================================================
+template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
+atlas_volume = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
+
 #-----------------------------------------------------------------------------
 run_RegFlows = True  # Run Mindboggle's registration workflows
 #-----------------------------------------------------------------------------
 do_register_standard = True  # Register volume to standard template
 vol_reg_method = 'ANTS' # Volume registration: 'antsRegister', 'ANTS', 'flirt'
-standard_template = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
-    # 'MNI152_T1_1mm_brain.nii.gz'
 
 #-----------------------------------------------------------------------------
 run_SurfFlows = True  # Run Mindboggle's surface workflows
@@ -152,22 +149,19 @@ run_SurfLabelFlow = True
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
 init_labels = 'DKT_atlas'
-classifier_atlas = 'DKTatlas100.gcs'  # DKT_atlas: 'DKTatlas[40,100].gcs'
-#free_template = 'OASIS-TRT-20'  # max_prob (FreeSurfer .tif) surface template
-#atlas_list = read_columns('mindboggle101_atlases.txt', 1)[0]
-#
-# Labeling protocol used by Mindboggle:
+classifier_name = 'DKTatlas100'  # DKT_atlas: 'DKTatlas[40,100].gcs'
+#-----------------------------------------------------------------------------
+# Labeling protocol:
 # * 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 label regions
 # * 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
 protocol = 'DKT31'
-#
+#-----------------------------------------------------------------------------
 # Type of atlas labels:
 # * 'manual': manual edits
 # * FUTURE: <'adjusted': manual edits after automated alignment to fundi>
 atlas_label_type = 'manual'
 #
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
-
 #-----------------------------------------------------------------------------
 run_WholeSurfShapeFlow = True
 #-----------------------------------------------------------------------------
@@ -175,7 +169,6 @@ do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
 do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
 do_measure_zernike = False  # Measure Zernike moments for features
-
 #-----------------------------------------------------------------------------
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
@@ -184,17 +177,12 @@ do_fundi = True  # Extract fundi
 do_smooth_fundi = True
 #-----------------------------------------------------------------------------
 run_SurfShapeFlow = True
-#-----------------------------------------------------------------------------
-
-#-----------------------------------------------------------------------------
 run_VolLabelFlow = True
 #-----------------------------------------------------------------------------
 do_fill_cortex = True  # Fill cortical gray matter with surface labels
 do_input_mask = False
 do_label_whole_volume = True  # Label whole brain (not just cortex)
-atlas_volume = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
-
 #-----------------------------------------------------------------------------
 run_VolShapeFlow = True
 #-----------------------------------------------------------------------------
@@ -218,6 +206,8 @@ from nipype.interfaces.freesurfer import MRIConvert
 from mindboggle.utils.io_vtk import read_vtk
 from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
+from mindboggle.data import hashes_url
+from mindboggle.utils.io_uri import retrieve_data
 from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk
 from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, \
@@ -235,18 +225,27 @@ from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
     measure_volume_overlap
+
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
 subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-data_path = os.environ['MINDBOGGLE_DATA']  # Mindboggle data directory
 ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
-
-# Name of volume template for transforming data to a standard MNI152 space:
-atlas_path = os.path.join(data_path, 'atlases')
-volume_template = os.path.join(atlas_path, standard_template)
-
-# Create output directories:
+#-----------------------------------------------------------------------------
+# Hashes to verify retrieved data
+#-----------------------------------------------------------------------------
+hashes, url, cache_env, cache = hashes_url()
+#-----------------------------------------------------------------------------
+# Cache directory
+#-----------------------------------------------------------------------------
+if cache_env in os.environ.keys():
+    cache = os.environ[cache_env]
+if not os.path.exists(cache):
+    print("Create missing cache directory: {0}".format(cache))
+    os.mkdir(cache)
+#-----------------------------------------------------------------------------
+# Output directories
+#-----------------------------------------------------------------------------
 temp_path = os.path.join(output_path, 'workspace')  # Where to save temp files
 if not os.path.isdir(output_path):
     os.makedirs(output_path)
@@ -481,7 +480,9 @@ if run_RegFlows:
             else:
                 mbFlow.connect(mgh2nifti, 'out_file',
                                regANTS, 'source')
-            regANTS.inputs.target = volume_template
+            template_file = retrieve_data(template_volume, url,
+                                          hashes, cache_env, cache)
+            regANTS.inputs.target = template_file
             if do_label_whole_volume:
                 regANTS.inputs.iterations = '33x99x11'
             else:
@@ -583,8 +584,9 @@ if run_SurfLabelFlow and run_SurfFlows:
                                                     'subject',
                                                     'subjects_path',
                                                     'sphere_file',
-                                                    'classifier_path',
-                                                    'classifier_atlas'],
+                                                    'classifier_name',
+                                                    'left_classifier',
+                                                    'right_classifier'],
                                        output_names=['annot_name',
                                                      'annot_file']))
         SurfLabelFlow.add_nodes([Classifier])
@@ -594,8 +596,15 @@ if run_SurfLabelFlow and run_SurfFlows:
         Classifier.inputs.subjects_path = subjects_path
         mbFlow.connect(Surf, 'sphere_files',
                          SurfLabelFlow, 'Label_with_DKT_atlas.sphere_file')
-        Classifier.inputs.classifier_path = atlas_path
-        Classifier.inputs.classifier_atlas = classifier_atlas
+        Classifier.inputs.classifier_name = classifier_name
+        left_classifier_file = 'lh.' + classifier_name + '.gcs'
+        right_classifier_file = 'rh.' + classifier_name + '.gcs'
+        left_classifier = retrieve_data(left_classifier_file, url,
+                                        hashes, cache_env, cache)
+        right_classifier = retrieve_data(left_classifier_file, url,
+                                         hashes, cache_env, cache)
+        Classifier.inputs.left_classifier = left_classifier
+        Classifier.inputs.right_classifier = right_classifier
 
         #---------------------------------------------------------------------
         # Convert .annot file to .vtk format
@@ -1071,8 +1080,10 @@ if run_SurfFeatureFlow and run_SurfFlows:
                                                output_names=['likelihoods',
                                                              'likelihoods_file']))
             SurfFeatureFlow.add_nodes([LikelihoodNode])
-            LikelihoodNode.inputs.trained_file = os.path.join(atlas_path,
-                'depth_curv_border_nonborder_parameters.pkl')
+            border_params_file = 'depth_curv_border_nonborder_parameters.pkl'
+            border_params_path = retrieve_data(border_params_file, url,
+                                               hashes, cache_env, cache)
+            LikelihoodNode.inputs.trained_file = border_params_path
             mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
                                [('Rescale_travel_depth.rescaled_scalars_file',
                                  'Likelihood.depth_file'),
@@ -1482,7 +1493,9 @@ if run_VolLabelFlow and run_VolFlows:
                                                      'affine_only'],
                                         output_names=['output']))
         VolLabelFlow.add_nodes([LabelVolume])
-        LabelVolume.inputs.source = os.path.join(atlas_path, atlas_volume)
+        atlas_file = retrieve_data(atlas_volume, url,
+                                   hashes, cache_env, cache)
+        LabelVolume.inputs.source = atlas_file
         if do_input_nifti:
             mbFlow.connect(niftiBrain, 'nifti',
                            VolLabelFlow, 'Label_volume.target')
@@ -1560,7 +1573,7 @@ if run_VolLabelFlow and run_VolFlows:
         VolLabelFlow.connect(AtlasVol, 'atlas_vol_file', EvalVolLabels, 'file2')
         VolLabelFlow.connect(FillCortex, 'output_file', EvalVolLabels, 'file1')
         mbFlow.connect(VolLabelFlow, 'Evaluate_volume_labels.out_file',
-                        Sink, 'evaluate_labels_volume')
+                       Sink, 'evaluate_labels_volume')
 
 
 ##############################################################################
