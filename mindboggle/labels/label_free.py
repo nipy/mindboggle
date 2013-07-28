@@ -17,7 +17,7 @@ Copyright 2013, Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Gaussian classifier atlas-based labeling
 #=============================================================================
 def label_with_classifier(hemi, subject, subjects_path, sphere_file,
-                          classifier_path, classifier_atlas):
+                          classifier_name, left_classifier, right_classifier):
     """
     Label a brain with the DKT atlas using FreeSurfer's mris_ca_label::
 
@@ -61,10 +61,12 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
         name of FreeSurfer subjects directory
     sphere_file : string
         name of FreeSurfer spherical surface file
-    classifier_path : string
-        name of FreeSurfer classifier atlas parent directory
-    classifier_atlas : string
+    classifier_name : string
         name of FreeSurfer classifier atlas (no hemi)
+    left_classifier : string
+        name of left hemisphere FreeSurfer classifier atlas (full path)
+    right_classifier : string
+        name of right hemisphere FreeSurfer classifier atlas (full path)
 
     Returns
     -------
@@ -80,13 +82,18 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
     from nipype import logging
     logger = logging.getLogger('interface')
 
-    classifier_file = os.path.join(classifier_path, hemi + '.' + classifier_atlas)
-    annot_name = classifier_atlas
+    annot_name = classifier_name
     annot_file = os.path.join(subjects_path, subject, 'label',
                               hemi + '.' + annot_name + '.annot')
     cli = CommandLine(command='mris_ca_label')
+    if hemi == 'lh':
+        which_classifier = left_classifier
+    elif hemi == 'rh':
+        which_classifier = right_classifier
+    else:
+        print("label_with_classifier()'s hemi should be 'lh' or 'rh'")
     cli.inputs.args = ' '.join([subject, hemi, sphere_file,
-                                classifier_file, annot_file])
+                                which_classifier, annot_file])
     logger.info(cli.cmdline)
     cli.run()
 
