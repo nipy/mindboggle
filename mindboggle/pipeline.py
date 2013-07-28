@@ -122,7 +122,7 @@ else:
 # Workflow options
 #=============================================================================
 template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
-atlas_volume = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
+atlas_volumes = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
 
 #-----------------------------------------------------------------------------
 run_RegFlows = True  # Run Mindboggle's registration workflows
@@ -480,9 +480,9 @@ if run_RegFlows:
             else:
                 mbFlow.connect(mgh2nifti, 'out_file',
                                regANTS, 'source')
-            template_file = retrieve_data(template_volume, url,
-                                          hashes, cache_env, cache)
-            regANTS.inputs.target = template_file
+            volume_template_file = retrieve_data(template_volume, url,
+                                                 hashes, cache_env, cache)
+            regANTS.inputs.target = volume_template_file
             if do_label_whole_volume:
                 regANTS.inputs.iterations = '33x99x11'
             else:
@@ -501,7 +501,7 @@ if run_RegFlows:
             regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
             mbFlow.add_nodes([regFlirt])
             if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti',
+                mbFlow.connect(niftiBrain, 'nifti.@brain',
                                regFlirt, 'in_file')
             else:
                 mbFlow.connect(mgh2nifti, 'out_file',
@@ -509,7 +509,9 @@ if run_RegFlows:
             regFlirt.inputs.bins = 640
             regFlirt.inputs.cost_func = 'mutualinfo'
             regFlirt.inputs.dof = 12
-            regFlirt.inputs.reference = volume_template
+            volume_template_file = retrieve_data(template_volume, url,
+                                          hashes, cache_env, cache)
+            regFlirt.inputs.reference = volume_template_file
             regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
             regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
             mbFlow.connect(regFlirt, 'out_matrix_file',
@@ -1457,7 +1459,7 @@ if run_VolLabelFlow and run_VolFlows:
             if do_input_mask:
                 mbFlow.connect([(Info, niftiMask,
                                  [('hemi', 'hemi'), ('subject', 'subject')])])
-                mbFlow.connect(niftiMask, 'nifti_mask',
+                mbFlow.connect(niftiMask, 'nifti.@mask',
                                VolLabelFlow, 'Fill_cortex.volume_mask')
             else:
                 mbFlow.connect([(Info, mghMask,
@@ -1472,7 +1474,7 @@ if run_VolLabelFlow and run_VolFlows:
             FillCortex.inputs.output_file = ''
             FillCortex.inputs.binarize = False
             mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
-                           Sink, 'labels.@cortex_volume')
+                           Sink, 'labels.@filled_cortex_volume')
 
     #=========================================================================
     # Label non-cortical volumes
@@ -1480,30 +1482,38 @@ if run_VolLabelFlow and run_VolFlows:
     if run_RegFlows and do_register_standard and do_label_whole_volume:
 
         # Inverse transform subcortical label volumes to subject via template
+#        LabelVolume = MapNode(name='Label_volume',
+#                              iterfield=['source'],
         LabelVolume = Node(name='Label_volume',
-                           interface=Fn(function = WarpImageMultiTransform,
-                                        input_names=['source',
-                                                     'target',
-                                                     'output'
-                                                     'interp',
-                                                     'xfm_stem',
-                                                     'affine_transform',
-                                                     'nonlinear_transform',
-                                                     'inverse',
-                                                     'affine_only'],
-                                        output_names=['output']))
+                              interface=Fn(function = WarpImageMultiTransform,
+                                           input_names=['source',
+                                                        'target',
+                                                        'output'
+                                                        'interp',
+                                                        'xfm_stem',
+                                                        'affine_transform',
+                                                        'nonlinear_transform',
+                                                        'inverse',
+                                                        'affine_only'],
+                                           output_names=['output']))
         VolLabelFlow.add_nodes([LabelVolume])
-        atlas_file = retrieve_data(atlas_volume, url,
-                                   hashes, cache_env, cache)
-        LabelVolume.inputs.source = atlas_file
+
+        # atlas_source_files = []
+        # if isinstance(atlas_volumes, str):
+        #     atlas_volumes = list(atlas_volumes)
+        # for atlas_volume in atlas_volumes:
+        #     atlas_source_files.append(retrieve_data(atlas_volume, url,
+        #                                             hashes, cache_env, cache))
+        # LabelVolume.inputs.source = atlas_source_files
+
+        LabelVolume.inputs.source = atlas_volumes
         if do_input_nifti:
             mbFlow.connect(niftiBrain, 'nifti',
                            VolLabelFlow, 'Label_volume.target')
         else:
             mbFlow.connect(mgh2nifti, 'out_file',
                            VolLabelFlow, 'Label_volume.target')
-        LabelVolume.inputs.output = os.path.join(os.getcwd(),
-                                                 'label_volume.nii.gz')
+        LabelVolume.inputs.output = ''
         LabelVolume.inputs.interp = '--use-NN'
         if vol_reg_method == 'ANTS':
             mbFlow.connect(regANTS, 'output_stem',
@@ -1515,7 +1525,7 @@ if run_VolLabelFlow and run_VolFlows:
         LabelVolume.inputs.inverse = True
         LabelVolume.inputs.affine_only = False
         mbFlow.connect(VolLabelFlow, 'Label_volume.output',
-                       Sink, 'labels.@noncortex_volume')
+                       Sink, 'labels.@registered_volume')
 
         #=====================================================================
         # Combine cortical and noncortical volume labels
@@ -1536,7 +1546,7 @@ if run_VolLabelFlow and run_VolFlows:
             CombineLabels.inputs.output_file = ''
             CombineLabels.inputs.ignore_labels = [0]
             mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
-                           Sink, 'labels.@brain')
+                           Sink, 'labels.@filled_and_registered_volumes')
 
     #=========================================================================
     # Evaluate label volume overlaps
