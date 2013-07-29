@@ -2,10 +2,9 @@
 """
 This is Mindboggle's nipype software pipeline!
 
-Examples
---------
-$ python pipeline.py <output path> <1 or more subject names>
-$ python pipeline.py output HLN-12-1 HLN-12-2
+For help in using Mindboggle, please type the following at the command line:
+python mindboggle.py --help
+
 
 ..SURFACE workflows ::
 
@@ -20,9 +19,6 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
       - FreeSurfer labels
           Version 5.2 or greater recommended (see above).
       - Multi-atlas labeling (deactivated because DKT result more accurate)
-          If surface template and labeled surface atlases are supplied,
-          this option uses FreeSurfer registration and
-          majority vote rule on multiple label assignments.
       - Manual labels
           If labeled surfaces are supplied (such as the Mindboggle-101 set)
           these labels may also be used to evaluate any of the above labels.
@@ -77,7 +73,6 @@ $ python pipeline.py output HLN-12-1 HLN-12-2
           - Fundus shapes
       - Vertex measures table
 
-
 .. Note::
       Mindboggle currently uses FreeSurfer for label initialization
       (its label output or its surface registration algorithm),
@@ -96,6 +91,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 Authors:
     - Arno Klein, 2011-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Satrajit S. Ghosh, 2013  (satra@mit.edu)  http://www.mit.edu/~satra/
     - Each file lists Mindboggle team members who contributed to its content.
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
@@ -129,7 +125,7 @@ graph_type = args.g
 # Workflow options
 #=============================================================================
 template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
-atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz', 'MNI152_T1_1mm_brain.nii.gz']
+atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz']
 
 #-----------------------------------------------------------------------------
 run_RegFlows = True  # Run Mindboggle's registration workflows
@@ -180,8 +176,8 @@ do_measure_zernike = False  # Measure Zernike moments for features
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
 do_sulci = True  # Extract sulci
-do_fundi = 0#True  # Extract fundi
-do_smooth_fundi = 0#True
+do_fundi = True  # Extract fundi
+do_smooth_fundi = True
 #-----------------------------------------------------------------------------
 run_SurfShapeFlow = True
 run_VolLabelFlow = True
@@ -1721,6 +1717,6 @@ for atlas in atlas_list:
     if 'OASIS-TRT-20' in atlas:
     #if 'NKI-TRT-' in atlas:
     #if 'NKI-RS-' in atlas:
-        cmd = ' '.join(['python pipeline.py', out_path, atlas])
+        cmd = ' '.join(['python mindboggle.py', out_path, atlas])
         print(cmd); os.system(cmd)
 """
