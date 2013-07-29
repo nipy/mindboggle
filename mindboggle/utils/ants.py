@@ -126,7 +126,7 @@ def WarpImageMultiTransform(source, target, output='',
                                 os.path.basename(target).split('.')[0])
 
     if not output:
-        output = xfm_stem + '.nii.gz'
+        output = os.path.join(os.getcwd(), 'transformed.nii.gz')
 
     if not os.path.exists(nonlinear_transform):
         affine_only = True
@@ -148,6 +148,9 @@ def WarpImageMultiTransform(source, target, output='',
     cmd = ' '.join(args)
     print(cmd)
     os.system(cmd)  # p = Popen(args);
+
+    if not os.path.exists(output):
+        raise IOError (output + " not found")
 
     return output
 
