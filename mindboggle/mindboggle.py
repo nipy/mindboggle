@@ -504,7 +504,7 @@ if run_RegFlows:
                                                  hashes, cache_env, cache)
             regANTS.inputs.target = volume_template_file
             if do_label_whole_volume:
-                regANTS.inputs.iterations = '1' #'33x99x11'
+                regANTS.inputs.iterations = '33x99x11'
             else:
                 regANTS.inputs.iterations = '0'
             regANTS.inputs.output_stem = ''
