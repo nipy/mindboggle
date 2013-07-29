@@ -3,7 +3,7 @@
 This is Mindboggle's nipype software pipeline!
 
 For help in using Mindboggle, please type the following at the command line:
-python mindboggle.py --help
+python mindboggler.py --help
 
 
 ..SURFACE workflows ::
@@ -90,7 +90,7 @@ http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
 
 
 Authors:
-    - Arno Klein, 2011-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2010-2013  (arno@mindboggle.info)  http://binarybottle.com
     - Satrajit S. Ghosh, 2013  (satra@mit.edu)  http://www.mit.edu/~satra/
     - Each file lists Mindboggle team members who contributed to its content.
 
@@ -112,13 +112,15 @@ parser.add_argument("-s", help=("one or more subjects corresponding to the "
                                 "subjects directory"), nargs='+',
                     required=True)
 parser.add_argument("-n", help="number of processes")
+parser.add_argument("-c", help="use (HTCondor) cluster")
 parser.add_argument("-g", help=("generate visual graphs of the workflow, "
                                 "such as hierarchical, flat, or exec "
                                 "(requires graphviz and pygraphviz)"))
 args = parser.parse_args()
-nprocesses = args.n
 subjects = args.s
 output_path = args.o
+nprocesses = args.n
+cluster = args.c
 graph_type = args.g
 
 #=============================================================================
@@ -1681,34 +1683,39 @@ if run_VolShapeFlow and run_VolLabelFlow and run_VolFlows:
 ##############################################################################
 if __name__== '__main__':
 
-    #from nipype import config, logging
-    #config.set('logging', 'interface_level', 'DEBUG')
-    #config.set('logging', 'workflow_level', 'DEBUG')
-    #logging.update_logging(config)
-
+    #-------------------------------------------------------------------------
     # Generate a visual graph:
+    #-------------------------------------------------------------------------
     if graph_type:
         if graph_type == 'exec':
             mbFlow.write_graph(graph2use=graph_type, simple_form=False)
         else:
             mbFlow.write_graph(graph2use=graph_type)
 
-    # Run number of processes:
-    if nprocesses:
-        if nprocesses > 1:
-            mbFlow.run(plugin='MultiProc', plugin_args={'n_procs': nprocesses})
-        else:
-            mbFlow.run()
+    #-------------------------------------------------------------------------
+    # Run (HTCondor) cluster processes, such as on the Mindboggler cluster:
+    #-------------------------------------------------------------------------
+    if cluster:
+        mbFlow.run(plugin='CondorDAGMan')
+    #-------------------------------------------------------------------------
+    # Run multiple processes or not:
+    #-------------------------------------------------------------------------
     else:
-        mbFlow.run(plugin='MultiProc')
+        if nprocesses:
+            if nprocesses > 1:
+                mbFlow.run(plugin='MultiProc', plugin_args={'n_procs': nprocesses})
+            else:
+                mbFlow.run()
+        else:
+            mbFlow.run(plugin='MultiProc')
 
 """
-# Script for running Mindboggle on Mindboggle-101 set
+# Script for running mindboggle on the Mindboggle-101 set:
 import os
 from mindboggle.utils.io_table import read_columns
 
-out_path = '/homedir/Data/Mindboggle-101_mindboggle_output/'
-atlas_list_file = '/home/arno/Data/Brains/Mindboggle101/code/mindboggle101_atlases.txt'
+out_path = '/homedir/Data/Mindboggle101_mindboggled/'
+atlas_list_file = '/homedir/Data/Brains/Mindboggle101/code/mindboggle101_atlases.txt'
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
@@ -1717,6 +1724,6 @@ for atlas in atlas_list:
     if 'OASIS-TRT-20' in atlas:
     #if 'NKI-TRT-' in atlas:
     #if 'NKI-RS-' in atlas:
-        cmd = ' '.join(['python mindboggle.py', out_path, atlas])
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, '-s', atlas])
         print(cmd); os.system(cmd)
 """
