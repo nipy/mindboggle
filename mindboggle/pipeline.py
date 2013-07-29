@@ -105,24 +105,31 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Command line arguments
 #=============================================================================
-import sys, os
-
-args = sys.argv[:]
-if len(args) < 3:
-    print("\n\t Please provide the names of an output directory\n" +
-          " \t and one or more subjects corresponding to the names\n" +
-          " \t of directories within FreeSurfer's subjects directory.\n")
-    print("\t Example: python " + args[0] + " output HLN-12-1 HLN-12-2\n")
-    sys.exit()
-else:
-    output_path = str(args[1])
-    subjects = list(args[2::])
+import os
+import sys
+import argparse
+parser = argparse.ArgumentParser()
+parser.add_argument("-o", help="output directory",
+                    default=os.path.join(os.environ['HOME'], 'mindboggled'))
+parser.add_argument("-s", help=("one or more subjects corresponding to the "
+                                "names of directories within FreeSurfer's "
+                                "subjects directory"), nargs='+',
+                    required=True)
+parser.add_argument("-n", help="number of processes")
+parser.add_argument("-g", help=("generate visual graphs of the workflow, "
+                                "such as hierarchical, flat, or exec "
+                                "(requires graphviz and pygraphviz)"))
+args = parser.parse_args()
+nprocesses = args.n
+subjects = args.s
+output_path = args.o
+graph_type = args.g
 
 #=============================================================================
 # Workflow options
 #=============================================================================
 template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
-atlas_volumes = 'OASIS-TRT-20_atlas_to_MNI152.nii.gz'
+atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz', 'MNI152_T1_1mm_brain.nii.gz']
 
 #-----------------------------------------------------------------------------
 run_RegFlows = True  # Run Mindboggle's registration workflows
@@ -173,8 +180,8 @@ do_measure_zernike = False  # Measure Zernike moments for features
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
 do_sulci = True  # Extract sulci
-do_fundi = True  # Extract fundi
-do_smooth_fundi = True
+do_fundi = 0#True  # Extract fundi
+do_smooth_fundi = 0#True
 #-----------------------------------------------------------------------------
 run_SurfShapeFlow = True
 run_VolLabelFlow = True
@@ -264,18 +271,34 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 mbFlow = Workflow(name='Mindboggle_workflow')
 mbFlow.base_dir = temp_path
 #-----------------------------------------------------------------------------
-# Iterate inputs over subjects, hemispheres
+# Iterate inputs over subjects, hemispheres, and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
-Info = Node(name='Inputs',
-            interface=IdentityInterface(fields=['subject', 'hemi']))
-Info.iterables = ([('subject', subjects), ('hemi', ['lh','rh'])])
+if isinstance(atlas_volumes, str):
+    atlas_volumes = list(atlas_volumes)
+InputAtlases = Node(name='Input_atlases',
+                    interface=IdentityInterface(fields=['atlas']))
+InputAtlases.iterables = ('atlas', atlas_volumes)
+InputSubjects = Node(name='Input_subjects',
+                     interface=IdentityInterface(fields=['subject']))
+InputSubjects.iterables = ('subject', subjects)
+InputHemis = Node(name='Input_hemispheres',
+                  interface=IdentityInterface(fields=['hemi']))
+InputHemis.iterables = ('hemi', ['lh','rh'])
 #-------------------------------------------------------------------------
 # Outputs
 #-------------------------------------------------------------------------
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = output_path
 Sink.inputs.container = 'results'
+# Sink.inputs.substitutions = [('_hemi_lh_subject_', 'left_'),
+#     ('_hemi_rh_subject_', 'right_'),
+#     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
+#     ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
+#     ('combined_labels.nii.gz',
+#      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
+#     ('brain_to_OASIS-TRT-20_template_to_MNI152.nii.gz',
+#      'whole_brain_volume_labels.nii.gz')]
 
 if run_SurfFlows:
     #-------------------------------------------------------------------------
@@ -320,7 +343,7 @@ if run_VolFlows or run_RegFlows:
         niftiBrain.inputs.base_directory = subjects_path
         niftiBrain.inputs.template = '%s/mri/brain.nii.gz'
         niftiBrain.inputs.template_args['nifti'] = [['subject']]
-        mbFlow.connect(Info, 'subject', niftiBrain, 'subject')
+        mbFlow.connect(InputSubjects, 'subject', niftiBrain, 'subject')
     else:
         mghBrain = Node(name='mgh',
                         interface=DataGrabber(infields=['subject'],
@@ -329,7 +352,7 @@ if run_VolFlows or run_RegFlows:
         mghBrain.inputs.base_directory = subjects_path
         mghBrain.inputs.template = '%s/mri/brain.mgz'
         mghBrain.inputs.template_args['mgh'] = [['subject']]
-        mbFlow.connect(Info, 'subject', mghBrain, 'subject')
+        mbFlow.connect(InputSubjects, 'subject', mghBrain, 'subject')
 
         # FreeSurfer mgh of original for converting from conformal (below):
         mghOrig = Node(name='mgh_orig',
@@ -339,7 +362,7 @@ if run_VolFlows or run_RegFlows:
         mghOrig.inputs.base_directory = subjects_path
         mghOrig.inputs.template = '%s/mri/orig/001.mgz'
         mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
-        mbFlow.connect(Info, 'subject', mghOrig, 'subject')
+        mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
 
         # Convert FreeSurfer mgh conformal brain volume to nifti format:        #---------------------------------------------------------------------
         mgh2nifti = Node(name='mgh_to_nifti', interface=MRIConvert())
@@ -484,7 +507,7 @@ if run_RegFlows:
                                                  hashes, cache_env, cache)
             regANTS.inputs.target = volume_template_file
             if do_label_whole_volume:
-                regANTS.inputs.iterations = '33x99x11'
+                regANTS.inputs.iterations = '1' #'33x99x11'
             else:
                 regANTS.inputs.iterations = '0'
             regANTS.inputs.output_stem = ''
@@ -533,7 +556,8 @@ if run_RegFlows:
 #=============================================================================
 
 if run_SurfFlows:
-    mbFlow.connect([(Info, Surf, [('subject','subject'), ('hemi','hemi')])])
+    mbFlow.connect(InputSubjects, 'subject', Surf, 'subject')
+    mbFlow.connect(InputHemis, 'hemi', Surf, 'hemi')
 
     #-------------------------------------------------------------------------
     # Convert surfaces to VTK
@@ -557,7 +581,8 @@ if run_SurfFlows:
                                 protocol + '.' + atlas_label_type + '.vtk'
         Atlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
     
-        mbFlow.connect([(Info, Atlas, [('subject','subject'), ('hemi','hemi')])])
+        mbFlow.connect(InputSubjects, 'subject', Atlas, 'subject')
+        mbFlow.connect(InputHemis, 'hemi', Atlas, 'hemi')
 
 ##############################################################################
 #
@@ -592,12 +617,13 @@ if run_SurfLabelFlow and run_SurfFlows:
                                        output_names=['annot_name',
                                                      'annot_file']))
         SurfLabelFlow.add_nodes([Classifier])
-        mbFlow.connect([(Info, SurfLabelFlow,
-                           [('hemi', 'Label_with_DKT_atlas.hemi'),
-                            ('subject', 'Label_with_DKT_atlas.subject')])])
+        mbFlow.connect(InputSubjects, 'subject',
+                       SurfLabelFlow, 'Label_with_DKT_atlas.subject')
+        mbFlow.connect(InputHemis, 'hemi',
+                       SurfLabelFlow, 'Label_with_DKT_atlas.hemi')
         Classifier.inputs.subjects_path = subjects_path
         mbFlow.connect(Surf, 'sphere_files',
-                         SurfLabelFlow, 'Label_with_DKT_atlas.sphere_file')
+                       SurfLabelFlow, 'Label_with_DKT_atlas.sphere_file')
         Classifier.inputs.classifier_name = classifier_name
         left_classifier_file = 'lh.' + classifier_name + '.gcs'
         right_classifier_file = 'rh.' + classifier_name + '.gcs'
@@ -673,7 +699,7 @@ if run_SurfLabelFlow and run_SurfFlows:
         #                                               'template'],
         #                                  output_names=['transform']))
         #     SurfLabelFlow.add_nodes([Register])
-        #     mbFlow.connect(Info, 'hemi', SurfLabelFlow, 'Register_template.hemi')
+        #     mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Register_template.hemi')
         #     mbFlow.connect(Surf, 'sphere_files',
         #                    SurfLabelFlow, 'Register_template.sphere_file')
         #     Register.inputs.transform = 'sphere_to_' + free_template + '.reg'
@@ -693,9 +719,10 @@ if run_SurfLabelFlow and run_SurfFlows:
         #                                                   'atlas_string'],
         #                                      output_names=['output_file']))
         #     SurfLabelFlow.add_nodes([Transform])
-        #     mbFlow.connect([(Info, SurfLabelFlow,
-        #                        [('hemi', 'Transform_labels.hemi'),
-        #                         ('subject', 'Transform_labels.subject')])])
+        #     mbFlow.connect(InputSubjects, 'subject',
+        #                    SurfLabelFlow, 'Transform_labels.subject')
+        #     mbFlow.connect(InputHemis, 'hemi',
+        #                    SurfLabelFlow, 'Transform_labels.hemi')
         #     SurfLabelFlow.connect(Register, 'transform', Transform, 'transform')
         #     #Transform.inputs.transform = 'sphere_to_' + template + '_template.reg'
         #     Transform.inputs.subjects_path = subjects_path
@@ -790,7 +817,7 @@ if run_SurfLabelFlow and run_SurfFlows:
                                        output_names=['output_file']))
     SurfLabelFlow.add_nodes([RelabelSurface])
     SurfLabelFlow.connect(plug1, plug2, RelabelSurface, 'vtk_file')
-    mbFlow.connect(Info, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
+    mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
     RelabelSurface.inputs.old_labels = ''
     RelabelSurface.inputs.new_labels = ''
     RelabelSurface.inputs.output_file = ''
@@ -1029,7 +1056,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureFlow, 'Sulci.labels_file')
         SurfFeatureFlow.connect(FoldsNode, 'folds', SulciNode, 'folds_or_file')
-        mbFlow.connect(Info, 'hemi', SurfFeatureFlow, 'Sulci.hemi')
+        mbFlow.connect(InputHemis, 'hemi', SurfFeatureFlow, 'Sulci.hemi')
         SulciNode.inputs.sulcus_label_pair_lists = sulcus_label_pair_lists
         SulciNode.inputs.unique_sulcus_label_pairs = unique_sulcus_label_pairs
         SulciNode.inputs.min_boundary = 1
@@ -1159,7 +1186,8 @@ if run_SurfShapeFlow and run_SurfFlows:
         if do_sulci:
             SpectraSulci = SpectraLabels.clone('Spectra_sulci')
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
-            mbFlow.connect(SulciNode, 'sulci_file', SpectraSulci, 'vtk_file')
+            mbFlow.connect(SulciNode, 'sulci_file',
+                           SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
 
     """
     if do_measure_zernike:
@@ -1457,13 +1485,13 @@ if run_VolLabelFlow and run_VolFlows:
                                            output_names=['output_file']))
             VolLabelFlow.add_nodes([FillCortex])
             if do_input_mask:
-                mbFlow.connect([(Info, niftiMask,
-                                 [('hemi', 'hemi'), ('subject', 'subject')])])
+                mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
+                mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
                 mbFlow.connect(niftiMask, 'nifti.@mask',
                                VolLabelFlow, 'Fill_cortex.volume_mask')
             else:
-                mbFlow.connect([(Info, mghMask,
-                                 [('hemi', 'hemi'), ('subject', 'subject')])])
+                mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
+                mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
                                VolLabelFlow, 'Fill_cortex.volume_mask')
             if run_SurfFlows and run_SurfLabelFlow:
@@ -1481,32 +1509,40 @@ if run_VolLabelFlow and run_VolFlows:
     #=========================================================================
     if run_RegFlows and do_register_standard and do_label_whole_volume:
 
+        # Retrieve full atlas path(s):
+        RetrieveAtlas = Node(name='Retrieve_atlas',
+                             interface=Fn(function = retrieve_data,
+                                          input_names=['data_file',
+                                                       'url',
+                                                       'hashes',
+                                                       'cache_env',
+                                                       'cache'],
+                                          output_names=['data_path']))
+        VolLabelFlow.add_nodes([RetrieveAtlas])
+        mbFlow.connect(InputAtlases, 'atlas',
+                       VolLabelFlow, 'Retrieve_atlas.data_file')
+        RetrieveAtlas.inputs.url = url
+        RetrieveAtlas.inputs.hashes = hashes
+        RetrieveAtlas.inputs.cache_env = cache_env
+        RetrieveAtlas.inputs.cache = cache
+
+
         # Inverse transform subcortical label volumes to subject via template
-#        LabelVolume = MapNode(name='Label_volume',
-#                              iterfield=['source'],
         LabelVolume = Node(name='Label_volume',
-                              interface=Fn(function = WarpImageMultiTransform,
-                                           input_names=['source',
-                                                        'target',
-                                                        'output'
-                                                        'interp',
-                                                        'xfm_stem',
-                                                        'affine_transform',
-                                                        'nonlinear_transform',
-                                                        'inverse',
-                                                        'affine_only'],
-                                           output_names=['output']))
+                           interface=Fn(function = WarpImageMultiTransform,
+                                        input_names=['source',
+                                                     'target',
+                                                     'output',
+                                                     'interp',
+                                                     'xfm_stem',
+                                                     'affine_transform',
+                                                     'nonlinear_transform',
+                                                     'inverse',
+                                                     'affine_only'],
+                                        output_names=['output']))
         VolLabelFlow.add_nodes([LabelVolume])
-
-        # atlas_source_files = []
-        # if isinstance(atlas_volumes, str):
-        #     atlas_volumes = list(atlas_volumes)
-        # for atlas_volume in atlas_volumes:
-        #     atlas_source_files.append(retrieve_data(atlas_volume, url,
-        #                                             hashes, cache_env, cache))
-        # LabelVolume.inputs.source = atlas_source_files
-
-        LabelVolume.inputs.source = atlas_volumes
+        VolLabelFlow.connect(RetrieveAtlas, 'data_path',
+                             LabelVolume, 'source')
         if do_input_nifti:
             mbFlow.connect(niftiBrain, 'nifti',
                            VolLabelFlow, 'Label_volume.target')
@@ -1538,7 +1574,6 @@ if run_VolLabelFlow and run_VolFlows:
                                                            'output_file',
                                                            'ignore_labels'],
                                               output_names=['output_file']))
-            VolLabelFlow.add_nodes([CombineLabels])
             VolLabelFlow.connect(FillCortex, 'output_file',
                                  CombineLabels, 'source')
             VolLabelFlow.connect(LabelVolume, 'output',
@@ -1564,7 +1599,7 @@ if run_VolLabelFlow and run_VolFlows:
         AtlasVol.inputs.base_directory = subjects_path
         AtlasVol.inputs.template = '%s/mri/labels.' + protocol + '.manual.nii.gz'
         AtlasVol.inputs.template_args['atlas_vol_file'] = [['subject']]
-        mbFlow.connect(Info, 'subject', VolLabelFlow, 'Atlas_volume.subject')
+        mbFlow.connect(InputSubjects, 'subject', VolLabelFlow, 'Atlas_volume.subject')
         #---------------------------------------------------------------------
         # Evaluate volume labels
         #---------------------------------------------------------------------
@@ -1654,11 +1689,21 @@ if __name__== '__main__':
     #config.set('logging', 'workflow_level', 'DEBUG')
     #logging.update_logging(config)
 
-    generate_graphs = True
-    if generate_graphs:
-        mbFlow.write_graph(graph2use='flat')
-        mbFlow.write_graph(graph2use='hierarchical')
-    mbFlow.run()
+    # Generate a visual graph:
+    if graph_type:
+        if graph_type == 'exec':
+            mbFlow.write_graph(graph2use=graph_type, simple_form=False)
+        else:
+            mbFlow.write_graph(graph2use=graph_type)
+
+    # Run number of processes:
+    if nprocesses:
+        if nprocesses > 1:
+            mbFlow.run(plugin='MultiProc', plugin_args={'n_procs': nprocesses})
+        else:
+            mbFlow.run()
+    else:
+        mbFlow.run(plugin='MultiProc')
 
 """
 # Script for running Mindboggle on Mindboggle-101 set
