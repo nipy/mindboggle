@@ -291,14 +291,15 @@ InputHemis.iterables = ('hemi', ['lh','rh'])
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = output_path
 Sink.inputs.container = 'results'
-# Sink.inputs.substitutions = [('_hemi_lh_subject_', 'left_'),
-#     ('_hemi_rh_subject_', 'right_'),
-#     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-#     ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
-#     ('combined_labels.nii.gz',
-#      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
-#     ('brain_to_OASIS-TRT-20_template_to_MNI152.nii.gz',
-#      'whole_brain_volume_labels.nii.gz')]
+Sink.inputs.substitutions = [('_hemi_lh', 'left'),
+    ('_hemi_rh', 'right'),
+    ('_subject_', ''),
+    ('_atlas_', ''),
+    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
+    ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
+    ('combined_labels.nii.gz',
+     'cortical_surface_and_noncortical_volume_labels.nii.gz'),
+    ('transformed.nii.gz', 'whole_brain_volume_labels.nii.gz')]
 
 if run_SurfFlows:
     #-------------------------------------------------------------------------
