@@ -4,32 +4,36 @@
  Download and install
 ======================
 
-Download
---------
+Scientific Python environment
+-----------------------------
+Easily-installed Python distributions are available such as Anaconda_,
+Canopy_, and PythonXY_ that include components necessary to run Mindboggle:
+Python_ 2.7, NumPy_, SciPy_, Networkx_, and IPython (an interactive Python
+environment necessary for some parallel components of Mindboggle).
 
-To check out the latest development version::
+Pip python library installation (OSX: ``easy_install pip``;
+    Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
+
+Download Mindboggle
+-------------------
+To check out the latest development version using git_::
 
     git clone git://github.com/binarybottle/mindboggle.git
 
-Install
--------
-
+Install Mindboggle
+------------------
 Step 1: Install Mindboggle Python software
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-Change into the ``mindboggle`` directory and install mindboggle using::
+Change into the ``mindboggle`` directory and install mindboggle
+(depending on permissions you may need to use ``sudo``)::
 
     python setup.py install
 
-.. Note::
-
-    Depending on permissions you may need to use ``sudo``.
-
-Now mindboggle is by default installed into Python's ``root`` path,
-      e.g., /usr/local/lib/python2.7/site-packages/
-
-Step 2: Compile C++ code
-~~~~~~~~~~~~~~~~~~~~~~~~
+Step 2: Compile Mindboggle C++ code
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Basic compilation software::
+  - cmake_
+  - C++ compiler such as gcc_
 
 Move the mindboggle_tools directory to wherever you install your software
 (let's call it YOUR_SOFTWARE_PATH), then run cmake (or ccmake) and make::
@@ -41,17 +45,23 @@ Move the mindboggle_tools directory to wherever you install your software
 
 Step 3: Set environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+For your system to recognize the C++ code we just compiled and
+the FreeSurfer-style subjects directory tree, include the following lines
+in your system's equivalent of a .bash_profile file::
 
-For your system to recognize the C++ code we just compiled,
-the atlases included with Mindboggle, and
-the FreeSurfer-style subjects directory tree,
-include the following lines in your system's equivalent of a .bash_profile file::
-
-    MINDBOGGLE_TOOLS=/software/mindboggle_tools/bin
-    MINDBOGGLE_DATA=/drop/MB/data
+    MINDBOGGLE_TOOLS=YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
     SUBJECTS_DIR=YOUR_FREESURFER_SUBJECTS_PATH
-    export MINDBOGGLE_TOOLS	MINDBOGGLE_DATA SUBJECTS_DIR
-    export PATH=$PATH:$MINDBOGGLE_TOOLS:$MINDBOGGLE_DATA:$SUBJECTS_DIR
+    export MINDBOGGLE_TOOLS	SUBJECTS_DIR
+    export PATH=$PATH:$MINDBOGGLE_TOOLS:$SUBJECTS_DIR
+
+Mindboggle downloads necessary atlas and template data via the Internet
+on its first run.  By default, it will save these data to your home directory,
+in a ``mindboggled`` subdirectory.  You may optionally set the cache directory
+by setting one more environment variable as above::
+
+    MINDBOGGLE_CACHE=DESIRED_LOCATION
+    export MINDBOGGLE_CACHE
+    export PATH=$PATH:$MINDBOGGLE_CACHE
 
 .. Note::
     To take advantage of the FreeSurfer_ software, install the latest version
@@ -60,62 +70,57 @@ include the following lines in your system's equivalent of a .bash_profile file:
     FreeSurfer's subjects/ directory tree referenced by the above SUBJECTS_DIR
     environment variable.
 
-Dependencies
-------------
+Other dependencies
+~~~~~~~~~~~~~~~~~~
+`Visualization Toolkit`_ (WARNING -- UNDER CONSTRUCTION 7/29/2013)::
 
-Below is a list of required dependencies, along with additional software
-recommendations.
+    The below soon to be replaced by::
+        git clone git@github.com:ContinuumIO/conda-recipes
+        cd conda-recipes
+        conda build vtk
 
-Must Have
-~~~~~~~~~
 
-setuptools::
-    sudo apt-get install python-setuptools
+    git clone https://github.com/Kitware/VTK.git
 
-Basic compilation software::
-  - cmake_
-  - C++ compiler such as gcc
+    cd VTK
+    git checkout v6.0.0
+    mkdir VTK-build
+    cd VTK-build
+    ccmake ..
 
-`Visualization Toolkit`_
+    in the ccmake gui::
 
-Python_ 2.7
+        enable BUILD_SHARED_LIBS
+        enable VTK_WRAP_PYTHON
+        enter the advanced configuration by pressing "t"
+        change PYTHON_EXECUTABLE --> path/to/anaconda/bin/python2.7
+        press "c" to reveal more options:
+        change PYTHON_INCLUDE_DIR --> path/to/anaconda/include/python2.7
+        change PYTHON_LIBRARY --> path/to/anaconda/lib/libpython2.7.so (or .dylib)
+        change VTK_PYTHON_SETUP_ARGS --> blank (i.e., erase the --install-dir...)
+        press "c" to configure
+        press "g" to generate
 
-Nipype_ and its dependencies (NetworkX_, GraphViz_, etc.)
-  Neuroimaging software pipeline framework
+    from the command line::
 
-Nibabel_
-  Neuroimaging file i/o library
+        sudo make install -j4 (4 being the number of cpu cores)
+        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib/vtk-5.10" (or whatever your install path is)
 
-NumPy_
+    try it out::
 
-SciPy_
-  Numpy and Scipy are high-level, optimized scientific computing libraries
+        python -c "from vtk import vtkVersion; print vtkVersion.GetVTKSourceVersion()"
+        vtk version 5.10.1
+        change the CMAKE_INSTALL_PREFIX to /path/ro/anaconda/envs/myenv
 
-.. Note::
-
-    Full distributions such as EPD_ or pythonxy_ provide the above packages,
-    except nibabel_ and nipype_.  The EPD_ also includes the following
-    strongly recommended libraries (ipython_, sphinx_, matplotlib_, graphviz_)::
-
-        IPython
-          Interactive python environment. This is necessary for some parallel
-          components of the pipeline engine.
-
-        Sphinx
-          Required for building the documentation
-
-        Matplotlib
-          Plotting library
-
-        Graphviz
-          Required for building the documentation
-
-Strong Recommendations
+Strong recommendations
 ~~~~~~~~~~~~~~~~~~~~~~
-
 FreeSurfer_
-  FreeSurfer version 5.3 and higher
-  This software will help to initialize labels for Mindboggle
-  and generates the directory tree that Mindboggle uses to call
-  subject data. Earlier versions will likely work, but label initialization
-  uses the Desikan-Killiany-Tourville protocol starting with version 5.3.
+    FreeSurfer version 5.3 and higher
+    This software will help to initialize labels for Mindboggle
+    and generates the directory tree that Mindboggle uses to call
+    subject data. Earlier versions will likely work, but label initialization
+    uses the Desikan-Killiany-Tourville protocol starting with version 5.3.
+
+ANTS_
+    Volume-based registration for whole-brain labeling and reporting
+    locations in a standard space.
