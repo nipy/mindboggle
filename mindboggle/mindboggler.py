@@ -223,6 +223,7 @@ from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi
@@ -1188,28 +1189,26 @@ if run_SurfShapeFlow and run_SurfFlows:
             mbFlow.connect(SulciNode, 'sulci_file',
                            SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
 
-    """
-    if do_measure_zernike:
         #=====================================================================
         # Measure Zernike moments of labeled regions
         #=====================================================================
         ZernikeLabels = Node(name='Zernike_labels',
-                             interface=Fn(function = zernike_from_labels,
+                             interface=Fn(function = zernike_moments_per_label,
                                           input_names=['vtk_file'],
                                           output_names=['moments']))
-        SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                       SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
-        ZernikeLabels.inputs.? = ""
+        #SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
+        #mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+        #               SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
+        #ZernikeLabels.inputs.? = ""
 
         #=====================================================================
         # Measure Zernike moments of sulci
         #=====================================================================
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
-            SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
-            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
-    """
+        #    SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
+        #    mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
+
 
 ##############################################################################
 #
