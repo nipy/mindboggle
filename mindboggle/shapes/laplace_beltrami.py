@@ -699,7 +699,7 @@ def spectrum_per_label(vtk_file, n_eigenvalues=3, exclude_labels=[-1],
     label_list = []
     spectrum_lists = []
     for label in ulabels:
-      if label==22:
+      #if label==22:
 
         # Determine the indices per label:
         label_indices = [i for i,x in enumerate(labels) if x == label]
@@ -793,7 +793,6 @@ def spectrum_from_file(vtk_file, n_eigenvalues=6, exclude_labels=[-1],
     else:
         areas = None
 
-#    spectrum = fem_laplacian(points, faces, n_eigenvalues)
     spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
                                    exclude_labels, normalization, areas)
 
