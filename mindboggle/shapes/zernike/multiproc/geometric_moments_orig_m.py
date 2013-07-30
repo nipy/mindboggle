@@ -1,6 +1,4 @@
-import profilehooks
-import numpy
-import multiprocessing
+#import profilehooks
 
 #@profilehooks.timecall
 def orig(cfg,X,K,N,num_facets,num_vertices) :                                 #function G=geometric_moments_orig(X,K,N,num_facets,num_vertices)
@@ -59,6 +57,7 @@ def orig(cfg,X,K,N,num_facets,num_vertices) :                                 #f
 
 #@profilehooks.timecall
 def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #function G=geometric_moments_orig(X,K,N,num_facets,num_vertices)
+    import multiprocessing
                                                                               #% Computes the geometric moments
                                                                               #% of the volumetric object given
                                                                               #
@@ -138,6 +137,8 @@ def mproc(cfg,X,K,N,num_facets,num_vertices) :                                 #
 
 #@profilehooks.timecall
 def geometric_moments_orig(cfg,X,K,N,num_facets,num_vertices) :               #function G=geometric_moments_orig(X,K,N,num_facets,num_vertices)
+    import numpy
+
     bar = mproc(cfg,X,K,N,num_facets,num_vertices)
     foo = orig(cfg,X,K,N,num_facets,num_vertices)
     assert numpy.all(foo==bar)
