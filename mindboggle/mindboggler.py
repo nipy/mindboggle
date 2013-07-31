@@ -1204,7 +1204,8 @@ if run_SurfShapeFlow and run_SurfFlows:
                                                        'order',
                                                        'exclude_labels',
                                                        'area_file'],
-                                          output_names=['descriptors']))
+                                          output_names=['descriptors_lists',
+                                                        'label_list']))
         SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
@@ -1344,12 +1345,12 @@ if run_SurfFlows:
 
         # Zernike moments:
         if do_zernike:
-            mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.spectrum_lists',
+            mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.descriptors_lists',
                            ShapeTables, 'labels_zernike')
             mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.label_list',
                            ShapeTables, 'labels_zernike_IDs')
             if do_sulci:
-                mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_sulci.spectrum_lists',
+                mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_sulci.descriptors_lists',
                                ShapeTables, 'sulci_zernike')
                 mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_sulci.label_list',
                                ShapeTables, 'sulci_zernike_IDs')
@@ -1758,9 +1759,9 @@ atlas_list = read_columns(atlas_list_file, 1)[0]
 for atlas in atlas_list:
     #if 'HLN-' in atlas or 'Twins-' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
     #if 'MMRR-21-' in atlas:
-    if 'OASIS-TRT-20' in atlas:
+    #if 'OASIS-TRT-20' in atlas:
     #if 'NKI-TRT-' in atlas:
-    #if 'NKI-RS-' in atlas:
+    if 'NKI-RS-' in atlas:
         cmd = ' '.join(['python mindboggler.py', '-o', out_path, '-s', atlas])
         print(cmd); os.system(cmd)
 """
