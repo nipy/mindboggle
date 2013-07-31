@@ -8,10 +8,10 @@ Mindboggle-101: Manually labeled brain surfaces and volumes
 -------------------------------------------
 
 |  The Mindboggle-101 dataset includes manually labeled anatomical regions for `101 healthy subjects`_.
-|  The manually edited cortical labels_ [label numbers_] follow sulcus landmarks_ according to the Desikan-Killiany-Tourville
+|  The manually edited cortical labels follow sulcus landmarks according to the Desikan-Killiany-Tourville
 |  (DKT) protocol.  Please cite the following article and this website when making use of these data,
 |  which include labeled nifti volumes (nii), vtk surfaces (vtk), and FreeSurfer files (mgh)
-|  (see the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, the `CHANGELOG <http://mindboggle.info/data/mindboggle101/CHANGELOG.txt>`_, the `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_ and label and original scan ID `info <http://mindboggle.info/data/mindboggle101/info.tar.gz>`_):
+|  (see the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, labeling protocol_, the `CHANGELOG <http://mindboggle.info/data/mindboggle101/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_):
 |
 | `http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full <http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full>`_
 | **"101 labeled brain images and a consistent human cortical labeling protocol"**
@@ -35,9 +35,7 @@ Mindboggle-101: Manually labeled brain surfaces and volumes
       - **Twins-2**:  2 identical twins, including AK
       - **Afterthought-1**:  1 brain imager, SG
   - **fsaverage** [nii and mgh `DKT-labeled fsaverage <http://mindboggle.info/data/atlases/fsaverage.tar.gz>`_]:
-      The figures below show the DKT cortical labeling protocol on FreeSurfer's fsaverage surface:
-
-
+      The figures below show the DKT cortical labeling protocol_ with `sulcus landmarks`_ on FreeSurfer's fsaverage surface:
 
 | 
 |
@@ -52,8 +50,9 @@ Mindboggle-101: Manually labeled brain surfaces and volumes
 .. _CC_license: http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
 .. |CC_license| image:: http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png
 .. _`101 healthy subjects`: http://media.mindboggle.info/images/data/Mindboggle101_table.pdf
-.. _labels: http://media.mindboggle.info/images/data/DKT_label_table.pdf
-.. _landmarks: http://media.mindboggle.info/images/data/DKT_sulci_table.pdf
+.. _labels: http://mindboggle.info/data/mindboggle101/protocol.txt
+.. _protocol: http://mindboggle.info/data/mindboggle101/protocol.txt
+.. _`sulcus landmarks`: http://media.mindboggle.info/images/data/DKT_sulci_table.pdf
 .. _`MMRR www`: http://www.nitrc.org/projects/multimodal
 .. _`NKI-RS www`: http://fcon_1000.projects.nitrc.org/indi/pro/nki.html
 .. _`NKI-TRT www`: http://fcon_1000.projects.nitrc.org/indi/pro/eNKI_RS_TRT/FrontPage.html
