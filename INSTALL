@@ -14,6 +14,11 @@ environment necessary for some parallel components of Mindboggle).
 Pip python library installation (OSX: ``easy_install pip``;
     Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
 
+Nipype software pipeline framework and neuroimaging i/o library::
+
+    pip install nibabel
+    pip install nipype
+
 Download Mindboggle
 -------------------
 To check out the latest development version using git_::
