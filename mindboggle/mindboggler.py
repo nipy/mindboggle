@@ -1171,14 +1171,20 @@ if run_SurfShapeFlow and run_SurfFlows:
                              interface=Fn(function = spectrum_per_label,
                                           input_names=['vtk_file',
                                                        'n_eigenvalues',
-                                                       'normalization'],
+                                                       'exclude_labels',
+                                                       'normalization',
+                                                       'area_file'],
                                           output_names=['spectrum_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([SpectraLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
-        SpectraLabels.inputs.n_eigenvalues = 6
+        SpectraLabels.inputs.n_eigenvalues = 20
+        SpectraLabels.inputs.exclude_labels = [0]
         SpectraLabels.inputs.normalization = "area"
+        SpectraLabels.inputs.area_file = ""
+        mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
+                       SurfFeatureShapeFlow, 'Spectra_labels.area_file')
 
         #=====================================================================
         # Measure Laplace-Beltrami spectra of sulci
@@ -1194,20 +1200,26 @@ if run_SurfShapeFlow and run_SurfFlows:
         #=====================================================================
         ZernikeLabels = Node(name='Zernike_labels',
                              interface=Fn(function = zernike_moments_per_label,
-                                          input_names=['vtk_file'],
-                                          output_names=['moments']))
-        #SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
-        #mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-        #               SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
-        #ZernikeLabels.inputs.? = ""
+                                          input_names=['vtk_file',
+                                                       'order',
+                                                       'exclude_labels',
+                                                       'area_file'],
+                                          output_names=['descriptors']))
+        SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
+        ZernikeLabels.inputs.order = 20
+        ZernikeLabels.inputs.exclude_labels = [0]
+        mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
+                       SurfFeatureShapeFlow, 'Zernike_labels.area_file')
 
         #=====================================================================
         # Measure Zernike moments of sulci
         #=====================================================================
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
-        #    SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
-        #    mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
+            SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
+            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
 
 
 ##############################################################################
