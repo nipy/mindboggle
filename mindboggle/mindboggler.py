@@ -1,93 +1,20 @@
 #!/usr/bin/env python
 """
-This is Mindboggle's nipype software pipeline!
+This is the main program to run Mindboggle.
 
-For help in using Mindboggle, please type the following at the command line:
-python mindboggler.py --help
+For help in using Mindboggle, please ::
 
+    - see the README file
+    - read the online docs: http://mindboggle.info/software/documentation.html
+    - type the following at the command line:  python mindboggler.py --help
 
-..SURFACE workflows ::
+This file uses Nipype (http://www.nipy.org/nipype/) to create a workflow
+environment to enable Mindboggle to run in a flexible, modular manner
+while storing provenance information.
 
-      ======================
-    * Surface label workflow *
-      ======================
-      - DKT classifier (default option)
-          This option gives the same cortical labels as FreeSurfer
-          (version 5.2 or greater) if the DKT-40 classifier is used
-          instead of the DKT-100 classifier, and the DKT31 protocol labels
-          are not converted to DKT25 protocol labels.
-      - FreeSurfer labels
-          Version 5.2 or greater recommended (see above).
-      - Multi-atlas labeling (deactivated because DKT result more accurate)
-      - Manual labels
-          If labeled surfaces are supplied (such as the Mindboggle-101 set)
-          these labels may also be used to evaluate any of the above labels.
-
-      ==================================
-    * Surface shape measurement workflow *
-      ==================================
-      - Surface area
-      - Travel depth
-      - Geodesic depth
-      - Mean curvature
-      - Convexity (FreeSurfer)
-      - Thickness (FreeSurfer)
-
-      ===================================
-    * Surface feature extraction workflow *
-      ===================================
-      - Folds
-      - Sulci
-      - Fundi
-
-      ==============================
-    * Surface feature shape workflow *
-      ==============================
-      - Laplace-Beltrami spectra
-      - Zernike moments
-
-..VOLUME workflows ::
-
-      =====================
-    * Volume label workflow *
-      =====================
-      - Fill cortical gray matter with labels
-      - Register image volume to template in MNI152 space
-      - Label subcortical volumes
-
-      =============================
-    * Volume feature shape workflow *
-      =============================
-      - Find positions (native and MNI152 spaces)
-      - Measure label volumes
-      - (Evaluate label volumes vs. manual labels)
-
-      ==============
-    * Table workflow *
-      ==============
-      - Volume shape tables:
-          - Label volumes
-      - Surface feature shape tables:
-          - Label shapes
-          - Sulcus shapes
-          - Fundus shapes
-      - Vertex measures table
-
-.. Note::
-      Mindboggle currently uses FreeSurfer for label initialization
-      (its label output or its surface registration algorithm),
-      and assumes that input files reside within a directory structure
-      like that created by FreeSurfer (autorecon -all).
-      For example, each scan is assigned a unique subject name that is also
-      the name of a folder within FreeSurfer's subjects directory; within this
-      folder are the subfolders surf, label, and mri.
-
-For more information about Mindboggle:
-http://mindboggle.info/software/documentation.html
-
-For information on Nipype (http://www.nipy.org/nipype/):
-http://www.ncbi.nlm.nih.gov/pmc/articles/PMC3159964/
-
+Examples
+--------
+$ python mindboggler.py -s subject1 subject2 subject3
 
 Authors:
     - Arno Klein, 2010-2013  (arno@mindboggle.info)  http://binarybottle.com
@@ -105,17 +32,20 @@ import os
 import sys
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-o", help="output directory",
-                    default=os.path.join(os.environ['HOME'], 'mindboggled'))
 parser.add_argument("-s", help=("one or more subjects corresponding to the "
-                                "names of directories within FreeSurfer's "
-                                "subjects directory"), nargs='+',
+                                "names of directories with input files "
+                                "located within the $SUBJECTS_DIR directory.  "
+                                "Example: "
+                                "-s subject1 subject2"), nargs='+',
                     required=True)
-parser.add_argument("-n", help="number of processes")
-parser.add_argument("-c", help="use (HTCondor) cluster")
-parser.add_argument("-g", help=("generate visual graphs of the workflow, "
-                                "such as hierarchical, flat, or exec "
-                                "(requires graphviz and pygraphviz)"))
+parser.add_argument("-o", help="output directory [default: $HOME/mindboggled]",
+                    default=os.path.join(os.environ['HOME'], 'mindboggled'))
+parser.add_argument("-n", help=("number of processors "
+                                "[default is to use all available]"))
+parser.add_argument("-c", help="Use HTCondor cluster")
+parser.add_argument("-g", help=("generate workflow visual (requires graphviz "
+                                "and pygraphviz).  Examples: "
+                                "-g hierarchical; -g flat; -g exec"))
 args = parser.parse_args()
 subjects = args.s
 output_path = args.o
