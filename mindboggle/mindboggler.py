@@ -153,7 +153,7 @@ run_SurfLabelFlow = True
 # * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
 # * 'max_prob': majority vote labels from multiple atlases (DISABLED)
 # * 'manual': process manual labels (individual atlas)
-init_labels = 'DKT_atlas'
+init_labels = 'manual' #'DKT_atlas'
 classifier_name = 'DKTatlas100'  # DKT_atlas: 'DKTatlas[40,100].gcs'
 #-----------------------------------------------------------------------------
 # Labeling protocol:
@@ -172,8 +172,8 @@ run_WholeSurfShapeFlow = True
 #-----------------------------------------------------------------------------
 do_thickness = True  # Include FreeSurfer's thickness measure
 do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_measure_spectra = True  # Measure Laplace-Beltrami spectra for features
-do_measure_zernike = False  # Measure Zernike moments for features
+do_spectra = True  # Measure Laplace-Beltrami spectra for features
+do_zernike = True  # Measure Zernike moments for features
 #-----------------------------------------------------------------------------
 run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
@@ -1163,7 +1163,7 @@ if run_SurfFeatureFlow and run_SurfFlows:
 if run_SurfShapeFlow and run_SurfFlows:
     SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
-    if do_measure_spectra:
+    if do_spectra:
         #=====================================================================
         # Measure Laplace-Beltrami spectra of labeled regions
         #=====================================================================
@@ -1323,7 +1323,7 @@ if run_SurfFlows:
             ShapeTables.inputs.thickness_file = ''
 
         # Laplace-Beltrami spectra:
-        if do_measure_spectra:
+        if do_spectra:
             mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_labels.spectrum_lists',
                            ShapeTables, 'labels_spectra')
             mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_labels.label_list',
@@ -1343,7 +1343,7 @@ if run_SurfFlows:
             ShapeTables.inputs.sulci_spectra_IDs = []
 
         # Zernike moments:
-        if do_measure_zernike:
+        if do_zernike:
             mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.spectrum_lists',
                            ShapeTables, 'labels_zernike')
             mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.label_list',
