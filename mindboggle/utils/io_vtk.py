@@ -783,9 +783,15 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>>                                 'lh.labels.DKT25.manual.vtk')
     >>> input_indices_vtk = input_values_vtk
     >>> output_stem = 'label'
+    >>> exclude_values = [-1]
+    >>> background_value = -1,
+    >>> output_scalar_name = 'scalars'
+    >>> remove_background_faces = True
+    >>> reindex = True
     >>> #
-    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem)
-    >>> #
+    >>> explode_scalars(input_indices_vtk, input_values_vtk, output_stem,
+    >>>                 exclude_values, background_value,
+    >>>                 output_scalar_name, remove_background_faces, reindex)
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '2.vtk')
     >>> plot_vtk(example_vtk)
