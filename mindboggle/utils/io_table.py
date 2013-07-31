@@ -208,7 +208,7 @@ def write_rows(filename, list_of_lines, header=""):
 
     return filename
 
-def write_shape_stats(labels_or_file, sulci=[], fundi=[],
+def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
@@ -341,6 +341,10 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         sulci = sulci.tolist()
     if isinstance(fundi, np.ndarray):
         fundi = fundi.tolist()
+
+    if not labels and not sulci and not fundi:
+        import sys
+        sys.exit('No feature data to tabulate in write_shape_stats().')
 
     #-------------------------------------------------------------------------
     # Feature lists, shape names, and shape files:
@@ -632,6 +636,10 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
         sulci = sulci.tolist()
     if isinstance(fundi, np.ndarray):
         fundi = fundi.tolist()
+
+    if not labels and not sulci and not fundi:
+        import sys
+        sys.exit('No feature data to tabulate in write_vertex_measures().')
 
     # Feature names and corresponding feature lists:
     feature_names = ['label', 'sulcus', 'fundus']
