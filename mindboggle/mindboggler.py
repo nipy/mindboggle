@@ -1256,6 +1256,10 @@ if run_SurfFlows:
                                                      'labels_spectra_IDs',
                                                      'sulci_spectra',
                                                      'sulci_spectra_IDs',
+                                                     'labels_zernike',
+                                                     'labels_zernike_IDs',
+                                                     'sulci_zernike',
+                                                     'sulci_zernike_IDs',
                                                      'exclude_labels',
                                                      'delimiter'],
                                         output_names=['label_table',
@@ -1317,6 +1321,8 @@ if run_SurfFlows:
                            ShapeTables, 'thickness_file')
         else:
             ShapeTables.inputs.thickness_file = ''
+
+        # Laplace-Beltrami spectra:
         if do_measure_spectra:
             mbFlow.connect(SurfFeatureShapeFlow, 'Spectra_labels.spectrum_lists',
                            ShapeTables, 'labels_spectra')
@@ -1335,6 +1341,26 @@ if run_SurfFlows:
             ShapeTables.inputs.sulci_spectra = []
             ShapeTables.inputs.labels_spectra_IDs = []
             ShapeTables.inputs.sulci_spectra_IDs = []
+
+        # Zernike moments:
+        if do_measure_zernike:
+            mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.spectrum_lists',
+                           ShapeTables, 'labels_zernike')
+            mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_labels.label_list',
+                           ShapeTables, 'labels_zernike_IDs')
+            if do_sulci:
+                mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_sulci.spectrum_lists',
+                               ShapeTables, 'sulci_zernike')
+                mbFlow.connect(SurfFeatureShapeFlow, 'Zernike_sulci.label_list',
+                               ShapeTables, 'sulci_zernike_IDs')
+            else:
+                ShapeTables.inputs.sulci_zernike = []
+                ShapeTables.inputs.sulci_zernike_IDs = []
+        else:
+            ShapeTables.inputs.labels_zernike = []
+            ShapeTables.inputs.sulci_zernike = []
+            ShapeTables.inputs.labels_zernike_IDs = []
+            ShapeTables.inputs.sulci_zernike_IDs = []
 
         #---------------------------------------------------------------------
         ShapeTables.inputs.exclude_labels = [-1]
