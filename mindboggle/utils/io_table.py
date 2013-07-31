@@ -214,6 +214,8 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         geodesic_depth_file='', convexity_file='', thickness_file='',
         labels_spectra=[], labels_spectra_IDs=[],
         sulci_spectra=[], sulci_spectra_IDs=[],
+        labels_zernike=[], labels_zernike_IDs=[],
+        sulci_zernike=[], sulci_zernike_IDs=[],
         exclude_labels=[-1], delimiter=','):
     """
     Make tables of shape statistics per label, fundus, and/or sulcus.
@@ -243,7 +245,7 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         name of VTK file with convexity scalar values
     thickness_file :  string
         name of VTK file with thickness scalar values
-    labels_spectra : list of lists of floats
+    labels_zernike : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
     labels_spectra_IDs : list of integers
         unique ID numbers (labels) for labels_spectra
@@ -251,6 +253,14 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
         Laplace-Beltrami spectra for sulci
     sulci_spectra_IDs : list of integers
         unique ID numbers (labels) for sulci_spectra
+    labels_zernike : list of lists of floats
+        Zernike moments for labeled regions
+    labels_zernike_IDs : list of integers
+        unique ID numbers (labels) for labels_zernike
+    sulci_zernike : list of lists of floats
+        Zernike moments for sulci
+    sulci_zernike_IDs : list of integers
+        unique ID numbers (labels) for sulci_zernike
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
     delimiter : string
@@ -295,14 +305,21 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     >>> labels_spectra_IDs = np.unique(labels).tolist()
     >>> sulci_spectra = [[1,2,3] for x in sulci]
     >>> sulci_spectra_IDs = np.unique(sulci).tolist()
+    >>> labels_zernike = [[1,2,3] for x in labels]
+    >>> labels_zernike_IDs = np.unique(labels).tolist()
+    >>> sulci_zernike = [[1,2,3] for x in sulci]
+    >>> sulci_zernike_IDs = np.unique(sulci).tolist()
     >>> exclude_labels = [-1]
     >>> #
     >>> write_shape_stats(labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     convexity_file, thickness_file, labels_spectra,
-    >>>     labels_spectra_IDs, sulci_spectra,
-    >>>     sulci_spectra_IDs, exclude_labels, delimiter)
+    >>>     convexity_file, thickness_file,
+    >>>     labels_spectra, labels_spectra_IDs,
+    >>>     sulci_spectra, sulci_spectra_IDs,
+    >>>     labels_zernike, labels_zernike_IDs,
+    >>>     sulci_zernike, sulci_zernike_IDs,
+    >>>     exclude_labels, delimiter)
 
     """
     import os
@@ -334,6 +351,9 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
     spectra_lists = [labels_spectra, sulci_spectra]
     spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
     spectra_names = ['label spectrum', 'sulcus spectrum']
+    zernike_lists = [labels_zernike, sulci_zernike]
+    zernike_ID_lists = [labels_zernike_IDs, sulci_zernike_IDs]
+    zernike_names = ['label spectrum', 'sulcus spectrum']
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
@@ -457,7 +477,7 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
                     columns.append(upper_quarts)
 
             #-----------------------------------------------------------------
-            # Laplace-Beltrami spectra:
+            # Laplace-Beltrami zernike:
             #-----------------------------------------------------------------
             if itable in [0,1]:
                 spectra = spectra_lists[itable]
@@ -476,6 +496,27 @@ def write_shape_stats(labels_or_file, sulci=[], fundi=[],
                 # Append spectral shape name and values to relevant columns:
                 columns.append(spectrum_list)
                 table_column_names.append(spectra_name)
+
+            #-----------------------------------------------------------------
+            # Zernike moments:
+            #-----------------------------------------------------------------
+            if itable in [0,1]:
+                zernike = zernike_lists[itable]
+                zernike_name = zernike_names[itable]
+                zernike_IDs = zernike_ID_lists[itable]
+
+                # Order zernike into a list:
+                spectrum_list = []
+                for label in label_list:
+                    if label in zernike_IDs:
+                        spectrum = zernike[zernike_IDs.index(label)]
+                        spectrum_list.append(spectrum)
+                    else:
+                        spectrum_list.append('')
+
+                # Append Zernike shape name and values to relevant columns:
+                columns.append(spectrum_list)
+                table_column_names.append(zernike_name)
 
             #-----------------------------------------------------------------
             # Write labels/IDs and values to table:
@@ -711,7 +752,7 @@ def write_average_face_values_per_label(input_indices_vtk,
                     input_values_vtk='', area_file='',
                     output_stem='', exclude_values=[-1], background_value=-1):
     """
-    Write out a separate VTK file for each integer (>-1)
+    Write out a separate VTK file for each integer (!=-1)
     in (the first) scalar list of an input VTK file.
     Optionally write the values drawn from a second VTK file.
 
