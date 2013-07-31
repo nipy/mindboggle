@@ -7,28 +7,23 @@ feature extraction, and shape analysis of human brain MR image data.
 
 Help
 ====
-For help in using Mindboggle, please ::
-
-    - see the README file
-    - read the online docs: http://mindboggle.info/software/documentation.html
-    - type the following at the command line:  python mindboggler.py --help
+- Online documentation: http://mindboggle.info/documentation.html
+- Help on the command line:  python mindboggler.py --help
+- For installation, see INSTALL in the distribution or online.
 
 License
 =======
-Except where otherwise noted, all Mindboggle software is licensed under the
-`Apache v2.0`_ license (see the LICENSE file in the Mindboggle distribution),
-and all Mindboggle documentation is licensed under a
-`Creative Commons Attribution 3.0 License`_.
+Except where noted, all Mindboggle software is under the `Apache v2.0`_
+license (see the LICENSE file in the Mindboggle distribution),
+and documentation is under a `Creative Commons Attribution 3.0 License`_.
 
-Inputs
-======
+Input
+=====
 Mindboggle currently uses ANTS for volume labels and FreeSurfer to
 initialize cortical surface labels. The easiest way to run Mindboggle,
 without modifying the mindboggler.py program settings, is to simply run
 the "recon-all -all -s <subject> -i <T1 image>" command in FreeSurfer_,
-then run Mindboggle on one or more <subject>s::
-
-    python mindboggler.py -s subject1 subject2 subject3
+then run Mindboggle on one or more <subject>s.
 
 Alternatively, a user can provide 4 vtk surfaces and 4 nifti volumes in a
 FreeSurfer-like directory tree, after setting the $SUBJECTS_DIR environment
@@ -41,56 +36,81 @@ variable.  For the example subject Twins-2-1::
         surf/[lh,rh].pial.vtk
         label/[lh,rh].pial.vtk
 
-What it does
-============
-Surface labels
---------------
-- DKT classifier labels
-    Alternatives:
-    - FreeSurfer default labels (v5.3 and above recommended)
-    - Manual labels (if provided, can be used to evaluate above)
+Example
+=======
+Terminal command for processing multiple subjects::
 
-Volume labels
--------------
-- Propagate surface labels to fill cortical gray matter
-- Register whole brain to template in MNI152 space
-- Combine filled cortical with registered subcortical labels
-- (Evaluate automated vs. manual label overlap)
+    python mindboggler.py -s subject1 subject2 subject3
 
-Surface shapes
---------------
-- Surface area
-- Travel depth
-- Geodesic depth
-- Mean curvature
-- Convexity (FreeSurfer)
-- Thickness (FreeSurfer)
+Outputs
+=======
+Mindboggle outputs:
+    - image volumes with anatomical labels
+    - left and right cortical hemisphere surfaces labeled by:
+        - anatomy (ex: superior frontal gyrus)
+        - feature (ex: sulcus ID)
+        - shape   (ex: travel depth)
+    - tables of shape measures for the above labels and features
 
-Surface features
-----------------
-- Folds
-- Sulci
-- Fundi
+Default output in $HOME/mindboggled/results/:
 
-Surface feature shapes
-----------------------
-- Laplace-Beltrami spectra
-- Zernike moments
++-+---------------+----------------------------------------------+----------+
+| |  **Folder**   | **Contents**                                 |**Format**|
++-+---------------+----------------------------------------------+----------+
+| |   tables/     |  tables of shape measures per feature/vertex | .csv     |
++-+---------------+----------------------------------------------+----------+
+| |   labels/     |  labeled volumes and surfaces                | .nii,.vtk|
++-+---------------+----------------------------------------------+----------+
+| |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk     |
++-+---------------+----------------------------------------------+----------+
+| |   features/   |  surface features: folds, sulci, fundi       | .vtk     |
++-+---------------+----------------------------------------------+----------+
+| |   nifti/      |  brain volume images                         | .nii     |
++-+---------------+----------------------------------------------+----------+
+| |   nifti_mask/ |  cortical volume mask images                 | .nii     |
++-+---------------+----------------------------------------------+----------+
+| |   transforms/ |  ANTS volume registration transforms         | .nii     |
++-+---------------+----------------------------------------------+----------+
 
-Volume feature shapes
----------------------
-- Volumes
+Outputs by category
+===================
+**Surface labels**
+    - DKT classifier labels
 
-Surface tables
---------------
-- Label shapes
-- Sulcus shapes
-- Fundus shapes
-- Vertex measures
+**Volume labels**
+    - Propagate surface labels to fill cortical gray matter
+    - Register whole brain to template in MNI152 space
+    - Combine filled cortical with registered subcortical labels
+    - (Evaluate automated vs. manual label overlap)
 
-Volume tables
--------------
-- Label volumes
+**Surface shapes**
+    - Surface area
+    - Travel depth
+    - Geodesic depth
+    - Mean curvature
+    - Convexity (FreeSurfer)
+    - Thickness (FreeSurfer)
+
+**Surface features**
+    - Folds
+    - Sulci
+    - Fundi
+
+**Surface feature shapes**
+    - Laplace-Beltrami spectra
+    - Zernike moments
+
+**Volume feature shapes**
+    - Volumes
+
+**Surface tables**
+    - Label shapes
+    - Sulcus shapes
+    - Fundus shapes
+    - Vertex measures
+
+**Volume tables**
+    - Label volumes
 
 
 .. include:: doc/links_names.txt
