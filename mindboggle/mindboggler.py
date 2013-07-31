@@ -34,93 +34,199 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-s", help=("one or more subjects corresponding to the "
                                 "names of directories with input files "
-                                "located within the $SUBJECTS_DIR directory.  "
-                                "Example: "
-                                "-s subject1 subject2"), nargs='+',
+                                "located within the $SUBJECTS_DIR directory"),
+                    nargs='+',
                     required=True)
-parser.add_argument("-o", help="output directory [default: $HOME/mindboggled]",
+parser.add_argument("-o", help="output directory [$HOME/mindboggled]",
                     default=os.path.join(os.environ['HOME'], 'mindboggled'))
-parser.add_argument("-n", help=("number of processors "
-                                "[default is to use all available]"))
-parser.add_argument("-c", help="Use HTCondor cluster")
-parser.add_argument("-g", help=("generate workflow visual (requires graphviz "
-                                "and pygraphviz).  Examples: "
-                                "-g hierarchical; -g flat; -g exec"))
+parser.add_argument("-n",
+                    help=("number of processors [all available]"),
+                    type=int)
+parser.add_argument("-c", action='store_true',
+                    help="Use HTCondor cluster")
+parser.add_argument("-g", help=("generate py/graphviz workflow visual"),
+                    choices=['hierarchical', 'flat', 'exec'])
+
+parser.add_argument("--reg", help="volume registration method [ANTS]",
+                    choices=['ANTS', 'off'],  # 'antsRegister', 'flirt']
+                    default='ANTS')
+
+parser.add_argument("--no_table", action='store_true',
+                    help="do not generate shape tables")
+parser.add_argument("--pt_table", action='store_true',
+                    help=("generate tables with a surface "
+                          "shape measure for each vertex"))
+parser.add_argument("--no_surf", action='store_true',
+                    help="do not process surfaces")
+parser.add_argument("--no_vol", action='store_true',
+                    help="do not process volumes")
+parser.add_argument("--no_spectra", action='store_true',
+                    help="do not compute Laplace-Beltrami spectra")
+parser.add_argument("--no_zernike", action='store_true',
+                    help="do not compute Zernike moments")
+parser.add_argument("--no_freesurfer", action='store_true',
+                    help="do not use FreeSurfer outputs")
+parser.add_argument("--no_label", action='store_true',
+                    help="do not label surfaces or volumes")
+parser.add_argument("--protocol", help=("label protocol: DKT25 is a "
+                                        "'fundus-friendly' version of the "
+                                        "Desikan-Killiany-Tourville (DKT) "
+                                        "protocol with 25 cortical label "
+                                        "regions per hemisphere [DKT25]"),
+                    choices=['DKT25', 'DKT31'],
+                    default='DKT25')
+parser.add_argument("--classifier", help=("Gaussian classifier atlas "
+                                          "for cortical surface labels "
+                                          "[DKTatlas100]"),
+                    choices=['DKTatlas100', 'DKTatlas40'],
+                    default='DKTatlas100')
+
+do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
+do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
+do_input_mask = False
+
+
+
+parser.add_argument("--version", help="version number",
+                    action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
+#-----------------------------------------------------------------------------
+# Main arguments:
+#-----------------------------------------------------------------------------
 subjects = args.s
 output_path = args.o
 nprocesses = args.n
 cluster = args.c
-graph_type = args.g
+graph_vis = args.g
+no_freesurfer = args.no_freesurfer
+no_label = args.no_label
+if no_label:
+    do_label = False
+else:
+    do_label = True
+#-----------------------------------------------------------------------------
+# Volume workflows:
+#-----------------------------------------------------------------------------
+no_vol = args.no_vol
+run_VolFlows = False
+run_VolShapeFlow = False
+run_VolLabelFlow = False
+if not no_vol:
+    run_VolFlows = True
+    run_VolShapeFlow = True
+    if do_label:
+        run_VolLabelFlow = True
+#-----------------------------------------------------------------------------
+# Registration:
+#-----------------------------------------------------------------------------
+vol_reg_method = args.reg
+if vol_reg_method == 'off':
+    do_register_standard = False
+elif not no_vol:
+    do_register_standard = True  # Register volume to standard template
+#-----------------------------------------------------------------------------
+# Surface workflows:
+#-----------------------------------------------------------------------------
+no_surf = args.no_surf
+run_SurfFlows = False
+run_WholeSurfShapeFlow = False
+run_SurfFeatureFlow = False
+run_SurfLabelFlow = False
+if not no_surf:
+    run_SurfFlows = True
+    run_WholeSurfShapeFlow = True
+    run_SurfFeatureFlow = True
+    if do_label:
+        run_SurfLabelFlow = True
+#-----------------------------------------------------------------------------
+# Surface features:
+#-----------------------------------------------------------------------------
+do_folds = False  # Extract folds
+do_sulci = False  # Extract sulci
+do_fundi = False  # Extract fundi
+do_smooth_fundi = False
+if run_SurfFeatureFlow and (not no_freesurfer or init_labels=='manual'):
+    do_folds = True
+    do_sulci = True
+    do_fundi = True
+    do_smooth_fundi = True
+#-----------------------------------------------------------------------------
+# Surface shapes:
+#-----------------------------------------------------------------------------
+no_spectra = args.no_spectra
+no_zernike = args.no_zernike
+no_freesurfer = args.no_freesurfer
+do_spectra = False  # Measure Laplace-Beltrami spectra for features
+do_zernike = False  # Measure Zernike moments for features
+do_thickness = False  # Include FreeSurfer's thickness measure
+do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
+if run_WholeSurfShapeFlow:
+    if not no_spectra:
+        do_spectra = True
+    if not no_zernike:
+        do_zernike = True
+    if not no_freesurfer:
+        do_thickness = True
+        do_convexity = True
+#-----------------------------------------------------------------------------
+# Labels:
+#-----------------------------------------------------------------------------
+protocol = args.protocol
+classifier_name = args.classifier
+do_label_surf = False
+do_label_whole_volume = False  # Label whole brain via volume registration
+do_fill_cortex = False  # Fill cortical gray matter with surface labels
+if do_label:
+    if do_register_standard and not no_vol:
+        do_label_whole_volume = True
+    if not no_surf:
+        do_label_surf = True
+        if not no_vol:
+            do_fill_cortex = True
+#-----------------------------------------------------------------------------
+# Tables:
+#-----------------------------------------------------------------------------
+no_table = args.no_table
+do_vol_table = False
+do_surf_table = False
+# Surface/volume feature shape measures:
+if not no_table:
+    if run_VolLabelFlow:
+        do_vol_table = True
+    do_surf_table = True
+# Per-vertex surface shape measures:
+pt_table = args.pt_table
+do_vertex_table = False
+if pt_table:
+    do_vertex_table = True
 
 #=============================================================================
-# Workflow options
+# Hidden arguments
 #=============================================================================
+#-----------------------------------------------------------------------------
+# Volume template and atlas:
+#-----------------------------------------------------------------------------
 template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
 atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz']
-
 #-----------------------------------------------------------------------------
-run_RegFlows = True  # Run Mindboggle's registration workflows
+# Surface atlas labels:
+# - 'manual': manual edits
+# - FUTURE: <'adjusted': manual edits after automated alignment to fundi>
 #-----------------------------------------------------------------------------
-do_register_standard = True  # Register volume to standard template
-vol_reg_method = 'ANTS' # Volume registration: 'antsRegister', 'ANTS', 'flirt'
-
-#-----------------------------------------------------------------------------
-run_SurfFlows = True  # Run Mindboggle's surface workflows
-run_VolFlows = True  # Run Mindboggle's volume workflows
-#-----------------------------------------------------------------------------
-do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
-do_surf_table = True  # Store surface feature shape measures in a table
-do_vertex_table = True  # Create per-vertex shape table
-do_vol_table = True  # Store volume feature shape measures in a table
-
-#-----------------------------------------------------------------------------
-run_SurfLabelFlow = True
+atlas_label_type = 'manual'
 #-----------------------------------------------------------------------------
 # Initialize labels with:
-# * 'DKT_atlas': FreeSurfer-style classifier atlas trained on the DKT protocol
-# * 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
-# * 'max_prob': majority vote labels from multiple atlases (DISABLED)
-# * 'manual': process manual labels (individual atlas)
-init_labels = 'manual' #'DKT_atlas'
-classifier_name = 'DKTatlas100'  # DKT_atlas: 'DKTatlas[40,100].gcs'
+# - 'DKT_atlas': FreeSurfer-style classifier atlas trained on the DKT protocol
+# - 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
+# - 'max_prob': majority vote labels from multiple atlases (DISABLED)
+# - 'manual': process manual labels (individual atlas)
 #-----------------------------------------------------------------------------
-# Labeling protocol:
-# * 'DKT31': 'Desikan-Killiany-Tourville (DKT) protocol with 31 label regions
-# * 'DKT25': 'fundus-friendly' version of the DKT protocol following fundi
-protocol = 'DKT31'
+init_labels = 'DKT_atlas'
 #-----------------------------------------------------------------------------
-# Type of atlas labels:
-# * 'manual': manual edits
-# * FUTURE: <'adjusted': manual edits after automated alignment to fundi>
-atlas_label_type = 'manual'
-#
+# Evaluation
+#-----------------------------------------------------------------------------
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
-#-----------------------------------------------------------------------------
-run_WholeSurfShapeFlow = True
-#-----------------------------------------------------------------------------
-do_thickness = True  # Include FreeSurfer's thickness measure
-do_convexity = True  # Include FreeSurfer's convexity measure (sulc.pial)
-do_spectra = True  # Measure Laplace-Beltrami spectra for features
-do_zernike = True  # Measure Zernike moments for features
-#-----------------------------------------------------------------------------
-run_SurfFeatureFlow = True
-#-----------------------------------------------------------------------------
-do_sulci = True  # Extract sulci
-do_fundi = True  # Extract fundi
-do_smooth_fundi = True
-#-----------------------------------------------------------------------------
-run_SurfShapeFlow = True
-run_VolLabelFlow = True
-#-----------------------------------------------------------------------------
-do_fill_cortex = True  # Fill cortical gray matter with surface labels
-do_input_mask = False
-do_label_whole_volume = True  # Label whole brain (not just cortex)
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
-#-----------------------------------------------------------------------------
-run_VolShapeFlow = True
-#-----------------------------------------------------------------------------
 
 #=============================================================================
 # Setup: import libraries, set file paths
@@ -161,7 +267,6 @@ from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
     measure_volume_overlap
-
 #-----------------------------------------------------------------------------
 # Paths
 #-----------------------------------------------------------------------------
@@ -195,7 +300,11 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
 #=============================================================================
-# Initialize all workflow inputs and outputs
+##############################################################################
+#
+#  Initialize all workflow inputs and outputs
+#
+##############################################################################
 #=============================================================================
 mbFlow = Workflow(name='Mindboggle_workflow')
 mbFlow.base_dir = temp_path
@@ -252,7 +361,7 @@ if run_SurfFlows:
     #-------------------------------------------------------------------------
     # Location and structure of the FreeSurfer label inputs
     #-------------------------------------------------------------------------
-    if init_labels == 'FreeSurfer':
+    if not no_freesurfer and do_label and init_labels == 'FreeSurfer':
         Annot = Node(name='Annots',
                      interface=DataGrabber(infields=['subject', 'hemi'],
                                              outfields=['annot_files'],
@@ -261,7 +370,7 @@ if run_SurfFlows:
         Annot.inputs.template = '%s/label/%s.aparc.annot'
         Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
 
-if run_VolFlows or run_RegFlows:
+if run_VolFlows or do_register_standard:
     #-------------------------------------------------------------------------
     # Location and structure of the volume inputs
     #-------------------------------------------------------------------------
@@ -335,157 +444,144 @@ if run_VolFlows and run_VolLabelFlow and do_fill_cortex:
 
 #=============================================================================
 ##############################################################################
-#=============================================================================
 #
+#  Register image volume to template in MNI152 space
 #
-#   Registration workflows
-#
-#       - Register image volume to template in MNI152 space
-#
-#=============================================================================
 ##############################################################################
 #=============================================================================
+if do_register_standard:
 
-if run_RegFlows:
-
-    #=========================================================================
-    # Register image volume to template in MNI152 space
-    #=========================================================================
-    if do_register_standard:
-
-#        #---------------------------------------------------------------------
-#        # Register image volume to template in MNI152 space using antsRegister:
-#        #---------------------------------------------------------------------
-#         if vol_reg_method == 'antsRegister':
-#             regAnts = Node(name='antsRegister_standard', interface=Registration())
-#             mbFlow.add_nodes([regAnts])
-#             if do_input_nifti:
-#                 mbFlow.connect(niftiBrain, 'nifti',
-#                                 regAnts, 'moving_image')
-#             else:
-#                 mbFlow.connect(mgh2nifti, 'out_file',
-#                                 regAnts, 'moving_image')
-#             regAnts.inputs.fixed_image = [volume_template]
-#             regAnts.inputs.num_threads = 2
-#             regAnts.inputs.winsorize_lower_quantile = 0.01
-#             regAnts.inputs.winsorize_upper_quantile = 0.99
-#             regAnts.inputs.output_warped_image = False
-#             regAnts.inputs.dimension = 3
-#             regAnts.inputs.write_composite_transform = True
-#             regAnts.inputs.collapse_output_transforms = True
-#             regAnts.inputs.write_composite_transform = True
-#             regAnts.inputs.output_transform_prefix = 'standard_'
-#             if do_label_whole_volume:
-#                 regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
-#                 regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
-#                 regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
-# #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
-#                 regAnts.inputs.metric = ['MI']*2 + ['CC']
-#                 regAnts.inputs.metric_weight = [1]*3
-#                 regAnts.inputs.radius_or_number_of_bins = [32]*2 + [4]
-#                 regAnts.inputs.sampling_strategy = ['Regular']*2 + [None]
-#                 regAnts.inputs.sampling_percentage = [0.25]*2 + [None]
-#                 regAnts.inputs.convergence_threshold = [1.e-8]*2 + [1e-9]
-#                 regAnts.inputs.convergence_window_size = [10]*2 + [15]
-#                 regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*3
-#                 regAnts.inputs.sigma_units = ['mm']*3
-#                 regAnts.inputs.shrink_factors = [[8,4,2,1]]*2 + [[6,4,2,1]]
-#                 regAnts.inputs.use_estimate_learning_rate_once = [True, True, True]
-#                 regAnts.inputs.use_histogram_matching = [False]*2 + [True]
-#                 regAnts.inputs.initial_moving_transform_com = True
-#             else:
-#                 regAnts.inputs.transforms = ['Rigid', 'Affine']
-#                 regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-# #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
-#                 regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
-#                 regAnts.inputs.metric = ['MI']*2
-#                 regAnts.inputs.metric_weight = [1]*2
-#                 regAnts.inputs.radius_or_number_of_bins = [32]*2
-#                 regAnts.inputs.sampling_strategy = ['Regular']*2
-#                 regAnts.inputs.sampling_percentage = [0.25]*2
-#                 regAnts.inputs.convergence_threshold = [1.e-8]*2
-#                 regAnts.inputs.convergence_window_size = [10]*2
-#                 regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
-#                 regAnts.inputs.sigma_units = ['mm']*2
-#                 regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
-#                 regAnts.inputs.use_estimate_learning_rate_once = [True, True]
-#                 regAnts.inputs.use_histogram_matching = [False]*2
-#             mbFlow.connect(regAnts, 'composite_transform',
-#                            Sink, 'transforms.@affine_antsRegistration')
-        #---------------------------------------------------------------------
-        # Register image volume to template in MNI152 space using ANTS:
-        #---------------------------------------------------------------------
-        if vol_reg_method == 'ANTS':
-            regANTS = Node(name='ANTS',
-                           interface=Fn(function = ANTS,
-                                        input_names=['source',
-                                                     'target',
-                                                     'iterations',
-                                                     'output_stem'],
-                                        output_names=['affine_transform',
-                                                      'nonlinear_transform',
-                                                      'nonlinear_inverse_transform',
-                                                      'output_stem']))
-            mbFlow.add_nodes([regANTS])
-            if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti',
-                               regANTS, 'source')
-            else:
-                mbFlow.connect(mgh2nifti, 'out_file',
-                               regANTS, 'source')
-            volume_template_file = retrieve_data(template_volume, url,
-                                                 hashes, cache_env, cache)
-            regANTS.inputs.target = volume_template_file
-            if do_label_whole_volume:
-                regANTS.inputs.iterations = '33x99x11'
-            else:
-                regANTS.inputs.iterations = '0'
-            regANTS.inputs.output_stem = ''
-            mbFlow.connect(regANTS, 'affine_transform',
-                           Sink, 'transforms.@affine_ANTS')
-            mbFlow.connect(regANTS, 'nonlinear_transform',
-                           Sink, 'transforms.@nonlinear_ANTS')
-            mbFlow.connect(regANTS, 'nonlinear_inverse_transform',
-                           Sink, 'transforms.@nonlinearinverse_ANTS')
-        #---------------------------------------------------------------------
-        # Register image volume to template in MNI152 space using FSL's flirt:
-        #---------------------------------------------------------------------
-        elif vol_reg_method == 'flirt':
-            regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
-            mbFlow.add_nodes([regFlirt])
-            if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti.@brain',
-                               regFlirt, 'in_file')
-            else:
-                mbFlow.connect(mgh2nifti, 'out_file',
-                               regFlirt, 'in_file')
-            regFlirt.inputs.bins = 640
-            regFlirt.inputs.cost_func = 'mutualinfo'
-            regFlirt.inputs.dof = 12
-            volume_template_file = retrieve_data(template_volume, url,
-                                          hashes, cache_env, cache)
-            regFlirt.inputs.reference = volume_template_file
-            regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
-            regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
-            mbFlow.connect(regFlirt, 'out_matrix_file',
-                           Sink, 'transforms.@affine_flirt')
-            mbFlow.connect(regFlirt, 'out_file',
-                           Sink, 'transforms.@affine_volume')
+    #---------------------------------------------------------------------
+    # Register image volume to template in MNI152 space using ANTS:
+    #---------------------------------------------------------------------
+    if vol_reg_method == 'ANTS':
+        regANTS = Node(name='ANTS',
+                       interface=Fn(function = ANTS,
+                                    input_names=['source',
+                                                 'target',
+                                                 'iterations',
+                                                 'output_stem'],
+                                    output_names=['affine_transform',
+                                                  'nonlinear_transform',
+                                                  'nonlinear_inverse_transform',
+                                                  'output_stem']))
+        mbFlow.add_nodes([regANTS])
+        if do_input_nifti:
+            mbFlow.connect(niftiBrain, 'nifti',
+                           regANTS, 'source')
+        else:
+            mbFlow.connect(mgh2nifti, 'out_file',
+                           regANTS, 'source')
+        volume_template_file = retrieve_data(template_volume, url,
+                                             hashes, cache_env, cache)
+        regANTS.inputs.target = volume_template_file
+        if do_label_whole_volume:
+            regANTS.inputs.iterations = '33x99x11'
+        else:
+            regANTS.inputs.iterations = '0'
+        regANTS.inputs.output_stem = ''
+        mbFlow.connect(regANTS, 'affine_transform',
+                       Sink, 'transforms.@affine_ANTS')
+        mbFlow.connect(regANTS, 'nonlinear_transform',
+                       Sink, 'transforms.@nonlinear_ANTS')
+        mbFlow.connect(regANTS, 'nonlinear_inverse_transform',
+                       Sink, 'transforms.@nonlinearinverse_ANTS')
+    #---------------------------------------------------------------------
+    # Register image volume to template in MNI152 space using FSL's flirt:
+    #---------------------------------------------------------------------
+    elif vol_reg_method == 'flirt':
+        regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
+        mbFlow.add_nodes([regFlirt])
+        if do_input_nifti:
+            mbFlow.connect(niftiBrain, 'nifti.@brain',
+                           regFlirt, 'in_file')
+        else:
+            mbFlow.connect(mgh2nifti, 'out_file',
+                           regFlirt, 'in_file')
+        regFlirt.inputs.bins = 640
+        regFlirt.inputs.cost_func = 'mutualinfo'
+        regFlirt.inputs.dof = 12
+        volume_template_file = retrieve_data(template_volume, url,
+                                      hashes, cache_env, cache)
+        regFlirt.inputs.reference = volume_template_file
+        regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
+        regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
+        mbFlow.connect(regFlirt, 'out_matrix_file',
+                       Sink, 'transforms.@affine_flirt')
+        mbFlow.connect(regFlirt, 'out_file',
+                       Sink, 'transforms.@affine_volume')
+    # #---------------------------------------------------------------------
+    # # Register image volume to template in MNI152 space using antsRegister:
+    # #---------------------------------------------------------------------
+    # elif vol_reg_method == 'antsRegister':
+    #     regAnts = Node(name='antsRegister_standard', interface=Registration())
+    #     mbFlow.add_nodes([regAnts])
+    #     if do_input_nifti:
+    #         mbFlow.connect(niftiBrain, 'nifti',
+    #                         regAnts, 'moving_image')
+    #     else:
+    #         mbFlow.connect(mgh2nifti, 'out_file',
+    #                         regAnts, 'moving_image')
+    #     regAnts.inputs.fixed_image = [volume_template]
+    #     regAnts.inputs.num_threads = 2
+    #     regAnts.inputs.winsorize_lower_quantile = 0.01
+    #     regAnts.inputs.winsorize_upper_quantile = 0.99
+    #     regAnts.inputs.output_warped_image = False
+    #     regAnts.inputs.dimension = 3
+    #     regAnts.inputs.write_composite_transform = True
+    #     regAnts.inputs.collapse_output_transforms = True
+    #     regAnts.inputs.write_composite_transform = True
+    #     regAnts.inputs.output_transform_prefix = 'standard_'
+    #     if do_label_whole_volume:
+    #         regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
+    #         regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
+    #         regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
+    # #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
+    #         regAnts.inputs.metric = ['MI']*2 + ['CC']
+    #         regAnts.inputs.metric_weight = [1]*3
+    #         regAnts.inputs.radius_or_number_of_bins = [32]*2 + [4]
+    #         regAnts.inputs.sampling_strategy = ['Regular']*2 + [None]
+    #         regAnts.inputs.sampling_percentage = [0.25]*2 + [None]
+    #         regAnts.inputs.convergence_threshold = [1.e-8]*2 + [1e-9]
+    #         regAnts.inputs.convergence_window_size = [10]*2 + [15]
+    #         regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*3
+    #         regAnts.inputs.sigma_units = ['mm']*3
+    #         regAnts.inputs.shrink_factors = [[8,4,2,1]]*2 + [[6,4,2,1]]
+    #         regAnts.inputs.use_estimate_learning_rate_once = [True, True, True]
+    #         regAnts.inputs.use_histogram_matching = [False]*2 + [True]
+    #         regAnts.inputs.initial_moving_transform_com = True
+    #     else:
+    #         regAnts.inputs.transforms = ['Rigid', 'Affine']
+    #         regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
+    # #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
+    #         regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
+    #         regAnts.inputs.metric = ['MI']*2
+    #         regAnts.inputs.metric_weight = [1]*2
+    #         regAnts.inputs.radius_or_number_of_bins = [32]*2
+    #         regAnts.inputs.sampling_strategy = ['Regular']*2
+    #         regAnts.inputs.sampling_percentage = [0.25]*2
+    #         regAnts.inputs.convergence_threshold = [1.e-8]*2
+    #         regAnts.inputs.convergence_window_size = [10]*2
+    #         regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
+    #         regAnts.inputs.sigma_units = ['mm']*2
+    #         regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
+    #         regAnts.inputs.use_estimate_learning_rate_once = [True, True]
+    #         regAnts.inputs.use_histogram_matching = [False]*2
+    #     mbFlow.connect(regAnts, 'composite_transform',
+    #                    Sink, 'transforms.@affine_antsRegistration')
 
 
 #=============================================================================
 ##############################################################################
 #=============================================================================
-#
 #
 #   Surface workflows
 #
-#
 #=============================================================================
 ##############################################################################
 #=============================================================================
-
 if run_SurfFlows:
+
     mbFlow.connect(InputSubjects, 'subject', Surf, 'subject')
     mbFlow.connect(InputHemis, 'hemi', Surf, 'hemi')
 
@@ -501,7 +597,7 @@ if run_SurfFlows:
     #-------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas surfaces
     #-------------------------------------------------------------------------
-    if do_evaluate_surf_labels or init_labels == 'manual':
+    if (do_evaluate_surf_labels or init_labels == 'manual') and do_label:
         Atlas = Node(name='Atlases',
                      interface=DataGrabber(infields=['subject','hemi'],
                                            outfields=['atlas_file'],
@@ -518,20 +614,15 @@ if run_SurfFlows:
 #
 #   Surface label workflow
 #
-#      - DKT classifier (default option)
-#      - FreeSurfer labels
-#      - Multi-atlas labeling
-#      - Manual labels
-#
 ##############################################################################
-if run_SurfLabelFlow and run_SurfFlows:
+if run_SurfLabelFlow:
 
     SurfLabelFlow = Workflow(name='Surface_labels')
 
     #=========================================================================
     # Initialize labels with the DKT classifier atlas
     #=========================================================================
-    if init_labels == 'DKT_atlas':
+    if init_labels == 'DKT_atlas' and not no_freesurfer:
         #---------------------------------------------------------------------
         # Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
         #---------------------------------------------------------------------
@@ -591,7 +682,7 @@ if run_SurfLabelFlow and run_SurfFlows:
     #=========================================================================
     # Initialize labels with FreeSurfer's standard DK classifier atlas
     #=========================================================================
-    elif init_labels == 'FreeSurfer':
+    elif init_labels == 'FreeSurfer' and not no_freesurfer:
         FreeLabels = Node(name='DK_annot_to_vtk',
                           interface=Fn(function = annot_to_vtk,
                                        input_names=['annot_file',
@@ -714,6 +805,9 @@ if run_SurfLabelFlow and run_SurfFlows:
         plug1 = AtlasLabels
         plug2 = 'input_vtk'
 
+    else:
+        sys.exit('Label initialization improperly set.')
+
     #=========================================================================
     # Surface label evaluation against manual labels
     #=========================================================================
@@ -737,37 +831,31 @@ if run_SurfLabelFlow and run_SurfFlows:
     #=========================================================================
     # Convert surface label numbers to volume label numbers
     #=========================================================================
-    RelabelSurface = Node(name='Relabel_surface',
-                          interface=Fn(function = relabel_surface,
-                                       input_names=['vtk_file',
-                                                    'hemi',
-                                                    'old_labels',
-                                                    'new_labels',
-                                                    'output_file'],
-                                       output_names=['output_file']))
-    SurfLabelFlow.add_nodes([RelabelSurface])
-    SurfLabelFlow.connect(plug1, plug2, RelabelSurface, 'vtk_file')
-    mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
-    RelabelSurface.inputs.old_labels = ''
-    RelabelSurface.inputs.new_labels = ''
-    RelabelSurface.inputs.output_file = ''
-    mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                   Sink, 'labels.@surface')
+    if not no_freesurfer:
+        RelabelSurface = Node(name='Relabel_surface',
+                              interface=Fn(function = relabel_surface,
+                                           input_names=['vtk_file',
+                                                        'hemi',
+                                                        'old_labels',
+                                                        'new_labels',
+                                                        'output_file'],
+                                           output_names=['output_file']))
+        SurfLabelFlow.add_nodes([RelabelSurface])
+        SurfLabelFlow.connect(plug1, plug2, RelabelSurface, 'vtk_file')
+        mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
+        RelabelSurface.inputs.old_labels = ''
+        RelabelSurface.inputs.new_labels = ''
+        RelabelSurface.inputs.output_file = ''
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       Sink, 'labels.@surface')
 
 
 ##############################################################################
 #
 #   Surface shape measurement workflow
 #
-#      - Surface area
-#      - Travel depth
-#      - Geodesic depth
-#      - Mean curvature
-#      - Convexity (from FreeSurfer)
-#      - Thickness (from FreeSurfer)
-#
 ##############################################################################
-if run_WholeSurfShapeFlow and run_SurfFlows:
+if run_WholeSurfShapeFlow:
 
     WholeSurfShapeFlow = Workflow(name='Surface_shapes')
 
@@ -819,8 +907,6 @@ if run_WholeSurfShapeFlow and run_SurfFlows:
         RescaleTravelDepth.inputs.set_max_to_1 = True
         RescaleTravelDepth.inputs.save_file = True
         RescaleTravelDepth.inputs.output_filestring = 'travel_depth_rescaled'
-        #mbFlow.connect(WholeSurfShapeFlow, 'Rescale_travel_depth.rescaled_scalars_file',
-        #                 Sink, 'shapes.@travel_depth_rescaled')
 
     #=========================================================================
     # Measure surface geodesic depth
@@ -909,62 +995,57 @@ if run_WholeSurfShapeFlow and run_SurfFlows:
 #
 #   Surface feature extraction workflow
 #
-#      - Folds
-#      - Sulci
-#      - Fundi (curves at the bottoms of folds/sulci)
-#
 ##############################################################################
-if run_SurfFeatureFlow and run_SurfFlows:
-
+if run_SurfFeatureFlow:
     SurfFeatureFlow = Workflow(name='Surface_features')
-    min_fold_size = 50  # Minimum number or vertices constituting a fold
 
     #=========================================================================
     # Folds
     #=========================================================================
-    FoldsNode = Node(name='Folds',
-                     interface=Fn(function = extract_folds,
-                                  input_names=['depth_file',
-                                               'min_fold_size',
-                                               'tiny_depth',
-                                               'save_file'],
-                                  output_names=['folds',
-                                                'n_folds',
-                                                'depth_threshold',
-                                                'bins',
-                                                'bin_edges',
-                                                'folds_file']))
-    SurfFeatureFlow.add_nodes([FoldsNode])
-    mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
-                     SurfFeatureFlow, 'Folds.depth_file')
-    FoldsNode.inputs.min_fold_size = min_fold_size
-    FoldsNode.inputs.tiny_depth = 0.001
-    FoldsNode.inputs.save_file = True
-    mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file', Sink, 'features.@folds')
+    if do_folds:
+        FoldsNode = Node(name='Folds',
+                         interface=Fn(function = extract_folds,
+                                      input_names=['depth_file',
+                                                   'min_fold_size',
+                                                   'tiny_depth',
+                                                   'save_file'],
+                                      output_names=['folds',
+                                                    'n_folds',
+                                                    'depth_threshold',
+                                                    'bins',
+                                                    'bin_edges',
+                                                    'folds_file']))
+        SurfFeatureFlow.add_nodes([FoldsNode])
+        mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
+                         SurfFeatureFlow, 'Folds.depth_file')
+        FoldsNode.inputs.min_fold_size = 50
+        FoldsNode.inputs.tiny_depth = 0.001
+        FoldsNode.inputs.save_file = True
+        mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file', Sink, 'features.@folds')
 
-    # # Subfolds
-    # SubfoldsNode = Node(name='Subfolds',
-    #                     interface=Fn(function = extract_subfolds,
-    #                                  input_names=['depth_file',
-    #                                               'folds',
-    #                                               'depth_factor',
-    #                                               'depth_ratio',
-    #                                               'tolerance',
-    #                                               'save_file'],
-    #                                  output_names=['subfolds',
-    #                                                'n_subfolds',
-    #                                                'subfolds_file']))
-    # SurfFeatureFlow.add_nodes([SubfoldsNode])
-    # mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
-    #               SurfFeatureFlow, 'Subfolds.depth_file')
-    # SurfFeatureFlow.connect(FoldsNode, 'folds', SubfoldsNode, 'folds')
-    # SubfoldsNode.inputs.depth_factor = 0.25
-    # SubfoldsNode.inputs.depth_ratio = 0.1
-    # SubfoldsNode.inputs.tolerance = 0.01
-    # SubfoldsNode.inputs.save_file = True
-    # # Save subfolds
-    # mbFlow.connect(SurfFeatureFlow, 'Subfolds.subfolds_file',
-    #               Sink, 'features.@subfolds')
+        # # Subfolds
+        # SubfoldsNode = Node(name='Subfolds',
+        #                     interface=Fn(function = extract_subfolds,
+        #                                  input_names=['depth_file',
+        #                                               'folds',
+        #                                               'depth_factor',
+        #                                               'depth_ratio',
+        #                                               'tolerance',
+        #                                               'save_file'],
+        #                                  output_names=['subfolds',
+        #                                                'n_subfolds',
+        #                                                'subfolds_file']))
+        # SurfFeatureFlow.add_nodes([SubfoldsNode])
+        # mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
+        #               SurfFeatureFlow, 'Subfolds.depth_file')
+        # SurfFeatureFlow.connect(FoldsNode, 'folds', SubfoldsNode, 'folds')
+        # SubfoldsNode.inputs.depth_factor = 0.25
+        # SubfoldsNode.inputs.depth_ratio = 0.1
+        # SubfoldsNode.inputs.tolerance = 0.01
+        # SubfoldsNode.inputs.save_file = True
+        # # Save subfolds
+        # mbFlow.connect(SurfFeatureFlow, 'Subfolds.subfolds_file',
+        #               Sink, 'features.@subfolds')
 
     #=========================================================================
     # Sulci
@@ -1087,13 +1168,12 @@ if run_SurfFeatureFlow and run_SurfFlows:
 #
 #   Surface feature shape workflow
 #
-#       - Laplace-Beltrami spectra
-#
 ##############################################################################
-if run_SurfShapeFlow and run_SurfFlows:
+if run_SurfFlows:
     SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
     if do_spectra:
+
         #=====================================================================
         # Measure Laplace-Beltrami spectra of labeled regions
         #=====================================================================
@@ -1124,6 +1204,8 @@ if run_SurfShapeFlow and run_SurfFlows:
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect(SulciNode, 'sulci_file',
                            SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
+
+    if do_zernike:
 
         #=====================================================================
         # Measure Zernike moments of labeled regions
@@ -1197,8 +1279,11 @@ if run_SurfFlows:
                                                       'sulcus_table',
                                                       'fundus_table']))
         mbFlow.add_nodes([ShapeTables])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                       ShapeTables, 'labels_or_file')
+        if do_label:
+            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                           ShapeTables, 'labels_or_file')
+        else:
+            ShapeTables.inputs.labels_or_file = []
         if do_sulci:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
                            ShapeTables, 'sulci')
@@ -1209,7 +1294,7 @@ if run_SurfFlows:
                            ShapeTables, 'fundi')
         else:
             ShapeTables.inputs.fundi = []
-        if run_VolFlows and run_RegFlows and do_register_standard:
+        if do_register_standard:
             #if vol_reg_method == 'antsRegister':
             #    mbFlow.connect(regAnts, 'composite_transform',
             #                   ShapeTables, 'affine_transform_file')
@@ -1325,8 +1410,11 @@ if run_SurfFlows:
                                         output_names=['shapes_table']))
         mbFlow.add_nodes([VertexTable])
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                       VertexTable, 'labels_or_file')
+        if do_label:
+            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                           VertexTable, 'labels_or_file')
+        else:
+            VertexTable.inputs.labels_or_file = []
         if do_sulci:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
                            VertexTable, 'sulci')
@@ -1338,7 +1426,7 @@ if run_SurfFlows:
         else:
             ShapeTables.inputs.fundi = []
 
-        if run_VolFlows and run_RegFlows and do_register_standard:
+        if run_VolFlows and do_register_standard:
             # if vol_reg_method == 'antsRegister':
             #     mbFlow.connect(regAnts, 'composite_transform',
             #                    VertexTable, 'affine_transform_file')
@@ -1416,9 +1504,7 @@ if run_SurfFlows:
 ##############################################################################
 #=============================================================================
 #
-#
 #   Volume workflows
-#
 #
 #=============================================================================
 ##############################################################################
@@ -1433,48 +1519,45 @@ if run_SurfFlows:
 #       - Evaluate volume labels
 #
 ##############################################################################
-if run_VolLabelFlow and run_VolFlows:
+if run_VolLabelFlow:
     VolLabelFlow = Workflow(name='Volume_labels')
 
     #=========================================================================
     # Fill cortical gray matter volume with surface vertex labels
     #=========================================================================
     if do_fill_cortex:
-        use_ants_to_fill = True
-        if use_ants_to_fill:
-
-            FillCortex = Node(name='Fill_cortex',
-                              interface=Fn(function = fill_volume_with_surface_labels,
-                                           input_names=['volume_mask',
-                                                        'surface_files',
-                                                        'output_file',
-                                                        'binarize'],
-                                           output_names=['output_file']))
-            VolLabelFlow.add_nodes([FillCortex])
-            if do_input_mask:
-                mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
-                mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
-                mbFlow.connect(niftiMask, 'nifti.@mask',
-                               VolLabelFlow, 'Fill_cortex.volume_mask')
-            else:
-                mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
-                mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
-                mbFlow.connect(mgh_mask2nifti, 'out_file',
-                               VolLabelFlow, 'Fill_cortex.volume_mask')
-            if run_SurfFlows and run_SurfLabelFlow:
-                mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                               VolLabelFlow, 'Fill_cortex.surface_files')
-            else:
-                sys.exit('No input surface file specified for Fill_cortex.')
-            FillCortex.inputs.output_file = ''
-            FillCortex.inputs.binarize = False
-            mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
-                           Sink, 'labels.@filled_cortex_volume')
+        FillCortex = Node(name='Fill_cortex',
+                          interface=Fn(function = fill_volume_with_surface_labels,
+                                       input_names=['volume_mask',
+                                                    'surface_files',
+                                                    'output_file',
+                                                    'binarize'],
+                                       output_names=['output_file']))
+        VolLabelFlow.add_nodes([FillCortex])
+        if do_input_mask:
+            mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
+            mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
+            mbFlow.connect(niftiMask, 'nifti.@mask',
+                           VolLabelFlow, 'Fill_cortex.volume_mask')
+        else:
+            mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
+            mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
+            mbFlow.connect(mgh_mask2nifti, 'out_file',
+                           VolLabelFlow, 'Fill_cortex.volume_mask')
+        if run_SurfFlows and run_SurfLabelFlow:
+            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                           VolLabelFlow, 'Fill_cortex.surface_files')
+        else:
+            sys.exit('No input surface file specified for Fill_cortex.')
+        FillCortex.inputs.output_file = ''
+        FillCortex.inputs.binarize = False
+        mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
+                       Sink, 'labels.@filled_cortex_volume')
 
     #=========================================================================
     # Label non-cortical volumes
     #=========================================================================
-    if run_RegFlows and do_register_standard and do_label_whole_volume:
+    if do_label_whole_volume:
 
         # Retrieve full atlas path(s):
         RetrieveAtlas = Node(name='Retrieve_atlas',
@@ -1595,7 +1678,7 @@ if run_VolLabelFlow and run_VolFlows:
 #       - Volumes of labeled regions
 #
 ##############################################################################
-if run_VolShapeFlow and run_VolLabelFlow and run_VolFlows:
+if run_VolShapeFlow:
     VolShapeFlow = Workflow(name='Volume_feature_shapes')
 
     #=========================================================================
@@ -1623,25 +1706,26 @@ if run_VolShapeFlow and run_VolLabelFlow and run_VolFlows:
     #=========================================================================
     # Create a table to save the volume measures
     #=========================================================================
-    LabelVolTable = Node(name='Label_volume_table',
-                         interface=Fn(function = write_columns,
-                                      input_names=['columns',
-                                                   'column_names',
-                                                   'output_table',
-                                                   'delimiter',
-                                                   'quote',
-                                                   'input_table'],
-                                      output_names=['output_table']))
-    mbFlow.add_nodes([LabelVolTable])
-    mbFlow.connect(VolShapeFlow, 'Measure_volumes.labels_volumes',
-                   LabelVolTable, 'columns')
-    LabelVolTable.inputs.column_names = ['label', 'volume']
-    LabelVolTable.inputs.output_table = 'label_volumes.csv'
-    LabelVolTable.inputs.delimiter = ','
-    LabelVolTable.inputs.quote = True
-    LabelVolTable.inputs.input_table = ''
-    mbFlow.connect(LabelVolTable, 'output_table',
-                    Sink, 'tables.@volume_labels')
+    if do_vol_table:
+        LabelVolTable = Node(name='Label_volume_table',
+                             interface=Fn(function = write_columns,
+                                          input_names=['columns',
+                                                       'column_names',
+                                                       'output_table',
+                                                       'delimiter',
+                                                       'quote',
+                                                       'input_table'],
+                                          output_names=['output_table']))
+        mbFlow.add_nodes([LabelVolTable])
+        mbFlow.connect(VolShapeFlow, 'Measure_volumes.labels_volumes',
+                       LabelVolTable, 'columns')
+        LabelVolTable.inputs.column_names = ['label', 'volume']
+        LabelVolTable.inputs.output_table = 'label_volumes.csv'
+        LabelVolTable.inputs.delimiter = ','
+        LabelVolTable.inputs.quote = True
+        LabelVolTable.inputs.input_table = ''
+        mbFlow.connect(LabelVolTable, 'output_table',
+                        Sink, 'tables.@volume_labels')
 
 
 ##############################################################################
@@ -1654,11 +1738,11 @@ if __name__== '__main__':
     #-------------------------------------------------------------------------
     # Generate a visual graph:
     #-------------------------------------------------------------------------
-    if graph_type:
-        if graph_type == 'exec':
-            mbFlow.write_graph(graph2use=graph_type, simple_form=False)
+    if graph_vis:
+        if graph_vis == 'exec':
+            mbFlow.write_graph(graph2use=graph_vis, simple_form=False)
         else:
-            mbFlow.write_graph(graph2use=graph_type)
+            mbFlow.write_graph(graph2use=graph_vis)
 
     #-------------------------------------------------------------------------
     # Run (HTCondor) cluster processes, such as on the Mindboggler cluster:
