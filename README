@@ -8,8 +8,10 @@ feature extraction, and shape analysis of human brain MR image data.
 Help
 ====
 - Online documentation: http://mindboggle.info/documentation.html
-- Help on the command line:  python mindboggler.py --help
-- For installation, see INSTALL in the distribution or online.
+- **INSTALL** file in the distribution or online
+- Help on the command line::
+
+    >>> python mindboggler.py --help
 
 License
 =======
@@ -17,41 +19,42 @@ Except where noted, all Mindboggle software is under the `Apache v2.0`_
 license (see the LICENSE file in the Mindboggle distribution),
 and documentation is under a `Creative Commons Attribution 3.0 License`_.
 
-Input
-=====
-Mindboggle currently uses ANTS for volume labels and FreeSurfer to
-initialize cortical surface labels. The easiest way to run Mindboggle,
-without modifying the mindboggler.py program settings, is to simply run
-the "recon-all -all -s <subject> -i <T1 image>" command in FreeSurfer_,
-then run Mindboggle on one or more <subject>s.
+Inputs
+======
+Mindboggle currently uses ANTS for registration-based volume labels
+and FreeSurfer to initialize cortical surface labels. The easiest way
+to prepare inputs for Mindboggle is to simply run FreeSurfer_::
+
+    $ recon-all -all -s <subject> -i <T1 image>
 
 Alternatively, a user can provide 4 vtk surfaces and 4 nifti volumes in a
 FreeSurfer-like directory tree, after setting the $SUBJECTS_DIR environment
-variable.  For the example subject Twins-2-1::
+variable (see **INSTALL**).  For the example subject Twins-2-1:
 
     $SUBJECTS_DIR/Twins-2-1/
-        mri/brain.nii.gz
-        mri/[lh,rh].ribbon.nii.gz
-        mri/orig/001.nii.gz
-        surf/[lh,rh].pial.vtk
-        label/[lh,rh].pial.vtk
+        |        mri/brain.nii.gz
+        |        mri/[lh,rh].ribbon.nii.gz
+        |        mri/orig/001.nii.gz
+        |        surf/[lh,rh].pial.vtk
+        |        label/[lh,rh].pial.vtk
 
 Example
 =======
-Terminal command for processing multiple subjects::
+Terminal command for processing multiple subjects with 4 processors::
 
-    python mindboggler.py -s subject1 subject2 subject3
+    >>> python mindboggler.py subject1 subject2 subject3 -n 4
 
 Outputs
 =======
-Mindboggle outputs:
-    - image volumes with anatomical labels
-    - left and right cortical hemisphere surfaces labeled by:
-        - anatomy (ex: superior frontal gyrus)
-        - feature (ex: sulcus ID)
-        - shape   (ex: travel depth)
-    - tables of shape measures for the above labels and features
+- image volumes with anatomical labels
+- left and right cortical hemisphere surfaces labeled by:
+    - anatomy (ex: superior frontal gyrus)
+    - feature (ex: sulcus ID)
+    - shape   (ex: travel depth)
+- tables of shape measures for the above labels and features
 
+Output folders
+~~~~~~~~~~~~~~
 Default output in $HOME/mindboggled/results/:
 
 +-+---------------+----------------------------------------------+----------+
@@ -72,18 +75,18 @@ Default output in $HOME/mindboggled/results/:
 | |   transforms/ |  ANTS volume registration transforms         | .nii     |
 +-+---------------+----------------------------------------------+----------+
 
-Outputs by category
-===================
-**Surface labels**
+Output categories
+~~~~~~~~~~~~~~~~~
+*Surface labels*
     - DKT classifier labels
 
-**Volume labels**
+*Volume labels*
     - Propagate surface labels to fill cortical gray matter
     - Register whole brain to template in MNI152 space
     - Combine filled cortical with registered subcortical labels
     - (Evaluate automated vs. manual label overlap)
 
-**Surface shapes**
+*Surface shapes*
     - Surface area
     - Travel depth
     - Geodesic depth
@@ -91,25 +94,25 @@ Outputs by category
     - Convexity (FreeSurfer)
     - Thickness (FreeSurfer)
 
-**Surface features**
+*Surface features*
     - Folds
     - Sulci
     - Fundi
 
-**Surface feature shapes**
+*Surface feature shapes*
     - Laplace-Beltrami spectra
     - Zernike moments
 
-**Volume feature shapes**
+*Volume feature shapes*
     - Volumes
 
-**Surface tables**
+*Surface tables*
     - Label shapes
     - Sulcus shapes
     - Fundus shapes
     - Vertex measures
 
-**Volume tables**
+*Volume tables*
     - Label volumes
 
 
