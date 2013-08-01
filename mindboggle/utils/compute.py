@@ -174,6 +174,8 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
         outfile = os.path.join(os.getcwd(), 'vector_distances.txt')
         np.savetxt(outfile, vector_distances,
                    fmt=len(vectors) * '%.4f ', delimiter='\t', newline='\n')
+        if not os.path.exists(outfile):
+            raise(IOError(outfile + " not found"))
     else:
         outfile = ''
 

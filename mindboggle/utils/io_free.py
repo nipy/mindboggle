@@ -21,6 +21,11 @@ def surface_to_vtk(surface_file):
     are transformed into scanner RAS space during format conversion
     according to the vox2ras transform in that file.
 
+    Returns
+    -------
+    output_vtk : string
+        name of output VTK file
+
     Examples
     --------
     >>> import os
@@ -70,6 +75,9 @@ def surface_to_vtk(surface_file):
     write_faces(Fp, faces)
     Fp.close()
 
+    if not os.path.exists(output_vtk):
+        raise(IOError(output_vtk + " not found"))
+
     return output_vtk
 
 
@@ -86,7 +94,7 @@ def curvature_to_vtk(surface_file, vtk_file):
     -------
     output_vtk : string
         name of output VTK file, where each vertex is assigned
-        the corresponding shape value.
+        the corresponding shape value
 
     Examples
     --------
@@ -115,6 +123,9 @@ def curvature_to_vtk(surface_file, vtk_file):
 
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
 
+    if not os.path.exists(output_vtk):
+        raise(IOError(output_vtk + " not found"))
+
     return output_vtk
 
 
@@ -135,7 +146,7 @@ def annot_to_vtk(annot_file, vtk_file):
         integers (one label per vertex)
     output_vtk : string
         name of output VTK file, where each vertex is assigned
-        the corresponding shape value.
+        the corresponding shape value
 
     Examples
     --------
@@ -162,6 +173,9 @@ def annot_to_vtk(annot_file, vtk_file):
                               os.path.basename(annot_file).strip('.annot') + '.vtk')
 
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
+
+    if not os.path.exists(output_vtk):
+        raise(IOError(output_vtk + " not found"))
 
     return labels, output_vtk
 

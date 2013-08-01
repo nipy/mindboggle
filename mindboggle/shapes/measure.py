@@ -17,8 +17,15 @@ def area(command, surface_file):
 
     Parameters
     ----------
-    command : Voronoi-based surface area C++ executable command
-    surface_file : ``vtk file``
+    command : string
+        Voronoi-based surface area C++ executable command
+    surface_file : string
+        vtk file with surface mesh
+
+    Returns
+    -------
+    area_file: string
+        vtk file with surface area per vertex of mesh
 
     """
     import os
@@ -30,6 +37,9 @@ def area(command, surface_file):
     cli.inputs.args = ' '.join([surface_file, area_file])
     cli.cmdline
     cli.run()
+
+    if not os.path.exists(area_file):
+        raise(IOError(area_file + " not found"))
 
     return area_file
 
@@ -79,6 +89,11 @@ def travel_depth(command, surface_file):
     command : travel depth C++ executable command
     surface_file : ``vtk file``
 
+    Returns
+    -------
+    depth_file: string
+        vtk file with travel depth per vertex of mesh
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -89,6 +104,9 @@ def travel_depth(command, surface_file):
     cli.inputs.args = ' '.join([surface_file, depth_file])
     cli.cmdline
     cli.run()
+
+    if not os.path.exists(depth_file):
+        raise(IOError(depth_file + " not found"))
 
     return depth_file
 
@@ -103,6 +121,11 @@ def geodesic_depth(command, surface_file):
     command : travel depth C++ executable command
     surface_file : ``vtk file``
 
+    Returns
+    -------
+    depth_file: string
+        vtk file with geodesic depth per vertex of mesh
+
     """
     import os
     from nipype.interfaces.base import CommandLine
@@ -113,6 +136,9 @@ def geodesic_depth(command, surface_file):
     cli.inputs.args = ' '.join([surface_file, depth_file])
     cli.cmdline
     cli.run()
+
+    if not os.path.exists(depth_file):
+        raise(IOError(depth_file + " not found"))
 
     return depth_file
 
@@ -647,6 +673,8 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
         rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars')
+        if not os.path.exists(rescaled_scalars_file):
+            raise(IOError(rescaled_scalars_file + " not found"))
 
     else:
         rescaled_scalars_file = None
@@ -756,6 +784,8 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
         rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
         rewrite_scalars(input_vtk, rescaled_scalars_file,
                         rescaled_scalars, 'rescaled_scalars', labels)
+        if not os.path.exists(rescaled_scalars_file):
+            raise(IOError(rescaled_scalars_file + " not found"))
 
     else:
         rescaled_scalars_file = None
