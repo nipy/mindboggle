@@ -305,7 +305,7 @@ if cache_env in os.environ.keys():
 if not os.path.exists(cache):
     print("Create missing cache directory: {0}".format(cache))
     os.mkdir(cache)
-temp_path = os.path.join(cache, 'temp')  # Where to save workflow files
+temp_path = os.path.join(cache, 'workspace')  # Where to save workflow files
 if not os.path.isdir(temp_path):
     os.makedirs(temp_path)
 if not os.path.isdir(output_path):
