@@ -191,6 +191,9 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     rewrite_scalars(labels_file, border_file, border_values, \
                     'label_borders_in_mask', mask_values)
 
+    if not os.path.exists(border_file):
+        raise(IOError(border_file + " not found"))
+
     return border_file, border_values
 
 #-----------------------------------------------------------------------------
@@ -328,6 +331,13 @@ def majority_vote_label(surface_file, annot_files):
                   pyvtk.PointData(pyvtk.Scalars(label_votes,\
                                   name='Votes (number of votes for majority labels)'))).\
           tofile(labelvotes_file, 'ascii')
+
+    if not os.path.exists(maxlabel_file):
+        raise(IOError(maxlabel_file + " not found"))
+    if not os.path.exists(labelcounts_file):
+        raise(IOError(labelcounts_file + " not found"))
+    if not os.path.exists(labelvotes_file):
+        raise(IOError(labelvotes_file + " not found"))
 
     return labels_max, label_counts, label_votes, consensus_vertices, \
            maxlabel_file, labelcounts_file, labelvotes_file

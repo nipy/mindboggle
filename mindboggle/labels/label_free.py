@@ -97,6 +97,9 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
     logger.info(cli.cmdline)
     cli.run()
 
+    if not os.path.exists(annot_file):
+        raise(IOError(annot_file + " not found"))
+
     return annot_name, annot_file
 
 #=============================================================================
@@ -187,6 +190,9 @@ def transform_atlas_labels(hemi, subject, transform,
 
     sxfm.run()
 
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
     return output_file
 
 #=============================================================================
@@ -259,6 +265,9 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
         output_file = output_file2
     else:
         output_file = output_file1
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
 
     return output_file
 

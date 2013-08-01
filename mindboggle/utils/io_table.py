@@ -171,6 +171,9 @@ def write_columns(columns, column_names, output_table, delimiter=',',
 
         Fp.close()
 
+        if not os.path.exists(output_table):
+            raise(IOError(output_table + " not found"))
+
     else:
         print("NOTE: 'columns' is empty. Nothing written.")
 
@@ -536,6 +539,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             # Write something to table:
             write_columns([], '', table_file, delimiter)
 
+        if not os.path.exists(table_file):
+            raise(IOError(table_file + " not found"))
+
         #---------------------------------------------------------------------
         # Return correct table file name:
         #---------------------------------------------------------------------
@@ -687,6 +693,9 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
     write_columns(columns, column_names, shapes_table, delimiter, quote=True,
                   input_table=shapes_table)
 
+    if not os.path.exists(shapes_table):
+        raise(IOError(shapes_table + " not found"))
+
     return shapes_table
 
 
@@ -752,6 +761,9 @@ def write_face_vertex_averages(input_file, area_file='', delimiter=','):
     # Write to table:
     #-----------------------------------------------------------------
     write_columns(columns, '', output_table, delimiter, quote=False)
+
+    if not os.path.exists(output_table):
+        raise(IOError(output_table + " not found"))
 
     return output_table
 
@@ -861,4 +873,5 @@ def write_average_face_values_per_label(input_indices_vtk,
         #write_vtk(output_vtk, points, indices, lines, new_faces,
         #          [select_values.tolist()], [output_scalar_name])
 
-
+        if not os.path.exists(output_table):
+            raise(IOError(output_table + " not found"))
