@@ -1018,3 +1018,149 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
               format(i_segment + 1, time() - t0))
 
     return segments.tolist(), seed_indices
+
+
+def select_largest(points, faces, exclude_labels=[-1], areas=None,
+                   reindex=True):
+    """
+    Select the largest segment (connected set of indices).
+
+    In case a surface patch is fragmented, we select the largest fragment,
+    remove extraneous triangular faces, and reindex indices.
+
+    Parameters
+    ----------
+    points : list of lists of 3 floats
+        x,y,z coordinates for each vertex of the structure
+    faces : list of lists of 3 integers
+        3 indices to vertices that form a triangle on the mesh
+    exclude_labels : list of integers
+        background values to exclude
+    areas : numpy array or list of floats (or None)
+        surface area scalar values for all vertices
+    reindex : Boolean
+        reindex indices in faces?
+
+    Returns
+    -------
+    points : list of lists of 3 floats
+        x,y,z coordinates for each vertex of the structure
+    faces : list of lists of 3 integers
+        3 indices to vertices that form a triangle on the mesh
+
+    Examples
+    --------
+    >>> # Spectrum for one label (artificial composite), two fragments:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
+    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.segment import select_largest
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> exclude_labels = [-1]
+    >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file,
+    >>>      return_first=True, return_array=True)
+    >>> I19 = [i for i,x in enumerate(labels) if x==19] # pars orbitalis
+    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> I19.extend(I22)
+    >>> faces = remove_faces(faces, I19)
+    >>> areas, u1 = read_scalars(area_file, True, True)
+    >>> reindex = True
+    >>> #
+    >>> points, faces = select_largest(points, faces, exclude_labels, areas,
+    >>>                                reindex)
+    >>> # View:
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> scalars = np.zeros(np.shape(labels))
+    >>> scalars[I19] = 1
+    >>> vtk_file = 'test_two_labels.vtk'
+    >>> write_vtk(vtk_file, points, indices, lines, faces,
+    >>>           scalars, scalar_names='scalars')
+    >>> plot_vtk(vtk_file)
+
+    """
+    import numpy as np
+
+    from mindboggle.utils.mesh import find_neighbors, remove_faces, \
+        reindex_faces_points
+    from mindboggle.utils.segment import segment
+
+    # Areas:
+    use_area = False
+    if isinstance(areas, np.ndarray) and np.shape(areas):
+        use_area = True
+    elif isinstance(areas, list) and len(areas):
+        areas = np.array(areas)
+        use_area = True
+
+    # Check to see if there are enough points:
+    min_npoints = 4
+    npoints = len(points)
+    if npoints < min_npoints or len(faces) < min_npoints:
+        print("The input size {0} ({1} faces) should be much larger "
+              "than {2}". format(npoints, len(faces), min_npoints))
+        return None
+    else:
+
+        #---------------------------------------------------------------------
+        # Segment the indices into connected sets of indices:
+        #---------------------------------------------------------------------
+        # Construct neighbor lists:
+        neighbor_lists = find_neighbors(faces, npoints)
+
+        # Determine the indices:
+        indices = [x for sublst in faces for x in sublst]
+
+        # Segment:
+        segments = segment(indices, neighbor_lists, min_region_size=1,
+            seed_lists=[], keep_seeding=False, spread_within_labels=False,
+            labels=[], label_lists=[], values=[], max_steps='', verbose=False)
+
+        #---------------------------------------------------------------------
+        # Select the largest segment (connected set of indices):
+        #---------------------------------------------------------------------
+        unique_segments = [x for x in np.unique(segments)
+                           if x not in exclude_labels]
+        if len(unique_segments) > 1:
+            select_indices = []
+            max_segment_area = 0
+            for segment_number in unique_segments:
+                segment_indices = [i for i,x in enumerate(segments)
+                                   if x == segment_number]
+                if use_area:
+                    segment_area = np.sum(areas[segment_indices])
+                else:
+                    segment_area = len(segment_indices)
+                if segment_area > max_segment_area:
+                    select_indices = segment_indices
+                    max_segment_area = len(select_indices)
+            print('Maximum size of {0} segments: {1} vertices'.
+                  format(len(unique_segments), len(select_indices)))
+
+            #-----------------------------------------------------------------
+            # Extract points and renumber faces for the selected indices:
+            #-----------------------------------------------------------------
+            faces = remove_faces(faces, select_indices)
+        else:
+            select_indices = indices
+
+        # Alert if the number of indices is small:
+        if len(select_indices) < min_npoints:
+            print("The input size {0} is too small.".format(len(select_indices)))
+            return None
+        elif faces:
+
+            #-----------------------------------------------------------------
+            # Reindex indices in faces:
+            #-----------------------------------------------------------------
+            if reindex:
+                faces, points = reindex_faces_points(faces, points)
+                return points, faces
+            else:
+                points = np.array(points)
+                points = points[select_indices].tolist()
+                return points, faces
+        else:
+            return None
