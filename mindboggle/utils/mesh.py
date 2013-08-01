@@ -783,7 +783,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
 
 
 def decimate_per_label(input_vtk, reduction=0.5, smooth_steps=100,
-                       output_vtk='', exclude_labels=[-1]):
+                       output_vtk='', exclude_labels=[-1],
+                       largest_segment=True, area_file=''):
     """
     Decimate vtk triangular mesh file per label with vtk.vtkDecimatePro.
 
@@ -799,6 +800,10 @@ def decimate_per_label(input_vtk, reduction=0.5, smooth_steps=100,
         output decimated vtk file
     exclude_labels : list of integers
         labels to be excluded
+    largest_segment :  Boolean
+        decimate only largest segment with a given label?
+    area_file :  string
+        name of VTK file with surface area scalar values
 
     Returns
     -------
@@ -811,12 +816,14 @@ def decimate_per_label(input_vtk, reduction=0.5, smooth_steps=100,
     >>> from mindboggle.utils.mesh import decimate_per_label
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> output_vtk = 'decimated_file.vtk'
     >>> reduction = 0.9
     >>> smooth_steps = 0
     >>> exclude_labels = [-1]
+    >>> largest_segment = True
     >>> decimate_per_label(input_vtk, reduction, smooth_steps, output_vtk,
-    >>>                    exclude_labels)
+    >>>                    exclude_labels, largest_segment, area_file)
     >>> # View:
     >>> os.system('mayavi2 -d ' + output_vtk + ' -m Surface &')
 
@@ -824,10 +831,46 @@ def decimate_per_label(input_vtk, reduction=0.5, smooth_steps=100,
     import os
     import vtk
 
-    from mindboggle.utils.io_vtk import read_vtk
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars
+    from mindboggle.utils.mesh import remove_faces
 
     # Read VTK surface mesh file:
     faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(input_vtk)
+
+    # Area file:
+    if area_file:
+        areas, u1 = read_scalars(area_file)
+    else:
+        areas = None
+
+    # Loop through labeled regions:
+    ulabels = []
+    [ulabels.append(int(x)) for x in labels if x not in ulabels
+     if x not in exclude_labels]
+    for label in ulabels:
+      #if label==22:
+      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+
+        # Determine the indices per label:
+        label_indices = [i for i,x in enumerate(labels) if x == label]
+        print('{0} vertices for label {1}'.format(len(label_indices), label))
+
+        # Remove background faces:
+        select_faces = remove_faces(faces, label_indices)
+
+        # Compute Laplace-Beltrami spectrum for the label:
+        if largest_segment:
+            exclude_labels_inner = [-1]
+            spectrum = spectrum_of_largest(points, select_faces,
+                                           n_eigenvalues,
+                                           exclude_labels_inner,
+                                           normalization, areas)
+        else:
+            spectrum = fem_laplacian(points, select_faces,
+                                     n_eigenvalues, normalization)
+
+
+
 
     # vtk points:
     vtk_points = vtk.vtkPoints()
