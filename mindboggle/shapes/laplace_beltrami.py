@@ -429,8 +429,8 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     except RuntimeError:     
            
         print("eigsh() failed. Now try lobpcg.")
-        print("Warning: lobpcg can produce different results from Reuter"
-              "et al.'s (2006) shapeDNA-tria software.")
+        print("Warning: lobpcg can produce different results from "
+              "Reuter (2006) shapeDNA-tria software.")
         # Initial eigenvector values:
         init_eigenvecs = np.random.random((A.shape[0], n_eigenvalues))
 
