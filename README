@@ -46,15 +46,6 @@ Terminal command for processing multiple subjects with 4 processors::
 
 Outputs
 =======
-- image volumes with anatomical labels
-- left and right cortical hemisphere surfaces labeled by:
-    - anatomy (ex: superior frontal gyrus)
-    - feature (ex: sulcus ID)
-    - shape   (ex: travel depth)
-- tables of shape measures for the above labels and features
-
-Output folders
-~~~~~~~~~~~~~~
 By default, all atlas and template data retrieved via the Internet
 as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
 and final outputs are saved in $HOME/mindboggled/:
@@ -62,9 +53,9 @@ and final outputs are saved in $HOME/mindboggled/:
 +-+---------------+----------------------------------------------+----------+
 | |  **Folder**   | **Contents**                                 |**Format**|
 +-+---------------+----------------------------------------------+----------+
-| |   tables/     |  tables of shape measures per feature/vertex | .csv     |
+| |   tables/     |  tables of shape measures per feature        | .csv     |
 +-+---------------+----------------------------------------------+----------+
-| |   labels/     |  labeled volumes and surfaces                | .nii,.vtk|
+| |   labels/     |  number-labeled volumes and surfaces         | .nii,.vtk|
 +-+---------------+----------------------------------------------+----------+
 | |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk     |
 +-+---------------+----------------------------------------------+----------+
@@ -73,16 +64,24 @@ and final outputs are saved in $HOME/mindboggled/:
 | |   transforms/ |  ANTS volume registration transforms         | .nii     |
 +-+---------------+----------------------------------------------+----------+
 
-Output categories
-~~~~~~~~~~~~~~~~~
+Image volumes (.nii.gz) store anatomical labels as numbers
+listed in mindboggle/labels/protocol.py and the LABELS file and online:
+http://mindboggle.info/data/mindboggle101/protocol.txt, and
+all left (lh) and right (rh) cortical hemisphere surface (.vtk)
+vertices are number-labeled by anatomical label, feature, or shape.
+
+*Volume labels*
+    - Cortical gray matter filled with surface labels
+    - Whole brain labeled by registered atlas
+    - Combined labels: filled cortex and registered subcortex
+
 *Surface labels*
     - DKT classifier labels
 
-*Volume labels*
-    - Propagate surface labels to fill cortical gray matter
-    - Register whole brain to template in MNI152 space
-    - Combine filled cortical with registered subcortical labels
-    - (Evaluate automated vs. manual label overlap)
+*Surface features*
+    - Folds
+    - Sulci
+    - Fundi
 
 *Surface shapes*
     - Surface area
@@ -91,27 +90,16 @@ Output categories
     - Mean curvature
     - Convexity (FreeSurfer)
     - Thickness (FreeSurfer)
+    - Laplace-Beltrami spectra (per feature)
+    - Zernike moments (per feature)
 
-*Surface features*
-    - Folds
-    - Sulci
-    - Fundi
-
-*Surface feature shapes*
-    - Laplace-Beltrami spectra
-    - Zernike moments
-
-*Volume feature shapes*
-    - Volumes
-
-*Surface tables*
-    - Label shapes
+*Tables*
+    - Label shapes and volumes
     - Sulcus shapes
     - Fundus shapes
-    - Vertex measures
+    - Vertex measures (optional)
 
-*Volume tables*
-    - Label volumes
+
 
 
 .. include:: doc/links_names.txt
