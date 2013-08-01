@@ -27,16 +27,16 @@ to prepare inputs for Mindboggle is to simply run FreeSurfer_::
 
     $ recon-all -all -s <subject> -i <T1 image>
 
-Alternatively, a user can provide 4 vtk surfaces and 4 nifti volumes in a
-FreeSurfer-like directory tree, after setting the $SUBJECTS_DIR environment
-variable (see **INSTALL**).  For the example subject Twins-2-1:
+Alternatively, a user can provide 2-4 vtk surfaces and 1-3 nifti volumes
+in a FreeSurfer-like directory tree after setting appropriate command-line
+arguments (and $SUBJECTS_DIR, as described in the **INSTALL** file).
+For the left and right hemispheres [lh,rh] of subject Twins-2-1:
 
     $SUBJECTS_DIR/Twins-2-1/
+        |        surf/[lh,rh].pial.vtk
+        |        label/[lh,rh].labels.DKT25.manual.vtk
         |        mri/brain.nii.gz
         |        mri/[lh,rh].ribbon.nii.gz
-        |        mri/orig/001.nii.gz
-        |        surf/[lh,rh].pial.vtk
-        |        label/[lh,rh].pial.vtk
 
 Example
 =======
@@ -55,7 +55,9 @@ Outputs
 
 Output folders
 ~~~~~~~~~~~~~~
-Default output in $HOME/mindboggled/results/:
+By default, all atlas and template data retrieved via the Internet
+as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
+and final outputs are saved in $HOME/mindboggled/:
 
 +-+---------------+----------------------------------------------+----------+
 | |  **Folder**   | **Contents**                                 |**Format**|
@@ -67,10 +69,6 @@ Default output in $HOME/mindboggled/results/:
 | |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk     |
 +-+---------------+----------------------------------------------+----------+
 | |   features/   |  surface features: folds, sulci, fundi       | .vtk     |
-+-+---------------+----------------------------------------------+----------+
-| |   nifti/      |  brain volume images                         | .nii     |
-+-+---------------+----------------------------------------------+----------+
-| |   nifti_mask/ |  cortical volume mask images                 | .nii     |
 +-+---------------+----------------------------------------------+----------+
 | |   transforms/ |  ANTS volume registration transforms         | .nii     |
 +-+---------------+----------------------------------------------+----------+
