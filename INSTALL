@@ -8,16 +8,36 @@ Scientific Python environment
 -----------------------------
 Easily-installed Python distributions are available such as Anaconda_,
 Canopy_, and PythonXY_ that include components necessary to run Mindboggle:
-Python_ 2.7, NumPy_, SciPy_, Networkx_, and IPython (an interactive Python
-environment necessary for some parallel components of Mindboggle).
+Python_ 2.7, NumPy_, SciPy_, Networkx_, and IPython_.
 
 Pip python library installation (OSX: ``easy_install pip``;
     Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
 
-Nipype software pipeline framework and neuroimaging i/o library::
+Nipype software pipeline framework and Nibabel neuroimaging i/o library::
 
     pip install nibabel
     pip install nipype
+
+Non-Python dependencies
+~~~~~~~~~~~~~~~~~~~~~~~
+`Visualization Toolkit`_::
+
+    conda update conda
+    git clone git@github.com:ContinuumIO/conda-recipes
+    cd conda-recipes
+    conda build vtk
+
+FreeSurfer_
+    This software will help to initialize cortical surface labels for
+    Mindboggle and generates the directory tree that Mindboggle uses
+    to call subject data. To take advantage of the FreeSurfer_ software,
+    preprocess T1-weighted data using the ``recon-all -all`` command.
+    Otherwise, place appropriate input files in a file tree corresponding to
+    FreeSurfer's subjects/ directory tree (see README).
+
+ANTS_
+    ANTS provides volume-based affine registration for reporting locations
+    in a standard space and nonlinear registration for whole-brain labeling.
 
 Download Mindboggle
 -------------------
@@ -61,71 +81,11 @@ in your system's equivalent of a .bash_profile file::
 
 Mindboggle downloads necessary atlas and template data via the Internet
 on its first run.  By default, it will save these data to your home directory,
-in a ``mindboggled`` subdirectory.  You may optionally set the cache directory
-by setting one more environment variable as above::
+in a ``mindboggled`` subdirectory.  You may *optionally* set the cache
+directory by setting one more environment variable as above::
 
     MINDBOGGLE_CACHE=DESIRED_LOCATION
     export MINDBOGGLE_CACHE
     export PATH=$PATH:$MINDBOGGLE_CACHE
 
-.. Note::
-    To take advantage of the FreeSurfer_ software, install the latest version
-    and preprocess T1-weighted data using the recon-all command.
-    Otherwise, place appropriate input files in a file tree corresponding to
-    FreeSurfer's subjects/ directory tree referenced by the above SUBJECTS_DIR
-    environment variable.
 
-Other dependencies
-~~~~~~~~~~~~~~~~~~
-`Visualization Toolkit`_ (WARNING -- UNDER CONSTRUCTION 7/29/2013)::
-
-    The below soon to be replaced by::
-        git clone git@github.com:ContinuumIO/conda-recipes
-        cd conda-recipes
-        conda build vtk
-
-
-    git clone https://github.com/Kitware/VTK.git
-
-    cd VTK
-    git checkout v6.0.0
-    mkdir VTK-build
-    cd VTK-build
-    ccmake ..
-
-    in the ccmake gui::
-
-        enable BUILD_SHARED_LIBS
-        enable VTK_WRAP_PYTHON
-        enter the advanced configuration by pressing "t"
-        change PYTHON_EXECUTABLE --> path/to/anaconda/bin/python2.7
-        press "c" to reveal more options:
-        change PYTHON_INCLUDE_DIR --> path/to/anaconda/include/python2.7
-        change PYTHON_LIBRARY --> path/to/anaconda/lib/libpython2.7.so (or .dylib)
-        change VTK_PYTHON_SETUP_ARGS --> blank (i.e., erase the --install-dir...)
-        press "c" to configure
-        press "g" to generate
-
-    from the command line::
-
-        sudo make install -j4 (4 being the number of cpu cores)
-        export LD_LIBRARY_PATH="$LD_LIBRARY_PATH:/usr/local/lib/vtk-5.10" (or whatever your install path is)
-
-    try it out::
-
-        python -c "from vtk import vtkVersion; print vtkVersion.GetVTKSourceVersion()"
-        vtk version 5.10.1
-        change the CMAKE_INSTALL_PREFIX to /path/ro/anaconda/envs/myenv
-
-Strong recommendations
-~~~~~~~~~~~~~~~~~~~~~~
-FreeSurfer_
-    FreeSurfer version 5.3 and higher
-    This software will help to initialize labels for Mindboggle
-    and generates the directory tree that Mindboggle uses to call
-    subject data. Earlier versions will likely work, but label initialization
-    uses the Desikan-Killiany-Tourville protocol starting with version 5.3.
-
-ANTS_
-    Volume-based registration for whole-brain labeling and reporting
-    locations in a standard space.
