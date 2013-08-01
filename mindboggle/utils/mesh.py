@@ -244,13 +244,13 @@ def find_edges(faces):
     """
     Find all edges on a mesh
 
-   Parameters
+    Parameters
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
 
     Returns
-    --------
+    -------
     edges : list of lists of integers
         each element is a 2-tuple of vertex ids representing an edge
 
@@ -278,13 +278,13 @@ def find_faces_at_edges(faces):
     """
     For each edge on the mesh, find the two faces that share the edge.
 
-   Parameters
+    Parameters
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
 
     Returns
-    --------
+    -------
     faces_at_edges : dictionary
         keys are tuples of two vertex IDs and values are 2-tuples of face IDs
 
@@ -343,7 +343,7 @@ def find_faces_at_vertices(faces, npoints):
         number of vertices on the mesh
 
     Returns
-    --------
+    -------
     faces_at_vertex : list of lists of integers
         faces_at_vertices[i] is a list of faces that contain the i-th vertex
 
@@ -687,6 +687,9 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     else:
         faces = []
 
+    if not os.path.exists(output_vtk):
+        raise(IOError(output_vtk + " not found"))
+
     return points, faces, output_vtk
 
 
@@ -772,6 +775,9 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
         exporter.SetInput(decimate.GetOutput())
     exporter.SetFileName(output_vtk)
     exporter.Write()
+
+    if not os.path.exists(output_vtk):
+        raise(IOError(output_vtk + " not found"))
 
     return output_vtk
 
