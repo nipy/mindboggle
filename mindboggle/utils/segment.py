@@ -1023,7 +1023,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 def select_largest(points, faces, exclude_labels=[-1], areas=None,
                    reindex=True):
     """
-    Select the largest segment (connected set of indices).
+    Select the largest segment (connected set of indices) in a mesh.
 
     In case a surface patch is fragmented, we select the largest fragment,
     remove extraneous triangular faces, and reindex indices.

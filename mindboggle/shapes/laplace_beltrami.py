@@ -516,7 +516,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
      0.003667561767487686,
      0.005429017880363784,
      0.006309346984678924]
-    >>> # View:
+    >>> # View both segments:
     >>> from mindboggle.utils.plots import plot_vtk
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I19] = 1
@@ -531,7 +531,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
 
     from mindboggle.utils.mesh import find_neighbors, remove_faces, \
         reindex_faces_points
-    from mindboggle.utils.segment import segment
+    from mindboggle.utils.segment import select_largest
     from mindboggle.shapes.laplace_beltrami import fem_laplacian
 
     # Areas:
@@ -553,66 +553,23 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
     else:
 
         #---------------------------------------------------------------------
-        # Segment the indices into connected sets of indices:
-        #---------------------------------------------------------------------
-        # Construct neighbor lists:
-        neighbor_lists = find_neighbors(faces, npoints)
-
-        # Determine the indices:
-        indices = [x for sublst in faces for x in sublst]
-
-        # Segment:
-        segments = segment(indices, neighbor_lists, min_region_size=1,
-            seed_lists=[], keep_seeding=False, spread_within_labels=False,
-            labels=[], label_lists=[], values=[], max_steps='', verbose=False)
-
-        #---------------------------------------------------------------------
         # Select the largest segment (connected set of indices):
         #---------------------------------------------------------------------
-        unique_segments = [x for x in np.unique(segments)
-                           if x not in exclude_labels]
-        if len(unique_segments) > 1:
-            select_indices = []
-            max_segment_area = 0
-            for segment_number in unique_segments:
-                segment_indices = [i for i,x in enumerate(segments)
-                                   if x == segment_number]
-                if use_area:
-                    segment_area = np.sum(areas[segment_indices])
-                else:
-                    segment_area = len(segment_indices)
-                if segment_area > max_segment_area:
-                    select_indices = segment_indices
-                    max_segment_area = len(select_indices)
-            print('Maximum size of {0} segments: {1} vertices'.
-                  format(len(unique_segments), len(select_indices)))
-
-            #-----------------------------------------------------------------
-            # Extract points and renumber faces for the selected indices:
-            #-----------------------------------------------------------------
-            faces = remove_faces(faces, select_indices)
-        else:
-            select_indices = indices
+        points, faces = select_largest(points, faces, exclude_labels, areas,
+                                       reindex=True)
 
         # Alert if the number of indices is small:
-        if len(select_indices) < min_npoints:
-            print("The input size {0} is too small.".format(len(select_indices)))
+        if len(points) < min_npoints:
+            print("The input size {0} is too small.".format(len(points)))
             return None
         elif faces:
-
-            #-----------------------------------------------------------------
-            # Reindex indices in faces:
-            #-----------------------------------------------------------------
-            faces, points = reindex_faces_points(faces, points)
 
             #-----------------------------------------------------------------
             # Compute spectrum:
             #-----------------------------------------------------------------
             spectrum = fem_laplacian(points, faces, n_eigenvalues,
                                      normalization)
-
             return spectrum
-
         else:
             return None
 
