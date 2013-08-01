@@ -173,7 +173,7 @@ if run_SurfFeatureFlow:
 # Surface shapes:
 #-----------------------------------------------------------------------------
 no_spectra = args.no_spectra
-no_zernike = args.no_zernike
+no_zernike = True #args.no_zernike
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_zernike = False  # Measure Zernike moments for features
 do_thickness = False  # Include FreeSurfer's thickness measure
