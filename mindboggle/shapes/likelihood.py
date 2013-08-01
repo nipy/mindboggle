@@ -159,6 +159,9 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
         likelihoods_file = os.path.join(os.getcwd(), 'likelihoods.vtk')
         rewrite_scalars(depth_file, likelihoods_file, likelihoods,
                         'likelihoods', likelihoods)
+        if not os.path.exists(likelihoods_file):
+            raise(IOError(likelihoods_file + " not found"))
+
     else:
         likelihoods_file = None
 

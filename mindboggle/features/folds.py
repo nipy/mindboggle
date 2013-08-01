@@ -214,6 +214,9 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         folds_file = os.path.join(os.getcwd(), 'folds.vtk')
         rewrite_scalars(depth_file, folds_file, folds, 'folds', folds)
 
+        if not os.path.exists(folds_file):
+            raise(IOError(folds_file + " not found"))
+
     else:
         folds_file = None
 
@@ -342,6 +345,10 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     if save_file:
         subfolds_file = os.path.join(os.getcwd(), 'subfolds.vtk')
         rewrite_scalars(depth_file, subfolds_file, subfolds, 'subfolds', subfolds)
+
+        if not os.path.exists(subfolds_file):
+            raise(IOError(subfolds_file + " not found"))
+
     else:
         subfolds_file = None
 

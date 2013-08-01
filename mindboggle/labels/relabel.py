@@ -23,6 +23,11 @@ def relabel_volume(input_file, old_labels, new_labels):
     new_labels : list of integers
         new labels
 
+    Returns
+    -------
+    output_file : string
+        output file name
+
     Examples
     --------
     >>> # Convert DKT31 to DKT25 labels
@@ -64,6 +69,9 @@ def relabel_volume(input_file, old_labels, new_labels):
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
     return output_file
 
 def remove_volume_labels(input_file, labels_to_remove):
@@ -76,6 +84,11 @@ def remove_volume_labels(input_file, labels_to_remove):
         labeled nibabel-readable (e.g., nifti) file
     labels_to_remove : list of integers
         labels to remove
+
+    Returns
+    -------
+    output_file : string
+        output file name
 
     Examples
     --------
@@ -114,6 +127,9 @@ def remove_volume_labels(input_file, labels_to_remove):
     output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
 
     return output_file
 
@@ -186,6 +202,9 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     write_vtk(output_file, points, indices, lines, faces,
               [scalars.tolist()], ['Labels'])
 
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
     return output_file
 
 def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
@@ -214,6 +233,11 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
         name of .annot file (without pre- or post-pends)
     relabel_file : string
         text file with old and new RGB values
+    new_annot_name : string
+        new .annot name
+
+    Returns
+    -------
     new_annot_name : string
         new .annot name
 
@@ -292,5 +316,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
     # Save relabeled file:
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
 
     return output_file
