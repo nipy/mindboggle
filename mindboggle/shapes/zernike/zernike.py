@@ -245,7 +245,7 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
 
 
 def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
-                              area_file=''):
+                              area_file='', largest_segment=True):
     """
     Compute the Zernike moments per labeled region in a file.
 
@@ -259,6 +259,8 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         labels to be excluded
     area_file :  string
         name of VTK file with surface area scalar values
+    largest_segment :  Boolean
+        compute moments only for largest segment with a given label?
 
     Returns
     -------
@@ -277,7 +279,9 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> order = 3
     >>> exclude_labels = [0]
-    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file)
+    >>> largest_segment = True
+    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
+    >>>                           largest_segment)
     ([[3535.909590779093,
        82400836.92399396,
        596590.4072532767,
@@ -289,7 +293,8 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
     from mindboggle.utils.mesh import remove_faces
-    from mindboggle.shapes.zernike.zernike import zernike_moments_of_largest
+    from mindboggle.shapes.zernike.zernike import zernike_moments, \
+        zernike_moments_of_largest
 
     # Read VTK surface mesh file:
     faces, u1,u2, points, u4, labels, u5,u6 = read_vtk(vtk_file)
@@ -318,10 +323,13 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         select_faces = remove_faces(faces, label_indices)
 
         # Compute Zernike moments for the label:
-        exclude_labels_inner = [-1]
-        descriptors = zernike_moments_of_largest(points, select_faces, order,
-                                                 exclude_labels_inner,
-                                                 areas)
+        if largest_segment:
+            exclude_labels_inner = [-1]
+            descriptors = zernike_moments_of_largest(points, select_faces, order,
+                                                     exclude_labels_inner,
+                                                     areas)
+        else:
+            descriptors = zernike_moments(points, select_faces, order)
 
         # Append to a list of lists of spectra:
         descriptors_lists.append(descriptors)
