@@ -26,7 +26,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 #=============================================================================
-# Command line arguments
+#
+#   Command-line arguments
+#
 #=============================================================================
 import os
 import sys
@@ -220,8 +222,38 @@ if pt_table:
     do_vertex_table = True
 
 #=============================================================================
-# Hidden arguments
+#
+#   Hidden arguments: paths, label and template data
+#
 #=============================================================================
+#-----------------------------------------------------------------------------
+# Paths
+#-----------------------------------------------------------------------------
+subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
+ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
+#-----------------------------------------------------------------------------
+# Hashes to verify retrieved data
+#-----------------------------------------------------------------------------
+hashes, url, cache_env, cache = hashes_url()
+#-----------------------------------------------------------------------------
+# Cache and output directories
+#-----------------------------------------------------------------------------
+if cache_env in os.environ.keys():
+    cache = os.environ[cache_env]
+if not os.path.exists(cache):
+    print("Create missing cache directory: {0}".format(cache))
+    os.mkdir(cache)
+temp_path = os.path.join(cache, 'workspace')  # Where to save workflow files
+if not os.path.isdir(temp_path):
+    os.makedirs(temp_path)
+if not os.path.isdir(output_path):
+    os.makedirs(output_path)
+#-----------------------------------------------------------------------------
+# Protocol information
+#-----------------------------------------------------------------------------
+sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
+    label_names, label_numbers, cortex_names, cortex_numbers, \
+    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 #-----------------------------------------------------------------------------
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
@@ -250,7 +282,9 @@ do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 
 #=============================================================================
-# Setup: import libraries, set file paths
+#
+#   Import libraries
+#
 #=============================================================================
 #-----------------------------------------------------------------------------
 # Import system and Nipype Python libraries
@@ -288,41 +322,11 @@ from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.features.sulci import extract_sulci
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
     measure_volume_overlap
-#-----------------------------------------------------------------------------
-# Paths
-#-----------------------------------------------------------------------------
-subjects_path = os.environ['SUBJECTS_DIR']  # FreeSurfer subjects directory
-ccode_path = os.environ['MINDBOGGLE_TOOLS']  # Mindboggle C++ code directory
-#-----------------------------------------------------------------------------
-# Hashes to verify retrieved data
-#-----------------------------------------------------------------------------
-hashes, url, cache_env, cache = hashes_url()
-#-----------------------------------------------------------------------------
-# Cache and output directories
-#-----------------------------------------------------------------------------
-if cache_env in os.environ.keys():
-    cache = os.environ[cache_env]
-if not os.path.exists(cache):
-    print("Create missing cache directory: {0}".format(cache))
-    os.mkdir(cache)
-temp_path = os.path.join(cache, 'workspace')  # Where to save workflow files
-if not os.path.isdir(temp_path):
-    os.makedirs(temp_path)
-if not os.path.isdir(output_path):
-    os.makedirs(output_path)
-#-----------------------------------------------------------------------------
-# Protocol information
-#-----------------------------------------------------------------------------
-sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-    label_names, label_numbers, cortex_names, cortex_numbers, \
-    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
 #=============================================================================
-##############################################################################
 #
-#  Initialize all workflow inputs and outputs
+#   Initialize all workflow inputs and outputs
 #
-##############################################################################
 #=============================================================================
 mbFlow = Workflow(name='Mindboggle_workflow')
 mbFlow.base_dir = temp_path
@@ -461,11 +465,11 @@ if run_VolFlows and run_VolLabelFlow and do_fill_cortex:
 
 
 #=============================================================================
-##############################################################################
+#-----------------------------------------------------------------------------
 #
-#  Register image volume to template in MNI152 space
+#   Register image volume to template in MNI152 space
 #
-##############################################################################
+#-----------------------------------------------------------------------------
 #=============================================================================
 if do_register_standard:
 
@@ -593,13 +597,11 @@ if do_register_standard:
 
 
 #=============================================================================
-##############################################################################
-#=============================================================================
+#-----------------------------------------------------------------------------
 #
 #   Surface workflows
 #
-#=============================================================================
-##############################################################################
+#-----------------------------------------------------------------------------
 #=============================================================================
 if run_SurfFlows:
 
@@ -631,11 +633,11 @@ if run_SurfFlows:
         mbFlow.connect(InputSubjects, 'subject', Atlas, 'subject')
         mbFlow.connect(InputHemis, 'hemi', Atlas, 'hemi')
 
-##############################################################################
+#=============================================================================
 #
-#   Surface label workflow
+#   Surface labels
 #
-##############################################################################
+#=============================================================================
 if run_SurfLabelFlow:
 
     SurfLabelFlow = Workflow(name='Surface_labels')
@@ -871,11 +873,11 @@ if run_SurfLabelFlow:
                        Sink, 'labels.@surface')
 
 
-##############################################################################
+#=============================================================================
 #
-#   Surface shape measurement workflow
+#   Surface shape measurements
 #
-##############################################################################
+#=============================================================================
 if run_WholeSurfShapeFlow:
 
     WholeSurfShapeFlow = Workflow(name='Surface_shapes')
@@ -1012,11 +1014,11 @@ if run_WholeSurfShapeFlow:
                         ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
                         ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
-##############################################################################
+#=============================================================================
 #
-#   Surface feature extraction workflow
+#   Surface feature extraction
 #
-##############################################################################
+#=============================================================================
 if run_SurfFeatureFlow:
     SurfFeatureFlow = Workflow(name='Surface_features')
 
@@ -1186,11 +1188,11 @@ if run_SurfFeatureFlow:
                            Sink, 'features.@smooth_fundi')
 
 
-##############################################################################
+#=============================================================================
 #
-#   Surface feature shape workflow
+#   Surface feature shapes
 #
-##############################################################################
+#=============================================================================
 if run_SurfFlows:
     SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
@@ -1257,17 +1259,11 @@ if run_SurfFlows:
             mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
 
 
-##############################################################################
+#=============================================================================
 #
-#   Surface feature shape table workflow
+#   Surface feature shape tables
 #
-#       - Surface feature shape tables:
-#           - Label shapes
-#           - Sulcus shapes
-#           - Fundus shapes
-#       - Vertex measures table
-#
-##############################################################################
+#=============================================================================
 if run_SurfFlows:
 
     #=========================================================================
@@ -1523,24 +1519,18 @@ if run_SurfFlows:
 
 
 #=============================================================================
-##############################################################################
-#=============================================================================
+#-----------------------------------------------------------------------------
 #
 #   Volume workflows
 #
-#=============================================================================
-##############################################################################
+#-----------------------------------------------------------------------------
 #=============================================================================
 
-##############################################################################
+#=============================================================================
 #
-#   Volume label workflow
+#   Volume labels
 #
-#       - Fill cortical gray matter with labels
-#       - Label subcortical volumes
-#       - Evaluate volume labels
-#
-##############################################################################
+#=============================================================================
 if run_VolLabelFlow:
     VolLabelFlow = Workflow(name='Volume_labels')
 
@@ -1695,13 +1685,11 @@ if run_VolLabelFlow:
                        Sink, 'evaluate_labels_volume')
 
 
-##############################################################################
+#=============================================================================
 #
-#   Volume feature shape workflow
+#   Volume feature shapes
 #
-#       - Volumes of labeled regions
-#
-##############################################################################
+#=============================================================================
 if run_VolShapeFlow:
     VolShapeFlow = Workflow(name='Volume_feature_shapes')
 
@@ -1755,11 +1743,13 @@ if run_VolShapeFlow:
                        Sink, 'tables.@volume_labels')
 
 
-##############################################################################
+#=============================================================================
+#-----------------------------------------------------------------------------
 #
-#    Run workflows
+#   Run workflows
 #
-##############################################################################
+#-----------------------------------------------------------------------------
+#=============================================================================
 if __name__== '__main__':
 
     #-------------------------------------------------------------------------
@@ -1789,7 +1779,7 @@ if __name__== '__main__':
             mbFlow.run(plugin='MultiProc')
 
 """
-# Script for running mindboggle on the Mindboggle-101 set:
+# Script for running Mindboggle on the Mindboggle-101 set:
 import os
 from mindboggle.utils.io_table import read_columns
 
@@ -1798,11 +1788,28 @@ atlas_list_file = '/homedir/Data/Brains/Mindboggle101/code/mindboggle101_atlases
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
 for atlas in atlas_list:
-    #if 'HLN-' in atlas or 'Twins-' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
-    #if 'MMRR-21-' in atlas:
-    #if 'OASIS-TRT-20' in atlas:
-    #if 'NKI-TRT-' in atlas:
-    if 'NKI-RS-' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, '-s', atlas])
+    if 'MMRR-21-' in atlas:
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
         print(cmd); os.system(cmd)
+
+for atlas in atlas_list:
+    if 'NKI-RS-' in atlas:
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        print(cmd); os.system(cmd)
+
+for atlas in atlas_list:
+    if 'NKI-TRT-' in atlas:
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        print(cmd); os.system(cmd)
+
+for atlas in atlas_list:
+    if 'OASIS-TRT-20' in atlas:
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        print(cmd); os.system(cmd)
+
+for atlas in atlas_list:
+    if 'HLN-' in atlas or 'Twins-' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
+        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        print(cmd); os.system(cmd)
+
 """
