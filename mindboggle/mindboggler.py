@@ -32,11 +32,11 @@ import os
 import sys
 import argparse
 parser = argparse.ArgumentParser()
-parser.add_argument("-s", help=("one or more subjects corresponding to the "
-                                "names of directories with input files "
-                                "located within the $SUBJECTS_DIR directory"),
-                    nargs='+',
-                    required=True)
+parser.add_argument("subjects",
+                    help=("Example: \"python %(prog)s sub1 sub2 sub3 -n 1\" "
+                          "\"sub1\",... are subject names corresponding to "
+                          "subject directories within $SUBJECTS_DIR"),
+                    nargs='+')
 parser.add_argument("-o", help="output directory [$HOME/mindboggled]",
                     default=os.path.join(os.environ['HOME'], 'mindboggled'))
 parser.add_argument("-n",
@@ -45,29 +45,36 @@ parser.add_argument("-n",
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
 parser.add_argument("-g", help=("generate py/graphviz workflow visual"),
-                    choices=['hierarchical', 'flat', 'exec'])
-
-parser.add_argument("--reg", help="volume registration method [ANTS]",
-                    choices=['ANTS', 'off'],  # 'antsRegister', 'flirt']
-                    default='ANTS')
-
-parser.add_argument("--no_table", action='store_true',
-                    help="do not generate shape tables")
-parser.add_argument("--pt_table", action='store_true',
-                    help=("generate tables with a surface "
-                          "shape measure for each vertex"))
-parser.add_argument("--no_surf", action='store_true',
-                    help="do not process surfaces")
-parser.add_argument("--no_vol", action='store_true',
-                    help="do not process volumes")
+                    choices=['hier', 'flat', 'exec'])
+parser.add_argument("--no_reg", help="do not register to template",
+                    action='store_true')
+parser.add_argument("--no_labels", action='store_true',
+                    help="do not label surfaces or volumes")
+parser.add_argument("--no_sulci", action='store_true',
+                    help="do not extract sulci")
+parser.add_argument("--no_fundi", action='store_true',
+                    help="do not extract fundi")
 parser.add_argument("--no_spectra", action='store_true',
                     help="do not compute Laplace-Beltrami spectra")
 parser.add_argument("--no_zernike", action='store_true',
                     help="do not compute Zernike moments")
+parser.add_argument("--no_tables", action='store_true',
+                    help="do not generate shape tables")
+parser.add_argument("--pt_table", action='store_true',
+                    help=("make table of per-vertex surface shape measures"))
+parser.add_argument("--no_vol", action='store_true',
+                    help="do not process volumes")
+parser.add_argument("--no_surf", action='store_true',
+                    help="do not process surfaces")
 parser.add_argument("--no_freesurfer", action='store_true',
-                    help="do not use FreeSurfer outputs")
-parser.add_argument("--no_label", action='store_true',
-                    help="do not label surfaces or volumes")
+                    help="do not use FreeSurfer as input "
+                         "or to register surfaces "
+                         "(instead, you must supply vtk and nifti files "
+                         "in the appropriate $SUBJECT_DIR subdirectories)")
+parser.add_argument("--classifier", help=("Gaussian classifier surface atlas "
+                                          "[DKTatlas100]"),
+                    choices=['DKTatlas100', 'DKTatlas40'],
+                    default='DKTatlas100')
 parser.add_argument("--protocol", help=("label protocol: DKT25 is a "
                                         "'fundus-friendly' version of the "
                                         "Desikan-Killiany-Tourville (DKT) "
@@ -75,35 +82,35 @@ parser.add_argument("--protocol", help=("label protocol: DKT25 is a "
                                         "regions per hemisphere [DKT25]"),
                     choices=['DKT25', 'DKT31'],
                     default='DKT25')
-parser.add_argument("--classifier", help=("Gaussian classifier atlas "
-                                          "for cortical surface labels "
-                                          "[DKTatlas100]"),
-                    choices=['DKTatlas100', 'DKTatlas40'],
-                    default='DKTatlas100')
-
-do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
-do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
-do_input_mask = False
-
-
-
 parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
 #-----------------------------------------------------------------------------
 # Main arguments:
 #-----------------------------------------------------------------------------
-subjects = args.s
+subjects = args.subjects
 output_path = args.o
 nprocesses = args.n
 cluster = args.c
 graph_vis = args.g
+if graph_vis == 'hier':
+    graph_vis = 'hierarchical'
 no_freesurfer = args.no_freesurfer
-no_label = args.no_label
-if no_label:
+no_labels = args.no_labels
+if no_labels:
     do_label = False
 else:
     do_label = True
+#-----------------------------------------------------------------------------
+# Non-FreeSurfer input:
+#-----------------------------------------------------------------------------
+do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
+do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
+do_input_mask = False  # Load nifti directly (not FreeSurfer mgh file)
+if no_freesurfer:
+    do_input_vtk = True
+    do_input_nifti = True
+    do_input_mask = True
 #-----------------------------------------------------------------------------
 # Volume workflows:
 #-----------------------------------------------------------------------------
@@ -117,13 +124,14 @@ if not no_vol:
     if do_label:
         run_VolLabelFlow = True
 #-----------------------------------------------------------------------------
-# Registration:
+# Registration to template:
 #-----------------------------------------------------------------------------
-vol_reg_method = args.reg
-if vol_reg_method == 'off':
+no_reg = args.no_reg
+vol_reg_method = 'ANTS'
+if no_reg:
     do_register_standard = False
 elif not no_vol:
-    do_register_standard = True  # Register volume to standard template
+    do_register_standard = True
 #-----------------------------------------------------------------------------
 # Surface workflows:
 #-----------------------------------------------------------------------------
@@ -141,21 +149,24 @@ if not no_surf:
 #-----------------------------------------------------------------------------
 # Surface features:
 #-----------------------------------------------------------------------------
+no_sulci = args.no_sulci
+no_fundi = args.no_fundi
 do_folds = False  # Extract folds
 do_sulci = False  # Extract sulci
 do_fundi = False  # Extract fundi
 do_smooth_fundi = False
 if run_SurfFeatureFlow and (not no_freesurfer or init_labels=='manual'):
     do_folds = True
-    do_sulci = True
-    do_fundi = True
-    do_smooth_fundi = True
+    if not no_sulci:
+        do_sulci = True
+        if not no_fundi:
+            do_fundi = True
+            do_smooth_fundi = True
 #-----------------------------------------------------------------------------
 # Surface shapes:
 #-----------------------------------------------------------------------------
 no_spectra = args.no_spectra
 no_zernike = args.no_zernike
-no_freesurfer = args.no_freesurfer
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_zernike = False  # Measure Zernike moments for features
 do_thickness = False  # Include FreeSurfer's thickness measure
@@ -186,11 +197,11 @@ if do_label:
 #-----------------------------------------------------------------------------
 # Tables:
 #-----------------------------------------------------------------------------
-no_table = args.no_table
+no_tables = args.no_tables
 do_vol_table = False
 do_surf_table = False
 # Surface/volume feature shape measures:
-if not no_table:
+if not no_tables:
     if run_VolLabelFlow:
         do_vol_table = True
     do_surf_table = True
