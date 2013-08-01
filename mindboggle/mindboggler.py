@@ -2,19 +2,17 @@
 """
 This is the main program to run Mindboggle.
 
-For help in using Mindboggle, please ::
+For help in using Mindboggle ::
 
-    - see the README file
-    - read the online docs: http://mindboggle.info/software/documentation.html
-    - type the following at the command line:  python mindboggler.py --help
+    - Online `documentation <http://mindboggle.info/documentation.html>`_
+    - README file
+    - Help on the command line::
+
+        >>> python mindboggler.py --help
 
 This file uses Nipype (http://www.nipy.org/nipype/) to create a workflow
 environment to enable Mindboggle to run in a flexible, modular manner
 while storing provenance information.
-
-Examples
---------
-$ python mindboggler.py -s subject1 subject2 subject3
 
 Authors:
     - Arno Klein, 2010-2013  (arno@mindboggle.info)  http://binarybottle.com
@@ -176,6 +174,7 @@ if run_SurfFeatureFlow:
 #-----------------------------------------------------------------------------
 no_spectra = args.no_spectra
 no_zernike = True #args.no_zernike
+do_decimate = False
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_zernike = False  # Measure Zernike moments for features
 do_thickness = False  # Include FreeSurfer's thickness measure
@@ -185,6 +184,7 @@ if run_WholeSurfShapeFlow:
         do_spectra = True
     if not no_zernike:
         do_zernike = True
+        do_decimate = True
     if not no_freesurfer:
         do_thickness = True
         do_convexity = True
@@ -287,7 +287,7 @@ do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 #
 #=============================================================================
 #-----------------------------------------------------------------------------
-# Import system and Nipype Python libraries
+# Nipype libraries
 #-----------------------------------------------------------------------------
 from nipype.pipeline.engine import Workflow, Node, MapNode
 from nipype.interfaces.utility import Function as Fn
@@ -297,7 +297,7 @@ from nipype.interfaces.freesurfer import MRIConvert
 #from nipype.interfaces.fsl import FLIRT
 #from nipype.interfaces.ants import Registration
 #-----------------------------------------------------------------------------
-# Import Mindboggle Python libraries
+# Mindboggle libraries
 #-----------------------------------------------------------------------------
 from mindboggle.utils.io_vtk import read_vtk
 from mindboggle.utils.io_table import write_columns, \
@@ -313,6 +313,7 @@ from mindboggle.labels.label_free import label_with_classifier
 from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
+from mindboggle.utils.mesh import decimate_file
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
@@ -325,7 +326,7 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 
 #=============================================================================
 #
-#   Initialize all workflow inputs and outputs
+#   Initialize workflow inputs and outputs
 #
 #=============================================================================
 mbFlow = Workflow(name='Mindboggle_workflow')
@@ -1196,11 +1197,45 @@ if run_SurfFeatureFlow:
 if run_SurfFlows:
     SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
+    #=========================================================================
+    # Decimate patches of surface mesh
+    #=========================================================================
+    if do_decimate:
+
+        #---------------------------------------------------------------------
+        # Decimate labeled regions
+        #---------------------------------------------------------------------
+        DecimateLabels = Node(name='Decimate_labels',
+                              interface=Fn(function = decimate_file,
+                                           input_names=['input_vtk',
+                                                        'reduction',
+                                                        'smooth_steps',
+                                                        'output_vtk'],
+                                           output_names=['output_vtk']))
+        SurfFeatureShapeFlow.add_nodes([DecimateLabels])
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       SurfFeatureShapeFlow, 'Decimate_labels.input_vtk')
+        ZernikeLabels.inputs.reduction = 0.5
+        ZernikeLabels.inputs.smooth_steps = 100
+        ZernikeLabels.inputs.output_vtk = ''
+
+        #---------------------------------------------------------------------
+        # Decimate sulci
+        #---------------------------------------------------------------------
+        if do_sulci:
+            DecimateSulci = DecimateLabels.clone('Decimate_sulci')
+            SurfFeatureShapeFlow.add_nodes([DecimateSulci])
+            mbFlow.connect(SulciNode, 'sulci_file',
+                           SurfFeatureShapeFlow, 'Decimate_sulci.input_vtk')
+
+    #=========================================================================
+    # Measure Laplace-Beltrami spectra
+    #=========================================================================
     if do_spectra:
 
-        #=====================================================================
-        # Measure Laplace-Beltrami spectra of labeled regions
-        #=====================================================================
+        #---------------------------------------------------------------------
+        # Measure spectra of labeled regions
+        #---------------------------------------------------------------------
         SpectraLabels = Node(name='Spectra_labels',
                              interface=Fn(function = spectrum_per_label,
                                           input_names=['vtk_file',
@@ -1220,20 +1255,23 @@ if run_SurfFlows:
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.area_file')
 
-        #=====================================================================
-        # Measure Laplace-Beltrami spectra of sulci
-        #=====================================================================
+        #---------------------------------------------------------------------
+        # Measure spectra of sulci
+        #---------------------------------------------------------------------
         if do_sulci:
             SpectraSulci = SpectraLabels.clone('Spectra_sulci')
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect(SulciNode, 'sulci_file',
                            SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
 
+    #=========================================================================
+    # Measure Zernike moments
+    #=========================================================================
     if do_zernike:
 
-        #=====================================================================
+        #---------------------------------------------------------------------
         # Measure Zernike moments of labeled regions
-        #=====================================================================
+        #---------------------------------------------------------------------
         ZernikeLabels = Node(name='Zernike_labels',
                              interface=Fn(function = zernike_moments_per_label,
                                           input_names=['vtk_file',
@@ -1250,9 +1288,9 @@ if run_SurfFlows:
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                        SurfFeatureShapeFlow, 'Zernike_labels.area_file')
 
-        #=====================================================================
+        #---------------------------------------------------------------------
         # Measure Zernike moments of sulci
-        #=====================================================================
+        #---------------------------------------------------------------------
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
