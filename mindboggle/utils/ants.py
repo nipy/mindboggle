@@ -70,7 +70,14 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
     nonlinear_transform = output_stem + 'Warp.nii.gz'
     nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
 
-    return affine_transform, nonlinear_transform, \
+    if not os.path.exists(affine_transform):
+        raise(IOError(affine_transform + " not found"))
+    if not os.path.exists(nonlinear_transform):
+        raise(IOError(nonlinear_transform + " not found"))
+    if not os.path.exists(nonlinear_inverse_transform):
+        raise(IOError(nonlinear_inverse_transform + " not found"))
+
+    return affine_transform, nonlinear_transform,\
            nonlinear_inverse_transform, output_stem
 
 
@@ -150,7 +157,7 @@ def WarpImageMultiTransform(source, target, output='',
     os.system(cmd)  # p = Popen(args);
 
     if not os.path.exists(output):
-        raise IOError (output + " not found")
+        raise(IOError(output + " not found"))
 
     return output
 
@@ -222,6 +229,9 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     print(cmd)
     os.system(cmd)  # p = Popen(args);
 
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
     return output_file
 
 
@@ -292,5 +302,8 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     # Use ANTs to fill a binary volume mask with initial labels:
     output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
                                              output_file, binarize)
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
 
     return output_file  # surface_in_volume
