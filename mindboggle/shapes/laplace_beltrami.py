@@ -618,7 +618,8 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
 
 
 def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
-                       normalization='area', area_file=''):
+                       normalization='area', area_file='',
+                       largest_segment=True):
     """
     Compute Laplace-Beltrami spectrum per labeled region in a file.
 
@@ -635,6 +636,8 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
         if "area", use area of the 2D structure as in Reuter et al. 2006
     area_file :  string
         name of VTK file with surface area scalar values
+    largest_segment :  Boolean
+        compute spectrum only for largest segment with a given label?
 
     Returns
     -------
@@ -654,8 +657,9 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> n_eigenvalues = 6
     >>> exclude_labels = [0]  #[-1]
-    >>> spectrum_per_label(vtk_file, n_eigenvalues, exclude_labels,
-    >>>                    normalization=None, area_file=area_file)
+    >>> largest_segment = True
+    >>> spectrum_per_label(vtk_file, n_eigenvalues, exclude_labels, None,
+    >>>                    area_file, largest_segment)
     ([[6.3469513010430304e-18,
        0.0005178862383467463,
        0.0017434911095630772,
@@ -667,7 +671,8 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
     from mindboggle.utils.mesh import remove_faces
-    from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
+    from mindboggle.shapes.laplace_beltrami import fem_laplacian,\
+        spectrum_of_largest
 
     # Read VTK surface mesh file:
     faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(vtk_file)
@@ -696,10 +701,15 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
         select_faces = remove_faces(faces, label_indices)
 
         # Compute Laplace-Beltrami spectrum for the label:
-        exclude_labels_inner = [-1]
-        spectrum = spectrum_of_largest(points, select_faces, n_eigenvalues,
-                                       exclude_labels_inner, normalization,
-                                       areas)
+        if largest_segment:
+            exclude_labels_inner = [-1]
+            spectrum = spectrum_of_largest(points, select_faces,
+                                           n_eigenvalues,
+                                           exclude_labels_inner,
+                                           normalization, areas)
+        else:
+            spectrum = fem_laplacian(points, select_faces,
+                                     n_eigenvalues, normalization)
 
         # Append to a list of lists of spectra:
         spectrum_lists.append(spectrum)
