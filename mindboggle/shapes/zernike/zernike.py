@@ -156,18 +156,11 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
     """
     import numpy as np
 
-    from mindboggle.utils.mesh import find_neighbors, remove_faces, \
-        reindex_faces_points
-    from mindboggle.utils.segment import segment
+    from mindboggle.utils.segment import select_largest
     from mindboggle.shapes.zernike.zernike import zernike_moments
 
-    # Areas:
-    use_area = False
-    if isinstance(areas, np.ndarray) and np.shape(areas):
-        use_area = True
-    elif isinstance(areas, list) and len(areas):
+    if isinstance(areas, list):
         areas = np.array(areas)
-        use_area = True
 
     # Check to see if there are enough points:
     min_npoints = order
@@ -180,66 +173,23 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
     else:
 
         #---------------------------------------------------------------------
-        # Segment the indices into connected sets of indices:
-        #---------------------------------------------------------------------
-        # Construct neighbor lists:
-        neighbor_lists = find_neighbors(faces, npoints)
-
-        # Determine the indices:
-        indices = [x for sublst in faces for x in sublst]
-
-        # Segment:
-        segments = segment(indices, neighbor_lists, min_region_size=1,
-            seed_lists=[], keep_seeding=False, spread_within_labels=False,
-            labels=[], label_lists=[], values=[], max_steps='', verbose=False)
-
-        #---------------------------------------------------------------------
         # Select the largest segment (connected set of indices):
         #---------------------------------------------------------------------
-        unique_segments = [x for x in np.unique(segments)
-                           if x not in exclude_labels]
-        if len(unique_segments) > 1:
-            select_indices = []
-            max_segment_area = 0
-            for segment_number in unique_segments:
-                segment_indices = [i for i,x in enumerate(segments)
-                                   if x == segment_number]
-                if use_area:
-                    segment_area = np.sum(areas[segment_indices])
-                else:
-                    segment_area = len(segment_indices)
-                if segment_area > max_segment_area:
-                    select_indices = segment_indices
-                    max_segment_area = len(select_indices)
-            print('Maximum size of {0} segments: {1} vertices'.
-                  format(len(unique_segments), len(select_indices)))
-
-            #-----------------------------------------------------------------
-            # Extract points and renumber faces for the selected indices:
-            #-----------------------------------------------------------------
-            faces = remove_faces(faces, select_indices)
-        else:
-            select_indices = indices
+        points, faces = select_largest(points, faces, exclude_labels, areas,
+                                       reindex=True)
 
         # Alert if the number of indices is small:
-        if len(select_indices) < min_npoints:
-            print("The input size {0} is too small.".
-                  format(len(select_indices)))
+        if len(points) < min_npoints:
+            print("The input size {0} is too small.".format(len(points)))
             return None
         elif faces:
 
             #-----------------------------------------------------------------
-            # Reindex indices in faces:
-            #-----------------------------------------------------------------
-            faces, points = reindex_faces_points(faces, points)
-
-            #-----------------------------------------------------------------
-            # Compute spectrum:
+            # Compute Zernike moments:
             #-----------------------------------------------------------------
             descriptors = zernike_moments(points, faces, order)
 
             return descriptors
-
         else:
             return None
 
@@ -312,8 +262,8 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      #if label==22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+      if label==22:
+        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         # Determine the indices per label:
         label_indices = [i for i,x in enumerate(labels) if x == label]
