@@ -262,8 +262,8 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      if label==22:
-        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+      #if label==22:
+      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         # Determine the indices per label:
         label_indices = [i for i,x in enumerate(labels) if x == label]
