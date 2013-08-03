@@ -25,12 +25,55 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 #=============================================================================
 #
-#   Command-line arguments
+#   Import libraries
 #
 #=============================================================================
 import os
 import sys
 import argparse
+#-----------------------------------------------------------------------------
+# Nipype libraries
+#-----------------------------------------------------------------------------
+from nipype.pipeline.engine import Workflow, Node, MapNode
+from nipype.interfaces.utility import Function as Fn
+from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.io import DataGrabber, DataSink
+from nipype.interfaces.freesurfer import MRIConvert
+#from nipype.interfaces.fsl import FLIRT
+#from nipype.interfaces.ants import Registration
+#-----------------------------------------------------------------------------
+# Mindboggle libraries
+#-----------------------------------------------------------------------------
+from mindboggle.utils.io_vtk import read_vtk
+from mindboggle.utils.io_table import write_columns, \
+    write_shape_stats, write_vertex_measures
+from mindboggle.data import hashes_url
+from mindboggle.utils.io_uri import retrieve_data
+from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
+    annot_to_vtk
+from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, \
+    fill_volume_with_surface_labels
+from mindboggle.labels.protocol import dkt_protocol
+from mindboggle.labels.label_free import label_with_classifier
+from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
+from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
+    curvature, volume_per_label, rescale_by_neighborhood
+from mindboggle.utils.mesh import decimate_file
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+from mindboggle.shapes.likelihood import compute_likelihood
+from mindboggle.features.folds import extract_folds
+from mindboggle.features.fundi import extract_fundi
+from mindboggle.utils.paths import smooth_skeleton
+from mindboggle.features.sulci import extract_sulci
+from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
+    measure_volume_overlap
+
+#=============================================================================
+#
+#   Command-line arguments
+#
+#=============================================================================
 parser = argparse.ArgumentParser()
 parser.add_argument("subjects",
                     help=("Example: \"python %(prog)s sub1 sub2 sub3 -n 4\" "
@@ -91,7 +134,7 @@ parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
 #-----------------------------------------------------------------------------
-# Main arguments:
+# Arguments:
 #-----------------------------------------------------------------------------
 subjects = args.subjects
 output_path = args.o
@@ -100,12 +143,30 @@ cluster = args.c
 graph_vis = args.g
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
+
+
 no_freesurfer = args.no_freesurfer
 no_labels = args.no_labels
 if no_labels:
     do_label = False
 else:
     do_label = True
+
+
+no_vol = args.no_vol
+iters = args.iters
+no_surf = args.no_surf
+no_sulci = args.no_sulci
+no_fundi = args.no_fundi
+no_spectra = args.no_spectra
+no_zernike = args.no_zernike
+add_atlases = args.add_atlases
+protocol = args.protocol
+classifier_name = args.classifier
+no_tables = args.no_tables
+no_reg = args.no_reg
+pt_table = args.pt_table
+
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer input:
 #-----------------------------------------------------------------------------
@@ -119,7 +180,6 @@ if no_freesurfer:
 #-----------------------------------------------------------------------------
 # Volume workflows:
 #-----------------------------------------------------------------------------
-no_vol = args.no_vol
 run_VolFlows = False
 run_VolShapeFlow = False
 run_VolLabelFlow = False
@@ -131,18 +191,15 @@ if not no_vol:
 #-----------------------------------------------------------------------------
 # Registration to template:
 #-----------------------------------------------------------------------------
-iters = args.iters
 save_transforms = True  # NOTE: must save transforms!
-no_reg = args.no_reg
 vol_reg_method = 'ANTS'
-if no_reg:
+if no_reg or no_vol:
     do_register_standard = False
-elif not no_vol:
+else:
     do_register_standard = True
 #-----------------------------------------------------------------------------
 # Surface workflows:
 #-----------------------------------------------------------------------------
-no_surf = args.no_surf
 run_SurfFlows = False
 run_WholeSurfShapeFlow = False
 run_SurfFeatureFlow = False
@@ -156,8 +213,6 @@ if not no_surf:
 #-----------------------------------------------------------------------------
 # Surface features:
 #-----------------------------------------------------------------------------
-no_sulci = args.no_sulci
-no_fundi = args.no_fundi
 do_folds = False  # Extract folds
 do_sulci = False  # Extract sulci
 do_fundi = False  # Extract fundi
@@ -172,8 +227,6 @@ if run_SurfFeatureFlow:
 #-----------------------------------------------------------------------------
 # Surface shapes:
 #-----------------------------------------------------------------------------
-no_spectra = args.no_spectra
-no_zernike = True #args.no_zernike
 do_decimate = False
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_zernike = False  # Measure Zernike moments for features
@@ -191,9 +244,6 @@ if run_WholeSurfShapeFlow:
 #-----------------------------------------------------------------------------
 # Labels:
 #-----------------------------------------------------------------------------
-add_atlases = args.add_atlases
-protocol = args.protocol
-classifier_name = args.classifier
 do_label_surf = False
 do_label_whole_volume = False  # Label whole brain via volume registration
 do_fill_cortex = False  # Fill cortical gray matter with surface labels
@@ -207,7 +257,6 @@ if do_label:
 #-----------------------------------------------------------------------------
 # Tables:
 #-----------------------------------------------------------------------------
-no_tables = args.no_tables
 do_vol_table = False
 do_surf_table = False
 # Surface/volume feature shape measures:
@@ -216,7 +265,6 @@ if not no_tables:
         do_vol_table = True
     do_surf_table = True
 # Per-vertex surface shape measures:
-pt_table = args.pt_table
 do_vertex_table = False
 if pt_table:
     do_vertex_table = True
@@ -280,49 +328,6 @@ init_labels = 'DKT_atlas'
 #-----------------------------------------------------------------------------
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
 do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
-
-#=============================================================================
-#
-#   Import libraries
-#
-#=============================================================================
-#-----------------------------------------------------------------------------
-# Nipype libraries
-#-----------------------------------------------------------------------------
-from nipype.pipeline.engine import Workflow, Node, MapNode
-from nipype.interfaces.utility import Function as Fn
-from nipype.interfaces.utility import IdentityInterface
-from nipype.interfaces.io import DataGrabber, DataSink
-from nipype.interfaces.freesurfer import MRIConvert
-#from nipype.interfaces.fsl import FLIRT
-#from nipype.interfaces.ants import Registration
-#-----------------------------------------------------------------------------
-# Mindboggle libraries
-#-----------------------------------------------------------------------------
-from mindboggle.utils.io_vtk import read_vtk
-from mindboggle.utils.io_table import write_columns, \
-    write_shape_stats, write_vertex_measures
-from mindboggle.data import hashes_url
-from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
-    annot_to_vtk
-from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, \
-    fill_volume_with_surface_labels
-from mindboggle.labels.protocol import dkt_protocol
-from mindboggle.labels.label_free import label_with_classifier
-from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
-from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
-    curvature, volume_per_label, rescale_by_neighborhood
-from mindboggle.utils.mesh import decimate_file
-from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
-from mindboggle.features.folds import extract_folds
-from mindboggle.features.fundi import extract_fundi
-from mindboggle.utils.paths import smooth_skeleton
-from mindboggle.features.sulci import extract_sulci
-from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
-    measure_volume_overlap
 
 #=============================================================================
 #
@@ -1210,14 +1215,16 @@ if run_SurfFlows:
                                            input_names=['input_vtk',
                                                         'reduction',
                                                         'smooth_steps',
+                                                        'save_vtk',
                                                         'output_vtk'],
                                            output_names=['output_vtk']))
         SurfFeatureShapeFlow.add_nodes([DecimateLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Decimate_labels.input_vtk')
-        ZernikeLabels.inputs.reduction = 0.5
-        ZernikeLabels.inputs.smooth_steps = 100
-        ZernikeLabels.inputs.output_vtk = ''
+        DecimateLabels.inputs.reduction = 0.5
+        DecimateLabels.inputs.smooth_steps = 100
+        DecimateLabels.inputs.save_vtk = True
+        DecimateLabels.inputs.output_vtk = ''
 
         #---------------------------------------------------------------------
         # Decimate sulci
@@ -1242,7 +1249,8 @@ if run_SurfFlows:
                                                        'n_eigenvalues',
                                                        'exclude_labels',
                                                        'normalization',
-                                                       'area_file'],
+                                                       'area_file',
+                                                       'largest_segment'],
                                           output_names=['spectrum_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([SpectraLabels])
@@ -1252,6 +1260,7 @@ if run_SurfFlows:
         SpectraLabels.inputs.exclude_labels = [0]
         SpectraLabels.inputs.normalization = "area"
         SpectraLabels.inputs.area_file = ""
+        SpectraLabels.inputs.largest_segment = True
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.area_file')
 
@@ -1277,14 +1286,20 @@ if run_SurfFlows:
                                           input_names=['vtk_file',
                                                        'order',
                                                        'exclude_labels',
-                                                       'area_file'],
+                                                       'area_file',
+                                                       'largest_segment'],
                                           output_names=['descriptors_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                       SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
+        if do_decimate:
+            SurfFeatureShapeFlow.connect(DecimateLabels, 'output_vtk',
+                                         ZernikeLabels, 'vtk_file')
+        else:
+            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                           SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
         ZernikeLabels.inputs.order = 20
         ZernikeLabels.inputs.exclude_labels = [0]
+        ZernikeLabels.inputs.largest_segment = True
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                        SurfFeatureShapeFlow, 'Zernike_labels.area_file')
 
@@ -1294,7 +1309,12 @@ if run_SurfFlows:
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
-            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
+            if do_decimate:
+                SurfFeatureShapeFlow.connect(DecimateSulci, 'output_vtk',
+                                             ZernikeSulci, 'vtk_file')
+            else:
+                mbFlow.connect(SulciNode, 'sulci_file',
+                               ZernikeSulci, 'vtk_file')
 
 
 #=============================================================================

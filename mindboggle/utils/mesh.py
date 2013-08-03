@@ -575,7 +575,7 @@ def remove_neighbor_lists(neighbor_lists, indices):
 # Decimate mesh
 #-----------------------------------------------------------------------------
 def decimate(points, faces, reduction=0.5, smooth_steps=100,
-             scalars=[], output_vtk=''):
+             scalars=[], save_vtk=False, output_vtk=''):
     """
     Decimate vtk triangular mesh with vtk.vtkDecimatePro.
 
@@ -592,8 +592,10 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
         number of smoothing steps
     scalars : list of integers or floats
         optional scalars for output VTK file
+    save_vtk : Boolean
+        output decimated vtk file?
     output_vtk : string
-        output decimated vtk file
+        output decimated vtk file name
 
     Returns
     -------
@@ -616,11 +618,13 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> reduction = 0.9
     >>> smooth_steps = 100
+    >>> save_vtk = False
     >>> output_vtk = ''
     >>> faces, lines, indices, points, npoints, scalars, scalar_names,
     ...     o2  = read_vtk(input_vtk)
     >>> points, faces, scalars, output_vtk = decimate(points, faces, reduction,
-    >>>                                      smooth_steps, scalars, output_vtk)
+    >>>                                               smooth_steps, scalars,
+    >>>                                               save_vtk, output_vtk)
     >>> len(points) == 2679
     True
     >>> len(points)
@@ -684,7 +688,9 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
     #-------------------------------------------------------------------------
     # Smooth:
     #-------------------------------------------------------------------------
-    if output_vtk:
+    if save_vtk:
+        if not output_vtk:
+            output_vtk = os.path.join(os.getcwd(), 'decimated.vtk')
         exporter = vtk.vtkPolyDataWriter()
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
@@ -692,18 +698,18 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
         smoother.SetNumberOfIterations(smooth_steps)
         smoother.Update()
         out = smoother.GetOutput()
-        if output_vtk:
+        if save_vtk:
             exporter.SetInput(smoother.GetOutput())
     else:
         decimate.Update()
         out = decimate.GetOutput()
-        if output_vtk:
+        if save_vtk:
             exporter.SetInput(decimate.GetOutput())
 
     #-------------------------------------------------------------------------
     # Export output:
     #-------------------------------------------------------------------------
-    if output_vtk:
+    if save_vtk:
         exporter.SetFileName(output_vtk)
         exporter.Write()
         if not os.path.exists(output_vtk):
@@ -730,7 +736,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
     return points, faces, scalars, output_vtk
 
 
-def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
+def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
+                  save_vtk=False, output_vtk=''):
     """
     Decimate vtk triangular mesh file with vtk.vtkDecimatePro.
 
@@ -742,8 +749,10 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
         fraction of mesh faces to remove
     do_smooth : Boolean
         smooth after decimation?
+    save_vtk : Boolean
+        output decimated vtk file?
     output_vtk : string
-        output decimated vtk file
+        output decimated vtk file name
 
     Returns
     -------
@@ -758,12 +767,13 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
-    >>> output_vtk = 'decimated_file.vtk'
+    >>> save_vtk = True
+    >>> output_vtk = ''
     >>> reduction = 0.9
     >>> smooth_steps = 0
-    >>> decimate_file(input_vtk, reduction, smooth_steps, output_vtk)
+    >>> decimate_file(input_vtk, reduction, smooth_steps, save_vtk, output_vtk)
     >>> # View:
-    >>> plot_vtk(output_vtk) # doctest: +SKIP
+    >>> plot_vtk('decimated.vtk') # doctest: +SKIP
 
     """
     from mindboggle.utils.io_vtk import read_vtk
@@ -775,5 +785,5 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
     # Decimate vtk triangular mesh with vtk.vtkDecimatePro
     points, faces, scalars, output_vtk = decimate(points, faces, reduction,
                                                   smooth_steps, scalars,
-                                                  output_vtk)
+                                                  save_vtk, output_vtk)
     return output_vtk
