@@ -17,7 +17,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 def read_vertices(Filename):
     """
-    Load VERTICES segment from a VTK file (actually contains indices to vertices)
+    Load VERTICES segment from a VTK file (actually indices to vertices)
 
     Parameters
     ----------
@@ -27,14 +27,16 @@ def read_vertices(Filename):
     Returns
     -------
     indices : a list of integers
-        Each element is an integer defined in VERTICES segment of the VTK file.
-        The integer is an index referring to a point defined in POINTS segment of the VTK file.
+        Each element is an integer defined in the VTK file's VERTICES segment.
+        The integer is an index referring to a point defined in the
+        POINTS segment of the VTK file.
 
     Notes ::
 
         We assume that VERTICES segment is organized as one line,
         the first column of which is the number of vertices.
-        Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface.
+        Vertices here are as vertices in VTK terminology.
+        It may not be the vertices in your 3-D surface.
 
     """
     import vtk
@@ -89,7 +91,8 @@ def read_lines(Filename):
         Reader.GetNumberOfscalarsInFile(), Filename))
     print("Loading the scalar {0}".format(Reader.GetScalarsNameInFile(0)))
     ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
-    scalars = [ScalarsArray.GetValue(i) for i in range(0, ScalarsArray.GetSize())]
+    scalars = [ScalarsArray.GetValue(i)
+               for i in range(0, ScalarsArray.GetSize())]
 
     return lines, scalars
 
@@ -106,7 +109,7 @@ def read_points(filename):
     Returns
     -------
     points : list of lists of floats
-        each element is a list of 3-D coordinates of a vertex on a surface mesh
+        each element is a list of 3-D coordinates of a surface mesh vertex
 
     """
     import vtk
@@ -138,7 +141,7 @@ def read_faces_points(filename):
         each element is list of 3 indices of vertices that form a face
         on a surface mesh
     points : list of lists of floats
-        each element is a list of 3-D coordinates of a vertex on a surface mesh
+        each element is a list of 3-D coordinates of a surface mesh vertex
     npoints : integer
         number of points
 
@@ -226,10 +229,12 @@ def read_scalars(filename, return_first=True, return_array=False):
                       format(scalar_name, os.path.basename(filename)))
             else:
                 print("Load \"{0}\" (of {1} scalars) from {2}".
-                      format(scalar_name, n_scalars, os.path.basename(filename)))
+                      format(scalar_name, n_scalars,
+                             os.path.basename(filename)))
 
             scalar_array = PointData.GetArray(scalar_name)
-            scalar = [scalar_array.GetValue(i) for i in range(scalar_array.GetSize())]
+            scalar = [scalar_array.GetValue(i)
+                      for i in range(scalar_array.GetSize())]
             scalars.append(scalar)
             scalar_names.append(scalar_name)
 
@@ -255,7 +260,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
 
         1. This supports copying lines, vertices (indices of points),
            and triangular faces from one surface to another.
-        2. We assume that all vertices are written in one line in VERTICES segment.
+        2. We assume that all vertices are written in one line
+           in the VERTICES segment.
 
     Parameters
     ----------
@@ -345,7 +351,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
                       format(scalar_name, os.path.basename(input_vtk)))
             else:
                 print("Load \"{0}\" (of {1} scalars) from {2}".
-                      format(scalar_name, n_scalars, os.path.basename(input_vtk)))
+                      format(scalar_name, n_scalars,
+                             os.path.basename(input_vtk)))
 
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
@@ -364,7 +371,8 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         else:
             scalar_names = ''
 
-    return faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk
+    return faces, lines, indices, points, npoints, scalars, scalar_names, \
+           input_vtk
 
 
 #=============================================================================
@@ -383,7 +391,7 @@ def write_header(Fp, Header='# vtk DataFile Version 2.0',
 
     This part matches three things in the VTK 4.2 File Formats doc:
       - Part 1: Header
-      - Part 2: Title (256 characters maximum, terminated with newline character)
+      - Part 2: Title (256 characters maximum, ending with newline character)
       - Part 3: Data type, either ASCII or BINARY
       - Part 4: Geometry/topology. dataType is one of:
           - STRUCTURED_POINTS
@@ -395,12 +403,13 @@ def write_header(Fp, Header='# vtk DataFile Version 2.0',
 
     """
 
-    Fp.write('{0}\n{1}\n{2}\nDATASET {3}\n'.format(Header, Title, fileType, dataType))
+    Fp.write('{0}\n{1}\n{2}\nDATASET {3}\n'.format(Header, Title, fileType,
+                                                   dataType))
 
 
 def write_points(Fp, points, dataType="float"):
     """
-    Write coordinates of points, the POINTS section in DATASET POLYDATA section::
+    Write coordinates of points, the POINTS section in DATASET POLYDATA::
 
         POINTS 150991 float
         -7.62268877029 -81.2403945923 -1.44539153576
@@ -519,7 +528,8 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
     Parameters
     ----------
     scalars :  list of floats
-    begin_scalars : [Boolean] True if the first vertex lookup table in a VTK file
+    begin_scalars : Boolean
+        True if the first vertex lookup table in a VTK file
 
     """
 
@@ -559,7 +569,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     faces : list of 3-tuples of integers
         indices to the three vertices of a face on the mesh, default=[]
     scalars : list of, or list of lists of, floats (or single list of floats)
-        each list (lookup table) contains values assigned to the vertices, default=[]
+        each list (lookup table) contains values assigned to the vertices,
+        default=[]
     scalar_names : string or list of strings
         each element is the name of a lookup table, default=['scalars']
         if only one string is given for this field, the program will convert
@@ -631,7 +642,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
                     scalar_name = scalar_names[0]
                 else:
                     scalar_name  = scalar_names[i]
-                write_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
+                write_scalars(Fp, scalar_list, scalar_name,
+                              begin_scalars=False)
     Fp.close()
 
     if not os.path.exists(output_vtk):
@@ -700,7 +712,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
-    faces, lines, indices, points, npoints, scalars, name, input_vtk = read_vtk(input_vtk)
+    faces, lines, indices, points, npoints, scalars, name, \
+        input_vtk = read_vtk(input_vtk)
 
     # Find indices to nonzero values
     indices = range(npoints)
@@ -719,7 +732,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     if faces:
         write_faces(Fp, faces)
     if new_scalars:
-        new_scalars, new_scalar_names = scalars_checker(new_scalars, new_scalar_names)
+        new_scalars, new_scalar_names = scalars_checker(new_scalars,
+                                                        new_scalar_names)
 
         for i, new_scalar_list in enumerate(new_scalars):
             if filter_scalars:
@@ -733,7 +747,8 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                     new_scalar_name = new_scalar_names[0]
                 else:
                     new_scalar_name  = new_scalar_names[i]
-                write_scalars(Fp, new_scalar_list, new_scalar_name, begin_scalars=False)
+                write_scalars(Fp, new_scalar_list, new_scalar_name,
+                              begin_scalars=False)
     else:
         print('Error: new_scalars is empty')
         exit()
@@ -881,7 +896,7 @@ def scalars_checker(scalars, scalar_names):
 
     Parameters
     ----------
-    scalars : list of lists of floats (or single list or 1-/2-D array of floats)
+    scalars : list of lists of floats (or single list or 1-/2-D array)
     scalar_names : string or list of strings
 
     Returns
@@ -918,8 +933,8 @@ def scalars_checker(scalars, scalar_names):
 
     Notes
     -----
-    This function does not check all possible cases of scalars and scalar_names,
-    but only those that are likely to happen when using Mindboggle.
+    This function does not check all possible cases of scalars and
+    scalar_names, but only those that are likely to occur when using Mindboggle.
 
     """
     import sys
@@ -945,8 +960,9 @@ def scalars_checker(scalars, scalar_names):
     # If the list contains all lists, accept format.
     elif all([isinstance(x, list) for x in scalars]):
         pass
-    # If the list contains arrays (and optionally lists), convert arrays to lists.
-    elif all([isinstance(x, list) or isinstance(x, np.ndarray) for x in scalars]):
+    # If the list contains arrays (optionally lists), convert arrays to lists.
+    elif all([isinstance(x, list) or isinstance(x, np.ndarray)
+              for x in scalars]):
         scalars2 = []
         for x in scalars:
             if isinstance(x, list):
@@ -976,9 +992,9 @@ def scalars_checker(scalars, scalar_names):
 
     return scalars, scalar_names
 
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 # Read and apply an affine transform to the points of a VTK surface mesh
-#------------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
 def read_itk_transform_old(transform_file):
     """
     Read ITK transform file and output transform array.
@@ -1143,7 +1159,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     -------
     affine_points : list of lists of floats
         transformed coordinates
-    output_file : string or None (if save_file==False or vtk_or_points is points)
+    output_file : string or None (if not save_file or vtk_or_points is points)
         name of VTK file containing transformed point data
 
     Examples
@@ -1196,14 +1212,16 @@ def apply_affine_transform(transform_file, vtk_or_points,
         save_file = False
 
     # Transform points:
-    points = np.concatenate((points, np.ones((np.shape(points)[0],1))), axis=1)
-    affine_points = np.transpose(np.dot(transform, np.transpose(points)))[:,0:3]
+    points = np.concatenate((points, np.ones((np.shape(points)[0],1))),axis=1)
+    affine_points = np.transpose(np.dot(transform,
+                                        np.transpose(points)))[:,0:3]
     affine_points.tolist()
     affine_points = [x.tolist() for x in affine_points]
 
     # Write transformed VTK file:
     if save_file:
-        output_file = os.path.join(os.getcwd(), 'affine_' + os.path.basename(vtk_or_points))
+        output_file = os.path.join(os.getcwd(),
+                                   'affine_' + os.path.basename(vtk_or_points))
         write_vtk(output_file, affine_points, indices, lines, faces,
                   scalars, name)
     else:
