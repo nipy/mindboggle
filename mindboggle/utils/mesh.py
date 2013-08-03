@@ -574,7 +574,8 @@ def remove_neighbor_lists(neighbor_lists, indices):
 #-----------------------------------------------------------------------------
 # Decimate mesh
 #-----------------------------------------------------------------------------
-def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
+def decimate(points, faces, reduction=0.5, smooth_steps=100,
+             scalars=[], output_vtk=''):
     """
     Decimate vtk triangular mesh with vtk.vtkDecimatePro.
 
@@ -589,6 +590,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
         fraction of mesh faces to remove
     smooth_steps : integer
         number of smoothing steps
+    scalars : list of integers or floats
+        optional scalars for output VTK file
     output_vtk : string
         output decimated vtk file
 
@@ -598,6 +601,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
         decimated points
     faces : list of lists of integers
         decimated faces
+    scalars : list of integers or floats
+        scalars for output VTK file
     output_vtk : string
         output decimated vtk file
 
@@ -606,35 +611,39 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import decimate
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> reduction = 0.5
+    >>> reduction = 0.9
     >>> smooth_steps = 100
     >>> output_vtk = ''
     >>> faces, lines, indices, points, npoints, scalars, scalar_names,
     ...     o2  = read_vtk(input_vtk)
-    >>> points, faces, output_vtk = decimate(points, faces, reduction,
-    >>>                                      smooth_steps, output_vtk)
-    >>> len(points) == 4567
+    >>> points, faces, scalars, output_vtk = decimate(points, faces, reduction,
+    >>>                                      smooth_steps, scalars, output_vtk)
+    >>> len(points) == 2679
     True
     >>> len(points)
-    4567
+    2679
     >>> # View:
-    >>> write_vtk('decimated.vtk', points, indices, lines, faces, scalars,
+    >>> output_vtk = 'decimated.vtk'
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
     >>>           scalar_names) # doctest: +SKIP
-    >>> os.system('mayavi2 -d decimated.vtk -m Surface &') # doctest: +SKIP
+    >>> plot_vtk(output_vtk) # doctest: +SKIP
 
     """
     import os
     import vtk
 
-    from mindboggle.utils.io_vtk import read_vtk
-
+    #-------------------------------------------------------------------------
     # vtk points:
+    #-------------------------------------------------------------------------
     vtk_points = vtk.vtkPoints()
     [vtk_points.InsertPoint(i, x[0], x[1], x[2]) for i,x in enumerate(points)]
 
+    #-------------------------------------------------------------------------
     # vtk faces:
+    #-------------------------------------------------------------------------
     vtk_faces = vtk.vtkCellArray()
     for face in faces:
         vtk_face = vtk.vtkPolygon()
@@ -644,11 +653,27 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
         vtk_face.GetPointIds().SetId(2, face[2])
         vtk_faces.InsertNextCell(vtk_face)
 
+    #-------------------------------------------------------------------------
+    # vtk scalars:
+    #-------------------------------------------------------------------------
+    if scalars:
+        vtk_scalars = vtk.vtkFloatArray()
+        vtk_scalars.SetName("scalars")
+        for scalar in scalars:
+            vtk_scalars.InsertNextValue(scalar)
+
+    #-------------------------------------------------------------------------
     # vtkPolyData:
+    #-------------------------------------------------------------------------
     polydata = vtk.vtkPolyData()
     polydata.SetPoints(vtk_points)
     polydata.SetPolys(vtk_faces)
+    if scalars:
+        polydata.GetPointData().SetScalars(vtk_scalars)
 
+    #-------------------------------------------------------------------------
+    # Decimate:
+    #-------------------------------------------------------------------------
     # We want to preserve topology (not let any cracks form).
     # This may limit the total reduction possible.
     decimate = vtk.vtkDecimatePro()
@@ -656,41 +681,53 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100, output_vtk=''):
     decimate.SetTargetReduction(reduction)
     decimate.PreserveTopologyOn()
 
-    # Export output:
-    if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(), 'decimated_file.vtk')
-    #exporter = vtk.vtkPolyDataWriter()
+    #-------------------------------------------------------------------------
+    # Smooth:
+    #-------------------------------------------------------------------------
+    if output_vtk:
+        exporter = vtk.vtkPolyDataWriter()
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
         smoother.SetInput(decimate.GetOutput())
         smoother.SetNumberOfIterations(smooth_steps)
         smoother.Update()
         out = smoother.GetOutput()
-        #exporter.SetInput(smoother.GetOutput())
+        if output_vtk:
+            exporter.SetInput(smoother.GetOutput())
     else:
         decimate.Update()
         out = decimate.GetOutput()
-        #exporter.SetInput(decimate.GetOutput())
-    #exporter.SetFileName(output_vtk)
-    #exporter.Write()
-    ## Extract points and faces:
-    #faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(output_vtk)
+        if output_vtk:
+            exporter.SetInput(decimate.GetOutput())
 
+    #-------------------------------------------------------------------------
+    # Export output:
+    #-------------------------------------------------------------------------
+    if output_vtk:
+        exporter.SetFileName(output_vtk)
+        exporter.Write()
+        if not os.path.exists(output_vtk):
+            raise(IOError(output_vtk + " not found"))
+
+    #-------------------------------------------------------------------------
+    # Extract decimated points, faces, and scalars:
+    #-------------------------------------------------------------------------
     points = [list(out.GetPoint(point_id))
               for point_id in range(out.GetNumberOfPoints())]
-
     if out.GetNumberOfPolys() > 0:
         polys = out.GetPolys()
+        pt_data = out.GetPointData()
         faces = [[int(polys.GetData().GetValue(j))
                   for j in range(i*4 + 1, i*4 + 4)]
                   for i in range(polys.GetNumberOfCells())]
+        if scalars:
+            scalars = [pt_data.GetScalars().GetValue(i)
+                       for i in range(len(points))]
     else:
         faces = []
+        scalars = []
 
-    if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
-
-    return points, faces, output_vtk
+    return points, faces, scalars, output_vtk
 
 
 def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
@@ -717,251 +754,26 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100, output_vtk=''):
     --------
     >>> import os
     >>> from mindboggle.utils.mesh import decimate_file
+    >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> #input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
     >>> output_vtk = 'decimated_file.vtk'
     >>> reduction = 0.9
     >>> smooth_steps = 0
-    >>> decimate_file(input_vtk, reduction=reduction,
-    >>>               smooth_steps=smooth_steps, output_vtk=output_vtk)
+    >>> decimate_file(input_vtk, reduction, smooth_steps, output_vtk)
     >>> # View:
-    >>> os.system('mayavi2 -d ' + output_vtk + ' -m Surface &')
+    >>> plot_vtk(output_vtk) # doctest: +SKIP
 
     """
-    import os
-    import vtk
-
     from mindboggle.utils.io_vtk import read_vtk
-
-    # Read VTK surface mesh file:
-    faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(input_vtk)
-
-    # vtk points:
-    vtk_points = vtk.vtkPoints()
-    [vtk_points.InsertPoint(i, x[0], x[1], x[2]) for i,x in enumerate(points)]
-
-    # vtk faces:
-    vtk_faces = vtk.vtkCellArray()
-    for face in faces:
-        vtk_face = vtk.vtkPolygon()
-        vtk_face.GetPointIds().SetNumberOfIds(3)
-        vtk_face.GetPointIds().SetId(0, face[0])
-        vtk_face.GetPointIds().SetId(1, face[1])
-        vtk_face.GetPointIds().SetId(2, face[2])
-        vtk_faces.InsertNextCell(vtk_face)
-
-    # vtkPolyData:
-    polydata = vtk.vtkPolyData()
-    polydata.SetPoints(vtk_points)
-    polydata.SetPolys(vtk_faces)
-
-    # We want to preserve topology (not let any cracks form).
-    # This may limit the total reduction possible.
-    decimate = vtk.vtkDecimatePro()
-    decimate.SetInput(polydata)
-    decimate.SetTargetReduction(reduction)
-    decimate.PreserveTopologyOn()
-
-    # Export output:
-    if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(), 'decimated_file.vtk')
-    exporter = vtk.vtkPolyDataWriter()
-    if smooth_steps > 0:
-        smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInputConnection(decimate.GetOutputPort())
-        smoother.SetNumberOfIterations(smooth_steps)
-        exporter.SetInput(smoother.GetOutput())
-    else:
-        exporter.SetInput(decimate.GetOutput())
-    exporter.SetFileName(output_vtk)
-    exporter.Write()
-
-    if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
-
-    return output_vtk
-
-
-def decimate_per_label(input_vtk, reduction=0.5, smooth_steps=100,
-                       output_vtk='', exclude_labels=[-1],
-                       largest_segment=True, area_file=''):
-    """
-    Decimate vtk triangular mesh file per label with vtk.vtkDecimatePro.
-
-    Parameters
-    ----------
-    input_vtk : string
-        input vtk file with triangular surface mesh
-    reduction : float
-        fraction of mesh faces to remove
-    do_smooth : Boolean
-        smooth after decimation?
-    output_vtk : string
-        output decimated vtk file
-    exclude_labels : list of integers
-        labels to be excluded
-    largest_segment :  Boolean
-        decimate only largest segment with a given label?
-    area_file :  string
-        name of VTK file with surface area scalar values
-
-    Returns
-    -------
-    output_vtk : string
-        output decimated vtk file
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh import decimate_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> output_vtk = 'decimated_file.vtk'
-    >>> reduction = 0.9
-    >>> smooth_steps = 0
-    >>> exclude_labels = [-1]
-    >>> largest_segment = True
-    >>> decimate_per_label(input_vtk, reduction, smooth_steps, output_vtk,
-    >>>                    exclude_labels, largest_segment, area_file)
-    >>> # View:
-    >>> os.system('mayavi2 -d ' + output_vtk + ' -m Surface &')
-
-    """
-    import os
-    import vtk
-
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.utils.mesh import remove_faces
-
-    # Read VTK surface mesh file:
-    faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(input_vtk)
-
-    # Area file:
-    if area_file:
-        areas, u1 = read_scalars(area_file)
-    else:
-        areas = None
-
-    # Loop through labeled regions:
-    ulabels = []
-    [ulabels.append(int(x)) for x in labels if x not in ulabels
-     if x not in exclude_labels]
-    for label in ulabels:
-      #if label==22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
-
-        # Determine the indices per label:
-        label_indices = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.format(len(label_indices), label))
-
-        # Remove background faces:
-        select_faces = remove_faces(faces, label_indices)
-
-        # Compute Laplace-Beltrami spectrum for the label:
-        if largest_segment:
-            exclude_labels_inner = [-1]
-            spectrum = spectrum_of_largest(points, select_faces,
-                                           n_eigenvalues,
-                                           exclude_labels_inner,
-                                           normalization, areas)
-        else:
-            spectrum = fem_laplacian(points, select_faces,
-                                     n_eigenvalues, normalization)
-
-
-
-
-    # vtk points:
-    vtk_points = vtk.vtkPoints()
-    [vtk_points.InsertPoint(i, x[0], x[1], x[2]) for i,x in enumerate(points)]
-
-    # vtk faces:
-    vtk_faces = vtk.vtkCellArray()
-    for face in faces:
-        vtk_face = vtk.vtkPolygon()
-        vtk_face.GetPointIds().SetNumberOfIds(3)
-        vtk_face.GetPointIds().SetId(0, face[0])
-        vtk_face.GetPointIds().SetId(1, face[1])
-        vtk_face.GetPointIds().SetId(2, face[2])
-        vtk_faces.InsertNextCell(vtk_face)
-
-    # vtkPolyData:
-    polydata = vtk.vtkPolyData()
-    polydata.SetPoints(vtk_points)
-    polydata.SetPolys(vtk_faces)
-
-    # We want to preserve topology (not let any cracks form).
-    # This may limit the total reduction possible.
-    decimate = vtk.vtkDecimatePro()
-    decimate.SetInput(polydata)
-    decimate.SetTargetReduction(reduction)
-    decimate.PreserveTopologyOn()
-
-    # Export output:
-    if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(), 'decimated_file.vtk')
-    exporter = vtk.vtkPolyDataWriter()
-    if smooth_steps > 0:
-        smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInputConnection(decimate.GetOutputPort())
-        smoother.SetNumberOfIterations(smooth_steps)
-        exporter.SetInput(smoother.GetOutput())
-    else:
-        exporter.SetInput(decimate.GetOutput())
-    exporter.SetFileName(output_vtk)
-    exporter.Write()
-
-    if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
-
-    return output_vtk
-
-
-if __name__ == "__main__":
-
-    import os
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
     from mindboggle.utils.mesh import decimate
-    path = os.environ['MINDBOGGLE_DATA']
-    input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    reduction = 0.5
-    smooth_steps = 100
-    faces, lines, indices, points, npoints, labels, o1, o2  = read_vtk(input_vtk)
 
-    import vtk
+    # Read VTK surface mesh file:
+    faces, u1, u2, points, u4, scalars, u5, u6 = read_vtk(input_vtk)
 
-    # vtk points:
-    vtk_points = vtk.vtkPoints()
-    [vtk_points.InsertPoint(i, x[0], x[1], x[2]) for i,x in enumerate(points)]
-
-    # vtk faces:
-    vtk_faces = vtk.vtkCellArray()
-    for face in faces:
-        vtk_face = vtk.vtkPolygon()
-        vtk_face.GetPointIds().SetNumberOfIds(3)
-        vtk_face.GetPointIds().SetId(0, face[0])
-        vtk_face.GetPointIds().SetId(1, face[1])
-        vtk_face.GetPointIds().SetId(2, face[2])
-        vtk_faces.InsertNextCell(vtk_face)
-
-    # vtkPolyData:
-    polydata = vtk.vtkPolyData()
-    polydata.SetPoints(vtk_points)
-    polydata.SetPolys(vtk_faces)
-
-    # We want to preserve topology (not let any cracks form).
-    # This may limit the total reduction possible.
-    decimate = vtk.vtkDecimatePro()
-    decimate.SetInput(polydata)
-    decimate.SetTargetReduction(reduction)
-    decimate.PreserveTopologyOn()
-
-    if smooth_steps > 0:
-        smoother = vtk.vtkSmoothPolyDataFilter()
-        smoother.SetInputConnection(decimate.GetOutputPort())
-        smoother.SetNumberOfIterations(smooth_steps)
-        output = smoother.GetOutput()
-    else:
-        output = decimate.GetOutput()
-
+    # Decimate vtk triangular mesh with vtk.vtkDecimatePro
+    points, faces, scalars, output_vtk = decimate(points, faces, reduction,
+                                                  smooth_steps, scalars,
+                                                  output_vtk)
+    return output_vtk
