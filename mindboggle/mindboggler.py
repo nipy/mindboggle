@@ -76,7 +76,7 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #=============================================================================
 parser = argparse.ArgumentParser()
 parser.add_argument("subjects",
-                    help=("Example: \"python %(prog)s sub1 sub2 sub3 -n 4\" "
+                    help=("Example: \"python %(prog)s sub1 sub2 sub3\" "
                           "\"sub1\",... are subject names corresponding to "
                           "subject directories within $SUBJECTS_DIR"),
                     nargs='+')
@@ -87,8 +87,6 @@ parser.add_argument("-n",
                     type=int)
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
-parser.add_argument("-g", help=("generate py/graphviz workflow visual"),
-                    choices=['hier', 'flat', 'exec'])
 parser.add_argument("--iters", help="ANTs nonlinear registration iterations",
                     default='33x99x11')
 parser.add_argument("--no_reg", help="do not register to template",
@@ -97,15 +95,19 @@ parser.add_argument("--no_labels", action='store_true',
                     help="do not label surfaces or volumes")
 parser.add_argument("--no_sulci", action='store_true',
                     help="do not extract sulci")
-parser.add_argument("--no_fundi", action='store_true',
-                    help="do not extract fundi")
+#parser.add_argument("--no_fundi", action='store_true',
+#                    help="do not extract fundi")
+parser.add_argument("--fundi", action='store_true',
+                    help="extract fundi")
 parser.add_argument("--no_spectra", action='store_true',
                     help="do not compute Laplace-Beltrami spectra")
 parser.add_argument("--eigenvalues",
                     help="number of Laplace-Beltrami eigenvalues",
                     default=10, type=int)
-parser.add_argument("--no_zernike", action='store_true',
-                    help="do not compute Zernike moments")
+#parser.add_argument("--no_zernike", action='store_true',
+#                    help="do not compute Zernike moments")
+parser.add_argument("--zernike", action='store_true',
+                    help="compute Zernike moments")
 parser.add_argument("--order", help="order of Zernike moments",
                     default=10, type=int)
 parser.add_argument("--reduction", help="fraction to decimate mesh before "
@@ -124,7 +126,7 @@ parser.add_argument("--no_freesurfer", action='store_true',
                          "or to register surfaces "
                          "(instead, you must supply vtk and nifti files "
                          "in the appropriate $SUBJECT_DIR subdirectories)")
-parser.add_argument("--add_atlases", help=("additional volume atlas(es) in "
+parser.add_argument("--atlases", help=("additional volume atlas file(s) in "
                                        "MNI152 space"),
                     nargs='+')
 parser.add_argument("--classifier", help=("Gaussian classifier surface atlas "
@@ -138,6 +140,8 @@ parser.add_argument("--protocol", help=("label protocol: DKT25 is a "
                                         "regions per hemisphere [DKT25]"),
                     choices=['DKT25', 'DKT31'],
                     default='DKT25')
+parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
+                    choices=['hier', 'flat', 'exec'])
 parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
@@ -148,7 +152,7 @@ subjects = args.subjects
 output_path = args.o
 nprocesses = args.n
 cluster = args.c
-graph_vis = args.g
+graph_vis = args.visual
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
 no_freesurfer = args.no_freesurfer
@@ -161,13 +165,15 @@ no_vol = args.no_vol
 iters = args.iters
 no_surf = args.no_surf
 no_sulci = args.no_sulci
-no_fundi = args.no_fundi
+#no_fundi = args.no_fundi
+do_fundi = args.fundi
 no_spectra = args.no_spectra
 eigenvalues = args.eigenvalues
-no_zernike = args.no_zernike
+#no_zernike = args.no_zernike
+do_zernike = args.zernike
 zernike_order = args.order
 reduction = args.reduction
-add_atlases = args.add_atlases
+atlases = args.atlases
 protocol = args.protocol
 classifier_name = args.classifier
 no_tables = args.no_tables
@@ -222,32 +228,37 @@ if not no_surf:
 #-----------------------------------------------------------------------------
 do_folds = False  # Extract folds
 do_sulci = False  # Extract sulci
-do_fundi = False  # Extract fundi
+#do_fundi = False  # Extract fundi
 do_smooth_fundi = False
 if run_SurfFeatureFlow:
     do_folds = True
     if not no_sulci:
         do_sulci = True
-        if not no_fundi:
-            do_fundi = True
-            do_smooth_fundi = True
+#        if not no_fundi:
+#            do_fundi = True
+#            do_smooth_fundi = True
+if do_fundi:
+    do_smooth_fundi = True
 #-----------------------------------------------------------------------------
 # Surface shapes:
 #-----------------------------------------------------------------------------
 do_decimate = False
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
-do_zernike = False  # Measure Zernike moments for features
+#do_zernike = False  # Measure Zernike moments for features
 do_thickness = False  # Include FreeSurfer's thickness measure
 do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 if run_WholeSurfShapeFlow:
     if not no_spectra:
         do_spectra = True
-    if not no_zernike:
-        do_zernike = True
+#    if not no_zernike:
+#        do_zernike = True
+#        do_decimate = True
+    if do_zernike:
         do_decimate = True
     if not no_freesurfer:
         do_thickness = True
         do_convexity = True
+
 #-----------------------------------------------------------------------------
 # Labels:
 #-----------------------------------------------------------------------------
@@ -314,8 +325,8 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
 atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz']
-if add_atlases:
-    atlas_volumes.extend(add_atlases)
+if atlases:
+    atlas_volumes.extend(atlases)
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
