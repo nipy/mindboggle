@@ -360,7 +360,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     spectra_names = ['label spectrum', 'sulcus spectrum']
     zernike_lists = [labels_zernike, sulci_zernike]
     zernike_ID_lists = [labels_zernike_IDs, sulci_zernike_IDs]
-    zernike_names = ['label spectrum', 'sulcus spectrum']
+    zernike_names = ['label zernike', 'sulcus zernike']
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
