@@ -101,8 +101,16 @@ parser.add_argument("--no_fundi", action='store_true',
                     help="do not extract fundi")
 parser.add_argument("--no_spectra", action='store_true',
                     help="do not compute Laplace-Beltrami spectra")
+parser.add_argument("--eigenvalues",
+                    help="number of Laplace-Beltrami eigenvalues",
+                    default=10, type=int)
 parser.add_argument("--no_zernike", action='store_true',
                     help="do not compute Zernike moments")
+parser.add_argument("--order", help="order of Zernike moments",
+                    default=10, type=int)
+parser.add_argument("--reduction", help="fraction to decimate mesh before "
+                    "computing Zernike moments",
+                    default=0.75, type=float)
 parser.add_argument("--no_tables", action='store_true',
                     help="do not generate shape tables")
 parser.add_argument("--pt_table", action='store_true',
@@ -143,23 +151,22 @@ cluster = args.c
 graph_vis = args.g
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
-
-
 no_freesurfer = args.no_freesurfer
 no_labels = args.no_labels
 if no_labels:
     do_label = False
 else:
     do_label = True
-
-
 no_vol = args.no_vol
 iters = args.iters
 no_surf = args.no_surf
 no_sulci = args.no_sulci
 no_fundi = args.no_fundi
 no_spectra = args.no_spectra
+eigenvalues = args.eigenvalues
 no_zernike = args.no_zernike
+zernike_order = args.order
+reduction = args.reduction
 add_atlases = args.add_atlases
 protocol = args.protocol
 classifier_name = args.classifier
@@ -365,7 +372,9 @@ Sink.inputs.substitutions = [('_hemi_lh', 'left'),
     ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
     ('combined_labels.nii.gz',
      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
-    ('transformed.nii.gz', 'whole_brain_volume_labels.nii.gz')]
+    ('transformed.nii.gz', 'whole_brain_volume_labels.nii.gz'),
+    ('brain_to_OASIS-TRT-20_template_to_MNI152', 'brain_to_template'),
+    ('OASIS-TRT-20to_MNI152.nii.gz', 'OASIS-TRT-20_template')]
 
 if run_SurfFlows:
     #-------------------------------------------------------------------------
@@ -1221,7 +1230,7 @@ if run_SurfFlows:
         SurfFeatureShapeFlow.add_nodes([DecimateLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Decimate_labels.input_vtk')
-        DecimateLabels.inputs.reduction = 0.5
+        DecimateLabels.inputs.reduction = reduction
         DecimateLabels.inputs.smooth_steps = 100
         DecimateLabels.inputs.save_vtk = True
         DecimateLabels.inputs.output_vtk = ''
@@ -1256,7 +1265,7 @@ if run_SurfFlows:
         SurfFeatureShapeFlow.add_nodes([SpectraLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
-        SpectraLabels.inputs.n_eigenvalues = 20
+        SpectraLabels.inputs.n_eigenvalues = eigenvalues
         SpectraLabels.inputs.exclude_labels = [0]
         SpectraLabels.inputs.normalization = "area"
         SpectraLabels.inputs.area_file = ""
@@ -1297,7 +1306,7 @@ if run_SurfFlows:
         else:
             mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                            SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
-        ZernikeLabels.inputs.order = 20
+        ZernikeLabels.inputs.order = zernike_order
         ZernikeLabels.inputs.exclude_labels = [0]
         ZernikeLabels.inputs.largest_segment = True
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
@@ -1309,6 +1318,7 @@ if run_SurfFlows:
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
+            ZernikeSulci.inputs.exclude_labels = [-1]
             if do_decimate:
                 SurfFeatureShapeFlow.connect(DecimateSulci, 'output_vtk',
                                              ZernikeSulci, 'vtk_file')

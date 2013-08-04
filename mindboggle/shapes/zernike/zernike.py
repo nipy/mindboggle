@@ -227,7 +227,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> order = 3
+    >>> order = 10
     >>> exclude_labels = [0]
     >>> largest_segment = True
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
