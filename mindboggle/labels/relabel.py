@@ -144,10 +144,13 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
         input labeled VTK file
     hemi : string
         hemisphere ('lh' or 'rh' or '')
+        if set, add 1000 to left and 2000 to right hemisphere labels;
     old_labels : list of integers
-        old labels
+        old labels (empty list if labels drawn from vtk scalars);
+        may be used in conjunction with hemi
     new_labels : list of integers
-        new labels
+        new labels (empty list if labels drawn from vtk scalars);
+        may be used in conjunction with hemi
     output_file : string
         new vtk file name
 
@@ -181,8 +184,8 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     faces, lines, indices, points, npoints, scalars, \
         name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
 
-    # Add a hemisphere value to each label:
-    if hemi:
+    # Add a hemisphere value to each unique label drawn from scalars:
+    if hemi and not old_labels and not new_labels:
         ulabels = np.unique(scalars)
         for label in ulabels:
             I = np.where(scalars == int(label))[0]
@@ -190,11 +193,17 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
                 scalars[I] = 1000 + int(label)
             elif hemi == 'rh':
                 scalars[I] = 2000 + int(label)
-    # OR replace each old label with a corresponding new label:
+    # OR replace each old label with a corresponding new label
+    # (hemisphere setting optionally adds 1000 or 2000 to the new label):
     else:
         for ilabel, new_label in enumerate(new_labels):
             I = np.where(scalars == int(old_labels[ilabel]))[0]
-            scalars[I] = int(new_label)
+            if hemi == 'lh':
+                scalars[I] = 1000 + int(new_label)
+            elif hemi == 'rh':
+                scalars[I] = 2000 + int(new_label)
+            else:
+                scalars[I] = int(new_label)
 
     if not output_file:
         output_file = os.path.join(os.getcwd(),
