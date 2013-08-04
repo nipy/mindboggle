@@ -317,9 +317,16 @@ if not os.path.isdir(output_path):
 #-----------------------------------------------------------------------------
 # Protocol information
 #-----------------------------------------------------------------------------
+# Selected (DKT31 or DKT25) protocol:
 sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
     label_names, label_numbers, cortex_names, cortex_numbers, \
     noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+# DKT31 protocol:
+if protocol == 'DKT25':
+    sulcus_names_DKT31, sulcus_label_pair_lists_DKT31, \
+    unique_sulcus_label_pairs_DKT31, label_names_DKT31, label_numbers_DKT31, \
+    cortex_names_DKT31, cortex_numbers_DKT31, noncortex_names_DKT31, \
+    noncortex_numbers_DKT31 = dkt_protocol(protocol)
 #-----------------------------------------------------------------------------
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
@@ -892,8 +899,17 @@ if run_SurfLabelFlow:
         SurfLabelFlow.add_nodes([RelabelSurface])
         SurfLabelFlow.connect(plug1, plug2, RelabelSurface, 'vtk_file')
         mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
-        RelabelSurface.inputs.old_labels = ''
-        RelabelSurface.inputs.new_labels = ''
+        if protocol == 'DKT31':
+            RelabelSurface.inputs.old_labels = ''
+            RelabelSurface.inputs.new_labels = ''
+        elif protocol == 'DKT25':
+            ctx_DKT31 = cortex_numbers_DKT31
+            old_labels = ctx_DKT31.extend([1010, 1019, 1020, 1023, 1026, 1027,
+                                           2010, 2019, 2020, 2023, 2026, 2027])
+            new_labels = ctx_DKT31.extend([1002, 1002, 1002, 1003, 1018, 1018,
+                                           2002, 2002, 2002, 2003, 2018, 2018])
+            RelabelSurface.inputs.old_labels = old_labels
+            RelabelSurface.inputs.new_labels = new_labels
         RelabelSurface.inputs.output_file = ''
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        Sink, 'labels.@surface')
