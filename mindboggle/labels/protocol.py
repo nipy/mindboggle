@@ -50,42 +50,50 @@ Regions bounded by sulcal fundi:
 ==============================================================================
 Lateral surface:
 ------------------------------------------------------------------------------
-frontomarginal sulcus: [28,12]
-superior frontal: [28,3]
-inferior frontal: [3,18]
-precentral: [28,24]*,[3,24]*,[18,24]*
-central sulcus: [24,22]
-postcentral: [22,29],[22,31], not:[24,22]
-intraparietal: [29,31],[29,8]
+frontomarginal sulcus: [12,28]
+superior frontal: [3,28],[27,28]
+inferior frontal: [3,18],[3,19],[3,20], [18,27],[19,27],[20,27]
+precentral: [24,28]*, [[3,24],[24,27]]*, [[18,24],[19,24],[20,24]]*
+central sulcus: [22,24]
+postcentral: [22,29],[22,31], not:[22,24]
+intraparietal: [29,31], [8,29]
 primary intermediate sulcus /
-    1st segment of the posterior superior temporal sulcus: [31,8]*
-sylvian fissure: [31,30]*, not:[18,30] (see note #2)
-lateral occipital sulcus: [11,8]*,[11,29]*
-anterior occipital sulcus: [11,15]*,[11,9]
-superior temporal sulcus: [30,15]
-inferior temporal sulcus: [15,9]*
+    1st segment of the posterior superior temporal sulcus: [8,31]*
+sylvian fissure: [30,31]*, not:[18,30] (see note #2)
+lateral occipital sulcus: [8,11]*,[11,29]*
+anterior occipital sulcus: [11,15]*,[9,11]
+superior temporal sulcus: [15,30]
+inferior temporal sulcus: [9,15]*
 ------------------------------------------------------------------------------
 PeriSylvian area (folds within the Sylvian fissure):
 ------------------------------------------------------------------------------
-circular sulcus: [35,30],[35,34],[35,12],[35,2],[35,24],[35,22],[35,31]
+circular sulcus: [12,35],[30,35],[34,35], [2,35],[10,35],[23,35],[26,35],
+                 [22,35], [24,35], [31,35]
 1st transverse temporal sulcus: [30,34]
 Heschl's sulcus: [30,34]
+
+
+    # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
+
+
 ------------------------------------------------------------------------------
 Medial surface:
 ------------------------------------------------------------------------------
-cingulate sulcus: [2,14] (see note #3),[2,28],[2,17],[25,17]
+cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see note #3),
+                  [2,28],[10,28],[23,28],[26,28],
+                  [2,17],[10,17],[17,23],[17,26], [17,25]
 paracentral sulcus: [17,28]*
 parietooccipital fissure: [5,25]
-calcarine fissure: [13,25],[13,2], not:[5,13] (see note #4)
-superior rostral sulcus: [28,14]
-callosal sulcus: [2,corpus callosum]
+calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (note #4)
+superior rostral sulcus: [14,28]
+callosal sulcus: [2,4],[4,10],[4,23],[4,26]
 ------------------------------------------------------------------------------
 Ventral surface:
 ------------------------------------------------------------------------------
-lateral H-shaped orbital sulcus: [12,18],[12,3]
+lateral H-shaped orbital sulcus: [3,12],[12,27], [12,18],[12,19],[12,20]
 olfactory sulcus: [12,14]
 occipitotemporal sulcus: [7,9],[7,11]
-collateral sulcus: [7,6],[7,16],[7,13]
+collateral sulcus: [6,7], [7,13], [7,16]
 
 ==============================================================================
 What boundaries will NEVER be derived by fundi, but instead by curvature, etc.
@@ -131,14 +139,9 @@ import numpy as np
 #=============================================================================
 # DKT protocol
 #=============================================================================
-def dkt_protocol(protocol='DKT25'):
+def dkt_protocol():
     """
     Variables related to the Desikan-Killiany-Tourville labeling protocol.
-
-    Parameters
-    ----------
-    protocol : string
-        name of protocol ('DKT25' or 'DKT31')
 
     Returns
     -------
@@ -154,13 +157,17 @@ def dkt_protocol(protocol='DKT25'):
     label_numbers : list of integers
         label numbers
     cortex_names : list of strings
-        label names for cortical regions
+        label names for cortical regions in the DKT31 protocol
+    cortex_names_DKT25 : list of strings
+        label names for cortical regions in the DKT25 protocol
     cortex_numbers : list of integers
-        label numbers for cortical regions
+        label numbers for cortical regions in the DKT31 protocol
+    cortex_numbers_DKT25 : list of integers
+        label numbers for cortical regions in the DKT25 protocol
     noncortex_names : list of strings
-        label names for noncortical regions
+        label names for noncortical regions in the CMA protocol
     noncortex_numbers : list of integers
-        label numbers for noncortical regions
+        label numbers for noncortical regions in the CMA protocol
 
     Examples
     --------
@@ -170,84 +177,6 @@ def dkt_protocol(protocol='DKT25'):
     ...    noncortex_names, noncortex_numbers = dkt_protocol()
 
     """
-
-    #-------------------------------------------------------------------------
-    # Sulcus names from the DKT labeling protocol:
-    #-------------------------------------------------------------------------
-    sulcus_names = ["frontomarginal sulcus",
-        "superior frontal sulcus",
-        "inferior frontal sulcus",
-        "precentral sulcus",
-        "central sulcus",
-        "postcentral sulcus",
-        "intraparietal sulcus",
-        "primary intermediate sulcus/1st segment of post. sup. temporal sulcus",
-        "sylvian fissure",
-        "lateral occipital sulcus",
-        "anterior occipital sulcus",
-        "superior temporal sulcus",
-        "inferior temporal sulcus",
-        "circular sulcus",
-        "1st transverse temporal sulcus and Heschl's sulcus",
-        "cingulate sulcus",
-        "paracentral sulcus",
-        "parietooccipital fissure",
-        "calcarine fissure",
-        "superior rostral sulcus",
-        "callosal sulcus",
-        "lateral H-shaped orbital sulcus",
-        "olfactory sulcus",
-        "occipitotemporal sulcus",
-        "collateral sulcus"]
-
-    #-------------------------------------------------------------------------
-    # Lists of label pairs that define sulcus boundaries (or fundi)
-    # according to the DKT labeling protocol.
-    #-------------------------------------------------------------------------
-    pair_lists = [
-        [[12,28]],
-        [[3,28]],
-        [[3,18]],
-        [[24,28], [3,24], [18,24]],
-        [[22, 24]],
-        [[22,29], [22,31]],
-        [[29,31], [8,29]],
-        [[8,31]],
-        [[30,31]],
-        [[8,11], [11,29]],
-        [[11,15], [9,11]],
-        [[15,30]],
-        [[9,15]],
-        [[30,35], [34,35], [12,35], [2,35], [24,35], [22,35], [31,35]],
-        [[30,34]],
-        [[2,14], [2,28], [2,17], [17,25]],
-        [[17,28]],
-        [[5,25]],
-        [[13,25], [2,13]],
-        [[14,28]],
-        [[2,4]],
-        [[12,18], [3,12]],
-        [[12,14]],
-        [[7,9], [7,11]],
-        [[6,7], [7,16], [7,13]]]
-    left_pair_lists = []
-    right_pair_lists = []
-    unique_sulcus_label_pairs = []  # unique sorted label pairs
-    for pair_list in pair_lists:
-        left_pairs = []
-        right_pairs = []
-        for pair in pair_list:
-            left_pair = [1000 + pair[0], 1000 + pair[1]]
-            right_pair = [2000 + pair[0], 2000 + pair[1]]
-            left_pairs.append(left_pair)
-            right_pairs.append(right_pair)
-            if left_pair not in unique_sulcus_label_pairs:
-                unique_sulcus_label_pairs.append(left_pair)
-            if right_pair not in unique_sulcus_label_pairs:
-                unique_sulcus_label_pairs.append(right_pair)
-        left_pair_lists.append(left_pairs)
-        right_pair_lists.append(right_pairs)
-    sulcus_label_pair_lists = [left_pair_lists, right_pair_lists]
 
     #-------------------------------------------------------------------------
     # DKT cortical labeling protocol -- 31 labels:
@@ -322,33 +251,30 @@ def dkt_protocol(protocol='DKT25'):
     #-------------------------------------------------------------------------
     # DKT cortical labeling protocol -- 25 labels:
     #-------------------------------------------------------------------------
-    if protocol == 'DKT25':
+    # Region numbers:
+    # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
+    cortex_numbers_DKT25 = cortex_numbers[:]
+    for n in [1010, 1019, 1020, 1023, 1026, 1027,
+              2010, 2019, 2020, 2023, 2026, 2027]:
+        cortex_numbers_DKT25.remove(n)
 
-        # Region numbers:
-        # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
-        for n in [1010, 1019, 1020, 1023, 1026, 1027,
-                  2010, 2019, 2020, 2023, 2026, 2027]:
-            cortex_numbers.remove(n)
-
-        # Consolidate region labels:
-        cortex_names_new = []
-        for ilabel, label_number in enumerate(cortex_numbers):
-            if label_number == 1002:
-                cortex_names_new.append('left cingulate')
-            elif label_number == 1003:
-                cortex_names_new.append('left middle frontal')
-            elif label_number == 1018:
-                cortex_names_new.append('left inferior frontal')
-            elif label_number == 2002:
-                cortex_names_new.append('right cingulate')
-            elif label_number == 2003:
-                cortex_names_new.append('right middle frontal')
-            elif label_number == 2018:
-                cortex_names_new.append('right inferior frontal')
-            else:
-                cortex_names_new.append(cortex_names[ilabel])
-
-        cortex_names = cortex_names_new
+    # Consolidate region labels:
+    cortex_names_DKT25 = []
+    for ilabel, label_number in enumerate(cortex_numbers):
+        if label_number == 1002:
+            cortex_names_DKT25.append('left cingulate')
+        elif label_number == 1003:
+            cortex_names_DKT25.append('left middle frontal')
+        elif label_number == 1018:
+            cortex_names_DKT25.append('left inferior frontal')
+        elif label_number == 2002:
+            cortex_names_DKT25.append('right cingulate')
+        elif label_number == 2003:
+            cortex_names_DKT25.append('right middle frontal')
+        elif label_number == 2018:
+            cortex_names_DKT25.append('right inferior frontal')
+        else:
+            cortex_names_DKT25.append(cortex_names[ilabel])
 
     #-------------------------------------------------------------------------
     # Noncortex label numbers and names (BrainCOLOR, Neuromorphometrics)
@@ -403,11 +329,93 @@ def dkt_protocol(protocol='DKT25'):
     label_numbers.extend(cortex_numbers)
 
     #-------------------------------------------------------------------------
+    # Sulcus names from the DKT labeling protocol:
+    #-------------------------------------------------------------------------
+    sulcus_names = [
+        "frontomarginal sulcus",
+        "superior frontal sulcus",
+        "inferior frontal sulcus",
+        "precentral sulcus",
+        "central sulcus",
+        "postcentral sulcus",
+        "intraparietal sulcus",
+        "primary intermediate sulcus/1st segment of post. sup. temporal sulcus",
+        "sylvian fissure",
+        "lateral occipital sulcus",
+        "anterior occipital sulcus",
+        "superior temporal sulcus",
+        "inferior temporal sulcus",
+        "circular sulcus",
+        "1st transverse temporal sulcus and Heschl's sulcus",
+        "cingulate sulcus",
+        "paracentral sulcus",
+        "parietooccipital fissure",
+        "calcarine fissure",
+        "superior rostral sulcus",
+        "callosal sulcus",
+        "lateral H-shaped orbital sulcus",
+        "olfactory sulcus",
+        "occipitotemporal sulcus",
+        "collateral sulcus"]
+
+    #-------------------------------------------------------------------------
+    # Lists of label pairs that define sulcus boundaries (or fundi)
+    # according to the DKT labeling protocol.
+    # 1000 [lh] or 2000 [rh] are added to these numbers below.
+    #-------------------------------------------------------------------------
+    pair_lists = [
+        [[12,28]],
+        [[3,28], [27,28]],
+        [[3,18],[3,19],[3,20], [18,27],[19,27],[20,27]],
+        [[24,28], [3,24],[24,27], [18,24],[19,24],[20,24]],
+        [[22,24]],
+        [[22,29], [22,31]],
+        [[29,31], [8,29]],
+        [[8,31]],
+        [[30,31]],
+        [[8,11], [11,29]],
+        [[11,15], [9,11]],
+        [[15,30]],
+        [[9,15]],
+        [[12,35], [30,35], [34,35], [2,35],[10,35],[23,35],[26,35],
+            [22,35], [24,35], [31,35]],
+        [[30,34]],
+        [[2,14],[10,14],[14,23],[14,26], [2,28],[10,28],[23,28],[26,28],
+            [2,17],[10,17],[17,23],[17,26], [17,25]],
+        [[17,28]],
+        [[5,25]],
+        [[13,25], [2,13],[10,13],[13,23],[13,26]],
+        [[14,28]],
+        [[2,4], [4,10], [4,23], [4,26]],
+        [[3,12],[12,27], [12,18],[12,19],[12,20]],
+        [[12,14]],
+        [[7,9], [7,11]],
+        [[6,7], [7,16], [7,13]]]
+    left_pair_lists = []
+    right_pair_lists = []
+    unique_sulcus_label_pairs = []  # unique sorted label pairs
+    for pair_list in pair_lists:
+        left_pairs = []
+        right_pairs = []
+        for pair in pair_list:
+            left_pair = [1000 + pair[0], 1000 + pair[1]]
+            right_pair = [2000 + pair[0], 2000 + pair[1]]
+            left_pairs.append(left_pair)
+            right_pairs.append(right_pair)
+            if left_pair not in unique_sulcus_label_pairs:
+                unique_sulcus_label_pairs.append(left_pair)
+            if right_pair not in unique_sulcus_label_pairs:
+                unique_sulcus_label_pairs.append(right_pair)
+        left_pair_lists.append(left_pairs)
+        right_pair_lists.append(right_pairs)
+    sulcus_label_pair_lists = [left_pair_lists, right_pair_lists]
+
+    #-------------------------------------------------------------------------
     # Returns
     #-------------------------------------------------------------------------
     return sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-        label_names, label_numbers, cortex_names, cortex_numbers, \
-        noncortex_names, noncortex_numbers
+        label_names, label_numbers, cortex_names, cortex_names_DKT25, \
+        cortex_numbers, cortex_numbers_DKT25, noncortex_names, noncortex_numbers
 
 
 
