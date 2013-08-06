@@ -95,6 +95,7 @@ def label_with_classifier(subject, hemi, left_classifier='',
 
     """
     import os
+    from mindboggle.utils.utils import execute
 
     if not annot_file:
         annot_file = os.path.join(os.getcwd(), hemi + '.classifier.annot')
@@ -109,8 +110,7 @@ def label_with_classifier(subject, hemi, left_classifier='',
     args = ['mris_ca_label', subject, hemi, hemi+'.sphere.reg', classifier,
             annot_file]
     cmd = ' '.join(args)
-    print(cmd)
-    os.system(cmd)
+    execute(cmd)
     if not os.path.exists(annot_file):
         raise(IOError(annot_file + " not found"))
 

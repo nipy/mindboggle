@@ -52,19 +52,18 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
 
     """
     import os
+    from mindboggle.utils.utils import execute
 
     if not output_stem:
         src = os.path.basename(source).split('.')[0]
         tgt = os.path.basename(target).split('.')[0]
         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
 
-    args = ['ANTS 3 -m', 'CC[' + target + ',' + source + ',1,2]',
-            '-r Gauss[2,0] -t SyN[0.5] -i', iterations,
+    cmd = ['ANTS', '3', '-m', 'CC[' + target + ',' + source + ',1,2]',
+            '-r', 'Gauss[2,0]', '-t', 'SyN[0.5]', '-i', iterations,
             '-o', output_stem, '--use-Histogram-Matching',
-            '--number-of-affine-iterations 10000x10000x10000x10000x10000']
-    cmd = ' '.join(args)
-    print(cmd)
-    os.system(cmd)  # p = Popen(args);
+            '--number-of-affine-iterations', '10000x10000x10000x10000x10000']
+    execute(cmd)
 
     affine_transform = output_stem + 'Affine.txt'
     nonlinear_transform = output_stem + 'Warp.nii.gz'
@@ -117,20 +116,8 @@ def WarpImageMultiTransform(source, target, output='',
         output label file name
 
     """
-
     import os
-
-    if xfm_stem:
-        affine_transform = xfm_stem + 'Affine.txt'
-        if inverse:
-            nonlinear_transform = xfm_stem + 'InverseWarp.nii.gz'
-        else:
-            nonlinear_transform = xfm_stem + 'Warp.nii.gz'
-    else:
-        xfm_stem = os.path.join(os.getcwd(),
-                                os.path.basename(source).split('.')[0] +
-                                '_to_' +
-                                os.path.basename(target).split('.')[0])
+    from mindboggle.utils.utils import execute
 
     if not output:
         output = os.path.join(os.getcwd(), 'transformed.nii.gz')
@@ -140,22 +127,20 @@ def WarpImageMultiTransform(source, target, output='',
 
     if affine_only:
         if inverse:
-            args = ['WarpImageMultiTransform 3', source, output, '-R', target,
-                    interp, '-i', affine_transform]
+            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+                   target, interp, '-i', affine_transform]
         else:
-            args = ['WarpImageMultiTransform 3', source, output, '-R', target,
-                    interp, affine_transform]
+            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+                   target, interp, affine_transform]
     else:
         if inverse:
-            args = ['WarpImageMultiTransform 3', source, output, '-R', target,
-                    interp, '-i', affine_transform, nonlinear_transform]
+            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+                   target, interp, '-i', affine_transform,
+                   nonlinear_transform]
         else:
-            args = ['WarpImageMultiTransform 3', source, output, '-R', target,
-                    interp, nonlinear_transform, affine_transform]
-    cmd = ' '.join(args)
-    print(cmd)
-    os.system(cmd)  # p = Popen(args);
-
+            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+                   target, interp, nonlinear_transform, affine_transform]
+    execute(cmd)
     if not os.path.exists(output):
         raise(IOError(output + " not found"))
 
@@ -209,6 +194,7 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
 
     """
     import os
+    from mindboggle.utils.utils import execute
 
     if not output_file:
         output_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
@@ -216,19 +202,14 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     # Binarize image volume:
     if binarize:
         temp_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
-        args = ['ThresholdImage 3', mask_volume, temp_file, '0 1 0 1']
-        cmd = ' '.join(args)
-        print(cmd)
-        os.system(cmd)  # p = Popen(args);
+        cmd = ['ThresholdImage', '3', mask_volume, temp_file, '0 1 0 1']
+        execute(cmd)
         mask_volume = temp_file
 
     # Propagate labels:
-    args = ['ImageMath 3', output_file, 'PropagateLabelsThroughMask',
+    cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
             mask_volume, label_volume]
-    cmd = ' '.join(args)
-    print(cmd)
-    os.system(cmd)  # p = Popen(args);
-
+    execute(cmd)
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
 

@@ -126,6 +126,7 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90,
 
     """
     import os
+    from mindboggle.utils.utils import execute
 
     outfiles = []
     target_file = files[ref_file_index]
@@ -140,15 +141,14 @@ def register_images_to_ref_images(files, ref_file_index=1, max_angle=90,
 
         min_angle = '-' + str(max_angle)
         max_angle = str(max_angle)
-        cmd = ' '.join([flirt_command, '-in', source_file,
-                        '-ref', target_file,
-                        '-dof 7',
-                        '-searchrx', min_angle, max_angle,
-                        '-searchry', min_angle, max_angle,
-                        '-searchrz', min_angle, max_angle,
-                        '-omat', outfile])
-        print(cmd)
-        os.system(cmd)
+        cmd = [flirt_command, '-in', source_file,
+                '-ref', target_file,
+                '-dof', '7',
+                '-searchrx', min_angle, max_angle,
+                '-searchry', min_angle, max_angle,
+                '-searchrz', min_angle, max_angle,
+                '-omat', outfile]
+        execute(cmd)
 
     return outfiles
 
@@ -176,6 +176,7 @@ def apply_transforms(files, ref_file_index, transform_files,
 
     """
     import os
+    from mindboggle.utils.utils import execute
 
     run_ants = False
 
@@ -193,16 +194,15 @@ def apply_transforms(files, ref_file_index, transform_files,
         print('Save registered image: {0}'.format(outfile))
 
         if run_ants:
-            cmd = ' '.join(['WarpImageMultiTransform 3',
-                source_file, outfile, '-R', target_file, transform_file])
+            cmd = ['WarpImageMultiTransform', '3',
+                   source_file, outfile, '-R', target_file, transform_file]
         else:
-            cmd = ' '.join([flirt_command, '-in', source_file,
-                            '-ref', target_file,
-                            '-applyxfm -init', transform_file,
-                            '-interp', interp,
-                            '-out', outfile])
-        print(cmd)
-        os.system(cmd)
+            cmd = [flirt_command, '-in', source_file,
+                    '-ref', target_file,
+                    '-applyxfm', '-init', transform_file,
+                    '-interp', interp,
+                    '-out', outfile]
+        execute(cmd)
 
     return outfiles
 
