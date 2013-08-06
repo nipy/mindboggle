@@ -80,68 +80,75 @@ parser.add_argument("subjects",
                           "\"sub1\",... are subject names corresponding to "
                           "subject directories within $SUBJECTS_DIR"),
                     nargs='+')
-parser.add_argument("-o", help="output directory [$HOME/mindboggled]",
-                    default=os.path.join(os.environ['HOME'], 'mindboggled'))
+parser.add_argument("-o", help="output directory: \"-o $HOME/mindboggled\" "
+                               "(default)",
+                    default=os.path.join(os.environ['HOME'], 'mindboggled'),
+                    metavar='')
 parser.add_argument("-n",
-                    help=("number of processors [1]"),
+                    help=("number of processors: \"-n 1\" (default)"),
                     type=int,
-                    default=1)
+                    default=1, metavar='')
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
-parser.add_argument("--iters", help="ANTs nonlinear registration iterations",
-                    default='33x99x11')
-parser.add_argument("--no_reg", help="do not register to template",
-                    action='store_true')
-parser.add_argument("--no_labels", action='store_true',
-                    help="do not label surfaces or volumes")
-parser.add_argument("--no_sulci", action='store_true',
-                    help="do not extract sulci")
-#parser.add_argument("--no_fundi", action='store_true',
-#                    help="do not extract fundi")
-parser.add_argument("--fundi", action='store_true',
-                    help="extract fundi")
-parser.add_argument("--no_spectra", action='store_true',
-                    help="do not compute Laplace-Beltrami spectra")
-parser.add_argument("--eigenvalues",
-                    help="number of Laplace-Beltrami eigenvalues",
-                    default=10, type=int)
-#parser.add_argument("--no_zernike", action='store_true',
-#                    help="do not compute Zernike moments")
-parser.add_argument("--zernike", action='store_true',
-                    help="compute Zernike moments")
-parser.add_argument("--order", help="order of Zernike moments",
-                    default=10, type=int)
-parser.add_argument("--reduction", help="fraction to decimate mesh before "
-                    "computing Zernike moments",
-                    default=0.75, type=float)
-parser.add_argument("--no_tables", action='store_true',
+# Tables:
+parser.add_argument("--tables_off", action='store_true',
                     help="do not generate shape tables")
 parser.add_argument("--pt_table", action='store_true',
                     help=("make table of per-vertex surface shape measures"))
-parser.add_argument("--no_vol", action='store_true',
-                    help="do not process volumes")
-parser.add_argument("--no_surf", action='store_true',
-                    help="do not process surfaces")
-parser.add_argument("--no_freesurfer", action='store_true',
-                    help="do not use FreeSurfer as input "
-                         "or to register surfaces "
-                         "(instead, you must supply vtk and nifti files "
-                         "in the appropriate $SUBJECT_DIR subdirectories)")
-parser.add_argument("--init_labels",
-                    help=("cortical surface labeling method: "
-                    "classifier atlas; existing FreeSurfer labels; "
-                    "manual labels [atlas]"),
+# Labels:
+parser.add_argument("--labels_off", action='store_true',
+                    help="do not label surfaces or volumes")
+parser.add_argument("--labels",
+                    help=("surface labels: "
+                    "\"atlas\" (default), \"freesurfer\", \"manual\""),
                     choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas')
-parser.add_argument("--atlases", help=("additional volume atlas file(s) in "
-                                       "MNI152 space"),
-                    nargs='+')
+                    default='atlas', metavar='')
+parser.add_argument("--atlases", help=("more volume atlas file(s) in "
+                                       "MNI152 space to label with"),
+                    nargs='+', metavar='')
 #parser.add_argument("--classifier", help=("Gaussian classifier surface atlas "
 #                                          "[DKTatlas100]"),
 #                    choices=['DKTatlas100', 'DKTatlas40'],
 #                    default='DKTatlas100')
+# Registration:
+parser.add_argument("--reg_off", help="do not register to volume template (ANTS)",
+                    action='store_true')
+parser.add_argument("--iters", help="iterations in ANTS: \"--iters 33x99x11\" "
+                                    "(default)",
+                    default='33x99x11', metavar='')
+# Features:
+parser.add_argument("--sulci_off", action='store_true',
+                    help="do not extract sulci")
+#parser.add_argument("--no_fundi", action='store_true',
+#                    help="do not extract fundi")
+parser.add_argument("--fundi", action='store_true',
+                    help="extract fundi (default is not to)")
+# Shapes:
+parser.add_argument("--spectra_off", action='store_true',
+                    help="do not compute Laplace-Beltrami spectra")
+parser.add_argument("--eigs",
+                    help="number of spectrum eigenvalues: \"--eigs 10\" "
+                         "(default)",
+                    default=10, type=int, metavar='')
+#parser.add_argument("--no_zernike", action='store_true',
+#                    help="do not compute Zernike moments")
+parser.add_argument("--zernike", action='store_true',
+                    help="compute Zernike moments (default is not to)")
+parser.add_argument("--order", help="order of Zernike moments: "
+                                    "\"--order 10\" (default)",
+                    default=10, type=int, metavar='')
+parser.add_argument("--reduction", help="mesh decimation fraction: "
+                                        "\"--reduction 0.75\" (default)",
+                    default=0.75, type=float, metavar='')
+# Top settings:
+parser.add_argument("--vol_off", action='store_true',
+                    help="do not process volumes")
+parser.add_argument("--surfs_off", action='store_true',
+                    help="do not process surfaces")
+parser.add_argument("--freesurfer_off", action='store_true',
+                    help="do not use FreeSurfer or its outputs (see README)")
 parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
-                    choices=['hier', 'flat', 'exec'])
+                    choices=['hier', 'flat', 'exec'], metavar='')
 parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
@@ -155,28 +162,28 @@ cluster = args.c
 graph_vis = args.visual
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
-no_freesurfer = args.no_freesurfer
-init_labels = args.init_labels
-no_labels = args.no_labels
-if no_labels:
+freesurfer_off = args.freesurfer_off
+init_labels = args.labels
+labels_off = args.labels_off
+if labels_off:
     do_label = False
 else:
     do_label = True
-no_vol = args.no_vol
+vol_off = args.vol_off
 iters = args.iters
-no_surf = args.no_surf
-no_sulci = args.no_sulci
+surfs_off = args.surfs_off
+sulci_off = args.sulci_off
 #no_fundi = args.no_fundi
 do_fundi = args.fundi
-no_spectra = args.no_spectra
-eigenvalues = args.eigenvalues
+spectra_off = args.spectra_off
+eigenvalues = args.eigs
 #no_zernike = args.no_zernike
 do_zernike = args.zernike
 zernike_order = args.order
 reduction = args.reduction
 atlases = args.atlases
-no_tables = args.no_tables
-no_reg = args.no_reg
+tables_off = args.tables_off
+reg_off = args.reg_off
 pt_table = args.pt_table
 
 #-----------------------------------------------------------------------------
@@ -185,7 +192,7 @@ pt_table = args.pt_table
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
 do_input_mask = False  # Load nifti directly (not FreeSurfer mgh file)
-if no_freesurfer:
+if freesurfer_off:
     do_input_vtk = True
     do_input_nifti = True
     do_input_mask = True
@@ -195,7 +202,7 @@ if no_freesurfer:
 run_VolFlows = False
 run_VolShapeFlow = False
 run_VolLabelFlow = False
-if not no_vol:
+if not vol_off:
     run_VolFlows = True
     run_VolShapeFlow = True
     if do_label:
@@ -205,7 +212,7 @@ if not no_vol:
 #-----------------------------------------------------------------------------
 save_transforms = True  # NOTE: must save transforms!
 vol_reg_method = 'ANTS'
-if no_reg or no_vol:
+if reg_off or vol_off:
     do_register_standard = False
 else:
     do_register_standard = True
@@ -216,7 +223,7 @@ run_SurfFlows = False
 run_WholeSurfShapeFlow = False
 run_SurfFeatureFlow = False
 run_SurfLabelFlow = False
-if not no_surf:
+if not surfs_off:
     run_SurfFlows = True
     run_WholeSurfShapeFlow = True
     if do_label:
@@ -231,7 +238,7 @@ do_sulci = False  # Extract sulci
 do_smooth_fundi = False
 if run_SurfFeatureFlow:
     do_folds = True
-    if not no_sulci:
+    if not sulci_off:
         do_sulci = True
 #        if not no_fundi:
 #            do_fundi = True
@@ -247,11 +254,11 @@ do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_thickness = False  # Include FreeSurfer's thickness measure
 do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 if run_WholeSurfShapeFlow:
-    if not no_freesurfer:
+    if not freesurfer_off:
         do_thickness = True
         do_convexity = True
-if run_SurfFeatureFlow and not no_tables:
-    if not no_spectra:
+if run_SurfFeatureFlow and not tables_off:
+    if not spectra_off:
         do_spectra = True
 #    if not no_zernike:
 #        do_zernike = True
@@ -269,11 +276,11 @@ do_label_surf = False
 do_label_whole_volume = False  # Label whole brain via volume registration
 do_fill_cortex = False  # Fill cortical gray matter with surface labels
 if do_label:
-    if do_register_standard and not no_vol:
+    if do_register_standard and not vol_off:
         do_label_whole_volume = True
-    if not no_surf:
+    if not surfs_off:
         do_label_surf = True
-        if not no_vol:
+        if not vol_off:
             do_fill_cortex = True
 #-----------------------------------------------------------------------------
 # Tables:
@@ -281,7 +288,7 @@ if do_label:
 do_vol_table = False
 do_surf_table = False
 # Surface/volume feature shape measures:
-if not no_tables:
+if not tables_off:
     if run_VolLabelFlow:
         do_vol_table = True
     do_surf_table = True
@@ -405,7 +412,7 @@ if run_SurfFlows:
     #-------------------------------------------------------------------------
     # Location and structure of the FreeSurfer label inputs
     #-------------------------------------------------------------------------
-    if not no_freesurfer and do_label and init_labels == 'freesurfer':
+    if not freesurfer_off and do_label and init_labels == 'freesurfer':
         Annot = Node(name='Annots',
                      interface=DataGrabber(infields=['subject', 'hemi'],
                                            outfields=['annot_files'],
@@ -667,7 +674,7 @@ if run_SurfLabelFlow:
     #=========================================================================
     # Initialize labels with the DKT classifier atlas
     #=========================================================================
-    if init_labels == 'atlas' and not no_freesurfer:
+    if init_labels == 'atlas' and not freesurfer_off:
         #---------------------------------------------------------------------
         # Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
         #---------------------------------------------------------------------
@@ -721,7 +728,7 @@ if run_SurfLabelFlow:
     #=========================================================================
     # Initialize labels with FreeSurfer's standard DK classifier atlas
     #=========================================================================
-    elif init_labels == 'freesurfer' and not no_freesurfer:
+    elif init_labels == 'freesurfer' and not freesurfer_off:
         FreeLabels = Node(name='DK_annot_to_vtk',
                           interface=Fn(function = annot_to_vtk,
                                        input_names=['annot_file',
@@ -870,7 +877,7 @@ if run_SurfLabelFlow:
     #=========================================================================
     # Convert surface label numbers to volume label numbers
     #=========================================================================
-    if not no_freesurfer:
+    if not freesurfer_off:
         RelabelSurface = Node(name='Relabel_surface',
                               interface=Fn(function = relabel_surface,
                                            input_names=['vtk_file',
