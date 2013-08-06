@@ -83,8 +83,9 @@ parser.add_argument("subjects",
 parser.add_argument("-o", help="output directory [$HOME/mindboggled]",
                     default=os.path.join(os.environ['HOME'], 'mindboggled'))
 parser.add_argument("-n",
-                    help=("number of processors [all available]"),
-                    type=int)
+                    help=("number of processors [1]"),
+                    type=int,
+                    default=1)
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
 parser.add_argument("--iters", help="ANTs nonlinear registration iterations",
@@ -126,13 +127,19 @@ parser.add_argument("--no_freesurfer", action='store_true',
                          "or to register surfaces "
                          "(instead, you must supply vtk and nifti files "
                          "in the appropriate $SUBJECT_DIR subdirectories)")
+parser.add_argument("--init_labels",
+                    help=("cortical surface labeling method: "
+                    "classifier atlas; existing FreeSurfer labels; "
+                    "manual labels [atlas]"),
+                    choices=['atlas', 'freesurfer', 'manual'],
+                    default='atlas')
 parser.add_argument("--atlases", help=("additional volume atlas file(s) in "
                                        "MNI152 space"),
                     nargs='+')
-parser.add_argument("--classifier", help=("Gaussian classifier surface atlas "
-                                          "[DKTatlas100]"),
-                    choices=['DKTatlas100', 'DKTatlas40'],
-                    default='DKTatlas100')
+#parser.add_argument("--classifier", help=("Gaussian classifier surface atlas "
+#                                          "[DKTatlas100]"),
+#                    choices=['DKTatlas100', 'DKTatlas40'],
+#                    default='DKTatlas100')
 parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
                     choices=['hier', 'flat', 'exec'])
 parser.add_argument("--version", help="version number",
@@ -149,6 +156,7 @@ graph_vis = args.visual
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
 no_freesurfer = args.no_freesurfer
+init_labels = args.init_labels
 no_labels = args.no_labels
 if no_labels:
     do_label = False
@@ -167,7 +175,6 @@ do_zernike = args.zernike
 zernike_order = args.order
 reduction = args.reduction
 atlases = args.atlases
-classifier_name = args.classifier
 no_tables = args.no_tables
 no_reg = args.no_reg
 pt_table = args.pt_table
@@ -240,6 +247,10 @@ do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_thickness = False  # Include FreeSurfer's thickness measure
 do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 if run_WholeSurfShapeFlow:
+    if not no_freesurfer:
+        do_thickness = True
+        do_convexity = True
+if run_SurfFeatureFlow and not no_tables:
     if not no_spectra:
         do_spectra = True
 #    if not no_zernike:
@@ -247,13 +258,13 @@ if run_WholeSurfShapeFlow:
 #        do_decimate = True
     if do_zernike:
         do_decimate = True
-    if not no_freesurfer:
-        do_thickness = True
-        do_convexity = True
+else:
+    do_zernike = False
 
 #-----------------------------------------------------------------------------
 # Labels:
 #-----------------------------------------------------------------------------
+classifier_name = 'DKTatlas40'
 do_label_surf = False
 do_label_whole_volume = False  # Label whole brain via volume registration
 do_fill_cortex = False  # Fill cortical gray matter with surface labels
@@ -327,14 +338,6 @@ if atlases:
 #-----------------------------------------------------------------------------
 atlas_label_type = 'manual'
 #-----------------------------------------------------------------------------
-# Initialize labels with:
-# - 'DKT_atlas': FreeSurfer-style classifier atlas trained on the DKT protocol
-# - 'FreeSurfer': FreeSurfer (with atlas trained on the DK or DKT protocol)
-# - 'max_prob': majority vote labels from multiple atlases (DISABLED)
-# - 'manual': process manual labels (individual atlas)
-#-----------------------------------------------------------------------------
-init_labels = 'DKT_atlas'
-#-----------------------------------------------------------------------------
 # Evaluation
 #-----------------------------------------------------------------------------
 do_evaluate_surf_labels = False  # Surface overlap: auto vs. manual labels
@@ -402,11 +405,11 @@ if run_SurfFlows:
     #-------------------------------------------------------------------------
     # Location and structure of the FreeSurfer label inputs
     #-------------------------------------------------------------------------
-    if not no_freesurfer and do_label and init_labels == 'FreeSurfer':
+    if not no_freesurfer and do_label and init_labels == 'freesurfer':
         Annot = Node(name='Annots',
                      interface=DataGrabber(infields=['subject', 'hemi'],
-                                             outfields=['annot_files'],
-                                             sort_filelist=False))
+                                           outfields=['annot_files'],
+                                           sort_filelist=False))
         Annot.inputs.base_directory = subjects_path
         Annot.inputs.template = '%s/label/%s.aparc.annot'
         Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
@@ -664,38 +667,32 @@ if run_SurfLabelFlow:
     #=========================================================================
     # Initialize labels with the DKT classifier atlas
     #=========================================================================
-    if init_labels == 'DKT_atlas' and not no_freesurfer:
+    if init_labels == 'atlas' and not no_freesurfer:
         #---------------------------------------------------------------------
         # Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
         #---------------------------------------------------------------------
         Classifier = Node(name='Label_with_DKT_atlas',
                           interface=Fn(function = label_with_classifier,
-                                       input_names=['hemi',
-                                                    'subject',
-                                                    'subjects_path',
-                                                    'sphere_file',
-                                                    'classifier_name',
+                                       input_names=['subject',
+                                                    'hemi',
                                                     'left_classifier',
-                                                    'right_classifier'],
-                                       output_names=['annot_name',
-                                                     'annot_file']))
+                                                    'right_classifier',
+                                                    'annot_file'],
+                                       output_names=['annot_file']))
         SurfLabelFlow.add_nodes([Classifier])
         mbFlow.connect(InputSubjects, 'subject',
                        SurfLabelFlow, 'Label_with_DKT_atlas.subject')
         mbFlow.connect(InputHemis, 'hemi',
                        SurfLabelFlow, 'Label_with_DKT_atlas.hemi')
-        Classifier.inputs.subjects_path = subjects_path
-        mbFlow.connect(Surf, 'sphere_files',
-                       SurfLabelFlow, 'Label_with_DKT_atlas.sphere_file')
-        Classifier.inputs.classifier_name = classifier_name
         left_classifier_file = 'lh.' + classifier_name + '.gcs'
         right_classifier_file = 'rh.' + classifier_name + '.gcs'
         left_classifier = retrieve_data(left_classifier_file, url,
                                         hashes, cache_env, cache)
-        right_classifier = retrieve_data(left_classifier_file, url,
+        right_classifier = retrieve_data(right_classifier_file, url,
                                          hashes, cache_env, cache)
         Classifier.inputs.left_classifier = left_classifier
         Classifier.inputs.right_classifier = right_classifier
+        Classifier.inputs.annot_file = ''
 
         #---------------------------------------------------------------------
         # Convert .annot file to .vtk format
@@ -724,7 +721,7 @@ if run_SurfLabelFlow:
     #=========================================================================
     # Initialize labels with FreeSurfer's standard DK classifier atlas
     #=========================================================================
-    elif init_labels == 'FreeSurfer' and not no_freesurfer:
+    elif init_labels == 'freesurfer' and not no_freesurfer:
         FreeLabels = Node(name='DK_annot_to_vtk',
                           interface=Fn(function = annot_to_vtk,
                                        input_names=['annot_file',
@@ -1847,7 +1844,10 @@ if __name__== '__main__':
             else:
                 mbFlow.run()
         else:
-            mbFlow.run(plugin='MultiProc')
+            mbFlow.run()
+        # # Default is to use all processors:
+        #else:
+        #    mbFlow.run(plugin='MultiProc')
 
 """
 # Script for running Mindboggle on the Mindboggle-101 set:
