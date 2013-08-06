@@ -16,13 +16,15 @@ Copyright 2013, Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Gaussian classifier atlas-based labeling
 #=============================================================================
-def label_with_classifier(hemi, subject, subjects_path, sphere_file,
-                          classifier_name, left_classifier, right_classifier):
+def label_with_classifier(subject, hemi, left_classifier='',
+                          right_classifier='', annot_file=''):
     """
-    Label a brain with the DKT atlas using FreeSurfer's mris_ca_label::
+    Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
+
+    FreeSurfer documentation ::
 
         SYNOPSIS
-        mris_ca_label [options] <subject> <hemi> <canonsurf> <classifier> <outputfile>
+        mris_ca_label [options] <subject> <hemi> <surf> <classifier> <output>
 
         DESCRIPTION
         For a single subject, produces an annotation file, in which each
@@ -53,20 +55,16 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 
     Parameters
     ----------
-    hemi : string
-        hemisphere ['lh' or 'rh']
     subject : string
         subject corresponding to FreeSurfer subject directory
-    subjects_path : string
-        name of FreeSurfer subjects directory
-    sphere_file : string
-        name of FreeSurfer spherical surface file
-    classifier_name : string
-        name of FreeSurfer classifier atlas (no hemi)
+    hemi : string
+        hemisphere ['lh' or 'rh']
     left_classifier : string
         name of left hemisphere FreeSurfer classifier atlas (full path)
     right_classifier : string
         name of right hemisphere FreeSurfer classifier atlas (full path)
+    annot_file : string
+        name of output .annot file
 
     Returns
     -------
@@ -75,32 +73,48 @@ def label_with_classifier(hemi, subject, subjects_path, sphere_file,
 
     Examples
     --------
-    $ mris_ca_label MMRR-21-1 lh sphere ../lh.DKTatlas40.gcs ../out.annot
+    >>> # This example requires a FreeSurfer subjects/<subject> subdirectory
+    >>> import os
+    >>> from mindboggle.labels.label_free import label_with_classifier
+    >>> subject = 'Twins-2-1'
+    >>> hemi = 'lh'
+    >>> left_classifier = '/homedir/mindboggle_cache/b28a600a713c269f4c561f66f64337b2/lh.DKTatlas40.gcs'
+    >>> right_classifier = ''
+    >>> annot_file = './lh.classifier.annot'
+    >>> label_with_classifier(subject, hemi, left_classifier, right_classifier, annot_file)
+    >>> #
+    >>> # View:
+    >>> from mindboggle.utils.io_free import annot_to_vtk
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> output_vtk = './lh.classifier.vtk'
+    >>> #
+    >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file, output_vtk)
+    >>> plot_vtk(output_vtk)
+
     """
     import os
-    from nipype.interfaces.base import CommandLine
-    from nipype import logging
-    logger = logging.getLogger('interface')
 
-    annot_name = classifier_name
-    annot_file = os.path.join(subjects_path, subject, 'label',
-                              hemi + '.' + annot_name + '.annot')
-    cli = CommandLine(command='mris_ca_label')
+    if not annot_file:
+        annot_file = os.path.join(os.getcwd(), hemi + '.classifier.annot')
+
     if hemi == 'lh':
-        which_classifier = left_classifier
+        classifier = left_classifier
     elif hemi == 'rh':
-        which_classifier = right_classifier
+        classifier = right_classifier
     else:
         print("label_with_classifier()'s hemi should be 'lh' or 'rh'")
-    cli.inputs.args = ' '.join([subject, hemi, sphere_file,
-                                which_classifier, annot_file])
-    logger.info(cli.cmdline)
-    cli.run()
 
+    args = ['mris_ca_label', subject, hemi, hemi+'.sphere.reg', classifier,
+            annot_file]
+    cmd = ' '.join(args)
+    print(cmd)
+    os.system(cmd)
     if not os.path.exists(annot_file):
         raise(IOError(annot_file + " not found"))
 
-    return annot_name, annot_file
+    return annot_file
 
 #=============================================================================
 # Template registration, multi-atlas-based labeling

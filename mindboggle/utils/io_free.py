@@ -129,7 +129,7 @@ def curvature_to_vtk(surface_file, vtk_file):
     return output_vtk
 
 
-def annot_to_vtk(annot_file, vtk_file):
+def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
@@ -139,6 +139,9 @@ def annot_to_vtk(annot_file, vtk_file):
         name of FreeSurfer .annot file
     vtk_file : string
         name of VTK surface file
+    output_vtk : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value
 
     Returns
     -------
@@ -151,16 +154,17 @@ def annot_to_vtk(annot_file, vtk_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import annot_to_vtk
+    >>> from mindboggle.utils.io_free import annot_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> output_vtk = ''
     >>> #
-    >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file)
+    >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('lh.aparc.vtk')
+    >>> plot_vtk(output_vtk)
 
     """
     import os
@@ -169,8 +173,9 @@ def annot_to_vtk(annot_file, vtk_file):
 
     labels, colortable, names = nb.freesurfer.read_annot(annot_file)
 
-    output_vtk = os.path.join(os.getcwd(),
-                              os.path.basename(annot_file).strip('.annot') + '.vtk')
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+            os.path.basename(annot_file).strip('.annot') + '.vtk')
 
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 
