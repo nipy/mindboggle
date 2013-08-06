@@ -48,8 +48,7 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
     >>> plot_vtk(vtk_file, mask_file, masked_output)
 
     """
-    import os
-#    import subprocess
+    from mindboggle.utils.utils import execute
 
     # Filter mesh with the non -1 values from a second (same-size) mesh:
     if mask_file:
@@ -67,14 +66,8 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
     else:
 
         cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface"]
-
-# Note: subprocess won't allow me to put the command in the background:
-#    p = subprocess.Popen(cmd)
-#    p.communicate()
-    cmd = ' '.join(cmd) + ' &'
-    print(cmd)
-    os.system(cmd)
-
+    cmd.extend('&')
+    execute(cmd, 'os')
 
 #-----------------------------------------------------------------------------
 # Plot image volume
@@ -99,8 +92,7 @@ def plot_volumes(volume_files):
     >>> plot_volumes(volume_files)
 
     """
-    import os
-#    import subprocess
+    from mindboggle.utils.utils import execute
 
     if isinstance(volume_files, str):
         volume_files = [volume_files]
@@ -108,14 +100,10 @@ def plot_volumes(volume_files):
         import sys
         sys.error('plot_volumes() requires volume_files to be a list or string.')
 
-    cmd = ["fslview", " ".join(volume_files)]
-
-# Note: subprocess won't allow me to put the command in the background:
-#    p = subprocess.Popen(cmd)
-#    p.communicate()
-    cmd = ' '.join(cmd) + ' &'
-    print(cmd)
-    os.system(cmd)
+    cmd = ["fslview"]
+    cmd.extend(volume_files)
+    cmd.extend('&')
+    execute(cmd, 'os')
 
 
 #-----------------------------------------------------------------------------

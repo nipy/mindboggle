@@ -12,8 +12,8 @@ Use FreeSurfer's tksurfer to visualize .annot surface mesh data
 
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
-
 import os, sys
+from mindboggle.utils.utils import execute
 
 if len(sys.argv) < 6:
     sys.exit('Usage: %s subject hemisphere surface-type annotname colortable' %sys.argv[0])
@@ -24,7 +24,6 @@ else:
     annotname = sys.argv[4]
     colortable = sys.argv[5]
 
-args = ['tksurfer', subject, hemisphere, surface, '-annotation', annotname,
-        '-colortable', colortable]
-c = ' '.join(args)
-print(c); os.system(c)
+cmd = ['tksurfer', subject, hemisphere, surface, '-annotation', annotname,
+       '-colortable', colortable]
+execute(cmd)
