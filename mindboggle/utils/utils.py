@@ -18,7 +18,7 @@ def execute(cmd, type='subprocess'):
 
     Parameters
     ----------
-    cmd : sequence or string
+    cmd : sequence (string also permitted if type=='os')
         command with arguments
     type : string
         how to execute {os, subprocess}
