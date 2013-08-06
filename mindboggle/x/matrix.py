@@ -37,6 +37,7 @@ def make_voxels_isometric(input_file):
     """
     import os
     import nibabel as nb
+    from mindboggle.utils.utils import execute
 
     # Load image volume
     img = nb.load(input_file)
@@ -52,13 +53,13 @@ def make_voxels_isometric(input_file):
         # Save padded output
         out_file = 'isometric_' + os.path.basename(input_file)
         pad_dims = '{0}x{1}x{2}vox'.format(padx, pady, padz)
-        c=' '.join(['c3d', input_file, '-pad 0x0x0vox', pad_dims, '-o ', out_file])
-        print(c); os.system(c)
+        cmd = ['c3d', input_file, '-pad 0x0x0vox', pad_dims, '-o ', out_file]
+        execute(cmd)
 
         # Resample output
         max_dims = '{0}x{1}x{2}'.format(max_dim, max_dim, max_dim)
-        c=' '.join(['c3d', out_file, '-resample', max_dims, '-o ', out_file])
-        print(c); os.system(c)
+        cmd = ['c3d', out_file, '-resample', max_dims, '-o ', out_file]
+        execute(cmd)
 
     else:
         out_file = input_file
@@ -180,6 +181,8 @@ def rotate90(input_file, rotations=[1,0,0],
     import numpy as np
     import nibabel as nb
 
+    from mindboggle.utils.utils import execute
+
     # Load image volume
     img = nb.load(input_file)
     dat = img.get_data()
@@ -250,8 +253,8 @@ def rotate90(input_file, rotations=[1,0,0],
 
     # Swap pixel dimensions
     print('Swap pixel dimensions')
-    c=' '.join(['fslchpixdim', out_file, pixdims])
-    print(c); os.system(c)
+    cmd = ['fslchpixdim', out_file, pixdims]
+    execute(cmd)
 
     return out_file
 
