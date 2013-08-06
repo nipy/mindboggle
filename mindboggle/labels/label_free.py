@@ -107,9 +107,8 @@ def label_with_classifier(subject, hemi, left_classifier='',
     else:
         print("label_with_classifier()'s hemi should be 'lh' or 'rh'")
 
-    args = ['mris_ca_label', subject, hemi, hemi+'.sphere.reg', classifier,
+    cmd = ['mris_ca_label', subject, hemi, hemi+'.sphere.reg', classifier,
             annot_file]
-    cmd = ' '.join(args)
     execute(cmd)
     if not os.path.exists(annot_file):
         raise(IOError(annot_file + " not found"))
