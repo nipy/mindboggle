@@ -260,7 +260,8 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
 
     return new_annot_name
 
-def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
+def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
+                            replace=True):
     """
     Overwrite target labels with source labels (same volume dimensions).
 
@@ -274,6 +275,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
         labeled nibabel-readable (e.g., nifti) file
     ignore_labels : list
         list of source labels to ignore
+    replace : Boolean
+        erase target labels (that are in source) before overwriting?
 
     Returns
     -------
@@ -291,7 +294,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
     >>> target = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> output_file = ''
     >>> ignore_labels = [0]
-    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels)
+    >>> replace = True
+    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, replace)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -313,10 +317,18 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0]):
     # Initialize output:
     new_data = data_target.copy()
 
-    # Overwrite target labels with source labels:
+    # Find indices with labels in source:
     IX = [(i,x) for i,x in enumerate(data_source) if x not in ignore_labels]
     I = [x[0] for x in IX]
     X = [x[1] for x in IX]
+
+    # Erase target labels (that are in source) before overwriting:
+    if replace:
+        rm_labels = np.unique(X)
+        Irm = [i for i,x in enumerate(data_target) if x in rm_labels]
+        new_data[Irm] = -1
+
+    # Overwrite target labels with source labels:
     new_data[I] = X
 
     # Reshape to original dimensions:
