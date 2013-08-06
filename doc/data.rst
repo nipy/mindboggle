@@ -85,7 +85,9 @@ Mindboggle-101 atlases
 
   **Surface atlases**
 
-  - `DKT100 classifier atlas`_: FreeSurfer atlas (.gcs) from 100 of the Mindboggle-101 participants
+  ..
+    - `DKT100 classifier atlas`_: FreeSurfer atlas (.gcs) from 100 of the Mindboggle-101 participants
+
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants
 
 .. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz
