@@ -13,19 +13,15 @@ Python_ 2.7, NumPy_, SciPy_, Networkx_, and IPython_.
 Pip python library installation (OSX: ``easy_install pip``;
     Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
 
-Nipype software pipeline framework and Nibabel neuroimaging i/o library::
+Nipype_ software pipeline framework and Nibabel neuroimaging i/o library::
 
-    pip install nibabel
+    pip install nibabel (required for nipype)
+    pip install mayavi  (provides traits, required for nipype)
     pip install nipype
 
-Non-Python dependencies
-~~~~~~~~~~~~~~~~~~~~~~~
 `Visualization Toolkit`_::
 
-    conda update conda
-    git clone git@github.com:ContinuumIO/conda-recipes
-    cd conda-recipes
-    conda build vtk
+    conda install vtk
 
 FreeSurfer_
     This software will help to initialize cortical surface labels for
@@ -38,6 +34,7 @@ FreeSurfer_
 ANTS_
     ANTS provides volume-based affine registration for reporting locations
     in a standard space and nonlinear registration for whole-brain labeling.
+
 
 Download Mindboggle
 -------------------
@@ -70,22 +67,28 @@ Move the mindboggle_tools directory to wherever you install your software
 
 Step 3: Set environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For your system to recognize the C++ code we just compiled and
-the FreeSurfer-style subjects directory tree, include the following lines
-in your system's equivalent of a .bash_profile file::
+For your system to recognize the C++ code we just compiled, include 
+the following lines in your system's equivalent of a .bash_profile file::
 
     MINDBOGGLE_TOOLS=YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
-    SUBJECTS_DIR=YOUR_FREESURFER_SUBJECTS_PATH
-    export MINDBOGGLE_TOOLS	SUBJECTS_DIR
-    export PATH=$PATH:$MINDBOGGLE_TOOLS:$SUBJECTS_DIR
+    export MINDBOGGLE_TOOLS
+    export PATH=$PATH:$MINDBOGGLE_TOOLS
 
+Optional environment variables
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Mindboggle downloads necessary atlas and template data via the Internet
 on its first run.  By default, it will save these data to your home directory,
 in a ``mindboggled`` subdirectory.  You may *optionally* set the cache
-directory by setting one more environment variable as above::
+directory by including one more environment variable as above::
 
     MINDBOGGLE_CACHE=DESIRED_LOCATION
     export MINDBOGGLE_CACHE
     export PATH=$PATH:$MINDBOGGLE_CACHE
 
+If you do not wish to use FreeSurfer and do not have it installed (see README),
+also include the following environment variable as above::
+
+    SUBJECTS_DIR=YOUR_FREESURFER_SUBJECTS_PATH
+    export SUBJECTS_DIR
+    export PATH=$PATH:$SUBJECTS_DIR
 
