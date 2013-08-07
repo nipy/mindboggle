@@ -396,6 +396,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
+    label_table = None
     sulcus_table = None
     fundus_table = None
 
@@ -427,7 +428,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             if affine_transform_file:
                 # Compute standard space mean position per feature:
-                standard_positions, sdevs, label_list, foo = means_per_label(affine_points,
+                standard_positions, sdevs, label_list, \
+                foo = means_per_label(affine_points,
                     feature_list, exclude_labels, area_array)
 
                 # Append standard space mean position per feature to columns:
@@ -486,7 +488,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Laplace-Beltrami zernike:
             #-----------------------------------------------------------------
-            if itable in [0,1]:
+            if itable in [0, 1]:
                 spectra = spectra_lists[itable]
                 spectra_name = spectra_names[itable]
                 spectra_IDs = spectra_ID_lists[itable]
@@ -507,7 +509,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Zernike moments:
             #-----------------------------------------------------------------
-            if itable in [0,1]:
+            if itable in [0, 1]:
                 zernike = zernike_lists[itable]
                 zernike_name = zernike_names[itable]
                 zernike_IDs = zernike_ID_lists[itable]
@@ -535,22 +537,19 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             if columns:
                 write_columns(columns, table_column_names, table_file,
                               delimiter, quote=True, input_table=table_file)
-        else:
-            # Write something to table:
-            write_columns([], '', table_file, delimiter)
 
-        if not os.path.exists(table_file):
-            raise(IOError(table_file + " not found"))
+            if not os.path.exists(table_file):
+                raise(IOError(table_file + " not found"))
 
-        #---------------------------------------------------------------------
-        # Return correct table file name:
-        #---------------------------------------------------------------------
-        if itable == 0:
-            label_table = table_file
-        elif itable == 1:
-            sulcus_table = table_file
-        elif itable == 2:
-            fundus_table = table_file
+            #-----------------------------------------------------------------
+            # Return correct table file name:
+            #-----------------------------------------------------------------
+            if itable == 0:
+                label_table = table_file
+            elif itable == 1:
+                sulcus_table = table_file
+            elif itable == 2:
+                fundus_table = table_file
 
     return label_table, sulcus_table, fundus_table
 
