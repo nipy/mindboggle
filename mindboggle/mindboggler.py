@@ -52,7 +52,7 @@ from mindboggle.utils.io_uri import retrieve_data
 from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk
 from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, \
-    fill_volume_with_surface_labels
+    fill_volume_with_surface_labels, ImageMath
 from mindboggle.labels.protocol import dkt_protocol
 from mindboggle.labels.label_free import label_with_classifier
 from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
@@ -274,10 +274,12 @@ else:
 classifier_name = 'DKTatlas40'
 do_label_surf = False
 do_label_whole_volume = False  # Label whole brain via volume registration
+do_mask_cortex = False  # Mask whole brain labels with gray matter mask
 do_fill_cortex = False  # Fill cortical gray matter with surface labels
 if do_label:
     if do_register_standard and not vol_off:
         do_label_whole_volume = True
+        do_mask_cortex = True
     if not surfs_off:
         do_label_surf = True
         if not vol_off:
@@ -384,6 +386,7 @@ Sink.inputs.substitutions = [('_hemi_lh', 'left'),
     ('_atlas_', ''),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
     ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
+    ('multiplied_volumes.nii.gz', 'masked_cortex_volume_labels.nii.gz'),
     ('combined_labels.nii.gz',
      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
     ('transformed.nii.gz', 'whole_brain_volume_labels.nii.gz'),
@@ -1289,6 +1292,7 @@ if run_SurfFlows:
             SurfFeatureShapeFlow.add_nodes([SpectraSulci])
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
                            SurfFeatureShapeFlow, 'Spectra_sulci.vtk_file')
+            SpectraSulci.inputs.exclude_labels = [-1]
 
     #=========================================================================
     # Measure Zernike moments
@@ -1333,6 +1337,7 @@ if run_SurfFlows:
             else:
                 mbFlow.connect(SulciNode, 'sulci_file',
                                ZernikeSulci, 'vtk_file')
+            ZernikeSulci.inputs.exclude_labels = [-1]
 
 
 #=============================================================================
@@ -1667,7 +1672,7 @@ if run_VolLabelFlow:
         RetrieveVolAtlas.inputs.return_missing = True
 
 
-        # Inverse transform subcortical label volumes to subject via template
+        # Inverse transform atlas label volume to subject via template
         LabelVolume = Node(name='Label_volume',
                            interface=Fn(function = WarpImageMultiTransform,
                                         input_names=['source',
@@ -1702,6 +1707,35 @@ if run_VolLabelFlow:
         LabelVolume.inputs.affine_only = False
         mbFlow.connect(VolLabelFlow, 'Label_volume.output',
                        Sink, 'labels.@registered_volume')
+
+        #=====================================================================
+        # Mask cortical volume labels
+        #=====================================================================
+        if do_mask_cortex:
+            MaskVolume = Node(name='Mask_volume',
+                              interface=Fn(function = ImageMath,
+                                           input_names=['volume1',
+                                                        'volume2',
+                                                        'operator',
+                                                        'output_file'],
+                                           output_names=['output_file']))
+            VolLabelFlow.add_nodes([MaskVolume])
+            if do_input_mask:
+                #mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
+                #mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
+                mbFlow.connect(niftiMask, 'nifti.@mask',
+                               VolLabelFlow, 'Mask_volume.volume1')
+            else:
+                #mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
+                #mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
+                mbFlow.connect(mgh_mask2nifti, 'out_file',
+                               VolLabelFlow, 'Mask_volume.volume1')
+            VolLabelFlow.connect(LabelVolume, 'output',
+                                 MaskVolume, 'volume2')
+            MaskVolume.inputs.operator = 'm'
+            MaskVolume.inputs.output_file = ''
+            mbFlow.connect(VolLabelFlow, 'Mask_volume.output_file',
+                           Sink, 'labels.@mask_registered_volume')
 
         #=====================================================================
         # Combine cortical and noncortical volume labels

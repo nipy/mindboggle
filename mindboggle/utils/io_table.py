@@ -486,7 +486,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     columns.append(upper_quarts)
 
             #-----------------------------------------------------------------
-            # Laplace-Beltrami zernike:
+            # Laplace-Beltrami spectra:
             #-----------------------------------------------------------------
             if itable in [0, 1]:
                 spectra = spectra_lists[itable]
