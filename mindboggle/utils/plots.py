@@ -131,6 +131,6 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     # Histogram:
     fig = plt.figure()
     ax = fig.add_subplot(111)
-    ax.hist(values, nbins, normed=1, facecolor='gray', alpha=0.1)
+    ax.hist(values, nbins, normed=False, facecolor='gray', alpha=0.5)
     plt.show()
 
