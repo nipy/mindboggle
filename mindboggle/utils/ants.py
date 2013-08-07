@@ -193,6 +193,7 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     --------
     >>> import os
     >>> from mindboggle.utils.ants import PropagateLabelsThroughMask
+    >>> from mindboggle.utils.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> label_volume = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> mask_volume = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
@@ -258,6 +259,7 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     --------
     >>> import os
     >>> from mindboggle.utils.ants import fill_volume_with_surface_labels
+    >>> from mindboggle.utils.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> surface_files = [os.path.join(path, 'arno', 'labels',
     >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
@@ -265,8 +267,9 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     >>> volume_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> output_file = ''
     >>> binarize = True
-    >>> fill_volume_with_surface_labels(volume_mask, surface_files,
-    >>>                                 output_file, binarize)
+    >>> output_file = fill_volume_with_surface_labels(volume_mask, surface_files, output_file, binarize)
+    >>> # View
+    >>> plot_volumes(output_file)
 
     """
     import os
@@ -298,3 +301,70 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
         raise(IOError(output_file + " not found"))
 
     return output_file  # surface_in_volume
+
+
+def ImageMath(volume1, volume2, operator='m', output_file=''):
+    """
+    Use the ImageMath function in ANTS to perform operation on two volumes::
+
+        m         : Multiply ---  use vm for vector multiply
+        +         : Add ---  use v+ for vector add
+        -         : Subtract ---  use v- for vector subtract
+        /         : Divide
+        ^         : Power
+        exp       : Take exponent exp(imagevalue*value)
+        addtozero : add image-b to image-a only over points where image-a has zero values
+        overadd   : replace image-a pixel with image-b pixel if image-b pixel is non-zero
+        abs       : absolute value
+        total     : Sums up values in an image or in image1*image2 (img2 is the probability mask)
+        mean      :  Average of values in an image or in image1*image2 (img2 is the probability mask)
+        vtotal    : Sums up volumetrically weighted values in an image or in image1*image2 (img2 is the probability mask)
+        Decision  : Computes result=1./(1.+exp(-1.0*( pix1-0.25)/pix2))
+        Neg       : Produce image negative
+
+
+    Parameters
+    ----------
+    volume1 : string
+        nibabel-readable image volume
+    volume2 : string
+        nibabel-readable image volume
+    operator : string
+        ImageMath string corresponding to mathematical operator
+    output_file : string
+        nibabel-readable image volume
+
+    Returns
+    -------
+    output_file : string
+        name of output nibabel-readable image volume
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.ants import ImageMath
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> volume1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> volume2 = os.path.join(path, 'arno', 'mri', 'mask.nii.gz')
+    >>> operator = 'm'
+    >>> output_file = ''
+    >>> output_file = ImageMath(volume1, volume2, operator, output_file)
+    >>> # View
+    >>> plot_volumes(output_file)
+
+    """
+    import os
+    from mindboggle.utils.utils import execute
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), 'multiplied_volumes.nii.gz')
+
+    cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
+    execute(cmd, 'os')
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
