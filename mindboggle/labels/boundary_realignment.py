@@ -28,19 +28,11 @@ def realign_boundaries_to_fundus_lines(
     numpy array representing the realigned label for each surface vertex.
     """
 
-#    import os
     import numpy as np
     from mindboggle.labels.labels import extract_borders
     import mindboggle.utils.graph as go
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
-#    import mindboggle.utils.kernels as kernels
     from mindboggle.utils.mesh import find_neighbors
-#    from mindboggle.labels.protocol import dkt_protocol
-#
-#    protocol = 'DKT25'
-#    sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-#        label_names, label_numbers, cortex_names, cortex_numbers, \
-#        noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
     ## read files
     faces, _, indices, points, num_points, _, _, _ = read_vtk(
