@@ -10,6 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+
 def relabel_volume(input_file, old_labels, new_labels):
     """
     Relabel volume labels.
@@ -74,6 +75,7 @@ def relabel_volume(input_file, old_labels, new_labels):
 
     return output_file
 
+
 def remove_volume_labels(input_file, labels_to_remove):
     """
     Remove labels from an image volume.
@@ -132,6 +134,7 @@ def remove_volume_labels(input_file, labels_to_remove):
         raise(IOError(output_file + " not found"))
 
     return output_file
+
 
 def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
                     output_file=''):
@@ -216,6 +219,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
     return output_file
 
+
 def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     """
     Combine surface labels in a .annot file.
@@ -259,6 +263,7 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
     cli.run()
 
     return new_annot_name
+
 
 def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
                             replace=True):
