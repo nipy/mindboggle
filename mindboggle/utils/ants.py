@@ -59,11 +59,11 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
         tgt = os.path.basename(target).split('.')[0]
         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
 
-    cmd = ['ANTS', '3', '-m', 'CC[' + target + ',' + source + ',1,2]',
-            '-r', 'Gauss[2,0]', '-t', 'SyN[0.5]', '-i', iterations,
+    cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
+            '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
             '-o', output_stem, '--use-Histogram-Matching',
-            '--number-of-affine-iterations', '10000x10000x10000x10000x10000']
-    execute(cmd)
+            '--number-of-affine-iterations 10000x10000x10000x10000x10000']
+    execute(cmd, 'os')
 
     affine_transform = output_stem + 'Affine.txt'
     nonlinear_transform = output_stem + 'Warp.nii.gz'
@@ -117,7 +117,18 @@ def WarpImageMultiTransform(source, target, output='',
 
     """
     import os
+    import sys
     from mindboggle.utils.utils import execute
+
+    if xfm_stem:
+        affine_transform = xfm_stem + 'Affine.txt'
+        if inverse:
+            nonlinear_transform = xfm_stem + 'InverseWarp.nii.gz'
+        else:
+            nonlinear_transform = xfm_stem + 'Warp.nii.gz'
+    elif not affine_transform and not nonlinear_transform:
+        sys.exit('Provide either xfm_stem or affine_transform and '
+                 'nonlinear_transform.')
 
     if not output:
         output = os.path.join(os.getcwd(), 'transformed.nii.gz')
@@ -135,12 +146,12 @@ def WarpImageMultiTransform(source, target, output='',
     else:
         if inverse:
             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
-                   target, interp, '-i', affine_transform,
-                   nonlinear_transform]
+                   target, interp, '-i', affine_transform, nonlinear_transform]
         else:
             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
                    target, interp, nonlinear_transform, affine_transform]
-    execute(cmd)
+    execute(cmd, 'os')
+
     if not os.path.exists(output):
         raise(IOError(output + " not found"))
 
@@ -203,13 +214,13 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     if binarize:
         temp_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
         cmd = ['ThresholdImage', '3', mask_volume, temp_file, '0 1 0 1']
-        execute(cmd)
+        execute(cmd, 'os')
         mask_volume = temp_file
 
     # Propagate labels:
     cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
             mask_volume, label_volume]
-    execute(cmd)
+    execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
 
@@ -283,7 +294,6 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     # Use ANTs to fill a binary volume mask with initial labels:
     output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
                                              output_file, binarize)
-
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
 
