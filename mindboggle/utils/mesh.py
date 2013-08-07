@@ -58,6 +58,7 @@ def find_neighbors_from_file(input_vtk):
 
     return neighbor_lists
 
+
 #-----------------------------------------------------------------------------
 # Find all neighbors from faces
 #-----------------------------------------------------------------------------
@@ -130,6 +131,7 @@ def find_neighbors(faces, npoints):
 
     return neighbor_lists
 
+
 #-----------------------------------------------------------------------------
 # Find neighbors for a given vertex
 #-----------------------------------------------------------------------------
@@ -178,6 +180,7 @@ def find_neighbors_vertex(faces, index):
                          for x in I if x not in neighbor_list if x != index]
 
     return neighbor_list
+
 
 #-----------------------------------------------------------------------------
 # Find neighborhood for given vertices
@@ -237,6 +240,7 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
 
     return neighborhood
 
+
 #-----------------------------------------------------------------------------
 # find all edges on the mesh
 #-----------------------------------------------------------------------------
@@ -270,6 +274,7 @@ def find_edges(faces):
                 edges.append(edge)
 
     return edges
+
 
 #-----------------------------------------------------------------------------
 # find all triangle faces sharing each edge
@@ -325,6 +330,7 @@ def find_faces_at_edges(faces):
             faces_at_edges.setdefault((edge[1], edge[0]), []).append(face_id) # make it symmetric
 
     return faces_at_edges
+
 
 #-----------------------------------------------------------------------------
 # find all triangle faces centered at each node on the mesh
@@ -443,6 +449,7 @@ def find_adjacent_faces(faces):
 
     return adjacent_faces
 
+
 #-----------------------------------------------------------------------------
 # Filter faces
 #-----------------------------------------------------------------------------
@@ -482,6 +489,7 @@ def remove_faces(faces, indices):
         print('Reduced {0} to {1} triangular faces'.format(len_faces, len(faces)))
 
     return faces.tolist()
+
 
 def reindex_faces_points(faces, points=[]):
     """
@@ -535,6 +543,7 @@ def reindex_faces_points(faces, points=[]):
 
     return new_faces, new_points
 
+
 #-----------------------------------------------------------------------------
 # Filter neighbor_lists
 #-----------------------------------------------------------------------------
@@ -570,6 +579,37 @@ def remove_neighbor_lists(neighbor_lists, indices):
                       for x in neighbor_lists]
 
     return neighbor_lists
+
+
+def reindex_faces_0to1(faces):
+    """
+    Convert 0-indices (Python) to 1-indices (Matlab) for all face indices.
+
+    Parameters
+    ----------
+    faces : list of lists of integers
+        each sublist contains 3 0-indices of vertices that form a face
+        on a surface mesh
+
+    Returns
+    -------
+    faces : list of lists of integers
+        each sublist contains 3 1-indices of vertices that form a face
+        on a surface mesh
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import reindex_faces_0to1
+    >>> faces = [[0,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> reindex_faces_0to1(faces)
+    [[1, 3, 4], [3, 4, 8], [5, 8, 9], [4, 3, 6]]
+
+    """
+
+    faces = [[old_index+1 for old_index in face] for face in faces]
+
+    return faces
+
 
 #-----------------------------------------------------------------------------
 # Decimate mesh

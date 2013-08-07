@@ -12,6 +12,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+
 #=============================================================================
 # Functions for reading VTK files
 #=============================================================================
@@ -760,6 +761,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     return output_vtk
 
+
 def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                     exclude_values=[-1], background_value=-1,
                     output_scalar_name='scalars',
@@ -889,6 +891,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
                   select_values.tolist(), output_scalar_name)
 
+
 def scalars_checker(scalars, scalar_names):
     """
     Check whether input scalars and scalar_names are in acceptable format.
@@ -992,6 +995,7 @@ def scalars_checker(scalars, scalar_names):
 
     return scalars, scalar_names
 
+
 #-----------------------------------------------------------------------------
 # Read and apply an affine transform to the points of a VTK surface mesh
 #-----------------------------------------------------------------------------
@@ -1057,6 +1061,7 @@ def read_itk_transform_old(transform_file):
     fixed_parameters = [np.float(x) for x in fixed_parameters[1::]]
 
     return transform, fixed_parameters
+
 
 def read_itk_transform(transform_file):
     """
@@ -1136,6 +1141,7 @@ def read_itk_transform(transform_file):
     transform = np.hstack( ( transform, np.reshape( offset, ( 4, 1 ) ) ) )
 
     return transform
+
 
 def apply_affine_transform(transform_file, vtk_or_points,
                            transform_format='txt', save_file=False):
@@ -1228,6 +1234,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
         output_file = None
 
     return affine_points, output_file
+
 
 def transform_to_volume(vtk_file, volume_file, output_volume=''):
     """

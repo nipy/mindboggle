@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def zernike_moments(points, faces, order=20):
+def zernike_moments(points, faces, order=20, index1=True):
     """
     Compute the Zernike moments of a surface patch of points and faces.
     
@@ -25,6 +25,8 @@ def zernike_moments(points, faces, order=20):
         each list contains indices to vertices that form a triangle on a mesh
     order : integer
         order of the moments being calculated
+    index1 : Boolean
+        Convert 0-indices (Python) to 1-indices (Matlab) for all face indices?
 
     Returns
     -------
@@ -37,13 +39,14 @@ def zernike_moments(points, faces, order=20):
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
-    >>> zernike_moments(points, faces, order)
-    [0.07957747154594767,
-     0.045583723371562586,
-     0.12969541097557186,
-     0.09450348267576704,
-     0.1377604175344217,
-     0.12763442544037504]
+    >>> index1 = True
+    >>> zernike_moments(points, faces, order, index1)
+    [0.03978873577297383,
+     0.07597287228593756,
+     0.08322411181893402,
+     0.20233902300388348,
+     0.117303689366221,
+     0.1457966728239256]
     >>> # Moments for label 22 (postcentral) in Twins-2-1
     >>> # (after running explode_scalars() with reindex=True):
     >>> import os
@@ -54,17 +57,24 @@ def zernike_moments(points, faces, order=20):
     >>> vtk_file = '/drop/MB/data/arno/labels/exploded_labels/label22.vtk'
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
-    >>> zernike_moments(points, faces, order)
-    [3535.909590779093,
-     82400836.92399396,
-     596590.4072532767,
-     17284477612.837368,
-     66948839.98544357,
-     6529913805.079259]
+    >>> index1 = True
+    >>> zernike_moments(points, faces, order, index1)
+    [7562.751480397972,
+     143262239.5171249,
+     1107670.7893994227,
+     28487908892.820065,
+     112922387.17238183,
+     10250734140.30357]
 
     """
     import numpy as np
+
+    from mindboggle.utils.mesh import reindex_faces_0to1
     from mindboggle.shapes.zernike.multiproc import MultiprocPipeline
+
+    # Convert 0-indices to 1-indices for all face indices:
+    if index1:
+        faces = reindex_faces_0to1(faces)
 
     # Convert lists to numpy arrays:
     if isinstance(points, list):
@@ -138,13 +148,13 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
     >>> zernike_moments_of_largest(points, faces, order, exclude_labels, areas)
-    [3535.909590779093,
-     82400836.92399396,
-     596590.4072532767,
-     17284477612.837368,
-     66948839.98544357,
-     6529913805.079259]
-    >>> # View:
+    [7562.751480397972,
+     143262239.5171249,
+     1107670.7893994227,
+     28487908892.820065,
+     112922387.17238183,
+     10250734140.30357]
+    >>> # View two fragments:
     >>> from mindboggle.utils.plots import plot_vtk
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I19] = 1
@@ -227,17 +237,57 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> order = 10
+    >>> order = 3
     >>> exclude_labels = [0]
     >>> largest_segment = True
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
     >>>                           largest_segment)
-    ([[3535.909590779093,
-       82400836.92399396,
-       596590.4072532767,
-       17284477612.837368,
-       66948839.98544357,
-       6529913805.079259]],
+    ([[7562.751480397972,
+       143262239.5171249,
+       1107670.7893994227,
+       28487908892.820065,
+       112922387.17238183,
+       10250734140.30357]],
+     [22])
+    >>> order = 10
+    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
+    >>>                           largest_segment)
+    ([[7562.751480397972,
+       143262239.5171249,
+       3308874674202.293,
+       8.485211965384958e+16,
+       2.3330162566631947e+21,
+       6.743205749389719e+25,
+       1107670.7893994227,
+       28487908892.820065,
+       750581458956752.5,
+       2.08268406178679e+19,
+       6.041241636463012e+23,
+       112922387.17238183,
+       3771094165018.0186,
+       1.1436534456761454e+17,
+       3.475222918728238e+21,
+       1.0745294340540639e+26,
+       10250734140.30357,
+       429344737184365.75,
+       1.4944306620454633e+19,
+       4.98685998888202e+23,
+       889109957039.494,
+       4.5419095219797416e+16,
+       1.798809048329269e+21,
+       6.5720455808877056e+25,
+       76646448525991.2,
+       4.648745223427816e+18,
+       2.067942924550439e+23,
+       6705825311489244.0,
+       4.701251187236028e+20,
+       2.3147665646780795e+25,
+       5.969381989053711e+17,
+       4.728007168783364e+22,
+       5.360784767352255e+19,
+       4.7214146910478664e+24,
+       4.813773883638603e+21,
+       4.3049570618844856e+23]],
      [22])
 
     """
