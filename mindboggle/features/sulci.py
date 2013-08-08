@@ -20,7 +20,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
     A fold is a group of connected, deep vertices.
 
-    Steps for each fold  ::
+    Steps for each fold ::
+
         1. Remove fold if it has fewer than two labels.
         2. Remove fold if its labels do not contain a sulcus label pair.
         3. Find vertices with labels that are in only one of the fold's
