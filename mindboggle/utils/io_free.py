@@ -13,13 +13,20 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def surface_to_vtk(surface_file):
+def surface_to_vtk(surface_file, output_vtk):
     """
     Convert FreeSurfer surface file to VTK format.
 
     If a file named orig.mgz exists in '../mri', the surface coordinates
     are transformed into scanner RAS space during format conversion
     according to the vox2ras transform in that file.
+
+    Parameters
+    ----------
+    surface_file : string
+        name of FreeSurfer surface file
+    output_vtk : string
+        name of output VTK file
 
     Returns
     -------
@@ -32,8 +39,9 @@ def surface_to_vtk(surface_file):
     >>> from mindboggle.utils.io_free import surface_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
+    >>> output_vtk = ''
     >>> #
-    >>> surface_to_vtk(surface_file)
+    >>> surface_to_vtk(surface_file, output_vtk)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -67,8 +75,9 @@ def surface_to_vtk(surface_file):
             np.concatenate((points, np.ones((np.shape(points)[0],1))),
                            axis=1))))[:,0:3]
 
-    output_vtk = os.path.join(os.getcwd(),
-                              os.path.basename(surface_file + '.vtk'))
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+                                  os.path.basename(surface_file + '.vtk'))
     Fp = open(output_vtk, 'w')
     write_header(Fp, Title='vtk output from ' + surface_file)
     write_points(Fp, points)
@@ -81,14 +90,18 @@ def surface_to_vtk(surface_file):
     return output_vtk
 
 
-def curvature_to_vtk(surface_file, vtk_file):
+def curvature_to_vtk(surface_file, vtk_file, output_vtk):
     """
     Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
 
     Parameters
     ----------
-    surface_file : string  (name of FreeSurfer surface file)
-    vtk_file : string  (name of VTK surface file)
+    surface_file : string
+        name of FreeSurfer surface file
+    vtk_file : string
+        name of VTK surface file
+    output_vtk : string
+        name of output VTK file
 
     Returns
     -------
@@ -103,8 +116,9 @@ def curvature_to_vtk(surface_file, vtk_file):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> output_vtk = ''
     >>> #
-    >>> curvature_to_vtk(surface_file, vtk_file)
+    >>> curvature_to_vtk(surface_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -116,13 +130,13 @@ def curvature_to_vtk(surface_file, vtk_file):
 
     from mindboggle.utils.io_vtk import rewrite_scalars
 
-    output_vtk = os.path.join(os.getcwd(), os.path.basename(surface_file)+'.vtk')
-
     curvature_values = nb.freesurfer.read_morph_data(surface_file)
     scalar_names = os.path.basename(surface_file)
 
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+                                  os.path.basename(surface_file)+'.vtk')
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
-
     if not os.path.exists(output_vtk):
         raise(IOError(output_vtk + " not found"))
 
