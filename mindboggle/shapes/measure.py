@@ -577,6 +577,58 @@ def volume_per_label(labels, input_file):
     return labels_volumes
 
 
+def compute_image_histogram(infile, nbins=100, threshold=0.0):
+    """
+    Compute histogram values from nibabel-readable image.
+
+    Parameters
+    ----------
+    infile : string
+        input nibabel-readable image file name
+    nbins : integer
+        number of bins
+    threshold : float
+        remove values lower than threshold
+
+    Returns
+    -------
+    histogram_values : numpy array
+        histogram bin values
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.shapes.measure import compute_image_histogram
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> infile = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
+
+    """
+    import numpy as np
+    import nibabel as nb
+    #from pylab import plot #, hist
+
+    #---------------------------------------------------------------------------
+    # Compute histogram
+    #---------------------------------------------------------------------------
+    # Load image
+    print(infile)
+    data = nb.load(infile).get_data().ravel()
+
+    # Threshold image
+    if threshold > 0:
+        data = data / max(data)
+        data = data[data >= threshold]
+
+    # Compute histogram
+    histogram_values, bin_edges = np.histogram(data, bins=nbins)
+
+    # plot(range(len(histogram_values)), histogram_values, '-')
+    ##a,b,c = hist(data, bins=nbins)
+
+    return histogram_values
+
+
 def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars'):
     """
