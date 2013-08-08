@@ -805,8 +805,8 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> from mindboggle.utils.mesh import decimate_file
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
+    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> #input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
     >>> save_vtk = True
     >>> output_vtk = ''
     >>> reduction = 0.5
