@@ -732,7 +732,7 @@ if run_SurfLabelFlow:
             mbFlow.connect(Surf, 'surface_files',
                            SurfLabelFlow, 'annot_to_vtk.vtk_file')
         else:
-            mbFlow.connect(ConvertSurf, 'vtk_file',
+            mbFlow.connect(ConvertSurf, 'output_vtk',
                            SurfLabelFlow, 'annot_to_vtk.vtk_file')
         mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
                        Sink, 'labels.@DKT_surface')
@@ -757,7 +757,7 @@ if run_SurfLabelFlow:
             mbFlow.connect(Surf, 'surface_files',
                            SurfLabelFlow, 'FreeSurfer_annot_to_vtk.vtk_file')
         else:
-            mbFlow.connect(ConvertSurf, 'vtk_file',
+            mbFlow.connect(ConvertSurf, 'output_vtk',
                            SurfLabelFlow, 'FreeSurfer_annot_to_vtk.vtk_file')
         mbFlow.connect(SurfLabelFlow, 'FreeSurfer_annot_to_vtk.output_vtk',
                        Sink, 'labels.@Free_surface')
@@ -829,7 +829,7 @@ if run_SurfLabelFlow:
         #         mbFlow.connect(Surf, 'surface_files',
         #                          SurfLabelFlow, 'Vote_surface_labels.surface_file')
         #     else:
-        #         mbFlow.connect(ConvertSurf, 'vtk_file',
+        #         mbFlow.connect(ConvertSurf, 'output_vtk',
         #                          SurfLabelFlow, 'Vote_surface_labels.surface_file')
         #     SurfLabelFlow.connect(Transform, 'output_file', Vote, 'annot_files')
         #     mbFlow.connect([(SurfLabelFlow, Sink,
@@ -1014,7 +1014,7 @@ if run_WholeSurfShapeFlow:
         WholeSurfShapeFlow.add_nodes([ConvexNode])
         mbFlow.connect(Surf, 'convexity_files',
                        WholeSurfShapeFlow, 'Convexity_to_vtk.surface_file')
-        mbFlow.connect(ConvertSurf, 'vtk_file',
+        mbFlow.connect(ConvertSurf, 'output_vtk',
                        WholeSurfShapeFlow, 'Convexity_to_vtk.vtk_file')
         ConvexNode.inputs.output_vtk = ''
         mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
@@ -1029,7 +1029,7 @@ if run_WholeSurfShapeFlow:
         WholeSurfShapeFlow.add_nodes([ThickNode])
         mbFlow.connect(Surf, 'thickness_files',
                        WholeSurfShapeFlow, 'Thickness_to_vtk.surface_file')
-        mbFlow.connect(ConvertSurf, 'vtk_file',
+        mbFlow.connect(ConvertSurf, 'output_vtk',
                        WholeSurfShapeFlow, 'Thickness_to_vtk.vtk_file')
         ThickNode.inputs.output_vtk = ''
         mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
@@ -1046,10 +1046,10 @@ if run_WholeSurfShapeFlow:
                           ('surface_files','Curvature.surface_file')])])
     else:
         mbFlow.connect([(ConvertSurf, WholeSurfShapeFlow,
-                           [('vtk_file', 'Surface_area.surface_file'),
-                            ('vtk_file', 'Travel_depth.surface_file'),
-                            ('vtk_file', 'Geodesic_depth.surface_file'),
-                            ('vtk_file', 'Curvature.surface_file')])])
+                           [('output_vtk', 'Surface_area.surface_file'),
+                            ('output_vtk', 'Travel_depth.surface_file'),
+                            ('output_vtk', 'Geodesic_depth.surface_file'),
+                            ('output_vtk', 'Curvature.surface_file')])])
     mbFlow.connect([(WholeSurfShapeFlow, Sink,
                        [('Surface_area.area_file', 'shapes.@surface_area'),
                         ('Travel_depth.depth_file', 'shapes.@travel_depth'),
