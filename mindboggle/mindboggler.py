@@ -656,9 +656,11 @@ if run_SurfFlows:
     if not do_input_vtk:
         ConvertSurf = Node(name='Surface_to_vtk',
                            interface=Fn(function = surface_to_vtk,
-                                        input_names=['surface_file'],
-                                        output_names=['vtk_file']))
+                                        input_names=['surface_file',
+                                                     'output_vtk'],
+                                        output_names=['output_vtk']))
         mbFlow.connect(Surf, 'surface_files', ConvertSurf, 'surface_file')
+        ConvertSurf.inputs.output_vtk = ''
     #-------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas surfaces
     #-------------------------------------------------------------------------
@@ -1006,26 +1008,30 @@ if run_WholeSurfShapeFlow:
         ConvexNode = Node(name='Convexity_to_vtk',
                           interface=Fn(function = curvature_to_vtk,
                                        input_names=['surface_file',
-                                                    'vtk_file'],
+                                                    'vtk_file',
+                                                    'output_vtk'],
                                        output_names=['output_vtk']))
         WholeSurfShapeFlow.add_nodes([ConvexNode])
         mbFlow.connect(Surf, 'convexity_files',
                        WholeSurfShapeFlow, 'Convexity_to_vtk.surface_file')
         mbFlow.connect(ConvertSurf, 'vtk_file',
                        WholeSurfShapeFlow, 'Convexity_to_vtk.vtk_file')
+        ConvexNode.inputs.output_vtk = ''
         mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
                        Sink, 'shapes.@convexity')
     if do_thickness:
         ThickNode = Node(name='Thickness_to_vtk',
                          interface=Fn(function = curvature_to_vtk,
                                       input_names=['surface_file',
-                                                   'vtk_file'],
+                                                   'vtk_file',
+                                                   'output_vtk'],
                                       output_names=['output_vtk']))
         WholeSurfShapeFlow.add_nodes([ThickNode])
         mbFlow.connect(Surf, 'thickness_files',
                        WholeSurfShapeFlow, 'Thickness_to_vtk.surface_file')
         mbFlow.connect(ConvertSurf, 'vtk_file',
                        WholeSurfShapeFlow, 'Thickness_to_vtk.vtk_file')
+        ThickNode.inputs.output_vtk = ''
         mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
                        Sink, 'shapes.@thickness')
     #-------------------------------------------------------------------------
