@@ -21,7 +21,7 @@ Nipype_ software pipeline framework and Nibabel neuroimaging i/o library::
 
 `Visualization Toolkit`_::
 
-    conda install vtk
+    conda install vtk (after installing anaconda)
 
 FreeSurfer_
     This software will help to initialize cortical surface labels for
