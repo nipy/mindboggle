@@ -221,7 +221,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         sulci_zernike=[], sulci_zernike_IDs=[],
         exclude_labels=[-1], delimiter=','):
     """
-    Make tables of shape statistics per label, fundus, and/or sulcus.
+    Make tables of shape statistics per label, sulcus, and/or fundus.
 
     Parameters
     ----------
@@ -554,7 +554,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     return label_table, sulcus_table, fundus_table
 
 
-def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
+def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', convexity_file='', thickness_file='',
@@ -564,7 +564,8 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
 
     Parameters
     ----------
-    table_file : output filename (without path)
+    output_table : string
+        output filename
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
     sulci :  list of integers
@@ -601,7 +602,7 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.tables.all_shapes import write_vertex_measures
     >>> #
-    >>> table_file = 'vertex_shapes.csv'
+    >>> output_table = 'vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -619,7 +620,7 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
     >>> thickness_file = ''
     >>> delimiter = ','
     >>> #
-    >>> write_vertex_measures(table_file, labels_or_file, sulci, fundi,
+    >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     convexity_file, thickness_file, delimiter)
@@ -687,18 +688,20 @@ def write_vertex_measures(table_file, labels_or_file, sulci=[], fundi=[],
                 column_names.append(shape_names[ishape])
 
     # Prepend with column of indices and write table
-    shapes_table = os.path.join(os.getcwd(), table_file)
-    write_columns(range(len(columns[0])), 'index', shapes_table, delimiter)
-    write_columns(columns, column_names, shapes_table, delimiter, quote=True,
-                  input_table=shapes_table)
+    if not output_table:
+        output_table = os.path.join(os.getcwd(), output_table)
+    write_columns(range(len(columns[0])), 'index', output_table, delimiter)
+    write_columns(columns, column_names, output_table, delimiter, quote=True,
+                  input_table=output_table)
 
-    if not os.path.exists(shapes_table):
-        raise(IOError(shapes_table + " not found"))
+    if not os.path.exists(output_table):
+        raise(IOError(output_table + " not found"))
 
-    return shapes_table
+    return output_table
 
 
-def write_face_vertex_averages(input_file, area_file='', delimiter=','):
+def write_face_vertex_averages(input_file, output_table='',
+                               area_file='', delimiter=','):
     """
     Make table of average vertex values per face.
 
@@ -710,6 +713,8 @@ def write_face_vertex_averages(input_file, area_file='', delimiter=','):
         name of VTK file with surface area scalar values
     delimiter : string
         delimiter between columns, such as ','
+    output_table :  string
+        output table filename
 
     Returns
     -------
@@ -719,16 +724,16 @@ def write_face_vertex_averages(input_file, area_file='', delimiter=','):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.utils.io_table import write_face_vertex_averages
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> #input_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> input_file = os.path.join(path, 'arno', 'shapes', 'lh.thickness.vtk')
+    >>> output_table = ''
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> delimiter = ','
     >>> #
-    >>> write_face_vertex_averages(input_file, area_file, delimiter)
+    >>> write_face_vertex_averages(input_file, output_table, area_file, delimiter)
 
     """
     import os
@@ -745,7 +750,6 @@ def write_face_vertex_averages(input_file, area_file='', delimiter=','):
     #---------------------------------------------------------------------
     # For each face, average vertex values:
     #---------------------------------------------------------------------
-    output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
     columns = []
     for face in faces:
         values = []
@@ -759,6 +763,9 @@ def write_face_vertex_averages(input_file, area_file='', delimiter=','):
     #-----------------------------------------------------------------
     # Write to table:
     #-----------------------------------------------------------------
+    if not output_table:
+        output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
+
     write_columns(columns, '', output_table, delimiter, quote=False)
 
     if not os.path.exists(output_table):
@@ -874,3 +881,110 @@ def write_average_face_values_per_label(input_indices_vtk,
 
         if not os.path.exists(output_table):
             raise(IOError(output_table + " not found"))
+
+"""
+def select_column_from_tables(tables_dir, table_name, column_name, hemi,
+                              subjects, write_table=True,
+                              output_table='', delimiter=','):
+    ""
+    Select column from Mindboggle shape tables and make a new table.
+
+    For example, extract the median travel depth column for a given feature
+    (label region or sulcus ID) across a set of subjects, and make a table.
+
+    Expects: <tables_dir>/['left','right']/<subject>/<table_name>
+
+    Parameters
+    ----------
+    tables_dir : string
+        name of Mindboggle tables directory
+    table_name : string
+        name of Mindboggle table file
+    column_name :  string
+        column name to select
+    subjects :  list of strings
+        names of subjects processed by Mindboggle
+    write_table : Boolean
+        write output table?
+    output_table : string
+        output table file name
+    delimiter : string
+        delimiter between output table columns, such as ','
+
+    Returns
+    -------
+    columns : list of lists of floats or integers
+        columns of data
+    output_table :  string
+        output table file name
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_table import select_from_tables
+    >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
+    >>> table_name = "label_shapes.csv"
+    >>> column_name = "label: mean curvature: median (weighted)"
+    >>> hemi = 'left'
+    >>> subjects = ['Twins-2-1']
+    >>> write_table = True
+    >>> output_table = ''
+    >>> delimiter = ','
+    >>> #
+    >>> select_column_from_tables(tables_dir, table_name, column_name, hemi,
+    ...     subjects, write_table, output_table, delimiter)
+
+    ""
+    import os
+    import sys
+
+    from mindboggle.utils.io_table import read_columns, write_columns
+
+    #-------------------------------------------------------------------------
+    # Construct a table:
+    #-------------------------------------------------------------------------
+    column_names = []
+    columns = []
+    first = True
+    for subject in subjects:
+
+        #---------------------------------------------------------------------
+        # Open table:
+        #---------------------------------------------------------------------
+        input_table = os.path.join(tables_dir, hemi, subject, table_name)
+        if not os.path.exists(input_table):
+            raise(IOError(input_table + " not found"))
+
+        #---------------------------------------------------------------------
+        # Check to make sure first columns are the same across tables:
+        #---------------------------------------------------------------------
+        if first:
+            first_column =
+            first = False
+        else:
+            column1 =
+            if column1 != first_column:
+                sys.exit('First columns of tables are not the same.')
+
+        #---------------------------------------------------------------------
+        # Select column:
+        #---------------------------------------------------------------------
+        column =
+        column_names.append(column[0])
+        columns.append(column[1::])
+
+    #-------------------------------------------------------------------------
+    # Write table:
+    #-------------------------------------------------------------------------
+    if write_table:
+        if not output_table:
+            output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
+
+        write_columns(first_column[1::], first_column[0],
+                      output_table, delimiter)
+        if columns:
+            write_columns(columns, column_names, output_table, delimiter,
+                          quote=True, input_table=output_table)
+
+    return columns, output_table
+"""
