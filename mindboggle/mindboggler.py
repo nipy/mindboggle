@@ -1515,7 +1515,7 @@ if run_SurfFlows:
                                                      'convexity_file',
                                                      'thickness_file',
                                                      'delimiter'],
-                                        output_names=['shapes_table']))
+                                        output_names=['output_table']))
         mbFlow.add_nodes([VertexTable])
         VertexTable.inputs.table_file = 'vertex_shapes.csv'
         if do_label:
@@ -1574,7 +1574,7 @@ if run_SurfFlows:
             VertexTable.inputs.convexity_file = ''
         #---------------------------------------------------------------------
         VertexTable.inputs.delimiter = ","
-        mbFlow.connect(VertexTable, 'shapes_table',
+        mbFlow.connect(VertexTable, 'output_table',
                        Sink, 'tables.@vertices')
 
     # #---------------------------------------------------------------------
