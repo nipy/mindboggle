@@ -49,8 +49,9 @@ def read_columns(filename, n_columns=1, trail=False):
 
     return columns
 
-def write_columns(columns, column_names, output_table, delimiter=',',
-                  quote=True, input_table=''):
+
+def write_columns(columns, column_names, delimiter=',', quote=True,
+                  input_table='', output_table=''):
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
@@ -62,19 +63,21 @@ def write_columns(columns, column_names, output_table, delimiter=',',
         values (each list is a column of values)
     column_names :  list of strings
         names of columns
-    output_table : string
-        name of output table file
     delimiter : string
         delimiter between columns, such as ','
     bracket : string
         string bracketing each element, such as '"'
     input_table : string (default is empty string)
         name of table file to which the columns are to be appended
+    output_dir : string
+        name of output table directory
+    output_file : string
+        name of output table file
 
     Returns
     -------
     output_table : string
-        name of output table file
+        name of output table file (full path)
 
     Examples
     --------
@@ -84,20 +87,27 @@ def write_columns(columns, column_names, output_table, delimiter=',',
     >>> values2 = [32, 87, 53, 23]
     >>> columns = [labels, values]
     >>> column_names = ['label', 'value']
-    >>> output_table = 'write_columns.csv'
     >>> delimiter = ','
     >>> quote = True
     >>> input_table = ''
-    >>> write_columns(columns, column_names, output_table, delimiter, quote, input_table)
-    >>> write_columns(values2, 'value 2', output_table, delimiter,
-    >>>               quote, input_table=output_table)
+    >>> output_table = 'write_columns.csv'
+    >>> output_table = write_columns(columns, column_names, delimiter, quote,
+    >>>                              input_table, output_table)
+    >>> write_columns(values2, 'value 2', delimiter, quote,
+    >>>               input_table=output_table, output_table=output_table)
 
     """
     import os
     import sys
     from mindboggle.utils.io_table import read_columns
 
-    output_table = os.path.join(os.getcwd(), output_table)
+    if not output_table:
+        if not input_table:
+            output_table = os.path.join(os.getcwd(), 'table.csv')
+        else:
+            s = os.path.basename(input_table).split('.')[0] + '.csv'
+            output_table = os.path.join(os.getcwd(), s)
+
     if quote:
         q = '"'
     else:
@@ -179,6 +189,7 @@ def write_columns(columns, column_names, output_table, delimiter=',',
 
     return output_table
 
+
 def write_rows(filename, list_of_lines, header=""):
     """
     Write a list to a file, one line per list element.
@@ -210,6 +221,7 @@ def write_rows(filename, list_of_lines, header=""):
     Fp.close()
 
     return filename
+
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
@@ -407,7 +419,6 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         #---------------------------------------------------------------------
         # For each feature, construct a table of average shape values:
         #---------------------------------------------------------------------
-        table_file = os.path.join(os.getcwd(), table_names[itable])
         if feature_list:
             feature_name = feature_names[itable]
             columns = []
@@ -531,25 +542,29 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             # Write labels/IDs and values to table:
             #-----------------------------------------------------------------
             # Write labels/IDs to table:
-            write_columns(label_list, feature_name, table_file, delimiter)
+            output_table = os.path.join(os.getcwd(), table_names[itable])
+            output_table = write_columns(label_list, feature_name, delimiter,
+                                         quote=True, input_table='',
+                                         output_table=output_table)
 
             # Append columns of shape values to table:
             if columns:
-                write_columns(columns, table_column_names, table_file,
-                              delimiter, quote=True, input_table=table_file)
+                write_columns(columns, table_column_names, delimiter,
+                              quote=True, input_table=output_table,
+                              output_table=output_table)
 
-            if not os.path.exists(table_file):
-                raise(IOError(table_file + " not found"))
+            if not os.path.exists(output_table):
+                raise(IOError(output_table + " not found"))
 
             #-----------------------------------------------------------------
             # Return correct table file name:
             #-----------------------------------------------------------------
             if itable == 0:
-                label_table = table_file
+                label_table = output_table
             elif itable == 1:
-                sulcus_table = table_file
+                sulcus_table = output_table
             elif itable == 2:
-                fundus_table = table_file
+                fundus_table = output_table
 
     return label_table, sulcus_table, fundus_table
 
@@ -565,7 +580,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     Parameters
     ----------
     output_table : string
-        output filename
+        output file (full path)
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
     sulci :  list of integers
@@ -600,9 +615,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.tables.all_shapes import write_vertex_measures
+    >>> from mindboggle.utils.io_table import write_vertex_measures
     >>> #
-    >>> output_table = 'vertex_shapes.csv'
+    >>> output_table = ''#vertex_shapes.csv'
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -628,7 +643,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     """
     import os
     import numpy as np
-    from mindboggle.utils.io_vtk import read_scalars, read_vtk, apply_affine_transform
+    from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
+        apply_affine_transform
     from mindboggle.utils.io_table import write_columns
 
     # Make sure inputs are lists:
@@ -689,10 +705,11 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     # Prepend with column of indices and write table
     if not output_table:
-        output_table = os.path.join(os.getcwd(), output_table)
-    write_columns(range(len(columns[0])), 'index', output_table, delimiter)
-    write_columns(columns, column_names, output_table, delimiter, quote=True,
-                  input_table=output_table)
+        output_table = os.path.join(os.getcwd(), 'vertices.csv')
+    write_columns(range(len(columns[0])), 'index', delimiter, quote=True,
+                  input_table='', output_table=output_table)
+    write_columns(columns, column_names, delimiter, quote=True,
+                  input_table=output_table, output_table=output_table)
 
     if not os.path.exists(output_table):
         raise(IOError(output_table + " not found"))
@@ -766,7 +783,8 @@ def write_face_vertex_averages(input_file, output_table='',
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'average_face_values.csv')
 
-    write_columns(columns, '', output_table, delimiter, quote=False)
+    write_columns(columns, '', delimiter, quote=False, input_table='',
+                  output_table=output_table)
 
     if not os.path.exists(output_table):
         raise(IOError(output_table + " not found"))
@@ -872,7 +890,8 @@ def write_average_face_values_per_label(input_indices_vtk,
         #-----------------------------------------------------------------
         # Write to table:
         #-----------------------------------------------------------------
-        write_columns(columns, '', output_table, delimiter=',', quote=False)
+        write_columns(columns, '', delimiter=',', quote=False,
+                      input_table='', output_table=output_table)
 
         # Write VTK file with scalar value:
         #output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
@@ -984,10 +1003,10 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         if not output_table:
             output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
 
-        write_columns(first_column[1::], first_column[0],
-                      output_table, delimiter)
+        write_columns(first_column[1::], first_column[0], delimiter,
+                      quote=True, input_table='', output_table=output_table)
         if columns:
-            write_columns(columns, subjects, output_table, delimiter,
-                          quote=True, input_table=output_table)
+            write_columns(columns, subjects, delimiter, quote=True,
+                          input_table=output_table, output_table=output_table)
 
     return columns, output_table

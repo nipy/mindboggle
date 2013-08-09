@@ -1151,18 +1151,20 @@ if run_SurfFeatureFlow:
         FundiNode = Node(name='Fundi',
                          interface=Fn(function = extract_fundi,
                                       input_names=['folds',
-                                                   'sulci',
                                                    'curv_file',
                                                    'depth_file',
                                                    'min_separation',
                                                    'erode_ratio',
                                                    'erode_min_size',
+                                                   'sulci',
                                                    'save_file'],
                                       output_names=['fundi',
                                                     'n_fundi',
-                                                    'fundi_file']))
+                                                    'fundi_file',
+                                                    'n_fundi_all_folds',
+                                                    'fundi_all_folds',
+                                                    'fundi_all_folds_file']))
         SurfFeatureFlow.connect(FoldsNode, 'folds', FundiNode, 'folds')
-        SurfFeatureFlow.connect(SulciNode, 'sulci', FundiNode, 'sulci')
         mbFlow.connect([(WholeSurfShapeFlow, SurfFeatureFlow,
                        [('Curvature.mean_curvature_file', 'Fundi.curv_file'),
                         ('Rescale_travel_depth.rescaled_scalars_file',
@@ -1170,9 +1172,12 @@ if run_SurfFeatureFlow:
         FundiNode.inputs.min_separation = 10
         FundiNode.inputs.erode_ratio = 0.10
         FundiNode.inputs.erode_min_size = 10
+        SurfFeatureFlow.connect(SulciNode, 'sulci', FundiNode, 'sulci')
         FundiNode.inputs.save_file = True
         mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi_file',
                        Sink, 'features.@fundi')
+        mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi_all_folds_file',
+                       Sink, 'features.@fundi_all_folds')
 
         if do_smooth_fundi:
 
@@ -1526,7 +1531,7 @@ if run_SurfFlows:
                                                      'delimiter'],
                                         output_names=['output_table']))
         mbFlow.add_nodes([VertexTable])
-        VertexTable.inputs.output_table = 'vertex_shapes.csv'
+        VertexTable.inputs.output_table = ''
         if do_label:
             mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                            VertexTable, 'labels_or_file')
@@ -1583,8 +1588,7 @@ if run_SurfFlows:
             VertexTable.inputs.convexity_file = ''
         #---------------------------------------------------------------------
         VertexTable.inputs.delimiter = ","
-        mbFlow.connect(VertexTable, 'output_table',
-                       Sink, 'tables.@vertices')
+        mbFlow.connect(VertexTable, 'output_table', Sink, 'tables.@vertices')
 
     # #---------------------------------------------------------------------
     # # Apply RegFlows's affine transform to surface coordinates:
@@ -1865,10 +1869,10 @@ if run_VolShapeFlow:
                             interface=Fn(function = write_columns,
                                          input_names=['columns',
                                                       'column_names',
-                                                      'output_table',
                                                       'delimiter',
                                                       'quote',
-                                                      'input_table'],
+                                                      'input_table',
+                                                      'output_table'],
                                          output_names=['output_table']))
         VolumesTable.inputs.column_names = ['label', 'volume']
         VolumesTable.inputs.delimiter = ','
@@ -1881,7 +1885,8 @@ if run_VolShapeFlow:
             mbFlow.add_nodes([VolumesTable])
             VolShapeFlow.connect(LabelVolumes, 'labels_volumes',
                                  VolumesTable, 'columns')
-            VolumesTable.inputs.output_table = 'registered_volume_labels.csv'
+            s = 'volumes_of_registered_volume_labels.csv'
+            VolumesTable.inputs.output_table = s
             mbFlow.connect(VolumesTable, 'output_table',
                            Sink, 'tables.@registered_label_volumes')
             #-----------------------------------------------------------------
@@ -1892,7 +1897,7 @@ if run_VolShapeFlow:
                 VolShapeFlow.add_nodes([MaskedTable])
                 VolShapeFlow.connect(MaskedVolumes, 'labels_volumes',
                                      MaskedTable, 'columns')
-                s = 'cortical_surface_masked_volume_labels.csv'
+                s = 'volumes_of_cortical_surface_masked_volume_labels.csv'
                 MaskedTable.inputs.output_table = s
                 mbFlow.connect(MaskedTable, 'output_table',
                                Sink, 'tables.@masked_label_volumes')
@@ -1904,7 +1909,7 @@ if run_VolShapeFlow:
                 VolShapeFlow.add_nodes([CombinedTable])
                 VolShapeFlow.connect(CombinedVolumes, 'labels_volumes',
                                      CombinedTable, 'columns')
-                s = 'cortical_surface_and_noncortical_volume_labels.csv'
+                s = 'volumes_of_cortical_surface_and_noncortical_volume_labels.csv'
                 CombinedTable.inputs.output_table = s
                 mbFlow.connect(CombinedTable, 'output_table',
                                Sink, 'tables.@combined_label_volumes')
@@ -1916,7 +1921,8 @@ if run_VolShapeFlow:
             VolShapeFlow.add_nodes([FilledTable])
             VolShapeFlow.connect(FilledVolumes, 'labels_volumes',
                                  FilledTable, 'columns')
-            FilledTable.inputs.output_table = 'cortical_surface_labels.csv'
+            s = 'volumes_of_cortical_surface_labels.csv'
+            FilledTable.inputs.output_table = s
             mbFlow.connect(FilledTable, 'output_table',
                            Sink, 'tables.@filled_label_volumes')
 
