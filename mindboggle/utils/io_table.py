@@ -594,7 +594,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     Returns
     -------
-    shape_table : table file name for vertex shape values
+    output_table : table file name for vertex shape values
 
     Examples
     --------
@@ -851,7 +851,7 @@ def write_average_face_values_per_label(input_indices_vtk,
         # Create array and indices for scalar value:
         select_scalars = np.copy(scalars)
         select_scalars[scalars != scalar] = background_value
-        scalar_indices = [i for i,x in enumerate(select_scalars) if x == scalar]
+        scalar_indices = [i for i,x in enumerate(select_scalars) if x==scalar]
         print("  Scalar {0}: {1} vertices".format(scalar, len(scalar_indices)))
 
         #---------------------------------------------------------------------
@@ -882,11 +882,11 @@ def write_average_face_values_per_label(input_indices_vtk,
         if not os.path.exists(output_table):
             raise(IOError(output_table + " not found"))
 
-"""
+
 def select_column_from_tables(tables_dir, table_name, column_name, hemi,
                               subjects, write_table=True,
                               output_table='', delimiter=','):
-    ""
+    """
     Select column from Mindboggle shape tables and make a new table.
 
     For example, extract the median travel depth column for a given feature
@@ -921,7 +921,7 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_table import select_from_tables
+    >>> from mindboggle.utils.io_table import select_column_from_tables
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
     >>> table_name = "label_shapes.csv"
     >>> column_name = "label: mean curvature: median (weighted)"
@@ -932,18 +932,18 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     >>> delimiter = ','
     >>> #
     >>> select_column_from_tables(tables_dir, table_name, column_name, hemi,
-    ...     subjects, write_table, output_table, delimiter)
+    >>>     subjects, write_table, output_table, delimiter)
 
-    ""
+    """
     import os
     import sys
+    import csv
 
     from mindboggle.utils.io_table import read_columns, write_columns
 
     #-------------------------------------------------------------------------
     # Construct a table:
     #-------------------------------------------------------------------------
-    column_names = []
     columns = []
     first = True
     for subject in subjects:
@@ -954,24 +954,28 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         input_table = os.path.join(tables_dir, hemi, subject, table_name)
         if not os.path.exists(input_table):
             raise(IOError(input_table + " not found"))
-
+        else:
+            reader = csv.reader(open(input_table, 'rb'),
+                                delimiter=',', quotechar='"')
+            for row in reader:
+                print(', '.join(row))
+            input_columns = read_columns(input_table, n_columns=100, trail=False)
         #---------------------------------------------------------------------
         # Check to make sure first columns are the same across tables:
         #---------------------------------------------------------------------
         if first:
-            first_column =
+            first_column = input_columns[0]
             first = False
         else:
-            column1 =
+            column1 = input_columns[0]
             if column1 != first_column:
                 sys.exit('First columns of tables are not the same.')
 
         #---------------------------------------------------------------------
         # Select column:
         #---------------------------------------------------------------------
-        column =
-        column_names.append(column[0])
-        columns.append(column[1::])
+        column = [x[1::] for x in input_columns if x[0] == column_name]
+        columns.append(column)
 
     #-------------------------------------------------------------------------
     # Write table:
@@ -983,8 +987,7 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         write_columns(first_column[1::], first_column[0],
                       output_table, delimiter)
         if columns:
-            write_columns(columns, column_names, output_table, delimiter,
+            write_columns(columns, subjects, output_table, delimiter,
                           quote=True, input_table=output_table)
 
     return columns, output_table
-"""
