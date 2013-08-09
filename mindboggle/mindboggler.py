@@ -1511,7 +1511,7 @@ if run_SurfFlows:
 
         VertexTable = Node(name='Vertex_table',
                            interface=Fn(function = write_vertex_measures,
-                                        input_names=['table_file',
+                                        input_names=['output_table',
                                                      'labels_or_file',
                                                      'sulci',
                                                      'fundi',
@@ -1526,7 +1526,7 @@ if run_SurfFlows:
                                                      'delimiter'],
                                         output_names=['output_table']))
         mbFlow.add_nodes([VertexTable])
-        VertexTable.inputs.table_file = 'vertex_shapes.csv'
+        VertexTable.inputs.output_table = 'vertex_shapes.csv'
         if do_label:
             mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                            VertexTable, 'labels_or_file')
@@ -1536,12 +1536,12 @@ if run_SurfFlows:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
                            VertexTable, 'sulci')
         else:
-            ShapeTables.inputs.sulci = []
+            VertexTable.inputs.sulci = []
         if do_fundi:
             mbFlow.connect(SurfFeatureFlow, 'Fundi.fundi',
                            VertexTable, 'fundi')
         else:
-            ShapeTables.inputs.fundi = []
+            VertexTable.inputs.fundi = []
 
         if run_VolFlows and do_register:
             # if vol_reg_method == 'antsRegister':
