@@ -414,14 +414,14 @@ if run_SurfFlows:
                                       sort_filelist=False))
     Surf.inputs.base_directory = subjects_path
     Surf.inputs.template = '%s/surf/%s.%s'
-    Surf.inputs.template_args['surface_files'] = [['subject','hemi','pial']]
-    Surf.inputs.template_args['sphere_files'] = [['subject','hemi','sphere']]
+    Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
+    Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
     if do_thickness:
         Surf.inputs.template_args['thickness_files'] = \
-            [['subject','hemi','thickness']]
+            [['subject', 'hemi', 'thickness']]
     if do_convexity:
         Surf.inputs.template_args['convexity_files'] = \
-            [['subject','hemi','sulc']]
+            [['subject', 'hemi', 'sulc']]
     #-------------------------------------------------------------------------
     # Location and structure of the FreeSurfer label inputs
     #-------------------------------------------------------------------------
@@ -432,7 +432,7 @@ if run_SurfFlows:
                                            sort_filelist=False))
         Annot.inputs.base_directory = subjects_path
         Annot.inputs.template = '%s/label/%s.aparc.annot'
-        Annot.inputs.template_args['annot_files'] = [['subject','hemi']]
+        Annot.inputs.template_args['annot_files'] = [['subject', 'hemi']]
 
 if run_VolFlows or do_register:
     #-------------------------------------------------------------------------
@@ -467,7 +467,7 @@ if run_VolFlows or do_register:
         mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
         mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
 
-        # Convert FreeSurfer mgh conformal brain volume to nifti format:        #---------------------------------------------------------------------
+        # Convert FreeSurfer mgh conformal brain volume to nifti format:
         mgh2nifti = Node(name='mgh_to_nifti', interface=MRIConvert())
         mbFlow.add_nodes([mgh2nifti])
         mbFlow.connect(mghBrain, 'mgh', mgh2nifti, 'in_file')
@@ -477,28 +477,31 @@ if run_VolFlows or do_register:
         mgh2nifti.inputs.out_file = 'brain.nii.gz'
         #mbFlow.connect(mgh2nifti, 'out_file', Sink, 'brain')
 
-if run_VolFlows and run_VolLabelFlow and do_fill_cortex:
+if run_VolLabelFlow and (do_fill_cortex or do_mask_cortex):
     if do_input_mask:
         niftiMask = Node(name='nifti_mask',
-                         interface=DataGrabber(infields=['subject','hemi'],
-                                               outfields=['nifti_mask'],
+                         interface=DataGrabber(infields=['subject', 'hemi'],
+                                               outfields=['mask'],
                                                sort_filelist=False))
         niftiMask.inputs.base_directory = subjects_path
         niftiMask.inputs.template = '%s/mri/%s.ribbon.nii.gz'
-        niftiMask.inputs.template_args['nifti_mask'] = [['subject','hemi']]
+        niftiMask.inputs.template_args['mask'] = [['subject', 'hemi']]
     else:
         mghMask = Node(name='mgh_mask',
-                       interface=DataGrabber(infields=['subject','hemi'],
-                                             outfields=['mgh_mask'],
+                       interface=DataGrabber(infields=['subject', 'hemi'],
+                                             outfields=['mask'],
                                              sort_filelist=False))
         mghMask.inputs.base_directory = subjects_path
         mghMask.inputs.template = '%s/mri/%s.ribbon.mgz'
-        mghMask.inputs.template_args['mgh_mask'] = [['subject','hemi']]
+        mghMask.inputs.template_args['mask'] = [['subject', 'hemi']]
+        mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
+        mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
 
         # Convert FreeSurfer mgh conformal gray matter mask to nifti format:
-        mgh_mask2nifti = Node(name='mgh_mask_to_nifti', interface=MRIConvert())
+        mgh_mask2nifti = Node(name='mgh_mask_to_nifti',
+                              interface=MRIConvert())
         mbFlow.add_nodes([mgh_mask2nifti])
-        mbFlow.connect(mghMask, 'mgh_mask', mgh_mask2nifti, 'in_file')
+        mbFlow.connect(mghMask, 'mask', mgh_mask2nifti, 'in_file')
         mbFlow.connect(mghOrig, 'mgh_orig', mgh_mask2nifti, 'reslice_like')
         mgh_mask2nifti.inputs.resample_type = 'nearest'
         mgh_mask2nifti.inputs.out_type = 'niigz'
@@ -1643,13 +1646,9 @@ if run_VolLabelFlow:
                                        output_names=['output_file']))
         VolLabelFlow.add_nodes([FillCortex])
         if do_input_mask:
-            mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
-            mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
-            mbFlow.connect(niftiMask, 'nifti.@mask',
+            mbFlow.connect(niftiMask, 'mask',
                            VolLabelFlow, 'Fill_cortex.volume_mask')
         else:
-            mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
-            mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
             mbFlow.connect(mgh_mask2nifti, 'out_file',
                            VolLabelFlow, 'Fill_cortex.volume_mask')
         if run_SurfFlows and run_SurfLabelFlow:
@@ -1736,13 +1735,9 @@ if run_VolLabelFlow:
                                            output_names=['output_file']))
             VolLabelFlow.add_nodes([MaskVolume])
             if do_input_mask:
-                #mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
-                #mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
                 mbFlow.connect(niftiMask, 'nifti.@mask',
                                VolLabelFlow, 'Mask_volume.volume1')
             else:
-                #mbFlow.connect(InputSubjects, 'subject', mghMask, 'subject')
-                #mbFlow.connect(InputHemis, 'hemi', mghMask, 'hemi')
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
                                VolLabelFlow, 'Mask_volume.volume1')
             VolLabelFlow.connect(LabelVolume, 'output',
