@@ -27,6 +27,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         3. Connect anchor points using connect_points_erosion();
            inner anchors are removed if they result in endpoints.
         4. Optionally segment fundi by sulcus definitions.
+           Return both fundi in all folds as well as those in sulcus folds.
 
         Optional postprocessing step: smooth with smooth_skeleton().
 
@@ -169,18 +170,18 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     indices = [x for x in skeletons if folds[x] != -1]
     fundi_all_folds = -1 * np.ones(npoints)
     fundi_all_folds[indices] = folds[indices]
-
+    n_fundi_all_folds = len([x for x in np.unique(fundi_all_folds)
+                             if x != -1])
     if sulci:
         indices = [x for x in skeletons if sulci[x] != -1]
         fundi = -1 * np.ones(npoints)
         fundi[indices] = sulci[indices]
+        n_fundi = len([x for x in np.unique(fundi) if x != -1])
     else:
         fundi = []
         fundi_file = None
+        n_fundi = 0
 
-    n_fundi = len([x for x in np.unique(fundi) if x != -1])
-    n_fundi_all_folds = len([x for x in np.unique(fundi_all_folds)
-                             if x != -1])
     if n_fundi == 1:
         sdum = 'fundus'
     else:
@@ -191,7 +192,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:
     #-------------------------------------------------------------------------
-    if fundi:
+    if n_fundi > 0:
         fundi = fundi.tolist()
         if save_file:
             fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
@@ -200,15 +201,18 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
                 raise(IOError(fundi_file + " not found"))
         else:
             fundi_file = None
-    fundi = fundi.tolist()
-    if save_file:
-        fundi_all_folds_file = os.path.join(os.getcwd(), 'fundi_all_folds.vtk')
-        rewrite_scalars(curv_file, fundi_all_folds_file, fundi_all_folds,
-                        'fundi', folds)
-        if not os.path.exists(fundi_all_folds_file):
-            raise(IOError(fundi_all_folds_file + " not found"))
-    else:
-        fundi_all_folds_file = None
+
+    if n_fundi_all_folds > 0:
+        fundi_all_folds = fundi_all_folds.tolist()
+        if save_file:
+            fundi_all_folds_file = os.path.join(os.getcwd(),
+                                                'fundi_all_folds.vtk')
+            rewrite_scalars(curv_file, fundi_all_folds_file, fundi_all_folds,
+                            'fundi', folds)
+            if not os.path.exists(fundi_all_folds_file):
+                raise(IOError(fundi_all_folds_file + " not found"))
+        else:
+            fundi_all_folds_file = None
 
     return fundi, n_fundi, fundi_file, \
            fundi_all_folds,  n_fundi_all_folds, fundi_all_folds_file
