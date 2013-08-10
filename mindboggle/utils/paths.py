@@ -161,11 +161,11 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                 edge_seg_numbers = [x for x in np.unique(edge_segs)
                                     if x != -1]
                 len_numbers = len(edge_seg_numbers)
-                if len_numbers > 1:
-                    print('    {0}: {1} edge points in {2} segments'.
-                          format(count, len_edge, len_numbers))
-                else:
-                    print('    {0}: {1} edge points'.format(count, len_edge))
+                #if len_numbers > 1:
+                #    print('    {0}: {1} edge points in {2} segments'.
+                #          format(count, len_edge, len_numbers))
+                #else:
+                #    print('    {0}: {1} edge points'.format(count, len_edge))
                 first_seg = True
                 for edge_seg_number in edge_seg_numbers:
                     edge_seg = np.where(edge_segs == edge_seg_number)[0]

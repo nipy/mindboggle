@@ -112,8 +112,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     if isinstance(folds, list):
         folds = np.array(folds)
     if isinstance(sulci, list):
-        if sulci:
-            sulci = np.array(sulci)
+        sulci = np.array(sulci)
 
     # Load values, inner anchor threshold, and neighbors:
     u1,u2,u3, points, npoints, curvs, u4,u5 = read_vtk(curv_file, True,True)
@@ -172,7 +171,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     fundi_all_folds[indices] = folds[indices]
     n_fundi_all_folds = len([x for x in np.unique(fundi_all_folds)
                              if x != -1])
-    if sulci:
+    if np.size(sulci):
         indices = [x for x in skeletons if sulci[x] != -1]
         fundi = -1 * np.ones(npoints)
         fundi[indices] = sulci[indices]
