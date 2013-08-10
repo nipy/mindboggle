@@ -952,6 +952,39 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     >>> #
     >>> select_column_from_tables(tables_dir, table_name, column_name, hemi,
     >>>     subjects, write_table, output_table, delimiter)
+    ([['-1.04083',
+       '-2.91968',
+       '-3.82448',
+       '-3.26286',
+       '-4.81221',
+       '-3.6451',
+       '-3.38913',
+       '-4.31545',
+       '-3.0536',
+       '-3.67473',
+       '-3.10761',
+       '-3.28',
+       '-3.25178',
+       '-3.81327',
+       '-3.6395',
+       '-2.95349',
+       '-3.93486',
+       '-4.22549',
+       '-2.80147',
+       '-1.12777',
+       '-3.01129',
+       '-2.95736',
+       '-3.19688',
+       '-3.16538',
+       '-2.48648',
+       '-3.99902',
+       '-3.70333',
+       '-2.76968',
+       '-3.57815',
+       '-3.61173',
+       '-2.53391',
+       '-2.15681']],
+     '/Users/arno/Documents/Projects/Mindboggle/mindboggle/mindboggle/subjects_label_shapes.csv')
 
     """
     import os
@@ -965,10 +998,11 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     #-------------------------------------------------------------------------
     columns = []
     first = True
+    column0_subject0 = []
     for subject in subjects:
 
         #---------------------------------------------------------------------
-        # Open table:
+        # Extract column from the table for each subject:
         #---------------------------------------------------------------------
         input_table = os.path.join(tables_dir, hemi, subject, table_name)
         if not os.path.exists(input_table):
@@ -976,37 +1010,39 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         else:
             reader = csv.reader(open(input_table, 'rb'),
                                 delimiter=',', quotechar='"')
-            for row in reader:
-                print(', '.join(row))
-            input_columns = read_columns(input_table, n_columns=100, trail=False)
-        #---------------------------------------------------------------------
-        # Check to make sure first columns are the same across tables:
-        #---------------------------------------------------------------------
-        if first:
-            first_column = input_columns[0]
-            first = False
-        else:
-            column1 = input_columns[0]
-            if column1 != first_column:
+            column = []
+            column0 = []
+            for irow, row in enumerate(reader):
+                if irow == 0:
+                    if column_name in row:
+                        icolumn = row.index(column_name)
+                    else:
+                        sys.exit('{0} is not a column name.'.
+                                 format(column_name))
+                else:
+                    column.append(row[icolumn])
+                column0.append(row[0])
+            #-----------------------------------------------------------------
+            # Check to make sure first columns are the same across tables:
+            #-----------------------------------------------------------------
+            if first:
+                column0_subject0 = column0
+                first = False
+            elif column0 != column0_subject0:
                 sys.exit('First columns of tables are not the same.')
 
-        #---------------------------------------------------------------------
-        # Select column:
-        #---------------------------------------------------------------------
-        column = [x[1::] for x in input_columns if x[0] == column_name]
         columns.append(column)
 
     #-------------------------------------------------------------------------
     # Write table:
     #-------------------------------------------------------------------------
-    if write_table:
+    if write_table and columns:
         if not output_table:
             output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
 
-        write_columns(first_column[1::], first_column[0], delimiter,
-                      quote=True, input_table='', output_table=output_table)
-        if columns:
-            write_columns(columns, subjects, delimiter, quote=True,
-                          input_table=output_table, output_table=output_table)
+        write_columns(column0[1::], column0[0], delimiter, quote=True,
+                      input_table='', output_table=output_table)
+        write_columns(columns, subjects, delimiter, quote=True,
+                      input_table=output_table, output_table=output_table)
 
     return columns, output_table
