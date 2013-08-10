@@ -1038,7 +1038,8 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     #-------------------------------------------------------------------------
     if write_table and columns:
         if not output_table:
-            output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
+            output_table = os.path.join(os.getcwd(),
+                table_name + '_' + '_'.join(column_name.split()))
 
         write_columns(column0[1::], column0[0], delimiter, quote=True,
                       input_table='', output_table=output_table)
