@@ -997,8 +997,8 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     # Construct a table:
     #-------------------------------------------------------------------------
     columns = []
+    column0 = []
     first = True
-    column0_subject0 = []
     for subject in subjects:
 
         #---------------------------------------------------------------------
@@ -1010,36 +1010,36 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         else:
             reader = csv.reader(open(input_table, 'rb'),
                                 delimiter=',', quotechar='"')
-            column = []
-            column0 = []
-            for irow, row in enumerate(reader):
-                if irow == 0:
-                    if column_name in row:
-                        icolumn = row.index(column_name)
-                    else:
-                        sys.exit('{0} is not a column name.'.
-                                 format(column_name))
-                else:
-                    column.append(row[icolumn])
-                column0.append(row[0])
+            input_columns = zip(*reader)
+            input_columns = [list(x) for x in input_columns]
+
             #-----------------------------------------------------------------
             # Check to make sure first columns are the same across tables:
             #-----------------------------------------------------------------
             if first:
-                column0_subject0 = column0
+                column0 = input_columns[0]
                 first = False
-            elif column0 != column0_subject0:
+            elif input_columns[0] != column0:
                 sys.exit('First columns of tables are not the same.')
 
-        columns.append(column)
+            #-----------------------------------------------------------------
+            # Extract column:
+            #-----------------------------------------------------------------
+            icolumn_name = None
+            for icolumn, column in enumerate(input_columns):
+                if column[0] == column_name:
+                    icolumn_name = icolumn
+            if icolumn_name:
+                columns.append(input_columns[icolumn_name][1::])
+            else:
+                sys.exit('{0} is not a column name.'.format(column_name))
 
     #-------------------------------------------------------------------------
     # Write table:
     #-------------------------------------------------------------------------
     if write_table and columns:
         if not output_table:
-            output_table = os.path.join(os.getcwd(),
-                table_name + '_' + '_'.join(column_name.split()))
+            output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
 
         write_columns(column0[1::], column0[0], delimiter, quote=True,
                       input_table='', output_table=output_table)
