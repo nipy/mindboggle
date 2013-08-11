@@ -25,9 +25,6 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-#-----------------------------------------------------------------------------
-# Plot VTK surface mesh
-#-----------------------------------------------------------------------------
 def plot_vtk(vtk_file, mask_file='', masked_output=''):
     """
     Use mayavi2 to visualize VTK surface mesh data.
@@ -69,9 +66,7 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
     cmd.extend('&')
     execute(cmd, 'os')
 
-#-----------------------------------------------------------------------------
-# Plot image volume
-#-----------------------------------------------------------------------------
+
 def plot_volumes(volume_files):
     """
     Use fslview to visualize image volume data.
@@ -106,9 +101,6 @@ def plot_volumes(volume_files):
     execute(cmd, 'os')
 
 
-#-----------------------------------------------------------------------------
-# Plot histogram of VTK surface mesh scalar values
-#-----------------------------------------------------------------------------
 def plot_scalar_histogram(vtk_file, nbins=100):
     """
     Plot histogram of VTK surface mesh scalar values.
@@ -133,4 +125,51 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     ax = fig.add_subplot(111)
     ax.hist(values, nbins, normed=False, facecolor='gray', alpha=0.5)
     plt.show()
+
+
+def scatter_plot_table(table_file, x_column=-1, ignore_columns=[0]):
+    """
+    Scatter plot table columns against the values of one of the columns.
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.plots import scatter_plot_table
+    >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
+    >>> table_file = os.path.join('/drop/test.csv')
+    >>> scatter_plot_table(table_file, x_column=-1, ignore_columns=[0])
+
+    """
+    import csv
+    import sys
+    import matplotlib.pyplot as plt
+    #from pylab import *
+
+    #--------------------------------------------------------------------------
+    # Extract columns from the table
+    #--------------------------------------------------------------------------
+    if not os.path.exists(table_file):
+        raise(IOError(table_file + " not found"))
+    else:
+        reader = csv.reader(open(table_file, 'rb'),
+                            delimiter=',', quotechar='"')
+        column = []
+        column0 = []
+        for irow, row in enumerate(reader):
+            if irow == 0:
+                if column_name in row:
+                    icolumn = row.index(column_name)
+                else:
+                    sys.exit('{0} is not a column name.'.
+                             format(column_name))
+            else:
+                column.append(row[icolumn])
+            column0.append(row[0])
+
+    #x = rand(20)
+    #y = 1e7*rand(20)
+    #fig, ax = plt.subplots()
+    plt.plot(x, y, 'o')
+
+    show()
 

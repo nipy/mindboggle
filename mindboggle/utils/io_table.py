@@ -991,7 +991,7 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     import sys
     import csv
 
-    from mindboggle.utils.io_table import read_columns, write_columns
+    from mindboggle.utils.io_table import write_columns
 
     #-------------------------------------------------------------------------
     # Construct a table:
