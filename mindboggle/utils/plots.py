@@ -105,6 +105,13 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     """
     Plot histogram of VTK surface mesh scalar values.
 
+    Inputs
+    ------
+    vtk_file : string
+        name of VTK file
+    nbins : integer
+        number of histogram bins
+
     Examples
     --------
     >>> import os
@@ -127,19 +134,32 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     plt.show()
 
 
-def scatter_plot_table(table_file, x_column=1, ignore_columns=[0]):
+def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
+                            delimiter=','):
     """
     Scatter plot table columns against the values of one of the columns.
+
+    Inputs
+    ------
+    table_file : string
+        name of comma-separated table file
+    x_column : integer
+        index of column against which other columns are plotted
+    ignore_columns : list of integers
+        indices to columns to exclude
+    delimiter : string
+        delimiter for table_file
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import scatter_plot_table
+    >>> from mindboggle.utils.plots import scatter_plot_from_table
     >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    >>> table_file = os.path.join('/drop/test.csv')
+    >>> table_file = os.path.join('/drop/subjects_label_shapes.csv')
     >>> x_column = 1
     >>> ignore_columns = [0]
-    >>> scatter_plot_table(table_file, x_column, ignore_columns)
+    >>> delimiter = ','
+    >>> scatter_plot_from_table(table_file, x_column, ignore_columns, delimiter)
 
     """
     import os
@@ -156,7 +176,7 @@ def scatter_plot_table(table_file, x_column=1, ignore_columns=[0]):
         raise(IOError(table_file + " not found"))
 
     reader = csv.reader(open(table_file, 'rb'),
-                        delimiter='\t', quotechar='"')
+                        delimiter=delimiter, quotechar='"')
     columns = [list(x) for x in zip(*reader)]
     ncolumns = len(columns)
 
@@ -164,7 +184,7 @@ def scatter_plot_table(table_file, x_column=1, ignore_columns=[0]):
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_columns:
             keep_columns.extend(column[1::])
-    max_value = int(max([np.float(x) for x in keep_columns])) + 1
+    max_value = int(max([np.float(x) for x in keep_columns])) + 2
 
     column_xaxis = columns[x_column][1::]
 

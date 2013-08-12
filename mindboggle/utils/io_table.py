@@ -943,9 +943,9 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
     >>> from mindboggle.utils.io_table import select_column_from_tables
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
     >>> table_name = "label_shapes.csv"
-    >>> column_name = "label: mean curvature: median (weighted)"
+    >>> column_name = "label: thickness: median (weighted)"
     >>> hemi = 'left'
-    >>> subjects = ['Twins-2-1']
+    >>> subjects = ['test', 'test_clean'] #['Twins-2-1']
     >>> write_table = True
     >>> output_table = ''
     >>> delimiter = ','
