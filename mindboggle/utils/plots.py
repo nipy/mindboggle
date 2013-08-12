@@ -127,7 +127,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     plt.show()
 
 
-def scatter_plot_table(table_file, x_column=-1, ignore_columns=[0]):
+def scatter_plot_table(table_file, x_column=1, ignore_columns=[0]):
     """
     Scatter plot table columns against the values of one of the columns.
 
@@ -137,39 +137,55 @@ def scatter_plot_table(table_file, x_column=-1, ignore_columns=[0]):
     >>> from mindboggle.utils.plots import scatter_plot_table
     >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
     >>> table_file = os.path.join('/drop/test.csv')
-    >>> scatter_plot_table(table_file, x_column=-1, ignore_columns=[0])
+    >>> x_column = 1
+    >>> ignore_columns = [0]
+    >>> scatter_plot_table(table_file, x_column, ignore_columns)
 
     """
+    import os
     import csv
-    import sys
     import matplotlib.pyplot as plt
-    #from pylab import *
+    import matplotlib.colors as colors
+    import matplotlib.cm as cmx
+    import numpy as np
 
     #--------------------------------------------------------------------------
     # Extract columns from the table
     #--------------------------------------------------------------------------
     if not os.path.exists(table_file):
         raise(IOError(table_file + " not found"))
-    else:
-        reader = csv.reader(open(table_file, 'rb'),
-                            delimiter=',', quotechar='"')
-        column = []
-        column0 = []
-        for irow, row in enumerate(reader):
-            if irow == 0:
-                if column_name in row:
-                    icolumn = row.index(column_name)
-                else:
-                    sys.exit('{0} is not a column name.'.
-                             format(column_name))
-            else:
-                column.append(row[icolumn])
-            column0.append(row[0])
 
-    #x = rand(20)
-    #y = 1e7*rand(20)
-    #fig, ax = plt.subplots()
-    plt.plot(x, y, 'o')
+    reader = csv.reader(open(table_file, 'rb'),
+                        delimiter='\t', quotechar='"')
+    columns = [list(x) for x in zip(*reader)]
+    ncolumns = len(columns)
 
-    show()
+    keep_columns = []
+    for icolumn, column in enumerate(columns):
+        if icolumn not in ignore_columns:
+            keep_columns.extend(column[1::])
+    max_value = int(max([np.float(x) for x in keep_columns])) + 1
 
+    column_xaxis = columns[x_column][1::]
+
+    fig = plt.figure()
+    ax = fig.add_subplot(111)
+    jet = plt.get_cmap('jet', ncolumns)
+    color_values = range(ncolumns)
+    cNorm = colors.Normalize(vmin=0, vmax=color_values[-1])
+    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
+
+    hold = True
+    for icolumn, column in enumerate(columns):
+        if icolumn not in ignore_columns:
+
+            color_text = column[0]
+            color_value = scalarMap.to_rgba(color_values[icolumn])
+            plt.plot(column_xaxis, column[1::], 'o', hold=hold,
+                     color=color_value, label=color_text)
+
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, loc='upper left')
+    ax.grid()
+    plt.plot(range(max_value))
+    plt.show()
