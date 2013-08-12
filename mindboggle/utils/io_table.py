@@ -1010,8 +1010,7 @@ def select_column_from_tables(tables_dir, table_name, column_name, hemi,
         else:
             reader = csv.reader(open(input_table, 'rb'),
                                 delimiter=',', quotechar='"')
-            input_columns = zip(*reader)
-            input_columns = [list(x) for x in input_columns]
+            input_columns = [list(x) for x in zip(*reader)]
 
             #-----------------------------------------------------------------
             # Check to make sure first columns are the same across tables:
