@@ -28,19 +28,11 @@ def realign_boundaries_to_fundus_lines(
     numpy array representing the realigned label for each surface vertex.
     """
 
-#    import os
     import numpy as np
     from mindboggle.labels.labels import extract_borders
     import mindboggle.utils.graph as go
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
-#    import mindboggle.utils.kernels as kernels
     from mindboggle.utils.mesh import find_neighbors
-#    from mindboggle.labels.protocol import dkt_protocol
-#
-#    protocol = 'DKT25'
-#    sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-#        label_names, label_numbers, cortex_names, cortex_numbers, \
-#        noncortex_names, noncortex_numbers = dkt_protocol(protocol)
 
     ## read files
     faces, _, indices, points, num_points, _, _, _ = read_vtk(
@@ -56,31 +48,57 @@ def realign_boundaries_to_fundus_lines(
     ## setup seeds from initial label boundaries
     neighbor_lists = find_neighbors(faces, num_points)
 
-    # extract all vertices that are on a boundary between labels
-    boundary_indices, label_pairs, _ = extract_borders(
-        indices, init_labels, neighbor_lists,
-        return_label_pairs=True)
+    ### REMOVE ME
+    ### TESTING
+    ### FOR EFFICIENT TESTING ONLY.
+    import os
+    data_file = os.path.join(os.path.dirname(init_label_file),
+                             os.path.basename(surf_file).split(".")[0] +
+                             ".data.pickle")
+    import pickle
+    if os.path.exists(data_file):
+        data = open(data_file)
+        boundary_indices = pickle.load(data)
+        boundary_matrix_keys = pickle.load(data)
+        affinity_matrix = pickle.load(data)
+        learned_matrix = pickle.load(data)
 
-    # split boundary vertices into segments with common boundary pairs.
-    boundary_segments = {}
-    for boundary_index, label_pair in zip(boundary_indices, label_pairs):
-        key = ((label_pair[0], label_pair[1]) if label_pair[0] < label_pair[1]
-               else (label_pair[1], label_pair[0]))
-        if key not in boundary_segments:
-            boundary_segments[key] = []
+    else:
+        ### /REMOVE ME
 
-        boundary_segments[key].append(boundary_index)
+        # extract all vertices that are on a boundary between labels
+        boundary_indices, label_pairs, _ = extract_borders(
+            indices, init_labels, neighbor_lists,
+            return_label_pairs=True)
 
-    boundary_matrix, boundary_matrix_keys = _build_boundary_matrix(
-        boundary_segments, num_points)
+        # split boundary vertices into segments with common boundary pairs.
+        boundary_segments = {}
+        for boundary_index, label_pair in zip(boundary_indices, label_pairs):
+            key = ((label_pair[0], label_pair[1]) if label_pair[0] < label_pair[1]
+                   else (label_pair[1], label_pair[0]))
+            if key not in boundary_segments:
+                boundary_segments[key] = []
 
-    # build the affinity matrix
-    affinity_matrix = go.weight_graph(
-       np.array(points), indices, np.array(faces), sigma=10, add_to_graph=False)
+            boundary_segments[key].append(boundary_index)
 
-    ## propagate boundaries to fundus line vertices
-    learned_matrix = _propagate_labels(
-       affinity_matrix, boundary_matrix, boundary_indices, 1000, 1)
+        boundary_matrix, boundary_matrix_keys = _build_boundary_matrix(
+            boundary_segments, num_points)
+
+        # build the affinity matrix
+        affinity_matrix = go.weight_graph(
+           np.array(points), indices, np.array(faces), sigma=10, add_to_graph=False)
+
+        ## propagate boundaries to fundus line vertices
+        learned_matrix = _propagate_labels(
+           affinity_matrix, boundary_matrix, boundary_indices, 1000, 1)
+
+        ### REMOVE ME
+        data = open(data_file, "wb")
+        pickle.dump(boundary_indices, data)
+        pickle.dump(boundary_matrix_keys, data)
+        pickle.dump(affinity_matrix, data)
+        pickle.dump(learned_matrix, data)
+        ### /REMOVE ME
 
     # assign labels to fundus line vertices based on highest probability
     new_boundaries = -1 * np.ones(init_labels.shape)
