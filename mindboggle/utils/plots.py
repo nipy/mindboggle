@@ -108,7 +108,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     Inputs
     ------
     vtk_file : string
-        name of VTK file
+        name of VTK file with scalar values to plot
     nbins : integer
         number of histogram bins
 
@@ -129,13 +129,78 @@ def plot_scalar_histogram(vtk_file, nbins=100):
 
     # Histogram:
     fig = plt.figure()
-    ax = fig.add_subplot(111)
+    ax = fig.add_subplot(1,1,1)
     ax.hist(values, nbins, normed=False, facecolor='gray', alpha=0.5)
     plt.show()
 
 
-def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
-                            delimiter=','):
+def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
+                          nbins=100):
+    """
+    Construct a histogram for each table column.
+
+    Inputs
+    ------
+    table_file : string
+        name of comma-separated table file
+    ignore_columns : list of integers
+        indices to columns to exclude
+    delimiter : string
+        delimiter for table_file
+    nbins : integer
+        number of histogram bins
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.plots import histograms_from_table
+    >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
+    >>> hemi = 'left'
+    >>> s = '_CLEAN_bad'
+    >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
+    >>> ignore_columns = [0]
+    >>> delimiter = ','
+    >>> nbins = 100
+    >>> histograms_from_table(table_file, ignore_columns, delimiter, nbins)
+
+    """
+    import os
+    import csv
+    import matplotlib.pyplot as plt
+    import matplotlib.colors as colors
+    import matplotlib.cm as cmx
+    from matplotlib.font_manager import FontProperties
+
+    #--------------------------------------------------------------------------
+    # Extract columns from the table
+    #--------------------------------------------------------------------------
+    if not os.path.exists(table_file):
+        raise(IOError(table_file + " not found"))
+
+    reader = csv.reader(open(table_file, 'rb'),
+                        delimiter=delimiter, quotechar='"')
+    columns = [list(x) for x in zip(*reader)]
+
+    fig = plt.figure()
+    for icolumn, column in enumerate(columns):
+        if icolumn not in ignore_columns:
+
+            ax = fig.add_subplot(1, 1, icolumn)
+            ax.hist(column[1::], nbins, normed=False, facecolor='gray',
+                    alpha=0.5)
+            plt.title(column[0])
+
+    plt.plot(range(max_value))
+    fontP = FontProperties()
+    fontP.set_size('small')
+    handles, labels = ax.get_legend_handles_labels()
+    ax.legend(handles, labels, loc='lower right', prop=fontP)
+    ax.grid()
+    plt.show()
+
+
+def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
+                            delimiter=',', legend=True):
     """
     Scatter plot table columns against the values of one of the columns.
 
@@ -149,17 +214,23 @@ def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
         indices to columns to exclude
     delimiter : string
         delimiter for table_file
+    legend : Boolean
+        plot legend?
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import scatter_plot_from_table
     >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    >>> table_file = os.path.join('/drop/subjects_label_shapes.csv')
-    >>> x_column = 1
+    >>> #table_file = os.path.join('/drop/subjects_label_shapes.csv')
+    >>> hemi = 'right'
+    >>> s = '_CLEAN_bad'
+    >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
+    >>> x_column = 0
     >>> ignore_columns = [0]
     >>> delimiter = ','
-    >>> scatter_plot_from_table(table_file, x_column, ignore_columns, delimiter)
+    >>> legend = 1#False
+    >>> scatter_plot_from_table(table_file, x_column, ignore_columns, delimiter, legend)
 
     """
     import os
@@ -167,6 +238,7 @@ def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
     import matplotlib.pyplot as plt
     import matplotlib.colors as colors
     import matplotlib.cm as cmx
+    from matplotlib.font_manager import FontProperties
     import numpy as np
 
     #--------------------------------------------------------------------------
@@ -184,12 +256,11 @@ def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_columns:
             keep_columns.extend(column[1::])
-    max_value = int(max([np.float(x) for x in keep_columns])) + 2
 
     column_xaxis = columns[x_column][1::]
 
     fig = plt.figure()
-    ax = fig.add_subplot(111)
+    ax = fig.add_subplot(1,1,1)
     jet = plt.get_cmap('jet', ncolumns)
     color_values = range(ncolumns)
     cNorm = colors.Normalize(vmin=0, vmax=color_values[-1])
@@ -203,9 +274,17 @@ def scatter_plot_from_table(table_file, x_column=1, ignore_columns=[0],
             color_value = scalarMap.to_rgba(color_values[icolumn])
             plt.plot(column_xaxis, column[1::], 'o', hold=hold,
                      color=color_value, label=color_text)
+            if icolumn == x_column:
+                plt.xlabel(color_text)
 
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, loc='upper left')
+    if x_column not in ignore_columns:
+        min_value = int(min([np.float(x) for x in keep_columns]))
+        max_value = int(max([np.float(x) for x in keep_columns])) + 2
+        plt.plot(range(min_value, max_value))
+    if legend:
+        fontP = FontProperties()
+        fontP.set_size('small')
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, loc='lower right', prop=fontP)
     ax.grid()
-    plt.plot(range(max_value))
     plt.show()
