@@ -159,7 +159,7 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
     >>> data = '/drop/LAB/left_label_thickness_medians_CLEAN.csv'
     >>> ignore_entries = [0]
     >>> delimiter = ','
-    >>> nbins = 10
+    >>> nbins = 100
     >>> legend = True #False
     >>> plot_histograms(data, ignore_entries, delimiter, nbins, legend)
 
@@ -182,11 +182,17 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
         else:
             raise(IOError(data + " not found"))
     elif isinstance(data, list) and isinstance(data[0], list):
-        pass
+        columns = data
     else:
         sys.exit('Data need to be in a .csv table file or list of lists.')
 
-    nplotrows = np.ceil(np.sqrt(len(columns)))
+    ncolumns = len(columns)
+    if ncolumns < 4:
+        nplotrows = 1
+        nplotcols = ncolumns
+    else:
+        nplotrows = np.ceil(np.sqrt(len(columns)))
+        nplotrows = nplotrows
 
     #-------------------------------------------------------------------------
     # Construct a histogram from each column and display:
@@ -195,7 +201,7 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_entries:
 
-            ax = fig.add_subplot(nplotrows, nplotrows, icolumn)
+            ax = fig.add_subplot(nplotrows, nplotcols, icolumn)
             plot_column = [np.float(x) for x in column[1::]]
             ax.hist(plot_column[1::], nbins, normed=False, facecolor='gray',
                     alpha=0.5)
@@ -232,9 +238,9 @@ def scatter_plot_from_table(data, x_column=0, ignore_columns=[0],
     >>> data = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
     >>> x_column = 2
     >>> ignore_columns = [0,1]
-    >>> delimiter = '\t'
+    >>> delimiter = ','
     >>> legend = True #False
-    >>> table_file = '/drop/test.csv'
+    >>> data = '/drop/test.csv'
     >>> scatter_plot_from_table(data, x_column, ignore_columns, delimiter, legend)
 
     """
@@ -256,7 +262,7 @@ def scatter_plot_from_table(data, x_column=0, ignore_columns=[0],
         else:
             raise(IOError(data + " not found"))
     elif isinstance(data, list) and isinstance(data[0], list):
-        pass
+        columns = data
     else:
         sys.exit('Data need to be in a .csv table file or list of lists.')
 
