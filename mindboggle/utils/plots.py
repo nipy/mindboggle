@@ -181,13 +181,12 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
             columns = [list(x) for x in zip(*reader)]
         else:
             raise(IOError(data + " not found"))
-
     elif isinstance(data, list) and isinstance(data[0], list):
         pass
     else:
         sys.exit('Data need to be in a .csv table file or list of lists.')
 
-    nrows = np.ceil(np.sqrt(len(columns)))
+    nplotrows = np.ceil(np.sqrt(len(columns)))
 
     #-------------------------------------------------------------------------
     # Construct a histogram from each column and display:
@@ -196,7 +195,7 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_entries:
 
-            ax = fig.add_subplot(nrows, nrows, icolumn)
+            ax = fig.add_subplot(nplotrows, nplotrows, icolumn)
             plot_column = [np.float(x) for x in column[1::]]
             ax.hist(plot_column[1::], nbins, normed=False, facecolor='gray',
                     alpha=0.5)
@@ -204,15 +203,15 @@ def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
     plt.show()
 
 
-def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
+def scatter_plot_from_table(data, x_column=0, ignore_columns=[0],
                             delimiter=',', legend=True):
     """
     Scatter plot table columns against the values of one of the columns.
 
     Inputs
     ------
-    table_file : string
-        name of comma-separated table file
+    data : string or list of lists
+        name of comma-separated table file or list of lists of floats
     x_column : integer
         index of column against which other columns are plotted
     ignore_columns : list of integers
@@ -230,16 +229,17 @@ def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
     >>> #table_file = os.path.join('/drop/subjects_label_shapes.csv')
     >>> hemi = 'right'
     >>> s = '_CLEAN_bad'
-    >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
+    >>> data = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
     >>> x_column = 2
     >>> ignore_columns = [0,1]
     >>> delimiter = '\t'
     >>> legend = True #False
     >>> table_file = '/drop/test.csv'
-    >>> scatter_plot_from_table(table_file, x_column, ignore_columns, delimiter, legend)
+    >>> scatter_plot_from_table(data, x_column, ignore_columns, delimiter, legend)
 
     """
     import os
+    import sys
     import csv
     import matplotlib.pyplot as plt
     import matplotlib.colors as colors
@@ -247,15 +247,19 @@ def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
     from matplotlib.font_manager import FontProperties
     import numpy as np
 
-    #--------------------------------------------------------------------------
-    # Extract columns from the table
-    #--------------------------------------------------------------------------
-    if not os.path.exists(table_file):
-        raise(IOError(table_file + " not found"))
+    # Extract columns from the table:
+    if isinstance(data, str):
+        if os.path.exists(data):
+            reader = csv.reader(open(data, 'rb'),
+                                delimiter=delimiter, quotechar='"')
+            columns = [list(x) for x in zip(*reader)]
+        else:
+            raise(IOError(data + " not found"))
+    elif isinstance(data, list) and isinstance(data[0], list):
+        pass
+    else:
+        sys.exit('Data need to be in a .csv table file or list of lists.')
 
-    reader = csv.reader(open(table_file, 'rb'),
-                        delimiter=delimiter, quotechar='"')
-    columns = [list(x) for x in zip(*reader)]
     ncolumns = len(columns)
 
     keep_columns = []
