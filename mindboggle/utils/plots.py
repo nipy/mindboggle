@@ -135,7 +135,7 @@ def plot_scalar_histogram(vtk_file, nbins=100):
 
 
 def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
-                          nbins=100):
+                          nbins=100, legend=True):
     """
     Construct a histogram for each table column.
 
@@ -149,53 +149,55 @@ def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
         delimiter for table_file
     nbins : integer
         number of histogram bins
+    legend : Boolean
+        plot legend?
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import histograms_from_table
     >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    >>> hemi = 'left'
+    >>> hemi = 'right'
     >>> s = '_CLEAN_bad'
     >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
     >>> ignore_columns = [0]
     >>> delimiter = ','
-    >>> nbins = 100
-    >>> histograms_from_table(table_file, ignore_columns, delimiter, nbins)
+    >>> nbins = 10
+    >>> legend = True #False
+    >>> histograms_from_table(table_file, ignore_columns, delimiter, nbins, legend)
 
     """
     import os
     import csv
+    import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.colors as colors
     import matplotlib.cm as cmx
     from matplotlib.font_manager import FontProperties
 
-    #--------------------------------------------------------------------------
-    # Extract columns from the table
-    #--------------------------------------------------------------------------
+    #-------------------------------------------------------------------------
+    # Extract columns from the table:
+    #-------------------------------------------------------------------------
     if not os.path.exists(table_file):
         raise(IOError(table_file + " not found"))
 
     reader = csv.reader(open(table_file, 'rb'),
                         delimiter=delimiter, quotechar='"')
     columns = [list(x) for x in zip(*reader)]
+    nrows = np.ceil(np.sqrt(len(columns)))
 
+    #-------------------------------------------------------------------------
+    # Construct a histogram from each column and display:
+    #-------------------------------------------------------------------------
     fig = plt.figure()
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_columns:
 
-            ax = fig.add_subplot(1, 1, icolumn)
-            ax.hist(column[1::], nbins, normed=False, facecolor='gray',
+            ax = fig.add_subplot(nrows, nrows, icolumn)
+            plot_column = [np.float(x) for x in column[1::]]
+            ax.hist(plot_column[1::], nbins, normed=False, facecolor='gray',
                     alpha=0.5)
-            plt.title(column[0])
-
-    plt.plot(range(max_value))
-    fontP = FontProperties()
-    fontP.set_size('small')
-    handles, labels = ax.get_legend_handles_labels()
-    ax.legend(handles, labels, loc='lower right', prop=fontP)
-    ax.grid()
+            plt.title(column[0], fontsize='small')
     plt.show()
 
 
@@ -226,10 +228,11 @@ def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
     >>> hemi = 'right'
     >>> s = '_CLEAN_bad'
     >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
-    >>> x_column = 0
-    >>> ignore_columns = [0]
-    >>> delimiter = ','
-    >>> legend = 1#False
+    >>> x_column = 2
+    >>> ignore_columns = [0,1]
+    >>> delimiter = '\t'
+    >>> legend = True #False
+    >>> table_file = '/drop/test.csv'
     >>> scatter_plot_from_table(table_file, x_column, ignore_columns, delimiter, legend)
 
     """
@@ -266,6 +269,9 @@ def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
     cNorm = colors.Normalize(vmin=0, vmax=color_values[-1])
     scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
 
+    #-------------------------------------------------------------------------
+    # Scatter plot:
+    #-------------------------------------------------------------------------
     hold = True
     for icolumn, column in enumerate(columns):
         if icolumn not in ignore_columns:
@@ -277,6 +283,9 @@ def scatter_plot_from_table(table_file, x_column=0, ignore_columns=[0],
             if icolumn == x_column:
                 plt.xlabel(color_text)
 
+    #-------------------------------------------------------------------------
+    # Add legend and display:
+    #-------------------------------------------------------------------------
     if x_column not in ignore_columns:
         min_value = int(min([np.float(x) for x in keep_columns]))
         max_value = int(max([np.float(x) for x in keep_columns])) + 2
