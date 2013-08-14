@@ -10,7 +10,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def realign_boundaries_to_fundus_lines(
-    surf_file, init_label_file, fundus_lines_file, out_label_file=None):
+    surf_file, init_label_file, fundus_lines_file, thickness_file,
+    out_label_file=None):
     """
     Fix label boundaries to fundus lines.
 
@@ -44,6 +45,15 @@ def realign_boundaries_to_fundus_lines(
 
     fundus_lines, _ = read_scalars(fundus_lines_file,
                                    return_first=True, return_array=True)
+
+    thickness, _ = read_scalars(thickness_file,
+                             return_first=True, return_array=True)
+
+    # remove labels from vertices with zero thickness (get around
+    # DKT40 annotations having the label '3' for all the Corpus
+    # Callosum vertices).
+    cc_inds = [x for x in indices if thickness[x] < 0.001]
+    init_labels[cc_inds] = 0
 
     ## setup seeds from initial label boundaries
     neighbor_lists = find_neighbors(faces, num_points)
