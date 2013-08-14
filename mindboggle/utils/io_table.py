@@ -1027,7 +1027,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
             for icolumn, column in enumerate(input_columns):
                 if column[0] == column_name:
                     icolumn_name = icolumn
-                    columns.append(input_columns[icolumn_name][1::])
+                    columns.append(input_columns[icolumn_name])
                 elif label_name and (column[0] == label_name):
                     icolumn_label = icolumn
             if not icolumn_name >= 0:
@@ -1055,10 +1055,10 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
             if label_name:
                 write_columns(column0[1::], column0[0], delimiter, quote=True,
                               input_table='', output_table=output_table)
-                write_columns(columns, subjects, delimiter, quote=True,
+                write_columns(columns[1::], subjects, delimiter, quote=True,
                               input_table=output_table, output_table=output_table)
             else:
-                write_columns(columns, subjects, delimiter, quote=True,
+                write_columns(columns[1::], subjects, delimiter, quote=True,
                               input_table='', output_table=output_table)
         else:
             sys.exit('Label columns are not the same across tables.')
@@ -1148,7 +1148,7 @@ def select_column_from_tables(tables, column_name, label_name='',
                 elif column[0] == label_name:
                     icolumn_label = icolumn
             if icolumn_name >= 0:
-                columns.append(input_columns[icolumn_name][1::])
+                columns.append(input_columns[icolumn_name])
             else:
                 sys.exit('No column name "{0}".'.format(column_name))
 
@@ -1175,13 +1175,46 @@ def select_column_from_tables(tables, column_name, label_name='',
             if label_name:
                 write_columns(column0[1::], column0[0], delimiter, quote=True,
                               input_table='', output_table=output_table)
-                write_columns(columns, labels, delimiter, quote=True,
+                write_columns(columns[1::], labels, delimiter, quote=True,
                               input_table=output_table, output_table=output_table)
             else:
-                write_columns(columns, labels, delimiter, quote=True,
+                write_columns(columns[1::], labels, delimiter, quote=True,
                               input_table='', output_table=output_table)
 
         else:
             print('Label columns are not the same across tables. Not saving table.')
 
     return columns, output_table
+
+
+if __name__== '__main__':
+
+    import os
+    from mindboggle.utils.io_table import select_column_from_tables
+    from mindboggle.utils.plots import plot_histograms
+    from mindboggle.utils.plots import scatter_plot_from_table
+
+    #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
+    #          '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
+    tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
+              '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
+    #column_name = 'label: thickness: median (weighted)'
+    column_name = "thickness"
+    label_name = 'label'
+    write_table = True
+    output_table = ''
+    delimiter = ','
+
+    data, o = select_column_from_tables(tables, column_name, label_name,
+                                        write_table, output_table, delimiter)
+    ignore_columns = []
+    delimiter = ','
+    nbins = 100
+    legend = True #False
+    plot_histograms(data, ignore_columns, delimiter, nbins, legend)
+
+    x_column = 1
+    ignore_columns = []
+    delimiter = ','
+    legend = True #False
+    scatter_plot_from_table(data, x_column, ignore_columns, delimiter, legend)
