@@ -134,19 +134,19 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     plt.show()
 
 
-def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
-                          nbins=100, legend=True):
+def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
+                    legend=True):
     """
     Construct a histogram for each table column.
 
     Inputs
     ------
-    table_file : string
-        name of comma-separated table file
-    ignore_columns : list of integers
-        indices to columns to exclude
+    data : string or list of lists
+        name of comma-separated table file or list of lists of floats
+    ignore_entries : list of integers
+        indices to table columns or sublists to exclude
     delimiter : string
-        delimiter for table_file
+        delimiter for table file
     nbins : integer
         number of histogram bins
     legend : Boolean
@@ -155,19 +155,17 @@ def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import histograms_from_table
-    >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    >>> hemi = 'right'
-    >>> s = '_CLEAN_bad'
-    >>> table_file = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
-    >>> ignore_columns = [0]
+    >>> from mindboggle.utils.plots import plot_histograms
+    >>> data = '/drop/LAB/left_label_thickness_medians_CLEAN.csv'
+    >>> ignore_entries = [0]
     >>> delimiter = ','
     >>> nbins = 10
     >>> legend = True #False
-    >>> histograms_from_table(table_file, ignore_columns, delimiter, nbins, legend)
+    >>> plot_histograms(data, ignore_entries, delimiter, nbins, legend)
 
     """
     import os
+    import sys
     import csv
     import numpy as np
     import matplotlib.pyplot as plt
@@ -175,15 +173,20 @@ def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
     import matplotlib.cm as cmx
     from matplotlib.font_manager import FontProperties
 
-    #-------------------------------------------------------------------------
     # Extract columns from the table:
-    #-------------------------------------------------------------------------
-    if not os.path.exists(table_file):
-        raise(IOError(table_file + " not found"))
+    if isinstance(data, str):
+        if os.path.exists(data):
+            reader = csv.reader(open(data, 'rb'),
+                                delimiter=delimiter, quotechar='"')
+            columns = [list(x) for x in zip(*reader)]
+        else:
+            raise(IOError(data + " not found"))
 
-    reader = csv.reader(open(table_file, 'rb'),
-                        delimiter=delimiter, quotechar='"')
-    columns = [list(x) for x in zip(*reader)]
+    elif isinstance(data, list) and isinstance(data[0], list):
+        pass
+    else:
+        sys.exit('Data need to be in a .csv table file or list of lists.')
+
     nrows = np.ceil(np.sqrt(len(columns)))
 
     #-------------------------------------------------------------------------
@@ -191,7 +194,7 @@ def histograms_from_table(table_file, ignore_columns=[0], delimiter=',',
     #-------------------------------------------------------------------------
     fig = plt.figure()
     for icolumn, column in enumerate(columns):
-        if icolumn not in ignore_columns:
+        if icolumn not in ignore_entries:
 
             ax = fig.add_subplot(nrows, nrows, icolumn)
             plot_column = [np.float(x) for x in column[1::]]
