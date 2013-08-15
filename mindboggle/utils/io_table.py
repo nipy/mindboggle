@@ -941,9 +941,8 @@ def select_column_from_tables(tables, column_name, label_name='',
     Examples
     --------
     >>> from mindboggle.utils.io_table import select_column_from_tables
-    >>> tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
-    >>>           '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
-    >>> column_name = 'label: thickness: median (weighted)'
+    >>> tables = ['/home/arno/mindboggled/tables/left/UM0029UMMR1R1_antsCorticalThickness/label_shapes.csv']
+    >>> column_name = 'label: thickness: mean (weighted)'
     >>> #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
     >>> #          '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
     >>> #column_name = "thickness"
@@ -987,9 +986,19 @@ def select_column_from_tables(tables, column_name, label_name='',
             icolumn_name = None
             icolumn_label = None
             for icolumn, column in enumerate(input_columns):
-                if column[0] == column_name:
+                # new_column = []
+                # rms = ['"', "'"]
+                # for c in column:
+                #     for s in rms:
+                #         c = c.strip()
+                #         c = c.strip(s)
+                #         c = c.strip()
+                #     new_column.append(c)
+                # column = new_column
+                hdr = column[0]
+                if hdr == column_name:
                     icolumn_name = icolumn
-                elif column[0] == label_name:
+                elif hdr == label_name:
                     icolumn_label = icolumn
             if icolumn_name >= 0:
                 columns.append(input_columns[icolumn_name][1::])
@@ -1002,7 +1011,7 @@ def select_column_from_tables(tables, column_name, label_name='',
             if icolumn_label >= 0:
                 if first:
                     row_names = input_columns[icolumn_label][1::]
-                    row_names_title = input_columns[icolumn_label][0]
+                    row_names_title = input_columns[icolumn_label][0].strip()
                     first = False
                 elif input_columns[icolumn_label][1::] != row_names:
                     print('Label columns are not the same across tables.')
