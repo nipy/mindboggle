@@ -902,6 +902,146 @@ def write_average_face_values_per_label(input_indices_vtk,
             raise(IOError(output_table + " not found"))
 
 
+def select_column_from_tables(tables, column_name, label_name='',
+                              write_table=True, output_table='',
+                              delimiter=','):
+    """
+    Select column from list of tables and make a new table.
+
+    Parameters
+    ----------
+    tables : list of strings
+        table files (full paths)
+    column_name :  string
+        column name to select
+    label_name :  string
+        column name for column with labels (if empty, no label column added)
+    write_table : Boolean
+        write output table?
+    output_table : string
+        output table file name
+    delimiter : string
+        delimiter between output table columns, such as ','
+
+    Returns
+    -------
+    tables : list of strings
+        input table files (full paths)
+    columns : list of lists of floats or integers
+        columns of data
+    column_name :  string
+        column name to select
+    row_names : list of strings
+        row labels (common strings in the label column of tables)
+    row_names_title : string
+        row_names column header
+    output_table :  string
+        output table file name
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_table import select_column_from_tables
+    >>> tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
+    >>>           '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
+    >>> column_name = 'label: thickness: median (weighted)'
+    >>> #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
+    >>> #          '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
+    >>> #column_name = "thickness"
+    >>> label_name = 'label'
+    >>> write_table = True
+    >>> output_table = ''
+    >>> delimiter = ','
+    >>> #
+    >>> select_column_from_tables(tables, column_name, label_name,
+    >>>                           write_table, output_table, delimiter)
+
+    """
+    import os
+    import sys
+    import csv
+
+    from mindboggle.utils.io_table import write_columns
+
+    #-------------------------------------------------------------------------
+    # Construct a table:
+    #-------------------------------------------------------------------------
+    columns = []
+    row_names = []
+    row_names_title = ''
+    first = True
+    for input_table in tables:
+
+        #---------------------------------------------------------------------
+        # Extract column from the table for each subject:
+        #---------------------------------------------------------------------
+        if not os.path.exists(input_table):
+            raise(IOError(input_table + " not found"))
+        else:
+            reader = csv.reader(open(input_table, 'rb'),
+                                delimiter=',', quotechar='"')
+            input_columns = [list(x) for x in zip(*reader)]
+
+            #-----------------------------------------------------------------
+            # Extract column with table_name as its header:
+            #-----------------------------------------------------------------
+            icolumn_name = None
+            icolumn_label = None
+            for icolumn, column in enumerate(input_columns):
+                if column[0] == column_name:
+                    icolumn_name = icolumn
+                elif column[0] == label_name:
+                    icolumn_label = icolumn
+            if icolumn_name >= 0:
+                columns.append(input_columns[icolumn_name][1::])
+            else:
+                sys.exit('No column name "{0}".'.format(column_name))
+
+            #-----------------------------------------------------------------
+            # Don't use the labels if label columns are unequal across tables:
+            #-----------------------------------------------------------------
+            if icolumn_label >= 0:
+                if first:
+                    row_names = input_columns[icolumn_label][1::]
+                    row_names_title = input_columns[icolumn_label][0]
+                    first = False
+                elif input_columns[icolumn_label][1::] != row_names:
+                    print('Label columns are not the same across tables.')
+                    label_name = False
+
+    #-------------------------------------------------------------------------
+    # Write table:
+    #-------------------------------------------------------------------------
+    if write_table and columns:
+        if all([len(x) == len(columns[0]) for x in columns]):
+
+            labels = [os.path.basename(x) for x in tables]
+
+            if not output_table:
+                rms = ['"', '`', ',', '/', '<', '>', '?', ':', ';',
+                       '(', ')', '[', ']', '{', '}', '|', '\\',
+                       '!', '@', '#', '$', '%', '^', '&', '*', '=', '_']
+                table_name = column_name
+                for s in rms:
+                    table_name = table_name.replace(s, '_')
+                table_name = table_name.replace(' ', '')
+                output_table = os.path.join(os.getcwd(), table_name + '.csv')
+                output_table = output_table.replace('_.', '.')
+
+            if label_name:
+                write_columns(row_names, row_names_title, delimiter, quote=True,
+                              input_table='', output_table=output_table)
+                write_columns(columns, labels, delimiter, quote=True,
+                              input_table=output_table, output_table=output_table)
+            else:
+                write_columns(columns, labels, delimiter, quote=True,
+                              input_table='', output_table=output_table)
+
+        else:
+            print('Not saving table.')
+
+    return tables, columns, column_name, row_names, row_names_title, output_table
+
+
 def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
         table_name, column_name, label_name='label',
         write_table=True, output_table='', delimiter=','):
@@ -936,8 +1076,16 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
 
     Returns
     -------
+    tables : list of strings
+        input table files (full paths)
     columns : list of lists of floats or integers
         columns of data
+    column_name :  string
+        column name to select
+    row_names : list of strings
+        row labels (common strings in the label column of tables)
+    row_names_title : string
+        row_names column header
     output_table :  string
         output table file name
 
@@ -958,263 +1106,25 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     >>> select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     >>>     table_name, column_name, label_name,
     >>>     write_table, output_table, delimiter)
-    ([['0.0',
-       '2.81284379959',
-       '3.01779794693',
-       '1.77062225342',
-       '3.95074248314',
-       '2.68359518051',
-       '2.4820933342',
-       '3.2174987793',
-       '2.51246929169',
-       '2.29892659187',
-       '2.92835354805',
-       '1.80210566521',
-       '2.73926997185',
-       '3.03725147247',
-       '2.66790640354',
-       '2.49952173233',
-       '2.95639634132',
-       '2.93815255165',
-       '2.64102673531',
-       '1.39573025703',
-       '2.21775197983',
-       '2.66246962547',
-       '2.7404499054',
-       '2.41555404663',
-       '2.85560131073',
-       '2.77592992783',
-       '3.01567554474',
-       '2.25341868401',
-       '3.06560492516',
-       '2.68993973732',
-       '2.50831317902',
-       '3.25380325317']],
-     '/Users/arno/Documents/Projects/Mindboggle/mindboggle/mindboggle/subjects_label_shapes.csv')
 
     """
     import os
-    import sys
-    import csv
 
-    from mindboggle.utils.io_table import write_columns
-
-    #-------------------------------------------------------------------------
-    # Construct a table:
-    #-------------------------------------------------------------------------
-    columns = []
-    if label_name:
-        column0 = []
-        first = True
-    for subject in subjects:
-
-        #---------------------------------------------------------------------
-        # Extract column from the table for each subject:
-        #---------------------------------------------------------------------
-        input_table = os.path.join(tables_dir, hemi, subject, table_name)
-        if not os.path.exists(input_table):
-            raise(IOError(input_table + " not found"))
-        else:
-            reader = csv.reader(open(input_table, 'rb'),
-                                delimiter=',', quotechar='"')
-            input_columns = [list(x) for x in zip(*reader)]
-
-            #-----------------------------------------------------------------
-            # Extract column with column_name as its header:
-            #-----------------------------------------------------------------
-            icolumn_name = None
-            icolumn_label = None
-            for icolumn, column in enumerate(input_columns):
-                if column[0] == column_name:
-                    icolumn_name = icolumn
-                    columns.append(input_columns[icolumn_name])
-                elif label_name and (column[0] == label_name):
-                    icolumn_label = icolumn
-            if not icolumn_name >= 0:
-                sys.exit('No column name "{0}".'.format(column_name))
-
-            #-----------------------------------------------------------------
-            # Check to make sure label columns are the same across tables:
-            #-----------------------------------------------------------------
-            if label_name and icolumn_label >= 0:
-                if first:
-                    column0 = input_columns[icolumn_label]
-                    first = False
-                elif input_columns[icolumn_label] != column0:
-                    sys.exit('Label columns are not the same across tables.')
-
-    #-------------------------------------------------------------------------
-    # Write table:
-    #-------------------------------------------------------------------------
-    if write_table and columns:
-        if all([len(x) == len(columns[0]) for x in columns]):
-
-            if not output_table:
-                output_table = os.path.join(os.getcwd(), 'subjects_' + table_name)
-
-            if label_name:
-                write_columns(column0[1::], column0[0], delimiter, quote=True,
-                              input_table='', output_table=output_table)
-                write_columns(columns[1::], subjects, delimiter, quote=True,
-                              input_table=output_table, output_table=output_table)
-            else:
-                write_columns(columns[1::], subjects, delimiter, quote=True,
-                              input_table='', output_table=output_table)
-        else:
-            sys.exit('Label columns are not the same across tables.')
-
-    return columns, output_table
-
-
-def select_column_from_tables(tables, column_name, label_name='',
-                              write_table=True, output_table='',
-                              delimiter=','):
-    """
-    Select column from list of tables and make a new table.
-
-    Parameters
-    ----------
-    tables : list of strings
-        table files (full paths)
-    column_name :  string
-        column name to select
-    label_name :  string
-        column name for column with labels (if empty, no label column added)
-    write_table : Boolean
-        write output table?
-    output_table : string
-        output table file name
-    delimiter : string
-        delimiter between output table columns, such as ','
-
-    Returns
-    -------
-    columns : list of lists of floats or integers
-        columns of data
-    output_table :  string
-        output table file name
-
-    Examples
-    --------
-    >>> from mindboggle.utils.io_table import select_column_from_tables
-    >>> #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
-    >>> #          '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
-    >>> tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
-    >>>           '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
-    >>> #column_name = 'label: thickness: median (weighted)'
-    >>> column_name = "thickness"
-    >>> label_name = 'label'
-    >>> write_table = True
-    >>> output_table = ''
-    >>> delimiter = ','
-    >>> #
-    >>> select_column_from_tables(tables, column_name, label_name,
-    >>>                           write_table, output_table, delimiter)
-
-    """
-    import os
-    import sys
-    import csv
-
-    from mindboggle.utils.io_table import write_columns
-
-    #-------------------------------------------------------------------------
-    # Construct a table:
-    #-------------------------------------------------------------------------
-    columns = []
-    if label_name:
-        column0 = []
-        first = True
-    for input_table in tables:
-
-        #---------------------------------------------------------------------
-        # Extract column from the table for each subject:
-        #---------------------------------------------------------------------
-        if not os.path.exists(input_table):
-            raise(IOError(input_table + " not found"))
-        else:
-            reader = csv.reader(open(input_table, 'rb'),
-                                delimiter=',', quotechar='"')
-            input_columns = [list(x) for x in zip(*reader)]
-
-            #-----------------------------------------------------------------
-            # Extract column with column_name as its header:
-            #-----------------------------------------------------------------
-            icolumn_name = None
-            icolumn_label = None
-            for icolumn, column in enumerate(input_columns):
-                if column[0] == column_name:
-                    icolumn_name = icolumn
-                elif column[0] == label_name:
-                    icolumn_label = icolumn
-            if icolumn_name >= 0:
-                columns.append(input_columns[icolumn_name])
-            else:
-                sys.exit('No column name "{0}".'.format(column_name))
-
-            #-----------------------------------------------------------------
-            # Check to make sure label columns are the same across tables:
-            #-----------------------------------------------------------------
-            if icolumn_label >= 0:
-                if first:
-                    column0 = input_columns[icolumn_label]
-                    first = False
-                elif input_columns[icolumn_label] != column0:
-                    print('Label columns are not the same across tables.')
-                    label_name = False
-
-    #-------------------------------------------------------------------------
-    # Write table:
-    #-------------------------------------------------------------------------
-    if write_table and columns:
-        if all([len(x) == len(columns[0]) for x in columns]):
-
-            labels = [os.path.basename(x) for x in tables]
-            if not output_table:
-                output_table = os.path.join(os.getcwd(), column_name + '.csv')
-            if label_name:
-                write_columns(column0[1::], column0[0], delimiter, quote=True,
-                              input_table='', output_table=output_table)
-                write_columns(columns[1::], labels, delimiter, quote=True,
-                              input_table=output_table, output_table=output_table)
-            else:
-                write_columns(columns[1::], labels, delimiter, quote=True,
-                              input_table='', output_table=output_table)
-
-        else:
-            print('Label columns are not the same across tables. Not saving table.')
-
-    return columns, output_table
-
-
-if __name__== '__main__':
-
-    import os
     from mindboggle.utils.io_table import select_column_from_tables
-    from mindboggle.utils.plots import plot_histograms
-    from mindboggle.utils.plots import scatter_plot_from_table
 
-    #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
-    #          '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
-    tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
-              '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
-    #column_name = 'label: thickness: median (weighted)'
-    column_name = "thickness"
-    label_name = 'label'
-    write_table = True
-    output_table = ''
-    delimiter = ','
+    #-------------------------------------------------------------------------
+    # Construct list of Mindboggle shape table file names:
+    #-------------------------------------------------------------------------
+    tables = []
+    for subject in subjects:
+        tables.append(os.path.join(tables_dir, hemi, subject, table_name))
 
-    data, o = select_column_from_tables(tables, column_name, label_name,
-                                        write_table, output_table, delimiter)
-    ignore_columns = []
-    delimiter = ','
-    nbins = 100
-    legend = True #False
-    plot_histograms(data, ignore_columns, delimiter, nbins, legend)
+    #-------------------------------------------------------------------------
+    # Extract columns and construct new table:
+    #-------------------------------------------------------------------------
+    tables, columns, column_name, row_names, row_names_title, \
+    output_table = select_column_from_tables(tables, column_name, label_name,
+                                             write_table, output_table,
+                                             delimiter)
 
-    x_column = 1
-    ignore_columns = []
-    delimiter = ','
-    legend = True #False
-    scatter_plot_from_table(data, x_column, ignore_columns, delimiter, legend)
+    return tables, columns, column_name, row_names, row_names_title, output_table

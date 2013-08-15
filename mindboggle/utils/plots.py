@@ -134,179 +134,221 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     plt.show()
 
 
-def plot_histograms(data, ignore_entries=[0], delimiter=',', nbins=100,
-                    legend=True):
+def plot_histograms(columns, column_name='', ignore_columns=[],
+                    nbins=100, titles=[]):
     """
     Construct a histogram for each table column.
 
     Inputs
     ------
-    data : string or list of lists
-        name of comma-separated table file or list of lists of floats
-    ignore_entries : list of integers
+    columns : list of lists
+        list of lists of floats or integers
+    column_name :  string
+        column name
+    ignore_columns : list of integers
         indices to table columns or sublists to exclude
-    delimiter : string
-        delimiter for table file
     nbins : integer
         number of histogram bins
-    legend : Boolean
-        plot legend?
+    titles : list of strings (length = number of columns - 1)
+        histogram titles (if empty, use column headers)
 
     Examples
     --------
-    >>> import os
     >>> from mindboggle.utils.plots import plot_histograms
-    >>> data = '/drop/LAB/left_label_thickness_medians_CLEAN.csv'
-    >>> ignore_entries = [0]
-    >>> delimiter = ','
+    >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7]]
+    >>> column_name = 'label: thickness: median (weighted)'
+    >>> ignore_columns = []
     >>> nbins = 100
-    >>> legend = True #False
-    >>> plot_histograms(data, ignore_entries, delimiter, nbins, legend)
+    >>> titles = ['title1','title2']
+    >>> plot_histograms(columns, column_name, ignore_columns, nbins, titles)
 
     """
-    import os
-    import sys
-    import csv
     import numpy as np
     import matplotlib.pyplot as plt
     import matplotlib.colors as colors
     import matplotlib.cm as cmx
     from matplotlib.font_manager import FontProperties
-
-    # Extract columns from the table:
-    if isinstance(data, str):
-        if os.path.exists(data):
-            reader = csv.reader(open(data, 'rb'),
-                                delimiter=delimiter, quotechar='"')
-            columns = [list(x) for x in zip(*reader)]
-        else:
-            raise(IOError(data + " not found"))
-    elif isinstance(data, list) and isinstance(data[0], list):
-        columns = data
-    else:
-        sys.exit('Data need to be in a .csv table file or list of lists.')
 
     ncolumns = len(columns)
     if ncolumns < 4:
         nplotrows = 1
         nplotcols = ncolumns
     else:
-        nplotrows = np.ceil(np.sqrt(len(columns)))
-        nplotrows = nplotrows
+        nplotrows = np.ceil(np.sqrt(ncolumns))
+        nplotcols = nplotrows
 
     #-------------------------------------------------------------------------
     # Construct a histogram from each column and display:
     #-------------------------------------------------------------------------
     fig = plt.figure()
+    print(columns)
     for icolumn, column in enumerate(columns):
-        if icolumn not in ignore_entries:
-
+        if icolumn not in ignore_columns:
             ax = fig.add_subplot(nplotrows, nplotcols, icolumn)
-            plot_column = [np.float(x) for x in column[1::]]
-            ax.hist(plot_column[1::], nbins, normed=False, facecolor='gray',
+            column = [np.float(x) for x in column]
+            ax.hist(column, nbins, normed=False, facecolor='gray',
                     alpha=0.5)
-            plt.title(column[0], fontsize='small')
+            plt.xlabel(column_name, fontsize='small')
+            plt.ylabel('frequency')
+            if len(titles) == ncolumns:
+                plt.title(titles[icolumn], fontsize='small')
+            else:
+                plt.title(column_name + ' histogram', fontsize='small')
     plt.show()
 
 
-def scatter_plot_from_table(data, x_column=0, ignore_columns=[0],
-                            delimiter=',', legend=True):
+def scatter_plot_columns(columns, x_column, ignore_columns=[], plot_line=True,
+                         title='', x_label='', y_label='',
+                         legend=True, legend_labels=[]):
     """
-    Scatter plot table columns against the values of one of the columns.
+    Scatter plot columns against the values of one of the columns.
 
     Inputs
     ------
-    data : string or list of lists
-        name of comma-separated table file or list of lists of floats
-    x_column : integer
-        index of column against which other columns are plotted
+    columns : list of lists of numbers
+        columns of data (all of the same length)
+    x_column : list of numbers
+        column of numbers against which other columns are plotted
     ignore_columns : list of integers
         indices to columns to exclude
-    delimiter : string
-        delimiter for table_file
+    plot_line : Boolean
+        plot identity line?
+    title :  string
+        title
+    x_label : string
+        description of x_column
+    y_label : string
+        description of other columns
     legend : Boolean
         plot legend?
+    legend_labels : list of strings (length = number of columns)
+        legend labels
 
     Examples
     --------
-    >>> import os
-    >>> from mindboggle.utils.plots import scatter_plot_from_table
-    >>> #path = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    >>> #table_file = os.path.join('/drop/subjects_label_shapes.csv')
-    >>> hemi = 'right'
-    >>> s = '_CLEAN_bad'
-    >>> data = os.path.join('/drop/'+hemi+'_label_thickness_medians'+s+'.csv')
-    >>> x_column = 2
-    >>> ignore_columns = [0,1]
-    >>> delimiter = ','
-    >>> legend = True #False
-    >>> data = '/drop/test.csv'
-    >>> scatter_plot_from_table(data, x_column, ignore_columns, delimiter, legend)
+    >>> from mindboggle.utils.plots import scatter_plot_columns
+    >>> columns = [[1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7]]
+    >>> x_column = [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6]
+    >>> ignore_columns = []
+    >>> plot_line = True
+    >>> title = 'title'
+    >>> x_label = 'xlabel'
+    >>> y_label = 'ylabel'
+    >>> legend = True
+    >>> legend_labels = ['mark1','mark2']
+    >>> scatter_plot_columns(columns, x_column, ignore_columns, plot_line, title, x_label, y_label, legend, legend_labels)
 
     """
-    import os
-    import sys
-    import csv
     import matplotlib.pyplot as plt
-    import matplotlib.colors as colors
-    import matplotlib.cm as cmx
+    #import matplotlib.colors as colors
+    #import matplotlib.cm as cmx
     from matplotlib.font_manager import FontProperties
     import numpy as np
 
-    # Extract columns from the table:
-    if isinstance(data, str):
-        if os.path.exists(data):
-            reader = csv.reader(open(data, 'rb'),
-                                delimiter=delimiter, quotechar='"')
-            columns = [list(x) for x in zip(*reader)]
-        else:
-            raise(IOError(data + " not found"))
-    elif isinstance(data, list) and isinstance(data[0], list):
-        columns = data
-    else:
-        sys.exit('Data need to be in a .csv table file or list of lists.')
-
     ncolumns = len(columns)
-
-    keep_columns = []
-    for icolumn, column in enumerate(columns):
-        if icolumn not in ignore_columns:
-            keep_columns.extend(column[1::])
-
-    column_xaxis = columns[x_column][1::]
 
     fig = plt.figure()
     ax = fig.add_subplot(1,1,1)
-    jet = plt.get_cmap('jet', ncolumns)
-    color_values = range(ncolumns)
-    cNorm = colors.Normalize(vmin=0, vmax=color_values[-1])
-    scalarMap = cmx.ScalarMappable(norm=cNorm, cmap=jet)
-
+    color_indices = np.linspace(0, 1, num=ncolumns, endpoint=False)
     #-------------------------------------------------------------------------
     # Scatter plot:
     #-------------------------------------------------------------------------
     hold = True
+    if plot_line:
+        min_value = np.inf
+        max_value = -np.inf
     for icolumn, column in enumerate(columns):
+        column = [np.float(x) for x in column]
         if icolumn not in ignore_columns:
+            color_index = color_indices[icolumn]
+            color_value = plt.cm.hsv(color_index * np.ones(len(column)))
+            if len(legend_labels) == ncolumns:
+                color_text = legend_labels[icolumn]
+                plt.scatter(x_column, column, marker='o', s=50,
+                            color=color_value, hold=hold,
+                            label=color_text)
+            else:
+                plt.scatter(x_column, column, marker='o', s=50,
+                            color=color_value, hold=hold)
 
-            color_text = column[0]
-            color_value = scalarMap.to_rgba(color_values[icolumn])
-            plt.plot(column_xaxis, column[1::], 'o', hold=hold,
-                     color=color_value, label=color_text)
-            if icolumn == x_column:
-                plt.xlabel(color_text)
+        if plot_line:
+            if min(column) < min_value:
+                min_value = min(column)
+            if max(column) > max_value:
+                max_value = max(column)
 
     #-------------------------------------------------------------------------
     # Add legend and display:
     #-------------------------------------------------------------------------
-    if x_column not in ignore_columns:
-        min_value = int(min([np.float(x) for x in keep_columns]))
-        max_value = int(max([np.float(x) for x in keep_columns])) + 2
-        plt.plot(range(min_value, max_value))
+    if plot_line:
+        plt.plot(range(int(min_value), int(max_value) + 2))
     if legend:
         fontP = FontProperties()
         fontP.set_size('small')
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles, labels, loc='lower right', prop=fontP)
     ax.grid()
+    if x_label:
+        plt.xlabel(x_label)
+    if y_label:
+        plt.ylabel(y_label)
+    plt.title(title)
     plt.show()
+
+
+if __name__== '__main__':
+
+    import os
+    from mindboggle.utils.io_table import select_column_from_tables
+    from mindboggle.utils.plots import plot_histograms
+    from mindboggle.utils.plots import scatter_plot_columns
+
+    plot_hist = 0#True
+    plot_scat = True
+
+    write_table = False
+    output_table = ''
+    delimiter = ','
+
+    if plot_hist:
+
+        tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
+                  '/drop/tables/right/UM0029UMMR2R1_FS11212/vertices.csv']
+        column_name = "thickness"
+        label_name = 'label'
+        tables, columns, column_name, row_names, row_names_title, \
+        output_table = select_column_from_tables(tables, column_name, label_name,
+                                                 write_table, output_table,
+                                                 delimiter)
+        ignore_columns = []
+        nbins = 100
+        plot_histograms(columns, column_name, ignore_columns, nbins, titles=tables)
+
+    if plot_scat:
+
+        tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/label_shapes.csv',
+                  '/drop/tables/left/UM0029UMMR2R1_repositioned/label_shapes.csv']
+        title = 'label: thickness: median (weighted)'
+        label_name = 'label'
+        ignore_columns = []
+        legend = True
+        tables, columns, column_name, row_names, row_names_title, \
+        output_table = select_column_from_tables(tables, title, label_name,
+                                                 write_table, output_table,
+                                                 delimiter)
+        # Columns against one column, with identity line:
+        x_column = columns[0]
+        columns1 = columns[1::]
+        legend_labels = tables[1::]
+        plot_line = True
+        x_label = 'median thickness'
+        y_label = 'median thickness'
+        #scatter_plot_columns(columns1, x_column, ignore_columns, plot_line, title, x_label, y_label, legend, legend_labels)
+
+        # Columns against labels, with no identity line:
+        x_column = row_names
+        legend_labels = tables
+        plot_line = False
+        x_label = label_name
+        y_label = 'median thickness'
+        scatter_plot_columns(columns, x_column, ignore_columns, plot_line, title, x_label, y_label, legend, legend_labels)
