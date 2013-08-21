@@ -90,35 +90,36 @@ parser.add_argument("-n",
                     default=1, metavar='')
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
-# Labels:
-parser.add_argument("--only_label", action='store_true',
-                    help="only output labels (no features or tables)")
+
+#parser.add_argument("--only_label", action='store_true',
+#                    help="only output labels (no features or tables)")
+parser.add_argument("--no_tables", action='store_true',
+                    help="do not generate shape tables")
 parser.add_argument("--no_labels", action='store_true',
                     help="do not label surfaces or volumes")
-parser.add_argument("--surface_labels",
-                    help=("surface labels: "
-                    "\"atlas\" (default), \"freesurfer\", \"manual\""),
-                    choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas', metavar='')
+parser.add_argument("--no_register", help="do not register to volume template (ANTS)",
+                    action='store_true')
+parser.add_argument("--no_volumes", action='store_true',
+                    help="do not process volumes")
+parser.add_argument("--no_surfaces", action='store_true',
+                    help="do not process surfaces")
+parser.add_argument("--no_freesurfer", action='store_true',
+                    help="do not use FreeSurfer or its outputs (UNTESTED)")
 parser.add_argument("--atlases", help=("label with additional volume "
                                        "atlas(es) in MNI152 space"),
                     nargs='+', metavar='')
 # Registration:
-parser.add_argument("--no_register", help="do not register to volume template (ANTS)",
-                    action='store_true')
 parser.add_argument("--register_iters", help="ANTS iterations: "
                     "\"--register_iters 33x99x11\" (default)",
                     default='33x99x11', metavar='')
 # Features:
-parser.add_argument("--no_features", action='store_true',
-                    help="do not extract sulci or fundi")
+parser.add_argument("--sulci", action='store_true',
+                    help="extract sulci (default is not to)")
 #parser.add_argument("--no_fundi", action='store_true',
 #                    help="do not extract fundi")
 parser.add_argument("--fundi", action='store_true',
                     help="extract fundi (default is not to)")
 # Tables:
-parser.add_argument("--no_tables", action='store_true',
-                    help="do not generate shape tables")
 parser.add_argument("--vertex_table", action='store_true',
                     help=("make table of per-vertex surface shape measures"))
 # Shapes:
@@ -136,13 +137,11 @@ parser.add_argument("--spectra_values",
 #parser.add_argument("--reduction", help="mesh decimation fraction: "
 #                                        "\"--reduction 0.75\" (default)",
 #                    default=0.75, type=float, metavar='')
-# Top settings:
-parser.add_argument("--no_volumes", action='store_true',
-                    help="do not process volumes")
-parser.add_argument("--no_surfaces", action='store_true',
-                    help="do not process surfaces")
-parser.add_argument("--no_freesurfer", action='store_true',
-                    help="do not use FreeSurfer or its outputs (UNTESTED)")
+parser.add_argument("--surface_labels",
+                    help=("surface labels: "
+                    "\"atlas\" (default), \"freesurfer\", \"manual\""),
+                    choices=['atlas', 'freesurfer', 'manual'],
+                    default='atlas', metavar='')
 parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
                     choices=['hier', 'flat', 'exec'], metavar='')
 parser.add_argument("--version", help="version number",
@@ -157,7 +156,7 @@ n_processes = args.n
 cluster = args.c
 
 # Labels:
-only_label = args.only_label
+#only_label = args.only_label
 no_labels = args.no_labels
 if no_labels:
     do_label = False
@@ -171,7 +170,7 @@ no_register = args.no_register
 register_iters = args.register_iters
 
 # Features:
-no_features = args.no_features
+do_sulci = args.sulci
 #no_fundi = args.no_fundi
 do_fundi = args.fundi
 
@@ -194,6 +193,12 @@ no_freesurfer = args.no_freesurfer
 graph_vis = args.visual
 if graph_vis == 'hier':
     graph_vis = 'hierarchical'
+
+if no_tables and not do_sulci and not do_fundi and not vertex_table:
+    only_label = True
+else:
+    only_label = False
+
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer input:
 #-----------------------------------------------------------------------------
@@ -238,13 +243,13 @@ if not no_surfaces:
         run_WholeSurfShapeFlow = True
     if do_label:
         run_SurfLabelFlow = True
-        if not only_label and not no_features:
+        if not only_label and (do_sulci or do_fundi):
             run_SurfFeatureFlow = True
 #-----------------------------------------------------------------------------
 # Surface features:
 #-----------------------------------------------------------------------------
 do_folds = False  # Extract folds
-do_sulci = False  # Extract sulci
+#do_sulci = False  # Extract sulci
 #do_fundi = False  # Extract fundi
 do_smooth_fundi = False
 if run_SurfFeatureFlow:
