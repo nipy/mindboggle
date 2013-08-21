@@ -277,48 +277,63 @@ def dkt_protocol():
             cortex_names_DKT25.append(cortex_names[ilabel])
 
     #-------------------------------------------------------------------------
-    # Noncortex label numbers and names (BrainCOLOR, Neuromorphometrics)
+    # Noncortex label numbers and names
+    # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
+    # labels to be consistent with FreeSurfer labels in FreeSurferColorLUT.txt.
+    #
+    # Five labels did not have counterparts in FreeSurfer:
+    #         [71, "cerebellar vermal lobules I-V"],
+    #         [72, "cerebellar vermal lobules VI-VII"],
+    #         [73, "cerebellar vermal lobules VIII-X"],
+    #         [75, "left basal forebrain"],
+    #         [76, "right basal forebrain"]
+    # and were reassigned to unused numbers in FreeSurferColorLUT.txt:
+    #         [630, "cerebellar vermal lobules I-V"],
+    #         [631, "cerebellar vermal lobules VI-VII"],
+    #         [632, "cerebellar vermal lobules VIII-X"],
+    #         [91, "left basal forebrain"],
+    #         [92, "right basal forebrain"]
     #-------------------------------------------------------------------------
     noncortex_numbers_names = [
-        [4,  "3rd ventricle"],
-        [11, "4th ventricle"],
-        [15, "5th ventricle"],
-        [35, "Brain stem"],
-        [46, "CSF"],
-        [69, "optic chiasm"],
-        [71, "cerebellar vermal lobules I-V"],
-        [72, "cerebellar vermal lobules VI-VII"],
-        [73, "cerebellar vermal lobules VIII-X"],
-        [30, "left accumbens area"],
-        [32, "left amygdala"],
-        [75, "left basal forebrain"],
-        [37, "left caudate"],
-        [39, "left cerebellum exterior"],
-        [41, "left cerebellum white matter"],
-        [48, "left hippocampus"],
-        [50, "left inferior lateral ventricle"],
-        [52, "left lateral ventricle"],
-        [54, "left lesion"],
-        [56, "left pallidum"],
-        [58, "left putamen"],
-        [60, "left thalamus proper"],
-        [62, "left ventral DC"],
-        [64, "left vessel"],
-        [23, "right accumbens area"],
-        [31, "right amygdala"],
-        [76, "right basal forebrain"],
-        [36, "right caudate"],
-        [38, "right cerebellum exterior"],
-        [40, "right cerebellum white matter"],
-        [47, "right hippocampus"],
-        [49, "right inferior lateral ventricle"],
-        [51, "right lateral ventricle"],
-        [53, "right lesion"],
-        [55, "right pallidum"],
-        [57, "right putamen"],
-        [59, "right thalamus proper"],
-        [61, "right ventral DC"],
-        [63, "right vessel"]]
+        [16, "Brain stem"],
+        [24, "CSF"],
+        [14, "3rd ventricle"],
+        [15, "4th ventricle"],
+        [72, "5th ventricle"],
+        [85, "optic chiasm"],
+        [4, "left lateral ventricle"],
+        [5, "left inferior lateral ventricle"],
+        [6, "left cerebellum exterior"],
+        [7, "left cerebellum white matter"],
+        [10, "left thalamus proper"],
+        [11, "left caudate"],
+        [12, "left putamen"],
+        [13, "left pallidum"],
+        [17, "left hippocampus"],
+        [18, "left amygdala"],
+        [25, "left lesion"],
+        [26, "left accumbens area"],
+        [28, "left ventral DC"],
+        [30, "left vessel"],
+        [91, "left basal forebrain"],
+        [43, "right lateral ventricle"],
+        [44, "right inferior lateral ventricle"],
+        [45, "right cerebellum exterior"],
+        [46, "right cerebellum white matter"],
+        [49, "right thalamus proper"],
+        [50, "right caudate"],
+        [51, "right putamen"],
+        [52, "right pallidum"],
+        [53, "right hippocampus"],
+        [54, "right amygdala"],
+        [57, "right lesion"],
+        [58, "right accumbens area"],
+        [60, "right ventral DC"],
+        [62, "right vessel"],
+        [92, "right basal forebrain"],
+        [630, "cerebellar vermal lobules I-V"],
+        [631, "cerebellar vermal lobules VI-VII"],
+        [632, "cerebellar vermal lobules VIII-X"]]
 
     noncortex_numbers = [x[0] for x in noncortex_numbers_names]
     noncortex_names = [x[1] for x in noncortex_numbers_names]
