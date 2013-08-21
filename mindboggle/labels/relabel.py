@@ -11,7 +11,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def relabel_volume(input_file, old_labels, new_labels):
+def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     """
     Relabel volume labels.
 
@@ -23,6 +23,8 @@ def relabel_volume(input_file, old_labels, new_labels):
         old labels
     new_labels : list of integers
         new labels
+    output_file : string
+        output file name
 
     Returns
     -------
@@ -38,7 +40,8 @@ def relabel_volume(input_file, old_labels, new_labels):
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
     >>> new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
-    >>> relabel_volume(input_file, old_labels, new_labels)
+    >>> output_file = ''
+    >>> relabel_volume(input_file, old_labels, new_labels, output_file)
 
     """
     import os
@@ -66,7 +69,8 @@ def relabel_volume(input_file, old_labels, new_labels):
     new_data = np.reshape(new_data, vol.shape)
 
     # Save relabeled file
-    output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 
@@ -76,7 +80,7 @@ def relabel_volume(input_file, old_labels, new_labels):
     return output_file
 
 
-def remove_volume_labels(input_file, labels_to_remove):
+def remove_volume_labels(input_file, labels_to_remove, output_file=''):
     """
     Remove labels from an image volume.
 
@@ -86,6 +90,8 @@ def remove_volume_labels(input_file, labels_to_remove):
         labeled nibabel-readable (e.g., nifti) file
     labels_to_remove : list of integers
         labels to remove
+    output_file : string
+        output file name
 
     Returns
     -------
@@ -101,7 +107,8 @@ def remove_volume_labels(input_file, labels_to_remove):
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
-    >>> remove_volume_labels(input_file, labels_to_remove)
+    >>> output_file = ''
+    >>> remove_volume_labels(input_file, labels_to_remove, output_file)
 
     """
     import os
@@ -126,7 +133,8 @@ def remove_volume_labels(input_file, labels_to_remove):
     new_data = np.reshape(new_data, vol.shape)
 
     # Save relabeled file
-    output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
     img.to_filename(output_file)
 
