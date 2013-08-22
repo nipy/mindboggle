@@ -681,7 +681,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
             # Dilate the skeleton within the bounds:
             #-----------------------------------------------------------------
             nedges = 2
-            print('    Dilate skeleton within bounds...')
+            #print('    Dilate skeleton within bounds...')
             dilated = dilate(skel_seg, nedges, neighbor_lists)
             dilated = list(set(dilated).intersection(indices))
             if dilated:
