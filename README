@@ -1,8 +1,8 @@
-=================
-Mindboggle README
-=================
+============
+Introduction
+============
 
-This package enables a user to automate anatomical labeling,
+The Mindboggle package enables a user to automate anatomical labeling,
 feature extraction, and shape analysis of human brain MR image data.
 
 Help
