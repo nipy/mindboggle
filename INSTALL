@@ -1,8 +1,8 @@
 .. _install:
 
-======================
- Download and install
-======================
+============
+Installation
+============
 
 Scientific Python environment
 -----------------------------
@@ -67,7 +67,7 @@ Move the mindboggle_tools directory to wherever you install your software
 
 Step 3: Set environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-For your system to recognize the C++ code we just compiled, include 
+For your system to recognize the C++ code we just compiled, include
 the following lines in your system's equivalent of a .bash_profile file::
 
     MINDBOGGLE_TOOLS=YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
