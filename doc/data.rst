@@ -59,9 +59,9 @@ Mindboggle-101 templates
   **Brain volumes**: ANTS nonlinear optimal average templates (nii)
 
   - `OASIS-TRT-20 brain`_ template from 20 brains (2013)
-  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_to_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
+  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
   - `MMRR-21 brain`_ template from 21 brains (2012)
-  - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_to_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
+  - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
 
   **Head volumes**: ANTS nonlinear optimal average templates (nii)
 
@@ -130,11 +130,11 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 .. _buildtemplateparallel.sh: data/templates/buildtemplateparallel.sh
 .. _make_freesurfer_template.py: data/templates/make_freesurfer_template.txt
 .. _`MMRR-21 brain`: http://mindboggle.info/data/templates/ants/MMRR-21_template.nii.gz
-.. _`MMRR-21 MNI152`: http://mindboggle.info/data/templates/ants/MMRR-21_template_to_MNI152.nii.gz
+.. _`MMRR-21 MNI152`: http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152.nii.gz
 .. _`MNI152`: http://mindboggle.info/data/templates/MNI152_T1_1mm_brain.nii.gz
 .. _`OASIS-TRT-20 brain`: http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template.nii.gz
-.. _`OASIS-TRT-20 MNI152`: http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_to_MNI152.nii.gz
-.. _`affine`: http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_to_MNI152_affine.txt
+.. _`OASIS-TRT-20 MNI152`: http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152.nii.gz
+.. _`affine`: http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt
 .. _`HLN-12 head`: http://mindboggle.info/data/templates/ants/HLN-12_head_template.nii.gz
 .. _`MMRR-21 head`: http://mindboggle.info/data/templates/ants/MMRR-21_head_template.nii.gz
 .. _`NKI-RS-22 head`: http://mindboggle.info/data/templates/ants/NKI-RS-22_head_template.nii.gz
