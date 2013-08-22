@@ -33,7 +33,7 @@ Mindboggle-101 atlases
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
       Joint fusion was performed on the 20 brains after ANTS warped them
-      to the OASIS-TRT-20 brain template in MNI152 space.
+      to the OASIS-TRT-20 brain template in MNI152 space (`code 1 <http://mindboggle.info/data/atlases/jointfusion/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_ and `code 2 <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_).
 
   **Cortical surface atlases**
 
@@ -41,13 +41,6 @@ Mindboggle-101 atlases
     - `DKT100 classifier atlas`_: FreeSurfer atlas (.gcs) from 100 of the Mindboggle-101 participants
 
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants
-
-.. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
-.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz
-.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_probabilities.nii.gz
-.. _`DKT100 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas100.tar.gz
-.. _`DKT40 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas40.tar.gz
-
 
 Mindboggle-101 templates
 ------------------------
@@ -105,6 +98,13 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
       The figures below show the DKT cortical labeling protocol_ with `sulcus landmarks`_ on FreeSurfer's fsaverage surface:
 
 
+.. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
+.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz
+.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_probabilities.nii.gz
+.. _`DKT100 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas100.tar.gz
+.. _`DKT40 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas40.tar.gz
+
+
 .. _MD5SUMS: <http://mindboggle.info/data/MD5SUMS
 .. _CC_license: http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
 .. |CC_license| image:: http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png
@@ -123,7 +123,6 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 .. _Neuromorphometrics: http://neuromorphometrics.com
 .. _CC_license_nond: http://creativecommons.org/licenses/by-nc-nd/3.0/deed.en_US
 .. |CC_license_nond| image:: http://i.creativecommons.org/l/by-nc-nd/3.0/80x15.png
-
 
 
 .. _numbers: http://media.mindboggle.info/images/data/DKT_label_table.pdf
