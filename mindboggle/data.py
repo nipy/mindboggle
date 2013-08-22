@@ -42,8 +42,8 @@ def hashes_url():
     # Atlases and templates:
     #-----------------------------------------------------------------------------
     hashes['OASIS-TRT-20_template_to_MNI152.nii.gz'] = 'f3349f4c149c003bfceee2920a814f30'
-    hashes['OASIS-TRT-20_atlas_to_MNI152.nii.gz'] = '082f19c118b428e49fbb56c55756c676'
-    hashes['OASIS-TRT-20_atlas_to_MNI152_probabilities.nii.gz'] = 'eab515a0b17ec3385248589ef300ad99'
+    hashes['OASIS-TRT-20_atlas_to_MNI152.nii.gz'] = '2bcdad2553383f63fd3a69a037cc5ed8'
+    hashes['OASIS-TRT-20_atlas_to_MNI152_probabilities.nii.gz'] = 'e16f7677e81e5ff2893e60a8722a4fa5'
     hashes['MNI152_T1_1mm_brain.nii.gz'] = '7c47f203858f57c50ee93bcf7b0662fc'
     hashes['lh.DKTatlas100.gcs'] = '1bfdd5a4770d93d4a14a46a0c831696b'
     hashes['rh.DKTatlas100.gcs'] = 'c3ec3388d6428dc01b573d8f88f5f03a'
