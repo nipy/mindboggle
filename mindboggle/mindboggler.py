@@ -403,7 +403,10 @@ if run_SurfFlows:
     Surf.inputs.base_directory = subjects_path
     Surf.inputs.template = '%s/surf/%s.%s'
     Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
-    Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
+    if do_zernike:
+        Surf.inputs.template_args['white_surface_files'] = [['subject',
+                                                             'hemi', 'white']]
+    # Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
     if do_thickness:
         Surf.inputs.template_args['thickness_files'] = \
             [['subject', 'hemi', 'thickness']]
@@ -606,14 +609,14 @@ if do_register:
             reg.inputs.convergence_window_size = [20] * 3 + [5]
             reg.inputs.smoothing_sigmas = [[4, 2, 1]] * 3 + [[1, 0.5, 0]]
             reg.inputs.sigma_units = ['vox'] * 4
-            reg.inputs.shrink_factors = [[6,4,2]] + [[3,2,1]]*2 + [[4,2,1]]
+            reg.inputs.shrink_factors = [[6,4,2]] + [[3,2,1]] * 2 + [[4,2,1]]
             reg.inputs.use_estimate_learning_rate_once = [True] * 4
             reg.inputs.use_histogram_matching = [False] * 3 + [True]
             reg.inputs.terminal_output = 'file'
         else:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,)]
-            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3)
+            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]] * 3)
             reg.inputs.metric = ['Mattes'] * 3
             reg.inputs.metric_weight = [1] * 3
             reg.inputs.radius_or_number_of_bins = [32] * 3
@@ -623,7 +626,7 @@ if do_register:
             reg.inputs.convergence_window_size = [20] * 3
             reg.inputs.smoothing_sigmas = [[4, 2, 1]] * 3
             reg.inputs.sigma_units = ['vox'] * 3
-            reg.inputs.shrink_factors = [[6, 4, 2]] + [[3, 2, 1]]*2
+            reg.inputs.shrink_factors = [[6, 4, 2]] + [[3, 2, 1]] * 2
             reg.inputs.use_estimate_learning_rate_once = [True] * 3
             reg.inputs.use_histogram_matching = [False] * 3
 
@@ -1723,18 +1726,18 @@ if run_VolLabelFlow:
         #---------------------------------------------------------------------
         # Retrieve full atlas path(s):
         #---------------------------------------------------------------------
-        RetrieveAtlas = Node(name='Retrieve_volume_atlas',
-                                interface=Fn(function = retrieve_data,
-                                             input_names=['data_file',
-                                                          'url',
-                                                          'hashes',
-                                                          'cache_env',
-                                                          'cache',
-                                                          'return_missing'],
-                                             output_names=['data_path']))
+        RetrieveAtlas = Node(name='Retrieve_atlas',
+                             interface=Fn(function = retrieve_data,
+                                          input_names=['data_file',
+                                                       'url',
+                                                       'hashes',
+                                                       'cache_env',
+                                                       'cache',
+                                                       'return_missing'],
+                                          output_names=['data_path']))
         VolLabelFlow.add_nodes([RetrieveAtlas])
         mbFlow.connect(InputVolAtlases, 'atlas',
-                       VolLabelFlow, 'Retrieve_volume_atlas.data_file')
+                       VolLabelFlow, 'Retrieve_atlas.data_file')
         RetrieveAtlas.inputs.url = url
         RetrieveAtlas.inputs.hashes = hashes
         RetrieveAtlas.inputs.cache_env = cache_env
@@ -1751,27 +1754,54 @@ if run_VolLabelFlow:
         if volume_labels == 'ants':
             xfm = Node(ApplyTransforms(), name='antsApplyTransform')
             VolLabelFlow.add_nodes([xfm])
+            #mbFlow.add_nodes([xfm])
             xfm.inputs.dimension = 3
             xfm.inputs.default_value = 0
-            if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti', VolLabelFlow,
-                               'antsApplyTransform.reference_image')
-            else:
-                mbFlow.connect(mgh2nifti, 'out_file', VolLabelFlow,
-                               'antsApplyTransform.reference_image')
-            VolLabelFlow.connect(RetrieveAtlas, 'data_path',
-                                 xfm, 'input_image')
             xfm.inputs.output_image = 'labels.nii.gz'
             xfm.inputs.interpolation = 'NearestNeighbor'
+
+            # if do_input_nifti:
+            #     mbFlow.connect(niftiBrain, 'nifti', VolLabelFlow,
+            #                    'antsApplyTransform.reference_image')
+            # else:
+            #     mbFlow.connect(mgh2nifti, 'out_file', VolLabelFlow,
+            #                    'antsApplyTransform.reference_image')
+            # VolLabelFlow.connect(RetrieveAtlas, 'data_path',
+            #                      xfm, 'input_image')
+            # mbFlow.connect(reg, 'inverse_composite_transform', VolLabelFlow,
+            #                'antsApplyTransform.transforms')
+            # #xfm.inputs.invert_transform_flags = [True]
+            # mbFlow.connect(VolLabelFlow, 'antsApplyTransform.output_image',
+            #                Sink, 'labels.@antsRegistration')
+
+            if do_input_nifti:
+                mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
+            else:
+                mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
+            VolLabelFlow.connect(RetrieveAtlas, 'data_path',
+                                 xfm, 'input_image')
+            mbFlow.connect(reg, 'inverse_composite_transform',
+                           xfm, 'transforms')
+            #xfm.inputs.invert_transform_flags = [True]
+            mbFlow.connect(xfm, 'output_image',
+                           Sink, 'labels.@antsRegistration')
+
+            # if do_input_nifti:
+            #     mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
+            # else:
+            #     mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
+            # mbFlow.connect(VolLabelFlow, 'Retrieve_atlas.data_path',
+            #                xfm, 'input_image')
+            # mbFlow.connect(reg, 'inverse_composite_transform',
+            #                xfm, 'transforms')
+            # #xfm.inputs.invert_transform_flags = [True]
+            # mbFlow.connect(xfm, 'output_image',
+            #                Sink, 'labels.@antsRegistration')
+
             #xfm.inputs.transformation_files = ['output_3Warp.nii.gz'
             #                                   'output_2Affine.mat',
             #                                   'output_1Rigid.mat',
             #                                   'output_0Translation.mat']
-            mbFlow.connect(reg, 'inverse_composite_transform',
-                           VolLabelFlow, 'antsApplyTransform.transforms')
-            #xfm.inputs.invert_transform_flags = [True]
-            mbFlow.connect(VolLabelFlow, 'antsApplyTransform.output_image',
-                           Sink, 'labels.@antsRegistration')
 
         elif volume_labels == 'ANTS':
             LabelVolume = Node(name='Label_volume',
