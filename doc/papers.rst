@@ -1,6 +1,6 @@
-======
-Papers
-======
+============================
+Papers related to Mindboggle
+============================
 
 +-----------------+---------------------+
 |                 |                     |
@@ -224,7 +224,7 @@ Conferences
 .. |title_paper6| replace::
     `A reproducible evaluation of ANTs similarity metric performance in brain image registration`_.
 .. |ref_paper6| replace::
-    *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962. 
+    *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962.
 .. _`A reproducible evaluation of ANTs similarity metric performance in brain image registration`:
     http://mindboggle.info/papers/ANTSevaluation_NeuroImage2010.pdf
 
@@ -237,7 +237,7 @@ Conferences
     `Evaluation of volume-based and surface-based brain image registration methods`_.
 .. |ref_paper5| replace::
     *NeuroImage*. 51: 214-220.
-    PMCID: PMC2862732. 
+    PMCID: PMC2862732.
 .. |www_paper5| replace::
     `Supplementary website for PMC2862732`_
 .. _`Evaluation of volume-based and surface-based brain image registration methods`:
