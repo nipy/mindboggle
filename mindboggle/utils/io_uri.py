@@ -165,10 +165,10 @@ def get_data(url, output_file=''):
     """
     import urllib
 
-    # Download file as a temporary file:
+    # Download file to specified output:
     if output_file:
         output_file, foo = urllib.urlretrieve(url, output_file)
-    # Download file to specified output:
+    # Download file as a temporary file:
     else:
         output_file, foo = urllib.urlretrieve(url)
 

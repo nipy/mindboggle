@@ -26,9 +26,9 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
+  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space  [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
   - Corresponding `label probabilities`_
-  - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)
+  - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)   [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
@@ -52,7 +52,7 @@ Mindboggle-101 templates
   **Brain volumes**: ANTS nonlinear optimal average templates (nii)
 
   - `OASIS-TRT-20 brain`_ template from 20 brains (2013)
-  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
+  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013) [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
   - `MMRR-21 brain`_ template from 21 brains (2012)
   - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
 
