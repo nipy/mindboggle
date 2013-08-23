@@ -14,7 +14,7 @@
 .. toctree::
    :maxdepth: 2
 
-   why_mindboggle
+   history
    why_license
    why_python
 

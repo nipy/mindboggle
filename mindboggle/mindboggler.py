@@ -39,8 +39,9 @@ from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer import MRIConvert
+from nipype.interfaces.ants import Registration, ApplyTransforms
+
 #from nipype.interfaces.fsl import FLIRT
-#from nipype.interfaces.ants import Registration
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
@@ -76,72 +77,68 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #=============================================================================
 parser = argparse.ArgumentParser()
 parser.add_argument("subjects",
-                    help=("Example: \"python %(prog)s sub1 sub2 sub3\" "
-                          "\"sub1\",... are subject names corresponding to "
-                          "subject directories within $SUBJECTS_DIR"),
+                    help=('Example: "python %(prog)s sub1 sub2 sub3" '
+                          '"sub1",... are subject names corresponding to '
+                          'subject directories within $SUBJECTS_DIR'),
                     nargs='+')
-parser.add_argument("-o", help="output directory: \"-o $HOME/mindboggled\" "
-                               "(default)",
+parser.add_argument("-o", help='output directory: "-o $HOME/mindboggled" '
+                               '(default)',
                     default=os.path.join(os.environ['HOME'], 'mindboggled'),
                     metavar='')
 parser.add_argument("-n",
-                    help=("number of processors: \"-n 1\" (default)"),
+                    help=('number of processors: "-n 1" (default)'),
                     type=int,
                     default=1, metavar='')
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
 
-#parser.add_argument("--only_label", action='store_true',
-#                    help="only output labels (no features or tables)")
 parser.add_argument("--no_tables", action='store_true',
-                    help="do not generate shape tables")
+                    help="don't generate shape tables")
 parser.add_argument("--no_labels", action='store_true',
-                    help="do not label surfaces or volumes")
-parser.add_argument("--no_register", help="do not register to volume template (ANTS)",
-                    action='store_true')
+                    help="don't label surfaces or volumes")
 parser.add_argument("--no_volumes", action='store_true',
-                    help="do not process volumes")
+                    help="don't process volumes")
 parser.add_argument("--no_surfaces", action='store_true',
-                    help="do not process surfaces")
-parser.add_argument("--no_freesurfer", action='store_true',
-                    help="do not use FreeSurfer or its outputs (UNTESTED)")
-parser.add_argument("--atlases", help=("label with additional volume "
-                                       "atlas(es) in MNI152 space"),
-                    nargs='+', metavar='')
-# Registration:
-parser.add_argument("--register_iters", help="ANTS iterations: "
-                    "\"--register_iters 33x99x11\" (default)",
-                    default='33x99x11', metavar='')
+                    help="don't process surfaces")
 # Features:
 parser.add_argument("--sulci", action='store_true',
-                    help="extract sulci (default is not to)")
+                    help="extract sulci")
 #parser.add_argument("--no_fundi", action='store_true',
-#                    help="do not extract fundi")
+#                    help="don't extract fundi")
 parser.add_argument("--fundi", action='store_true',
-                    help="extract fundi (default is not to)")
+                    help="extract fundi")
 # Tables:
 parser.add_argument("--vertex_table", action='store_true',
                     help=("make table of per-vertex surface shape measures"))
 # Shapes:
 parser.add_argument("--spectra_values",
-                    help="number of eigenvalues: \"--spectra_values 10\" "
-                         "(default)",
+                    help='number of eigenvalues: "--spectra_values 10" '
+                         '(default)',
                     default=10, type=int, metavar='')
-#parser.add_argument("--no_zernike", action='store_true',
-#                    help="do not compute Zernike moments")
 #parser.add_argument("--zernike", action='store_true',
-#                    help="compute Zernike moments (default is not to)")
+#                    help="compute Zernike moments")
 #parser.add_argument("--order", help="order of Zernike moments: "
 #                                    "\"--order 10\" (default)",
 #                    default=10, type=int, metavar='')
 #parser.add_argument("--reduction", help="mesh decimation fraction: "
 #                                        "\"--reduction 0.75\" (default)",
 #                    default=0.75, type=float, metavar='')
+# Labels:
+parser.add_argument("--atlases", help=("label with additional volume "
+                                       "atlas(es) in MNI152 space"),
+                    nargs='+', metavar='')
+parser.add_argument("--volume_labels",
+                    help=('volume labels: '
+                    '"ANTS" (default), "ants (COMING SOON)", "freesurfer", "manual"'),
+                    choices=['ANTS', 'ants', 'freesurfer', 'manual'],
+                    default='ANTS', metavar='')
 parser.add_argument("--surface_labels",
                     help=("surface labels: "
-                    "\"atlas\" (default), \"freesurfer\", \"manual\""),
+                    '"atlas" (default), "freesurfer", "manual"'),
                     choices=['atlas', 'freesurfer', 'manual'],
                     default='atlas', metavar='')
+parser.add_argument("--no_freesurfer", action='store_true',
+                    help="don't use FreeSurfer or its outputs (UNTESTED)")
 parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
                     choices=['hier', 'flat', 'exec'], metavar='')
 parser.add_argument("--version", help="version number",
@@ -156,22 +153,17 @@ n_processes = args.n
 cluster = args.c
 
 # Labels:
-#only_label = args.only_label
 no_labels = args.no_labels
 if no_labels:
     do_label = False
 else:
     do_label = True
+volume_labels = args.volume_labels
 surface_labels = args.surface_labels
 atlases = args.atlases
 
-# Registration:
-no_register = args.no_register
-register_iters = args.register_iters
-
 # Features:
 do_sulci = args.sulci
-#no_fundi = args.no_fundi
 do_fundi = args.fundi
 
 # Tables:
@@ -181,7 +173,6 @@ vertex_table = args.vertex_table
 # Shapes:
 no_spectra = False #args.no_spectra
 n_eigenvalues = args.spectra_values
-#no_zernike = args.no_zernike
 do_zernike = False #args.zernike
 zernike_order = 10 #args.order
 reduction = 0.75 #args.reduction
@@ -205,31 +196,28 @@ else:
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_nifti = False  # Load nifti directly (not FreeSurfer mgh file)
 do_input_mask = False  # Load nifti directly (not FreeSurfer mgh file)
+do_input_aseg_labels = False  # Load nifti (not FreeSurfer mgh file)
 if no_freesurfer:
     do_input_vtk = True
     do_input_nifti = True
     do_input_mask = True
+    do_input_aseg_labels = True
 #-----------------------------------------------------------------------------
 # Volume workflows:
 #-----------------------------------------------------------------------------
 run_VolFlows = False
 run_VolShapeFlow = False
 run_VolLabelFlow = False
+do_register = False
+save_transforms = True # NOTE: must save transforms!
 if not no_volumes:
     run_VolFlows = True
     if not only_label and not no_tables:
         run_VolShapeFlow = True
     if do_label:
         run_VolLabelFlow = True
-#-----------------------------------------------------------------------------
-# Registration to template:
-#-----------------------------------------------------------------------------
-vol_reg_method = 'ANTS'
-save_transforms = True  # NOTE: must save transforms!
-if no_register or no_volumes:
-    do_register = False
-else:
-    do_register = True
+    if volume_labels in ['ants', 'ANTS']:
+        do_register = True
 #-----------------------------------------------------------------------------
 # Surface workflows:
 #-----------------------------------------------------------------------------
@@ -249,15 +237,10 @@ if not no_surfaces:
 # Surface features:
 #-----------------------------------------------------------------------------
 do_folds = False  # Extract folds
-#do_sulci = False  # Extract sulci
-#do_fundi = False  # Extract fundi
 do_smooth_fundi = False
 if run_SurfFeatureFlow:
     do_folds = True
     do_sulci = True
-#        if not no_fundi:
-#            do_fundi = True
-#            do_smooth_fundi = True
 if do_fundi:
     do_smooth_fundi = True
 #-----------------------------------------------------------------------------
@@ -275,9 +258,6 @@ if run_WholeSurfShapeFlow:
 if run_SurfFeatureFlow and not no_tables:
     if not no_spectra:
         do_spectra = True
-#    if not no_zernike:
-#        do_zernike = True
-#        do_decimate = True
     if do_zernike:
         do_decimate = True
 else:
@@ -304,12 +284,10 @@ if do_label:
 #-----------------------------------------------------------------------------
 do_vol_table = False
 do_surf_table = False
-# Surface/volume feature shape measures:
 if not no_tables and not only_label:
     if run_VolLabelFlow:
         do_vol_table = True
     do_surf_table = True
-# Per-vertex surface shape measures:
 do_vertex_table = False
 if vertex_table and not only_label:
     do_vertex_table = True
@@ -351,8 +329,8 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
-template_volume = 'OASIS-TRT-20_template_to_MNI152.nii.gz'
-atlas_volumes = ['OASIS-TRT-20_atlas_to_MNI152.nii.gz']
+template_volume = 'OASIS-TRT-20_template_in_MNI152.nii.gz'
+atlas_volumes = ['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz']
 if atlases:
     atlas_volumes.extend(atlases)
 #-----------------------------------------------------------------------------
@@ -491,6 +469,8 @@ if run_VolLabelFlow and (do_fill_cortex or do_mask_cortex):
         niftiMask.inputs.base_directory = subjects_path
         niftiMask.inputs.template = '%s/mri/%s.ribbon.nii.gz'
         niftiMask.inputs.template_args['mask'] = [['subject', 'hemi']]
+        mbFlow.connect(InputSubjects, 'subject', niftiMask, 'subject')
+        mbFlow.connect(InputHemis, 'hemi', niftiMask, 'hemi')
     else:
         mghMask = Node(name='mgh_mask',
                        interface=DataGrabber(infields=['subject', 'hemi'],
@@ -513,6 +493,36 @@ if run_VolLabelFlow and (do_fill_cortex or do_mask_cortex):
         mgh_mask2nifti.inputs.out_file = 'mask.nii.gz'
         #mbFlow.connect(mgh_mask2nifti, 'out_file', Sink, 'brain.@mask')
 
+if run_VolLabelFlow and volume_labels == 'freesurfer':
+    if do_input_aseg_labels:
+        niftiLabels = Node(name='nifti_labels',
+                           interface=DataGrabber(infields=['subject'],
+                                                 outfields=['aseg'],
+                                                 sort_filelist=False))
+        niftiLabels.inputs.base_directory = subjects_path
+        niftiLabels.inputs.template = '%s/mri/aseg.nii.gz'
+        niftiLabels.inputs.template_args['aseg'] = [['subject']]
+        mbFlow.connect(InputSubjects, 'subject', niftiLabels, 'subject')
+    else:
+        mghLabels = Node(name='mgh_labels',
+                         interface=DataGrabber(infields=['subject'],
+                                               outfields=['aseg'],
+                                               sort_filelist=False))
+        mghLabels.inputs.base_directory = subjects_path
+        mghLabels.inputs.template = '%s/mri/aseg.mgz'
+        mghLabels.inputs.template_args['aseg'] = [['subject']]
+        mbFlow.connect(InputSubjects, 'subject', mghLabels, 'subject')
+
+        # Convert FreeSurfer mgh conformal gray matter mask to nifti format:
+        mgh_labels2nifti = Node(name='mgh_labels_to_nifti',
+                                interface=MRIConvert())
+        mbFlow.add_nodes([mgh_labels2nifti])
+        mbFlow.connect(mghLabels, 'aseg', mgh_labels2nifti, 'in_file')
+        mbFlow.connect(mghOrig, 'mgh_orig', mgh_labels2nifti, 'reslice_like')
+        mgh_labels2nifti.inputs.resample_type = 'nearest'
+        mgh_labels2nifti.inputs.out_type = 'niigz'
+        mgh_labels2nifti.inputs.out_file = 'aseg.nii.gz'
+        #mbFlow.connect(mgh_labels2nifti, 'out_file', Sink, 'brain.@aseg')
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -523,127 +533,149 @@ if run_VolLabelFlow and (do_fill_cortex or do_mask_cortex):
 #=============================================================================
 if do_register:
 
-    #---------------------------------------------------------------------
-    # Register image volume to template in MNI152 space using ANTS:
-    #---------------------------------------------------------------------
-    if vol_reg_method == 'ANTS':
-        regANTS = Node(name='ANTS',
-                       interface=Fn(function = ANTS,
-                                    input_names=['source',
-                                                 'target',
-                                                 'iterations',
-                                                 'output_stem'],
-                                    output_names=['affine_transform',
-                                                  'nonlinear_transform',
-                                                  'nonlinear_inverse_transform',
-                                                  'output_stem']))
-        mbFlow.add_nodes([regANTS])
-        if do_input_nifti:
-            mbFlow.connect(niftiBrain, 'nifti',
-                           regANTS, 'source')
+    #-------------------------------------------------------------------------
+    # Register image volume to template in MNI152 space with antsRegistration:
+    #-------------------------------------------------------------------------
+    # Example:
+    # antsRegistration --collapse-linear-transforms-to-fixed-image-header 0
+    # --collapse-output-transforms 0 --dimensionality 3
+    # --initial-moving-transform [ trans.mat, 1 ] --interpolation Linear
+    # --output [ output_, output_warped_image.nii.gz ]
+    # --transform Affine[ 2.0 ]
+    # --metric Mattes[ fixed1.nii, moving1.nii, 1, 32, Random, 0.05 ]
+    # --convergence [ 1500x200, 1e-08, 20 ] --smoothing-sigmas 1x0vox
+    # --shrink-factors 2x1 --use-estimate-learning-rate-once 1
+    # --use-histogram-matching 1
+    # --transform SyN[ 0.25, 3.0, 0.0 ]
+    # --metric Mattes[ fixed1.nii, moving1.nii, 1, 32 ]
+    # --convergence [ 100x50x30, 1e-09, 20 ] --smoothing-sigmas 2x1x0vox
+    # --shrink-factors 3x2x1 --use-estimate-learning-rate-once 1
+    # --use-histogram-matching 1
+    # --write-composite-transform 1
+    if volume_labels == 'ants':
+        reg = Node(Registration(), name='antsRegistration')
+        mbFlow.add_nodes([reg])
+
+        # General inputs:
+        reg.inputs.dimension = 3
+        reg.inputs.write_composite_transform = True
+        reg.inputs.collapse_output_transforms = False
+        reg.inputs.terminal_output = 'file'
+        if do_register_labels:
+            reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
+            reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
+                                               (0.2, 3.0, 0.0)]
+            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
+                                               [[100, 50, 30]])
+            reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
+            reg.inputs.metric_weight = [1] * 3 + [[0.5, 0.5]]
+            reg.inputs.radius_or_number_of_bins = [32] * 3 + [[32, 4]]
+            reg.inputs.sampling_strategy = ['Regular'] * 3 + [[None, None]]
+            reg.inputs.sampling_percentage = [0.3] * 3 + [[None, None]]
+            reg.inputs.convergence_threshold = [1.e-8] * 3 + [-0.01]
+            reg.inputs.convergence_window_size = [20] * 3 + [5]
+            reg.inputs.smoothing_sigmas = [[4, 2, 1]] * 3 + [[1, 0.5, 0]]
+            reg.inputs.sigma_units = ['vox'] * 4
+            reg.inputs.shrink_factors = [[6,4,2]] + [[3,2,1]]*2 + [[4,2,1]]
+            reg.inputs.use_estimate_learning_rate_once = [True] * 4
+            reg.inputs.use_histogram_matching = [False] * 3 + [True]
+            reg.inputs.terminal_output = 'file'
         else:
-            mbFlow.connect(mgh2nifti, 'out_file',
-                           regANTS, 'source')
+            reg.inputs.transforms = ['Translation', 'Rigid', 'Affine']
+            reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,)]
+            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3)
+            reg.inputs.metric = ['Mattes'] * 3
+            reg.inputs.metric_weight = [1] * 3
+            reg.inputs.radius_or_number_of_bins = [32] * 3
+            reg.inputs.sampling_strategy = ['Regular'] * 3
+            reg.inputs.sampling_percentage = [0.3] * 3
+            reg.inputs.convergence_threshold = [1.e-8] * 3
+            reg.inputs.convergence_window_size = [20] * 3
+            reg.inputs.smoothing_sigmas = [[4, 2, 1]] * 3
+            reg.inputs.sigma_units = ['vox'] * 3
+            reg.inputs.shrink_factors = [[6, 4, 2]] + [[3, 2, 1]]*2
+            reg.inputs.use_estimate_learning_rate_once = [True] * 3
+            reg.inputs.use_histogram_matching = [False] * 3
+
+        # Specific inputs:
+        if do_input_nifti:
+            mbFlow.connect(niftiBrain, 'nifti', reg, 'moving_image')
+        else:
+            mbFlow.connect(mgh2nifti, 'out_file', reg, 'moving_image')
         volume_template_file = retrieve_data(template_volume, url,
                                              hashes, cache_env, cache)
-        regANTS.inputs.target = volume_template_file
-        if do_register_labels:
-            regANTS.inputs.iterations = register_iters
-        else:
-            regANTS.inputs.iterations = '0'
-        regANTS.inputs.output_stem = ''
+        reg.inputs.fixed_image = os.path.abspath(volume_template_file)
+        reg.inputs.output_transform_prefix = "output_"
+#        reg.inputs.output_warped_image = 'output_warped_image.nii.gz'
+        reg.inputs.num_threads = n_processes
+#        # Concatenate the affine and ants transforms into a list:
+#        mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
         if save_transforms:
-            mbFlow.connect(regANTS, 'affine_transform',
-                           Sink, 'transforms.@affine_ANTS')
-            mbFlow.connect(regANTS, 'nonlinear_transform',
-                           Sink, 'transforms.@nonlinear_ANTS')
-            mbFlow.connect(regANTS, 'nonlinear_inverse_transform',
-                           Sink, 'transforms.@nonlinearinverse_ANTS')
-    #---------------------------------------------------------------------
-    # Register image volume to template in MNI152 space using FSL's flirt:
-    #---------------------------------------------------------------------
-    elif vol_reg_method == 'flirt':
-        regFlirt = Node(name='FLIRT_standard', interface=FLIRT())
-        mbFlow.add_nodes([regFlirt])
+           mbFlow.connect(reg, 'forward_transforms',
+                          Sink, 'transforms.@ants_forward')
+           mbFlow.connect(reg, 'composite_transform',
+                          Sink, 'transforms.@ants_composite')
+           mbFlow.connect(reg, 'inverse_composite_transform',
+                          Sink, 'transforms.@ants_inverse_composite')
+    #-------------------------------------------------------------------------
+    # Register image volume to template in MNI152 space with ANTS:
+    #-------------------------------------------------------------------------
+    elif volume_labels == 'ANTS':
+        reg = Node(name='ANTS',
+                   interface=Fn(function = ANTS,
+                                input_names=['source',
+                                             'target',
+                                             'iterations',
+                                             'output_stem'],
+                                output_names=['affine_transform',
+                                              'nonlinear_transform',
+                                              'nonlinear_inverse_transform',
+                                              'output_stem']))
+        mbFlow.add_nodes([reg])
+        if do_input_nifti:
+            mbFlow.connect(niftiBrain, 'nifti', reg, 'source')
+        else:
+            mbFlow.connect(mgh2nifti, 'out_file', reg, 'source')
+        volume_template_file = retrieve_data(template_volume, url,
+                                             hashes, cache_env, cache)
+        reg.inputs.target = volume_template_file
+        if do_register_labels:
+            reg.inputs.iterations = '33x99x11'
+        else:
+            reg.inputs.iterations = '0'
+        reg.inputs.output_stem = ''
+        if save_transforms:
+            mbFlow.connect(reg, 'affine_transform',
+                           Sink, 'transforms.@ANTS_affine')
+            mbFlow.connect(reg, 'nonlinear_transform',
+                           Sink, 'transforms.@ANTS')
+            mbFlow.connect(reg, 'nonlinear_inverse_transform',
+                           Sink, 'transforms.@ANTS_inverse')
+    #-------------------------------------------------------------------------
+    # Register image volume to template in MNI152 space with FSL's flirt:
+    #-------------------------------------------------------------------------
+    elif volume_labels == 'flirt':
+        reg = Node(name='FLIRT_standard', interface=FLIRT())
+        mbFlow.add_nodes([reg])
         if do_input_nifti:
             mbFlow.connect(niftiBrain, 'nifti.@brain',
-                           regFlirt, 'in_file')
+                           reg, 'in_file')
         else:
             mbFlow.connect(mgh2nifti, 'out_file',
-                           regFlirt, 'in_file')
-        regFlirt.inputs.bins = 640
-        regFlirt.inputs.cost_func = 'mutualinfo'
-        regFlirt.inputs.dof = 12
+                           reg, 'in_file')
+        reg.inputs.bins = 640
+        reg.inputs.cost_func = 'mutualinfo'
+        reg.inputs.dof = 12
         volume_template_file = retrieve_data(template_volume, url,
                                       hashes, cache_env, cache)
-        regFlirt.inputs.reference = volume_template_file
-        regFlirt.inputs.out_matrix_file = 'affine_to_template.mat'
-        regFlirt.inputs.out_file = 'affine_to_template.nii.gz'
+        reg.inputs.reference = volume_template_file
+        reg.inputs.out_matrix_file = 'affine_to_template.mat'
+        reg.inputs.out_file = 'affine_to_template.nii.gz'
         if save_transforms:
-            mbFlow.connect(regFlirt, 'out_matrix_file',
+            mbFlow.connect(reg, 'out_matrix_file',
                            Sink, 'transforms.@affine_flirt')
-            mbFlow.connect(regFlirt, 'out_file',
+            mbFlow.connect(reg, 'out_file',
                            Sink, 'transforms.@affine_volume')
-    # #---------------------------------------------------------------------
-    # # Register image volume to template in MNI152 space using antsRegister:
-    # #---------------------------------------------------------------------
-    # elif vol_reg_method == 'antsRegister':
-    #     regAnts = Node(name='antsRegister_standard', interface=Registration())
-    #     mbFlow.add_nodes([regAnts])
-    #     if do_input_nifti:
-    #         mbFlow.connect(niftiBrain, 'nifti',
-    #                         regAnts, 'moving_image')
-    #     else:
-    #         mbFlow.connect(mgh2nifti, 'out_file',
-    #                         regAnts, 'moving_image')
-    #     regAnts.inputs.fixed_image = [volume_template]
-    #     regAnts.inputs.num_threads = 2
-    #     regAnts.inputs.winsorize_lower_quantile = 0.01
-    #     regAnts.inputs.winsorize_upper_quantile = 0.99
-    #     regAnts.inputs.output_warped_image = False
-    #     regAnts.inputs.dimension = 3
-    #     regAnts.inputs.write_composite_transform = True
-    #     regAnts.inputs.collapse_output_transforms = True
-    #     regAnts.inputs.write_composite_transform = True
-    #     regAnts.inputs.output_transform_prefix = 'standard_'
-    #     if do_register_labels:
-    #         regAnts.inputs.transforms = ['Rigid', 'Affine', 'SyN']
-    #         regAnts.inputs.transform_parameters = [(0.1,), (0.1,), (0.1, 3.0, 0.0)]
-    #         regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2 + [[100,100,70,20]]
-    # #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2 + [[1,1,7,2]]
-    #         regAnts.inputs.metric = ['MI']*2 + ['CC']
-    #         regAnts.inputs.metric_weight = [1]*3
-    #         regAnts.inputs.radius_or_number_of_bins = [32]*2 + [4]
-    #         regAnts.inputs.sampling_strategy = ['Regular']*2 + [None]
-    #         regAnts.inputs.sampling_percentage = [0.25]*2 + [None]
-    #         regAnts.inputs.convergence_threshold = [1.e-8]*2 + [1e-9]
-    #         regAnts.inputs.convergence_window_size = [10]*2 + [15]
-    #         regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*3
-    #         regAnts.inputs.sigma_units = ['mm']*3
-    #         regAnts.inputs.shrink_factors = [[8,4,2,1]]*2 + [[6,4,2,1]]
-    #         regAnts.inputs.use_estimate_learning_rate_once = [True, True, True]
-    #         regAnts.inputs.use_histogram_matching = [False]*2 + [True]
-    #         regAnts.inputs.initial_moving_transform_com = True
-    #     else:
-    #         regAnts.inputs.transforms = ['Rigid', 'Affine']
-    #         regAnts.inputs.transform_parameters = [(0.1,), (0.1,)]
-    # #                regAnts.inputs.number_of_iterations = [[10,5,2,1]]*2
-    #         regAnts.inputs.number_of_iterations = [[1000,500,250,100]]*2
-    #         regAnts.inputs.metric = ['MI']*2
-    #         regAnts.inputs.metric_weight = [1]*2
-    #         regAnts.inputs.radius_or_number_of_bins = [32]*2
-    #         regAnts.inputs.sampling_strategy = ['Regular']*2
-    #         regAnts.inputs.sampling_percentage = [0.25]*2
-    #         regAnts.inputs.convergence_threshold = [1.e-8]*2
-    #         regAnts.inputs.convergence_window_size = [10]*2
-    #         regAnts.inputs.smoothing_sigmas = [[3,2,1,0]]*2
-    #         regAnts.inputs.sigma_units = ['mm']*2
-    #         regAnts.inputs.shrink_factors = [[8,4,2,1]]*2
-    #         regAnts.inputs.use_estimate_learning_rate_once = [True, True]
-    #         regAnts.inputs.use_histogram_matching = [False]*2
-    #     if save_transforms:
-    #         mbFlow.connect(regAnts, 'composite_transform',
-    #                        Sink, 'transforms.@affine_antsRegistration')
 
 
 #=============================================================================
@@ -1422,22 +1454,20 @@ if run_SurfFlows:
         else:
             ShapeTables.inputs.fundi = []
         if do_register:
-            #if vol_reg_method == 'antsRegister':
-            #    mbFlow.connect(regAnts, 'composite_transform',
-            #                   ShapeTables, 'affine_transform_file')
-            #    # Apply the affine part of a complex transform:
-            #    #pickfirst = lambda x: x[:1]
-            #    #def pickfirst(x):
-            #    #  return lambda x: x[:1]
-            #    #mbFlow.connect(regAnts, ('forward_transforms', pickfirst),
-            #    #                 ShapeTables, 'affine_transform_file')
-            #    ShapeTables.inputs.transform_format = 'mat'
-            if vol_reg_method == 'ANTS':
-                mbFlow.connect(regANTS, 'affine_transform',
+            if volume_labels == 'ants':
+               # Apply the affine part of a complex transform:
+               #pickfirst = lambda x: x[:1]
+               def pickfirst(x):
+                   return lambda x: x[:1]
+               mbFlow.connect(reg, ('forward_transforms', pickfirst),
+                              ShapeTables, 'affine_transform_file')
+               ShapeTables.inputs.transform_format = 'mat'
+            elif volume_labels == 'ANTS':
+                mbFlow.connect(reg, 'affine_transform',
                                ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'itk'
-            elif vol_reg_method == 'flirt':
-                mbFlow.connect(regFlirt, 'out_matrix_file',
+            elif volume_labels == 'flirt':
+                mbFlow.connect(reg, 'out_matrix_file',
                                ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'txt'
         else:
@@ -1554,19 +1584,19 @@ if run_SurfFlows:
             VertexTable.inputs.fundi = []
 
         if run_VolFlows and do_register:
-            # if vol_reg_method == 'antsRegister':
-            #     mbFlow.connect(regAnts, 'composite_transform',
-            #                    VertexTable, 'affine_transform_file')
-            #     # Apply the affine part of a complex transform:
-            #     #pickfirst = lambda x: x[:1]
-            #     #mbFlow.connect(regAnts, ('forward_transforms', pickfirst),
-            #     #                 VertexTable, 'affine_transform_file')
-            #     VertexTable.inputs.transform_format = 'mat'
-            if vol_reg_method == 'ANTS':
-                mbFlow.connect(regANTS, 'affine_transform',
+            if volume_labels == 'ants':
+                mbFlow.connect(reg, 'composite_transform',
                                VertexTable, 'affine_transform_file')
-            elif vol_reg_method == 'flirt':
-                mbFlow.connect(regFlirt, 'out_matrix_file',
+                # Apply the affine part of a complex transform:
+                #pickfirst = lambda x: x[:1]
+                mbFlow.connect(reg, ('forward_transforms', pickfirst),
+                               VertexTable, 'affine_transform_file')
+                VertexTable.inputs.transform_format = 'mat'
+            elif volume_labels == 'ANTS':
+                mbFlow.connect(reg, 'affine_transform',
+                               VertexTable, 'affine_transform_file')
+            elif volume_labels == 'flirt':
+                mbFlow.connect(reg, 'out_matrix_file',
                                VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'txt'
         else:
@@ -1607,17 +1637,17 @@ if run_SurfFlows:
     #                                     output_names=['affine_points',
     #                                                   'output_file']))
     # VolLabelFlow.add_nodes([TransformPoints])
-    # if vol_reg_method == 'antsRegister':
+    # if volume_labels == 'ants':
     #     TransformPoints.inputs.transform_format = 'mat'
-    #     VolLabelFlow.connect(regAnts, 'output_transform_prefix',
+    #     VolLabelFlow.connect(reg, 'output_transform_prefix',
     #                          TransformPoints, 'transform_file')
-    # elif vol_reg_method == 'ANTS':
+    # elif volume_labels == 'ANTS':
     #     TransformPoints.inputs.transform_format = 'itk'
-    #     VolLabelFlow.connect(regANTS, 'affine_transform',
+    #     VolLabelFlow.connect(reg, 'affine_transform',
     #                          TransformPoints, 'transform_file')
-    # elif vol_reg_method == 'flirt':
+    # elif volume_labels == 'flirt':
     #     TransformPoints.inputs.transform_format = 'txt'
-    #     VolLabelFlow.connect(regFlirt, 'out_matrix_file',
+    #     VolLabelFlow.connect(reg, 'out_matrix_file',
     #                          TransformPoints, 'transform_file')
     # SurfShapeFlow.connect(TravelDepth, 'depth_file',
     #                       TransformPoints, 'vtk_or_points')
@@ -1675,7 +1705,9 @@ if run_VolLabelFlow:
     #=========================================================================
     if do_register_labels:
 
+        #---------------------------------------------------------------------
         # Retrieve full atlas path(s):
+        #---------------------------------------------------------------------
         RetrieveVolAtlas = Node(name='Retrieve_volume_atlas',
                                 interface=Fn(function = retrieve_data,
                                              input_names=['data_file',
@@ -1694,46 +1726,70 @@ if run_VolLabelFlow:
         RetrieveVolAtlas.inputs.cache = cache
         RetrieveVolAtlas.inputs.return_missing = True
 
-
+        #---------------------------------------------------------------------
         # Inverse transform atlas label volume to subject via template
-        LabelVolume = Node(name='Label_volume',
-                           interface=Fn(function = WarpImageMultiTransform,
-                                        input_names=['source',
-                                                     'target',
-                                                     'output',
-                                                     'interp',
-                                                     'xfm_stem',
-                                                     'affine_transform',
-                                                     'nonlinear_transform',
-                                                     'inverse',
-                                                     'affine_only'],
-                                        output_names=['output']))
-        VolLabelFlow.add_nodes([LabelVolume])
-        VolLabelFlow.connect(RetrieveVolAtlas, 'data_path',
-                             LabelVolume, 'source')
-        if do_input_nifti:
-            mbFlow.connect(niftiBrain, 'nifti',
-                           VolLabelFlow, 'Label_volume.target')
-        else:
-            mbFlow.connect(mgh2nifti, 'out_file',
-                           VolLabelFlow, 'Label_volume.target')
-        LabelVolume.inputs.output = ''
-        LabelVolume.inputs.interp = '--use-NN'
-        if vol_reg_method == 'ANTS':
-            mbFlow.connect(regANTS, 'output_stem',
+        #---------------------------------------------------------------------
+        # antsApplyTransforms --default-value 0 --dimensionality 3
+        #     --input moving1.nii --interpolation NearestNeighbor
+        #     --output deformed_moving1.nii --reference-image fixed1.nii
+        #     --transform [trans.mat,0] --transform [ants_Warp.nii.gz,0]
+        if volume_labels == '000ants':
+            xfm = Node(ApplyTransforms(), name='antsApplyTransform')
+            mbFlow.add_nodes([xfm])
+            xfm.inputs.dimension = 3
+            mbFlow.connect(RetrieveVolAtlas, 'data_path', xfm, 'input_image')
+            if do_input_nifti:
+                mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
+            else:
+                mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
+            xfm.inputs.output_image = 'deformed_moving1.nii'
+            xfm.inputs.interpolation = 'NearestNeighbor'
+            xfm.inputs.default_value = 0
+            xfm.inputs.transforms = ['Affine.mat', 'Warp.nii.gz']
+            xfm.inputs.invert_transform_flags = [True, True]
+            #mbFlow.connect(xfm, 'output_image', Sink, 'labels.@registered')
+
+        elif volume_labels == 'ANTS':
+
+            LabelVolume = Node(name='Label_volume',
+                               interface=Fn(function = WarpImageMultiTransform,
+                                            input_names=['source',
+                                                         'target',
+                                                         'output',
+                                                         'interp',
+                                                         'xfm_stem',
+                                                         'affine_transform',
+                                                         'nonlinear_transform',
+                                                         'inverse',
+                                                         'affine_only'],
+                                            output_names=['output']))
+            VolLabelFlow.add_nodes([LabelVolume])
+            VolLabelFlow.connect(RetrieveVolAtlas, 'data_path',
+                                 LabelVolume, 'source')
+            if do_input_nifti:
+                mbFlow.connect(niftiBrain, 'nifti',
+                               VolLabelFlow, 'Label_volume.target')
+            else:
+                mbFlow.connect(mgh2nifti, 'out_file',
+                               VolLabelFlow, 'Label_volume.target')
+            LabelVolume.inputs.output = ''
+            LabelVolume.inputs.interp = '--use-NN'
+
+            mbFlow.connect(reg, 'output_stem',
                            VolLabelFlow, 'Label_volume.xfm_stem')
             LabelVolume.inputs.affine_transform = ''
             LabelVolume.inputs.nonlinear_transform = ''
-        else:
-            sys.exit('No other vol_reg_method set up.')
-        LabelVolume.inputs.inverse = True
-        LabelVolume.inputs.affine_only = False
-        mbFlow.connect(VolLabelFlow, 'Label_volume.output',
-                       Sink, 'labels.@registered')
+            LabelVolume.inputs.inverse = True
+            LabelVolume.inputs.affine_only = False
+            mbFlow.connect(VolLabelFlow, 'Label_volume.output',
+                           Sink, 'labels.@registered')
 
-        #=====================================================================
+        else:
+            sys.exit('No other volume registration method set up.')
+
+        #---------------------------------------------------------------------
         # Mask cortical volume labels
-        #=====================================================================
+        #---------------------------------------------------------------------
         if do_mask_cortex:
             MaskVolume = Node(name='Mask_volume',
                               interface=Fn(function = ImageMath,
@@ -1756,27 +1812,41 @@ if run_VolLabelFlow:
             mbFlow.connect(VolLabelFlow, 'Mask_volume.output_file',
                            Sink, 'labels.@masked_registered')
 
-        #=====================================================================
-        # Combine cortical and noncortical volume labels
-        #=====================================================================
-        if do_fill_cortex:
-            CombineLabels = Node(name='Combine_labels',
-                                 interface=Fn(function = overwrite_volume_labels,
-                                              input_names=['source',
-                                                           'target',
-                                                           'output_file',
-                                                           'ignore_labels',
-                                                           'replace'],
-                                              output_names=['output_file']))
-            VolLabelFlow.connect(FillCortex, 'output_file',
-                                 CombineLabels, 'source')
+    #=========================================================================
+    # Combine cortical and noncortical volume labels
+    #=========================================================================
+    if do_fill_cortex:
+        CombineLabels = Node(name='Combine_labels',
+                             interface=Fn(function = overwrite_volume_labels,
+                                          input_names=['source',
+                                                       'target',
+                                                       'output_file',
+                                                       'ignore_labels',
+                                                       'replace'],
+                                          output_names=['output_file']))
+        VolLabelFlow.connect(FillCortex, 'output_file',
+                             CombineLabels, 'source')
+        if volume_labels == 'ants':
+            VolLabelFlow.connect(xfm, 'output_image',
+                                 CombineLabels, 'target')
+        elif volume_labels == 'ANTS':
             VolLabelFlow.connect(LabelVolume, 'output',
                                  CombineLabels, 'target')
-            CombineLabels.inputs.output_file = ''
-            CombineLabels.inputs.ignore_labels = [0]
-            CombineLabels.inputs.replace = True
-            mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
-                           Sink, 'labels.@combined')
+        elif volume_labels == 'freesurfer':
+            if do_input_aseg_labels:
+                mbFlow.connect(niftiLabels, 'niftiLabels.@aseg',
+                               CombineLabels, 'target')
+            else:
+                mbFlow.connect(mgh_labels2nifti, 'out_file',
+                               CombineLabels, 'target')
+        elif volume_labels == 'manual':
+            mbFlow.connect(niftiLabels, 'niftiLabels.@aseg',
+                           CombineLabels, 'target')
+        CombineLabels.inputs.output_file = ''
+        CombineLabels.inputs.ignore_labels = [0]
+        CombineLabels.inputs.replace = True
+        mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
+                       Sink, 'labels.@combined')
 
     #=========================================================================
     # Evaluate label volume overlaps

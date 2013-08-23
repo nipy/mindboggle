@@ -41,9 +41,9 @@ def hashes_url():
     #-----------------------------------------------------------------------------
     # Atlases and templates:
     #-----------------------------------------------------------------------------
-    hashes['OASIS-TRT-20_template_to_MNI152.nii.gz'] = 'f3349f4c149c003bfceee2920a814f30'
-    hashes['OASIS-TRT-20_atlas_to_MNI152.nii.gz'] = '082f19c118b428e49fbb56c55756c676'
-    hashes['OASIS-TRT-20_atlas_to_MNI152_probabilities.nii.gz'] = 'eab515a0b17ec3385248589ef300ad99'
+    hashes['OASIS-TRT-20_template_in_MNI152.nii.gz'] = 'f3349f4c149c003bfceee2920a814f30'
+    hashes['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz'] = '082f19c118b428e49fbb56c55756c676'
+    hashes['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_probabilities.nii.gz'] = 'eab515a0b17ec3385248589ef300ad99'
     hashes['MNI152_T1_1mm_brain.nii.gz'] = '7c47f203858f57c50ee93bcf7b0662fc'
     hashes['lh.DKTatlas100.gcs'] = '1bfdd5a4770d93d4a14a46a0c831696b'
     hashes['rh.DKTatlas100.gcs'] = 'c3ec3388d6428dc01b573d8f88f5f03a'
@@ -55,17 +55,17 @@ def hashes_url():
     #-----------------------------------------------------------------------------
     hashes['mask.nii.gz'] = '294ae2739ea594ba84a8ca198a8d0885'
     hashes['brain.nii.gz'] = '04bca82acadc65f192ed5f2e196d95fb'
-    hashes['brain_to_OASIS-TRT-20_template_to_MNI152.nii.gz'] = '7fc71d10106da964f6974ac54bb13427'
-    hashes['brain_to_OASIS-TRT-20_template_to_MNI152Affine.txt'] = '321b09c4f2d440c10ca58c0243fdecde'
-    hashes['brain_to_OASIS-TRT-20_template_to_MNI152InverseWarp.nii.gz'] = '27f8ec6f8ed310217124673e5f69410d'
-    hashes['brain_to_OASIS-TRT-20_template_to_MNI152Warp.nii.gz'] = '85e819ee425be725238fd2e812fb4c62'
+    hashes['brain_to_OASIS-TRT-20_template.nii.gz'] = '7fc71d10106da964f6974ac54bb13427'
+    hashes['brain_to_OASIS-TRT-20_templateAffine.txt'] = '321b09c4f2d440c10ca58c0243fdecde'
+    hashes['brain_to_OASIS-TRT-20_templateInverseWarp.nii.gz'] = '27f8ec6f8ed310217124673e5f69410d'
+    hashes['brain_to_OASIS-TRT-20_templateWarp.nii.gz'] = '85e819ee425be725238fd2e812fb4c62'
     #-----------------------------------------------------------------------------
     # Example Mindboggle output labels:
     #-----------------------------------------------------------------------------
     hashes['lh.DKTatlas100.gcs.vtk'] = '6b209cd662fbe2ac886af9d5112bc1e8'
     hashes['relabeled_lh.DKTatlas100.gcs.vtk'] = 'b01d363d66b922b631540430de09ddf0'
     hashes['propagated_labels.nii.gz'] = '9255d39e8d3dbeef39fa7d13e483e788'
-    hashes['propagated_labels_and_brain_to_OASIS-TRT-20_template_to_MNI152.nii.gz'] = '328d993cda53868358597d24db7b3d41'
+    hashes['propagated_labels_and_brain_to_OASIS-TRT-20_template.nii.gz'] = '328d993cda53868358597d24db7b3d41'
     #-----------------------------------------------------------------------------
     # Example Mindboggle output shapes:
     #-----------------------------------------------------------------------------
