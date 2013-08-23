@@ -190,6 +190,10 @@ if no_tables and not do_sulci and not do_fundi and not vertex_table:
 else:
     only_label = False
 
+#subjects = ['MMRR-21-5']
+#n_processes = 4
+#output_path = '/homedir/mindboggled'
+
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer input:
 #-----------------------------------------------------------------------------
@@ -272,9 +276,10 @@ do_register_labels = False  # Label whole brain via volume registration
 do_mask_cortex = False  # Mask whole brain labels with gray matter mask
 do_fill_cortex = False  # Fill cortical gray matter with surface labels
 if do_label:
-    if do_register and not no_volumes:
-        do_register_labels = True
-        do_mask_cortex = True
+    if not no_volumes:
+        if do_register:
+            do_register_labels = True
+            do_mask_cortex = True
     if not no_surfaces:
         do_label_surf = True
         if not no_volumes:
@@ -537,24 +542,47 @@ if do_register:
     # Register image volume to template in MNI152 space with antsRegistration:
     #-------------------------------------------------------------------------
     # Example:
-    # antsRegistration --collapse-linear-transforms-to-fixed-image-header 0
-    # --collapse-output-transforms 0 --dimensionality 3
-    # --initial-moving-transform [ trans.mat, 1 ] --interpolation Linear
-    # --output [ output_, output_warped_image.nii.gz ]
-    # --transform Affine[ 2.0 ]
-    # --metric Mattes[ fixed1.nii, moving1.nii, 1, 32, Random, 0.05 ]
-    # --convergence [ 1500x200, 1e-08, 20 ] --smoothing-sigmas 1x0vox
-    # --shrink-factors 2x1 --use-estimate-learning-rate-once 1
-    # --use-histogram-matching 1
-    # --transform SyN[ 0.25, 3.0, 0.0 ]
-    # --metric Mattes[ fixed1.nii, moving1.nii, 1, 32 ]
-    # --convergence [ 100x50x30, 1e-09, 20 ] --smoothing-sigmas 2x1x0vox
-    # --shrink-factors 3x2x1 --use-estimate-learning-rate-once 1
-    # --use-histogram-matching 1
+    # antsRegistration --collapse-linear-transforms-to-fixed-image-header 0 
+    # --collapse-output-transforms 0 --dimensionality 3 --interpolation Linear 
+    # --output output_ --transform Translation[ 0.1 ]
+    # --metric Mattes[ template_image, brain.nii.gz, 1, 32, Regular, 0.3 ]
+    # --convergence [ 10000x111110x11110, 1e-08, 20 ]
+    # --smoothing-sigmas 4.0x2.0x1.0vox --shrink-factors 6x4x2 
+    # --use-estimate-learning-rate-once 1 --use-histogram-matching 0 
+    # --transform Rigid[ 0.1 ] 
+    # --metric Mattes[ template_image, brain.nii.gz, 1, 32, Regular, 0.3 ]
+    # --convergence [ 10000x111110x11110, 1e-08, 20 ]
+    # --smoothing-sigmas 4.0x2.0x1.0vox --shrink-factors 3x2x1 
+    # --use-estimate-learning-rate-once 1 --use-histogram-matching 0 
+    # --transform Affine[ 0.1 ]
+    # --metric Mattes[ template_image, brain.nii.gz, 1, 32, Regular, 0.3 ]
+    # --convergence [ 10000x111110x11110, 1e-08, 20 ]
+    # --smoothing-sigmas 4.0x2.0x1.0vox --shrink-factors 3x2x1 
+    # --use-estimate-learning-rate-once 1 --use-histogram-matching 0 
+    # --transform SyN[ 0.2, 3.0, 0.0 ]
+    # --metric Mattes[ template_image, brain.nii.gz, 0.5, 32 ]
+    # --metric CC[ template_image, brain.nii.gz, 0.5, 4 ]
+    # --convergence [ 100x50x30, -0.01, 5 ] --smoothing-sigmas 1.0x0.5x0.0vox 
+    # --shrink-factors 4x2x1 --use-estimate-learning-rate-once 1 
+    # --use-histogram-matching 1 --winsorize-image-intensities [ 0.0, 1.0 ]  
     # --write-composite-transform 1
     if volume_labels == 'ants':
         reg = Node(Registration(), name='antsRegistration')
         mbFlow.add_nodes([reg])
+
+        # Specific inputs:
+        if do_input_nifti:
+            mbFlow.connect(niftiBrain, 'nifti', reg, 'moving_image')
+        else:
+            mbFlow.connect(mgh2nifti, 'out_file', reg, 'moving_image')
+        volume_template_file = retrieve_data(template_volume, url,
+                                             hashes, cache_env, cache)
+        reg.inputs.fixed_image = os.path.abspath(volume_template_file)
+        reg.inputs.output_transform_prefix = "output_"
+        # reg.inputs.output_warped_image = 'output_warped_image.nii.gz'
+        reg.inputs.num_threads = n_processes
+        # # Concatenate the affine and ants transforms into a list:
+        # mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
 
         # General inputs:
         reg.inputs.dimension = 3
@@ -565,8 +593,10 @@ if do_register:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
                                                (0.2, 3.0, 0.0)]
-            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
-                                               [[100, 50, 30]])
+            #reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
+            #                                   [[100, 50, 30]])
+            reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
+                                               [[1, 0, 0]])
             reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
             reg.inputs.metric_weight = [1] * 3 + [[0.5, 0.5]]
             reg.inputs.radius_or_number_of_bins = [32] * 3 + [[32, 4]]
@@ -597,26 +627,13 @@ if do_register:
             reg.inputs.use_estimate_learning_rate_once = [True] * 3
             reg.inputs.use_histogram_matching = [False] * 3
 
-        # Specific inputs:
-        if do_input_nifti:
-            mbFlow.connect(niftiBrain, 'nifti', reg, 'moving_image')
-        else:
-            mbFlow.connect(mgh2nifti, 'out_file', reg, 'moving_image')
-        volume_template_file = retrieve_data(template_volume, url,
-                                             hashes, cache_env, cache)
-        reg.inputs.fixed_image = os.path.abspath(volume_template_file)
-        reg.inputs.output_transform_prefix = "output_"
-#        reg.inputs.output_warped_image = 'output_warped_image.nii.gz'
-        reg.inputs.num_threads = n_processes
-#        # Concatenate the affine and ants transforms into a list:
-#        mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
         if save_transforms:
-           mbFlow.connect(reg, 'forward_transforms',
-                          Sink, 'transforms.@ants_forward')
-           mbFlow.connect(reg, 'composite_transform',
-                          Sink, 'transforms.@ants_composite')
-           mbFlow.connect(reg, 'inverse_composite_transform',
-                          Sink, 'transforms.@ants_inverse_composite')
+            mbFlow.connect(reg, 'forward_transforms',
+                           Sink, 'transforms.@ants_forward')
+            mbFlow.connect(reg, 'composite_transform',
+                           Sink, 'transforms.@ants_composite')
+            mbFlow.connect(reg, 'inverse_composite_transform',
+                           Sink, 'transforms.@ants_inverse_composite')
     #-------------------------------------------------------------------------
     # Register image volume to template in MNI152 space with ANTS:
     #-------------------------------------------------------------------------
@@ -1455,13 +1472,12 @@ if run_SurfFlows:
             ShapeTables.inputs.fundi = []
         if do_register:
             if volume_labels == 'ants':
-               # Apply the affine part of a complex transform:
-               #pickfirst = lambda x: x[:1]
-               def pickfirst(x):
-                   return lambda x: x[:1]
-               mbFlow.connect(reg, ('forward_transforms', pickfirst),
+                # Extract the affine part of a complex transform:
+                def picksecond(x):
+                   return lambda x: x[:2]
+                mbFlow.connect(reg, ('forward_transforms', picksecond),
                               ShapeTables, 'affine_transform_file')
-               ShapeTables.inputs.transform_format = 'mat'
+                ShapeTables.inputs.transform_format = 'mat'
             elif volume_labels == 'ANTS':
                 mbFlow.connect(reg, 'affine_transform',
                                ShapeTables, 'affine_transform_file')
@@ -1585,11 +1601,10 @@ if run_SurfFlows:
 
         if run_VolFlows and do_register:
             if volume_labels == 'ants':
-                mbFlow.connect(reg, 'composite_transform',
-                               VertexTable, 'affine_transform_file')
-                # Apply the affine part of a complex transform:
-                #pickfirst = lambda x: x[:1]
-                mbFlow.connect(reg, ('forward_transforms', pickfirst),
+                # Extract the affine part of a complex transform:
+                def picksecond(x):
+                    return lambda x: x[:2]
+                mbFlow.connect(reg, ('forward_transforms', picksecond),
                                VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'mat'
             elif volume_labels == 'ANTS':
@@ -1733,24 +1748,28 @@ if run_VolLabelFlow:
         #     --input moving1.nii --interpolation NearestNeighbor
         #     --output deformed_moving1.nii --reference-image fixed1.nii
         #     --transform [trans.mat,0] --transform [ants_Warp.nii.gz,0]
-        if volume_labels == '000ants':
+        if volume_labels == 'ants':
             xfm = Node(ApplyTransforms(), name='antsApplyTransform')
             mbFlow.add_nodes([xfm])
             xfm.inputs.dimension = 3
-            mbFlow.connect(RetrieveVolAtlas, 'data_path', xfm, 'input_image')
+            xfm.inputs.default_value = 0
             if do_input_nifti:
                 mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
             else:
                 mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
-            xfm.inputs.output_image = 'deformed_moving1.nii'
+            mbFlow.connect(RetrieveVolAtlas, 'data_path', xfm, 'input_image')
+            xfm.inputs.output_image = 'labels.nii.gz'
             xfm.inputs.interpolation = 'NearestNeighbor'
-            xfm.inputs.default_value = 0
-            xfm.inputs.transforms = ['Affine.mat', 'Warp.nii.gz']
-            xfm.inputs.invert_transform_flags = [True, True]
-            #mbFlow.connect(xfm, 'output_image', Sink, 'labels.@registered')
+            #xfm.inputs.transformation_files = ['output_3Warp.nii.gz'
+            #                                   'output_2Affine.mat',
+            #                                   'output_1Rigid.mat',
+            #                                   'output_0Translation.mat']
+            mbFlow.connect(reg, 'inverse_composite_transform',
+                           xfm, 'transforms')
+            #xfm.inputs.invert_transform_flags = [True]
+            mbFlow.connect(xfm, 'output_image', Sink, 'labels.@registered')
 
         elif volume_labels == 'ANTS':
-
             LabelVolume = Node(name='Label_volume',
                                interface=Fn(function = WarpImageMultiTransform,
                                             input_names=['source',
@@ -1783,7 +1802,6 @@ if run_VolLabelFlow:
             LabelVolume.inputs.affine_only = False
             mbFlow.connect(VolLabelFlow, 'Label_volume.output',
                            Sink, 'labels.@registered')
-
         else:
             sys.exit('No other volume registration method set up.')
 
@@ -1805,8 +1823,12 @@ if run_VolLabelFlow:
             else:
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
                                VolLabelFlow, 'Mask_volume.volume1')
-            VolLabelFlow.connect(LabelVolume, 'output',
-                                 MaskVolume, 'volume2')
+            if volume_labels == 'ants':
+                VolLabelFlow.connect(xfm, 'output_image',
+                                     MaskVolume, 'volume2')
+            elif volume_labels == 'ANTS':
+                VolLabelFlow.connect(LabelVolume, 'output',
+                                     MaskVolume, 'volume2')
             MaskVolume.inputs.operator = 'm'
             MaskVolume.inputs.output_file = ''
             mbFlow.connect(VolLabelFlow, 'Mask_volume.output_file',
@@ -1834,14 +1856,11 @@ if run_VolLabelFlow:
                                  CombineLabels, 'target')
         elif volume_labels == 'freesurfer':
             if do_input_aseg_labels:
-                mbFlow.connect(niftiLabels, 'niftiLabels.@aseg',
+                mbFlow.connect(niftiLabels, 'aseg',
                                CombineLabels, 'target')
             else:
                 mbFlow.connect(mgh_labels2nifti, 'out_file',
                                CombineLabels, 'target')
-        elif volume_labels == 'manual':
-            mbFlow.connect(niftiLabels, 'niftiLabels.@aseg',
-                           CombineLabels, 'target')
         CombineLabels.inputs.output_file = ''
         CombineLabels.inputs.ignore_labels = [0]
         CombineLabels.inputs.replace = True
