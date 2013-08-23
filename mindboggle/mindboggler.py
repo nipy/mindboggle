@@ -1723,7 +1723,7 @@ if run_VolLabelFlow:
         #---------------------------------------------------------------------
         # Retrieve full atlas path(s):
         #---------------------------------------------------------------------
-        RetrieveVolAtlas = Node(name='Retrieve_volume_atlas',
+        RetrieveAtlas = Node(name='Retrieve_volume_atlas',
                                 interface=Fn(function = retrieve_data,
                                              input_names=['data_file',
                                                           'url',
@@ -1732,14 +1732,14 @@ if run_VolLabelFlow:
                                                           'cache',
                                                           'return_missing'],
                                              output_names=['data_path']))
-        VolLabelFlow.add_nodes([RetrieveVolAtlas])
+        VolLabelFlow.add_nodes([RetrieveAtlas])
         mbFlow.connect(InputVolAtlases, 'atlas',
                        VolLabelFlow, 'Retrieve_volume_atlas.data_file')
-        RetrieveVolAtlas.inputs.url = url
-        RetrieveVolAtlas.inputs.hashes = hashes
-        RetrieveVolAtlas.inputs.cache_env = cache_env
-        RetrieveVolAtlas.inputs.cache = cache
-        RetrieveVolAtlas.inputs.return_missing = True
+        RetrieveAtlas.inputs.url = url
+        RetrieveAtlas.inputs.hashes = hashes
+        RetrieveAtlas.inputs.cache_env = cache_env
+        RetrieveAtlas.inputs.cache = cache
+        RetrieveAtlas.inputs.return_missing = True
 
         #---------------------------------------------------------------------
         # Inverse transform atlas label volume to subject via template
@@ -1750,14 +1750,17 @@ if run_VolLabelFlow:
         #     --transform [trans.mat,0] --transform [ants_Warp.nii.gz,0]
         if volume_labels == 'ants':
             xfm = Node(ApplyTransforms(), name='antsApplyTransform')
-            mbFlow.add_nodes([xfm])
+            VolLabelFlow.add_nodes([xfm])
             xfm.inputs.dimension = 3
             xfm.inputs.default_value = 0
             if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
+                mbFlow.connect(niftiBrain, 'nifti', VolLabelFlow,
+                               'antsApplyTransform.reference_image')
             else:
-                mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
-            mbFlow.connect(RetrieveVolAtlas, 'data_path', xfm, 'input_image')
+                mbFlow.connect(mgh2nifti, 'out_file', VolLabelFlow,
+                               'antsApplyTransform.reference_image')
+            VolLabelFlow.connect(RetrieveAtlas, 'data_path',
+                                 xfm, 'input_image')
             xfm.inputs.output_image = 'labels.nii.gz'
             xfm.inputs.interpolation = 'NearestNeighbor'
             #xfm.inputs.transformation_files = ['output_3Warp.nii.gz'
@@ -1765,9 +1768,10 @@ if run_VolLabelFlow:
             #                                   'output_1Rigid.mat',
             #                                   'output_0Translation.mat']
             mbFlow.connect(reg, 'inverse_composite_transform',
-                           xfm, 'transforms')
+                           VolLabelFlow, 'antsApplyTransform.transforms')
             #xfm.inputs.invert_transform_flags = [True]
-            mbFlow.connect(xfm, 'output_image', Sink, 'labels.@registered')
+            mbFlow.connect(VolLabelFlow, 'antsApplyTransform.output_image',
+                           Sink, 'labels.@antsRegistration')
 
         elif volume_labels == 'ANTS':
             LabelVolume = Node(name='Label_volume',
@@ -1783,7 +1787,7 @@ if run_VolLabelFlow:
                                                          'affine_only'],
                                             output_names=['output']))
             VolLabelFlow.add_nodes([LabelVolume])
-            VolLabelFlow.connect(RetrieveVolAtlas, 'data_path',
+            VolLabelFlow.connect(RetrieveAtlas, 'data_path',
                                  LabelVolume, 'source')
             if do_input_nifti:
                 mbFlow.connect(niftiBrain, 'nifti',
@@ -1801,7 +1805,7 @@ if run_VolLabelFlow:
             LabelVolume.inputs.inverse = True
             LabelVolume.inputs.affine_only = False
             mbFlow.connect(VolLabelFlow, 'Label_volume.output',
-                           Sink, 'labels.@registered')
+                           Sink, 'labels.@ANTS')
         else:
             sys.exit('No other volume registration method set up.')
 
