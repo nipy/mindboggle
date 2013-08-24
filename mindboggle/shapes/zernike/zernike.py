@@ -205,9 +205,15 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
 
 
 def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
-                              area_file='', largest_segment=True):
+                              area_file='', largest_segment=True,
+                              close_file='', do_decimate=False,
+                              decimate_reduction=0.5,
+                              decimate_smooth_steps=100):
     """
     Compute the Zernike moments per labeled region in a file.
+
+    Optionally close each label's surface by connecting to its borders to
+    those of a second corresponding surface, and decimate the resulting mesh.
 
     Parameters
     ----------
@@ -221,6 +227,14 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         name of VTK file with surface area scalar values
     largest_segment :  Boolean
         compute moments only for largest segment with a given label?
+    close_file : string
+        second corresponding surface if closing (ex: gray-white surface)
+    do_decimate : Boolean
+        decimate each label's mesh?
+    decimate_reduction : float
+        fraction of mesh faces to remove for decimation
+    decimate_smooth_steps : integer
+        number of smoothing steps for decimation
 
     Returns
     -------
@@ -240,98 +254,91 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> order = 3
     >>> exclude_labels = [0]
     >>> largest_segment = True
+    >>> close_file = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> do_decimate = True
+    >>> decimate_reduction = 0.5
+    >>> decimate_smooth_steps = 100
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
-    >>>                           largest_segment)
-    ([[7562.751480397972,
-       143262239.5171249,
-       1107670.7893994227,
-       28487908892.820065,
-       112922387.17238183,
-       10250734140.30357]],
-     [22])
-    >>> order = 10
-    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
-    >>>                           largest_segment)
-    ([[7562.751480397972,
-       143262239.5171249,
-       3308874674202.293,
-       8.485211965384958e+16,
-       2.3330162566631947e+21,
-       6.743205749389719e+25,
-       1107670.7893994227,
-       28487908892.820065,
-       750581458956752.5,
-       2.08268406178679e+19,
-       6.041241636463012e+23,
-       112922387.17238183,
-       3771094165018.0186,
-       1.1436534456761454e+17,
-       3.475222918728238e+21,
-       1.0745294340540639e+26,
-       10250734140.30357,
-       429344737184365.75,
-       1.4944306620454633e+19,
-       4.98685998888202e+23,
-       889109957039.494,
-       4.5419095219797416e+16,
-       1.798809048329269e+21,
-       6.5720455808877056e+25,
-       76646448525991.2,
-       4.648745223427816e+18,
-       2.067942924550439e+23,
-       6705825311489244.0,
-       4.701251187236028e+20,
-       2.3147665646780795e+25,
-       5.969381989053711e+17,
-       4.728007168783364e+22,
-       5.360784767352255e+19,
-       4.7214146910478664e+24,
-       4.813773883638603e+21,
-       4.3049570618844856e+23]],
-     [22])
+    >>>     largest_segment, close_file, do_decimate, decimate_reduction,
+    >>>     decimate_smooth_steps)
 
     """
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.utils.mesh import remove_faces
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars, read_points, write_vtk
+    from mindboggle.utils.mesh import remove_faces, close_surfaces, decimate
     from mindboggle.shapes.zernike.zernike import zernike_moments, \
         zernike_moments_of_largest
 
-    # Read VTK surface mesh file:
-    faces, u1,u2, points, u4, labels, u5,u6 = read_vtk(vtk_file)
+    #-------------------------------------------------------------------------
+    # Read VTK surface mesh file and area file:
+    #-------------------------------------------------------------------------
+    faces, u1,u2, points, npoints, labels, u4,u5 = read_vtk(vtk_file)
 
-    # Area file:
     if area_file:
         areas, u1 = read_scalars(area_file)
     else:
         areas = None
 
+    #-------------------------------------------------------------------------
     # Loop through labeled regions:
+    #-------------------------------------------------------------------------
     ulabels = []
     [ulabels.append(int(x)) for x in labels if x not in ulabels
      if x not in exclude_labels]
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      #if label==22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+      if label==11:
+        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
+        #---------------------------------------------------------------------
         # Determine the indices per label:
-        label_indices = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.format(len(label_indices), label))
+        #---------------------------------------------------------------------
+        Ilabel = [i for i,x in enumerate(labels) if x == label]
+        print('  {0} vertices for label {1}'.format(len(Ilabel), label))
 
+        #---------------------------------------------------------------------
+        # Close surface:
+        #---------------------------------------------------------------------
+        if close_file:
+
+            # Read second VTK surface mesh file:
+            points2 = read_points(close_file)
+            L = -1 * np.ones(npoints)
+            L[Ilabel] = 1
+            new_faces, new_points, u1 = close_surfaces(faces, points, points2,
+                                                       L, background_value=-1)
+            write_vtk('c'+str(label)+'.vtk', new_points, [],[], new_faces, u1)
+
+        #---------------------------------------------------------------------
         # Remove background faces:
-        select_faces = remove_faces(faces, label_indices)
+        #---------------------------------------------------------------------
+        else:
+            new_faces = remove_faces(faces, Ilabel)
+            new_points = points
 
+        #---------------------------------------------------------------------
+        # Decimate surface:
+        #---------------------------------------------------------------------
+        if do_decimate:
+            new_points, new_faces, u1,u2 = decimate(new_points, new_faces,
+                decimate_reduction, decimate_smooth_steps, [], save_vtk=False)
+            write_vtk('d'+str(label)+'.vtk', new_points, [],[], new_faces, [])
+
+        #---------------------------------------------------------------------
         # Compute Zernike moments for the label:
+        #---------------------------------------------------------------------
         if largest_segment:
             exclude_labels_inner = [-1]
-            descriptors = zernike_moments_of_largest(points, select_faces, order,
-                                                     exclude_labels_inner,
-                                                     areas)
+            descriptors = zernike_moments_of_largest(new_points, new_faces,
+                order, exclude_labels_inner, areas)
         else:
-            descriptors = zernike_moments(points, select_faces, order)
+            descriptors = zernike_moments(new_points, new_faces, order)
 
+        #---------------------------------------------------------------------
         # Append to a list of lists of spectra:
+        #---------------------------------------------------------------------
         descriptors_lists.append(descriptors)
         label_list.append(label)
 
