@@ -59,7 +59,7 @@ from mindboggle.labels.label_free import label_with_classifier
 from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
-from mindboggle.utils.mesh import decimate_file
+from mindboggle.utils.mesh import close_surfaces, decimate_file
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
@@ -80,15 +80,15 @@ parser.add_argument("subjects",
                     help=('Example: "python %(prog)s sub1 sub2 sub3" '
                           '"sub1",... are subject names corresponding to '
                           'subject directories within $SUBJECTS_DIR'),
-                    nargs='+')
+                    nargs='+', metavar='SUBJECT')
 parser.add_argument("-o", help='output directory: "-o $HOME/mindboggled" '
                                '(default)',
                     default=os.path.join(os.environ['HOME'], 'mindboggled'),
-                    metavar='')
+                    metavar='PATH')
 parser.add_argument("-n",
                     help=('number of processors: "-n 1" (default)'),
                     type=int,
-                    default=1, metavar='')
+                    default=1, metavar='INT')
 parser.add_argument("-c", action='store_true',
                     help="Use HTCondor cluster")
 
@@ -103,8 +103,6 @@ parser.add_argument("--no_surfaces", action='store_true',
 # Features:
 parser.add_argument("--sulci", action='store_true',
                     help="extract sulci")
-#parser.add_argument("--no_fundi", action='store_true',
-#                    help="don't extract fundi")
 parser.add_argument("--fundi", action='store_true',
                     help="extract fundi")
 # Tables:
@@ -114,33 +112,33 @@ parser.add_argument("--vertex_table", action='store_true',
 parser.add_argument("--spectra_values",
                     help='number of eigenvalues: "--spectra_values 10" '
                          '(default)',
-                    default=10, type=int, metavar='')
-#parser.add_argument("--zernike", action='store_true',
-#                    help="compute Zernike moments")
-#parser.add_argument("--order", help="order of Zernike moments: "
-#                                    "\"--order 10\" (default)",
-#                    default=10, type=int, metavar='')
-#parser.add_argument("--reduction", help="mesh decimation fraction: "
-#                                        "\"--reduction 0.75\" (default)",
-#                    default=0.75, type=float, metavar='')
+                    default=10, type=int, metavar='INT')
+parser.add_argument("--zernike", action='store_true',
+                    help="compute Zernike moments")
+parser.add_argument("--order", help='order of Zernike moments: '
+                                    '"--order 10" (default)',
+                    default=10, type=int, metavar='INT')
+parser.add_argument("--reduction", help='mesh decimation fraction: '
+                                        '"--reduction 0.75" (default)',
+                    default=0.75, type=float, metavar='FLOAT')
 # Labels:
 parser.add_argument("--atlases", help=("label with additional volume "
                                        "atlas(es) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--volume_labels",
                     help=('volume labels: '
-                    '"ANTS" (default), "ants (COMING SOON)", "freesurfer", "manual"'),
-                    choices=['ANTS', 'ants', 'freesurfer', 'manual'],
-                    default='ANTS', metavar='')
+                    '"ANTS" (default), "ants (COMING SOON)", "freesurfer"'), #, "manual"'),
+                    choices=['ANTS', 'ants', 'freesurfer'], #, 'manual'],
+                    default='ANTS', metavar='STR')
 parser.add_argument("--surface_labels",
                     help=("surface labels: "
                     '"atlas" (default), "freesurfer", "manual"'),
                     choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas', metavar='')
+                    default='atlas', metavar='STR')
 parser.add_argument("--no_freesurfer", action='store_true',
                     help="don't use FreeSurfer or its outputs (UNTESTED)")
 parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
-                    choices=['hier', 'flat', 'exec'], metavar='')
+                    choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
@@ -173,7 +171,7 @@ vertex_table = args.vertex_table
 # Shapes:
 no_spectra = False #args.no_spectra
 n_eigenvalues = args.spectra_values
-do_zernike = False #args.zernike
+do_zernike = args.zernike
 zernike_order = 10 #args.order
 reduction = 0.75 #args.reduction
 
@@ -252,7 +250,6 @@ if do_fundi:
 #-----------------------------------------------------------------------------
 do_decimate = False
 do_spectra = False  # Measure Laplace-Beltrami spectra for features
-#do_zernike = False  # Measure Zernike moments for features
 do_thickness = False  # Include FreeSurfer's thickness measure
 do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 if run_WholeSurfShapeFlow:
@@ -364,7 +361,7 @@ mbFlow.base_dir = temp_path
 if isinstance(atlas_volumes, str):
     atlas_volumes = list(atlas_volumes)
 InputVolAtlases = Node(name='Input_volume_atlases',
-                    interface=IdentityInterface(fields=['atlas']))
+                       interface=IdentityInterface(fields=['atlas']))
 InputVolAtlases.iterables = ('atlas', atlas_volumes)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
@@ -398,15 +395,13 @@ if run_SurfFlows:
     Surf = Node(name='Surfaces',
                 interface=DataGrabber(infields=['subject', 'hemi'],
                                       outfields=['surface_files',
-                                                 'sphere_files'],
+                                                 'white_surface_files'],
                                       sort_filelist=False))
     Surf.inputs.base_directory = subjects_path
     Surf.inputs.template = '%s/surf/%s.%s'
     Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
-    if do_zernike:
-        Surf.inputs.template_args['white_surface_files'] = [['subject',
-                                                             'hemi', 'white']]
-    # Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
+    Surf.inputs.template_args['white_surface_files'] = [['subject', 'hemi', 'white']]
+    #Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
     if do_thickness:
         Surf.inputs.template_args['thickness_files'] = \
             [['subject', 'hemi', 'thickness']]
@@ -721,6 +716,12 @@ if run_SurfFlows:
                                         output_names=['output_vtk']))
         mbFlow.connect(Surf, 'surface_files', ConvertSurf, 'surface_file')
         ConvertSurf.inputs.output_vtk = ''
+        if do_zernike:
+            ConvertWhiteSurf = ConvertSurf.clone('Gray-white_surface_to_vtk')
+            mbFlow.add_nodes([ConvertWhiteSurf])
+            mbFlow.connect(Surf, 'white_surface_files',
+                           ConvertWhiteSurf, 'surface_file')
+
     #-------------------------------------------------------------------------
     # Evaluation inputs: location and structure of atlas surfaces
     #-------------------------------------------------------------------------
@@ -1303,38 +1304,32 @@ if run_SurfFeatureFlow:
 if run_SurfFlows:
     SurfFeatureShapeFlow = Workflow(name='Surface_feature_shapes')
 
-    #=========================================================================
-    # Decimate patches of surface mesh
-    #=========================================================================
-    if do_decimate:
-
-        #---------------------------------------------------------------------
-        # Decimate labeled regions
-        #---------------------------------------------------------------------
-        DecimateLabels = Node(name='Decimate_labels',
-                              interface=Fn(function = decimate_file,
-                                           input_names=['input_vtk',
-                                                        'reduction',
-                                                        'smooth_steps',
-                                                        'save_vtk',
-                                                        'output_vtk'],
-                                           output_names=['output_vtk']))
-        SurfFeatureShapeFlow.add_nodes([DecimateLabels])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                       SurfFeatureShapeFlow, 'Decimate_labels.input_vtk')
-        DecimateLabels.inputs.reduction = reduction
-        DecimateLabels.inputs.smooth_steps = 100
-        DecimateLabels.inputs.save_vtk = True
-        DecimateLabels.inputs.output_vtk = ''
-
-        #---------------------------------------------------------------------
-        # Decimate sulci
-        #---------------------------------------------------------------------
-        if do_sulci:
-            DecimateSulci = DecimateLabels.clone('Decimate_sulci')
-            SurfFeatureShapeFlow.add_nodes([DecimateSulci])
-            mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
-                           SurfFeatureShapeFlow, 'Decimate_sulci.input_vtk')
+    #-------------------------------------------------------------------------
+    # Decimate patches of surface mesh labeled regions
+    #-------------------------------------------------------------------------
+    # DecimateLabels = Node(name='Decimate_labels',
+    #                       interface=Fn(function = decimate_file,
+    #                                    input_names=['input_vtk',
+    #                                                 'reduction',
+    #                                                 'smooth_steps',
+    #                                                 'save_vtk',
+    #                                                 'output_vtk'],
+    #                                    output_names=['output_vtk']))
+    # SurfFeatureShapeFlow.add_nodes([DecimateLabels])
+    # SurfFeatureShapeFlow.connect(CloseLabelSurfaces, 'output_vtk',
+    #                              DecimateLabels, 'input_vtk')
+    # DecimateLabels.inputs.reduction = reduction
+    # DecimateLabels.inputs.smooth_steps = 100
+    # DecimateLabels.inputs.save_vtk = True
+    # DecimateLabels.inputs.output_vtk = ''
+    #-------------------------------------------------------------------------
+    # Decimate sulci
+    #-------------------------------------------------------------------------
+    # if do_sulci:
+    #     DecimateSulci = DecimateLabels.clone('Decimate_sulci')
+    #     SurfFeatureShapeFlow.add_nodes([DecimateSulci])
+    #     SurfFeatureShapeFlow.connect(CloseSulcusSurfaces, 'output_vtk',
+    #                                  DecimateSulci, 'input_vtk')
 
     #=========================================================================
     # Measure Laplace-Beltrami spectra
@@ -1389,21 +1384,26 @@ if run_SurfFlows:
                                                        'order',
                                                        'exclude_labels',
                                                        'area_file',
-                                                       'largest_segment'],
+                                                       'largest_segment',
+                                                       'close_file',
+                                                       'do_decimate',
+                                                       'reduction',
+                                                       'smooth_steps'],
                                           output_names=['descriptors_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
-        if do_decimate:
-            SurfFeatureShapeFlow.connect(DecimateLabels, 'output_vtk',
-                                         ZernikeLabels, 'vtk_file')
-        else:
-            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                           SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
+        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+                       SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
         ZernikeLabels.inputs.order = zernike_order
         ZernikeLabels.inputs.exclude_labels = [0]
-        ZernikeLabels.inputs.largest_segment = True
         mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
                        SurfFeatureShapeFlow, 'Zernike_labels.area_file')
+        ZernikeLabels.inputs.largest_segment = True
+        mbFlow.connect(ConvertWhiteSurf, 'output_vtk',
+                       SurfFeatureShapeFlow, 'Zernike_labels.close_file')
+        ZernikeLabels.inputs.do_decimate = True
+        ZernikeLabels.inputs.reduction = 0.5
+        ZernikeLabels.inputs.smooth_steps = 100
 
         #---------------------------------------------------------------------
         # Measure Zernike moments of sulci
@@ -1411,13 +1411,8 @@ if run_SurfFlows:
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
+            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
             ZernikeSulci.inputs.exclude_labels = [-1]
-            if do_decimate:
-                SurfFeatureShapeFlow.connect(DecimateSulci, 'output_vtk',
-                                             ZernikeSulci, 'vtk_file')
-            else:
-                mbFlow.connect(SulciNode, 'sulci_file',
-                               ZernikeSulci, 'vtk_file')
 
 
 #=============================================================================

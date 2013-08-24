@@ -207,8 +207,7 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
 def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
                               area_file='', largest_segment=True,
                               close_file='', do_decimate=False,
-                              decimate_reduction=0.5,
-                              decimate_smooth_steps=100):
+                              reduction=0.5, smooth_steps=100):
     """
     Compute the Zernike moments per labeled region in a file.
 
@@ -231,9 +230,9 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         second corresponding surface if closing (ex: gray-white surface)
     do_decimate : Boolean
         decimate each label's mesh?
-    decimate_reduction : float
+    reduction : float
         fraction of mesh faces to remove for decimation
-    decimate_smooth_steps : integer
+    smooth_steps : integer
         number of smoothing steps for decimation
 
     Returns
@@ -256,11 +255,10 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> largest_segment = True
     >>> close_file = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
     >>> do_decimate = True
-    >>> decimate_reduction = 0.5
-    >>> decimate_smooth_steps = 100
+    >>> reduction = 0.5
+    >>> smooth_steps = 100
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
-    >>>     largest_segment, close_file, do_decimate, decimate_reduction,
-    >>>     decimate_smooth_steps)
+    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps)
 
     """
     import numpy as np
@@ -323,7 +321,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         #---------------------------------------------------------------------
         if do_decimate:
             new_points, new_faces, u1,u2 = decimate(new_points, new_faces,
-                decimate_reduction, decimate_smooth_steps, [], save_vtk=False)
+                reduction, smooth_steps, [], save_vtk=False)
             write_vtk('d'+str(label)+'.vtk', new_points, [],[], new_faces, [])
 
         #---------------------------------------------------------------------
