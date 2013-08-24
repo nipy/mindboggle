@@ -99,8 +99,9 @@ if __name__ == "__main__":
 
     protocol = 'DKT25'
     sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-        label_names, label_numbers, cortex_names, cortex_numbers, \
-        noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+        label_names, label_numbers, cortex_names, cortex_names_DKT25, \
+        cortex_numbers, cortex_numbers_DKT25, noncortex_names, \
+        noncortex_numbers = dkt_protocol()
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]

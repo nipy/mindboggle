@@ -45,7 +45,6 @@ def extract_borders(indices, labels, neighbor_lists,
     --------
     >>> # Small example:
     >>> from mindboggle.labels.labels import extract_borders
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> indices = [0,1,2,4,5,8,9]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
     >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3]]
@@ -88,8 +87,8 @@ def extract_borders(indices, labels, neighbor_lists,
 
     # Find indices to sets of two labels:
     border_indices = [indices[y] for y in
-                        [i for i,x in enumerate(L[indices])
-                         if len(set(x)) >= 2]]
+                      [i for i,x in enumerate(L[indices])
+                       if len(set(x)) >= 2]]
 
     if return_label_pairs:
         border_label_tuples = [np.sort(L[indices[j]]).tolist() for j in

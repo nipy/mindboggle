@@ -235,6 +235,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     """
     Make tables of shape statistics per label, sulcus, and/or fundus.
 
+    Note ::
+        This function is tailored for Mindboggle outputs.
+
     Parameters
     ----------
     labels_or_file : list or string
@@ -576,6 +579,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         delimiter=','):
     """
     Make a table of shape values per vertex.
+
+    Note ::
+        This function is tailored for Mindboggle outputs.
 
     Parameters
     ----------
