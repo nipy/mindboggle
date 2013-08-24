@@ -522,9 +522,15 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
     Write per-VERTEX values as a scalar lookup table into a VTK file::
 
         POINT_DATA 150991
-        SCALARS Max_(majority_labels) int 1
+        SCALARS Max_(majority_labels) int num_rows
         LOOKUP_TABLE default
-        11 11 11 11 11 11 11 11 11 11 ...
+        11 
+        11 
+        11 
+        11 
+        .
+        .
+        .
 
     Parameters
     ----------
@@ -536,7 +542,7 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
 
     if begin_scalars:
         Fp.write('POINT_DATA {0}\n'.format(len(scalars)))
-    Fp.write('SCALARS {0} float\n'.format(scalar_name))
+    Fp.write('SCALARS {0} float {1}\n'.format(scalar_name, len(scalars)))
     Fp.write('LOOKUP_TABLE {0}\n'.format(scalar_name))
     for Value in scalars:
         Fp.write('{0}\n'.format(Value))
