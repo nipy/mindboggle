@@ -111,7 +111,7 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
             # If file not in cache, download file, compute hash, and verify:
             #-----------------------------------------------------------------
             else:
-                print("Retrieve file: {0}".format(url+data_file))
+                print("Retrieve file from the Mindboggle website: {0}".format(url+data_file))
     
                 # Download file as a temporary file:
                 temp_file = get_data(url+data_file)

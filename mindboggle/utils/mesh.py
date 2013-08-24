@@ -827,3 +827,113 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
                                                   smooth_steps, scalars,
                                                   save_vtk, output_vtk)
     return output_vtk
+
+
+def close_surfaces(vtk_file1, vtk_file2, background_value=-1, output_vtk=''):
+    """
+    Close a surface patch by connecting its border vertices with
+    corresponding vertices in a second surface file.
+
+    Assumes no lines or indices when reading VTK files in.
+
+    Note ::
+
+        The first VTK file contains scalar values different than background
+        for a surface patch.  The second VTK file contains a surface whose
+        corresponding vertices are shifted in position. In the case of pial
+        vs. gray-white matter surface, the two surfaces are not parallel,
+        so connecting the vertices leads to intersecting faces.
+
+    Parameters
+    ----------
+    vtk_file1 : string
+        input vtk file with surface patch with scalar values not equal to -1
+    vtk_file1 : string
+        second vtk file with 1-to-1 vertex correspondence with vtk_file1
+    background_value : integer
+        scalar value for background vertices
+    output_vtk : string
+        output vtk file name with closed surface patch
+
+    Returns
+    -------
+    output_vtk : string
+        output vtk file name with closed surface patch
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.mesh import close_surfaces
+    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file1 = 'fold.pial.vtk'
+    >>> vtk_file2 = 'fold.white.vtk'
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> points = read_points(folds_file)
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> folds[folds != fold_number] = -1
+    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
+    >>> write_vtk(vtk_file1, points, [], [], faces, folds, name)
+    >>> write_vtk(vtk_file2, points2, [], [], faces, folds, name)
+    >>> background_value = -1
+    >>> output_vtk = ''
+    >>> close_surfaces(vtk_file1, vtk_file2, background_value, output_vtk)
+    >>> # View:
+    >>> plot_vtk('closed.vtk') # doctest: +SKIP
+
+    """
+    import os
+    import sys
+    import numpy as np
+
+    from mindboggle.utils.mesh import find_neighbors, remove_faces
+    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.io_vtk import read_vtk, read_points, write_vtk
+
+    # Read VTK surface mesh files and combine points:
+    faces, u1, u2, points, N, scalars, name, input_vtk = read_vtk(vtk_file1,
+                                                                  True, True)
+    points2 = read_points(vtk_file2)
+    new_points = points + points2
+
+    # Find all vertex neighbors and surface patch border vertices:
+    neighbor_lists = find_neighbors(faces, N)
+    I = np.where(scalars != background_value)[0]
+    faces = remove_faces(faces, I)
+    scalars[scalars == background_value] = background_value + 1
+    scalars[I] = background_value + 2
+    scalars = scalars.tolist()
+    borders, u1, u2 = extract_borders(range(N), scalars, neighbor_lists)
+    if not len(borders):
+        sys.exit('There are no border vertices!')
+
+    # Reindex copy of faces and combine with original (both zero-index):
+    indices = range(N)
+    indices2 = range(N, 2 * N)
+    reindex = dict([(index, indices2[i]) for i, index in enumerate(indices)])
+    faces2 = [[reindex[i] for i in face] for face in faces]
+    new_faces = faces + faces2
+
+    # Connect border vertices between surface patches and add new faces:
+    add_faces = []
+    taken_already = []
+    for index in borders:
+        if index not in taken_already:
+            neighbors = list(set(neighbor_lists[index]).intersection(borders))
+            taken_already.append(index)
+            #taken_already.extend([index] + neighbors)
+            for neighbor in neighbors:
+                add_faces.append([index, index + N, neighbor])
+                add_faces.append([index + N, neighbor, neighbor + N])
+    new_faces = new_faces + add_faces
+
+    # Write output file:
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
+    write_vtk(output_vtk, new_points, [], [], new_faces, scalars * 2, name)
+
+    return output_vtk
