@@ -957,41 +957,46 @@ def scalars_checker(scalars, scalar_names):
             print("Error: scalars is neither a list nor a numpy array.")
             sys.exit()
 
-    # If the list contains integers or floats, put in a list.
-    if isinstance(scalars[0], int) or isinstance(scalars[0], float):
-        scalars = [scalars]
-    # If the list contains all lists, accept format.
-    elif all([isinstance(x, list) for x in scalars]):
-        pass
-    # If the list contains arrays (optionally lists), convert arrays to lists.
-    elif all([isinstance(x, list) or isinstance(x, np.ndarray)
-              for x in scalars]):
-        scalars2 = []
-        for x in scalars:
-            if isinstance(x, list):
-                scalars2.append(x)
-            else:
-                scalars2.append(x.tolist())
-        scalars = scalars2
-    else:
-        print("Error: scalars is a 1-D list containing unacceptable elements.")
-        print("scalars type is: {0}".format(type(scalars)))
-        print("scalars length is: {0}".format(len(scalars)))
-        print("scalars[0] type is: {0}".format(type(scalars[0])))
-        sys.exit()
+    if scalars:
 
-    # If scalar_names is a string, create a list containing
-    # as many of this string as there are scalar lists.
-    if isinstance(scalar_names, str):
-        scalar_names = [scalar_names for x in scalars]
-    elif isinstance(scalar_names, list):
-        if len(scalar_names) < len(scalars):
-            scalar_names = [scalar_names[0] for x in scalars]
-        else:
+        # If the list contains integers or floats, put in a list.
+        if isinstance(scalars[0], int) or isinstance(scalars[0], float):
+            scalars = [scalars]
+        # If the list contains all lists, accept format.
+        elif all([isinstance(x, list) for x in scalars]):
             pass
+        # If the list contains arrays (optionally lists), convert arrays to lists.
+        elif all([isinstance(x, list) or isinstance(x, np.ndarray)
+                  for x in scalars]):
+            scalars2 = []
+            for x in scalars:
+                if isinstance(x, list):
+                    scalars2.append(x)
+                else:
+                    scalars2.append(x.tolist())
+            scalars = scalars2
+        else:
+            print("Error: scalars is a 1-D list containing unacceptable elements.")
+            print("scalars type is: {0}".format(type(scalars)))
+            print("scalars length is: {0}".format(len(scalars)))
+            print("scalars[0] type is: {0}".format(type(scalars[0])))
+            sys.exit()
+
+        # If scalar_names is a string, create a list containing
+        # as many of this string as there are scalar lists.
+        if isinstance(scalar_names, str):
+            scalar_names = [scalar_names for x in scalars]
+        elif isinstance(scalar_names, list):
+            if len(scalar_names) < len(scalars):
+                scalar_names = [scalar_names[0] for x in scalars]
+            else:
+                pass
+        else:
+            print("Error: scalar_names is neither a list nor a string")
+            sys.exit()
+
     else:
-        print("Error: scalar_names is neither a list nor a string")
-        sys.exit()
+        print("Warning: scalars is empty")
 
     return scalars, scalar_names
 
