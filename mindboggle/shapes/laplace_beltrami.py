@@ -567,6 +567,82 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
             return None
 
 
+def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
+                       normalization=None, area_file=''):
+    """
+    Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
+
+    Parameters
+    ----------
+    vtk_file : string
+        the input vtk file
+    n_eigenvalues : integer
+        number of eigenvalues to be computed (the length of the spectrum)
+    exclude_labels : list of integers
+        labels to be excluded
+    normalization : string
+        the method used to normalize eigenvalues ('area' or None)
+        if "area", use area of the 2D structure as in Reuter et al. 2006
+    area_file :  string
+        name of VTK file with surface area scalar values
+
+    Returns
+    -------
+    spectrum : list of floats
+        first n_eigenvalues of Laplace-Beltrami spectrum
+
+    Examples
+    --------
+    >>> # Spectrum for entire left hemisphere of Twins-2-1:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
+    [4.829758648026221e-18,
+     0.00012841730024672036,
+     0.00027151815722727465,
+     0.00032051508471594065,
+     0.0004701628070486447,
+     0.0005768904023010338]
+    >>> # Spectrum for label 22 (postcentral)
+    >>> # (after running explode_scalars() with reindex=True):
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
+    [6.3469513010430304e-18,
+     0.0005178862383467463,
+     0.0017434911095630772,
+     0.003667561767487686,
+     0.005429017880363784,
+     0.006309346984678924]
+    >>> # Loop thru all MB 101 brains
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
+    >>> for hemidir in os.listdir(header):
+    >>>     print hemidir
+    >>>     sulci_file = os.path.join(header, hemidir, "sulci.vtk")
+    >>>     spectrum = spectrum_from_file(sulci_file)
+
+    """
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars
+    from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
+
+    faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(vtk_file)
+
+    # Area file:
+    if area_file:
+        areas, u1 = read_scalars(area_file)
+    else:
+        areas = None
+
+    spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
+                                   exclude_labels, normalization, areas)
+
+    return spectrum
+
+
 def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
                        normalization='area', area_file='',
                        largest_segment=True):
@@ -666,82 +742,6 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
         label_list.append(label)
 
     return spectrum_lists, label_list
-
-
-def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
-                       normalization=None, area_file=''):
-    """
-    Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
-
-    Parameters
-    ----------
-    vtk_file : string
-        the input vtk file
-    n_eigenvalues : integer
-        number of eigenvalues to be computed (the length of the spectrum)
-    exclude_labels : list of integers
-        labels to be excluded
-    normalization : string
-        the method used to normalize eigenvalues ('area' or None)
-        if "area", use area of the 2D structure as in Reuter et al. 2006
-    area_file :  string
-        name of VTK file with surface area scalar values
-
-    Returns
-    -------
-    spectrum : list of floats
-        first n_eigenvalues of Laplace-Beltrami spectrum
-
-    Examples
-    --------
-    >>> # Spectrum for entire left hemisphere of Twins-2-1:
-    >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
-    [4.829758648026221e-18,
-     0.00012841730024672036,
-     0.00027151815722727465,
-     0.00032051508471594065,
-     0.0004701628070486447,
-     0.0005768904023010338]
-    >>> # Spectrum for label 22 (postcentral)
-    >>> # (after running explode_scalars() with reindex=True):
-    >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
-    [6.3469513010430304e-18,
-     0.0005178862383467463,
-     0.0017434911095630772,
-     0.003667561767487686,
-     0.005429017880363784,
-     0.006309346984678924]
-    >>> # Loop thru all MB 101 brains
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
-    >>> for hemidir in os.listdir(header):
-    >>>     print hemidir
-    >>>     sulci_file = os.path.join(header, hemidir, "sulci.vtk")
-    >>>     spectrum = spectrum_from_file(sulci_file)
-
-    """
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
-
-    faces, u1, u2, points, u4, u5, u6, u7 = read_vtk(vtk_file)
-
-    # Area file:
-    if area_file:
-        areas, u1 = read_scalars(area_file)
-    else:
-        areas = None
-
-    spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
-                                   exclude_labels, normalization, areas)
-
-    return spectrum
 
 
 #if __name__ == "__main__":
