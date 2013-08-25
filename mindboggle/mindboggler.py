@@ -79,59 +79,60 @@ parser.add_argument("SUBJECTS",
                           '"sub1",... are subject names corresponding to '
                           'subject directories within $SUBJECTS_DIR'),
                     nargs='+') #, metavar='')
-parser.add_argument("-o", help='output directory: "-o $HOME/mindboggled" '
+parser.add_argument("-o", help='Output directory: "-o $HOME/mindboggled" '
                                '(default)',
                     default=os.path.join(os.environ['HOME'], 'mindboggled'),
                     metavar='PATH')
 parser.add_argument("-n",
-                    help=('number of processors: "-n 1" (default)'),
+                    help=('Number of processors: "-n 1" (default)'),
                     type=int,
                     default=1, metavar='INT')
 # Turn off basic options:
 parser.add_argument("--no_labels", action='store_true',
-                    help="don't label surfaces or volumes")
+                    help="Don't label surfaces or volumes")
 parser.add_argument("--no_tables", action='store_true',
-                    help="don't generate shape tables")
+                    help="Don't generate shape tables")
 parser.add_argument("--no_volumes", action='store_true',
-                    help="don't process volumes")
+                    help="Don't process volumes")
 parser.add_argument("--no_surfaces", action='store_true',
-                    help="don't process surfaces")
+                    help="Don't process surfaces")
 # Turn on features:
 parser.add_argument("--sulci", action='store_true',
-                    help="extract sulci")
+                    help="Extract sulci")
 parser.add_argument("--fundi", action='store_true',
-                    help="extract fundi")
+                    help="Extract fundi")
 # Turn on/set label/feature shapes:
-parser.add_argument("--spectrum_size",
-                    help='number of eigenvalues: 10 recommended (default off)',
+parser.add_argument("--spectrum",
+                    help='Tables: number of Laplace-Beltrami spectrum eigenvalues '
+                         'per label or feature: 10 recommended (default off)',
                     default=0, type=int, metavar='INT')
-parser.add_argument("--zernike_order",
-                    help='order of Zernike moments: '
+parser.add_argument("--zernike",
+                    help='Tables: order of Zernike moments per label or feature: '
                          '10 recommended (default off)',
                     default=0, type=int, metavar='INT')
 # Turn on vertex table:
 parser.add_argument("--vertex_table", action='store_true',
-                    help=("make table of per-vertex surface shape measures"))
+                    help=("Make table of per-vertex surface shape measures"))
 # Labels:
-parser.add_argument("--atlases", help=("label with extra volume "
+parser.add_argument("--atlases", help=("Label with extra volume "
                                        "atlas file(s) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--volume_labels",
-                    help=('method: {ANTS (default), ants (SOON), freesurfer}'), #, manual}'),
+                    help=('Method: {ANTS (default), ants (SOON), freesurfer}'), #, manual}'),
                     choices=['ANTS', 'ants', 'freesurfer'], #, 'manual'],
                     default='ANTS', metavar='STR')
 parser.add_argument("--surface_labels",
-                    help=('method: {atlas (default), freesurfer, manual}'),
+                    help=('Method: {atlas (default), freesurfer, manual}'),
                     choices=['atlas', 'freesurfer', 'manual'],
                     default='atlas', metavar='STR')
 parser.add_argument("--no_freesurfer", action='store_true',
-                    help="don't use FreeSurfer or its outputs (UNTESTED)")
+                    help="Don't use FreeSurfer or its outputs (UNTESTED)")
 # Extras:
 parser.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster")
-parser.add_argument("--visual", help=("generate py/graphviz workflow visual: {hier,flat,exec}"),
+parser.add_argument("--visual", help=("Generate py/graphviz workflow visual: {hier,flat,exec}"),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
-parser.add_argument("--version", help="version number",
+parser.add_argument("--version", help="Version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
 #-----------------------------------------------------------------------------
@@ -161,8 +162,8 @@ no_tables = args.no_tables
 vertex_table = args.vertex_table
 
 # Shapes:
-spectrum_size = args.spectrum_size
-zernike_order = args.zernike_order
+spectrum_size = args.spectrum
+zernike_order = args.zernike
 
 # General:
 no_volumes = args.no_volumes
@@ -243,7 +244,6 @@ if run_WholeSurfShapeFlow:
     if not no_freesurfer:
         do_thickness = True
         do_convexity = True
-
 #-----------------------------------------------------------------------------
 # Label or feature shapes:
 #-----------------------------------------------------------------------------
@@ -254,7 +254,6 @@ if (do_label or run_SurfFeatureFlow) and not no_tables:
         do_spectra = True
     if zernike_order > 0:
         do_zernike = True
-
 #-----------------------------------------------------------------------------
 # Labels:
 #-----------------------------------------------------------------------------
@@ -1262,17 +1261,17 @@ if run_SurfFeatureFlow:
             # Smooth fundi:
             #-----------------------------------------------------------------
             SmoothFundi = Node(name='Smooth_fundi',
-                             interface=Fn(function = smooth_skeleton,
-                                          input_names=['skeletons',
-                                                       'bounds',
-                                                       'vtk_file',
-                                                       'likelihoods',
-                                                       'wN_max',
-                                                       'erode_again',
-                                                       'save_file'],
-                                          output_names=['smooth_skeletons',
-                                                        'n_skeletons',
-                                                        'skeletons_file']))
+                               interface=Fn(function = smooth_skeleton,
+                                            input_names=['skeletons',
+                                                         'bounds',
+                                                         'vtk_file',
+                                                         'likelihoods',
+                                                         'wN_max',
+                                                         'erode_again',
+                                                         'save_file'],
+                                            output_names=['smooth_skeletons',
+                                                          'n_skeletons',
+                                                          'skeletons_file']))
             SurfFeatureFlow.connect(FundiNode, 'fundi',
                                     SmoothFundi, 'skeletons')
             SurfFeatureFlow.connect(FoldsNode, 'folds', SmoothFundi, 'bounds')
