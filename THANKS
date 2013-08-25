@@ -1,22 +1,49 @@
+======
+Thanks
+======
 
 Mindboggle is an open source project for brain image analysis using Python.
-It is a community project to which many people have contributed.
-Below is a partial list of software contributors in chronological order.
+It is a community project with a growing list of contributors (see `people <http://mindboggle.info/people.html>`_).
+Below is list of software contributors in chronological order.
 
-Contributors    Contact        Primary contributions
-------------    -------        ---------------------
++-------------------------+-------------------------------+-------------------------------------------+
+|                         |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
+|  **Contributors**       | **Contact**                   | **Primary contributions**                 |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Arno Klein`_           |   arno@binarybottle.com       | Main developer                            |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Forrest Bao`_          |   forrest.bao@gmail.com       | VTK i/o, spectra port [1], MST fundi      |
++-------------------------+-------------------------------+-------------------------------------------+
+| Joachim Giard           |   joachimgiard@gmail.com      | Surface shapes (depth, curvature) in C++  |
++-------------------------+-------------------------------+-------------------------------------------+
+| Yrjo Hame               |   yrjo.hame@gmail.com         | HMMF fundi                                |
++-------------------------+-------------------------------+-------------------------------------------+
+| Eliezer Stavsky         |   eli.stavsky@gmail.com       | Label propagation                         |
++-------------------------+-------------------------------+-------------------------------------------+
+|                         |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
+| **Tank Think Labs**     |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Satrajit Ghosh`_       |   satra@mit.edu               | Nipype and informatics help               |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Nolan Nichols`_        |   nolan.nichols@gmail.com     | Linked data i/o                           |
++-------------------------+-------------------------------+-------------------------------------------+
+| Brian Rossa             |   brian.rossa@gmail.com       | Zernike moments port [2]                  |
++-------------------------+-------------------------------+-------------------------------------------+
+| Oliver Hinds            |   ohinds@gmail.com            | Label propagation                         |
++-------------------------+-------------------------------+-------------------------------------------+
+|                         |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
+| **Third party**         |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Martin Reuter`_        |  mreuter@nmr.mgh.harvard.edu  | [1] Laplace-Beltrami spectra (Matlab)     |
++-------------------------+-------------------------------+-------------------------------------------+
+| Arthur Mikhno           |  arthur.mikhno@gmail.com      | [2] Zernike moments (Matlab)              |
++-------------------------+-------------------------------+-------------------------------------------+
+| `Hal Canary`_           |  hal@cs.unc.edu               | vtkviewer_ (Python VTK viewer)            |
++-------------------------+-------------------------------+-------------------------------------------+
+|                         |                               |                                           |
++-------------------------+-------------------------------+-------------------------------------------+
 
-Arno Klein    <arno@binarybottle.com>    Main developer
-Forrest Bao    <forrest.bao@gmail.com>    VTK i/o, LB port, MST fundi
-Joachim Giard    <joachimgiard@gmail.com>    Surface shapes (depth, curvature)
-Yrjo Hame    <yrjo.hame@gmail.com>    HMMF fundi
-Eliezer Stavsky    <eli.stavsky@gmail.com>    Label propagation
-Martin Reuter    <mreuter@nmr.mgh.harvard.edu>    Laplace-Beltrami (Matlab)
-Arthur Mikhno    <arthur.mikhno@gmail.com>    Zernike moments (Matlab)
-
-Tank Think Labs:
-Satrajit Ghosh    <satra@mit.edu>    Nipype guidance, linked data i/o
-Nolan Nichols    <nolan.nichols@gmail.com>    Linked data i/o
-Brian Rossa    <brian.rossa@gmail.com>    Zernike moments port from Matlab
-Oliver Hinds    <ohinds@gmail.com>    Label propagation
-
+.. include:: doc/links_names.txt

@@ -7,6 +7,7 @@
 +------------+--------------+
 | **Current members of      |
 | the Mindboggle Team**     |
+| (see :ref:`thanks`)       |
 +------------+--------------+
 |            |              |
 +------------+--------------+
@@ -60,8 +61,7 @@
     Side projects include the comprehensive photodocumentation of the
     `Ellora cave temples`_ of India, taxonomic classification of `information visualization`_,
     time-lapse photography, and text parsing and analytics.
-.. _`Arno Klein`: http://www.binarybottle.com
-.. _cv: http://www.binarybottle.com/docs/ArnoKleinCV.pdf
+.. _cv: http://binarybottle.com/docs/ArnoKleinCV.pdf
 .. _`Ellora cave temples`: http://www.elloracaves.org
 .. _`information visualization`: http://www.infovis.info
 
@@ -73,21 +73,19 @@
     `knowledge representation and reasoning`_
     and is a postdoctoral associate working from Texas Tech University.
     He has been developing algorithms to extract sulcal features for Mindboggle.
-.. _`Forrest Bao`: http://narnia.cs.ttu.edu/drupal/
 .. _`knowledge representation and reasoning`: http://narnia.cs.ttu.edu/drupal/node/4
 
 
 .. |picJG| image:: http://media.mindboggle.info/images/people/JoachimGiard.jpg
                     :width: 200px
 .. |blurbJG| replace::
-    Joachim Giard is a postdoctoral researcher of electrical engineering at
+    `Joachim Giard`_ is a postdoctoral researcher of electrical engineering at
     UCL, Belgium.  He is currently working at the Information and Communication Technologies, 
     Electronics and Applied Mathematics Institute (ICTEAM) in the Communications and 
     Remote Sensing Laboratory (TELE) on image-guided proton therapy in collaboration 
     with an industrial partner.
     Joachim has been developing algorithms for computing shape measures
     on surface meshes for Mindboggle, including travel depth, the topic of his PhD research.
-.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
 
 
 .. |picYH| image:: http://media.mindboggle.info/images/people/YrjoHame.jpg
@@ -114,8 +112,6 @@
     that we are building Mindboggle in.  
     Satra's research areas include brain imaging, neuroanatomy, software engineering 
     and speech communication.  
-.. _`Satrajit Ghosh`: http://www.mit.edu/~satra/
-.. _nipype: http://nipy.sourceforge.net/nipype/
 
 
 .. |picNN| image:: http://media.mindboggle.info/images/people/NolanNichols.jpg
@@ -127,7 +123,6 @@
     translational aspects of the Mindboggle project, and finds this effort to be a nice 
     complement to his thesis work in the areas of semantic data integration and sharing 
     of human neuroimaging data.
-.. _`Nolan Nichols`: https://www.ibic.washington.edu/wiki/display/~bnniii/Nolan+Nichols
 
 
 .. |picMR| image:: http://media.mindboggle.info/images/people/MartinReuter.jpg
@@ -139,5 +134,6 @@
     His research interests include computational neuroimaging, computational geometry and toplogy. 
     Mindboggle's Laplace-Beltrami spectra code is a Python port of Martin's Matlab version. 
     Martin has helped the team to develop and evaluate this spectral shape measure.
-.. _`Martin Reuter`: http://reuter.mit.edu
 
+
+.. include:: ./links.txt

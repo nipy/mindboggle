@@ -5,7 +5,7 @@
 ============
  User Guide
 ============
-	
+
 .. htmlonly::
 
    :Release: |version|
@@ -16,6 +16,7 @@
 
    introduction
    installation
+   thanks
 
 .. htmlonly::
 
