@@ -40,7 +40,6 @@ from nipype.interfaces.utility import IdentityInterface
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer import MRIConvert
 from nipype.interfaces.ants import Registration, ApplyTransforms
-
 #from nipype.interfaces.fsl import FLIRT
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
@@ -59,7 +58,6 @@ from mindboggle.labels.label_free import label_with_classifier
 from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood
-from mindboggle.utils.mesh import close_surfaces, decimate_file
 from mindboggle.shapes.laplace_beltrami import spectrum_per_label
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.shapes.likelihood import compute_likelihood
@@ -76,11 +74,11 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #
 #=============================================================================
 parser = argparse.ArgumentParser()
-parser.add_argument("subjects",
+parser.add_argument("SUBJECTS",
                     help=('Example: "python %(prog)s sub1 sub2 sub3" '
                           '"sub1",... are subject names corresponding to '
                           'subject directories within $SUBJECTS_DIR'),
-                    nargs='+', metavar='SUBJECT')
+                    nargs='+') #, metavar='')
 parser.add_argument("-o", help='output directory: "-o $HOME/mindboggled" '
                                '(default)',
                     default=os.path.join(os.environ['HOME'], 'mindboggled'),
@@ -89,55 +87,49 @@ parser.add_argument("-n",
                     help=('number of processors: "-n 1" (default)'),
                     type=int,
                     default=1, metavar='INT')
-parser.add_argument("-c", action='store_true',
-                    help="Use HTCondor cluster")
-
-parser.add_argument("--no_tables", action='store_true',
-                    help="don't generate shape tables")
+# Turn off basic options:
 parser.add_argument("--no_labels", action='store_true',
                     help="don't label surfaces or volumes")
+parser.add_argument("--no_tables", action='store_true',
+                    help="don't generate shape tables")
 parser.add_argument("--no_volumes", action='store_true',
                     help="don't process volumes")
 parser.add_argument("--no_surfaces", action='store_true',
                     help="don't process surfaces")
-# Features:
+# Turn on features:
 parser.add_argument("--sulci", action='store_true',
                     help="extract sulci")
 parser.add_argument("--fundi", action='store_true',
                     help="extract fundi")
-# Tables:
+# Turn on/set label/feature shapes:
+parser.add_argument("--spectrum_size",
+                    help='number of eigenvalues: 10 recommended (default off)',
+                    default=0, type=int, metavar='INT')
+parser.add_argument("--zernike_order",
+                    help='order of Zernike moments: '
+                         '10 recommended (default off)',
+                    default=0, type=int, metavar='INT')
+# Turn on vertex table:
 parser.add_argument("--vertex_table", action='store_true',
                     help=("make table of per-vertex surface shape measures"))
-# Shapes:
-parser.add_argument("--spectra_values",
-                    help='number of eigenvalues: "--spectra_values 10" '
-                         '(default)',
-                    default=10, type=int, metavar='INT')
-parser.add_argument("--zernike", action='store_true',
-                    help="compute Zernike moments")
-parser.add_argument("--order", help='order of Zernike moments: '
-                                    '"--order 10" (default)',
-                    default=10, type=int, metavar='INT')
-parser.add_argument("--reduction", help='mesh decimation fraction: '
-                                        '"--reduction 0.75" (default)',
-                    default=0.75, type=float, metavar='FLOAT')
 # Labels:
-parser.add_argument("--atlases", help=("label with additional volume "
-                                       "atlas(es) in MNI152 space"),
+parser.add_argument("--atlases", help=("label with extra volume "
+                                       "atlas file(s) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--volume_labels",
-                    help=('volume labels: '
-                    '"ANTS" (default), "ants (COMING SOON)", "freesurfer"'), #, "manual"'),
+                    help=('method: {ANTS (default), ants (SOON), freesurfer}'), #, manual}'),
                     choices=['ANTS', 'ants', 'freesurfer'], #, 'manual'],
                     default='ANTS', metavar='STR')
 parser.add_argument("--surface_labels",
-                    help=("surface labels: "
-                    '"atlas" (default), "freesurfer", "manual"'),
+                    help=('method: {atlas (default), freesurfer, manual}'),
                     choices=['atlas', 'freesurfer', 'manual'],
                     default='atlas', metavar='STR')
 parser.add_argument("--no_freesurfer", action='store_true',
                     help="don't use FreeSurfer or its outputs (UNTESTED)")
-parser.add_argument("--visual", help=("generate py/graphviz workflow visual"),
+# Extras:
+parser.add_argument("--cluster", action='store_true',
+                    help="Use HTCondor cluster")
+parser.add_argument("--visual", help=("generate py/graphviz workflow visual: {hier,flat,exec}"),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("--version", help="version number",
                     action='version', version='%(prog)s 0.1')
@@ -145,10 +137,10 @@ args = parser.parse_args()
 #-----------------------------------------------------------------------------
 # Arguments:
 #-----------------------------------------------------------------------------
-subjects = args.subjects
+subjects = args.SUBJECTS
 output_path = args.o
 n_processes = args.n
-cluster = args.c
+cluster = args.cluster
 
 # Labels:
 no_labels = args.no_labels
@@ -169,11 +161,8 @@ no_tables = args.no_tables
 vertex_table = args.vertex_table
 
 # Shapes:
-no_spectra = False #args.no_spectra
-n_eigenvalues = args.spectra_values
-do_zernike = args.zernike
-zernike_order = 10 #args.order
-reduction = 0.75 #args.reduction
+spectrum_size = args.spectrum_size
+zernike_order = args.zernike_order
 
 # General:
 no_volumes = args.no_volumes
@@ -248,21 +237,23 @@ if do_fundi:
 #-----------------------------------------------------------------------------
 # Surface shapes:
 #-----------------------------------------------------------------------------
-do_decimate = False
-do_spectra = False  # Measure Laplace-Beltrami spectra for features
 do_thickness = False  # Include FreeSurfer's thickness measure
 do_convexity = False  # Include FreeSurfer's convexity measure (sulc.pial)
 if run_WholeSurfShapeFlow:
     if not no_freesurfer:
         do_thickness = True
         do_convexity = True
-if run_SurfFeatureFlow and not no_tables:
-    if not no_spectra:
+
+#-----------------------------------------------------------------------------
+# Label or feature shapes:
+#-----------------------------------------------------------------------------
+do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
+do_zernike = False  # Compute Zernike moments for labels/features
+if (do_label or run_SurfFeatureFlow) and not no_tables:
+    if spectrum_size > 0:
         do_spectra = True
-    if do_zernike:
-        do_decimate = True
-else:
-    do_zernike = False
+    if zernike_order > 0:
+        do_zernike = True
 
 #-----------------------------------------------------------------------------
 # Labels:
@@ -1318,7 +1309,7 @@ if run_SurfFlows:
     # SurfFeatureShapeFlow.add_nodes([DecimateLabels])
     # SurfFeatureShapeFlow.connect(CloseLabelSurfaces, 'output_vtk',
     #                              DecimateLabels, 'input_vtk')
-    # DecimateLabels.inputs.reduction = reduction
+    # DecimateLabels.inputs.reduction = 0.75
     # DecimateLabels.inputs.smooth_steps = 100
     # DecimateLabels.inputs.save_vtk = True
     # DecimateLabels.inputs.output_vtk = ''
@@ -1342,7 +1333,7 @@ if run_SurfFlows:
         SpectraLabels = Node(name='Spectra_labels',
                              interface=Fn(function = spectrum_per_label,
                                           input_names=['vtk_file',
-                                                       'n_eigenvalues',
+                                                       'spectrum_size',
                                                        'exclude_labels',
                                                        'normalization',
                                                        'area_file',
@@ -1352,7 +1343,7 @@ if run_SurfFlows:
         SurfFeatureShapeFlow.add_nodes([SpectraLabels])
         mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
-        SpectraLabels.inputs.n_eigenvalues = n_eigenvalues
+        SpectraLabels.inputs.spectrum_size = spectrum_size
         SpectraLabels.inputs.exclude_labels = [0]
         SpectraLabels.inputs.normalization = "area"
         SpectraLabels.inputs.area_file = ""
@@ -1402,7 +1393,7 @@ if run_SurfFlows:
         mbFlow.connect(ConvertWhiteSurf, 'output_vtk',
                        SurfFeatureShapeFlow, 'Zernike_labels.close_file')
         ZernikeLabels.inputs.do_decimate = True
-        ZernikeLabels.inputs.reduction = 0.5
+        ZernikeLabels.inputs.reduction = 0.75
         ZernikeLabels.inputs.smooth_steps = 100
 
         #---------------------------------------------------------------------
