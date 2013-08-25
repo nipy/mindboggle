@@ -8,15 +8,17 @@ Scientific Python environment
 -----------------------------
 Easily-installed Python distributions are available such as Anaconda_,
 Canopy_, and PythonXY_ that include components necessary to run Mindboggle:
-Python_ 2.7, NumPy_, SciPy_, Networkx_, and IPython_.
+Python_ 2.7, NumPy_, SciPy_, Networkx_.  These distributions also include
+packages that benefit the user, such as IPython_ (parallel processing) and
+Sphinx_ (generating documentation).
 
 Pip python library installation (OSX: ``easy_install pip``;
     Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
 
-Nipype_ software pipeline framework and Nibabel neuroimaging i/o library::
+Nipype_ software pipeline framework and its dependencies not included above::
 
-    pip install nibabel (required for nipype)
-    pip install mayavi  (provides traits, required for nipype)
+    pip install nibabel
+    pip install traits
     pip install nipype
 
 `Visualization Toolkit`_::
@@ -53,9 +55,10 @@ Change into the ``mindboggle`` directory and install mindboggle
 
 Step 2: Compile Mindboggle C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Basic compilation software::
-  - cmake_
-  - C++ compiler such as gcc_
+Basic compilation software:
+
+    - cmake_
+    - C++ compiler such as gcc_
 
 Move the mindboggle_tools directory to wherever you install your software
 (let's call it YOUR_SOFTWARE_PATH), then run cmake (or ccmake) and make::
@@ -91,4 +94,3 @@ also include the following environment variable as above::
     SUBJECTS_DIR=YOUR_FREESURFER_SUBJECTS_PATH
     export SUBJECTS_DIR
     export PATH=$PATH:$SUBJECTS_DIR
-
