@@ -25,14 +25,61 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-def plot_vtk(vtk_file, mask_file='', masked_output=''):
+def vtkviewer(vtk_file_list):
     """
-    Use mayavi2 to visualize VTK surface mesh data.
+    Use vtkviewer to visualize one or more VTK surface files.
+
+    Inputs
+    ------
+    vtk_file_list : string or list of strings
+        name of VTK surface mesh file or list of file names
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.plots import vtkviewer
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file1 = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> vtk_file2 = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> vtkviewer([vtk_file1, vtk_file2])
+
+    """
+    import vtk
+    import os
+    import glob
+    import mindboggle.utils.vtkviewer as vv
+
+    if isinstance(vtk_file_list, str):
+        vtk_file_list = [vtk_file_list]
+
+    vtkviewer = vv.VTKViewer()
+    for vtk_file in vtk_file_list:
+        fileNames = glob.glob(vtk_file)
+        if len(fileNames) == 0:
+            print "what:", vtk_file
+        else:
+            for fileName in fileNames:
+                if os.path.isfile(fileName):
+                    vtkviewer.AddFile(fileName)
+                else:
+                    print "what:", fileName
+    vtkviewer.Start()
+
+
+def plot_vtk(vtk_file, mask_file='', masked_output='', program='vtkviewer'):
+    """
+    Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
     Inputs
     ------
     vtk_file : string
         name of VTK surface mesh file
+    mask_file : string
+        name of VTK surface mesh file to mask vtk_file vertices
+    masked_output : string
+        temporary masked output file name
+    program : string {'vtkviewer', 'mayavi2'}
+        program to visualize VTK file
 
     Examples
     --------
@@ -45,26 +92,34 @@ def plot_vtk(vtk_file, mask_file='', masked_output=''):
     >>> plot_vtk(vtk_file, mask_file, masked_output)
 
     """
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.utils import execute
+    from mindboggle.utils.plots import vtkviewer
+
+    if not program:
+        program = 'vtkviewer'
 
     # Filter mesh with the non -1 values from a second (same-size) mesh:
     if mask_file:
-
-        from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-
         scalars, name = read_scalars(vtk_file)
         mask, name = read_scalars(mask_file)
         if not masked_output:
             masked_output = 'temp.vtk'
         rewrite_scalars(vtk_file, masked_output, scalars, 'masked', mask)
-
-        cmd = ["mayavi2", "-d", masked_output, "-m", "Surface"]
-
+        file_to_plot = mask_file
     else:
+        file_to_plot = vtk_file
 
-        cmd = ["mayavi2", "-d", vtk_file, "-m", "Surface"]
-    cmd.extend('&')
-    execute(cmd, 'os')
+    # Display with vtkviewer.py:
+    if program == 'vtkviewer':
+
+        vtkviewer(file_to_plot)
+
+    # Display with mayavi2:
+    elif program == 'mayavi2':
+
+        cmd = ["mayavi2", "-d", file_to_plot, "-m", "Surface", "&"]
+        execute(cmd, 'os')
 
 
 def plot_volumes(volume_files):
