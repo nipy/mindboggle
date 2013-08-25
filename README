@@ -99,8 +99,3 @@ vertices are number-labeled by anatomical label, feature, or shape.
     - Sulcus shapes
     - Fundus shapes
     - Vertex measures (optional)
-
-
-
-
-.. include:: doc/links_names.txt
