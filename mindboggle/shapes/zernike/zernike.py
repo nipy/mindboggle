@@ -307,7 +307,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
             L[Ilabel] = 1
             new_faces, new_points, u1 = close_surfaces(faces, points, points2,
                                                        L, background_value=-1)
-            write_vtk('c'+str(label)+'.vtk', new_points, [],[], new_faces, u1)
+            #write_vtk('c'+str(label)+'.vtk', new_points, [],[], new_faces, u1)
 
         #---------------------------------------------------------------------
         # Remove background faces:
@@ -322,7 +322,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         if do_decimate:
             new_points, new_faces, u1,u2 = decimate(new_points, new_faces,
                 reduction, smooth_steps, [], save_vtk=False)
-            write_vtk('d'+str(label)+'.vtk', new_points, [],[], new_faces, [])
+            #write_vtk('d'+str(label)+'.vtk', new_points, [],[], new_faces, [])
 
         #---------------------------------------------------------------------
         # Compute Zernike moments for the label:
