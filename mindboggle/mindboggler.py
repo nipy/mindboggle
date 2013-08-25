@@ -88,27 +88,29 @@ parser.add_argument("-n",
                     type=int,
                     default=1, metavar='INT')
 # Turn off basic options:
-parser.add_argument("--no_labels", action='store_true',
-                    help="Don't label surfaces or volumes")
-parser.add_argument("--no_tables", action='store_true',
-                    help="Don't generate shape tables")
 parser.add_argument("--no_volumes", action='store_true',
-                    help="Don't process volumes")
+                    help="No volume registration-based labeling")
 parser.add_argument("--no_surfaces", action='store_true',
-                    help="Don't process surfaces")
+                    help="No surface labels, features, or shape tables")
+parser.add_argument("--no_labels", action='store_true',
+                    help="No surface or volume labels")
+parser.add_argument("--no_tables", action='store_true',
+                    help="No shape tables of surface labels or features")
 # Turn on features:
 parser.add_argument("--sulci", action='store_true',
-                    help="Extract sulci")
+                    help="Extract, identify, and measure sulci")
 parser.add_argument("--fundi", action='store_true',
-                    help="Extract fundi")
+                    help="Extract, identify, and measure fundi")
 # Turn on/set label/feature shapes:
 parser.add_argument("--spectrum",
-                    help='Tables: number of Laplace-Beltrami spectrum eigenvalues '
-                         'per label or feature: 10 recommended (default off)',
+                    help='Number of Laplace-Beltrami spectrum eigenvalues '
+                         'per label or feature to store in shape tables: '
+                         '10 recommended (default off)',
                     default=0, type=int, metavar='INT')
 parser.add_argument("--zernike",
-                    help='Tables: order of Zernike moments per label or feature: '
-                         '10 recommended (default off)',
+                    help='Order of Zernike moments per label or feature '
+                         'to store in shape tables: 10 recommended (default off) -- '
+                         'Warning: SLOW',
                     default=0, type=int, metavar='INT')
 # Turn on vertex table:
 parser.add_argument("--vertex_table", action='store_true',
@@ -118,7 +120,7 @@ parser.add_argument("--atlases", help=("Label with extra volume "
                                        "atlas file(s) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--volume_labels",
-                    help=('Method: {ANTS (default), ants (SOON), freesurfer}'), #, manual}'),
+                    help=('Method: {ANTS (default), ants (SOON), freesurfer}'),
                     choices=['ANTS', 'ants', 'freesurfer'], #, 'manual'],
                     default='ANTS', metavar='STR')
 parser.add_argument("--surface_labels",
@@ -130,7 +132,8 @@ parser.add_argument("--no_freesurfer", action='store_true',
 # Extras:
 parser.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster")
-parser.add_argument("--visual", help=("Generate py/graphviz workflow visual: {hier,flat,exec}"),
+parser.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
+                                      '{hier,flat,exec}'),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("--version", help="Version number",
                     action='version', version='%(prog)s 0.1')
