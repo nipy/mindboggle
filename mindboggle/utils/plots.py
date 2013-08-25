@@ -5,6 +5,9 @@ Plotting functions.
 Authors:
     - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
 
+Contributors:
+    - Hal Canary <http://cs.unc.edu/~hal>: vtkviewer.py called by vtkviewer()
+
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
