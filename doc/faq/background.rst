@@ -1,8 +1,8 @@
 .. _mindboggle-faq:
 
-=======
-History
-=======
+==========
+Background
+==========
 
 .. _purpose:
 
@@ -57,18 +57,22 @@ In 2009, with generous funding from the National Institute of Mental Health
 (3-year NIMH R01 #MH084029), he assembled a team to tackle the problem anew.
 People who have contributed to the codebase during this period include:
 
-    - Forrest Sheng Bao
-    - Satrajit Ghosh
-    - Joachim Giard
+    - `Forrest Bao`_
+    - `Satrajit Ghosh`_
+    - `Joachim Giard`_
     - Yrjö Häme
     - Eliezer Stavsky
 
 In 2012, the NIMH funded a 1-year U01 supplement to expand this work to
 integrate multiple imaging modalities (fMRI and dMRI) with the structural MRI
-shape analysis.  Joining this effort will be:
+shape analysis.  Tank Think Labs joined this effort:
 
-    - Nolan Nichols
+    - `Satrajit Ghosh`_
+    - `Nolan Nichols`_
+    - Brian Rossa
+    - Oliver Hinds
 
-For more information about the Mindboggle team, see http://mindboggle.info/people/.
+For more information about the Mindboggle team, see http://mindboggle.info/people.html.
+
 
 .. include:: ../links.txt
