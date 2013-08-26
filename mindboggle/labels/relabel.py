@@ -274,7 +274,7 @@ def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
 
 
 def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
-                            replace=True):
+                            replace=True, background_value=-1):
     """
     Overwrite target labels with source labels (same volume dimensions).
 
@@ -290,6 +290,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
         list of source labels to ignore
     replace : Boolean
         erase target labels (that are in source) before overwriting?
+    background_value : integer
+        background value (if replace==True)
 
     Returns
     -------
@@ -308,7 +310,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> output_file = ''
     >>> ignore_labels = [0]
     >>> replace = True
-    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, replace)
+    >>> background_value = -1
+    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, replace, background_value)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -339,7 +342,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     if replace:
         rm_labels = np.unique(X)
         Irm = [i for i,x in enumerate(data_target) if x in rm_labels]
-        new_data[Irm] = -1
+        new_data[Irm] = background_value
 
     # Overwrite target labels with source labels:
     new_data[I] = X

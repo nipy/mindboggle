@@ -26,7 +26,7 @@ def extract_borders(indices, labels, neighbor_lists,
     indices : list of integers
         indices to (a subset of) vertices
     labels : numpy array of integers
-        label numbers for all vertices (-1 for unlabeled vertices)
+        label numbers for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
@@ -119,7 +119,8 @@ def extract_borders(indices, labels, neighbor_lists,
 #-----------------------------------------------------------------------------
 # Extract border values from a second surface
 #-----------------------------------------------------------------------------
-def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
+def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
+                                background_value=-1):
     """
     Extract borders (between labels) on a surface.
     Options: Mask out values; extract border values on a second surface.
@@ -129,16 +130,18 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     labels_file : string
         file name for surface mesh with labels
     mask_file : string
-        file name for surface mesh with mask (>-1) values
+        file name for surface mesh with mask (non-background) values
     values_file : string
         file name for surface mesh with values to extract along borders
+    background_value : integer
+        background value
 
     Returns
     -------
     border_file : string
-        file name for surface mesh with label borders (-1 background values)
+        file name for surface mesh with label borders (not background values)
     border_values : numpy array
-        values for all vertices (-1 for vertices not along label borders)
+        values for all vertices (background for vertices off label borders)
 
     Examples
     --------
@@ -150,8 +153,9 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> background_value = -1
     >>> #
-    >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file)
+    >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file, background_value)
     >>> #
     >>> plot_vtk(border_file)
 
@@ -172,14 +176,14 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
                                         labels, neighbor_lists)
 
     # Filter values with label borders
-    border_values = -1 * np.ones(npoints)
+    border_values = background_value * np.ones(npoints)
     if values_file:
         values, name = read_scalars(values_file, return_first=True, return_array=True)
         border_values[indices_borders] = values[indices_borders]
     else:
         border_values[indices_borders] = 1
 
-    # Mask values (for mask >-1)
+    # Mask values
     if mask_file:
         mask_values, name = read_scalars(mask_file)
     else:
