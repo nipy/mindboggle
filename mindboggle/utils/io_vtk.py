@@ -579,12 +579,6 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     scalar_names : string or list of strings
         each element is the name of a scalar list (lookup table)
 
-    Notes
-    -----
-    If you do not have all 7 parameters, it's safer to use syntax like
-    ...``indices=indices, faces=faces``... (as in Toy example)
-    than syntax like ...``indices, faces``...
-
     Examples
     --------
     >>> # Toy example
@@ -671,7 +665,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     new_scalar_names : string or list of strings
         each element is the new name for a lookup table
     filter_scalars : list or numpy array (optional)
-        scalar values used to filter faces (non-background values retained)
+        scalar values used to filter faces (foreground values retained)
     background_value : integer
         background value
 
