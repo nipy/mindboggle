@@ -207,7 +207,8 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
 def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
                               area_file='', largest_segment=True,
                               close_file='', do_decimate=False,
-                              reduction=0.5, smooth_steps=100):
+                              reduction=0.5, smooth_steps=100,
+                              background_value=-1):
     """
     Compute the Zernike moments per labeled region in a file.
 
@@ -234,6 +235,8 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         fraction of mesh faces to remove for decimation
     smooth_steps : integer
         number of smoothing steps for decimation
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -257,8 +260,9 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> do_decimate = True
     >>> reduction = 0.5
     >>> smooth_steps = 100
+    >>> background_value = -1
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
-    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps)
+    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps, background_value)
 
     """
     import numpy as np
@@ -303,10 +307,10 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
 
             # Read second VTK surface mesh file:
             points2 = read_points(close_file)
-            L = -1 * np.ones(npoints)
+            L = background_value * np.ones(npoints)
             L[Ilabel] = 1
             new_faces, new_points, u1 = close_surfaces(faces, points, points2,
-                                                       L, background_value=-1)
+                                                       L, background_value)
             #write_vtk('c'+str(label)+'.vtk', new_points, [],[], new_faces, u1)
 
         #---------------------------------------------------------------------
@@ -328,7 +332,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         # Compute Zernike moments for the label:
         #---------------------------------------------------------------------
         if largest_segment:
-            exclude_labels_inner = [-1]
+            exclude_labels_inner = [background_value]
             descriptors = zernike_moments_of_largest(new_points, new_faces,
                 order, exclude_labels_inner, areas)
         else:

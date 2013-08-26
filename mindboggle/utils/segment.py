@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # Propagate ring_labels to segment surface into contiguous regions
 #-----------------------------------------------------------------------------
 def propagate(points, faces, region, seeds, labels,
-              max_iters=500, tol=0.001, sigma=10):
+              max_iters=500, tol=0.001, sigma=10, background_value=-1):
     """
     Propagate labels to segment surface into contiguous regions,
     starting from seed vertices.
@@ -28,22 +28,24 @@ def propagate(points, faces, region, seeds, labels,
     faces : list of lists of three integers
         indices to three vertices per face (indices start from zero)
     region : list (or array) of integers
-        values > -1 indicate inclusion in a region for all vertices
+        values > background_value indicate inclusion in a region for all vertices
     seeds : numpy array of integers
-        seed numbers for all vertices (default -1 for not a seed)
+        seed numbers for all vertices
     labels : numpy array of integers
-        label numbers for all vertices, with -1s for unlabeled vertices
+        label numbers for all vertices
     max_iters : integer
         maximum number of iterations to run graph-based learning algorithm
     tol: float
         threshold to assess convergence of the algorithm
     sigma: float
         gaussian kernel parameter
+    background_value : integer
+        background value
 
     Returns
     -------
     segments : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
 
     Examples
     --------
@@ -69,16 +71,17 @@ def propagate(points, faces, region, seeds, labels,
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> indices_borders, label_pairs, foo = extract_borders(range(npoints),
     >>>     labels, neighbor_lists)
+    >>> background_value = -1
     >>> # Select a single fold
     >>> fold_ID = 2
     >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_ID]
-    >>> fold_array = -1 * np.ones(npoints)
+    >>> fold_array = background_value * np.ones(npoints)
     >>> fold_array[indices_fold] = 1
     >>> # Extract the boundary for this fold
     >>> indices_borders, label_pairs, foo = extract_borders(indices_fold,
     >>>     labels, neighbor_lists)
     >>> # Select boundary segments in the sulcus labeling protocol
-    >>> seeds = -1 * np.ones(npoints)
+    >>> seeds = background_value * np.ones(npoints)
     >>> for ilist,label_pair_list in enumerate(sulcus_label_pair_lists):
     >>>     I = [x for i,x in enumerate(indices_borders)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
@@ -106,14 +109,14 @@ def propagate(points, faces, region, seeds, labels,
     if not isinstance(points, np.ndarray):
         points = np.array(points)
 
-    indices_region = [i for i,x in enumerate(region) if x > -1]
+    indices_region = [i for i,x in enumerate(region) if x != background_value]
     if indices_region and faces:
-        local_indices_region = -1 * np.ones(labels.shape)
+        local_indices_region = background_value * np.ones(labels.shape)
         local_indices_region[indices_region] = range(len(indices_region))
 
         if points.size:
 
-            n_sets = len(np.unique([x for x in seeds if x > -1]))
+            n_sets = len(np.unique([x for x in seeds if x != background_value]))
             if n_sets == 1:
                 print('Segment {0} vertices from 1 set of seed vertices'.
                       format(len(indices_region)))
@@ -145,10 +148,10 @@ def propagate(points, faces, region, seeds, labels,
             max_prob_labels = B.assign_max_prob_label()
 
             # Return segment IDs in original vertex array
-            segments = -1 * np.ones(len(points))
+            segments = background_value * np.ones(len(points))
             segments[indices_region] = max_prob_labels
     else:
-        segments = -1 * np.ones(len(points))
+        segments = background_value * np.ones(len(points))
 
     return segments
 
@@ -157,7 +160,8 @@ def propagate(points, faces, region, seeds, labels,
 #-----------------------------------------------------------------------------
 def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
             seed_lists=[], keep_seeding=False, spread_within_labels=False,
-            labels=[], label_lists=[], values=[], max_steps='', verbose=False):
+            labels=[], label_lists=[], values=[], max_steps='', verbose=False,
+            background_value=-1):
     """
     Segment vertices of surface into contiguous regions by seed growing,
     starting from zero or more lists of seed vertices.
@@ -177,7 +181,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     spread_within_labels : Boolean
         grow seeds only by vertices with labels in the seed labels?
     labels : list of integers (required only if spread_within_labels)
-        label numbers for all vertices, with -1s for unlabeled vertices
+        label numbers for all vertices
     label_lists : list of lists of integers (required only if spread_within_labels)
         List of unique labels for each seed list to grow into
         (If empty, set to unique labels for each seed list)
@@ -188,11 +192,13 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
         maximum number of segmentation steps to take for each seed list
     verbose : Boolean
         print out text?
+    background_value : integer
+        background value
 
     Returns
     -------
     segments : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
 
     Examples
     --------
@@ -277,7 +283,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     # vertex indices for all regions, and Boolean list indicating which regions
     # are fully grown, number of segments, etc.:
     #-------------------------------------------------------------------------
-    segments = -1 * np.ones(len(neighbor_lists))
+    segments = background_value * np.ones(len(neighbor_lists))
     region_lists = [[] for x in seed_lists]
     all_regions = []
     fully_grown = [False for x in seed_lists]
@@ -451,7 +457,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
 #-----------------------------------------------------------------------------
 # Fill borders on a surface mesh to segment vertices into contiguous regions
 #-----------------------------------------------------------------------------
-def segment_by_filling_borders(regions, neighbor_lists):
+def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     """
     Fill borders (contours) on a surface mesh
     to segment vertices into contiguous regions.
@@ -468,14 +474,16 @@ def segment_by_filling_borders(regions, neighbor_lists):
     Parameters
     ----------
     regions : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
+    background_value : integer
+        background value
 
     Returns
     -------
     segments : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
 
     Examples
     --------
@@ -489,11 +497,12 @@ def segment_by_filling_borders(regions, neighbor_lists):
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
     >>>     return_first=True, return_array=True)
-    >>> regions = -1 * np.ones(npoints)
+    >>> background_value = -1
+    >>> regions = background_value * np.ones(npoints)
     >>> regions[depths > 0.50] = 1
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> #
-    >>> folds = segment_by_filling_borders(regions, neighbor_lists)
+    >>> folds = segment_by_filling_borders(regions, neighbor_lists, background_value)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_by_filling_borders.vtk', folds, 'folds', folds)
@@ -526,8 +535,8 @@ def segment_by_filling_borders(regions, neighbor_lists):
     borders = segment(indices_borders, neighbor_lists, 1)
 
     # For each boundary
-    unique_borders = [x for x in np.unique(borders) if x > -1]
-    segments = -1 * np.ones(len(regions))
+    unique_borders = [x for x in np.unique(borders) if x != background_value]
+    segments = background_value * np.ones(len(regions))
     for boundary_number in unique_borders:
 
         print('  Boundary {0} of {1}:'.format(int(boundary_number),
@@ -549,7 +558,8 @@ def segment_by_filling_borders(regions, neighbor_lists):
         # Find the interior (smaller) sets of neighbors
         print('    Find the interior (smaller) sets of neighbors')
         seed_lists = []
-        unique_neighbors = [x for x in np.unique(neighbors) if x > -1]
+        unique_neighbors = [x for x in np.unique(neighbors)
+                            if x != background_value]
         max_neighbor = 0
         max_len = 0
         for ineighbor, neighbor in enumerate(unique_neighbors):
@@ -572,11 +582,11 @@ def segment_by_filling_borders(regions, neighbor_lists):
         if include_boundary:
             segment_region[border_indices] = 1
 
-        segments[segment_region > -1] = boundary_number
+        segments[segment_region != background_value] = boundary_number
 
     return segments
 
-def segment_rings(region, seeds, neighbor_lists, step=1):
+def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     """
     Iteratively segment a region of surface mesh as concentric segments.
 
@@ -590,6 +600,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
         indices to neighboring vertices for each vertex
     step : integer
         number of segmentation steps before assessing segments
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -610,9 +622,10 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> values, name = read_scalars(values_file, True, True)
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> background_value = -1
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> fold, name = read_scalars(fold_file)
-    >>> indices = [i for i,x in enumerate(fold) if x != -1]
+    >>> indices = [i for i,x in enumerate(fold) if x != background_value]
     >>> # Initialize seeds with the boundary of thresholded indices:
     >>> use_threshold = True
     >>> if use_threshold:
@@ -623,12 +636,12 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>>     B = np.ones(len(values))
     >>>     B[indices] = 2
     >>>     borders, foo1, foo2 = extract_borders(range(len(B)), B, neighbor_lists)
-    >>>     borders = [x for x in borders if values[x] != -1]
+    >>>     borders = [x for x in borders if values[x] != background_value]
     >>>     if list(frozenset(indices_high).intersection(borders)):
     >>>         threshold = np.max(values[borders]) + np.std(values[borders])
     >>>         indices_high = [x for x in indices if values[x] >= threshold]
     >>>     # Extract threshold boundary vertices as seeds:
-    >>>     B = -1 * np.ones(len(values))
+    >>>     B = background_value * np.ones(len(values))
     >>>     B[indices_high] = 2
     >>>     seeds, foo1, foo2 = extract_borders(range(len(values)), B, neighbor_lists)
     >>> # Or initialize P with the maximum value point:
@@ -641,7 +654,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
     >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
     >>> #
     >>> # View:
-    >>> S = -1 * np.ones(len(values))
+    >>> S = background_value * np.ones(len(values))
     >>> for i, segment in enumerate(segments):
     >>>     S[segment] = i
     >>> rewrite_scalars(vtk_file, 'segment_rings.vtk', S, 'segment_rings', fold)
@@ -662,7 +675,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
                                  seed_lists=[seeds], keep_seeding=False,
                                  spread_within_labels=False, labels=[],
                                  label_lists=[], values=[], max_steps=step)
-        seeds_plus_new = [i for i,x in enumerate(seeds_plus_new) if x != -1]
+        seeds_plus_new = [i for i,x in enumerate(seeds_plus_new)
+                          if x != background_value]
 
         # Store the new segment after removing the previous segment:
         region = list(frozenset(region).difference(seeds))
@@ -679,7 +693,8 @@ def segment_rings(region, seeds, neighbor_lists, step=1):
 # Segment vertices of surface into contiguous regions by a watershed algorithm
 #-----------------------------------------------------------------------------
 def watershed(depths, points, indices, neighbor_lists, min_size=1,
-              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True):
+              depth_factor=0.25, depth_ratio=0.1, tolerance=0.01, regrow=True,
+              background_value=-1):
     """
     Segment vertices of a surface mesh into contiguous "watershed basins"
     by seed growing from an iterative selection of the deepest vertices.
@@ -703,7 +718,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     Parameters
     ----------
     depths : numpy array of floats
-        depth values for all vertices (default -1)
+        depth values for all vertices
     points : list of lists of floats
         each element is a list of 3-D coordinates of a vertex on a surface mesh
     indices : list of integers
@@ -724,11 +739,13 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         tolerance for detecting differences in depth between vertices
     regrow : Boolean
         regrow segments from watershed seeds?
+    background_value : integer
+        background value
 
     Returns
     -------
     segments : list of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
     seed_indices : list of integers
         list of indices to seed vertices
 
@@ -752,17 +769,18 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> depth_ratio = 0.1
     >>> tolerance = 0.01
     >>> regrow = True
+    >>> background_value = -1
     >>> #
     >>> segments, seed_indices = watershed(depths, points,
     >>>     indices, neighbor_lists, min_size, depth_factor, depth_ratio,
-    >>>     tolerance, regrow)
+    >>>     tolerance, regrow, background_value)
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'watershed.vtk',
     >>>                 segments, 'segments', segments)
     >>> plot_vtk('watershed.vtk')
     >>> # View watershed seeds:
-    >>> seeds = -1 * np.ones(len(depths))
+    >>> seeds = background_value * np.ones(len(depths))
     >>> for i, s in enumerate(seed_indices):
     >>>     seeds[s] = i
     >>> rewrite_scalars(depth_file, 'watershed_seeds.vtk',
@@ -809,7 +827,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     # Loop until all vertices have been segmented.
     # This limits the number of possible seeds:
     #-------------------------------------------------------------------------
-    segments = -1 * np.ones(len(depths))
+    segments = background_value * np.ones(len(depths))
     seed_indices = []
     seed_points = []
     all_regions = []
@@ -892,7 +910,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
         print('  Regrow segments from watershed seeds, stopping at borders')
         indices = original_indices[:]
-        segments = -1 * np.ones(len(depths))
+        segments = background_value * np.ones(len(depths))
         all_regions = []
         for iseed, seed_index in enumerate(seed_indices):
             seed_list = [seed_index]
@@ -950,7 +968,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         # Note: As long as keep_seeding=False, the segment values in `segments`
         # are equal to the order of the `basin_depths` and `seed_points` below.
         seed_lists = [[i for i,x in enumerate(segments) if x==s]
-                      for s in np.unique(segments) if s!=-1]
+                      for s in np.unique(segments) if s != background_value]
         segments = segment(indices, neighbor_lists, min_region_size=1,
             seed_lists=seed_lists, keep_seeding=False, spread_within_labels=False,
             labels=[], label_lists=[], values=[], max_steps='', verbose=False)
@@ -968,7 +986,8 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
         if verbose:
             print('    Extract basin borders')
         foo1, foo2, pairs = extract_borders(original_indices, segments,
-                                            neighbor_lists, ignore_values=[-1],
+                                            neighbor_lists,
+                                            ignore_values=[background_value],
                                             return_label_pairs=True)
         # Sort basin depths (descending order) -- return segment indices:
         Isort = np.argsort(basin_depths).tolist()
@@ -1007,7 +1026,8 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
         # Renumber segments so they are sequential:
         renumber_segments = segments.copy()
-        segment_numbers = [int(x) for x in np.unique(segments) if x != -1]
+        segment_numbers = [int(x) for x in np.unique(segments)
+                           if x != background_value]
         for i_segment, n_segment in enumerate(segment_numbers):
             segment = [i for i,x in enumerate(segments) if x == n_segment]
             renumber_segments[segment] = i_segment
