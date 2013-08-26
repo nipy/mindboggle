@@ -28,7 +28,7 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-def vtkviewer(vtk_file_list):
+def vtkviewer(vtk_file_list, colormap_file=''):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
@@ -36,15 +36,17 @@ def vtkviewer(vtk_file_list):
     ----------
     vtk_file_list : string or list of strings
         name of VTK surface mesh file or list of file names
+    colormap_file : string
+        name of Paraview-style XML colormap file
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import vtkviewer
-    >>> os.environ['COLORMAP'] = '/software/mindboggle_tools/colormap.xml'
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> vtkviewer(vtk_file)
+    >>> colormap_file = os.path.join(os.environ['MINDBOGGLE_TOOLS'], 'colormap.xml')
+    >>> vtkviewer(vtk_file, colormap_file)
 
     """
     import os
@@ -53,6 +55,9 @@ def vtkviewer(vtk_file_list):
 
     if isinstance(vtk_file_list, str):
         vtk_file_list = [vtk_file_list]
+
+    if colormap_file:
+        os.environ['COLORMAP'] = colormap_file
 
     vtkviewer = vv.VTKViewer()
     for vtk_file in vtk_file_list:
@@ -69,7 +74,8 @@ def vtkviewer(vtk_file_list):
 
 
 def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
-                  masked_output='', program='vtkviewer', background_value=-1):
+                  masked_output='', program='vtkviewer', colormap_file='',
+                  background_value=-1):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
@@ -85,6 +91,8 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
         temporary masked output file name
     program : string {'vtkviewer', 'mayavi2'}
         program to visualize VTK file
+    colormap_file : string
+        name of Paraview-style XML colormap file (for use with vtkviewer)
     background_value : integer
         background value
 
@@ -98,7 +106,8 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
     >>> mask_background = -1
     >>> masked_output = ''
     >>> program = 'vtkviewer'
-    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program)
+    >>> colormap_file = ''
+    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program, colormap_file)
 
     """
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
@@ -122,12 +131,10 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
 
     # Display with vtkviewer.py:
     if program == 'vtkviewer':
-
-        vtkviewer(file_to_plot)
+        vtkviewer(file_to_plot, colormap_file)
 
     # Display with mayavi2:
     elif program == 'mayavi2':
-
         cmd = ["mayavi2", "-d", file_to_plot, "-m", "Surface", "&"]
         execute(cmd, 'os')
 
