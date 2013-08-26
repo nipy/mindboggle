@@ -174,7 +174,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     --------
     >>> import os
     >>> from mindboggle.labels.relabel import relabel_surface
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> hemi = 'lh'
@@ -184,7 +184,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     >>> #
     >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, output_file)
     >>> # View
-    >>> plot_vtk('relabeled_lh.labels.DKT25.manual.vtk')
+    >>> plot_surfaces('relabeled_lh.labels.DKT25.manual.vtk')
 
     """
     import os

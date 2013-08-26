@@ -32,8 +32,8 @@ def vtkviewer(vtk_file_list, colormap=[]):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     vtk_file_list : string or list of strings
         name of VTK surface mesh file or list of file names
     colormap : list of lists of floats
@@ -44,10 +44,9 @@ def vtkviewer(vtk_file_list, colormap=[]):
     >>> import os
     >>> from mindboggle.utils.plots import vtkviewer
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file1 = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> vtk_file2 = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> colormap = []
-    >>> vtkviewer([vtk_file1, vtk_file2], colormap)
+    >>> vtkviewer(vtk_file, colormap)
 
     """
     import os
@@ -71,13 +70,14 @@ def vtkviewer(vtk_file_list, colormap=[]):
     vtkviewer.Start()
 
 
-def plot_vtk(vtk_file, mask_file='', mask_background=-1, masked_output='',
-             program='vtkviewer', colormap=[]):
+def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
+                  masked_output='', program='vtkviewer', colormap=[],
+                  background_value=-1):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     vtk_file : string
         name of VTK surface mesh file
     mask_file : string
@@ -90,19 +90,21 @@ def plot_vtk(vtk_file, mask_file='', mask_background=-1, masked_output='',
         program to visualize VTK file
     colormap : list of lists of floats
         RGB color values in [0,1] for vtkviewer
+    background_value : integer
+        background value
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> mask_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> mask_file = ''#os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> mask_background = -1
     >>> masked_output = ''
     >>> program = 'vtkviewer'
     >>> colormap = []
-    >>> plot_vtk(vtk_file, mask_file, mask_background, masked_output, program, colormap)
+    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program, colormap)
 
     """
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
@@ -115,8 +117,8 @@ def plot_vtk(vtk_file, mask_file='', mask_background=-1, masked_output='',
     # Filter mesh with non-background values from a second (same-size) mesh:
     if mask_file:
         scalars, name = read_scalars(vtk_file, True, True)
-        #mask, name = read_scalars(mask_file, True, True)
-        #scalars[mask == mask_background] = -1
+        mask, name = read_scalars(mask_file, True, True)
+        scalars[mask == mask_background] = -1
         if not masked_output:
             masked_output = 'temp.vtk'
         rewrite_scalars(vtk_file, masked_output, scalars) #, 'masked', mask)
@@ -140,8 +142,8 @@ def plot_volumes(volume_files):
     """
     Use fslview to visualize image volume data.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     volume_files : list of strings
         names of image volume files
 
@@ -174,8 +176,8 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     """
     Plot histogram of VTK surface mesh scalar values.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     vtk_file : string
         name of VTK file with scalar values to plot
     nbins : integer
@@ -208,8 +210,8 @@ def plot_histograms(columns, column_name='', ignore_columns=[],
     """
     Construct a histogram for each table column.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     columns : list of lists
         list of lists of floats or integers
     column_name :  string
@@ -274,8 +276,8 @@ def plot_columns(columns, x_column, ignore_columns=[], plot_line=True,
     """
     Scatter plot columns against the values of one of the columns.
 
-    Inputs
-    ------
+    Parameters
+    ----------
     columns : list of lists of numbers
         columns of data (all of the same length)
     x_column : list of numbers

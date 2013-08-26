@@ -74,7 +74,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.features.fundi import extract_fundi
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> sulci, name = read_scalars(sulci_file, True, True)
@@ -94,7 +94,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     ...     save_file)
     >>> #
     >>> # View:
-    >>> plot_vtk(fundi_file)
+    >>> plot_surfaces(fundi_file)
 
     """
 
