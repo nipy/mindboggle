@@ -14,7 +14,7 @@
 .. toctree::
    :maxdepth: 2
 
-   history
+   background
    why_license
    why_python
 
