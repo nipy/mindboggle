@@ -61,7 +61,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> from mindboggle.utils.paths import find_max_values
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
@@ -98,7 +98,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> skeleton = connect_points_erosion(S, neighbor_lists,
     >>>     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
     >>>     save_steps, save_vtk, background_value)
-    >>> #if save_steps:  plot_vtk('edge'+str(save_steps[0])+'.vtk')
+    >>> #if save_steps:  plot_surfaces('edge'+str(save_steps[0])+'.vtk')
     >>> #
     >>> # Write out vtk file and view:
     >>> D = background_value * np.ones(len(values))
@@ -108,7 +108,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> folds[folds != fold_number] = background_value
     >>> rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
     >>>                 D, 'skeleton', folds)
-    >>> plot_vtk('connect_points_erosion.vtk')
+    >>> plot_surfaces('connect_points_erosion.vtk')
 
     """
     import numpy as np
@@ -298,7 +298,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     ...                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> background_value = -1
@@ -330,7 +330,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     >>> skeleton[keep] = 2
     >>> rewrite_scalars(folds_file, 'connect_points_hmmf.vtk',
     >>>                 skeleton, 'skeleton', folds)
-    >>> plot_vtk('connect_points_hmmf.vtk')
+    >>> plot_surfaces('connect_points_hmmf.vtk')
 
     """
     import numpy as np
@@ -614,7 +614,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> single_fold = True
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.paths import smooth_skeleton
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
@@ -635,7 +635,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>>     bounds, vtk_file, likelihoods, wN_max, erode_again, save_file, background_value)
     >>> #
     >>> # View:
-    >>> plot_vtk(skeletons_file)
+    >>> plot_surfaces(skeletons_file)
 
     """
 
@@ -723,11 +723,11 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
                     neighbor_lists, wN_max)
     
                 ## Plot overlap of dilated and pre-/post-smoothed skeleton:
-                #from mindboggle.utils.plots import plot_vtk
+                #from mindboggle.utils.plots import plot_surfaces
                 #D = background_value * np.ones(npoints)
                 #D[dilated]=1; D[skel_seg]=2; D[new_skeleton]=3
                 #rewrite_scalars(vtk_file, 'test.vtk', D, 'D', bounds)
-                #plot_vtk('test.vtk')
+                #plot_surfaces('test.vtk')
     
                 #-------------------------------------------------------------
                 # Store skeleton:
@@ -788,7 +788,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import track_values
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -808,7 +808,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> T[track] = 1
     >>> T[seed] = 2
     >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', fold)
-    >>> plot_vtk('track.vtk')
+    >>> plot_surfaces('track.vtk')
 
     """
     import numpy as np
@@ -886,7 +886,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.segment import segment_rings
     >>> from mindboggle.utils.paths import track_segments
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
@@ -913,7 +913,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> T = background_value * np.ones(len(values))
     >>> T[track] = 1
     >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', folds)
-    >>> plot_vtk('track.vtk')
+    >>> plot_surfaces('track.vtk')
 
     """
     import numpy as np
@@ -1013,7 +1013,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import find_outer_anchors
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
@@ -1041,7 +1041,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> values[all_tracks] = max(values) + 0.1
     >>> rewrite_scalars(vtk_file, 'endpoints.vtk',
     ...                 values, 'endpoints_on_values_in_fold', folds)
-    >>> plot_vtk('endpoints.vtk')
+    >>> plot_surfaces('endpoints.vtk')
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks on every fold in a hemisphere:
     >>> #---------------------------------------------------------------------
@@ -1067,7 +1067,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> # Write results to VTK file and view:
     >>> rewrite_scalars(folds_file, 'find_outer_anchors.vtk',
     >>>                 P, 'tracks_endpoints_on_folds', folds)
-    >>> plot_vtk('find_outer_anchors.vtk')
+    >>> plot_surfaces('find_outer_anchors.vtk')
 
     """
     import numpy as np
@@ -1277,8 +1277,8 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> values[highest] = np.max(values) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_max_values.vtk',
     >>>                 values, 'find_max_values_in_folds', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_max_values.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('find_max_values.vtk')
 
     """
     import numpy as np
@@ -1352,7 +1352,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import track_values, find_endpoints
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Select a single fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -1376,7 +1376,7 @@ def find_endpoints(indices, neighbor_lists):
     >>> IDs[indices_endpoints] = 3
     >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
     >>>                 IDs, 'endpoints', IDs)
-    >>> plot_vtk('find_endpoints.vtk')
+    >>> plot_surfaces('find_endpoints.vtk')
 
     """
 
@@ -1459,8 +1459,8 @@ def find_endpoints(indices, neighbor_lists):
 #     >>> values[indices_special] = np.max(values) + 0.1
 #     >>> rewrite_scalars(likelihood_file, 'find_anchors.vtk',
 #     >>>                 values, 'find_anchors_on_values_in_folds', folds)
-#     >>> from mindboggle.utils.plots import plot_vtk
-#     >>> plot_vtk('find_anchors.vtk')
+#     >>> from mindboggle.utils.plots import plot_surfaces
+#     >>> plot_surfaces('find_anchors.vtk')
 #
 #     """
 #     import numpy as np
@@ -1565,5 +1565,5 @@ if __name__ == "__main__":
     folds[folds != fold_number] = -1
     rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
                     D, 'skeleton', folds)
-    from mindboggle.utils.plots import plot_vtk
-    plot_vtk('connect_points_erosion.vtk')
+    from mindboggle.utils.plots import plot_surfaces
+    plot_surfaces('connect_points_erosion.vtk')

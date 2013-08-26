@@ -58,7 +58,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
@@ -73,7 +73,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> IDs[indices_borders] = 1
     >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
     >>>                 IDs, 'borders', IDs)
-    >>> plot_vtk('extract_borders.vtk')
+    >>> plot_surfaces('extract_borders.vtk')
 
     """
     import numpy as np
@@ -148,7 +148,7 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
     >>> # Extract depth values along label borders in sulci (mask):
     >>> import os
     >>> from mindboggle.labels.labels import extract_borders_2nd_surface
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
@@ -157,7 +157,7 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
     >>> #
     >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file, background_value)
     >>> #
-    >>> plot_vtk(border_file)
+    >>> plot_surfaces(border_file)
 
     """
     import os
