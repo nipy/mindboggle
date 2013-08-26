@@ -28,7 +28,7 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-def vtkviewer(vtk_file_list, colormap_file=''):
+def vtkviewer(vtk_file_list, colormap_file=None):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
@@ -57,7 +57,9 @@ def vtkviewer(vtk_file_list, colormap_file=''):
         vtk_file_list = [vtk_file_list]
 
     if colormap_file:
-        os.environ['COLORMAP'] = colormap_file
+        vtk_colormap = vv.VTKViewer.LoadColorMap(colormap_file)
+    else:
+        vtk_colormap = None
 
     vtkviewer = vv.VTKViewer()
     for vtk_file in vtk_file_list:
@@ -67,7 +69,7 @@ def vtkviewer(vtk_file_list, colormap_file=''):
         else:
             for fileName in fileNames:
                 if os.path.isfile(fileName):
-                    vtkviewer.AddFile(fileName)
+                    vtkviewer.AddFile(fileName,vtk_colormap)
                 else:
                     print "what:", fileName
     vtkviewer.Start()
