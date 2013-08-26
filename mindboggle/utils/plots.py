@@ -28,7 +28,7 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-def vtkviewer(vtk_file_list, colormap=[]):
+def vtkviewer(vtk_file_list):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
@@ -36,17 +36,15 @@ def vtkviewer(vtk_file_list, colormap=[]):
     ----------
     vtk_file_list : string or list of strings
         name of VTK surface mesh file or list of file names
-    colormap : list of lists of floats
-        RGB color values in [0,1]
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import vtkviewer
+    >>> os.environ['COLORMAP'] = '/software/mindboggle_tools/colormap.xml'
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> colormap = []
-    >>> vtkviewer(vtk_file, colormap)
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> vtkviewer(vtk_file)
 
     """
     import os
@@ -71,8 +69,7 @@ def vtkviewer(vtk_file_list, colormap=[]):
 
 
 def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
-                  masked_output='', program='vtkviewer', colormap=[],
-                  background_value=-1):
+                  masked_output='', program='vtkviewer', background_value=-1):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
@@ -88,8 +85,6 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
         temporary masked output file name
     program : string {'vtkviewer', 'mayavi2'}
         program to visualize VTK file
-    colormap : list of lists of floats
-        RGB color values in [0,1] for vtkviewer
     background_value : integer
         background value
 
@@ -103,8 +98,7 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
     >>> mask_background = -1
     >>> masked_output = ''
     >>> program = 'vtkviewer'
-    >>> colormap = []
-    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program, colormap)
+    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program)
 
     """
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
