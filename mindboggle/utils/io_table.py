@@ -838,8 +838,8 @@ def write_average_face_values_per_label(input_indices_vtk,
     >>> #
     >>> # View:
     >>> #example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> #from mindboggle.utils.plots import plot_vtk
-    >>> #plot_vtk(example_vtk)
+    >>> #from mindboggle.utils.plots import plot_surfaces
+    >>> #plot_surfaces(example_vtk)
 
     """
     import os

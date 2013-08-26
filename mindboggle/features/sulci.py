@@ -63,7 +63,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.labels.protocol import dkt_protocol
     >>> from mindboggle.features.sulci import extract_sulci
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> # Load labels, folds, neighbor lists, and sulcus names and label pairs
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
@@ -80,7 +80,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     >>>     hemi, sulcus_label_pair_lists, unique_sulcus_label_pairs,
     >>>     min_boundary, sulcus_names)
     >>> # View:
-    >>> plot_vtk('sulci.vtk')
+    >>> plot_surfaces('sulci.vtk')
 
     """
     import os

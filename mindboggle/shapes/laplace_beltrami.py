@@ -517,13 +517,13 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
      0.005429017880363784,
      0.006309346984678924]
     >>> # View both segments:
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I19] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
-    >>> plot_vtk(vtk_file)
+    >>> plot_surfaces(vtk_file)
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
