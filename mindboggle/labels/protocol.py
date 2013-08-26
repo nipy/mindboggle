@@ -134,7 +134,6 @@ Authors:
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-import numpy as np
 
 #=============================================================================
 # DKT protocol
@@ -433,7 +432,323 @@ def dkt_protocol():
         cortex_numbers, cortex_numbers_DKT25, noncortex_names, noncortex_numbers
 
 
+#=============================================================================
+# Mindboggle colormap
+#=============================================================================
+def colormap(print_xml=True):
+    """
+    Colormap.
 
+    Parameters
+    ----------
+    print_xml : Boolean
+        print Paraview-style XML colormap for use with vtkviewer.py?
+
+    Returns
+    -------
+    colormap : list of lists of three integers in [0,255]
+        RGB values
+    colormap_normalized : list of lists of three integers in [0,1]
+        normalized RGB values
+
+    Examples
+    --------
+    >>> from mindboggle.labels.protocol import colormap
+    >>> cmap, cmap2 = colormap()
+
+    """
+    number_name_rgb = [
+        [0,   "Unknown",    [0, 0, 0]],
+        [1,   "Left-Cerebral-Exterior",    [70, 130, 180]],
+        [2,   "Left-Cerebral-White-Matter",    [245, 245, 245]],
+        [3,   "Left-Cerebral-Cortex",    [205, 62, 78]],
+        [4,   "Left-Lateral-Ventricle",    [120, 18, 134]],
+        [5,   "Left-Inf-Lat-Ventricle",    [196, 58, 250]],
+        [6,   "Left-Cerebellum-Exterior",    [0, 148, 0]],
+        [7,   "Left-Cerebellum-White-Matter",    [220, 248, 164]],
+        [8,   "Left-Cerebellum-Cortex",    [230, 148, 34]],
+        [9,   "Left-Thalamus",    [0, 118, 14]],
+        [10,  "Left-Thalamus-Proper",    [0, 118, 14]],
+        [11,  "Left-Caudate",    [122, 186, 220]],
+        [12,  "Left-Putamen",    [236, 13, 176]],
+        [13,  "Left-Pallidum",    [12, 48, 255]],
+        [14,  "3rd-Ventricle",    [204, 182, 142]],
+        [15,  "4th-Ventricle",    [42, 204, 164]],
+        [16,  "Brain-Stem",    [119, 159, 176]],
+        [17,  "Left-Hippocampus",    [220, 216, 20]],
+        [18,  "Left-Amygdala",    [103, 255, 255]],
+        [19,  "Left-Insula",    [80, 196, 98]],
+        [20,  "Left-Operculum",    [60, 58, 210]],
+        [21,  "Line-1",    [60, 58, 210]],
+        [22,  "Line-2",    [60, 58, 210]],
+        [23,  "Line-3",    [60, 58, 210]],
+        [24,  "CSF",    [60, 60, 60]],
+        [25,  "Left-Lesion",    [255, 165, 0]],
+        [26,  "Left-Accumbens-area",    [255, 165, 0]],
+        [27,  "Left-Substancia-Nigra",    [0, 255, 127]],
+        [28,  "Left-VentralDC",    [165, 42, 42]],
+        [29,  "Left-undetermined",    [135, 206, 235]],
+        [30,  "Left-vessel",    [160, 32, 240]],
+        [31,  "Left-choroid-plexus",    [0, 200, 200]],
+        [32,  "Left-F3orb",    [100, 50, 100]],
+        [33,  "Left-lOg",    [135, 50, 74]],
+        [34,  "Left-aOg",    [122, 135, 50]],
+        [35,  "Left-mOg",    [51, 50, 135]],
+        [36,  "Left-pOg",    [74, 155, 60]],
+        [37,  "Left-Stellate",    [120, 62, 43]],
+        [38,  "Left-Porg",    [74, 155, 60]],
+        [39,  "Left-Aorg",    [122, 135, 50]],
+        [40,  "Right-Cerebral-Exterior",    [70, 130, 180]],
+        [41,  "Right-Cerebral-White-Matter",    [0, 225, 0]],
+        [42,  "Right-Cerebral-Cortex",    [205, 62, 78]],
+        [43,  "Right-Lateral-Ventricle",    [120, 18, 134]],
+        [44,  "Right-Inf-Lat-Ventricle",    [196, 58, 250]],
+        [45,  "Right-Cerebellum-Exterior",    [0, 148, 0]],
+        [46,  "Right-Cerebellum-White-Matter",    [220, 248, 164]],
+        [47,  "Right-Cerebellum-Cortex",    [230, 148, 34]],
+        [48,  "Right-Thalamus",    [0, 118, 14]],
+        [49,  "Right-Thalamus-Proper",    [0, 118, 14]],
+        [50,  "Right-Caudate",    [122, 186, 220]],
+        [51,  "Right-Putamen",    [236, 13, 176]],
+        [52,  "Right-Pallidum",    [13, 48, 255]],
+        [53,  "Right-Hippocampus",    [220, 216, 20]],
+        [54,  "Right-Amygdala",    [103, 255, 255]],
+        [55,  "Right-Insula",    [80, 196, 98]],
+        [56,  "Right-Operculum",    [60, 58, 210]],
+        [57,  "Right-Lesion",    [255, 165, 0]],
+        [58,  "Right-Accumbens-area",    [255, 165, 0]],
+        [59,  "Right-Substancia-Nigra",    [0, 255, 127]],
+        [60,  "Right-VentralDC",    [165, 42, 42]],
+        [61,  "Right-undetermined",    [135, 206, 235]],
+        [62,  "Right-vessel",    [160, 32, 240]],
+        [63,  "Right-choroid-plexus",    [0, 200, 221]],
+        [64,  "Right-F3orb",    [100, 50, 100]],
+        [65,  "Right-lOg",    [135, 50, 74]],
+        [66,  "Right-aOg",    [122, 135, 50]],
+        [67,  "Right-mOg",    [51, 50, 135]],
+        [68,  "Right-pOg",    [74, 155, 60]],
+        [69,  "Right-Stellate",    [120, 62, 43]],
+        [70,  "Right-Porg",    [74, 155, 60]],
+        [71,  "Right-Aorg",    [122, 135, 50]],
+        [72,  "5th-Ventricle",    [120, 190, 150]],
+        [73,  "Left-Interior",    [122, 135, 50]],
+        [74,  "Right-Interior",    [122, 135, 50]],
+        [75,  "Left-Lateral-Ventricles",    [120, 18, 134]],
+        [76,  "Right-Lateral-Ventricles",    [120, 18, 134]],
+        [77,  "WM-hypointensities",    [200, 70, 255]],
+        [78,  "Left-WM-hypointensities",    [255, 148, 10]],
+        [79,  "Right-WM-hypointensities",    [255, 148, 10]],
+        [80,  "non-WM-hypointensities",    [164, 108, 226]],
+        [81,  "Left-non-WM-hypointensities",    [164, 108, 226]],
+        [82,  "Right-non-WM-hypointensities",    [164, 108, 226]],
+        [83,  "Left-F1",    [255, 218, 185]],
+        [84,  "Right-F1",    [255, 218, 185]],
+        [85,  "Optic-Chiasm",    [234, 169, 30]],
+        [86,  "Corpus_Callosum",    [250, 255, 50]],
+        [91,  "Left-basal-forebrain",    [250, 255, 100]],
+        [92,  "Right-basal-forebrain",    [250, 255, 120]],
+        [96,  "Left-Amygdala-Anterior",    [205, 10, 125]],
+        [97,  "Right-Amygdala-Anterior",    [205, 10, 125]],
+        [98,  "Dura",    [160, 32, 240]],
+        [100, "Left-wm-intensity-abnormality",    [124, 140, 178]],
+        [101, "Left-caudate-intensity-abnormality",    [125, 140, 178]],
+        [102, "Left-putamen-intensity-abnormality",    [126, 140, 178]],
+        [103, "Left-accumbens-intensity-abnormality",    [127, 140, 178]],
+        [104, "Left-pallidum-intensity-abnormality",    [124, 141, 178]],
+        [105, "Left-amygdala-intensity-abnormality",    [124, 142, 178]],
+        [106, "Left-hippocampus-intensity-abnormality",    [124, 143, 178]],
+        [107, "Left-thalamus-intensity-abnormality",    [124, 144, 178]],
+        [108, "Left-VDC-intensity-abnormality",    [124, 140, 179]],
+        [109, "Right-wm-intensity-abnormality",    [124, 140, 178]],
+        [110, "Right-caudate-intensity-abnormality",    [125, 140, 178]],
+        [111, "Right-putamen-intensity-abnormality",    [126, 140, 178]],
+        [112, "Right-accumbens-intensity-abnormality",    [127, 140, 178]],
+        [113, "Right-pallidum-intensity-abnormality",    [124, 141, 178]],
+        [114, "Right-amygdala-intensity-abnormality",    [124, 142, 178]],
+        [115, "Right-hippocampus-intensity-abnormality",    [124, 143, 178]],
+        [116, "Right-thalamus-intensity-abnormality",    [124, 144, 178]],
+        [117, "Right-VDC-intensity-abnormality",    [124, 140, 179]],
+        [118, "Epidermis",    [255, 20, 147]],
+        [119, "Conn-Tissue",    [205, 179, 139]],
+        [120, "SC-Fat/Muscle",    [238, 238, 209]],
+        [121, "Cranium",    [200, 200, 200]],
+        [122, "CSF-SA",    [74, 255, 74]],
+        [123, "Muscle",    [238, 0, 0]],
+        [124, "Ear",    [0, 0, 139]],
+        [125, "Adipose",    [173, 255, 47]],
+        [126, "Spinal-Cord",    [133, 203, 229]],
+        [127, "Soft-Tissue",    [26, 237, 57]],
+        [128, "Nerve",    [34, 139, 34]],
+        [129, "Bone",    [30, 144, 255]],
+        [130, "Air",    [147, 19, 173]],
+        [131, "Orbital-Fat",    [238, 59, 59]],
+        [132, "Tongue",    [221, 39, 200]],
+        [133, "Nasal-Structures",    [238, 174, 238]],
+        [134, "Globe",    [255, 0, 0]],
+        [135, "Teeth",    [72, 61, 139]],
+        [136, "Left-Caudate/Putamen",    [21, 39, 132]],
+        [137, "Right-Caudate/Putamen",    [21, 39, 132]],
+        [138, "Left-Claustrum",    [65, 135, 20]],
+        [139, "Right-Claustrum",    [65, 135, 20]],
+        [140, "Cornea",    [134, 4, 160]],
+        [142, "Diploe",    [221, 226, 68]],
+        [143, "Vitreous-Humor",    [255, 255, 254]],
+        [144, "Lens",    [52, 209, 226]],
+        [145, "Aqueous-Humor",    [239, 160, 223]],
+        [146, "Outer-Table",    [70, 130, 180]],
+        [147, "Inner-Table",    [70, 130, 181]],
+        [148, "Periosteum",    [139, 121, 94]],
+        [149, "Endosteum",    [224, 224, 224]],
+        [150, "R/C/S",    [255, 0, 0]],
+        [151, "Iris",    [205, 205, 0]],
+        [152, "SC-Adipose/Muscle",    [238, 238, 209]],
+        [153, "SC-Tissue",    [139, 121, 94]],
+        [154, "Orbital-Adipose",    [238, 59, 59]],
+        [155, "Left-IntCapsule-Ant",    [238, 59, 59]],
+        [156, "Right-IntCapsule-Ant",    [238, 59, 59]],
+        [157, "Left-IntCapsule-Pos",    [62, 10, 205]],
+        [158, "Right-IntCapsule-Pos",    [62, 10, 205]],
+        [193, "Left-hippocampal_fissure",    [0, 196, 255]],
+        [194, "Left-CADG-head",    [255, 164, 164]],
+        [195, "Left-subiculum",    [196, 196, 0]],
+        [196, "Left-fimbria",    [0, 100, 255]],
+        [197, "Right-hippocampal_fissure",    [128, 196, 164]],
+        [198, "Right-CADG-head",    [0, 126, 75]],
+        [199, "Right-subiculum",    [128, 96, 64]],
+        [200, "Right-fimbria",    [0, 50, 128]],
+        [201, "alveus",    [255, 204, 153]],
+        [202, "perforant_pathway",    [255, 128, 128]],
+        [203, "parasubiculum",    [255, 255, 0]],
+        [204, "presubiculum",    [64, 0, 64]],
+        [205, "subiculum",    [0, 0, 255]],
+        [206, "CA1",    [255, 0, 0]],
+        [207, "CA2",    [128, 128, 255]],
+        [208, "CA3",    [0, 128, 0]],
+        [209, "CA4",    [196, 160, 128]],
+        [210, "GC-DG",    [32, 200, 255]],
+        [211, "HATA",    [128, 255, 128]],
+        [212, "fimbria",    [204, 153, 204]],
+        [213, "Lateral_ventricle",    [121, 17, 136]],
+        [214, "molecular_layer_HP",    [128, 0, 0]],
+        [215, "hippocampal_fissure",    [128, 32, 255]],
+        [216, "entorhinal_cortex",    [255, 204, 102]],
+        [217, "molecular_layer_subiculum",    [128, 128, 128]],
+        [218, "Amygdala",    [104, 255, 255]],
+        [219, "Cerebral_White_Matter",    [0, 226, 0]],
+        [220, "Cerebral_Cortex",    [205, 63, 78]],
+        [221, "Inf_Lat_Vent",    [197, 58, 250]],
+        [222, "Perirhinal",    [33, 150, 250]],
+        [223, "Cerebral_White_Matter_Edge",    [226, 0, 0]],
+        [224, "Background",    [100, 100, 100]],
+        [225, "Ectorhinal",    [197, 150, 250]],
+        [250, "Fornix",    [255, 0, 0]],
+        [251, "CC_Posterior",    [0, 0, 64]],
+        [252, "CC_Mid_Posterior",    [0, 0, 112]],
+        [253, "CC_Central",    [0, 0, 160]],
+        [254, "CC_Mid_Anterior",    [0, 0, 208]],
+        [255, "CC_Anterior",    [0, 0, 255]],
+        [630, "Cerebellar-vermal-lobulesI-V",    [250, 255, 130]],
+        [631, "Cerebellar-vermal-lobulesVI-VII",    [250, 255, 140]],
+        [632, "Cerebellar-vermal-lobulesVIII-X",    [250, 255, 150]],
+        [1000,    "ctx-lh-unknown",    [25, 5, 25]],
+        [1001,    "ctx-lh-bankssts",    [25, 100, 40]],
+        [1002,    "ctx-lh-caudalanteriorcingulate",    [125, 100, 160]],
+        [1003,    "ctx-lh-caudalmiddlefrontal",    [100, 25, 0]],
+        [1004,    "ctx-lh-corpuscallosum",    [120, 70, 50]],
+        [1005,    "ctx-lh-cuneus",    [220, 20, 100]],
+        [1006,    "ctx-lh-entorhinal",    [220, 20, 10]],
+        [1007,    "ctx-lh-fusiform",    [180, 220, 140]],
+        [1008,    "ctx-lh-inferiorparietal",    [220, 60, 220]],
+        [1009,    "ctx-lh-inferiortemporal",    [180, 40, 120]],
+        [1010,    "ctx-lh-isthmuscingulate",    [140, 20, 140]],
+        [1011,    "ctx-lh-lateraloccipital",    [20, 30, 140]],
+        [1012,    "ctx-lh-lateralorbitofrontal",    [35, 75, 50]],
+        [1013,    "ctx-lh-lingual",    [225, 140, 140]],
+        [1014,    "ctx-lh-medialorbitofrontal",    [200, 35, 75]],
+        [1015,    "ctx-lh-middletemporal",    [160, 100, 50]],
+        [1016,    "ctx-lh-parahippocampal",    [20, 220, 60]],
+        [1017,    "ctx-lh-paracentral",    [60, 220, 60]],
+        [1018,    "ctx-lh-parsopercularis",    [220, 180, 140]],
+        [1019,    "ctx-lh-parsorbitalis",    [20, 100, 50]],
+        [1020,    "ctx-lh-parstriangularis",    [220, 60, 20]],
+        [1021,    "ctx-lh-pericalcarine",    [120, 100, 60]],
+        [1022,    "ctx-lh-postcentral",    [220, 20, 20]],
+        [1023,    "ctx-lh-posteriorcingulate",    [220, 180, 220]],
+        [1024,    "ctx-lh-precentral",    [60, 20, 220]],
+        [1025,    "ctx-lh-precuneus",    [160, 140, 180]],
+        [1026,    "ctx-lh-rostralanteriorcingulate",    [80, 20, 140]],
+        [1027,    "ctx-lh-rostralmiddlefrontal",    [75, 50, 125]],
+        [1028,    "ctx-lh-superiorfrontal",    [20, 220, 160]],
+        [1029,    "ctx-lh-superiorparietal",    [20, 180, 140]],
+        [1030,    "ctx-lh-superiortemporal",    [140, 220, 220]],
+        [1031,    "ctx-lh-supramarginal",    [80, 160, 20]],
+        [1032,    "ctx-lh-frontalpole",    [100, 0, 100]],
+        [1033,    "ctx-lh-temporalpole",    [70, 70, 70]],
+        [1034,    "ctx-lh-transversetemporal",    [150, 150, 200]],
+        [1035,    "ctx-lh-insula",    [255, 192, 32]],
+        [2000,    "ctx-rh-unknown",    [25, 5, 25]],
+        [2001,    "ctx-rh-bankssts",    [25, 100, 40]],
+        [2002,    "ctx-rh-caudalanteriorcingulate",    [125, 100, 160]],
+        [2003,    "ctx-rh-caudalmiddlefrontal",    [100, 25, 0]],
+        [2004,    "ctx-rh-corpuscallosum",    [120, 70, 50]],
+        [2005,    "ctx-rh-cuneus",    [220, 20, 100]],
+        [2006,    "ctx-rh-entorhinal",    [220, 20, 10]],
+        [2007,    "ctx-rh-fusiform",    [180, 220, 140]],
+        [2008,    "ctx-rh-inferiorparietal",    [220, 60, 220]],
+        [2009,    "ctx-rh-inferiortemporal",    [180, 40, 120]],
+        [2010,    "ctx-rh-isthmuscingulate",    [140, 20, 140]],
+        [2011,    "ctx-rh-lateraloccipital",    [20, 30, 140]],
+        [2012,    "ctx-rh-lateralorbitofrontal",    [35, 75, 50]],
+        [2013,    "ctx-rh-lingual",    [225, 140, 140]],
+        [2014,    "ctx-rh-medialorbitofrontal",    [200, 35, 75]],
+        [2015,    "ctx-rh-middletemporal",    [160, 100, 50]],
+        [2016,    "ctx-rh-parahippocampal",    [20, 220, 60]],
+        [2017,    "ctx-rh-paracentral",    [60, 220, 60]],
+        [2018,    "ctx-rh-parsopercularis",    [220, 180, 140]],
+        [2019,    "ctx-rh-parsorbitalis",    [20, 100, 50]],
+        [2020,    "ctx-rh-parstriangularis",    [220, 60, 20]],
+        [2021,    "ctx-rh-pericalcarine",    [120, 100, 60]],
+        [2022,    "ctx-rh-postcentral",    [220, 20, 20]],
+        [2023,    "ctx-rh-posteriorcingulate",    [220, 180, 220]],
+        [2024,    "ctx-rh-precentral",    [60, 20, 220]],
+        [2025,    "ctx-rh-precuneus",    [160, 140, 180]],
+        [2026,    "ctx-rh-rostralanteriorcingulate",    [80, 20, 140]],
+        [2027,    "ctx-rh-rostralmiddlefrontal",    [75, 50, 125]],
+        [2028,    "ctx-rh-superiorfrontal",    [20, 220, 160]],
+        [2029,    "ctx-rh-superiorparietal",    [20, 180, 140]],
+        [2030,    "ctx-rh-superiortemporal",    [140, 220, 220]],
+        [2031,    "ctx-rh-supramarginal",    [80, 160, 20]],
+        [2032,    "ctx-rh-frontalpole",    [100, 0, 100]],
+        [2033,    "ctx-rh-temporalpole",    [70, 70, 70]],
+        [2034,    "ctx-rh-transversetemporal",    [150, 150, 200]],
+        [2035,    "ctx-rh-insula",    [255, 192, 32]]]
+
+    if print_xml:
+        print('<ColorMap name="Mindboggle Colormap" space="RGB" indexedLookup="false">')
+        print('  <NaN r="0" g="0" b="0"/>')
+        print('  <Point x="-1" o="0"  r="0" g="0" b="0"/>')
+
+    colormap = []
+    colormap_normalized = []
+    for x in number_name_rgb:
+        label = x[0]
+        r = x[2][0]
+        g = x[2][1]
+        b = x[2][2]
+        r1 = r / 255.0
+        g1 = g / 255.0
+        b1 = b / 255.0
+        colormap.append([label, 1, r, g, b])
+        colormap_normalized.append([label, 1, r1, g1, b1])
+
+        if print_xml:
+            print('  <Point x="{0}" o="1"  r="{1:1.2f}" g="{2:1.2f}" b="{3:1.2f}"/>'.
+                  format(label, r1, g1, b1))
+
+    if print_xml:
+        print('</ColorMap>')
+
+    return colormap, colormap_normalized
 
 """
 #-------------------------------------------------------------------------
