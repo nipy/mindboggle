@@ -13,19 +13,15 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-#-----------------------------------------------------------------------------
-# Example Pysurfer plot of FreeSurfer surface + VTK scalars
-#-----------------------------------------------------------------------------
-"""
-ipython
-%gui qt
-import numpy as np
-import surfer
-from mindboggle.utils.io_vtk import read_scalars as rs
-d,n=rs('/drop/MB/data/arno/shapes/travel_depth_rescaled.vtk')
-br = surfer.Brain('Twins-2-1', 'lh', 'inflated')
-br.add_data(np.array(d), min=0, max=1, alpha=0.5)
-"""
+# # Example Pysurfer plot of FreeSurfer surface + VTK scalars
+# ipython
+# %gui qt
+# import numpy as np
+# import surfer
+# from mindboggle.utils.io_vtk import read_scalars as rs
+# d,n=rs('/drop/MB/data/arno/shapes/travel_depth_rescaled.vtk')
+# br = surfer.Brain('Twins-2-1', 'lh', 'inflated')
+# br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 
 
 def vtkviewer(vtk_file_list, colormap_file=None):
@@ -76,7 +72,7 @@ def vtkviewer(vtk_file_list, colormap_file=None):
 
 
 def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
-                  masked_output='', program='vtkviewer', colormap_file='',
+                  masked_output='', program='vtkviewer', colormap_file=None,
                   background_value=-1):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
@@ -108,7 +104,7 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
     >>> mask_background = -1
     >>> masked_output = ''
     >>> program = 'vtkviewer'
-    >>> colormap_file = ''
+    >>> colormap_file = None
     >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program, colormap_file)
 
     """
