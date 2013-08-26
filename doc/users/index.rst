@@ -14,9 +14,9 @@
 .. toctree::
    :maxdepth: 2
 
-   introduction
-   installation
-   thanks
+   README
+   INSTALL
+   THANKS
 
 .. htmlonly::
 

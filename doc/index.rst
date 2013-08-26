@@ -17,7 +17,7 @@ Welcome to Mindboggle!
 
 Software
 --------
-| Please read the `introduction`_ for Mindboggle's open source, freely available python software
+| Please see the `README`_ for Mindboggle's open source, freely available python software
 | for automated labeling, feature extraction, and shape analysis of human brain image data.
 
 Data
@@ -38,7 +38,7 @@ References
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
 
 
-.. _`introduction`: http://mindboggle.info/users/introduction.html
+.. _`README`: http://mindboggle.info/users/README.html
 .. _`Mindboggle-101`: http://mindboggle.info/data.html
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 

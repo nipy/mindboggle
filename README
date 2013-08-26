@@ -1,6 +1,8 @@
-============
-Introduction
-============
+.. _README:
+
+======
+README
+======
 
 The Mindboggle package enables a user to automate anatomical labeling,
 feature extraction, and shape analysis of human brain MR image data.
@@ -8,10 +10,12 @@ feature extraction, and shape analysis of human brain MR image data.
 Help
 ====
 - `Online documentation <http://mindboggle.info/documentation.html>`_
-- `INSTALL file <installation.html>`_ for installation instructions
+- `Installation instructions <INSTALL.html>`_
 - Help on the command line::
 
     >>> python mindboggler.py --help
+
+- `Contributor list <THANKS.html>`_
 
 License
 =======
