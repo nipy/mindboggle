@@ -85,13 +85,13 @@ def label_with_classifier(subject, hemi, left_classifier='',
     >>> #
     >>> # View:
     >>> from mindboggle.utils.io_free import annot_to_vtk
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> output_vtk = './lh.classifier.vtk'
     >>> #
     >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file, output_vtk)
-    >>> plot_vtk(output_vtk)
+    >>> plot_surfaces(output_vtk)
 
     """
     import os

@@ -92,8 +92,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(labels_file, 'propagate.vtk',
     >>>                 segments, 'segments', segments)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('propagate.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('propagate.vtk')
 
     """
     import numpy as np
@@ -209,7 +209,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> from mindboggle.utils.segment import segment
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(depth_file,
@@ -221,7 +221,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> folds = segment(vertices_to_segment, neighbor_lists)
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment.vtk', folds, 'folds', folds)
-    >>> plot_vtk('segment.vtk')
+    >>> plot_surfaces('segment.vtk')
     >>> #
     >>> # Example 2: with seed lists
     >>> from mindboggle.labels.protocol import dkt_protocol
@@ -243,7 +243,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_seeds.vtk', sulci, 'sulci', sulci)
-    >>> plot_vtk('segment_seeds.vtk')
+    >>> plot_surfaces('segment_seeds.vtk')
 
     """
     import numpy as np
@@ -506,8 +506,8 @@ def segment_by_filling_borders(regions, neighbor_lists, background_value=-1):
     >>> #
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'segment_by_filling_borders.vtk', folds, 'folds', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('segment_by_filling_borders.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('segment_by_filling_borders.vtk')
 
     """
     import numpy as np
@@ -616,7 +616,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.segment import segment_rings
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'depth_rescaled.vtk')
     >>> values, name = read_scalars(values_file, True, True)
@@ -658,7 +658,7 @@ def segment_rings(region, seeds, neighbor_lists, step=1, background_value=-1):
     >>> for i, segment in enumerate(segments):
     >>>     S[segment] = i
     >>> rewrite_scalars(vtk_file, 'segment_rings.vtk', S, 'segment_rings', fold)
-    >>> plot_vtk('segment_rings.vtk')
+    >>> plot_surfaces('segment_rings.vtk')
     >>> # Store:
     >>> #import pickle
     >>> #output_file = os.path.join(path, 'tests', 'segments_fold11.pkl')
@@ -755,7 +755,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.segment import watershed, segment
     >>> from mindboggle.utils.io_vtk import read_vtk, read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -778,14 +778,14 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
     >>> # Write results to vtk file and view:
     >>> rewrite_scalars(depth_file, 'watershed.vtk',
     >>>                 segments, 'segments', segments)
-    >>> plot_vtk('watershed.vtk')
+    >>> plot_surfaces('watershed.vtk')
     >>> # View watershed seeds:
     >>> seeds = background_value * np.ones(len(depths))
     >>> for i, s in enumerate(seed_indices):
     >>>     seeds[s] = i
     >>> rewrite_scalars(depth_file, 'watershed_seeds.vtk',
     >>>                 seeds, 'seeds', seeds)
-    >>> plot_vtk('watershed_seeds.vtk')
+    >>> plot_surfaces('watershed_seeds.vtk')
 
     """
     import numpy as np
@@ -1092,13 +1092,13 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> points, faces = select_largest(points, faces, exclude_labels, areas,
     >>>                                reindex)
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I19] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
-    >>> plot_vtk(vtk_file)
+    >>> plot_surfaces(vtk_file)
 
     """
     import numpy as np

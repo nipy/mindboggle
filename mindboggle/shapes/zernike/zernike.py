@@ -155,13 +155,13 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
      112922387.17238183,
      10250734140.30357]
     >>> # View two fragments:
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
     >>> scalars[I19] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
-    >>> plot_vtk(vtk_file)
+    >>> plot_surfaces(vtk_file)
 
     """
     import numpy as np

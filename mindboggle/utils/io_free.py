@@ -44,8 +44,8 @@ def surface_to_vtk(surface_file, output_vtk):
     >>> surface_to_vtk(surface_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('lh.pial.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('lh.pial.vtk')
 
     """
     import os
@@ -121,8 +121,8 @@ def curvature_to_vtk(surface_file, vtk_file, output_vtk):
     >>> curvature_to_vtk(surface_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('lh.thickness.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('lh.thickness.vtk')
 
     """
     import os
@@ -177,8 +177,8 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     >>> labels, output_vtk = annot_to_vtk(annot_file, vtk_file, output_vtk)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk(output_vtk)
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces(output_vtk)
 
     """
     import os

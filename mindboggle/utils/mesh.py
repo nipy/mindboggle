@@ -34,7 +34,7 @@ def find_neighbors_from_file(input_vtk):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> #
@@ -46,7 +46,7 @@ def find_neighbors_from_file(input_vtk):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> plot_vtk('find_neighbors_from_file.vtk')
+    >>> plot_surfaces('find_neighbors_from_file.vtk')
 
     """
     from mindboggle.utils.io_vtk import read_faces_points
@@ -105,8 +105,8 @@ def find_neighbors(faces, npoints):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_neighbors.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('find_neighbors.vtk')
 
     """
 
@@ -653,7 +653,7 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import decimate
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> reduction = 0.5
@@ -673,7 +673,7 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
     >>> output_vtk = 'decimated.vtk'
     >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
     >>>           scalar_names) # doctest: +SKIP
-    >>> plot_vtk(output_vtk) # doctest: +SKIP
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -805,7 +805,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     --------
     >>> import os
     >>> from mindboggle.utils.mesh import decimate_file
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> #input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
@@ -815,7 +815,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> smooth_steps = 0
     >>> decimate_file(input_vtk, reduction, smooth_steps, save_vtk, output_vtk)
     >>> # View:
-    >>> plot_vtk('decimated.vtk') # doctest: +SKIP
+    >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
 
     """
     from mindboggle.utils.io_vtk import read_vtk
@@ -873,7 +873,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     --------
     >>> import os
     >>> from mindboggle.utils.mesh import close_surfaces
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> patch_surface1 = 'fold.pial.vtk'
@@ -890,7 +890,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     >>> closed_faces, closed_points, closed_scalars = close_surfaces(faces, points1, points2, scalars, background_value)
     >>> # View:
     >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name)
-    >>> plot_vtk('closed.vtk') # doctest: +SKIP
+    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
 
     """
     import sys
@@ -975,7 +975,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
     --------
     >>> import os
     >>> from mindboggle.utils.mesh import close_surfaces_from_files
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> patch_surface1 = 'fold.pial.vtk'
@@ -994,7 +994,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
     >>> output_vtk = ''
     >>> close_surfaces_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
     >>> # View:
-    >>> plot_vtk('closed.vtk') # doctest: +SKIP
+    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
 
     """
     import os
