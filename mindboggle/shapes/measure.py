@@ -667,7 +667,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> import os
     >>> from mindboggle.shapes.measure import rescale_by_neighborhood
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> indices = []
@@ -687,7 +687,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
     >>>                 rescaled_scalars, 'rescaled_depths', folds)
-    >>> plot_vtk(rescaled_scalars_file)
+    >>> plot_surfaces(rescaled_scalars_file)
 
     """
     import os
@@ -769,7 +769,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> import os
     >>> from mindboggle.shapes.measure import rescale_by_label
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
@@ -785,7 +785,7 @@ def rescale_by_label(input_vtk, labels_or_file, save_file=False,
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
     >>>                 rescaled_scalars, 'rescaled_depths', folds)
-    >>> plot_vtk(rescaled_scalars_file)
+    >>> plot_surfaces(rescaled_scalars_file)
 
     """
     import os
