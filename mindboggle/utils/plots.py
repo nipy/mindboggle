@@ -28,7 +28,7 @@ br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 """
 
 
-def vtkviewer(vtk_file_list):
+def vtkviewer(vtk_file_list, colormap=[]):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
@@ -36,6 +36,8 @@ def vtkviewer(vtk_file_list):
     ------
     vtk_file_list : string or list of strings
         name of VTK surface mesh file or list of file names
+    colormap : list of lists of floats
+        RGB color values in [0,1]
 
     Examples
     --------
@@ -44,10 +46,10 @@ def vtkviewer(vtk_file_list):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file1 = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> vtk_file2 = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> vtkviewer([vtk_file1, vtk_file2])
+    >>> colormap = []
+    >>> vtkviewer([vtk_file1, vtk_file2], colormap)
 
     """
-    import vtk
     import os
     import glob
     import mindboggle.utils.vtkviewer as vv
@@ -69,7 +71,8 @@ def vtkviewer(vtk_file_list):
     vtkviewer.Start()
 
 
-def plot_vtk(vtk_file, mask_file='', masked_output='', program='vtkviewer'):
+def plot_vtk(vtk_file, mask_file='', mask_background=-1, masked_output='',
+             program='vtkviewer', colormap=[]):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
 
@@ -79,20 +82,27 @@ def plot_vtk(vtk_file, mask_file='', masked_output='', program='vtkviewer'):
         name of VTK surface mesh file
     mask_file : string
         name of VTK surface mesh file to mask vtk_file vertices
+    mask_background : integer
+        mask background value
     masked_output : string
         temporary masked output file name
     program : string {'vtkviewer', 'mayavi2'}
         program to visualize VTK file
+    colormap : list of lists of floats
+        RGB color values in [0,1] for vtkviewer
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import plot_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> mask_background = -1
     >>> masked_output = ''
-    >>> plot_vtk(vtk_file, mask_file, masked_output)
+    >>> program = 'vtkviewer'
+    >>> colormap = []
+    >>> plot_vtk(vtk_file, mask_file, mask_background, masked_output, program, colormap)
 
     """
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
@@ -102,14 +112,15 @@ def plot_vtk(vtk_file, mask_file='', masked_output='', program='vtkviewer'):
     if not program:
         program = 'vtkviewer'
 
-    # Filter mesh with the non -1 values from a second (same-size) mesh:
+    # Filter mesh with non-background values from a second (same-size) mesh:
     if mask_file:
-        scalars, name = read_scalars(vtk_file)
-        mask, name = read_scalars(mask_file)
+        scalars, name = read_scalars(vtk_file, True, True)
+        #mask, name = read_scalars(mask_file, True, True)
+        #scalars[mask == mask_background] = -1
         if not masked_output:
             masked_output = 'temp.vtk'
-        rewrite_scalars(vtk_file, masked_output, scalars, 'masked', mask)
-        file_to_plot = mask_file
+        rewrite_scalars(vtk_file, masked_output, scalars) #, 'masked', mask)
+        file_to_plot = masked_output
     else:
         file_to_plot = vtk_file
 

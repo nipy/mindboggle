@@ -282,7 +282,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         each element is an edge on the mesh, consisting of 2 integers
         representing the 2 vertices of the edge
     indices : list of integers
-        indices of vertices not equal to -1
+        indices of vertices
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     npoints : int
@@ -660,7 +660,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 
 
 def rewrite_scalars(input_vtk, output_vtk, new_scalars,
-                    new_scalar_names=['scalars'], filter_scalars=[]):
+                    new_scalar_names=['scalars'], filter_scalars=[],
+                    background_value=-1):
     """
     Load VTK format file and save a subset of scalars into a new file.
 
@@ -675,7 +676,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     new_scalar_names : string or list of strings
         each element is the new name for a lookup table
     filter_scalars : list or numpy array (optional)
-        scalar values used to filter faces (values > -1 retained)
+        scalar values used to filter faces (non-background values retained)
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -688,13 +691,17 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> curvs, name = read_scalars(curv_file, True,True)
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> output_vtk = 'rewrite_scalars.vtk'
+    >>> curvs, name = read_scalars(input_vtk, True,True)
     >>> sulci, name = read_scalars(sulci_file)
+    >>> new_scalars = [curvs, sulci]
+    >>> new_scalar_names = ['curvs', 'sulci']
+    >>> filter_scalars = sulci
+    >>> background_value = -1
     >>> #
-    >>> rewrite_scalars(curv_file, 'rewrite_scalars.vtk',
-    >>>                 [curvs, sulci], ['curvs', 'sulci'], sulci)
+    >>> rewrite_scalars(input_vtk, output_vtk, new_scalars, new_scalar_names, filter_scalars, background_value)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.plots import plot_vtk
@@ -706,8 +713,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     from mindboggle.utils.mesh import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
-         write_vertices, write_faces, write_scalars, read_vtk, \
-         scalars_checker
+        write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
 
     # Convert numpy arrays to lists
     if isinstance(new_scalars, np.ndarray):
@@ -722,13 +728,14 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     faces, lines, indices, points, npoints, scalars, name, \
         input_vtk = read_vtk(input_vtk)
 
-    # Find indices to nonzero values
-    indices = range(npoints)
+    # Find indices to foreground values
     if filter_scalars:
-        indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
-        indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
-        # Remove surface mesh faces whose three vertices are not all in indices
-        faces = remove_faces(faces, indices_filter)
+        indices_keep = [i for i,x in enumerate(filter_scalars)
+                        if x != background_value]
+        indices_remove = [i for i,x in enumerate(filter_scalars)
+                          if x == background_value]
+        # Remove surface faces whose three vertices are not all in indices
+        faces = remove_faces(faces, indices_keep)
 
     # Write VTK file
     Fp = open(output_vtk,'w')
@@ -745,7 +752,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         for i, new_scalar_list in enumerate(new_scalars):
             if filter_scalars:
                 for iremove in indices_remove:
-                    new_scalar_list[iremove] = -1
+                    new_scalar_list[iremove] = background_value
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name)
