@@ -855,7 +855,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
         each sublist contains 3-D coordinates of a vertex on a surface mesh
     points2 : list of lists of floats
         points from second surface with 1-to-1 correspondence with points1
-    scalars : list of integers
+    scalars : numpy array of integers
         labels used to find foreground vertices
     background_value : integer
         scalar value for background vertices
@@ -871,6 +871,36 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
 
     Examples
     --------
+    >>> # Example 1: build a cube by closing two parallel planes:
+    >>> import os
+    >>> from mindboggle.utils.mesh import close_surfaces
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.utils.io_vtk import write_vtk
+    >>> # Build plane:
+    >>> background_value = -1
+    >>> n = 10  # plane edge length
+    >>> points1 = []
+    >>> for x in range(n):
+    >>>     for y in range(n):
+    >>>         points1.append([x,y,0])
+    >>> points2 = [[x[0],x[1],1] for x in points1]
+    >>> scalars = [background_value for x in range(len(points1))]
+    >>> p = n*(n-1)/2 - 1
+    >>> for i in [p, p+1, p+n, p+n+1]:
+    >>>     scalars[i] = 1
+    >>> faces = []
+    >>> for x in range(n-1):
+    >>>     for y in range(n-1):
+    >>>         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
+    >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
+    >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
+    >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
+    >>> closed_faces, closed_points, closed_scalars = close_surfaces(faces, points1, points2, scalars, background_value)
+    >>> # View:
+    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars)
+    >>> plot_surfaces('cube.vtk') # doctest: +SKIP
+    >>> #
+    >>> # Example 2: Gray and white cortical brain surfaces:
     >>> import os
     >>> from mindboggle.utils.mesh import close_surfaces
     >>> from mindboggle.utils.plots import plot_surfaces
@@ -899,6 +929,9 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     from mindboggle.utils.mesh import find_neighbors, remove_faces
     from mindboggle.labels.labels import extract_borders
 
+    if isinstance(scalars, list):
+        scalars = np.array(scalars)
+
     N = len(points1)
     closed_points = points1 + points2
 
@@ -911,6 +944,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     borders, u1, u2 = extract_borders(range(N), scalars, neighbor_lists)
     if not len(borders):
         sys.exit('There are no border vertices!')
+    borders = [x for x in borders if x in I]
 
     # Reindex copy of faces and combine with original (both zero-index):
     indices = range(N)
