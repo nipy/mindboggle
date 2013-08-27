@@ -35,6 +35,7 @@ def zernike_moments(points, faces, order=20, index1=True):
 
     Examples
     --------
+    >>> # Example 1: simple cube:
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
@@ -47,24 +48,37 @@ def zernike_moments(points, faces, order=20, index1=True):
      0.20233902300388348,
      0.117303689366221,
      0.1457966728239256]
-    >>> # Moments for label 22 (postcentral) in Twins-2-1
-    >>> # (after running explode_scalars() with reindex=True):
-    >>> import os
+    >>> # Example 2: simple cube (with inner diagonal plane):
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> #vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> vtk_file = '/drop/MB/data/arno/labels/exploded_labels/label22.vtk'
+    >>> #path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = '/drop/cube.vtk'
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
     >>> index1 = True
     >>> zernike_moments(points, faces, order, index1)
-    [7562.751480397972,
-     143262239.5171249,
-     1107670.7893994227,
-     28487908892.820065,
-     112922387.17238183,
-     10250734140.30357]
+    [0.0,
+     2.5304049617626276e-17,
+     0.28310181808773954,
+     10.699696719829614,
+     2.135213487032693,
+     11.854182599180067]
+    >>> # Example 3: closed gray and white cortical brain surfaces:
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
+    >>> #path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = '/drop/MB/data/arno/labels/exploded_labels/label22.vtk'
+    >>> vtk_file = '/drop/closed.vtk'
+    >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+    >>> order = 3
+    >>> index1 = True
+    >>> zernike_moments(points, faces, order, index1)
+    [2372.862156922557,
+     35059555.48769491,
+     314650.1425838372,
+     6535990970.999451,
+     30652224.740788877,
+     2751125285.342123]
 
     """
     import numpy as np
