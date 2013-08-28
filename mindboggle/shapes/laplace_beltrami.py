@@ -679,7 +679,7 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> n_eigenvalues = 6
     >>> exclude_labels = [0]  #[-1]
@@ -716,15 +716,15 @@ def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     label_list = []
     spectrum_lists = []
     for label in ulabels:
-      #if label==22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+      if label == 22:
+        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         # Determine the indices per label:
-        label_indices = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.format(len(label_indices), label))
+        Ilabel = [i for i,x in enumerate(labels) if x == label]
+        print('{0} vertices for label {1}'.format(len(Ilabel), label))
 
         # Remove background faces:
-        select_faces = remove_faces(faces, label_indices)
+        select_faces = remove_faces(faces, Ilabel)
 
         # Compute Laplace-Beltrami spectrum for the label:
         if largest_segment:
