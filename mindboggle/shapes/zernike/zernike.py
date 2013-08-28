@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def zernike_moments(points, faces, order=20, index1=True):
+def zernike_moments(points, faces, order=10, scale_input=True):
     """
     Compute the Zernike moments of a surface patch of points and faces.
     
@@ -25,8 +25,9 @@ def zernike_moments(points, faces, order=20, index1=True):
         each list contains indices to vertices that form a triangle on a mesh
     order : integer
         order of the moments being calculated
-    index1 : Boolean
-        Convert 0-indices (Python) to 1-indices (Matlab) for all face indices?
+    scale_input : Boolean
+        translate and scale each object so it is bounded by a unit sphere?
+        (this is the expected input to zernike_moments())
 
     Returns
     -------
@@ -40,14 +41,14 @@ def zernike_moments(points, faces, order=20, index1=True):
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
-    >>> index1 = True
-    >>> zernike_moments(points, faces, order, index1)
-    [0.03978873577297383,
-     0.07597287228593756,
-     0.08322411181893402,
-     0.20233902300388348,
-     0.117303689366221,
-     0.1457966728239256]
+    >>> scale_input = True
+    >>> zernike_moments(points, faces, order, scale_input)
+    [0.0918881492369654,
+     0.09357431096617608,
+     0.04309029164656885,
+     0.06466432586854755,
+     0.03820155248327533,
+     0.04138011726544602]
     >>> # Example 2: simple cube (with inner diagonal plane):
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
@@ -55,30 +56,33 @@ def zernike_moments(points, faces, order=20, index1=True):
     >>> vtk_file = '/drop/cube.vtk'
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
-    >>> index1 = True
-    >>> zernike_moments(points, faces, order, index1)
+    >>> scale_input = True
+    >>> zernike_moments(points, faces, order, scale_input)
     [0.0,
-     2.5304049617626276e-17,
-     0.28310181808773954,
-     10.699696719829614,
-     2.135213487032693,
-     11.854182599180067]
-    >>> # Example 3: closed gray and white cortical brain surfaces:
+     1.5444366221695725e-21,
+     0.0,
+     2.081366518964347e-21,
+     5.735003646768394e-05,
+     2.433866250546253e-21]
+    >>> # Example 3: superior frontal pial surface patch:
+    >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> #path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = '/drop/MB/data/arno/labels/exploded_labels/label22.vtk'
-    >>> vtk_file = '/drop/closed.vtk'
-    >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> I28 = [i for i,x in enumerate(labels) if x==28] # superior frontal
+    >>> faces = remove_faces(faces, I28)
     >>> order = 3
-    >>> index1 = True
-    >>> zernike_moments(points, faces, order, index1)
-    [2372.862156922557,
-     35059555.48769491,
-     314650.1425838372,
-     6535990970.999451,
-     30652224.740788877,
-     2751125285.342123]
+    >>> scale_input = True
+    >>> zernike_moments(points, faces, order, scale_input)
+    [0.01566588675857814,
+     0.012346130475603009,
+     0.018993428582801408,
+     0.022470635336483052,
+     0.016625931229056885,
+     0.014155674468859897]
 
     """
     import numpy as np
@@ -86,7 +90,8 @@ def zernike_moments(points, faces, order=20, index1=True):
     from mindboggle.utils.mesh import reindex_faces_0to1
     from mindboggle.shapes.zernike.multiproc import MultiprocPipeline
 
-    # Convert 0-indices to 1-indices for all face indices:
+    # Convert 0-indices (Python) to 1-indices (Matlab) for all face indices:
+    index1 = True
     if index1:
         faces = reindex_faces_0to1(faces)
 
@@ -95,6 +100,14 @@ def zernike_moments(points, faces, order=20, index1=True):
         points = np.array(points)
     if isinstance(faces, list):
         faces = np.array(faces)
+
+    # Translate all points so that they are centered at their mean,
+    # and scale them so that they are bounded by a unit sphere:
+    if scale_input:
+        center = np.mean(points, axis=0)
+        points = points - center
+        maxd = np.max(np.sqrt(np.sum(points**2, axis=1)))
+        points = points / maxd
 
     # Multiprocessor pipeline:
     pl = MultiprocPipeline()
@@ -114,8 +127,8 @@ def zernike_moments(points, faces, order=20, index1=True):
     return descriptors
 
 
-def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
-                               areas=None):
+def zernike_moments_of_largest(points, faces, order=10, exclude_labels=[-1],
+                               areas=None, scale_input=True):
     """
     Compute the Zernike moments on largest connected segment.
 
@@ -134,6 +147,9 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
         labels to be excluded
     areas : numpy array or list of floats (or None)
         surface area scalar values for all vertices
+    scale_input : Boolean
+        translate and scale each object so it is bounded by a unit sphere?
+        (this is the expected input to zernike_moments())
 
     Returns
     -------
@@ -142,9 +158,8 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
 
     Examples
     --------
-    >>> # Zernike moments for one label (artificial composite), two fragments:
+    >>> # Example 1: superior frontal pial surface patch:
     >>> import os
-    >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments_of_largest
@@ -153,25 +168,46 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> order = 3
     >>> exclude_labels = [-1]
-    >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file,
-    >>>      return_first=True, return_array=True)
-    >>> I19 = [i for i,x in enumerate(labels) if x==19] # pars orbitalis
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
-    >>> I19.extend(I22)
-    >>> faces = remove_faces(faces, I19)
     >>> areas, u1 = read_scalars(area_file, True, True)
-    >>> #
-    >>> zernike_moments_of_largest(points, faces, order, exclude_labels, areas)
-    [7562.751480397972,
-     143262239.5171249,
-     1107670.7893994227,
-     28487908892.820065,
-     112922387.17238183,
-     10250734140.30357]
-    >>> # View two fragments:
+    >>> scale_input = True
+    >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file)
+    >>> I28 = [i for i,x in enumerate(labels) if x==28] # superior frontal
+    >>> faces = remove_faces(faces, I28)
+    >>> zernike_moments_of_largest(points, faces, order, exclude_labels, areas, scale_input)
+    [0.01566588675857814,
+     0.012346130475603009,
+     0.018993428582801408,
+     0.022470635336483052,
+     0.016625931229056885,
+     0.014155674468859897]
+    # Example 2: superior frontal + pars triangularis pial surface patches:
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
+    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments_of_largest
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> order = 3
+    >>> exclude_labels = [-1]
+    >>> areas, u1 = read_scalars(area_file, True, True)
+    >>> scale_input = True
+    >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file)
+    >>> I28 = [i for i,x in enumerate(labels) if x==28] # superior frontal
+    >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
+    >>> I28.extend(I20)
+    >>> faces = remove_faces(faces, I28)
+    >>> zernike_moments_of_largest(points, faces, order, exclude_labels, areas, scale_input)
+    [0.01566588675857814,
+     0.012346130475603009,
+     0.018993428582801408,
+     0.022470635336483052,
+     0.016625931229056885,
+     0.014155674468859897]
+    >>> # View two surface patches:
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
-    >>> scalars[I19] = 1
+    >>> scalars[I28] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
@@ -211,22 +247,22 @@ def zernike_moments_of_largest(points, faces, order=20, exclude_labels=[-1],
             #-----------------------------------------------------------------
             # Compute Zernike moments:
             #-----------------------------------------------------------------
-            descriptors = zernike_moments(points, faces, order)
+            descriptors = zernike_moments(points, faces, order, scale_input)
 
             return descriptors
         else:
             return None
 
 
-def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
+def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
                               area_file='', largest_segment=True,
                               close_file='', do_decimate=False,
                               reduction=0.5, smooth_steps=100,
-                              background_value=-1):
+                              background_value=-1, scale_input=True):
     """
     Compute the Zernike moments per labeled region in a file.
 
-    Optionally close each label's surface by connecting to its borders to
+    Optionally close each label's surface by connecting its borders to
     those of a second corresponding surface, and decimate the resulting mesh.
 
     Parameters
@@ -251,6 +287,9 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         number of smoothing steps for decimation
     background_value : integer
         background value
+    scale_input : Boolean
+        translate and scale each object so it is bounded by a unit sphere?
+        (this is the expected input to zernike_moments())
 
     Returns
     -------
@@ -261,7 +300,55 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
 
     Examples
     --------
-    >>> # Moments for label 22 (postcentral) in Twins-2-1:
+    >>> # Example 1: superior frontal pial surface patch -- no decimation:
+    >>> import os
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> order = 3
+    >>> exclude_labels = [0]
+    >>> largest_segment = True
+    >>> close_file = ''
+    >>> do_decimate = False
+    >>> reduction = 0.5
+    >>> smooth_steps = 100
+    >>> background_value = -1
+    >>> scale_input = True
+    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
+    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps, background_value, scale_input)
+    ([[0.01566588675857814,
+       0.012346130475603009,
+       0.018993428582801408,
+       0.022470635336483052,
+       0.016625931229056885,
+       0.014155674468859897]],
+     [28])
+    >>> # Example 2: superior frontal pial surface patch -- WITH decimation:
+    >>> import os
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> order = 3
+    >>> exclude_labels = [0]
+    >>> largest_segment = True
+    >>> close_file = ''
+    >>> do_decimate = True
+    >>> reduction = 0.5
+    >>> smooth_steps = 100
+    >>> background_value = -1
+    >>> scale_input = True
+    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
+    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps, background_value, scale_input)
+    ([[0.02453764381289278,
+       0.03697607218757975,
+       0.00422907681893017,
+       0.009325945207818874,
+       0.014734760259388037,
+       0.005008394221210818]],
+     [28])
+    >>> # Example 3: superior frontal pial -- surface closing + decimation:
     >>> import os
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -275,8 +362,16 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     >>> reduction = 0.5
     >>> smooth_steps = 100
     >>> background_value = -1
+    >>> scale_input = True
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, area_file,
-    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps, background_value)
+    >>>     largest_segment, close_file, do_decimate, reduction, smooth_steps, background_value, scale_input)
+    ([[0.03660348461019181,
+       0.055324987603587394,
+       0.005843199772889861,
+       0.013885747292519622,
+       0.022316298827496545,
+       0.006667325690449897]],
+     [28])
 
     """
     import numpy as np
@@ -305,7 +400,7 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      #if label==11:
+      #if label==28:
       #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         #---------------------------------------------------------------------
@@ -348,9 +443,10 @@ def zernike_moments_per_label(vtk_file, order=20, exclude_labels=[-1],
         if largest_segment:
             exclude_labels_inner = [background_value]
             descriptors = zernike_moments_of_largest(new_points, new_faces,
-                order, exclude_labels_inner, areas)
+                order, exclude_labels_inner, areas, scale_input)
         else:
-            descriptors = zernike_moments(new_points, new_faces, order)
+            descriptors = zernike_moments(new_points, new_faces, order,
+                                          scale_input)
 
         #---------------------------------------------------------------------
         # Append to a list of lists of spectra:
