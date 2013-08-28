@@ -288,12 +288,12 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
         #---------------------------------------------------------------------
         # Remove background faces:
         #---------------------------------------------------------------------
-        faces = remove_faces(faces, Ilabel)
+        new_faces = remove_faces(faces, Ilabel)
 
         #---------------------------------------------------------------------
         # Compute Zernike moments for the label:
         #---------------------------------------------------------------------
-        descriptors = zernike_moments(points, faces, order, scale_input,
+        descriptors = zernike_moments(points, new_faces, order, scale_input,
                                       decimate_fraction, decimate_smooth)
 
         #---------------------------------------------------------------------
