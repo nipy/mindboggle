@@ -385,15 +385,24 @@ if run_SurfFlows:
     #-------------------------------------------------------------------------
     # Location and structure of the surface inputs
     #-------------------------------------------------------------------------
-    Surf = Node(name='Surfaces',
-                interface=DataGrabber(infields=['subject', 'hemi'],
-                                      outfields=['surface_files',
-                                                 'white_surface_files'],
-                                      sort_filelist=False))
+    use_white_surface = False
+    if use_white_surface:
+        Surf = Node(name='Surfaces',
+                    interface=DataGrabber(infields=['subject', 'hemi'],
+                                          outfields=['surface_files',
+                                                     'white_surface_files'],
+                                          sort_filelist=False))
+    else:
+        Surf = Node(name='Surfaces',
+                    interface=DataGrabber(infields=['subject', 'hemi'],
+                                          outfields=['surface_files'],
+                                          sort_filelist=False))
     Surf.inputs.base_directory = subjects_path
     Surf.inputs.template = '%s/surf/%s.%s'
     Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
-    Surf.inputs.template_args['white_surface_files'] = [['subject', 'hemi', 'white']]
+    if use_white_surface:
+        Surf.inputs.template_args['white_surface_files'] = [['subject',
+                                                             'hemi', 'white']]
     #Surf.inputs.template_args['sphere_files'] = [['subject', 'hemi','sphere']]
     if do_thickness:
         Surf.inputs.template_args['thickness_files'] = \
@@ -709,7 +718,7 @@ if run_SurfFlows:
                                         output_names=['output_vtk']))
         mbFlow.connect(Surf, 'surface_files', ConvertSurf, 'surface_file')
         ConvertSurf.inputs.output_vtk = ''
-        if do_zernike:
+        if use_white_surface:
             ConvertWhiteSurf = ConvertSurf.clone('Gray-white_surface_to_vtk')
             mbFlow.add_nodes([ConvertWhiteSurf])
             mbFlow.connect(Surf, 'white_surface_files',
@@ -1376,12 +1385,9 @@ if run_SurfFlows:
                                           input_names=['vtk_file',
                                                        'order',
                                                        'exclude_labels',
-                                                       'area_file',
-                                                       'largest_segment',
-                                                       'close_file',
-                                                       'do_decimate',
-                                                       'reduction',
-                                                       'smooth_steps'],
+                                                       'scale_input',
+                                                       'decimate_fraction',
+                                                       'decimate_smooth'],
                                           output_names=['descriptors_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
@@ -1389,14 +1395,9 @@ if run_SurfFlows:
                        SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
         ZernikeLabels.inputs.order = zernike_order
         ZernikeLabels.inputs.exclude_labels = [0]
-        mbFlow.connect(WholeSurfShapeFlow, 'Surface_area.area_file',
-                       SurfFeatureShapeFlow, 'Zernike_labels.area_file')
-        ZernikeLabels.inputs.largest_segment = True
-        mbFlow.connect(ConvertWhiteSurf, 'output_vtk',
-                       SurfFeatureShapeFlow, 'Zernike_labels.close_file')
-        ZernikeLabels.inputs.do_decimate = True
-        ZernikeLabels.inputs.reduction = 0.75
-        ZernikeLabels.inputs.smooth_steps = 100
+        ZernikeLabels.inputs.scale_input = True
+        ZernikeLabels.inputs.decimate_fraction = 0.75
+        ZernikeLabels.inputs.decimate_smooth = 25
 
         #---------------------------------------------------------------------
         # Measure Zernike moments of sulci
