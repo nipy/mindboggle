@@ -1070,7 +1070,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
 
     Examples
     --------
-    >>> # Spectrum for one label (artificial composite), two fragments:
+    >>> # Two surface patches:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
@@ -1082,19 +1082,19 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> exclude_labels = [-1]
     >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file,
     >>>      return_first=True, return_array=True)
-    >>> I19 = [i for i,x in enumerate(labels) if x==19] # pars orbitalis
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
-    >>> I19.extend(I22)
-    >>> faces = remove_faces(faces, I19)
+    >>> I28 = [i for i,x in enumerate(labels) if x==28] # superior frontal
+    >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
+    >>> I28.extend(I20)
+    >>> faces = remove_faces(faces, I28)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> reindex = True
     >>> #
-    >>> points, faces = select_largest(points, faces, exclude_labels, areas,
-    >>>                                reindex)
+    >>> points2, faces2 = select_largest(points, faces, exclude_labels, areas,
+    >>>                                  reindex)
     >>> # View:
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
-    >>> scalars[I19] = 1
+    >>> scalars[I28] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
@@ -1130,8 +1130,8 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
         # Construct neighbor lists:
         neighbor_lists = find_neighbors(faces, npoints)
 
-        # Determine the indices:
-        indices = [x for sublst in faces for x in sublst]
+        # Determine the unique indices that make up the faces:
+        indices = np.unique(np.ravel(faces))
 
         # Segment:
         segments = segment(indices, neighbor_lists, min_region_size=1,
@@ -1155,32 +1155,34 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
                     segment_area = len(segment_indices)
                 if segment_area > max_segment_area:
                     select_indices = segment_indices
-                    max_segment_area = len(select_indices)
-            print('Maximum size of {0} segments: {1} vertices'.
-                  format(len(unique_segments), len(select_indices)))
+                    max_segment_area = segment_area
+
+                # Print message:
+                if use_area:
+                    print('Segment {0}: {1} vertices ({2:.2f} area)'.
+                          format(int(segment_number), len(segment_indices),
+                                 segment_area))
+                else:
+                    print('Segment {0}: {1} vertices'.
+                          format(int(segment_number), len(segment_indices)))
+            print('Largest of {0} segments: {1:.2f}'.
+                  format(len(unique_segments), max_segment_area))
 
             #-----------------------------------------------------------------
-            # Extract points and renumber faces for the selected indices:
+            # Renumber faces for the selected indices:
             #-----------------------------------------------------------------
             faces = remove_faces(faces, select_indices)
-        else:
-            select_indices = indices
-
-        # Alert if the number of indices is small:
-        if len(select_indices) < min_npoints:
-            print("The input size {0} is too small.".format(len(select_indices)))
-            return None
-        elif faces:
-
-            #-----------------------------------------------------------------
-            # Reindex indices in faces:
-            #-----------------------------------------------------------------
-            if reindex:
-                faces, points = reindex_faces_points(faces, points)
+            if faces:
+                #-------------------------------------------------------------
+                # Reindex indices in faces:
+                #-------------------------------------------------------------
+                if reindex:
+                    faces, points = reindex_faces_points(faces, points)
+                else:
+                    points = np.array(points)
+                    points = points[select_indices].tolist()
                 return points, faces
             else:
-                points = np.array(points)
-                points = points[select_indices].tolist()
-                return points, faces
+                return None
         else:
-            return None
+            return points, faces
