@@ -32,7 +32,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
         translate and scale each object so it is bounded by a unit sphere?
         (this is the expected input to zernike_moments())
     decimate_fraction : float
-        fraction of mesh faces to remove for decimation (1 for no decimation)
+        fraction of mesh faces to remove for decimation (0 for no decimation)
     decimate_smooth : integer
         number of smoothing steps for decimation
 
@@ -43,13 +43,15 @@ def zernike_moments(points, faces, order=10, scale_input=True,
 
     Examples
     --------
-    >>> # Example 1: simple cube (decimation doesn't have any effect):
+    >>> # Example 1: simple cube (decimation results in a Segmentation Fault):
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
-    >>> decimate_fraction = 1
-    >>> zernike_moments(points, faces, order, decimate_fraction)
+    >>> scale_input = True
+    >>> decimate_fraction = 0
+    >>> decimate_smooth = 25
+    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
     [0.0918881492369654,
      0.09357431096617608,
      0.04309029164656885,
@@ -57,20 +59,31 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.03820155248327533,
      0.04138011726544602]
     >>> # Example 2: simple cube (with inner diagonal plane):
+    >>> # (decimation doesn't have any effect)
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> #path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = '/drop/cube.vtk'
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
-    >>> decimate_fraction = 1
-    >>> zernike_moments(points, faces, order, decimate_fraction)
+    >>> scale_input = True
+    >>> decimate_fraction = 0
+    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
     [0.0,
      1.5444366221695725e-21,
      0.0,
      2.081366518964347e-21,
      5.735003646768394e-05,
      2.433866250546253e-21]
+    >>> decimate_fraction = 0.75
+    >>> decimate_smooth = 25
+    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
+    [0.006991734011035332,
+     0.013193003020582572,
+     0.004870751616753583,
+     0.013680131900964697,
+     0.0023524006444438673,
+     0.0009947980911615825]
     >>> # Example 3: Twins-2-1 left postcentral pial surface -- NO decimation:
     >>> # (zernike_moments took 142 seconds for order = 3 with no decimation)
     >>> import os
@@ -84,8 +97,9 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> decimate_fraction = 1
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction)
+    >>> decimate_fraction = 0
+    >>> decimate_smooth = 25
+    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
      [0.005558794553842859,
      0.009838755429501177,
      0.003512500896236744,
@@ -117,7 +131,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.0008080165707033097]
     >>> # Example 5: left postcentral + pars triangularis pial surfaces:
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import remove_faces
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -138,6 +152,13 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.008972460360983864,
      0.0018220183025464518,
      0.0016893113500293917]
+    >>> # View both segments:
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> scalars = -1*np.ones(np.shape(labels))
+    >>> scalars[I22] = 1
+    >>> vtk_file = 'test_two_labels.vtk'
+    >>> write_vtk(vtk_file, points, [],[], faces, scalars, scalar_names='scalars')
+    >>> plot_surfaces(vtk_file)
 
     """
     import numpy as np
@@ -172,7 +193,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     #-------------------------------------------------------------------------
     # Decimate surface:
     #-------------------------------------------------------------------------
-    if decimate_fraction < 1:
+    if 0 < decimate_fraction < 1:
         points, faces, u1,u2 = decimate(points, faces,
             decimate_fraction, decimate_smooth, [], save_vtk=False)
 
@@ -259,47 +280,51 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
      [22])
 
     """
+    import numpy as np
     from mindboggle.utils.io_vtk import read_vtk
     from mindboggle.utils.mesh import remove_faces
     from mindboggle.shapes.zernike.zernike import zernike_moments
 
+    min_points_faces = 4
+
     #-------------------------------------------------------------------------
-    # Read VTK surface mesh file and area file:
+    # Read VTK surface mesh file:
     #-------------------------------------------------------------------------
     faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(vtk_file)
 
     #-------------------------------------------------------------------------
     # Loop through labeled regions:
     #-------------------------------------------------------------------------
-    ulabels = []
-    [ulabels.append(int(x)) for x in labels if x not in ulabels
-     if x not in exclude_labels]
+    ulabels = [x for x in np.unique(labels) if x not in exclude_labels]
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      #if label==22:
+      #if label == 14:
 
         #---------------------------------------------------------------------
         # Determine the indices per label:
         #---------------------------------------------------------------------
         Ilabel = [i for i,x in enumerate(labels) if x == label]
         print('  {0} vertices for label {1}'.format(len(Ilabel), label))
+        if len(Ilabel) > min_points_faces:
 
-        #---------------------------------------------------------------------
-        # Remove background faces:
-        #---------------------------------------------------------------------
-        new_faces = remove_faces(faces, Ilabel)
+            #-----------------------------------------------------------------
+            # Remove background faces:
+            #-----------------------------------------------------------------
+            new_faces = remove_faces(faces, Ilabel)
+            if len(new_faces) > min_points_faces:
 
-        #---------------------------------------------------------------------
-        # Compute Zernike moments for the label:
-        #---------------------------------------------------------------------
-        descriptors = zernike_moments(points, new_faces, order, scale_input,
-                                      decimate_fraction, decimate_smooth)
+                #-------------------------------------------------------------
+                # Compute Zernike moments for the label:
+                #-------------------------------------------------------------
+                descriptors = zernike_moments(points, new_faces, order,
+                                              scale_input, decimate_fraction,
+                                              decimate_smooth)
 
-        #---------------------------------------------------------------------
-        # Append to a list of lists of spectra:
-        #---------------------------------------------------------------------
-        descriptors_lists.append(descriptors)
-        label_list.append(label)
+                #-------------------------------------------------------------
+                # Append to a list of lists of spectra:
+                #-------------------------------------------------------------
+                descriptors_lists.append(descriptors)
+                label_list.append(label)
 
     return descriptors_lists, label_list

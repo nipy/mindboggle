@@ -614,7 +614,7 @@ def reindex_faces_0to1(faces):
 #-----------------------------------------------------------------------------
 # Decimate mesh
 #-----------------------------------------------------------------------------
-def decimate(points, faces, reduction=0.5, smooth_steps=100,
+def decimate(points, faces, reduction=0.75, smooth_steps=25,
              scalars=[], save_vtk=False, output_vtk=''):
     """
     Decimate vtk triangular mesh with vtk.vtkDecimatePro.
@@ -650,29 +650,32 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
 
     Examples
     --------
+    >>> # Example: Twins-2-1 left postcentral pial surface, 0.75 decimation:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import decimate
+    >>> from mindboggle.utils.mesh import remove_faces, decimate
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> reduction = 0.5
-    >>> smooth_steps = 100
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> faces, u1,u2, points, u3, scalars, u4,u5 = read_vtk(label_file)
+    >>> I22 = [i for i,x in enumerate(labels) if x==14] # postcentral
+    >>> faces = remove_faces(faces, I22)
+    >>> order = 3
+    >>> scale_input = True
+    >>> reduction = 0.75
+    >>> smooth_steps = 25  # results closer to no decimation than 20 or 30
     >>> save_vtk = False
     >>> output_vtk = ''
-    >>> faces, lines, indices, points, npoints, scalars, scalar_names,
-    ...     u1  = read_vtk(input_vtk)
     >>> points, faces, scalars, output_vtk = decimate(points, faces, reduction,
     >>>                                               smooth_steps, scalars,
     >>>                                               save_vtk, output_vtk)
-    >>> len(points) == 2679
+    >>> len(points) == 1060
     True
     >>> len(points)
-    2679
+    1060
     >>> # View:
     >>> output_vtk = 'decimated.vtk'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
-    >>>           scalar_names) # doctest: +SKIP
+    >>> write_vtk(output_vtk, points, [], [], faces, scalars) # doctest: +SKIP
     >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
