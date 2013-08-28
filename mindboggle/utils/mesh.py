@@ -831,7 +831,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     return output_vtk
 
 
-def close_surfaces(faces, points1, points2, scalars, background_value=-1):
+def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     """
     Close a surface patch by connecting its border vertices with
     corresponding vertices in a second surface file.
@@ -873,7 +873,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     --------
     >>> # Example 1: build a cube by closing two parallel planes:
     >>> import os
-    >>> from mindboggle.utils.mesh import close_surfaces
+    >>> from mindboggle.utils.mesh import close_surface_pair
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.io_vtk import write_vtk
     >>> # Build plane:
@@ -895,14 +895,14 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
     >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
     >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
-    >>> closed_faces, closed_points, closed_scalars = close_surfaces(faces, points1, points2, scalars, background_value)
+    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
     >>> # View:
     >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars)
     >>> plot_surfaces('cube.vtk') # doctest: +SKIP
     >>> #
     >>> # Example 2: Gray and white cortical brain surfaces:
     >>> import os
-    >>> from mindboggle.utils.mesh import close_surfaces
+    >>> from mindboggle.utils.mesh import close_surface_pair
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -917,7 +917,7 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
     >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
     >>> background_value = -1
-    >>> closed_faces, closed_points, closed_scalars = close_surfaces(faces, points1, points2, scalars, background_value)
+    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
     >>> # View:
     >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name)
     >>> plot_surfaces('closed.vtk') # doctest: +SKIP
@@ -972,8 +972,8 @@ def close_surfaces(faces, points1, points2, scalars, background_value=-1):
     return closed_faces, closed_points, closed_scalars
 
 
-def close_surfaces_from_files(patch_surface1, whole_surface2,
-                              background_value=-1, output_vtk=''):
+def close_surface_pair_from_files(patch_surface1, whole_surface2,
+                                  background_value=-1, output_vtk=''):
     """
     Close a surface patch by connecting its border vertices with
     corresponding vertices in a second surface file.
@@ -1008,7 +1008,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.mesh import close_surfaces_from_files
+    >>> from mindboggle.utils.mesh import close_surface_pair_from_files
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -1026,7 +1026,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
     >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
     >>> background_value = -1
     >>> output_vtk = ''
-    >>> close_surfaces_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
+    >>> close_surface_pair_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
     >>> # View:
     >>> plot_surfaces('closed.vtk') # doctest: +SKIP
 
@@ -1034,7 +1034,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
     import os
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.mesh import close_surfaces
+    from mindboggle.utils.mesh import close_surface_pair
 
     # Read VTK surface mesh files:
     u1, u2, u3, points1, N, scalars, name, u4 = read_vtk(patch_surface1,
@@ -1043,7 +1043,7 @@ def close_surfaces_from_files(patch_surface1, whole_surface2,
                                                      True, True)
 
     # Close surface:
-    closed_faces, closed_points, closed_scalars = close_surfaces(faces,
+    closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
         points1, points2, scalars, background_value)
 
     # Write output file:
