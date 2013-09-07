@@ -117,13 +117,12 @@
 .. |picNN| image:: http://media.mindboggle.info/images/people/NolanNichols.jpg
                     :width: 200px
 .. |blurbNN| replace::
-    `Nolan Nichols`_ is a PhD student in Biomedical and Health Informatics at the
-    University of Washington.  Nolan is building a graph database to support the 
-    informatics infrastructure underlying Mindboggle. He is excited about the 
-    translational aspects of the Mindboggle project, and finds this effort to be a nice 
-    complement to his thesis work in the areas of semantic data integration and sharing 
-    of human neuroimaging data.
-
+    `Nolan Nichols`_ is a PhD candidate in Biomedical and Health Informatics at the University of Washington. 
+    Nolan is developing the informatics infrastructure underlying Mindboggle using a Semantic Web 
+    technology stack that explicitly models data provenance​.
+    He is excited about the translational aspects of the Mindboggle project, 
+    and finds this effort to be a nice complement to his thesis work in the areas of 
+    semantic data integration and sharing of human neuroimaging data.
 
 .. |picMR| image:: http://media.mindboggle.info/images/people/MartinReuter.jpg
                     :width: 200px

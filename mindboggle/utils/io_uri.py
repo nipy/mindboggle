@@ -195,7 +195,7 @@ def get_hash(data_file):
     >>> from mindboggle.data import hashes_url
     >>> from mindboggle.utils.io_uri import get_hash
     >>> cache_env = 'MINDBOGGLE_CACHE'
-    >>> hashes, url = hashes_url()
+    >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
     >>> data_path = os.path.join(os.environ[cache_env], data_file)
     >>> get_hash(data_path)
