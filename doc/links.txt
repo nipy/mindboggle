@@ -85,6 +85,6 @@
 .. _`Satrajit Ghosh`: http://mit.edu/~satra
 .. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
 .. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
-.. _`Nolan Nichols`: https://www.ibic.washington.edu/wiki/display/~bnniii/Nolan+Nichols
+.. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
 .. _`Martin Reuter`: http://reuter.mit.edu/
 .. _`Hal Canary`: http://cs.unc.edu/~hal/

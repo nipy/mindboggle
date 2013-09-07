@@ -26,9 +26,13 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space  [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
+  ..
+    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
+  ..
+    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
+  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
   - Corresponding `label probabilities`_
-  - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)   [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
+  - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
@@ -39,7 +43,6 @@ Mindboggle-101 atlases
 
   ..
     - `DKT100 classifier atlas`_: FreeSurfer atlas (.gcs) from 100 of the Mindboggle-101 participants
-
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants
 
 Mindboggle-101 templates
@@ -47,24 +50,31 @@ Mindboggle-101 templates
 
 |  A template is an unlabeled image used as a reference or standard, often for registering other images to each other.
 |  Each one of the image volumes and surfaces below was constructed by combining the images from multiple subjects.
-|  ANTS templates were made with buildtemplateparallel.sh_ and FreeSurfer templates with make_freesurfer_template.py_.
+|  ANTS brain templates were made with buildtemplateparallel.sh_, head templates with antsMultivariateTemplateConstruction.sh,
+|  and FreeSurfer templates with make_freesurfer_template.py_.
 
-  **Brain volumes**: ANTS nonlinear optimal average templates (nii)
+  **Brain volumes**: ANTS nonlinear average templates (nii)
 
+  ..
+    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
   - `OASIS-TRT-20 brain`_ template from 20 brains (2013)
-  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013) [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
+  - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
   - `MMRR-21 brain`_ template from 21 brains (2012)
   - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
 
-  **Head volumes**: ANTS nonlinear optimal average templates (nii)
+  **Head volumes**: ANTS nonlinear average templates (nii)
 
-  - `OASIS-TRT-20 head`_ template from 20 heads (2012)
-  - `NKI-RS-22 head`_ template from 22 heads (`bet brain <http://mindboggle.info/data/templates/ants/NKI-RS-22_head_template_bet.nii.gz>`_) (2012)
-  - `NKI-TRT-20 head`_ template from 20 heads (`bet brain <http://mindboggle.info/data/templates/ants/NKI-TRT-20_head_template_bet.nii.gz>`_) (2012)
-  - `MMRR-21 head`_ template from 21 heads (2012)
-  - `HLN-12 head`_ template from 12 heads (`bet brain <http://mindboggle.info/data/templates/ants/HLN-12_head_template_bet.nii.gz>`_) (2012)
+  - `OASIS-TRT-20 head`_ template from 20 heads (2013)
+  - `NKI-RS-22 head`_ template from 22 heads (2013)
+  - `NKI-TRT-20 head`_ template from 20 heads (2013)
+  - `MMRR-21 head`_ template from 21 heads (2013)
 
-  **Cortical surfaces**: FreeSurfer nonlinear optimal average templates (tif)
+  ..
+    (`bet brain <http://mindboggle.info/data/templates/ants/NKI-RS-22_head_template_bet.nii.gz>`_) (2012)
+    (`bet brain <http://mindboggle.info/data/templates/ants/NKI-TRT-20_head_template_bet.nii.gz>`_) (2012)
+    - `HLN-12 head`_ template from 12 heads (`bet brain <http://mindboggle.info/data/templates/ants/HLN-12_head_template_bet.nii.gz>`_) (2012)
+
+  **Cortical surfaces**: FreeSurfer nonlinear average templates (tif)
 
   - `OASIS-TRT-20 surface`_ template from 20 brains (2012)
   - `NKI-RS-22 surface`_ template from 22 brains (2012)
@@ -95,7 +105,7 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
       - **Twins-2**:  2 identical twins, including AK
       - **Afterthought-1**:  1 brain imager, SG
   - **fsaverage** [nii and mgh `DKT-labeled fsaverage <http://mindboggle.info/data/atlases/fsaverage.tar.gz>`_]:
-      The figures below show the DKT cortical labeling protocol_ with `sulcus landmarks`_ on FreeSurfer's fsaverage surface:
+      The figures above show the DKT cortical labeling protocol_ with `sulcus landmarks`_ on FreeSurfer's fsaverage surface:
 
 
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
@@ -160,10 +170,14 @@ Other templates and manually labeled brains
   - CUMC-12_: 12 labeled brains
   - IBSR-18_: 18 labeled brains
   - MGH-10_: 10 labeled brains
-  - Atropos-18_: 8-class labeled templates for brain extraction, from 18 subjects
 
-  **Templates**: ANTS nonlinear optimal average templates (.nii.gz)
+  **Templates**: ANTS and Atropos (.nii.gz)
 
+  - Atropos tissue-class segmented templates (created by Nicholas Tustison for use with antsAtroposN4.sh)
+      - `OASIS <http://mindboggle.info/data/templates/atropos/OASIS_Atropos_template.tar.gz>`_: OASIS images (not the OASIS-TRT-20)
+      - `NKI <http://mindboggle.info/data/templates/atropos/NKI_Atropos_template.tar.gz>`_: NKI images (not the NKI-RS-22)
+      - `MMRR <http://mindboggle.info/data/templates/atropos/MMRR_Atropos_template.tar.gz>`_: MMRR images (not the MMRR-21)
+      - `IXI <http://mindboggle.info/data/templates/atropos/IXI_Atropos_template.tar.gz>`_: IXI images
   - `CUMC12 brain`_ template from 12 brains (2010)
   - `LPBA40 brain`_ template from 40 brains (2011)
   - See Satrajit Ghosh's `pediatric template`_ of 31 brains (2011)
@@ -177,7 +191,6 @@ Other templates and manually labeled brains
 .. _CUMC-12: http://mindboggle.info/papers/evaluation_NeuroImage2009/data/CUMC12.tar.gz
 .. _IBSR-18: http://mindboggle.info/papers/evaluation_NeuroImage2009/data/IBSR18.tar.gz
 .. _MGH-10: http://mindboggle.info/papers/evaluation_NeuroImage2009/data/MGH10.tar.gz
-.. _Atropos-18: http://mindboggle.info/data/templates/Atropos_brain_extraction_template.tar.gz
 .. _`CUMC12 brain`: http://mindboggle.info/data/templates/ants/CUMC-12_template.nii.gz
 .. _`LPBA40 brain`: http://mindboggle.info/data/templates/ants/LPBA-40_template.nii.gz
 .. _`pediatric template`: http://www.mit.edu/~satra/research/pubdata/index.html
