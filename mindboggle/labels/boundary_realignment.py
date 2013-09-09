@@ -100,7 +100,7 @@ def realign_boundaries_to_fundus_lines(
 
         ## propagate boundaries to fundus line vertices
         learned_matrix = _propagate_labels(
-           affinity_matrix, boundary_matrix, boundary_indices, 1000, 1)
+           affinity_matrix, boundary_matrix, boundary_indices, 100, 1)
 
         ### REMOVE ME
         data = open(data_file, "wb")
