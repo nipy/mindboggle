@@ -42,7 +42,7 @@ def hashes_url():
     # Atlases and templates:
     #-------------------------------------------------------------------------
     hashes['T_template0_BrainCerebellum.nii.gz'] = 'b29d90d8c8d125b7d6af65c203b02f9a'
-    hashes['OASIS-ants_template_in_MNI152.nii.gz'] = 'a229328ce3cdc2cced5f4c31cc6e6389'
+    hashes['OASIS_ants_template_in_MNI152.nii.gz'] = 'a229328ce3cdc2cced5f4c31cc6e6389'
     hashes['OASIS-TRT-20_template_in_MNI152.nii.gz'] = 'f3349f4c149c003bfceee2920a814f30'
     hashes['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz'] = '082f19c118b428e49fbb56c55756c676'
     hashes['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_probabilities.nii.gz'] = 'eab515a0b17ec3385248589ef300ad99'
