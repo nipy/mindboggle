@@ -14,7 +14,6 @@ Data
 |
 |
 .. image:: http://media.mindboggle.info/images/data/DKT_labels_width400px.png
-.. image:: http://media.mindboggle.info/images/data/DKT_sulci_width400px.png
 |
 
 Mindboggle-101 atlases
@@ -26,13 +25,11 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  ..
-    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
-  ..
-    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
   - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
+    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
   - Corresponding `label probabilities`_
   - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)
+    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
@@ -55,24 +52,18 @@ Mindboggle-101 templates
 
   **Brain volumes**: ANTS nonlinear average templates (nii)
 
-  ..
-    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
-  - `OASIS-TRT-20 brain`_ template from 20 brains (2013)
+  - `OASIS-TRT-20 brain`_ template from 20 brains (2013) [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
   - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
   - `MMRR-21 brain`_ template from 21 brains (2012)
   - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
 
   **Head volumes**: ANTS nonlinear average templates (nii)
 
-  - `OASIS-TRT-20 head`_ template from 20 heads (2013)
+  - `OASIS-TRT-20 head`_ template from 20 heads (2013) (`FSL's bet2 brain <http://mindboggle.info/data/templates/ants/OASIS-21_head_template_bet.nii.gz>`_)
   - `NKI-RS-22 head`_ template from 22 heads (2013)
   - `NKI-TRT-20 head`_ template from 20 heads (2013)
   - `MMRR-21 head`_ template from 21 heads (2013)
-
-  ..
-    (`bet brain <http://mindboggle.info/data/templates/ants/NKI-RS-22_head_template_bet.nii.gz>`_) (2012)
-    (`bet brain <http://mindboggle.info/data/templates/ants/NKI-TRT-20_head_template_bet.nii.gz>`_) (2012)
-    - `HLN-12 head`_ template from 12 heads (`bet brain <http://mindboggle.info/data/templates/ants/HLN-12_head_template_bet.nii.gz>`_) (2012)
+  - `HLN-12 head`_ template from 12 heads (2013)
 
   **Cortical surfaces**: FreeSurfer nonlinear average templates (tif)
 
@@ -89,23 +80,24 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 |  The manually edited cortical labels follow sulcus landmarks according to the Desikan-Killiany-Tourville
 |  (DKT) protocol (reference at top).
 
-  - **MMRR-21** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/MMRR-21_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/MMRR-21_freesurfer.tar.gz>`_]:
-      All 21 subjects in the Multi-Modal MRI Reproducibility Resource |MMRR www|_
+  - **OASIS-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
+      All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
+  - **OASIS-TRT-20 whole-brain** labels [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_
   - **NKI-RS-22** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-RS-22_surfaces.tar.gz>`_,  `mgh <http://mindboggle.info/data/mindboggle101/NKI-RS-22_freesurfer.tar.gz>`_]:
       22 subjects from the Nathan Klein Institute / Rockland Sample |NKI-RS www|_
   - **NKI-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_freesurfer.tar.gz>`_]:
       20 subjects from the Nathan Klein Institute / Test-Retest Sample |NKI-TRT www|_
-  - **OASIS-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
-      All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
-  - **OASIS-TRT-20 cortical, subcortical and cerebellar labels** [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_
+  - **MMRR-21** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/MMRR-21_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/MMRR-21_freesurfer.tar.gz>`_]:
+      All 21 subjects in the Multi-Modal MRI Reproducibility Resource |MMRR www|_
   - **Extra-18** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/Extra-18_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/Extra-18_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/Extra-18_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/Extra-18_freesurfer.tar.gz>`_]:
       - **HLN-12**:  All 12 subjects from the Human Language Network study
       - **MMRR-3T7T-2**:  2 subjects acquired like MMRR-21 (multimodal + 7T scans: |MMRR www|_)
       - **Colin27-1**:  Colin Holmes template (average of 27 scans)
       - **Twins-2**:  2 identical twins, including AK
       - **Afterthought-1**:  1 brain imager, SG
-  - **fsaverage** [nii and mgh `DKT-labeled fsaverage <http://mindboggle.info/data/atlases/fsaverage.tar.gz>`_]:
-      The figures above show the DKT cortical labeling protocol_ with `sulcus landmarks`_ on FreeSurfer's fsaverage surface:
+  - **fsaverage** [`nii and mgh <http://mindboggle.info/data/atlases/fsaverage.tar.gz>`_]:
+      The figures above show the DKT cortical labeling protocol_ with `sulcus landmarks`_
+      on FreeSurfer's fsaverage surface.
 
 
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
@@ -159,28 +151,27 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 Other templates and manually labeled brains
 -------------------------------------------
 
-| The Mindboggle-101 templates and manually labeled brains above benefit from the application
-| of a consistent labeling protocol by the same labelers, to reduce variability in label assignments.
-| The following manually labeled image volumes used different labeling protocols,
-| but have been evaluated for use with registration-based labeling and brain extraction
-| (see `2009 evaluation`_ and Atropos_ articles), as have the templates.
+| The following images are not from the Mindboggle-101 data above, and the manual labels are not the same
+| as those of the DKT labeling protocol used for the Mindboggle-101 data above:
 
-  **Atlases**: manually labeled volumes (.nii.gz)
+  **Tissue-segmented templates**: created by Nicholas Tustison for use with antsAtroposN4.sh
 
-  - CUMC-12_: 12 labeled brains
-  - IBSR-18_: 18 labeled brains
-  - MGH-10_: 10 labeled brains
+  - `OASIS <http://mindboggle.info/data/templates/atropos/OASIS_Atropos_template.tar.gz>`_: from 30 `MICCAI challenge <https://masi.vuse.vanderbilt.edu/workshop2012/images/c/c8/MICCAI_2012_Workshop_v2.pdf>`_ OASIS images (2013)
+  - `NKI <http://mindboggle.info/data/templates/atropos/NKI_Atropos_template.tar.gz>`_: from 30 NKI images (2013)
+  - `MMRR <http://mindboggle.info/data/templates/atropos/MMRR_Atropos_template.tar.gz>`_: from 41 MMRR images (2013)
+  - `IXI <http://mindboggle.info/data/templates/atropos/IXI_Atropos_template.tar.gz>`_: from IXI images (2013)
 
-  **Templates**: ANTS and Atropos (.nii.gz)
+  **Templates**: built with buildtemplateparallel.sh_ with images from `2009 evaluation`_ (nii)
 
-  - Atropos tissue-class segmented templates (created by Nicholas Tustison for use with antsAtroposN4.sh)
-      - `OASIS <http://mindboggle.info/data/templates/atropos/OASIS_Atropos_template.tar.gz>`_: OASIS images (not the OASIS-TRT-20)
-      - `NKI <http://mindboggle.info/data/templates/atropos/NKI_Atropos_template.tar.gz>`_: NKI images (not the NKI-RS-22)
-      - `MMRR <http://mindboggle.info/data/templates/atropos/MMRR_Atropos_template.tar.gz>`_: MMRR images (not the MMRR-21)
-      - `IXI <http://mindboggle.info/data/templates/atropos/IXI_Atropos_template.tar.gz>`_: IXI images
   - `CUMC12 brain`_ template from 12 brains (2010)
   - `LPBA40 brain`_ template from 40 brains (2011)
   - See Satrajit Ghosh's `pediatric template`_ of 31 brains (2011)
+
+  **Atlases**: manually labeled volumes from `2009 evaluation`_ (nii)
+
+  - CUMC-12_: 12 labeled brains (2009)
+  - IBSR-18_: 18 labeled brains (2009)
+  - MGH-10_: 10 labeled brains (2009)
 
 |
 

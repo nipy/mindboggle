@@ -26,7 +26,7 @@ Data
 | the largest collection of publicly available, manually labeled human brains in the world!
 
 |
-.. image:: http://media.mindboggle.info/images/data/DKT_labels_width400px.png
+.. image:: http://media.mindboggle.info/images/data/DKT_sulci_width400px.png
 |
 
 References
