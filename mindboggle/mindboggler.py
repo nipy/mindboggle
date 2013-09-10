@@ -324,7 +324,7 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
-template_volume = 'OASIS-TRT-20_template_in_MNI152.nii.gz'
+template_volume = 'OASIS_ants_template_in_MNI152.nii.gz'
 atlas_volumes = ['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz']
 if atlases:
     atlas_volumes.extend(atlases)
@@ -584,6 +584,30 @@ if do_register:
         # # Concatenate the affine and ants transforms into a list:
         # mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
 
+        # # From antsCorticalThickness.sh:
+        # ANTS=${ANTSPATH}antsRegistration
+        # ANTS_MAX_ITERATIONS="100x100x70x20"
+        # ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+        # ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
+        # ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
+        # ANTS_METRIC="CC"
+        # ANTS_METRIC_PARAMS="1,4"
+        # #...
+        # images="${REGISTRATION_TEMPLATE},
+        #         ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
+        # basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99]
+        #                   -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}
+        #                   -r [${images},1] --float ${USE_FLOAT_PRECISION}"
+        # stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
+        #         -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1
+        #         -s 3x2x1x0"
+        # stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
+        #         -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1
+        #         -s 3x2x1x0"
+        # stage3="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15]
+        #         -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+        # exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
+
         # General inputs:
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
@@ -592,9 +616,9 @@ if do_register:
         if do_register_labels:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
-                                               (0.2, 3.0, 0.0)]
+                                               (0.2, 3.0, 0.0)]  #[0.1,3,0]
             #reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
-            #                                   [[100, 50, 30]])
+            #                                   [[100, 50, 30]]) #100x100x70x20
             reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
                                                [[1, 0, 0]])
             reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
@@ -1741,7 +1765,7 @@ if run_VolLabelFlow:
         #     --output deformed_moving1.nii --reference-image fixed1.nii
         #     --transform [trans.mat,0] --transform [ants_Warp.nii.gz,0]
         if volume_labels == 'ants':
-            xfm = Node(ApplyTransforms(), name='antsApplyTransform')
+            xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
             VolLabelFlow.add_nodes([xfm])
             #mbFlow.add_nodes([xfm])
             xfm.inputs.dimension = 3
@@ -1751,16 +1775,16 @@ if run_VolLabelFlow:
 
             # if do_input_nifti:
             #     mbFlow.connect(niftiBrain, 'nifti', VolLabelFlow,
-            #                    'antsApplyTransform.reference_image')
+            #                    'antsApplyTransforms.reference_image')
             # else:
             #     mbFlow.connect(mgh2nifti, 'out_file', VolLabelFlow,
-            #                    'antsApplyTransform.reference_image')
+            #                    'antsApplyTransforms.reference_image')
             # VolLabelFlow.connect(RetrieveAtlas, 'data_path',
             #                      xfm, 'input_image')
             # mbFlow.connect(reg, 'inverse_composite_transform', VolLabelFlow,
-            #                'antsApplyTransform.transforms')
+            #                'antsApplyTransforms.transforms')
             # #xfm.inputs.invert_transform_flags = [True]
-            # mbFlow.connect(VolLabelFlow, 'antsApplyTransform.output_image',
+            # mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
             #                Sink, 'labels.@antsRegistration')
 
             if do_input_nifti:
@@ -1793,37 +1817,37 @@ if run_VolLabelFlow:
             #                                   'output_0Translation.mat']
 
         elif volume_labels == 'ANTS':
-            LabelVolume = Node(name='Label_volume',
-                               interface=Fn(function = WarpImageMultiTransform,
-                                            input_names=['source',
-                                                         'target',
-                                                         'output',
-                                                         'interp',
-                                                         'xfm_stem',
-                                                         'affine_transform',
-                                                         'nonlinear_transform',
-                                                         'inverse',
-                                                         'affine_only'],
-                                            output_names=['output']))
-            VolLabelFlow.add_nodes([LabelVolume])
+            xfmANTS = Node(name='WarpImageMultiTransform',
+                           interface=Fn(function = WarpImageMultiTransform,
+                                        input_names=['source',
+                                                     'target',
+                                                     'output',
+                                                     'interp',
+                                                     'xfm_stem',
+                                                     'affine_transform',
+                                                     'nonlinear_transform',
+                                                     'inverse',
+                                                     'affine_only'],
+                                        output_names=['output']))
+            VolLabelFlow.add_nodes([xfmANTS])
             VolLabelFlow.connect(RetrieveAtlas, 'data_path',
-                                 LabelVolume, 'source')
+                                 xfmANTS, 'source')
             if do_input_nifti:
                 mbFlow.connect(niftiBrain, 'nifti',
-                               VolLabelFlow, 'Label_volume.target')
+                               VolLabelFlow, 'WarpImageMultiTransform.target')
             else:
                 mbFlow.connect(mgh2nifti, 'out_file',
-                               VolLabelFlow, 'Label_volume.target')
-            LabelVolume.inputs.output = ''
-            LabelVolume.inputs.interp = '--use-NN'
+                               VolLabelFlow, 'WarpImageMultiTransform.target')
+            xfmANTS.inputs.output = ''
+            xfmANTS.inputs.interp = '--use-NN'
 
             mbFlow.connect(reg, 'output_stem',
-                           VolLabelFlow, 'Label_volume.xfm_stem')
-            LabelVolume.inputs.affine_transform = ''
-            LabelVolume.inputs.nonlinear_transform = ''
-            LabelVolume.inputs.inverse = True
-            LabelVolume.inputs.affine_only = False
-            mbFlow.connect(VolLabelFlow, 'Label_volume.output',
+                           VolLabelFlow, 'WarpImageMultiTransform.xfm_stem')
+            xfmANTS.inputs.affine_transform = ''
+            xfmANTS.inputs.nonlinear_transform = ''
+            xfmANTS.inputs.inverse = True
+            xfmANTS.inputs.affine_only = False
+            mbFlow.connect(VolLabelFlow, 'WarpImageMultiTransform.output',
                            Sink, 'labels.@ANTS')
         else:
             sys.exit('No other volume registration method set up.')
@@ -1850,7 +1874,7 @@ if run_VolLabelFlow:
                 VolLabelFlow.connect(xfm, 'output_image',
                                      MaskVolume, 'volume2')
             elif volume_labels == 'ANTS':
-                VolLabelFlow.connect(LabelVolume, 'output',
+                VolLabelFlow.connect(xfmANTS, 'output',
                                      MaskVolume, 'volume2')
             MaskVolume.inputs.operator = 'm'
             MaskVolume.inputs.output_file = ''
@@ -1875,7 +1899,7 @@ if run_VolLabelFlow:
             VolLabelFlow.connect(xfm, 'output_image',
                                  CombineLabels, 'target')
         elif volume_labels == 'ANTS':
-            VolLabelFlow.connect(LabelVolume, 'output',
+            VolLabelFlow.connect(xfmANTS, 'output',
                                  CombineLabels, 'target')
         elif volume_labels == 'freesurfer':
             if do_input_aseg_labels:
@@ -1941,18 +1965,22 @@ if run_VolShapeFlow:
     # Measure volume of each region of a labeled image file
     #=========================================================================
     LabelVolumes = Node(name='Label_volumes',
-                          interface=Fn(function = volume_per_label,
-                                       input_names=['labels',
-                                                    'input_file'],
-                                       output_names=['labels_volumes']))
+                        interface=Fn(function = volume_per_label,
+                                     input_names=['labels',
+                                                  'input_file'],
+                                     output_names=['labels_volumes']))
     LabelVolumes.inputs.labels = label_numbers
     #-------------------------------------------------------------------------
     # Volumes of the registered labels:
     #-------------------------------------------------------------------------
     if do_register_labels:
         VolShapeFlow.add_nodes([LabelVolumes])
-        mbFlow.connect(VolLabelFlow, 'Label_volume.output',
-                       VolShapeFlow, 'Label_volumes.input_file')
+        if volume_labels == 'ants':
+            mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
+                           VolShapeFlow, 'Label_volumes.input_file')
+        elif volume_labels == 'ANTS':
+            mbFlow.connect(VolLabelFlow, 'WarpImageMultiTransform.output',
+                           VolShapeFlow, 'Label_volumes.input_file')
         #---------------------------------------------------------------------
         # Volumes of the cortex-masked registered labels:
         #---------------------------------------------------------------------
