@@ -10,9 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#-----------------------------------------------------------------------------
-# Find all neighbors from faces in a VTK mesh file
-#-----------------------------------------------------------------------------
+
 def find_neighbors_from_file(input_vtk):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -59,9 +57,6 @@ def find_neighbors_from_file(input_vtk):
     return neighbor_lists
 
 
-#-----------------------------------------------------------------------------
-# Find all neighbors from faces
-#-----------------------------------------------------------------------------
 def find_neighbors(faces, npoints):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -132,9 +127,6 @@ def find_neighbors(faces, npoints):
     return neighbor_lists
 
 
-#-----------------------------------------------------------------------------
-# Find neighbors for a given vertex
-#-----------------------------------------------------------------------------
 def find_neighbors_vertex(faces, index):
     """
     Find neighbors to a surface mesh vertex.
@@ -182,9 +174,6 @@ def find_neighbors_vertex(faces, index):
     return neighbor_list
 
 
-#-----------------------------------------------------------------------------
-# Find neighborhood for given vertices
-#-----------------------------------------------------------------------------
 def find_neighborhood(neighbor_lists, indices, nedges=1):
     """
     Find neighbors in the neighborhood of given surface mesh vertices.
@@ -241,9 +230,6 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
     return neighborhood
 
 
-#-----------------------------------------------------------------------------
-# find all edges on the mesh
-#-----------------------------------------------------------------------------
 def find_edges(faces):
     """
     Find all edges on a mesh
@@ -276,9 +262,6 @@ def find_edges(faces):
     return edges
 
 
-#-----------------------------------------------------------------------------
-# find all triangle faces sharing each edge
-#-----------------------------------------------------------------------------
 def find_faces_at_edges(faces):
     """
     For each edge on the mesh, find the two faces that share the edge.
@@ -332,9 +315,41 @@ def find_faces_at_edges(faces):
     return faces_at_edges
 
 
-#-----------------------------------------------------------------------------
-# find all triangle faces centered at each node on the mesh
-#-----------------------------------------------------------------------------
+def find_faces_with_vertex(index, faces):
+    """
+    For a given vertex, find all faces containing this vertex.
+    Note: faces do not have to be triangles.
+
+    Parameters
+    ----------
+    index : integer
+        index to a vertex
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    -------
+    faces_with_vertex : list of integers
+        indices to faces that contain index
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh import find_faces_with_vertex
+    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
+    >>> index = 3
+    >>> find_faces_with_vertex(index, faces)
+        [1, 2, 4]
+
+    """
+    faces_with_vertex = []
+    for i, face in enumerate(faces):
+        if index in face:
+            faces_with_vertex.append(i)
+
+    return faces_with_vertex
+
+
 def find_faces_at_vertices(faces, npoints):
     """
     For each vertex, find all faces containing this vertex.
@@ -344,13 +359,12 @@ def find_faces_at_vertices(faces, npoints):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-
     npoints: integer
         number of vertices on the mesh
 
     Returns
     -------
-    faces_at_vertex : list of lists of integers
+    faces_at_vertices : list of lists of integers
         faces_at_vertices[i] is a list of faces that contain the i-th vertex
 
     Examples
@@ -450,9 +464,6 @@ def find_adjacent_faces(faces):
     return adjacent_faces
 
 
-#-----------------------------------------------------------------------------
-# Filter faces
-#-----------------------------------------------------------------------------
 def remove_faces(faces, indices):
     """
     Remove surface mesh faces whose three vertices are not all in "indices".
@@ -544,9 +555,6 @@ def reindex_faces_points(faces, points=[]):
     return new_faces, new_points
 
 
-#-----------------------------------------------------------------------------
-# Filter neighbor_lists
-#-----------------------------------------------------------------------------
 def remove_neighbor_lists(neighbor_lists, indices):
     """
     Remove all but a given set of indices from surface mesh neighbor lists.
@@ -611,9 +619,6 @@ def reindex_faces_0to1(faces):
     return faces
 
 
-#-----------------------------------------------------------------------------
-# Decimate mesh
-#-----------------------------------------------------------------------------
 def decimate(points, faces, reduction=0.75, smooth_steps=25,
              scalars=[], save_vtk=False, output_vtk=''):
     """
