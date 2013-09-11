@@ -541,8 +541,8 @@ if do_register:
     #-------------------------------------------------------------------------
     # Register image volume to template in MNI152 space with antsRegistration:
     #-------------------------------------------------------------------------
-    # Example:
-    # antsRegistration --collapse-linear-transforms-to-fixed-image-header 0 
+    ## Example:
+    # antsRegistration --collapse-linear-transforms-to-fixed-image-header 0
     # --collapse-output-transforms 0 --dimensionality 3 --interpolation Linear 
     # --output output_ --transform Translation[ 0.1 ]
     # --metric Mattes[ template_image, brain.nii.gz, 1, 32, Regular, 0.3 ]
@@ -566,6 +566,31 @@ if do_register:
     # --shrink-factors 4x2x1 --use-estimate-learning-rate-once 1 
     # --use-histogram-matching 1 --winsorize-image-intensities [ 0.0, 1.0 ]  
     # --write-composite-transform 1
+    #
+    ## antsRegistration settings in antsCorticalThickness.sh:
+    # ANTS=${ANTSPATH}antsRegistration
+    # ANTS_MAX_ITERATIONS="100x100x70x20"
+    # ANTS_TRANSFORMATION="SyN[0.1,3,0]"
+    # ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
+    # ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
+    # ANTS_METRIC="CC"
+    # ANTS_METRIC_PARAMS="1,4"
+    # #...
+    # images="${REGISTRATION_TEMPLATE},
+    #         ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
+    # basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99]
+    #                   -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}
+    #                   -r [${images},1] --float ${USE_FLOAT_PRECISION}"
+    # stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
+    #         -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1
+    #         -s 3x2x1x0"
+    # stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
+    #         -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1
+    #         -s 3x2x1x0"
+    # stage3="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15]
+    #         -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
+    # exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
+
     if volume_labels == 'ants':
         reg = Node(Registration(), name='antsRegistration')
         mbFlow.add_nodes([reg])
@@ -583,30 +608,6 @@ if do_register:
         reg.inputs.num_threads = n_processes
         # # Concatenate the affine and ants transforms into a list:
         # mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
-
-        # # From antsCorticalThickness.sh:
-        # ANTS=${ANTSPATH}antsRegistration
-        # ANTS_MAX_ITERATIONS="100x100x70x20"
-        # ANTS_TRANSFORMATION="SyN[0.1,3,0]"
-        # ANTS_LINEAR_METRIC_PARAMS="1,32,Regular,0.25"
-        # ANTS_LINEAR_CONVERGENCE="[1000x500x250x100,1e-8,10]"
-        # ANTS_METRIC="CC"
-        # ANTS_METRIC_PARAMS="1,4"
-        # #...
-        # images="${REGISTRATION_TEMPLATE},
-        #         ${EXTRACTED_SEGMENTATION_BRAIN_N4_IMAGES[0]}"
-        # basecall="${ANTS} -d ${DIMENSION} -u 1 -w [0.01,0.99]
-        #                   -o ${REGISTRATION_TEMPLATE_OUTPUT_PREFIX}
-        #                   -r [${images},1] --float ${USE_FLOAT_PRECISION}"
-        # stage1="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
-        #         -c ${ANTS_LINEAR_CONVERGENCE} -t Rigid[0.1] -f 8x4x2x1
-        #         -s 3x2x1x0"
-        # stage2="-m MI[${images},${ANTS_LINEAR_METRIC_PARAMS}]
-        #         -c ${ANTS_LINEAR_CONVERGENCE} -t Affine[0.1] -f 8x4x2x1
-        #         -s 3x2x1x0"
-        # stage3="-m CC[${images},1,4] -c [${ANTS_MAX_ITERATIONS},1e-9,15]
-        #         -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
-        # exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
         # General inputs:
         reg.inputs.dimension = 3
