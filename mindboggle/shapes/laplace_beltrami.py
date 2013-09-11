@@ -11,6 +11,7 @@ Dependency:
     http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html
 
 NOTE ::
+
     For ``points``, only include coordinates of vertices in the 3-D structure
     whose spectrum is to be calculated. For example, do not use coordinates
     of all POINTS from a VTK file as ``points`` and use only corresponding
@@ -671,7 +672,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
     """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.utils.mesh import remove_faces
+    from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     from mindboggle.shapes.laplace_beltrami import fem_laplacian,\
         spectrum_of_largest
 
@@ -691,8 +692,8 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     label_list = []
     spectrum_lists = []
     for label in ulabels:
-      if label == 22:
-        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+      #if label == 22:
+      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         # Determine the indices per label:
         Ilabel = [i for i,x in enumerate(labels) if x == label]
@@ -700,16 +701,18 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
         # Remove background faces:
         select_faces = remove_faces(faces, Ilabel)
+        select_faces, select_points = reindex_faces_points(select_faces,
+                                                           points)
 
         # Compute Laplace-Beltrami spectrum for the label:
         if largest_segment:
             exclude_labels_inner = [-1]
-            spectrum = spectrum_of_largest(points, select_faces,
+            spectrum = spectrum_of_largest(select_points, select_faces,
                                            spectrum_size,
                                            exclude_labels_inner,
                                            normalization, areas)
         else:
-            spectrum = fem_laplacian(points, select_faces,
+            spectrum = fem_laplacian(select_points, select_faces,
                                      spectrum_size, normalization)
 
         # Append to a list of lists of spectra:
