@@ -60,10 +60,11 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.04138011726544602]
     >>> # Example 2: simple cube (with inner diagonal plane):
     >>> # (decimation doesn't have any effect)
+    >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> #path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = '/drop/cube.vtk'
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'cube.vtk')
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
     >>> scale_input = True
@@ -106,12 +107,12 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      0.00899042745665395,
      0.001672289910738449,
      0.000919469614081582]
-    >>> # Example 4: left postcentral -- with 0.75 decimation:
+    >>> # Example 4: Twins-2-1 left postcentral -- with 0.75 decimation:
     >>> # Results closer to no decimation results than decimation with
     >>> # 0, 10, 20, 30, or 100 smoothing steps (21 seconds)
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
@@ -299,6 +300,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     label_list = []
     descriptors_lists = []
     for label in ulabels:
+      if label == 22:
+        print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
       #if label == 14:
 
         #---------------------------------------------------------------------
@@ -311,14 +314,15 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
             #-----------------------------------------------------------------
             # Remove background faces:
             #-----------------------------------------------------------------
-            new_faces = remove_faces(faces, Ilabel)
-            if len(new_faces) > min_points_faces:
+            pick_faces = remove_faces(faces, Ilabel)
+            if len(pick_faces) > min_points_faces:
 
                 #-------------------------------------------------------------
                 # Compute Zernike moments for the label:
                 #-------------------------------------------------------------
-                descriptors = zernike_moments(points, new_faces, order,
-                                              scale_input, decimate_fraction,
+                descriptors = zernike_moments(points, pick_faces,
+                                              order, scale_input,
+                                              decimate_fraction,
                                               decimate_smooth)
 
                 #-------------------------------------------------------------
