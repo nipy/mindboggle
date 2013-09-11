@@ -321,7 +321,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     import nibabel as nb
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'combined_labels.nii.gz')
+        output_file = os.path.join(os.getcwd(), 'overwrite_volume_labels.nii.gz')
 
     # Load labeled image volumes:
     vol_source = nb.load(source)

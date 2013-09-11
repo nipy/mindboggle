@@ -65,7 +65,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'multiplied_volumes.nii.gz')
+        output_file = os.path.join(os.getcwd(), 'ImageMath.nii.gz')
 
     cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
@@ -106,7 +106,7 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.ants import register_volume
+    >>> from mindboggle.utils.ants import ANTS
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> source = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
@@ -196,7 +196,7 @@ def WarpImageMultiTransform(source, target, output='',
                  'nonlinear_transform.')
 
     if not output:
-        output = os.path.join(os.getcwd(), 'transformed.nii.gz')
+        output = os.path.join(os.getcwd(), 'WarpImageMultiTransform.nii.gz')
 
     if not os.path.exists(nonlinear_transform):
         affine_only = True
@@ -274,11 +274,11 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
+        output_file = os.path.join(os.getcwd(), 'PropagateLabelsThroughMask.nii.gz')
 
     # Binarize image volume:
     if binarize:
-        temp_file = os.path.join(os.getcwd(), 'propagated_labels.nii.gz')
+        temp_file = os.path.join(os.getcwd(), 'PropagateLabelsThroughMask.nii.gz')
         cmd = ['ThresholdImage', '3', mask_volume, temp_file, '0 1 0 1']
         execute(cmd, 'os')
         mask_volume = temp_file
