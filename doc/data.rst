@@ -7,7 +7,7 @@ Data
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
 |
-| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, labeling protocol_, the `CHANGELOG <http://mindboggle.info/data/mindboggle101/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
+| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, labeling protocol_, the `CHANGELOG <http://mindboggle.info/data/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
 | which describe the labeled nifti volumes (nii), vtk surfaces (vtk), and FreeSurfer files (mgh, etc.).
 | Except where noted, all data are licensed under a Creative Commons License: |CC_license|_
 
@@ -25,21 +25,21 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
+  ..
     [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
-  - Corresponding `label probabilities`_
-  - Corresponding `OASIS-TRT-20 MNI152`_ brain template (see below)
     [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
+
+  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
+  - Corresponding `label probabilities`_
+  - Corresponding `OASIS-30 brain template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152.nii.gz>`_
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
-      Joint fusion was performed on the 20 brains after ANTS warped them
-      to the OASIS-TRT-20 brain template in MNI152 space (`code 1 <http://mindboggle.info/data/atlases/jointfusion/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_ and `code 2 <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_).
+      Joint fusion was performed on the 20 brains after antsRegistration warped them
+      to the OASIS-30 Atropos brain template in MNI152 space (`code 1 <http://mindboggle.info/data/mindboggle101_extras/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_ and `code 2 <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_).
 
   **Cortical surface atlases**
 
-  ..
-    - `DKT100 classifier atlas`_: FreeSurfer atlas (.gcs) from 100 of the Mindboggle-101 participants
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants
 
 Mindboggle-101 templates
@@ -47,7 +47,7 @@ Mindboggle-101 templates
 
 |  A template is an unlabeled image used as a reference or standard, often for registering other images to each other.
 |  Each one of the image volumes and surfaces below was constructed by combining the images from multiple subjects.
-|  ANTS brain templates were made with buildtemplateparallel.sh_, head templates with antsMultivariateTemplateConstruction.sh,
+|  ANTS brain templates were made with buildtemplateparallel.sh_, head templates with antsMultivariateTemplateConstruction.sh_,
 |  and FreeSurfer templates with make_freesurfer_template.py_.
 
   **Brain volumes**: ANTS nonlinear average templates (nii)
@@ -101,13 +101,12 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
 
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
-.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz
-.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_probabilities.nii.gz
-.. _`DKT100 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas100.tar.gz
+.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz
+.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152.nii.gz
 .. _`DKT40 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas40.tar.gz
 
 
-.. _MD5SUMS: <http://mindboggle.info/data/MD5SUMS
+.. _MD5SUMS: http://mindboggle.info/data/MD5SUMS
 .. _CC_license: http://creativecommons.org/licenses/by-nc-sa/3.0/deed.en_US
 .. |CC_license| image:: http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png
 .. _`101 healthy subjects`: http://media.mindboggle.info/images/data/Mindboggle101_table.pdf
@@ -128,8 +127,9 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
 
 .. _numbers: http://media.mindboggle.info/images/data/DKT_label_table.pdf
-.. _buildtemplateparallel.sh: data/templates/buildtemplateparallel.sh
-.. _make_freesurfer_template.py: data/templates/make_freesurfer_template.txt
+.. _buildtemplateparallel.sh: data/templates/ants/buildtemplateparallel.sh
+.. _antsMultivariateTemplateConstruction.sh: data/templates/ants/antsMultivariateTemplateConstruction.sh
+.. _make_freesurfer_template.py: data/templates/freesurfer/make_freesurfer_template.txt
 .. _`MMRR-21 brain`: http://mindboggle.info/data/templates/ants/MMRR-21_template.nii.gz
 .. _`MMRR-21 MNI152`: http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152.nii.gz
 .. _`MNI152`: http://mindboggle.info/data/templates/MNI152_T1_1mm_brain.nii.gz
@@ -156,9 +156,9 @@ Other templates and manually labeled brains
 
   **Tissue-segmented templates**: created by Nicholas Tustison for use with antsAtroposN4.sh
 
-  - `OASIS <http://mindboggle.info/data/templates/atropos/OASIS_Atropos_template.tar.gz>`_: from 30 `MICCAI challenge <https://masi.vuse.vanderbilt.edu/workshop2012/images/c/c8/MICCAI_2012_Workshop_v2.pdf>`_ OASIS images (2013)
-  - `NKI <http://mindboggle.info/data/templates/atropos/NKI_Atropos_template.tar.gz>`_: from 30 NKI images (2013)
-  - `MMRR <http://mindboggle.info/data/templates/atropos/MMRR_Atropos_template.tar.gz>`_: from 41 MMRR images (2013)
+  - `OASIS-30 <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_: from 30 `MICCAI challenge <http://mindboggle.info/data/templates/atropos/MICCAI_2012_Workshop_v2.pdf>`_ OASIS images (2013)
+  - `NKI-30 <http://mindboggle.info/data/templates/atropos/NKI-30_Atropos_template.tar.gz>`_: from 30 NKI images (2013)
+  - `MMRR-41 <http://mindboggle.info/data/templates/atropos/MMRR-41_Atropos_template.tar.gz>`_: from 41 MMRR images (2013)
   - `IXI <http://mindboggle.info/data/templates/atropos/IXI_Atropos_template.tar.gz>`_: from IXI images (2013)
 
   **Templates**: built with buildtemplateparallel.sh_ with images from `2009 evaluation`_ (nii)

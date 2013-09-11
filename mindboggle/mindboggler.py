@@ -324,8 +324,8 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
-template_volume = 'OASIS_ants_template_in_MNI152.nii.gz'
-atlas_volumes = ['labels.DKT31.manual.nii.gz'] #OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz']
+template_volume = 'OASIS-30_Atropos_template_in_MNI152.nii.gz'
+atlas_volumes = ['OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz']
 if atlases:
     atlas_volumes.extend(atlases)
 #-----------------------------------------------------------------------------
