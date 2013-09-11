@@ -352,11 +352,18 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
      0.0005768904023010318]
     >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> faces, points, npoints = read_faces_points(label_file)
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> faces = remove_faces(faces, I22)
+    >>> faces, points = reindex_faces_points(faces, points)
+    >>> #from mindboggle.utils.io_vtk import read_faces_points
+    >>> #label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> #faces, points, npoints = read_faces_points(label_file)
     >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
     [6.3469513010430304e-18,
      0.0005178862383467462,
@@ -468,7 +475,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
@@ -482,6 +489,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> I22.extend(I20)
     >>> faces = remove_faces(faces, I22)
+    >>> faces, points = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
     >>> spectrum_of_largest(points, faces, spectrum_size, exclude_labels,
@@ -700,19 +708,18 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
         print('{0} vertices for label {1}'.format(len(Ilabel), label))
 
         # Remove background faces:
-        select_faces = remove_faces(faces, Ilabel)
-        select_faces, select_points = reindex_faces_points(select_faces,
-                                                           points)
+        pick_faces = remove_faces(faces, Ilabel)
+        pick_faces, pick_points = reindex_faces_points(pick_faces, points)
 
         # Compute Laplace-Beltrami spectrum for the label:
         if largest_segment:
             exclude_labels_inner = [-1]
-            spectrum = spectrum_of_largest(select_points, select_faces,
+            spectrum = spectrum_of_largest(pick_points, pick_faces,
                                            spectrum_size,
                                            exclude_labels_inner,
                                            normalization, areas)
         else:
-            spectrum = fem_laplacian(select_points, select_faces,
+            spectrum = fem_laplacian(pick_points, pick_faces,
                                      spectrum_size, normalization)
 
         # Append to a list of lists of spectra:
