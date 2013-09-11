@@ -120,9 +120,9 @@ parser.add_argument("--atlases", help=("Label with extra volume "
                                        "atlas file(s) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--volume_labels",
-                    help=('Method: {ANTS (default), ants (SOON), freesurfer}'),
-                    choices=['ANTS', 'ants', 'freesurfer'], #, 'manual'],
-                    default='ANTS', metavar='STR')
+                    help=('Method: {ants (default), ANTS (legacy), freesurfer}'),
+                    choices=['ants', 'ANTS', 'freesurfer'], #, 'manual'],
+                    default='ants', metavar='STR')
 parser.add_argument("--surface_labels",
                     help=('Method: {atlas (default), freesurfer, manual}'),
                     choices=['atlas', 'freesurfer', 'manual'],
@@ -325,7 +325,7 @@ sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
 # Volume template and atlas:
 #-----------------------------------------------------------------------------
 template_volume = 'OASIS_ants_template_in_MNI152.nii.gz'
-atlas_volumes = ['OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz']
+atlas_volumes = ['labels.DKT31.manual.nii.gz'] #OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152.nii.gz']
 if atlases:
     atlas_volumes.extend(atlases)
 #-----------------------------------------------------------------------------
@@ -373,11 +373,11 @@ Sink.inputs.substitutions = [('_hemi_lh', 'left'),
     ('_subject_', ''),
     ('_atlas_', ''),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-    ('propagated_labels.nii.gz', 'cortical_surface_labels.nii.gz'),
-    ('multiplied_volumes.nii.gz', 'cortical_surface_masked_volume_labels.nii.gz'),
-    ('combined_labels.nii.gz',
+    ('PropagateLabelsThroughMask.nii.gz', 'cortical_surface_labels.nii.gz'),
+    ('ImageMath.nii.gz', 'cortical_surface_masked_volume_labels.nii.gz'),
+    ('overwrite_volume_labels.nii.gz',
      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
-    ('transformed.nii.gz', 'registered_volume_labels.nii.gz'),
+    ('WarpImageMultiTransform.nii.gz', 'registered_volume_labels.nii.gz'),
     ('brain_to_OASIS-TRT-20_template_to_MNI152', 'brain_to_template_'),
     ('OASIS-TRT-20to_MNI152.nii.gz', 'template')]
 
@@ -617,10 +617,10 @@ if do_register:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
                                                (0.2, 3.0, 0.0)]  #[0.1,3,0]
-            #reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
-            #                                   [[100, 50, 30]]) #100x100x70x20
-            reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
-                                               [[1, 0, 0]])
+            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
+                                               [[100, 50, 30]]) #100x100x70x20
+            #reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
+            #                                   [[1, 0, 0]])
             reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
             reg.inputs.metric_weight = [1] * 3 + [[0.5, 0.5]]
             reg.inputs.radius_or_number_of_bins = [32] * 3 + [[32, 4]]
@@ -780,7 +780,7 @@ if run_SurfLabelFlow:
         #---------------------------------------------------------------------
         # Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
         #---------------------------------------------------------------------
-        Classifier = Node(name='Label_surface_with_classifier',
+        Classifier = Node(name='mris_ca_label',
                           interface=Fn(function = label_with_classifier,
                                        input_names=['subject',
                                                     'hemi',
@@ -790,9 +790,9 @@ if run_SurfLabelFlow:
                                        output_names=['annot_file']))
         SurfLabelFlow.add_nodes([Classifier])
         mbFlow.connect(InputSubjects, 'subject',
-                       SurfLabelFlow, 'Label_surface_with_classifier.subject')
+                       SurfLabelFlow, 'mris_ca_label.subject')
         mbFlow.connect(InputHemis, 'hemi',
-                       SurfLabelFlow, 'Label_surface_with_classifier.hemi')
+                       SurfLabelFlow, 'mris_ca_label.hemi')
         left_classifier_file = 'lh.' + classifier_name + '.gcs'
         right_classifier_file = 'rh.' + classifier_name + '.gcs'
         left_classifier = retrieve_data(left_classifier_file, url,
@@ -981,21 +981,21 @@ if run_SurfLabelFlow:
     # Convert surface label numbers to volume label numbers
     #=========================================================================
     if not no_freesurfer:
-        RelabelSurface = Node(name='Relabel_surface',
-                              interface=Fn(function = relabel_surface,
-                                           input_names=['vtk_file',
-                                                        'hemi',
-                                                        'old_labels',
-                                                        'new_labels',
-                                                        'output_file'],
-                                           output_names=['output_file']))
-        SurfLabelFlow.add_nodes([RelabelSurface])
-        SurfLabelFlow.connect(plug1, plug2, RelabelSurface, 'vtk_file')
-        mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Relabel_surface.hemi')
-        RelabelSurface.inputs.old_labels = ''
-        RelabelSurface.inputs.new_labels = ''
-        RelabelSurface.inputs.output_file = ''
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+        ReindexLabels = Node(name='Reindex_labels',
+                             interface=Fn(function = relabel_surface,
+                                          input_names=['vtk_file',
+                                                       'hemi',
+                                                       'old_labels',
+                                                       'new_labels',
+                                                       'output_file'],
+                                          output_names=['output_file']))
+        SurfLabelFlow.add_nodes([ReindexLabels])
+        SurfLabelFlow.connect(plug1, plug2, ReindexLabels, 'vtk_file')
+        mbFlow.connect(InputHemis, 'hemi', SurfLabelFlow, 'Reindex_labels.hemi')
+        ReindexLabels.inputs.old_labels = ''
+        ReindexLabels.inputs.new_labels = ''
+        ReindexLabels.inputs.output_file = ''
+        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        Sink, 'labels.@surface')
 
 #=============================================================================
@@ -1217,7 +1217,7 @@ if run_SurfFeatureFlow:
                                                     'n_sulci',
                                                     'sulci_file']))
         SurfFeatureFlow.add_nodes([SulciNode])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        SurfFeatureFlow, 'Sulci.labels_file')
         SurfFeatureFlow.connect(FoldsNode, 'folds', SulciNode, 'folds_or_file')
         mbFlow.connect(InputHemis, 'hemi', SurfFeatureFlow, 'Sulci.hemi')
@@ -1376,7 +1376,7 @@ if run_SurfFlows:
                                           output_names=['spectrum_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([SpectraLabels])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
         SpectraLabels.inputs.spectrum_size = spectrum_size
         SpectraLabels.inputs.exclude_labels = [0]
@@ -1415,7 +1415,7 @@ if run_SurfFlows:
                                           output_names=['descriptors_lists',
                                                         'label_list']))
         SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
-        mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
         ZernikeLabels.inputs.order = zernike_order
         ZernikeLabels.inputs.exclude_labels = [0]
@@ -1429,7 +1429,8 @@ if run_SurfFlows:
         if do_sulci:
             ZernikeSulci = ZernikeLabels.clone('Zernike_sulci')
             SurfFeatureShapeFlow.add_nodes([ZernikeSulci])
-            mbFlow.connect(SulciNode, 'sulci_file', ZernikeSulci, 'vtk_file')
+            mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
+                           SurfFeatureShapeFlow, 'Zernike_sulci.vtk_file')
             ZernikeSulci.inputs.exclude_labels = [-1]
 
 
@@ -1472,7 +1473,7 @@ if run_SurfFlows:
                                                       'fundus_table']))
         mbFlow.add_nodes([ShapeTables])
         if do_label:
-            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            ShapeTables, 'labels_or_file')
         else:
             ShapeTables.inputs.labels_or_file = []
@@ -1600,7 +1601,7 @@ if run_SurfFlows:
         mbFlow.add_nodes([VertexTable])
         VertexTable.inputs.output_table = ''
         if do_label:
-            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            VertexTable, 'labels_or_file')
         else:
             VertexTable.inputs.labels_or_file = []
@@ -1707,28 +1708,28 @@ if run_VolLabelFlow:
     # Fill cortical gray matter volume with surface labels
     #=========================================================================
     if do_fill_cortex:
-        FillCortex = Node(name='Fill_cortex',
-                          interface=Fn(function = fill_volume_with_surface_labels,
-                                       input_names=['volume_mask',
-                                                    'surface_files',
-                                                    'output_file',
-                                                    'binarize'],
-                                       output_names=['output_file']))
-        VolLabelFlow.add_nodes([FillCortex])
+        FillMask = Node(name='PropagateLabelsThroughMask',
+                        interface=Fn(function = fill_volume_with_surface_labels,
+                                     input_names=['volume_mask',
+                                                  'surface_files',
+                                                  'output_file',
+                                                  'binarize'],
+                                     output_names=['output_file']))
+        VolLabelFlow.add_nodes([FillMask])
         if do_input_mask:
             mbFlow.connect(niftiMask, 'mask',
-                           VolLabelFlow, 'Fill_cortex.volume_mask')
+                           VolLabelFlow, 'PropagateLabelsThroughMask.volume_mask')
         else:
             mbFlow.connect(mgh_mask2nifti, 'out_file',
-                           VolLabelFlow, 'Fill_cortex.volume_mask')
+                           VolLabelFlow, 'PropagateLabelsThroughMask.volume_mask')
         if run_SurfFlows and run_SurfLabelFlow:
-            mbFlow.connect(SurfLabelFlow, 'Relabel_surface.output_file',
-                           VolLabelFlow, 'Fill_cortex.surface_files')
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
+                           VolLabelFlow, 'PropagateLabelsThroughMask.surface_files')
         else:
-            sys.exit('No input surface file specified for Fill_cortex.')
-        FillCortex.inputs.output_file = ''
-        FillCortex.inputs.binarize = False
-        mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
+            sys.exit('No input surface file specified for PropagateLabelsThroughMask.')
+        FillMask.inputs.output_file = ''
+        FillMask.inputs.binarize = False
+        mbFlow.connect(VolLabelFlow, 'PropagateLabelsThroughMask.output_file',
                        Sink, 'labels.@filled_cortex')
 
     #=========================================================================
@@ -1788,15 +1789,17 @@ if run_VolLabelFlow:
             #                Sink, 'labels.@antsRegistration')
 
             if do_input_nifti:
-                mbFlow.connect(niftiBrain, 'nifti', xfm, 'reference_image')
+                mbFlow.connect(niftiBrain, 'nifti', VolLabelFlow,
+                               'antsApplyTransforms.reference_image')
             else:
-                mbFlow.connect(mgh2nifti, 'out_file', xfm, 'reference_image')
+                mbFlow.connect(mgh2nifti, 'out_file', VolLabelFlow,
+                               'antsApplyTransforms.reference_image')
             VolLabelFlow.connect(RetrieveAtlas, 'data_path',
                                  xfm, 'input_image')
             mbFlow.connect(reg, 'inverse_composite_transform',
-                           xfm, 'transforms')
+                           VolLabelFlow, 'antsApplyTransforms.transforms')
             #xfm.inputs.invert_transform_flags = [True]
-            mbFlow.connect(xfm, 'output_image',
+            mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
                            Sink, 'labels.@antsRegistration')
 
             # if do_input_nifti:
@@ -1856,7 +1859,7 @@ if run_VolLabelFlow:
         # Mask cortical volume labels
         #---------------------------------------------------------------------
         if do_mask_cortex:
-            MaskVolume = Node(name='Mask_volume',
+            MaskVolume = Node(name='ImageMath_multiply',
                               interface=Fn(function = ImageMath,
                                            input_names=['volume1',
                                                         'volume2',
@@ -1866,10 +1869,10 @@ if run_VolLabelFlow:
             VolLabelFlow.add_nodes([MaskVolume])
             if do_input_mask:
                 mbFlow.connect(niftiMask, 'nifti.@mask',
-                               VolLabelFlow, 'Mask_volume.volume1')
+                               VolLabelFlow, 'ImageMath_multiply.volume1')
             else:
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
-                               VolLabelFlow, 'Mask_volume.volume1')
+                               VolLabelFlow, 'ImageMath_multiply.volume1')
             if volume_labels == 'ants':
                 VolLabelFlow.connect(xfm, 'output_image',
                                      MaskVolume, 'volume2')
@@ -1878,40 +1881,41 @@ if run_VolLabelFlow:
                                      MaskVolume, 'volume2')
             MaskVolume.inputs.operator = 'm'
             MaskVolume.inputs.output_file = ''
-            mbFlow.connect(VolLabelFlow, 'Mask_volume.output_file',
+            mbFlow.connect(VolLabelFlow, 'ImageMath_multiply.output_file',
                            Sink, 'labels.@masked_registered')
 
     #=========================================================================
     # Combine cortical and noncortical volume labels
     #=========================================================================
     if do_fill_cortex:
-        CombineLabels = Node(name='Combine_labels',
-                             interface=Fn(function = overwrite_volume_labels,
-                                          input_names=['source',
-                                                       'target',
-                                                       'output_file',
-                                                       'ignore_labels',
-                                                       'replace'],
-                                          output_names=['output_file']))
-        VolLabelFlow.connect(FillCortex, 'output_file',
-                             CombineLabels, 'source')
+        OverwriteLabels = Node(name='Overwrite_labels',
+                               interface=Fn(function = overwrite_volume_labels,
+                                            input_names=['source',
+                                                         'target',
+                                                         'output_file',
+                                                         'ignore_labels',
+                                                         'replace'],
+                                            output_names=['output_file']))
+        VolLabelFlow.add_nodes([OverwriteLabels])
+        VolLabelFlow.connect(FillMask, 'output_file',
+                             OverwriteLabels, 'source')
         if volume_labels == 'ants':
             VolLabelFlow.connect(xfm, 'output_image',
-                                 CombineLabels, 'target')
+                                 OverwriteLabels, 'target')
         elif volume_labels == 'ANTS':
             VolLabelFlow.connect(xfmANTS, 'output',
-                                 CombineLabels, 'target')
+                                 OverwriteLabels, 'target')
         elif volume_labels == 'freesurfer':
             if do_input_aseg_labels:
                 mbFlow.connect(niftiLabels, 'aseg',
-                               CombineLabels, 'target')
+                               OverwriteLabels, 'target')
             else:
                 mbFlow.connect(mgh_labels2nifti, 'out_file',
-                               CombineLabels, 'target')
-        CombineLabels.inputs.output_file = ''
-        CombineLabels.inputs.ignore_labels = [0]
-        CombineLabels.inputs.replace = True
-        mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
+                               OverwriteLabels, 'target')
+        OverwriteLabels.inputs.output_file = ''
+        OverwriteLabels.inputs.ignore_labels = [0]
+        OverwriteLabels.inputs.replace = True
+        mbFlow.connect(VolLabelFlow, 'Overwrite_labels.output_file',
                        Sink, 'labels.@combined')
 
     #=========================================================================
@@ -1948,7 +1952,7 @@ if run_VolLabelFlow:
         elif do_fill_cortex:
             EvalVolLabels.inputs.labels = cortex_numbers
         VolLabelFlow.connect(VolAtlas, 'atlas_vol_file', EvalVolLabels, 'file2')
-        VolLabelFlow.connect(FillCortex, 'output_file', EvalVolLabels, 'file1')
+        VolLabelFlow.connect(FillMask, 'output_file', EvalVolLabels, 'file1')
         #mbFlow.connect(VolLabelFlow, 'Evaluate_volume_labels.out_file',
         #               Sink, 'evaluate_labels_volume')
 
@@ -1985,26 +1989,26 @@ if run_VolShapeFlow:
         # Volumes of the cortex-masked registered labels:
         #---------------------------------------------------------------------
         if do_mask_cortex:
-            MaskedVolumes = LabelVolumes.clone('Masked_volumes')
+            MaskedVolumes = LabelVolumes.clone('Masked_label_volumes')
             VolShapeFlow.add_nodes([MaskedVolumes])
-            mbFlow.connect(VolLabelFlow, 'Mask_volume.output_file',
-                           VolShapeFlow, 'Masked_volumes.input_file')
+            mbFlow.connect(VolLabelFlow, 'ImageMath_multiply.output_file',
+                           VolShapeFlow, 'Masked_label_volumes.input_file')
         #---------------------------------------------------------------------
         # Volumes of the combined registered and cortex-filled surface labels:
         #---------------------------------------------------------------------
         if do_fill_cortex:
-            CombinedVolumes = LabelVolumes.clone('Combined_volumes')
+            CombinedVolumes = LabelVolumes.clone('Combined_label_volumes')
             VolShapeFlow.add_nodes([CombinedVolumes])
-            mbFlow.connect(VolLabelFlow, 'Combine_labels.output_file',
-                           VolShapeFlow, 'Combined_volumes.input_file')
+            mbFlow.connect(VolLabelFlow, 'Overwrite_labels.output_file',
+                           VolShapeFlow, 'Combined_label_volumes.input_file')
     #-------------------------------------------------------------------------
     # Volumes of the cortex-filled surface labels:
     #-------------------------------------------------------------------------
     if do_fill_cortex:
-        FilledVolumes = LabelVolumes.clone('Filled_volumes')
+        FilledVolumes = LabelVolumes.clone('Filled_label_volumes')
         VolShapeFlow.add_nodes([FilledVolumes])
-        mbFlow.connect(VolLabelFlow, 'Fill_cortex.output_file',
-                       VolShapeFlow, 'Filled_volumes.input_file')
+        mbFlow.connect(VolLabelFlow, 'PropagateLabelsThroughMask.output_file',
+                       VolShapeFlow, 'Filled_label_volumes.input_file')
 
     #=========================================================================
     # Create tables to save the volume measures
@@ -2019,6 +2023,7 @@ if run_VolShapeFlow:
                                                       'input_table',
                                                       'output_table'],
                                          output_names=['output_table']))
+        VolShapeFlow.add_nodes([VolumesTable])
         VolumesTable.inputs.column_names = ['label', 'volume']
         VolumesTable.inputs.delimiter = ','
         VolumesTable.inputs.quote = True
@@ -2027,12 +2032,11 @@ if run_VolShapeFlow:
         # Volumes of the registered labels:
         #---------------------------------------------------------------------
         if do_register_labels:
-            mbFlow.add_nodes([VolumesTable])
             VolShapeFlow.connect(LabelVolumes, 'labels_volumes',
                                  VolumesTable, 'columns')
             s = 'volumes_of_registered_volume_labels.csv'
             VolumesTable.inputs.output_table = s
-            mbFlow.connect(VolumesTable, 'output_table',
+            mbFlow.connect(VolShapeFlow, 'Label_volumes_table.output_table',
                            Sink, 'tables.@registered_label_volumes')
             #-----------------------------------------------------------------
             # Volumes of the masked registered labels:
@@ -2044,7 +2048,8 @@ if run_VolShapeFlow:
                                      MaskedTable, 'columns')
                 s = 'volumes_of_cortical_surface_masked_volume_labels.csv'
                 MaskedTable.inputs.output_table = s
-                mbFlow.connect(MaskedTable, 'output_table',
+                mbFlow.connect(VolShapeFlow,
+                               'Masked_label_volumes_table.output_table',
                                Sink, 'tables.@masked_label_volumes')
             #-----------------------------------------------------------------
             # Volumes of the combined registered and filled labels:
@@ -2056,7 +2061,8 @@ if run_VolShapeFlow:
                                      CombinedTable, 'columns')
                 s = 'volumes_of_cortical_surface_and_noncortical_volume_labels.csv'
                 CombinedTable.inputs.output_table = s
-                mbFlow.connect(CombinedTable, 'output_table',
+                mbFlow.connect(VolShapeFlow,
+                               'Combined_label_volumes_table.output_table',
                                Sink, 'tables.@combined_label_volumes')
         #---------------------------------------------------------------------
         # Volumes of the filled labels:
@@ -2068,7 +2074,8 @@ if run_VolShapeFlow:
                                  FilledTable, 'columns')
             s = 'volumes_of_cortical_surface_labels.csv'
             FilledTable.inputs.output_table = s
-            mbFlow.connect(FilledTable, 'output_table',
+            mbFlow.connect(VolShapeFlow,
+                           'Filled_label_volumes_table.output_table',
                            Sink, 'tables.@filled_label_volumes')
 
 
