@@ -87,51 +87,53 @@ parser.add_argument("-n",
                     help=('Number of processors: "-n 1" (default)'),
                     type=int,
                     default=1, metavar='INT')
+# Turn on features:
+parser.add_argument("--sulci", action='store_true',
+                    help="Extract, identify, and measure sulci")
+parser.add_argument("--fundi", action='store_true',
+                    help="Extract, identify, and measure fundi")
+# Turn on vertex table:
+parser.add_argument("--vertices", action='store_true',
+                    help=("Make table of per-vertex surface shape measures"))
+# Turn on/set label/feature shapes:
+parser.add_argument("--spectra",
+                    help='Number of Laplace-Beltrami spectrum eigenvalues '
+                         'per label/feature to store in shape tables: '
+                         '"--spectra 10" (default is not to run)',
+                    default=0, type=int, metavar='INT')
+parser.add_argument("--moments",
+                    help='Order of Zernike moments per label/feature '
+                         'to store in shape tables: "--moments 10" '
+                         'is suggested but SLOW (default is not to run)',
+                    default=0, type=int, metavar='INT')
+# Labels:
+parser.add_argument("--atlases", help=("Label with extra volume "
+                                       "atlas file(s) in MNI152 space"),
+                    nargs='+', metavar='')
+parser.add_argument("--register",
+                    help=('Volume registration or labeling method: '
+                          '{antsRegistration (default), ANTS, '
+                          'freesurfer (existing labels), none}'),
+                    choices=['antsRegistration', 'ANTS', 'freesurfer', 'none'], #, 'manual'],
+                    default='antsRegistration', metavar='STR')
+parser.add_argument("--surface_labels",
+                    help=('Source: {atlas (default), freesurfer, manual}'),
+                    choices=['atlas', 'freesurfer', 'manual'],
+                    default='atlas', metavar='STR')
 # Turn off basic options:
 parser.add_argument("--no_volumes", action='store_true',
-                    help="No volume registration-based labeling")
+                    help="No volume labels, features, or shape tables")
 parser.add_argument("--no_surfaces", action='store_true',
                     help="No surface labels, features, or shape tables")
 parser.add_argument("--no_labels", action='store_true',
                     help="No surface or volume labels")
 parser.add_argument("--no_tables", action='store_true',
                     help="No shape tables of surface labels or features")
-# Turn on features:
-parser.add_argument("--sulci", action='store_true',
-                    help="Extract, identify, and measure sulci")
-parser.add_argument("--fundi", action='store_true',
-                    help="Extract, identify, and measure fundi")
-# Turn on/set label/feature shapes:
-parser.add_argument("--spectra",
-                    help='Number of Laplace-Beltrami spectrum eigenvalues '
-                         'per label or feature to store in shape tables: '
-                         '10 recommended (default off)',
-                    default=0, type=int, metavar='INT')
-parser.add_argument("--moments",
-                    help='Order of Zernike moments per label or feature '
-                         'to store in shape tables: 10 recommended (default off) -- '
-                         'Warning: SLOW',
-                    default=0, type=int, metavar='INT')
-# Turn on vertex table:
-parser.add_argument("--vertex_table", action='store_true',
-                    help=("Make table of per-vertex surface shape measures"))
-# Labels:
-parser.add_argument("--atlases", help=("Label with extra volume "
-                                       "atlas file(s) in MNI152 space"),
-                    nargs='+', metavar='')
-parser.add_argument("--volume_labels",
-                    help=('Method: {ants (default), ANTS (legacy), freesurfer}'),
-                    choices=['ants', 'ANTS', 'freesurfer'], #, 'manual'],
-                    default='ants', metavar='STR')
-parser.add_argument("--surface_labels",
-                    help=('Method: {atlas (default), freesurfer, manual}'),
-                    choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas', metavar='STR')
 parser.add_argument("--no_freesurfer", action='store_true',
-                    help="Don't use FreeSurfer or its outputs (UNTESTED)")
+                    help="Don't use FreeSurfer (requires inputs -- UNTESTED)")
 # Extras:
 parser.add_argument("--cluster", action='store_true',
-                    help="Use HTCondor cluster")
+                    help="Use HTCondor cluster (UNTESTED)")
 parser.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
                                       '{hier,flat,exec}'),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
@@ -152,7 +154,7 @@ if no_labels:
     do_label = False
 else:
     do_label = True
-volume_labels = args.volume_labels
+registration_method = args.register
 surface_labels = args.surface_labels
 atlases = args.atlases
 
@@ -211,7 +213,7 @@ if not no_volumes:
         run_VolShapeFlow = True
     if do_label:
         run_VolLabelFlow = True
-    if volume_labels in ['ants', 'ANTS']:
+    if registration_method in ['antsRegistration', 'ANTS']:
         do_register = True
 #-----------------------------------------------------------------------------
 # Surface workflows:
@@ -496,7 +498,7 @@ if run_VolLabelFlow and (do_fill_cortex or do_mask_cortex):
         mgh_mask2nifti.inputs.out_file = 'mask.nii.gz'
         #mbFlow.connect(mgh_mask2nifti, 'out_file', Sink, 'brain.@mask')
 
-if run_VolLabelFlow and volume_labels == 'freesurfer':
+if run_VolLabelFlow and registration_method == 'freesurfer':
     if do_input_aseg_labels:
         niftiLabels = Node(name='nifti_labels',
                            interface=DataGrabber(infields=['subject'],
@@ -589,7 +591,7 @@ if do_register:
     #         -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
     # exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
-    if volume_labels == 'ants':
+    if registration_method == 'antsRegistration':
         reg = Node(Registration(), name='antsRegistration')
         mbFlow.add_nodes([reg])
 
@@ -660,7 +662,7 @@ if do_register:
     #-------------------------------------------------------------------------
     # Register image volume to template in MNI152 space with ANTS:
     #-------------------------------------------------------------------------
-    elif volume_labels == 'ANTS':
+    elif registration_method == 'ANTS':
         reg = Node(name='ANTS',
                    interface=Fn(function = ANTS,
                                 input_names=['source',
@@ -694,7 +696,7 @@ if do_register:
     #-------------------------------------------------------------------------
     # Register image volume to template in MNI152 space with FSL's flirt:
     #-------------------------------------------------------------------------
-    elif volume_labels == 'flirt':
+    elif registration_method == 'flirt':
         reg = Node(name='FLIRT_standard', interface=FLIRT())
         mbFlow.add_nodes([reg])
         if do_input_nifti:
@@ -1487,18 +1489,18 @@ if run_SurfFlows:
         else:
             ShapeTables.inputs.fundi = []
         if do_register:
-            if volume_labels == 'ants':
+            if registration_method == 'antsRegistration':
                 # Extract the affine part of a complex transform:
                 def picksecond(x):
                    return lambda x: x[:2]
                 mbFlow.connect(reg, ('forward_transforms', picksecond),
                               ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'mat'
-            elif volume_labels == 'ANTS':
+            elif registration_method == 'ANTS':
                 mbFlow.connect(reg, 'affine_transform',
                                ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'itk'
-            elif volume_labels == 'flirt':
+            elif registration_method == 'flirt':
                 mbFlow.connect(reg, 'out_matrix_file',
                                ShapeTables, 'affine_transform_file')
                 ShapeTables.inputs.transform_format = 'txt'
@@ -1616,17 +1618,17 @@ if run_SurfFlows:
             VertexTable.inputs.fundi = []
 
         if run_VolFlows and do_register:
-            if volume_labels == 'ants':
+            if registration_method == 'antsRegistration':
                 # Extract the affine part of a complex transform:
                 def picksecond(x):
                     return lambda x: x[:2]
                 mbFlow.connect(reg, ('forward_transforms', picksecond),
                                VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'mat'
-            elif volume_labels == 'ANTS':
+            elif registration_method == 'ANTS':
                 mbFlow.connect(reg, 'affine_transform',
                                VertexTable, 'affine_transform_file')
-            elif volume_labels == 'flirt':
+            elif registration_method == 'flirt':
                 mbFlow.connect(reg, 'out_matrix_file',
                                VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'txt'
@@ -1668,15 +1670,15 @@ if run_SurfFlows:
     #                                     output_names=['affine_points',
     #                                                   'output_file']))
     # VolLabelFlow.add_nodes([TransformPoints])
-    # if volume_labels == 'ants':
+    # if registration_method == 'antsRegistration':
     #     TransformPoints.inputs.transform_format = 'mat'
     #     VolLabelFlow.connect(reg, 'output_transform_prefix',
     #                          TransformPoints, 'transform_file')
-    # elif volume_labels == 'ANTS':
+    # elif registration_method == 'ANTS':
     #     TransformPoints.inputs.transform_format = 'itk'
     #     VolLabelFlow.connect(reg, 'affine_transform',
     #                          TransformPoints, 'transform_file')
-    # elif volume_labels == 'flirt':
+    # elif registration_method == 'flirt':
     #     TransformPoints.inputs.transform_format = 'txt'
     #     VolLabelFlow.connect(reg, 'out_matrix_file',
     #                          TransformPoints, 'transform_file')
@@ -1764,7 +1766,7 @@ if run_VolLabelFlow:
         #     --input moving1.nii --interpolation NearestNeighbor
         #     --output deformed_moving1.nii --reference-image fixed1.nii
         #     --transform [trans.mat,0] --transform [ants_Warp.nii.gz,0]
-        if volume_labels == 'ants':
+        if registration_method == 'antsRegistration':
             xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
             VolLabelFlow.add_nodes([xfm])
             #mbFlow.add_nodes([xfm])
@@ -1818,7 +1820,7 @@ if run_VolLabelFlow:
             #                                   'output_1Rigid.mat',
             #                                   'output_0Translation.mat']
 
-        elif volume_labels == 'ANTS':
+        elif registration_method == 'ANTS':
             xfmANTS = Node(name='WarpImageMultiTransform',
                            interface=Fn(function = WarpImageMultiTransform,
                                         input_names=['source',
@@ -1872,10 +1874,10 @@ if run_VolLabelFlow:
             else:
                 mbFlow.connect(mgh_mask2nifti, 'out_file',
                                VolLabelFlow, 'ImageMath_multiply.volume1')
-            if volume_labels == 'ants':
+            if registration_method == 'antsRegistration':
                 VolLabelFlow.connect(xfm, 'output_image',
                                      MaskVolume, 'volume2')
-            elif volume_labels == 'ANTS':
+            elif registration_method == 'ANTS':
                 VolLabelFlow.connect(xfmANTS, 'output',
                                      MaskVolume, 'volume2')
             MaskVolume.inputs.operator = 'm'
@@ -1898,13 +1900,13 @@ if run_VolLabelFlow:
         VolLabelFlow.add_nodes([OverwriteLabels])
         VolLabelFlow.connect(FillMask, 'output_file',
                              OverwriteLabels, 'source')
-        if volume_labels == 'ants':
+        if registration_method == 'antsRegistration':
             VolLabelFlow.connect(xfm, 'output_image',
                                  OverwriteLabels, 'target')
-        elif volume_labels == 'ANTS':
+        elif registration_method == 'ANTS':
             VolLabelFlow.connect(xfmANTS, 'output',
                                  OverwriteLabels, 'target')
-        elif volume_labels == 'freesurfer':
+        elif registration_method == 'freesurfer':
             if do_input_aseg_labels:
                 mbFlow.connect(niftiLabels, 'aseg',
                                OverwriteLabels, 'target')
@@ -1978,10 +1980,10 @@ if run_VolShapeFlow:
     #-------------------------------------------------------------------------
     if do_register_labels:
         VolShapeFlow.add_nodes([LabelVolumes])
-        if volume_labels == 'ants':
+        if registration_method == 'antsRegistration':
             mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
                            VolShapeFlow, 'Label_volumes.input_file')
-        elif volume_labels == 'ANTS':
+        elif registration_method == 'ANTS':
             mbFlow.connect(VolLabelFlow, 'WarpImageMultiTransform.output',
                            VolShapeFlow, 'Label_volumes.input_file')
         #---------------------------------------------------------------------
