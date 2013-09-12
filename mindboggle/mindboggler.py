@@ -591,6 +591,10 @@ if do_register:
     #         -t ${ANTS_TRANSFORMATION} -f 6x4x2x1 -s 3x2x1x0"
     # exe_template_registration_1="${basecall} ${stage1} ${stage2} ${stage3}"
 
+    # We follow ANTs/Scripts/newAntsExample.sh:
+    # https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh
+    # as implemented in Nipype:
+    # https://github.com/nipy/nipype/blob/master/examples/rsfmri_preprocessing.py
     if registration_method == 'antsRegistration':
         reg = Node(Registration(), name='antsRegistration')
         mbFlow.add_nodes([reg])
@@ -604,24 +608,29 @@ if do_register:
                                              hashes, cache_env, cache)
         reg.inputs.fixed_image = os.path.abspath(volume_template_file)
         reg.inputs.output_transform_prefix = "output_"
-        # reg.inputs.output_warped_image = 'output_warped_image.nii.gz'
         reg.inputs.num_threads = n_processes
-        # # Concatenate the affine and ants transforms into a list:
-        # mbFlow.connect(reg, ('composite_transform', pickfirst), merge, 'in1')
 
         # General inputs:
         reg.inputs.dimension = 3
         reg.inputs.write_composite_transform = True
         reg.inputs.collapse_output_transforms = False
         reg.inputs.terminal_output = 'file'
+        reg.inputs.args = '--float'
         if do_register_labels:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
-                                               (0.2, 3.0, 0.0)]  #[0.1,3,0]
-            #reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
-            #                                   [[100, 50, 30]]) #100x100x70x20
-            reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
-                                               [[1, 0, 0]])
+                                               (0.2, 3.0, 0.0)]
+            # Iterations in newAntsExample.sh:
+            # https://github.com/stnava/ANTs/blob/master/Scripts/newAntsExample.sh
+            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
+                                               [[100, 50, 30]])
+            # Iterations in nipype:
+            # https://github.com/nipy/nipype/blob/master/examples/rsfmri_preprocessing.py
+            #reg.inputs.number_of_iterations = ([[100, 100, 100]]*3 +
+            #                                   [[100, 20, 10]])
+            # FAST for debugging:
+            #reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
+            #                                   [[1, 0, 0]])
             reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
             reg.inputs.metric_weight = [1] * 3 + [[0.5, 0.5]]
             reg.inputs.radius_or_number_of_bins = [32] * 3 + [[32, 4]]
@@ -2125,33 +2134,35 @@ import os
 from mindboggle.utils.io_table import read_columns
 from mindboggle.utils.utils import execute
 
-out_path = '/homedir/Mindboggle101/mindboggled/'
-atlas_list_file = '/homedir/Mindboggle101/code/mindboggle101_atlases.txt'
+atlas_list_file = '/brains/Mindboggle101/code/mindboggle101_atlases.txt'
 atlas_list = read_columns(atlas_list_file, 1)[0]
 
+c = ' '.join(['python mindboggler.py', '--sulci', '--fundi', '--vertices',
+              '--spectra 10', '--moments 10', '--visual hier', '--surface_labels manual'])
+ 
 for atlas in atlas_list:
     if 'MMRR-21-' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        cmd = c + ' ' + atlas
         execute(cmd)
 
 for atlas in atlas_list:
     if 'NKI-RS-' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        cmd = c + ' ' + atlas
         execute(cmd)
 
 for atlas in atlas_list:
     if 'NKI-TRT-' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        cmd = c + ' ' + atlas
         execute(cmd)
 
 for atlas in atlas_list:
     if 'OASIS-TRT-20' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        cmd = c + ' ' + atlas
         execute(cmd)
 
 for atlas in atlas_list:
     if 'HLN-' in atlas or 'Twins-' in atlas or 'Colin' in atlas or 'After' in atlas or '3T7T' in atlas:
-        cmd = ' '.join(['python mindboggler.py', '-o', out_path, atlas])
+        cmd = c + ' ' + atlas
         execute(cmd)
 
 """
