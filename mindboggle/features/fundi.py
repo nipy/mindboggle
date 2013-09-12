@@ -106,7 +106,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.compute import median_abs_dev
     from mindboggle.utils.paths import find_max_values
-    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.mesh import find_neighbors_from_file, find_complete_faces
     from mindboggle.utils.paths import find_outer_anchors, connect_points_erosion
 
     if isinstance(folds, list):
@@ -115,7 +115,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         sulci = np.array(sulci)
 
     # Load values, inner anchor threshold, and neighbors:
-    u1,u2,u3, points, npoints, curvs, u4,u5 = read_vtk(curv_file, True,True)
+    faces, u1,u2, points, npoints, curvs, u3,u4 = read_vtk(curv_file, True,True)
     depths, name = read_scalars(depth_file, True, True)
     values = curvs * depths
     values0 = [x for x in values if x > 0]
@@ -162,6 +162,13 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
                 erode_ratio, erode_min_size, save_steps=[], save_vtk='')
             if skeleton:
                 skeletons.extend(skeleton)
+
+            #-----------------------------------------------------------------
+            # Remove fundus vertices if they complete triangle faces:
+            #-----------------------------------------------------------------
+            Iremove = find_complete_faces(skeletons, faces)
+            if Iremove:
+                skeletons = list(frozenset(skeletons).difference(Iremove))
 
     #-------------------------------------------------------------------------
     # Create fundi by segmenting skeletons with overlapping sulcus labels:
