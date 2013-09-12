@@ -377,9 +377,7 @@ Sink.inputs.substitutions = [('_hemi_lh', 'left'),
     ('ImageMath.nii.gz', 'cortical_surface_masked_volume_labels.nii.gz'),
     ('overwrite_volume_labels.nii.gz',
      'cortical_surface_and_noncortical_volume_labels.nii.gz'),
-    ('WarpImageMultiTransform.nii.gz', 'registered_volume_labels.nii.gz'),
-    ('brain_to_OASIS-TRT-20_template_to_MNI152', 'brain_to_template_'),
-    ('OASIS-TRT-20to_MNI152.nii.gz', 'template')]
+    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas')]
 
 if run_SurfFlows:
     #-------------------------------------------------------------------------
@@ -618,10 +616,10 @@ if do_register:
             reg.inputs.transforms = ['Translation', 'Rigid', 'Affine', 'SyN']
             reg.inputs.transform_parameters = [(0.1,), (0.1,), (0.1,),
                                                (0.2, 3.0, 0.0)]  #[0.1,3,0]
-            reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
-                                               [[100, 50, 30]]) #100x100x70x20
-            #reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
-            #                                   [[1, 0, 0]])
+            #reg.inputs.number_of_iterations = ([[10000, 111110, 11110]]*3 +
+            #                                   [[100, 50, 30]]) #100x100x70x20
+            reg.inputs.number_of_iterations = ([[1, 1, 1]]*3 +
+                                               [[1, 0, 0]])
             reg.inputs.metric = ['Mattes'] * 3 + [['Mattes', 'CC']]
             reg.inputs.metric_weight = [1] * 3 + [[0.5, 0.5]]
             reg.inputs.radius_or_number_of_bins = [32] * 3 + [[32, 4]]
@@ -1421,8 +1419,8 @@ if run_SurfFlows:
         ZernikeLabels.inputs.order = zernike_order
         ZernikeLabels.inputs.exclude_labels = [0]
         ZernikeLabels.inputs.scale_input = True
-        ZernikeLabels.inputs.decimate_fraction = 0.75
-        ZernikeLabels.inputs.decimate_smooth = 25
+        ZernikeLabels.inputs.decimate_fraction = 0
+        ZernikeLabels.inputs.decimate_smooth = 0
 
         #---------------------------------------------------------------------
         # Measure Zernike moments of sulci
