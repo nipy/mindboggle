@@ -12,7 +12,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #-----------------------------------------------------------------------------
 # Functions for running shell commands:
 #-----------------------------------------------------------------------------
-def execute(cmd, type='subprocess'):
+def execute(cmd, type='os'):
     """
     Execute command by either subprocess.call or os.system.
 
