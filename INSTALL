@@ -20,7 +20,8 @@ Nipype_ software pipeline framework and its dependencies not included above::
     pip install nibabel
     pip install traits
     pip install nipype
-
+    For the latest dev source:  pip install git+git://github.com/nipy/nipype.git
+ 
 `Visualization Toolkit`_::
 
     conda install vtk (after installing anaconda)
