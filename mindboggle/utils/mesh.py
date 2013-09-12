@@ -230,6 +230,66 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
     return neighborhood
 
 
+def find_endpoints(indices, neighbor_lists):
+    """
+    Extract endpoints from connected set of vertices.
+
+    Parameters
+    ----------
+    indices : list of integers
+        indices to connected vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    indices_endpoints : list of integers
+        indices to endpoints of connected vertices
+
+    Examples
+    --------
+    >>> # Extract endpoints from a track in a fold:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file, find_endpoints
+    >>> from mindboggle.utils.paths import track_values
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> # Create a track from the minimum-depth vertex:
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> values, name = read_scalars(vtk_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> seed = indices_fold[np.argmin(values[indices_fold])]
+    >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
+    >>> #
+    >>> # Extract endpoints:
+    >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> IDs = -1 * np.ones(len(values))
+    >>> IDs[indices_fold] = 1
+    >>> IDs[indices] = 2
+    >>> IDs[indices_endpoints] = 3
+    >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
+    >>>                 IDs, 'endpoints', IDs)
+    >>> plot_surfaces('find_endpoints.vtk')
+
+    """
+
+    # Find vertices with only one neighbor in a set of given indices:
+    I = set(indices)
+    indices_endpoints = [x for x in indices
+                         if len(I.intersection(neighbor_lists[x])) == 1]
+
+    return indices_endpoints
+
+
 def find_edges(faces):
     """
     Find all edges on a mesh
@@ -329,8 +389,8 @@ def find_faces_with_vertex(index, faces):
 
     Returns
     -------
-    faces_with_vertex : list of integers
-        indices to faces that contain index
+    faces_with_vertex : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
 
     Examples
     --------
@@ -339,13 +399,10 @@ def find_faces_with_vertex(index, faces):
     >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
     >>> index = 3
     >>> find_faces_with_vertex(index, faces)
-        [1, 2, 4]
+        [[0, 2, 3], [0, 3, 4], [4, 3, 1]]
 
     """
-    faces_with_vertex = []
-    for i, face in enumerate(faces):
-        if index in face:
-            faces_with_vertex.append(i)
+    faces_with_vertex = [x for x in faces if index in x]
 
     return faces_with_vertex
 
@@ -462,6 +519,43 @@ def find_adjacent_faces(faces):
                 break
 
     return adjacent_faces
+
+
+def find_complete_faces(indices, faces):
+    """
+    Given a set of vertices, find the ones that make complete faces.
+
+    Parameters
+    ----------
+    indices : list of integers
+        indices to connected vertices
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    -------
+    indices_complete : list of integers
+        indices to vertices making up complete faces
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import find_complete_faces
+    >>> faces = [[0,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> indices = [3,7,2,5,9,4]
+    >>> find_complete_faces(indices, faces)
+    [2, 3, 7, 5]
+
+    """
+
+    indices_complete_list = []
+    for face in faces:
+        if len(list(frozenset(face).intersection(indices))) == 3:
+            indices_complete_list.extend(face)
+    indices_complete = []
+    [indices_complete.append(x) for x in indices_complete_list
+     if x not in indices_complete]
+
+    return indices_complete
 
 
 def remove_faces(faces, indices):
