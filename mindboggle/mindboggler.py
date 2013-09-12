@@ -164,7 +164,7 @@ do_fundi = args.fundi
 
 # Tables:
 no_tables = args.no_tables
-vertex_table = args.vertex_table
+vertex_table = args.vertices
 
 # Shapes:
 spectrum_size = args.spectra
