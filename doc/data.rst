@@ -25,13 +25,11 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  ..
-    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_DKT31_CMA_jointfusion_labels_in_MNI152_2mm.nii.gz>`_ version]
-    [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
-
   - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
+    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version]
   - Corresponding `label probabilities`_
   - Corresponding `OASIS-30 brain template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152.nii.gz>`_
+    [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ version]
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.

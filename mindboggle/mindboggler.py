@@ -102,12 +102,12 @@ parser.add_argument("--sulci", action='store_true',
 parser.add_argument("--fundi", action='store_true',
                     help="Extract, identify, and measure fundi")
 # Turn on/set label/feature shapes:
-parser.add_argument("--spectrum",
+parser.add_argument("--spectra",
                     help='Number of Laplace-Beltrami spectrum eigenvalues '
                          'per label or feature to store in shape tables: '
                          '10 recommended (default off)',
                     default=0, type=int, metavar='INT')
-parser.add_argument("--zernike",
+parser.add_argument("--moments",
                     help='Order of Zernike moments per label or feature '
                          'to store in shape tables: 10 recommended (default off) -- '
                          'Warning: SLOW',
@@ -165,8 +165,8 @@ no_tables = args.no_tables
 vertex_table = args.vertex_table
 
 # Shapes:
-spectrum_size = args.spectrum
-zernike_order = args.zernike
+spectrum_size = args.spectra
+zernike_order = args.moments
 
 # General:
 no_volumes = args.no_volumes
