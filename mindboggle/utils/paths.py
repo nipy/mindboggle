@@ -10,9 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
-# Connect points by erosion:
-#------------------------------------------------------------------------------
+
 def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                            values=[], erode_ratio=0.1, erode_min_size=10,
                            save_steps=[], save_vtk='', background_value=-1):
@@ -115,7 +113,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
 
     from mindboggle.utils.morph import topo_test, extract_edge
     from mindboggle.utils.segment import segment
-    from mindboggle.utils.paths import find_endpoints
+    from mindboggle.utils.mesh import find_endpoints
 
     # Make sure arguments are numpy arrays:
     if not isinstance(S, np.ndarray):
@@ -242,9 +240,6 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     return skeleton
 
 
-#------------------------------------------------------------------------------
-# Connect points using a Hidden Markov Measure Field:
-#------------------------------------------------------------------------------
 def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
                         wN_max=1.0, background_value=-1):
     """
@@ -644,11 +639,10 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     from time import time
 
     from mindboggle.utils.io_vtk import rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.mesh import find_neighbors_from_file, find_endpoints
     from mindboggle.utils.segment import segment
     from mindboggle.utils.morph import dilate
-    from mindboggle.utils.paths import find_endpoints, \
-        connect_points_erosion, connect_points_hmmf
+    from mindboggle.utils.paths import connect_points_erosion, connect_points_hmmf
 
     t0 = time()
 
@@ -970,14 +964,11 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     return None
 
 
-#-----------------------------------------------------------------------------
-# Find high-value boundary points:
-#-----------------------------------------------------------------------------
 def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
                        min_separation=10):
     """
     Find vertices on the boundary of a surface mesh region that are the
-    endpoints to multiple, high-value tracks through from the region's center.
+    endpoints to multiple, high-value tracks from the region's center.
 
     This algorithm propagates multiple tracks from seed vertices
     at a given depth within a region of a surface mesh to the boundary
@@ -1208,12 +1199,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     return endpoints, endtracks
 
 
-#------------------------------------------------------------------------------
-# Find points with maximal values that are not too close together.
-#------------------------------------------------------------------------------
 def find_max_values(points, values, min_separation=10, thr=0.5):
     """
-    Find highest value 'special' points that are not too close together.
+    Find points with maximal values that are not too close together.
 
     Steps ::
 
@@ -1323,69 +1311,6 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
         highest = []
 
     return highest
-
-
-#------------------------------------------------------------------------------
-# Extract endpoints:
-#------------------------------------------------------------------------------
-def find_endpoints(indices, neighbor_lists):
-    """
-    Extract endpoints from connected set of vertices.
-
-    Parameters
-    ----------
-    indices : list of integers
-        indices to connected vertices
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-
-    Returns
-    -------
-    indices_endpoints : list of integers
-        indices to endpoints of connected vertices
-
-    Examples
-    --------
-    >>> # Extract endpoints from a track in a fold:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.paths import track_values, find_endpoints
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> # Create a track from the minimum-depth vertex:
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    >>> values, name = read_scalars(vtk_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
-    >>> seed = indices_fold[np.argmin(values[indices_fold])]
-    >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
-    >>> #
-    >>> # Extract endpoints:
-    >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(values))
-    >>> IDs[indices_fold] = 1
-    >>> IDs[indices] = 2
-    >>> IDs[indices_endpoints] = 3
-    >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
-    >>>                 IDs, 'endpoints', IDs)
-    >>> plot_surfaces('find_endpoints.vtk')
-
-    """
-
-    # Find vertices with only one neighbor in a set of given indices:
-    I = set(indices)
-    indices_endpoints = [x for x in indices
-                         if len(I.intersection(neighbor_lists[x])) == 1]
-
-    return indices_endpoints
 
 
 # #------------------------------------------------------------------------------
