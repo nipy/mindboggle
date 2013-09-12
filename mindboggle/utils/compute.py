@@ -50,10 +50,8 @@ def point_distance(point, points):
 
     # If points is a single point
     if np.ndim(points) == 1:
-        return np.linalg.norm(np.array(point) - np.array(points))
-
-        # old return kept for reference below
-        return np.sqrt((point[0] - points[0]) ** 2 + \
+#        return np.linalg.norm(np.array(point) - np.array(points))
+       return np.sqrt((point[0] - points[0]) ** 2 + \
                        (point[1] - points[1]) ** 2 + \
                        (point[2] - points[2]) ** 2), 0
 
@@ -63,13 +61,11 @@ def point_distance(point, points):
         min_index = 0
         point = np.array(point)
         for index, point2 in enumerate(points):
+            distance = np.sqrt((point[0] - point2[0]) ** 2 + \
+                               (point[1] - point2[1]) ** 2 + \
+                               (point[2] - point2[2]) ** 2)
 
-        # old code kept for reference below
-        #    distance = np.sqrt((point[0] - point2[0]) ** 2 + \
-        #                       (point[1] - point2[1]) ** 2 + \
-        #                       (point[2] - point2[2]) ** 2)
-
-            distance = np.linalg.norm(point - np.array(point2))
+#            distance = np.linalg.norm(point - np.array(point2))
 
             if distance < min_distance:
                 min_distance = distance
