@@ -14,11 +14,15 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def zernike_moments(points, faces, order=10, scale_input=True,
-                    decimate_fraction=0.75, decimate_smooth=25):
+                    decimate_fraction=0, decimate_smooth=25):
     """
     Compute the Zernike moments of a surface patch of points and faces.
 
     Optionally decimate the input mesh.
+
+    Note::
+      Decimation sometimes leads to an error of "Segmentation fault: 11"
+      (Twins-2-1 left label 14 gives such an error only when decimated.)
 
     Parameters
     ----------
@@ -49,9 +53,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
     >>> scale_input = True
-    >>> decimate_fraction = 0
-    >>> decimate_smooth = 25
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
+    >>> zernike_moments(points, faces, order, scale_input)
     [0.0918881492369654,
      0.09357431096617608,
      0.04309029164656885,
@@ -68,8 +70,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
     >>> order = 3
     >>> scale_input = True
-    >>> decimate_fraction = 0
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
+    >>> zernike_moments(points, faces, order, scale_input)
     [0.0,
      1.5444366221695725e-21,
      0.0,
@@ -98,38 +99,13 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> decimate_fraction = 0
-    >>> decimate_smooth = 25
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
+    >>> zernike_moments(points, faces, order, scale_input)
      [0.005558794553842859,
      0.009838755429501177,
      0.003512500896236744,
      0.00899042745665395,
      0.001672289910738449,
      0.000919469614081582]
-    >>> # Example 4: Twins-2-1 left postcentral -- with 0.75 decimation:
-    >>> # Results closer to no decimation results than decimation with
-    >>> # 0, 10, 20, 30, or 100 smoothing steps (21 seconds)
-    >>> import os
-    >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
-    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
-    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
-    >>> faces = remove_faces(faces, I22)
-    >>> order = 3
-    >>> scale_input = True
-    >>> decimate_fraction = 0.75
-    >>> decimate_smooth = 25  # results closer to no decimation than 20 or 30
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
-    [0.00528486237819844,
-     0.009571754617699853,
-     0.0033489494903015944,
-     0.00875603468268444,
-     0.0015879536633349918,
-     0.0008080165707033097]
     >>> # Example 5: left postcentral + pars triangularis pial surfaces:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
@@ -144,9 +120,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> faces = remove_faces(faces, I22)
     >>> order = 3
     >>> scale_input = True
-    >>> decimate_fraction = 0.75
-    >>> decimate_smooth = 25
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
+    >>> zernike_moments(points, faces, order, scale_input)
     [0.006591540793309832,
      0.010749937070447451,
      0.0034900573103799214,
@@ -228,7 +202,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
 
 def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
                               scale_input=True,
-                              decimate_fraction=0.75, decimate_smooth=25):
+                              decimate_fraction=0, decimate_smooth=25):
     """
     Compute the Zernike moments per labeled region in a file.
 
@@ -268,10 +242,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> order = 3
     >>> exclude_labels = [0]
     >>> scale_input = True
-    >>> decimate_fraction = 0.75
-    >>> decimate_smooth = 25
-    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, scale_input,
-    >>>     decimate_fraction, decimate_smooth)
+    >>> zernike_moments_per_label(vtk_file, order, exclude_labels, scale_input)
     ([[0.00528486237819844,
        0.009571754617699853,
        0.0033489494903015944,
