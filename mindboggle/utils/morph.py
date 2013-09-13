@@ -38,7 +38,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.morph import dilate
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -56,7 +56,7 @@ def dilate(indices, nedges, neighbor_lists):
     >>> IDs[dilated_indices] = 2
     >>> IDs[indices] = 1
     >>> rewrite_scalars(vtk_file, 'dilate.vtk', IDs, 'dilated_fold', IDs)
-    >>> plot_vtk('dilate.vtk')
+    >>> plot_surfaces('dilate.vtk')
 
     """
     from mindboggle.utils.mesh import find_neighborhood
@@ -96,7 +96,7 @@ def erode(indices, nedges, neighbor_lists):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.morph import erode
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -114,7 +114,7 @@ def erode(indices, nedges, neighbor_lists):
     >>> IDs[indices] = 1
     >>> IDs[eroded_indices] = 2
     >>> rewrite_scalars(vtk_file, 'erode.vtk', IDs, 'eroded_fold', IDs)
-    >>> plot_vtk('erode.vtk')
+    >>> plot_surfaces('erode.vtk')
 
     """
     from mindboggle.utils.mesh import find_neighborhood
@@ -152,7 +152,7 @@ def extract_edge(indices, neighbor_lists):
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.morph import extract_edge
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
@@ -169,7 +169,7 @@ def extract_edge(indices, neighbor_lists):
     >>> IDs[indices] = 1
     >>> IDs[edge_indices] = 2
     >>> rewrite_scalars(vtk_file, 'extract_edge.vtk', IDs, 'edge', IDs)
-    >>> plot_vtk('extract_edge.vtk')
+    >>> plot_surfaces('extract_edge.vtk')
 
     """
     from mindboggle.utils.mesh import find_neighborhood
@@ -183,7 +183,8 @@ def extract_edge(indices, neighbor_lists):
 #-----------------------------------------------------------------------------
 # Fill holes
 #-----------------------------------------------------------------------------
-def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
+def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
+               background_value=-1):
     """
     Fill holes in regions on a surface mesh by using region boundaries.
 
@@ -200,7 +201,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     Parameters
     ----------
     regions : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     values : list of integers
@@ -208,11 +209,13 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     exclude_range : list of two floats
         hole is not filled if it contains values within this range
         (prevents cases where surface connected by folds mistaken for holes)
+    background_value : integer
+        background value
 
     Returns
     -------
     regions : numpy array of integers
-        region numbers for all vertices (default -1)
+        region numbers for all vertices
 
     Examples
     --------
@@ -220,10 +223,10 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors, remove_faces
     >>> from mindboggle.utils.morph import fill_holes
-    >>> from mindboggle.utils.segment import segment
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
+    >>> background_value = -1
     >>> # Select one fold
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, return_first=True, return_array=True)
@@ -232,9 +235,9 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>>     return_first=True, return_array=True)
     >>> neighbor_lists = find_neighbors(faces, npoints)
     >>> n_fold = np.unique(folds)[1]
-    >>> folds[folds != n_fold] = -1
+    >>> folds[folds != n_fold] = background_value
     >>> #
-    >>> # Make two holes in fold (values of -1 and excluded values)
+    >>> # Make two holes in fold (background value and excluded values)
     >>> # Hole 1:
     >>> # Find a vertex whose removal (with its neighbors) would create a hole
     >>> I = np.where(folds==n_fold)[0]
@@ -242,36 +245,36 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>>     N1 = neighbor_lists[index1]
     >>>     stop = True
     >>>     for n in N1:
-    >>>         if any(folds[neighbor_lists[n]] == -1):
+    >>>         if any(folds[neighbor_lists[n]] == background_value):
     >>>             stop = False
     >>>             break
     >>>         else:
     >>>             for f in neighbor_lists[n]:
-    >>>                 if any(folds[neighbor_lists[f]] == -1):
+    >>>                 if any(folds[neighbor_lists[f]] == background_value):
     >>>                     stop = False
     >>>                     break
     >>>     if stop:
     >>>         break
-    >>> folds[index1] = -1
-    >>> folds[N1] = -1
+    >>> folds[index1] = background_value
+    >>> folds[N1] = background_value
     >>> # Hole 2:
     >>> I = np.where(folds==n_fold)[0]
     >>> for index2 in I:
     >>>     N2 = neighbor_lists[index2]
     >>>     stop = True
     >>>     for n in N2:
-    >>>         if any(folds[neighbor_lists[n]] == -1):
+    >>>         if any(folds[neighbor_lists[n]] == background_value):
     >>>             stop = False
     >>>             break
     >>>         else:
     >>>             for f in neighbor_lists[n]:
-    >>>                 if any(folds[neighbor_lists[f]] == -1):
+    >>>                 if any(folds[neighbor_lists[f]] == background_value):
     >>>                     stop = False
     >>>                     break
     >>>     if stop:
     >>>         break
-    >>> folds[index2] = -1
-    >>> folds[N2] = -1
+    >>> folds[index2] = background_value
+    >>> folds[N2] = background_value
     >>> values = np.zeros(len(folds))
     >>> values[index2] = 100
     >>> values[N2] = 200
@@ -282,23 +285,24 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     >>> holes[N1] = 20
     >>> holes[index2] = 30
     >>> holes[N2] = 40
-    >>> indices = [i for i,x in enumerate(holes) if x > -1]
+    >>> indices = [i for i,x in enumerate(holes) if x != background_value]
     >>> write_vtk('holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('holes.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('holes.vtk')
     >>> #
     >>> # Fill Hole 1 but not Hole 2:
     >>> # (because values has an excluded value in the hole)
     >>> regions = np.copy(folds)
-    >>> regions = fill_holes(regions, neighbor_lists, values, [99,101])
+    >>> exclude_range = [99,101],
+    >>> regions = fill_holes(regions, neighbor_lists, values, exclude_range, background_value)
     >>> #
     >>> # Write results to vtk file and view:
-    >>> indices = [i for i,x in enumerate(regions) if x > -1]
+    >>> indices = [i for i,x in enumerate(regions) if x != background_value]
     >>> write_vtk('fill_holes.vtk', points, indices, lines,
     >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('fill_holes.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('fill_holes.vtk')
 
     """
     import numpy as np
@@ -315,16 +319,16 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
         Parameters
         ----------
         holes : list or array of integers
-            hole numbers for all vertices (default -1)
+            hole numbers for all vertices
         regions : numpy array of integers
-            region numbers for all vertices (default -1)
+            region numbers for all vertices
         neighbor_lists : list of lists of integers
             each list contains indices to neighboring vertices for each vertex
 
         Returns
         -------
         regions : numpy array of integers
-            region numbers for all vertices (default -1)
+            region numbers for all vertices
 
         """
         import numpy as np
@@ -334,7 +338,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
             regions = np.array(regions)
 
         # Identify the vertices for each hole
-        hole_numbers = [x for x in np.unique(holes) if x > -1]
+        hole_numbers = [x for x in np.unique(holes) if x != background_value]
         for n_hole in hole_numbers:
             I = [i for i,x in enumerate(holes) if x == n_hole]
 
@@ -350,10 +354,10 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     #-------------------------------------------------------------------------
     # Find boundaries to holes
     #-------------------------------------------------------------------------
-    hole_boundaries = -1 * np.ones(len(regions))
+    hole_boundaries = background_value * np.ones(len(regions))
 
     # Identify vertices for each region
-    region_numbers = [x for x in np.unique(regions) if x > -1]
+    region_numbers = [x for x in np.unique(regions) if x != background_value]
     count = 0
     for n_region in region_numbers:
         region_indices = np.where(regions == n_region)[0]
@@ -374,7 +378,8 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
             # Remove the largest region boundary, presumably the
             # outer contour of the region, leaving smaller boundaries,
             # presumably the contours of holes within the region
-            boundary_numbers = [x for x in np.unique(boundaries) if x > -1]
+            boundary_numbers = [x for x in np.unique(boundaries)
+                                if x != background_value]
             max_size = 0
             max_number = 0
             for n_boundary in boundary_numbers:
@@ -382,7 +387,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
                 if len(border_indices) > max_size:
                     max_size = len(border_indices)
                     max_number = n_boundary
-            boundaries[boundaries == max_number] = -1
+            boundaries[boundaries == max_number] = background_value
             boundary_numbers = [x for x in boundary_numbers if x != max_number]
 
             # Add remaining boundaries to holes array
@@ -396,10 +401,12 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
     #-------------------------------------------------------------------------
     # If there are any holes
     if count > 0:
-        hole_numbers = [x for x in np.unique(hole_boundaries) if x > -1]
-        background = [i for i,x in enumerate(regions) if x == -1]
+        hole_numbers = [x for x in np.unique(hole_boundaries)
+                        if x != background_value]
+        background = [i for i,x in enumerate(regions)
+                      if x == background_value]
 
-        # Grow seeds from hole boundaries to fill holes (background value -1)
+        # Grow seeds from hole boundaries to fill holes
         for n_hole in hole_numbers:
             seed_list = np.where(hole_boundaries == n_hole)[0].tolist()
             seed_lists = [list(frozenset(background).intersection(seed_list))]
@@ -408,10 +415,10 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[]):
             # Label the vertices for each hole by surrounding region number
             # if hole does not include values within exclude_range:
             if len(exclude_range) == 2:
-                Ihole = np.where(hole > -1)[0]
+                Ihole = np.where(hole != background_value)[0]
                 #if not len(frozenset(values[Ihole]).intersection(exclude_range)):
                 if not [x for x in values[Ihole]
-                        if x > exclude_range[0] and x < exclude_range[1]]:
+                        if x > exclude_range[0] if x < exclude_range[1]]:
                     regions = label_holes(hole, regions, neighbor_lists)
             else:
                 regions = label_holes(hole, regions, neighbor_lists)

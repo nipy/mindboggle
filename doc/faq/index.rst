@@ -14,7 +14,7 @@
 .. toctree::
    :maxdepth: 2
 
-   why_mindboggle
+   background
    why_license
    why_python
 

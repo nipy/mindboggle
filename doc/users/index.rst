@@ -5,7 +5,7 @@
 ============
  User Guide
 ============
-	
+
 .. htmlonly::
 
    :Release: |version|
@@ -14,8 +14,9 @@
 .. toctree::
    :maxdepth: 2
 
-   introduction
-   installation
+   README
+   INSTALL
+   THANKS
 
 .. htmlonly::
 

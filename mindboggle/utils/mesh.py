@@ -10,9 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#-----------------------------------------------------------------------------
-# Find all neighbors from faces in a VTK mesh file
-#-----------------------------------------------------------------------------
+
 def find_neighbors_from_file(input_vtk):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -34,7 +32,7 @@ def find_neighbors_from_file(input_vtk):
     >>> import numpy as np
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.io_vtk import rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> #
@@ -46,7 +44,7 @@ def find_neighbors_from_file(input_vtk):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(vtk_file, 'find_neighbors_from_file.vtk', IDs, 'neighbors', IDs)
-    >>> plot_vtk('find_neighbors_from_file.vtk')
+    >>> plot_surfaces('find_neighbors_from_file.vtk')
 
     """
     from mindboggle.utils.io_vtk import read_faces_points
@@ -59,9 +57,6 @@ def find_neighbors_from_file(input_vtk):
     return neighbor_lists
 
 
-#-----------------------------------------------------------------------------
-# Find all neighbors from faces
-#-----------------------------------------------------------------------------
 def find_neighbors(faces, npoints):
     """
     Generate the list of unique, sorted indices of neighboring vertices
@@ -105,8 +100,8 @@ def find_neighbors(faces, npoints):
     >>> IDs[index] = 1
     >>> IDs[neighbor_lists[index]] = 2
     >>> rewrite_scalars(vtk_file, 'find_neighbors.vtk', IDs, 'neighbors', IDs)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_neighbors.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('find_neighbors.vtk')
 
     """
 
@@ -132,9 +127,6 @@ def find_neighbors(faces, npoints):
     return neighbor_lists
 
 
-#-----------------------------------------------------------------------------
-# Find neighbors for a given vertex
-#-----------------------------------------------------------------------------
 def find_neighbors_vertex(faces, index):
     """
     Find neighbors to a surface mesh vertex.
@@ -182,9 +174,6 @@ def find_neighbors_vertex(faces, index):
     return neighbor_list
 
 
-#-----------------------------------------------------------------------------
-# Find neighborhood for given vertices
-#-----------------------------------------------------------------------------
 def find_neighborhood(neighbor_lists, indices, nedges=1):
     """
     Find neighbors in the neighborhood of given surface mesh vertices.
@@ -241,9 +230,66 @@ def find_neighborhood(neighbor_lists, indices, nedges=1):
     return neighborhood
 
 
-#-----------------------------------------------------------------------------
-# find all edges on the mesh
-#-----------------------------------------------------------------------------
+def find_endpoints(indices, neighbor_lists):
+    """
+    Extract endpoints from connected set of vertices.
+
+    Parameters
+    ----------
+    indices : list of integers
+        indices to connected vertices
+    neighbor_lists : list of lists of integers
+        each list contains indices to neighboring vertices for each vertex
+
+    Returns
+    -------
+    indices_endpoints : list of integers
+        indices to endpoints of connected vertices
+
+    Examples
+    --------
+    >>> # Extract endpoints from a track in a fold:
+    >>> import os
+    >>> import numpy as np
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.mesh import find_neighbors_from_file, find_endpoints
+    >>> from mindboggle.utils.paths import track_values
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
+    >>> # Create a track from the minimum-depth vertex:
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> values, name = read_scalars(vtk_file, True, True)
+    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> seed = indices_fold[np.argmin(values[indices_fold])]
+    >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
+    >>> #
+    >>> # Extract endpoints:
+    >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
+    >>> #
+    >>> # Write results to vtk file and view:
+    >>> IDs = -1 * np.ones(len(values))
+    >>> IDs[indices_fold] = 1
+    >>> IDs[indices] = 2
+    >>> IDs[indices_endpoints] = 3
+    >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
+    >>>                 IDs, 'endpoints', IDs)
+    >>> plot_surfaces('find_endpoints.vtk')
+
+    """
+
+    # Find vertices with only one neighbor in a set of given indices:
+    I = set(indices)
+    indices_endpoints = [x for x in indices
+                         if len(I.intersection(neighbor_lists[x])) == 1]
+
+    return indices_endpoints
+
+
 def find_edges(faces):
     """
     Find all edges on a mesh
@@ -276,9 +322,6 @@ def find_edges(faces):
     return edges
 
 
-#-----------------------------------------------------------------------------
-# find all triangle faces sharing each edge
-#-----------------------------------------------------------------------------
 def find_faces_at_edges(faces):
     """
     For each edge on the mesh, find the two faces that share the edge.
@@ -332,9 +375,38 @@ def find_faces_at_edges(faces):
     return faces_at_edges
 
 
-#-----------------------------------------------------------------------------
-# find all triangle faces centered at each node on the mesh
-#-----------------------------------------------------------------------------
+def find_faces_with_vertex(index, faces):
+    """
+    For a given vertex, find all faces containing this vertex.
+    Note: faces do not have to be triangles.
+
+    Parameters
+    ----------
+    index : integer
+        index to a vertex
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    -------
+    faces_with_vertex : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Examples
+    --------
+    >>> # Simple example:
+    >>> from mindboggle.utils.mesh import find_faces_with_vertex
+    >>> faces = [[0,1,2],[0,2,3],[0,3,4],[0,1,4],[4,3,1]]
+    >>> index = 3
+    >>> find_faces_with_vertex(index, faces)
+        [[0, 2, 3], [0, 3, 4], [4, 3, 1]]
+
+    """
+    faces_with_vertex = [x for x in faces if index in x]
+
+    return faces_with_vertex
+
+
 def find_faces_at_vertices(faces, npoints):
     """
     For each vertex, find all faces containing this vertex.
@@ -344,13 +416,12 @@ def find_faces_at_vertices(faces, npoints):
     ----------
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
-
     npoints: integer
         number of vertices on the mesh
 
     Returns
     -------
-    faces_at_vertex : list of lists of integers
+    faces_at_vertices : list of lists of integers
         faces_at_vertices[i] is a list of faces that contain the i-th vertex
 
     Examples
@@ -450,9 +521,43 @@ def find_adjacent_faces(faces):
     return adjacent_faces
 
 
-#-----------------------------------------------------------------------------
-# Filter faces
-#-----------------------------------------------------------------------------
+def find_complete_faces(indices, faces):
+    """
+    Given a set of vertices, find the ones that make complete faces.
+
+    Parameters
+    ----------
+    indices : list of integers
+        indices to connected vertices
+    faces : list of lists of three integers
+        the integers for each face are indices to vertices, starting from zero
+
+    Returns
+    -------
+    indices_complete : list of integers
+        indices to vertices making up complete faces
+
+    Examples
+    --------
+    >>> from mindboggle.utils.mesh import find_complete_faces
+    >>> faces = [[0,2,3], [2,3,7], [4,7,8], [3,2,5]]
+    >>> indices = [3,7,2,5,9,4]
+    >>> find_complete_faces(indices, faces)
+    [2, 3, 7, 5]
+
+    """
+
+    indices_complete_list = []
+    for face in faces:
+        if len(list(frozenset(face).intersection(indices))) == 3:
+            indices_complete_list.extend(face)
+    indices_complete = []
+    [indices_complete.append(x) for x in indices_complete_list
+     if x not in indices_complete]
+
+    return indices_complete
+
+
 def remove_faces(faces, indices):
     """
     Remove surface mesh faces whose three vertices are not all in "indices".
@@ -544,9 +649,6 @@ def reindex_faces_points(faces, points=[]):
     return new_faces, new_points
 
 
-#-----------------------------------------------------------------------------
-# Filter neighbor_lists
-#-----------------------------------------------------------------------------
 def remove_neighbor_lists(neighbor_lists, indices):
     """
     Remove all but a given set of indices from surface mesh neighbor lists.
@@ -611,10 +713,7 @@ def reindex_faces_0to1(faces):
     return faces
 
 
-#-----------------------------------------------------------------------------
-# Decimate mesh
-#-----------------------------------------------------------------------------
-def decimate(points, faces, reduction=0.5, smooth_steps=100,
+def decimate(points, faces, reduction=0.75, smooth_steps=25,
              scalars=[], save_vtk=False, output_vtk=''):
     """
     Decimate vtk triangular mesh with vtk.vtkDecimatePro.
@@ -650,30 +749,33 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
 
     Examples
     --------
+    >>> # Example: Twins-2-1 left postcentral pial surface, 0.75 decimation:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import decimate
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.mesh import remove_faces, decimate
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> reduction = 0.5
-    >>> smooth_steps = 100
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> faces, u1,u2, points, u3, scalars, u4,u5 = read_vtk(label_file)
+    >>> I22 = [i for i,x in enumerate(labels) if x==14] # postcentral
+    >>> faces = remove_faces(faces, I22)
+    >>> order = 3
+    >>> scale_input = True
+    >>> reduction = 0.75
+    >>> smooth_steps = 25  # results closer to no decimation than 20 or 30
     >>> save_vtk = False
     >>> output_vtk = ''
-    >>> faces, lines, indices, points, npoints, scalars, scalar_names,
-    ...     o2  = read_vtk(input_vtk)
     >>> points, faces, scalars, output_vtk = decimate(points, faces, reduction,
     >>>                                               smooth_steps, scalars,
     >>>                                               save_vtk, output_vtk)
-    >>> len(points) == 2679
+    >>> len(points) == 1060
     True
     >>> len(points)
-    2679
+    1060
     >>> # View:
     >>> output_vtk = 'decimated.vtk'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars,
-    >>>           scalar_names) # doctest: +SKIP
-    >>> plot_vtk(output_vtk) # doctest: +SKIP
+    >>> write_vtk(output_vtk, points, [], [], faces, scalars) # doctest: +SKIP
+    >>> plot_surfaces(output_vtk) # doctest: +SKIP
 
     """
     import os
@@ -732,6 +834,8 @@ def decimate(points, faces, reduction=0.5, smooth_steps=100,
         if not output_vtk:
             output_vtk = os.path.join(os.getcwd(), 'decimated.vtk')
         exporter = vtk.vtkPolyDataWriter()
+    else:
+        output_vtk = None
     if smooth_steps > 0:
         smoother = vtk.vtkSmoothPolyDataFilter()
         smoother.SetInput(decimate.GetOutput())
@@ -803,7 +907,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     --------
     >>> import os
     >>> from mindboggle.utils.mesh import decimate_file
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> #input_vtk='/drop/MB/data/arno/labels/lh.labels.DKT31.manual.vtk'
@@ -813,7 +917,7 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     >>> smooth_steps = 0
     >>> decimate_file(input_vtk, reduction, smooth_steps, save_vtk, output_vtk)
     >>> # View:
-    >>> plot_vtk('decimated.vtk') # doctest: +SKIP
+    >>> plot_surfaces('decimated.vtk') # doctest: +SKIP
 
     """
     from mindboggle.utils.io_vtk import read_vtk
@@ -826,4 +930,228 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     points, faces, scalars, output_vtk = decimate(points, faces, reduction,
                                                   smooth_steps, scalars,
                                                   save_vtk, output_vtk)
+    return output_vtk
+
+
+def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
+    """
+    Close a surface patch by connecting its border vertices with
+    corresponding vertices in a second surface file.
+
+    Assumes no lines or indices when reading VTK files in.
+
+    Note ::
+
+        Scalar values different than background define the surface patch.
+        The two sets of points have a 1-to-1 mapping; they are from
+        two surfaces whose corresponding vertices are shifted in position.
+        For pial vs. gray-white matter, the two surfaces are not parallel,
+        so connecting the vertices leads to intersecting faces.
+
+    Parameters
+    ----------
+    faces : list of lists of integers
+        each sublist contains 3 indices of vertices that form a face
+        on a surface mesh
+    points1 : list of lists of floats
+        each sublist contains 3-D coordinates of a vertex on a surface mesh
+    points2 : list of lists of floats
+        points from second surface with 1-to-1 correspondence with points1
+    scalars : numpy array of integers
+        labels used to find foreground vertices
+    background_value : integer
+        scalar value for background vertices
+
+    Returns
+    -------
+    closed_faces : list of lists of integers
+        indices of vertices that form a face on the closed surface mesh
+    closed_points : list of lists of floats
+        3-D coordinates from points1 and points2
+    closed_scalars : list of integers
+        scalar values for points1 and points2
+
+    Examples
+    --------
+    >>> # Example 1: build a cube by closing two parallel planes:
+    >>> import os
+    >>> from mindboggle.utils.mesh import close_surface_pair
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.utils.io_vtk import write_vtk
+    >>> # Build plane:
+    >>> background_value = -1
+    >>> n = 10  # plane edge length
+    >>> points1 = []
+    >>> for x in range(n):
+    >>>     for y in range(n):
+    >>>         points1.append([x,y,0])
+    >>> points2 = [[x[0],x[1],1] for x in points1]
+    >>> scalars = [background_value for x in range(len(points1))]
+    >>> p = n*(n-1)/2 - 1
+    >>> for i in [p, p+1, p+n, p+n+1]:
+    >>>     scalars[i] = 1
+    >>> faces = []
+    >>> for x in range(n-1):
+    >>>     for y in range(n-1):
+    >>>         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
+    >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
+    >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
+    >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
+    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
+    >>> # View:
+    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars)
+    >>> plot_surfaces('cube.vtk') # doctest: +SKIP
+    >>> #
+    >>> # Example 2: Gray and white cortical brain surfaces:
+    >>> import os
+    >>> from mindboggle.utils.mesh import close_surface_pair
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> patch_surface1 = 'fold.pial.vtk'
+    >>> whole_surface2 = 'fold.white.vtk'
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> points1 = read_points(folds_file)
+    >>> scalars, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> scalars[scalars != fold_number] = -1
+    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
+    >>> background_value = -1
+    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
+    >>> # View:
+    >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name)
+    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
+
+    """
+    import sys
+    import numpy as np
+
+    from mindboggle.utils.mesh import find_neighbors, remove_faces
+    from mindboggle.labels.labels import extract_borders
+
+    if isinstance(scalars, list):
+        scalars = np.array(scalars)
+
+    N = len(points1)
+    closed_points = points1 + points2
+
+    # Find all vertex neighbors and surface patch border vertices:
+    neighbor_lists = find_neighbors(faces, N)
+    I = np.where(scalars != background_value)[0]
+    scalars[scalars == background_value] = background_value + 1
+    scalars[I] = background_value + 2
+    scalars = scalars.tolist()
+    borders, u1, u2 = extract_borders(range(N), scalars, neighbor_lists)
+    if not len(borders):
+        sys.exit('There are no border vertices!')
+    borders = [x for x in borders if x in I]
+
+    # Reindex copy of faces and combine with original (both zero-index):
+    indices = range(N)
+    indices2 = range(N, 2 * N)
+    reindex = dict([(index, indices2[i]) for i, index in enumerate(indices)])
+    faces = remove_faces(faces, I)
+    faces2 = [[reindex[i] for i in face] for face in faces]
+    closed_faces = faces + faces2
+
+    # Connect border vertices between surface patches and add new faces:
+    add_faces = []
+    taken_already = []
+    for index in borders:
+        if index not in taken_already:
+            neighbors = list(set(neighbor_lists[index]).intersection(borders))
+            taken_already.append(index)
+            #taken_already.extend([index] + neighbors)
+            for neighbor in neighbors:
+                add_faces.append([index, index + N, neighbor])
+                add_faces.append([index + N, neighbor, neighbor + N])
+    closed_faces = closed_faces + add_faces
+
+    closed_scalars = scalars * 2
+
+    return closed_faces, closed_points, closed_scalars
+
+
+def close_surface_pair_from_files(patch_surface1, whole_surface2,
+                                  background_value=-1, output_vtk=''):
+    """
+    Close a surface patch by connecting its border vertices with
+    corresponding vertices in a second surface file.
+
+    Assumes no lines or indices when reading VTK files in.
+
+    Note ::
+
+        The first VTK file contains scalar values different than background
+        for a surface patch.  The second VTK file contains the (entire)
+        surface whose corresponding vertices are shifted in position.
+        For pial vs. gray-white matter, the two surfaces are not parallel,
+        so connecting the vertices leads to intersecting faces.
+
+    Parameters
+    ----------
+    patch_surface1 : string
+        vtk file with surface patch of non-background scalar values
+    whole_surface2 : string
+        second vtk file with 1-to-1 vertex correspondence with patch_surface1
+        (whole surface so as to derive vertex neighbor lists)
+    background_value : integer
+        scalar value for background vertices
+    output_vtk : string
+        output vtk file name with closed surface patch
+
+    Returns
+    -------
+    output_vtk : string
+        output vtk file name with closed surface patch
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.mesh import close_surface_pair_from_files
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> patch_surface1 = 'fold.pial.vtk'
+    >>> whole_surface2 = 'fold.white.vtk'
+    >>> # Select a single fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> points = read_points(folds_file)
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> fold_number = 11
+    >>> folds[folds != fold_number] = -1
+    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
+    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
+    >>> write_vtk(patch_surface1, points, [], [], faces, folds, name)
+    >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
+    >>> background_value = -1
+    >>> output_vtk = ''
+    >>> close_surface_pair_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
+    >>> # View:
+    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
+
+    """
+    import os
+
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    from mindboggle.utils.mesh import close_surface_pair
+
+    # Read VTK surface mesh files:
+    u1, u2, u3, points1, N, scalars, name, u4 = read_vtk(patch_surface1,
+                                                         True, True)
+    faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(whole_surface2,
+                                                     True, True)
+
+    # Close surface:
+    closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
+        points1, points2, scalars, background_value)
+
+    # Write output file:
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
+    write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
+              name)
+
     return output_vtk

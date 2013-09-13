@@ -72,7 +72,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>> from scipy.ndimage.filters import gaussian_filter1d
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -85,7 +85,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     >>>     min_fold_size, tiny_depth, save_file)
     >>> #
     >>> # View folds:
-    >>> plot_vtk('folds.vtk')
+    >>> plot_surfaces('folds.vtk')
     >>> # Plot histogram and depth threshold:
     >>> depths, name = read_scalars(depth_file)
     >>> nbins = np.round(len(depths) / 100.0)
@@ -287,7 +287,7 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.features.folds import extract_subfolds
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -302,7 +302,7 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     >>> #
     >>> # View:
     >>> rewrite_scalars(depth_file, 'subfolds.vtk', subfolds, 'subfolds', subfolds)
-    >>> plot_vtk('subfolds.vtk')
+    >>> plot_surfaces('subfolds.vtk')
 
     """
     import os

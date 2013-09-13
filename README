@@ -1,17 +1,21 @@
-=================
-Mindboggle README
-=================
+.. _README:
 
-This package enables a user to automate anatomical labeling,
+======
+README
+======
+
+The Mindboggle package enables a user to automate anatomical labeling,
 feature extraction, and shape analysis of human brain MR image data.
 
 Help
 ====
 - `Online documentation <http://mindboggle.info/documentation.html>`_
-- `INSTALL file <installation.html>`_ for installation instructions
+- `Installation instructions <INSTALL.html>`_
 - Help on the command line::
 
     >>> python mindboggler.py --help
+
+- `Contributor list <THANKS.html>`_
 
 License
 =======
@@ -99,8 +103,3 @@ vertices are number-labeled by anatomical label, feature, or shape.
     - Sulcus shapes
     - Fundus shapes
     - Vertex measures (optional)
-
-
-
-
-.. include:: doc/links_names.txt
