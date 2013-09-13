@@ -10,7 +10,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def realign_boundaries_to_fundus_lines(
-    surf_file, init_label_file, fundus_lines_file, out_label_file=None):
+    surf_file, init_label_file, fundus_lines_file, thickness_file,
+    out_label_file=None):
     """
     Fix label boundaries to fundus lines.
 
@@ -19,7 +20,9 @@ def realign_boundaries_to_fundus_lines(
     surf_file : file containing the surface geometry in vtk format
     init_label_file : file containing scalars that represent the
                       initial guess at labels
-    fundus_lines_file : file containing scalars representing fundus  lines.
+    fundus_lines_file : file containing scalars representing fundus lines.
+    thickness_file: file containing cortical thickness scalar data
+    (for masking out the medial wall only)
     out_label_file : if specified, the realigned labels will be writen to
                      this file
 
@@ -33,6 +36,7 @@ def realign_boundaries_to_fundus_lines(
     import mindboggle.utils.graph as go
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
     from mindboggle.utils.mesh import find_neighbors
+    import propagate_fundus_lines
 
     ## read files
     faces, _, indices, points, num_points, _, _, _ = read_vtk(
@@ -44,6 +48,15 @@ def realign_boundaries_to_fundus_lines(
 
     fundus_lines, _ = read_scalars(fundus_lines_file,
                                    return_first=True, return_array=True)
+
+    thickness, _ = read_scalars(thickness_file,
+                             return_first=True, return_array=True)
+
+    # remove labels from vertices with zero thickness (get around
+    # DKT40 annotations having the label '3' for all the Corpus
+    # Callosum vertices).
+    cc_inds = [x for x in indices if thickness[x] < 0.001]
+    init_labels[cc_inds] = 0
 
     ## setup seeds from initial label boundaries
     neighbor_lists = find_neighbors(faces, num_points)
@@ -72,21 +85,21 @@ def realign_boundaries_to_fundus_lines(
 
     ## propagate boundaries to fundus line vertices
     learned_matrix = _propagate_labels(
-       affinity_matrix, boundary_matrix, boundary_indices, 1000, 1)
+       affinity_matrix, boundary_matrix, boundary_indices, 100, 1)
 
     # assign labels to fundus line vertices based on highest probability
     new_boundaries = -1 * np.ones(init_labels.shape)
     fundus_line_indices = [i for i, x in enumerate(fundus_lines) if x > 0.5]
 
-    # TODO: this currently only works for fundus lines that tile the
-    # surface into connected components (which is fine when you want
-    # to test this method on fundus lines generated from manual
-    # labeling). However, to work on real data, fundus lines will
-    # need to be connected together using shortest paths.
+    # tile the surface into connected components delimited by fundus lines
+    closed_fundus_lines, _, _ = propagate_fundus_lines.propagate_fundus_lines(
+        points, faces, fundus_line_indices, thickness)
+
+    closed_fundus_line_indices = np.where(closed_fundus_lines > 0)[0]
 
     # split surface into connected components
     connected_component_faces = _remove_boundary_faces(
-        points, faces, fundus_line_indices)
+        points, faces, closed_fundus_line_indices)
 
     # label components based on most probable label assignment
     new_labels = _label_components(
@@ -291,7 +304,7 @@ def _remove_boundary_faces(points, faces, boundary_indices):
             if vertex in boundary_indices:
                 num_boundary_indices += 1
 
-        if num_boundary_indices < 2:
+        if num_boundary_indices == 0:
             result_faces.append(face)
 
     return result_faces
@@ -353,8 +366,8 @@ def _label_components(component_faces, num_points, boundary_indices,
                 labels = boundary_matrix_keys[index]
 
                 for label in labels:
-                    if label in used_labels:
-                        continue
+                    # if label in used_labels:
+                    #     continue
 
                     if label not in label_likelihoods:
                         label_likelihoods[label] = 0
@@ -374,3 +387,14 @@ def _label_components(component_faces, num_points, boundary_indices,
             used_labels.append(max_label)
 
     return result_labels
+
+def main(argv):
+    realign_boundaries_to_fundus_lines(argv[1],
+                                       argv[2],
+                                       argv[3],
+                                       argv[4],
+                                       argv[5])
+
+if __name__ == "__main__":
+    import sys
+    sys.exit(main(sys.argv))
