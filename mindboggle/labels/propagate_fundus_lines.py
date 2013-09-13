@@ -9,41 +9,88 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def propagate_fundus_lines(surf_file, fundus_lines_file):
+def propagate_fundus_lines(surf_file, fundus_lines_file, thickness_file):
+    """Propagate fundus lines to tile the surface.
+
+    Parameters
+    ----------
+    surf_file: file containing the surface geometry in vtk format
+    fundus_lines_file: file containing scalars representing fundus lines
+    thickness_file: file containing cortical thickness scalar data
+    (for masking out the medial wall only)
+
+    Returns
+    -------
+    scalars indicating whether each vertex is part of the closed
+    fundus lines or not
+    """
     from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.utils.mesh import find_neighbors
-    import numpy as np
 
     faces, _, _, points, num_points, fundus_lines, _, _ = read_vtk(
         surf_file, return_first=True, return_array=True)
 
     fundus_lines, _ = read_scalars(fundus_lines_file)
-    fundus_line_indices = np.where(
-        np.array(fundus_lines) >= 0)[0].tolist()
+    fundus_line_indices = [i for i, x in enumerate(fundus_lines) if x > 0.5]
 
+    thickness, _ = read_scalars(thickness_file,
+                             return_first=True, return_array=True)
+
+    return propagate_fundus_lines(
+        points, faces, fundus_line_indices, thickness)
+
+def propagate_fundus_lines(points, faces, fundus_line_indices, thickness):
+    """Propagate fundus lines to tile the surface.
+
+    Parameters
+    ----------
+    surf_file: file containing the surface geometry in vtk format
+    fundus_lines_file: file containing scalars representing fundus lines
+    thickness_file: file containing cortical thickness scalar data
+    (for masking out the medial wall only)
+
+    Returns
+    -------
+    scalars indicating whether each vertex is part of the closed
+    fundus lines or not
+    """
+    from mindboggle.utils.mesh import find_neighbors
+    import numpy as np
+
+    num_points = len(points)
     neighbor_lists = find_neighbors(faces, num_points)
+
+    # Find the boundary of the cc and call that a fundus line
+    cc_inds = [x for x in xrange(num_points) if thickness[x] < 0.001]
+    cc_boundary = [x for x in cc_inds if len([y for y in neighbor_lists[x]
+                                              if y not in cc_inds])]
+
+    fundus_line_indices += cc_boundary
 
     endpoints = _find_fundus_line_endpoints(
         fundus_line_indices, neighbor_lists)
 
-    closed_fundus_lines = _close_fundus_lines(points, fundus_lines,
+    closed_fundus_lines = _close_fundus_lines(points, fundus_line_indices,
                                               neighbor_lists, endpoints)
+    closed_fundus_line_indices = np.where(
+        np.array(closed_fundus_lines) > 0)[0].tolist()
+    new_endpoints = _find_fundus_line_endpoints(closed_fundus_line_indices,
+                                                neighbor_lists)
 
-    return closed_fundus_lines, points, faces
+    new_closed_fundus_lines = _close_fundus_lines(
+        points, closed_fundus_line_indices, neighbor_lists, new_endpoints)
+
+    return new_closed_fundus_lines, points, faces
 
 
 def _find_fundus_line_endpoints(fundus_line_indices, neighbor_lists):
     import numpy as np
     endpoints = []
 
-    open_fundus_line_indices = _correct_covered_faces(
-        fundus_line_indices, neighbor_lists)
-
-    while len(open_fundus_line_indices) > 0:
-        cur_ind = open_fundus_line_indices.pop()
+    for cur_ind in fundus_line_indices:
         num_fundus_line_neighbors = _count_fundus_line_neighbors(
             cur_ind, neighbor_lists, fundus_line_indices)
-        if num_fundus_line_neighbors == 1:
+
+        if num_fundus_line_neighbors < 2:
             endpoints.append(cur_ind)
 
     return endpoints
@@ -51,43 +98,11 @@ def _find_fundus_line_endpoints(fundus_line_indices, neighbor_lists):
 def _count_fundus_line_neighbors(index, neighbor_lists, fundus_line_indices):
     return len([x for x in neighbor_lists[index] if x in fundus_line_indices])
 
-def _correct_covered_faces(fundus_line_indices, neighbor_lists):
-    """Remove vertices from fundi if it is creating a triangle or more
-    at the end of the line.
-    """
-
-    corrected_indices = fundus_line_indices
-    for index in fundus_line_indices:
-        if index not in corrected_indices:
-            continue
-
-        for neighbor in neighbor_lists[index]:
-            if neighbor not in corrected_indices:
-                continue
-
-            for neighbor_neighbor in neighbor_lists[neighbor]:
-                if (neighbor_neighbor == index or
-                    neighbor not in corrected_indices):
-                    continue
-
-                # Look for a neighbor that is a neighbor of a
-                # neighbor, meaning they all share a face.
-                if index in neighbor_lists[neighbor_neighbor]:
-                    # Remove the first face index that has only two
-                    # fundus index neighbors
-                    for ind in [index, neighbor, neighbor_neighbor]:
-                        if _count_fundus_line_neighbors(
-                            ind, neighbor_lists, corrected_indices) == 2:
-                            print "removing %d" % ind
-                            corrected_indices.remove(ind)
-                            break
-
-    return corrected_indices
-
-def _close_fundus_lines(points, fundus_lines,
+def _close_fundus_lines(points, fundus_line_indices,
                         neighbor_lists, endpoint_indices):
     import numpy as np
-    closed_fundus_lines = np.array([1 if x >= 0 else 0 for x in fundus_lines])
+    closed_fundus_lines = np.zeros(len(points))
+    closed_fundus_lines[fundus_line_indices] = 1
 
     for endpoint in endpoint_indices:
         path = _find_shortest_path_to_any(
@@ -158,8 +173,10 @@ def _find_shortest_path_to_any(origin, targets, points, neighbor_lists):
 
 def main(argv):
     from mindboggle.utils.io_vtk import write_vtk
-    closed_fundus_lines, points, faces = propagate_fundus_lines(argv[1], argv[2])
-    write_vtk(argv[3], points, faces=faces, scalars=closed_fundus_lines)
+    closed_fundus_lines, points, faces = propagate_fundus_lines(argv[1],
+                                                                argv[2],
+                                                                argv[3])
+    write_vtk(argv[4], points, faces=faces, scalars=closed_fundus_lines)
 
 if __name__ == "__main__":
     import sys
