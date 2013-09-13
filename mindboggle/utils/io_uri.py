@@ -111,7 +111,7 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
             # If file not in cache, download file, compute hash, and verify:
             #-----------------------------------------------------------------
             else:
-                print("Retrieve file: {0}".format(url+data_file))
+                print("Retrieve file from the Mindboggle website: {0}".format(url+data_file))
     
                 # Download file as a temporary file:
                 temp_file = get_data(url+data_file)
@@ -165,10 +165,10 @@ def get_data(url, output_file=''):
     """
     import urllib
 
-    # Download file as a temporary file:
+    # Download file to specified output:
     if output_file:
         output_file, foo = urllib.urlretrieve(url, output_file)
-    # Download file to specified output:
+    # Download file as a temporary file:
     else:
         output_file, foo = urllib.urlretrieve(url)
 
@@ -195,7 +195,7 @@ def get_hash(data_file):
     >>> from mindboggle.data import hashes_url
     >>> from mindboggle.utils.io_uri import get_hash
     >>> cache_env = 'MINDBOGGLE_CACHE'
-    >>> hashes, url = hashes_url()
+    >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
     >>> data_path = os.path.join(os.environ[cache_env], data_file)
     >>> get_hash(data_path)

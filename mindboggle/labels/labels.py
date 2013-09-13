@@ -26,7 +26,7 @@ def extract_borders(indices, labels, neighbor_lists,
     indices : list of integers
         indices to (a subset of) vertices
     labels : numpy array of integers
-        label numbers for all vertices (-1 for unlabeled vertices)
+        label numbers for all vertices
     neighbor_lists : list of lists of integers
         each list contains indices to neighboring vertices for each vertex
     ignore_values : list of integers
@@ -45,7 +45,6 @@ def extract_borders(indices, labels, neighbor_lists,
     --------
     >>> # Small example:
     >>> from mindboggle.labels.labels import extract_borders
-    >>> from mindboggle.utils.plots import plot_vtk
     >>> indices = [0,1,2,4,5,8,9]
     >>> labels = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, -1, -1]
     >>> neighbor_lists = [[1,2,3], [1,2], [2,3], [2], [4,7], [3,2,3]]
@@ -59,7 +58,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.io_vtk import read_vtk, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file,
@@ -74,7 +73,7 @@ def extract_borders(indices, labels, neighbor_lists,
     >>> IDs[indices_borders] = 1
     >>> rewrite_scalars(labels_file, 'extract_borders.vtk',
     >>>                 IDs, 'borders', IDs)
-    >>> plot_vtk('extract_borders.vtk')
+    >>> plot_surfaces('extract_borders.vtk')
 
     """
     import numpy as np
@@ -88,8 +87,8 @@ def extract_borders(indices, labels, neighbor_lists,
 
     # Find indices to sets of two labels:
     border_indices = [indices[y] for y in
-                        [i for i,x in enumerate(L[indices])
-                         if len(set(x)) >= 2]]
+                      [i for i,x in enumerate(L[indices])
+                       if len(set(x)) >= 2]]
 
     if return_label_pairs:
         border_label_tuples = [np.sort(L[indices[j]]).tolist() for j in
@@ -120,7 +119,8 @@ def extract_borders(indices, labels, neighbor_lists,
 #-----------------------------------------------------------------------------
 # Extract border values from a second surface
 #-----------------------------------------------------------------------------
-def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
+def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
+                                background_value=-1):
     """
     Extract borders (between labels) on a surface.
     Options: Mask out values; extract border values on a second surface.
@@ -130,31 +130,34 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
     labels_file : string
         file name for surface mesh with labels
     mask_file : string
-        file name for surface mesh with mask (>-1) values
+        file name for surface mesh with mask (non-background) values
     values_file : string
         file name for surface mesh with values to extract along borders
+    background_value : integer
+        background value
 
     Returns
     -------
     border_file : string
-        file name for surface mesh with label borders (-1 background values)
+        file name for surface mesh with label borders (not background values)
     border_values : numpy array
-        values for all vertices (-1 for vertices not along label borders)
+        values for all vertices (background for vertices off label borders)
 
     Examples
     --------
     >>> # Extract depth values along label borders in sulci (mask):
     >>> import os
     >>> from mindboggle.labels.labels import extract_borders_2nd_surface
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> mask_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> background_value = -1
     >>> #
-    >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file)
+    >>> border_file, border_values = extract_borders_2nd_surface(labels_file, mask_file, values_file, background_value)
     >>> #
-    >>> plot_vtk(border_file)
+    >>> plot_surfaces(border_file)
 
     """
     import os
@@ -173,14 +176,14 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file=''):
                                         labels, neighbor_lists)
 
     # Filter values with label borders
-    border_values = -1 * np.ones(npoints)
+    border_values = background_value * np.ones(npoints)
     if values_file:
         values, name = read_scalars(values_file, return_first=True, return_array=True)
         border_values[indices_borders] = values[indices_borders]
     else:
         border_values[indices_borders] = 1
 
-    # Mask values (for mask >-1)
+    # Mask values
     if mask_file:
         mask_values, name = read_scalars(mask_file)
     else:

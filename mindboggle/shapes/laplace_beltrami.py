@@ -11,6 +11,7 @@ Dependency:
     http://docs.scipy.org/doc/scipy/reference/tutorial/arpack.html
 
 NOTE ::
+
     For ``points``, only include coordinates of vertices in the 3-D structure
     whose spectrum is to be calculated. For example, do not use coordinates
     of all POINTS from a VTK file as ``points`` and use only corresponding
@@ -264,16 +265,16 @@ def wesd(EVAL1, EVAL2, Vol1, Vol2, show_error=False, N=3):
     return WESD
 
 
-def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
+def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     """
     Compute linear finite-element method Laplace-Beltrami spectrum
     after Martin Reuter's MATLAB code.
 
     Note ::
 
-        Compare fem_laplacian() with Martin Reuter's Matlab code output:
+        Compare fem_laplacian() with Martin Reuter's Matlab eigenvalues:
 
-        fem_laplacian() results for Twins-2-1 left hemisphere:
+        fem_laplacian() results for Twins-2-1 left hemisphere (6 values):
         [4.829758648026221e-18,
          0.0001284173002467199,
          0.0002715181572272745,
@@ -281,23 +282,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
          0.0004701628070486448,
          0.0005768904023010318]
 
-        Martin Reuter's Matlab code:
-         Creator: ./shapeDNA-tria
-         Refine: 0
-         Degree: 1
-         Dimension: 2
-         Elements: 290134
-         DoF: 145069
-         NumEW: 6
-         Area: 110016
-         Volume: 534346
-         BLength: 0
-         EulerChar: 2
-         Time(pre) : 2
-         Time(calcAB) : 0
-         Time(calcEW) : 7
-         Time(total ) : 9
-        Eigenvalues:
+        Martin Reuter's shapeDNA-tria Matlab code:
         {-4.7207711983791511358e-18 ;
          0.00012841730024672144738 ;
          0.00027151815722727096853 ;
@@ -305,7 +290,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
          0.0004701628070486902353  ;
          0.00057689040230097490998 }
 
-        fem_laplacian() results for Twins-2-1 left hemisphere postcentral:
+        fem_laplacian() results for Twins-2-1 left postcentral (1022):
         [6.3469513010430304e-18,
          0.0005178862383467463,
          0.0017434911095630772,
@@ -314,12 +299,12 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
          0.006309346984678924]
 
         Martin Reuter's Matlab code:
-         -2.1954862991027e-18
-         0.0005178862383468
-         0.0017434911095628
-         0.0036675617674875
-         0.0054290178803611
-         0.006309346984678
+        {-2.1954862991027e-18 ;
+         0.0005178862383468 ;
+         0.0017434911095628 ;
+         0.0036675617674875 ;
+         0.0054290178803611 ;
+         0.006309346984678 }
 
     Parameters
     ----------
@@ -327,7 +312,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
         x,y,z coordinates for each vertex of the structure
     faces : list of lists of 3 integers
         3 indices to vertices that form a triangle on the mesh
-    n_eigenvalues : integer
+    spectrum_size : integer
         number of eigenvalues to be computed (the length of the spectrum)
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
@@ -336,7 +321,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     Returns
     -------
     spectrum : list
-        first n_eigenvalues eigenvalues for Laplace-Beltrami spectrum
+        first spectrum_size eigenvalues for Laplace-Beltrami spectrum
 
     Examples
     --------
@@ -346,9 +331,9 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     >>>           [0,0,1], [0,1,1], [1,1,1], [1,0,1]]
     >>> faces = [[0,1,2], [2,3,0], [4,5,6], [6,7,4], [0,4,7], [7,3,0],
     >>>          [0,4,5], [5,1,0], [1,5,6], [6,2,1], [3,7,6], [6,2,3]]
-    >>> fem_laplacian(points, faces, n_eigenvalues=3, normalization=None)
+    >>> fem_laplacian(points, faces, spectrum_size=3, normalization=None)
     [7.401486830834377e-17, 4.58359213500127, 4.799999999999998]
-    >>> fem_laplacian(points, faces, n_eigenvalues=3, normalization="area")
+    >>> fem_laplacian(points, faces, spectrum_size=3, normalization="area")
     [1.2335811384723967e-17, 0.76393202250021175, 0.79999999999999949]
     >>> # Spectrum for entire left hemisphere of Twins-2-1:
     >>> import os
@@ -358,44 +343,42 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     >>> vtk_file = os.path.join(path, 'arno', 'labels',
     >>>                         'lh.labels.DKT25.manual.vtk')
     >>> faces, points, npoints = read_faces_points(vtk_file)
-    >>> fem_laplacian(points, faces, n_eigenvalues=6, normalization=None)
-    [4.829758648026221e-18,
-     0.0001284173002467199,
-     0.0002715181572272745,
-     0.0003205150847159417,
-     0.0004701628070486448,
+    >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
+    [4.829758648026222e-18,
+     0.0001284173002467197,
+     0.000271518157227274,
+     0.00032051508471594065,
+     0.0004701628070486444,
      0.0005768904023010318]
-    >>> # Spectrum for Twins-2-1 left hemisphere postcentral (label 22):
+    >>> # Spectrum for Twins-2-1 left postcentral pial surface (22):
     >>> import os
-    >>> from mindboggle.utils.io_vtk import read_faces_points
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import fem_laplacian
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> faces, points, npoints = read_faces_points(label_file)
-    >>> fem_laplacian(points, faces, n_eigenvalues=6, normalization=None)
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
+    >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
+    >>> faces = remove_faces(faces, I22)
+    >>> faces, points = reindex_faces_points(faces, points)
+    >>> #from mindboggle.utils.io_vtk import read_faces_points
+    >>> #label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
+    >>> #faces, points, npoints = read_faces_points(label_file)
+    >>> fem_laplacian(points, faces, spectrum_size=6, normalization=None)
     [6.3469513010430304e-18,
-     0.0005178862383467463,
-     0.0017434911095630772,
-     0.003667561767487686,
-     0.005429017880363784,
-     0.006309346984678924]
+     0.0005178862383467462,
+     0.0017434911095630795,
+     0.0036675617674876856,
+     0.005429017880363785,
+     0.006309346984678933]
     >>> # Area-normalized spectrum for a single label (postcentral):
-    >>> fem_laplacian(points, faces, n_eigenvalues=6, normalization="area")
+    >>> fem_laplacian(points, faces, spectrum_size=6, normalization="area")
     [1.1410192787181146e-21,
-     9.310268097367205e-08,
-     3.1343504525679678e-07,
-     6.593336681038072e-07,
+     9.3102680973672063e-08,
+     3.1343504525679647e-07,
+     6.5933366810380741e-07,
      9.7599836081654446e-07,
-     1.1342589857996216e-06]
-    >>> # testing LBO on previously failed folds 
-    >>> import subprocess
-    >>> cmd = ["find", "/media/USBDATA/data/Mindboggle_MRI/MB101/results/features/", "-name", "fold_*.vtk"]
-    >>> process = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    >>> out, err = process.communicate()
-    >>> pblm_vtks = out.split()
-    >>> import mindboggle.shapes.laplace_beltrami
-    >>> for vtk_file in pblm_vtks:
-        mindboggle.shapes.laplace_beltrami.spectrum_from_file(vtk_file)
+     1.1342589857996233e-06]
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
@@ -407,9 +390,9 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     # Compute A and B matrices (from Reuter et al., 2009):
     #-----------------------------------------------------------------
     A, B = computeAB(points, faces)
-    if A.shape[0] <= n_eigenvalues:
+    if A.shape[0] <= spectrum_size:
         print("The 3D shape has too few vertices ({0} <= {1}). Skip.".
-              format(A.shape[0], n_eigenvalues))
+              format(A.shape[0], spectrum_size))
         return None
 
     #-----------------------------------------------------------------
@@ -419,7 +402,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
 
         # eigs is for nonsymmetric matrices while
         # eigsh is for real-symmetric or complex-Hermitian matrices:
-        eigenvalues, eigenvectors = eigsh(A, k=n_eigenvalues, M=B,
+        eigenvalues, eigenvectors = eigsh(A, k=spectrum_size, M=B,
                                           sigma=0)
         spectrum = eigenvalues.tolist()
 
@@ -432,7 +415,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
         print("Warning: lobpcg can produce different results from "
               "Reuter (2006) shapeDNA-tria software.")
         # Initial eigenvector values:
-        init_eigenvecs = np.random.random((A.shape[0], n_eigenvalues))
+        init_eigenvecs = np.random.random((A.shape[0], spectrum_size))
 
         # maxiter = 40 forces lobpcg to use 20 iterations.
         # Strangely, largest=false finds largest eigenvalues
@@ -457,7 +440,7 @@ def fem_laplacian(points, faces, n_eigenvalues=20, normalization=None):
     return spectrum
 
 
-def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
+def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
                         normalization=None, areas=None):
     """
     Compute Laplace-Beltrami spectrum on largest connected segment.
@@ -471,7 +454,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
         x,y,z coordinates for each vertex of the structure
     faces : list of lists of 3 integers
         3 indices to vertices that form a triangle on the mesh
-    n_eigenvalues : integer
+    spectrum_size : integer
         number of eigenvalues to be computed (the length of the spectrum)
     exclude_labels : list of integers
         background values to exclude
@@ -484,31 +467,32 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
     Returns
     -------
     spectrum : list
-        first n_eigenvalues eigenvalues for Laplace-Beltrami spectrum
+        first spectrum_size eigenvalues for Laplace-Beltrami spectrum
 
     Examples
     --------
-    >>> # Spectrum for one label (artificial composite), two fragments:
+    >>> # Spectrum for left postcentral + pars triangularis pial surfaces:
     >>> import os
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
-    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_of_largest
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> n_eigenvalues = 6
+    >>> spectrum_size = 6
     >>> exclude_labels = [-1]
     >>> normalization = None
     >>> faces, lines, indices, points, u1, labels, u2,u3 = read_vtk(label_file,
     >>>      return_first=True, return_array=True)
-    >>> I19 = [i for i,x in enumerate(labels) if x==19] # pars orbitalis
+    >>> I20 = [i for i,x in enumerate(labels) if x==20] # pars triangularis
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
-    >>> I19.extend(I22)
-    >>> faces = remove_faces(faces, I19)
+    >>> I22.extend(I20)
+    >>> faces = remove_faces(faces, I22)
+    >>> faces, points = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
-    >>> spectrum_of_largest(points, faces, n_eigenvalues, exclude_labels,
+    >>> spectrum_of_largest(points, faces, spectrum_size, exclude_labels,
     >>>                     normalization, areas)
     [6.3469513010430304e-18,
      0.0005178862383467463,
@@ -517,13 +501,13 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
      0.005429017880363784,
      0.006309346984678924]
     >>> # View both segments:
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> scalars = np.zeros(np.shape(labels))
-    >>> scalars[I19] = 1
+    >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
     >>>           scalars, scalar_names='scalars')
-    >>> plot_vtk(vtk_file)
+    >>> plot_surfaces(vtk_file)
 
     """
     from scipy.sparse.linalg import eigsh, lobpcg
@@ -536,12 +520,12 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
         areas = np.array(areas)
 
     # Check to see if there are enough points:
-    min_npoints = n_eigenvalues
+    min_points_faces = spectrum_size
     npoints = len(points) 
-    if npoints < min_npoints or len(faces) < min_npoints:
+    if npoints < min_points_faces or len(faces) < min_points_faces:
         print("The input size {0} ({1} faces) should be much larger "
-              "than n_eigenvalues ({2})".
-              format(npoints, len(faces), n_eigenvalues))
+              "than spectrum_size ({2})".
+              format(npoints, len(faces), spectrum_size))
         return None
     else:
 
@@ -552,7 +536,7 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
                                        reindex=True)
 
         # Alert if the number of indices is small:
-        if len(points) < min_npoints:
+        if len(points) < min_points_faces:
             print("The input size {0} is too small.".format(len(points)))
             return None
         elif faces:
@@ -560,115 +544,14 @@ def spectrum_of_largest(points, faces, n_eigenvalues=20, exclude_labels=[-1],
             #-----------------------------------------------------------------
             # Compute spectrum:
             #-----------------------------------------------------------------
-            spectrum = fem_laplacian(points, faces, n_eigenvalues,
+            spectrum = fem_laplacian(points, faces, spectrum_size,
                                      normalization)
             return spectrum
         else:
             return None
 
 
-def spectrum_per_label(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
-                       normalization='area', area_file='',
-                       largest_segment=True):
-    """
-    Compute Laplace-Beltrami spectrum per labeled region in a file.
-
-    Parameters
-    ----------
-    vtk_file : string
-        name of VTK surface mesh file containing index scalars (labels)
-    n_eigenvalues : integer
-        number of eigenvalues to be computed (the length of the spectrum)
-    exclude_labels : list of integers
-        labels to be excluded
-    normalization : string
-        the method used to normalize eigenvalues ('area' or None)
-        if "area", use area of the 2D structure as in Reuter et al. 2006
-    area_file :  string
-        name of VTK file with surface area scalar values
-    largest_segment :  Boolean
-        compute spectrum only for largest segment with a given label?
-
-    Returns
-    -------
-    spectrum_lists : list of lists
-        first eigenvalues for each label's Laplace-Beltrami spectrum
-    label_list : list of integers
-        list of unique labels for which spectra are obtained
-
-    Examples
-    --------
-    >>> # Spectrum for label 22 (postcentral) in Twins-2-1
-    >>> # (after running explode_scalars() with reindex=True):
-    >>> import os
-    >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
-    >>> n_eigenvalues = 6
-    >>> exclude_labels = [0]  #[-1]
-    >>> largest_segment = True
-    >>> spectrum_per_label(vtk_file, n_eigenvalues, exclude_labels, None,
-    >>>                    area_file, largest_segment)
-    ([[6.3469513010430304e-18,
-       0.0005178862383467463,
-       0.0017434911095630772,
-       0.003667561767487686,
-       0.005429017880363784,
-       0.006309346984678924]],
-     [22])
-
-    """
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars
-    from mindboggle.utils.mesh import remove_faces
-    from mindboggle.shapes.laplace_beltrami import fem_laplacian,\
-        spectrum_of_largest
-
-    # Read VTK surface mesh file:
-    faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(vtk_file)
-
-    # Area file:
-    if area_file:
-        areas, u1 = read_scalars(area_file)
-    else:
-        areas = None
-
-    # Loop through labeled regions:
-    ulabels = []
-    [ulabels.append(int(x)) for x in labels if x not in ulabels
-     if x not in exclude_labels]
-    label_list = []
-    spectrum_lists = []
-    for label in ulabels:
-      #if label==22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
-
-        # Determine the indices per label:
-        label_indices = [i for i,x in enumerate(labels) if x == label]
-        print('{0} vertices for label {1}'.format(len(label_indices), label))
-
-        # Remove background faces:
-        select_faces = remove_faces(faces, label_indices)
-
-        # Compute Laplace-Beltrami spectrum for the label:
-        if largest_segment:
-            exclude_labels_inner = [-1]
-            spectrum = spectrum_of_largest(points, select_faces,
-                                           n_eigenvalues,
-                                           exclude_labels_inner,
-                                           normalization, areas)
-        else:
-            spectrum = fem_laplacian(points, select_faces,
-                                     n_eigenvalues, normalization)
-
-        # Append to a list of lists of spectra:
-        spectrum_lists.append(spectrum)
-        label_list.append(label)
-
-    return spectrum_lists, label_list
-
-
-def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
+def spectrum_from_file(vtk_file, spectrum_size=10, exclude_labels=[-1],
                        normalization=None, area_file=''):
     """
     Compute Laplace-Beltrami spectrum of a 3D shape in a VTK file.
@@ -677,7 +560,7 @@ def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     ----------
     vtk_file : string
         the input vtk file
-    n_eigenvalues : integer
+    spectrum_size : integer
         number of eigenvalues to be computed (the length of the spectrum)
     exclude_labels : list of integers
         labels to be excluded
@@ -690,7 +573,7 @@ def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     Returns
     -------
     spectrum : list of floats
-        first n_eigenvalues of Laplace-Beltrami spectrum
+        first spectrum_size of Laplace-Beltrami spectrum
 
     Examples
     --------
@@ -699,20 +582,20 @@ def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
-    [4.829758648026221e-18,
-     0.00012841730024672036,
-     0.00027151815722727465,
-     0.00032051508471594065,
-     0.0004701628070486447,
-     0.0005768904023010338]
-    >>> # Spectrum for label 22 (postcentral)
+    >>> spectrum_from_file(vtk_file, spectrum_size=6)
+    [4.829758648026223e-18,
+     0.00012841730024671977,
+     0.0002715181572272744,
+     0.00032051508471594173,
+     0.000470162807048644,
+     0.0005768904023010327]
+    >>> # Spectrum for Twins-2-1 left postcentral pial surface (22)
     >>> # (after running explode_scalars() with reindex=True):
     >>> import os
     >>> from mindboggle.shapes.laplace_beltrami import spectrum_from_file
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
-    >>> spectrum_from_file(vtk_file, n_eigenvalues=6)
+    >>> spectrum_from_file(vtk_file, spectrum_size=6)
     [6.3469513010430304e-18,
      0.0005178862383467463,
      0.0017434911095630772,
@@ -738,10 +621,112 @@ def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     else:
         areas = None
 
-    spectrum = spectrum_of_largest(points, faces, n_eigenvalues,
+    spectrum = spectrum_of_largest(points, faces, spectrum_size,
                                    exclude_labels, normalization, areas)
 
     return spectrum
+
+
+def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
+                       normalization='area', area_file='',
+                       largest_segment=True):
+    """
+    Compute Laplace-Beltrami spectrum per labeled region in a file.
+
+    Parameters
+    ----------
+    vtk_file : string
+        name of VTK surface mesh file containing index scalars (labels)
+    spectrum_size : integer
+        number of eigenvalues to be computed (the length of the spectrum)
+    exclude_labels : list of integers
+        labels to be excluded
+    normalization : string
+        the method used to normalize eigenvalues ('area' or None)
+        if "area", use area of the 2D structure as in Reuter et al. 2006
+    area_file :  string
+        name of VTK file with surface area scalar values
+    largest_segment :  Boolean
+        compute spectrum only for largest segment with a given label?
+
+    Returns
+    -------
+    spectrum_lists : list of lists
+        first eigenvalues for each label's Laplace-Beltrami spectrum
+    label_list : list of integers
+        list of unique labels for which spectra are obtained
+
+    Examples
+    --------
+    >>> # Uncomment "if label==22:" below to run example:
+    >>> # Spectrum for Twins-2-1 left postcentral (22) pial surface:
+    >>> import os
+    >>> from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> spectrum_size = 6
+    >>> exclude_labels = [0]  #[-1]
+    >>> largest_segment = True
+    >>> spectrum_per_label(vtk_file, spectrum_size, exclude_labels, None,
+    >>>                    area_file, largest_segment)
+    ([[6.3469513010430304e-18,
+       0.0005178862383467463,
+       0.0017434911095630772,
+       0.003667561767487686,
+       0.005429017880363784,
+       0.006309346984678924]],
+     [22])
+
+    """
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars
+    from mindboggle.utils.mesh import remove_faces, reindex_faces_points
+    from mindboggle.shapes.laplace_beltrami import fem_laplacian,\
+        spectrum_of_largest
+
+    # Read VTK surface mesh file:
+    faces, u1, u2, points, u4, labels, u5, u6 = read_vtk(vtk_file)
+
+    # Area file:
+    if area_file:
+        areas, u1 = read_scalars(area_file)
+    else:
+        areas = None
+
+    # Loop through labeled regions:
+    ulabels = []
+    [ulabels.append(int(x)) for x in labels if x not in ulabels
+     if x not in exclude_labels]
+    label_list = []
+    spectrum_lists = []
+    for label in ulabels:
+      #if label == 22:
+      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
+
+        # Determine the indices per label:
+        Ilabel = [i for i,x in enumerate(labels) if x == label]
+        print('{0} vertices for label {1}'.format(len(Ilabel), label))
+
+        # Remove background faces:
+        pick_faces = remove_faces(faces, Ilabel)
+        pick_faces, pick_points = reindex_faces_points(pick_faces, points)
+
+        # Compute Laplace-Beltrami spectrum for the label:
+        if largest_segment:
+            exclude_labels_inner = [-1]
+            spectrum = spectrum_of_largest(pick_points, pick_faces,
+                                           spectrum_size,
+                                           exclude_labels_inner,
+                                           normalization, areas)
+        else:
+            spectrum = fem_laplacian(pick_points, pick_faces,
+                                     spectrum_size, normalization)
+
+        # Append to a list of lists of spectra:
+        spectrum_lists.append(spectrum)
+        label_list.append(label)
+
+    return spectrum_lists, label_list
 
 
 #if __name__ == "__main__":
@@ -757,5 +742,5 @@ def spectrum_from_file(vtk_file, n_eigenvalues=20, exclude_labels=[-1],
     # faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     #
     # print("Linear FEM Laplace-Beltrami spectrum\n\t{0}\n".format(
-    #     fem_laplacian(points, faces, n_eigenvalues=5)))
+    #     fem_laplacian(points, faces, spectrum_size=5)))
 

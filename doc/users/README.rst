@@ -1,4 +1,4 @@
-.. _introduction:
+.. _README:
 
 .. include:: ../../README
 

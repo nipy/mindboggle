@@ -17,9 +17,7 @@
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
-.. _Graphviz: http://www.graphviz.org/
 .. _sphinx: http://sphinx.pocoo.org/
-.. _Sphinx: http://sphinx.pocoo.org/
 .. _`Sphinx reST`: http://sphinx.pocoo.org/rest.html
 .. _reST: http://docutils.sourceforge.net/rst.html
 .. _docutils: http://docutils.sourceforge.net
@@ -63,6 +61,7 @@
 .. _pythonxy: http://www.pythonxy.com/
 .. _canopy: https://www.enthought.com/products/canopy/
 .. _anaconda: https://store.continuum.io/cshop/anaconda/
+.. _vtkviewer: https://github.com/HalCanary/vtkviewer
 
 .. Non-python brain imaging software
 .. _ANTS: http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
@@ -84,4 +83,8 @@
 .. _Arno: http://binarybottle.com
 .. _`Arno Klein`: http://binarybottle.com
 .. _`Satrajit Ghosh`: http://mit.edu/~satra
-
+.. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
+.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
+.. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
+.. _`Martin Reuter`: http://reuter.mit.edu/
+.. _`Hal Canary`: http://cs.unc.edu/~hal/
