@@ -630,7 +630,8 @@ def compute_image_histogram(infile, nbins=100, threshold=0.0):
 
 
 def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
-    set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars'):
+    set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars',
+    background_value=-1):
     """
     Rescale the scalar values of a VTK file by a percentile value
     in each vertex's surface mesh neighborhood.
@@ -651,6 +652,8 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
         save output VTK file?
     output_filestring : string (if save_file)
         name of output file
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -664,7 +667,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> import os
     >>> from mindboggle.shapes.measure import rescale_by_neighborhood
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> indices = []
@@ -673,9 +676,10 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> set_max_to_1 = True
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
+    >>> background_value = -1
     >>> #
     >>> rescaled_scalars, rescaled_scalars_file = rescale_by_neighborhood(input_vtk,
-    >>>     indices, nedges, p, set_max_to_1, save_file, output_filestring)
+    >>>     indices, nedges, p, set_max_to_1, save_file, output_filestring, background_value)
     >>> #
     >>> # View rescaled scalar values per fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -683,19 +687,18 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
     >>>                 rescaled_scalars, 'rescaled_depths', folds)
-    >>> plot_vtk(rescaled_scalars_file)
+    >>> plot_surfaces(rescaled_scalars_file)
 
     """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file, find_neighborhood
-    from mindboggle.shapes.measure import rescale_by_neighborhood
 
     # Load scalars and vertex neighbor lists:
     scalars, name = read_scalars(input_vtk, True, True)
     if not indices:
-        indices = [i for i,x in enumerate(scalars) if x != -1]
+        indices = [i for i,x in enumerate(scalars) if x != background_value]
     print("  Rescaling {0} scalar values by neighborhood...".format(len(indices)))
     neighbor_lists = find_neighbors_from_file(input_vtk)
 
@@ -734,8 +737,7 @@ def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
     return rescaled_scalars, rescaled_scalars_file
 
 
-def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
-                     nedges=10, p=99, set_max_to_1=True, save_file=False,
+def rescale_by_label(input_vtk, labels_or_file, save_file=False,
                      output_filestring='rescaled_scalars'):
     """
     Rescale scalars for each label (such as depth values within each fold).
@@ -749,14 +751,6 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
         name of VTK file with a scalar value for each vertex
     labels_or_file : list or string
         label number for each vertex or name of VTK file with index scalars
-    combine_all_labels : Boolean
-        combine all labels (scalars not equal to -1) as one label?
-    nedges : integer (if norm_by_neighborhood)
-        number or edges from vertex, defining the size of its neighborhood
-    p : float in range of [0,100] (if norm_by_neighborhood)
-        percentile used to rescale each scalar
-    set_max_to_1 : Boolean
-        set all rescaled values greater than 1 to 1.0?
     save_file : Boolean
         save output VTK file?
     output_filestring : string (if save_file)
@@ -775,20 +769,15 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
     >>> import os
     >>> from mindboggle.shapes.measure import rescale_by_label
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
-    >>> combine_all_labels = False
-    >>> nedges = 10
-    >>> p = 99
-    >>> set_max_to_1 = True
     >>> save_file = True
     >>> output_filestring = 'rescaled_scalars'
     >>> #
     >>> rescaled_scalars, rescaled_scalars_file = rescale_by_label(input_vtk,
-    >>>     labels_or_file, combine_all_labels, nedges, p,
-    >>>     set_max_to_1, save_file, output_filestring)
+    >>>     labels_or_file, save_file, output_filestring)
     >>> #
     >>> # View rescaled scalar values per fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -796,13 +785,12 @@ def rescale_by_label(input_vtk, labels_or_file, combine_all_labels=False,
     >>> #
     >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
     >>>                 rescaled_scalars, 'rescaled_depths', folds)
-    >>> plot_vtk(rescaled_scalars_file)
+    >>> plot_surfaces(rescaled_scalars_file)
 
     """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file
 
     # Load scalars and vertex neighbor lists:
     scalars, name = read_scalars(input_vtk, True, True)

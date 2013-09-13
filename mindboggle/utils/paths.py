@@ -10,12 +10,10 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#------------------------------------------------------------------------------
-# Connect points by erosion:
-#------------------------------------------------------------------------------
+
 def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                            values=[], erode_ratio=0.1, erode_min_size=10,
-                           save_steps=[], save_vtk=''):
+                           save_steps=[], save_vtk='', background_value=-1):
     """
     Connect mesh vertices with a skeleton of 1-vertex-thick curves by erosion.
 
@@ -24,8 +22,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
 
     Parameters
     ----------
-    S : numpy array of integers in {-1,1}
-        values of 1 or -1 for all vertices
+    S : numpy array of integers
+        values for all vertices
     outer_anchors : list of integers
         indices of vertices to connect
     inner_anchors : list of integers
@@ -43,6 +41,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
         iterations at which to save incremental VTK file
     save_vtk : string
         name of VTK file to transfer incremental values (if save_steps)
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -59,7 +59,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> from mindboggle.utils.paths import find_max_values
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import connect_points_erosion, find_outer_anchors
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> #
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
@@ -68,13 +68,14 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> depths, name = read_scalars(depth_file, True, True)
     >>> values = curvs * depths
     >>> neighbor_lists = find_neighbors_from_file(curv_file)
+    >>> background_value = -1
     >>> #
     >>> # Single fold:
     >>> fold_number = 1 #11
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> S = -1 * np.ones(len(values))
+    >>> S = background_value * np.ones(len(values))
     >>> S[indices] = 1
     >>> #
     >>> # Outer anchors:
@@ -94,25 +95,25 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     >>> save_vtk = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> skeleton = connect_points_erosion(S, neighbor_lists,
     >>>     outer_anchors, inner_anchors, values, erode_ratio, erode_min_size,
-    >>>     save_steps, save_vtk)
-    >>> #if save_steps:  plot_vtk('edge'+str(save_steps[0])+'.vtk')
+    >>>     save_steps, save_vtk, background_value)
+    >>> #if save_steps:  plot_surfaces('edge'+str(save_steps[0])+'.vtk')
     >>> #
     >>> # Write out vtk file and view:
-    >>> D = -1 * np.ones(len(values))
+    >>> D = background_value * np.ones(len(values))
     >>> D[indices] = 1
     >>> D[skeleton] = 2
     >>> D[outer_anchors] = 3
-    >>> folds[folds != fold_number] = -1
+    >>> folds[folds != fold_number] = background_value
     >>> rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
     >>>                 D, 'skeleton', folds)
-    >>> plot_vtk('connect_points_erosion.vtk')
+    >>> plot_surfaces('connect_points_erosion.vtk')
 
     """
     import numpy as np
 
     from mindboggle.utils.morph import topo_test, extract_edge
     from mindboggle.utils.segment import segment
-    from mindboggle.utils.paths import find_endpoints
+    from mindboggle.utils.mesh import find_endpoints
 
     # Make sure arguments are numpy arrays:
     if not isinstance(S, np.ndarray):
@@ -147,7 +148,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
         # Only consider updating vertices that are on the edge of the
         # region and are not among the indices to keep or known simple points:
         #---------------------------------------------------------------------
-        indices = np.where(S == 1)[0].tolist()
+        indices = np.where(S != background_value)[0].tolist()
         edge = extract_edge(indices, neighbor_lists)
         if edge:
             edge = np.array(list(set(edge).difference(complex)))
@@ -159,13 +160,13 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                 #-------------------------------------------------------------
                 edge_segs = segment(edge, neighbor_lists)
                 edge_seg_numbers = [x for x in np.unique(edge_segs)
-                                    if x != -1]
+                                    if x != background_value]
                 len_numbers = len(edge_seg_numbers)
-                if len_numbers > 1:
-                    print('    {0}: {1} edge points in {2} segments'.
-                          format(count, len_edge, len_numbers))
-                else:
-                    print('    {0}: {1} edge points'.format(count, len_edge))
+                #if len_numbers > 1:
+                #    print('    {0}: {1} edge points in {2} segments'.
+                #          format(count, len_edge, len_numbers))
+                #else:
+                #    print('    {0}: {1} edge points'.format(count, len_edge))
                 first_seg = True
                 for edge_seg_number in edge_seg_numbers:
                     edge_seg = np.where(edge_segs == edge_seg_number)[0]
@@ -192,7 +193,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                             # If a simple point, remove and run again:
                             # (Note: Must remove at each iteration)
                             if simple:
-                                S[index] = -1
+                                S[index] = background_value
                                 exist_simple = True
                             # Else store to exclude in future:
                             else:
@@ -205,7 +206,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                                 simple, d = topo_test(index, S, neighbor_lists)
                                 # If a simple point, remove and run again:
                                 if simple:
-                                    S[index] = -1
+                                    S[index] = background_value
                                     exist_simple = True
                                 # Else store to exclude in future:
                                 else:
@@ -213,7 +214,7 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
 
                         # Save incremental VTK files for debugging:
                         if count in save_steps and first_seg:
-                            IDs = -1 * np.ones(len(values))
+                            IDs = background_value * np.ones(len(values))
                             IDs[indices] = values[indices]
                             rewrite_scalars(save_vtk,
                                             'edge'+str(count)+'.vtk',
@@ -224,14 +225,14 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
                 # Remove branches by iteratively removing endpoints:
                 #-------------------------------------------------------------
                 if remove_endpoints:
-                    indices = np.where(S == 1)[0].tolist()
+                    indices = np.where(S != background_value)[0].tolist()
                     endpts = True
                     while endpts:
                         endpts = find_endpoints(indices, neighbor_lists)
                         if endpts:
                             endpts = [x for x in endpts if x not in outer_anchors]
                             if endpts:
-                                S[endpts] = -1
+                                S[endpts] = background_value
                                 indices = list(set(indices).difference(endpts))
 
     skeleton = indices
@@ -239,10 +240,8 @@ def connect_points_erosion(S, neighbor_lists, outer_anchors, inner_anchors=[],
     return skeleton
 
 
-#------------------------------------------------------------------------------
-# Connect points using a Hidden Markov Measure Field:
-#------------------------------------------------------------------------------
-def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
+def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
+                        wN_max=1.0, background_value=-1):
     """
     Connect mesh vertices with a skeleton of 1-vertex-thick curves using HMMF.
 
@@ -277,6 +276,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
         indices to neighboring vertices for each vertex
     wN_max : float
         maximum neighborhood weight (trust prior more for smoother fundi)
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -292,9 +293,10 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     ...                                     read_faces_points, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors
     >>> from mindboggle.utils.paths import find_outer_anchors, connect_points_hmmf
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> background_value = -1
     >>> # Get neighbor_lists, scalars
     >>> faces, points, npoints = read_faces_points(vtk_file)
     >>> neighbor_lists = find_neighbors(faces, npoints)
@@ -302,7 +304,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> fold_number = 1 #11
-    >>> folds[folds != fold_number] = -1
+    >>> folds[folds != fold_number] = background_value
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> # Find endpoints:
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
@@ -314,16 +316,16 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
     ...     neighbor_lists, values, values_seeding, min_separation)
     >>> wN_max = 2.0
     >>> #
-    >>> S = connect_points_hmmf(keep, indices, values, neighbor_lists, wN_max)
+    >>> S = connect_points_hmmf(keep, indices, values, neighbor_lists, wN_max, background_value)
     >>> #S = connect_points_hmmf(keep, indices, values_seeding, neighbor_lists, wN_max)
     >>> #
     >>> # View:
-    >>> skeleton = -1 * np.ones(npoints)
+    >>> skeleton = background_value * np.ones(npoints)
     >>> skeleton[S] = 1
     >>> skeleton[keep] = 2
     >>> rewrite_scalars(folds_file, 'connect_points_hmmf.vtk',
     >>>                 skeleton, 'skeleton', folds)
-    >>> plot_vtk('connect_points_hmmf.vtk')
+    >>> plot_surfaces('connect_points_hmmf.vtk')
 
     """
     import numpy as np
@@ -561,7 +563,8 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists, wN_max=1.0):
 
 
 def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
-                    wN_max=1.0, erode_again=False, save_file=False):
+                    wN_max=1.0, erode_again=False, save_file=False,
+                    background_value=-1):
     """
     Smooth skeleton by dilation followed by connect_points_hmmf().
 
@@ -577,7 +580,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     skeletons : list of integers
         skeleton number for each vertex
     bounds : list of integers
-        region number for each vertex; if not -1, constrains smoothed skeletons
+        region number for each vertex; constrains smoothed skeletons
     vtk_file : string
         file from which to extract neighboring vertices for each vertex
     likelihoods : list of integers
@@ -588,15 +591,17 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
         smooth skeleton?
     save_file : Boolean
         save output VTK file?
+    background_value : integer
+        background value
 
     Returns
     -------
     skeletons : list of integers
-        skeleton numbers for all vertices (-1 for non-skeleton vertices)
+        skeleton numbers for all vertices
     n_skeletons :  integer
         number of skeletons
     skeletons_file : string (if save_file)
-        name of output VTK file with skeleton numbers (-1 default)
+        name of output VTK file with skeleton numbers
 
     Examples
     --------
@@ -604,7 +609,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> single_fold = True
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.utils.paths import smooth_skeleton
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> likelihoods_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
@@ -614,17 +619,18 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     >>> skeletons, name = read_scalars(skeletons_file, True, True)
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> bounds, name = read_scalars(folds_file, True, True)
+    >>> background_value = -1
     >>> if single_fold:
     >>>     fold_number = 1 #11
-    >>>     bounds[bounds != fold_number] = -1
+    >>>     bounds[bounds != fold_number] = background_value
     >>> wN_max = 1.0
     >>> erode_again = False
     >>> save_file = True
     >>> smooth_skeletons, n_skeletons, skeletons_file = smooth_skeleton(skeletons,
-    >>>     bounds, vtk_file, likelihoods, wN_max, erode_again, save_file)
+    >>>     bounds, vtk_file, likelihoods, wN_max, erode_again, save_file, background_value)
     >>> #
     >>> # View:
-    >>> plot_vtk(skeletons_file)
+    >>> plot_surfaces(skeletons_file)
 
     """
 
@@ -633,29 +639,28 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
     from time import time
 
     from mindboggle.utils.io_vtk import rewrite_scalars
-    from mindboggle.utils.mesh import find_neighbors_from_file
+    from mindboggle.utils.mesh import find_neighbors_from_file, find_endpoints
     from mindboggle.utils.segment import segment
     from mindboggle.utils.morph import dilate
-    from mindboggle.utils.paths import find_endpoints, \
-        connect_points_erosion, connect_points_hmmf
+    from mindboggle.utils.paths import connect_points_erosion, connect_points_hmmf
 
     t0 = time()
 
     neighbor_lists = find_neighbors_from_file(vtk_file)
-    indices = np.where(bounds != -1)[0]
+    indices = np.where(bounds != background_value)[0]
     npoints = len(bounds)
 
     #-------------------------------------------------------------------------
     # Loop through skeletons:
     #-------------------------------------------------------------------------
-    unique_IDs = [x for x in np.unique(skeletons) if x != -1]
+    unique_IDs = [x for x in np.unique(skeletons) if x != background_value]
     n_skeletons = len(unique_IDs)
     if n_skeletons == 1:
         sdum = ''
     else:
         sdum = 's'
     print("Smooth {0} skeleton{1}...".format(n_skeletons, sdum))
-    Z = -1 * np.ones(npoints)
+    Z = background_value * np.ones(npoints)
     smooth_skeletons = Z.copy()
     for ID in unique_IDs:
         skeleton = [i for i,x in enumerate(skeletons) if x == ID]
@@ -665,7 +670,8 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
         # Segment skeleton vertices into separate connected groups:
         #---------------------------------------------------------------------
         skel_segs = segment(skeleton, neighbor_lists)
-        skel_seg_numbers = [x for x in np.unique(skel_segs) if x != -1]
+        skel_seg_numbers = [x for x in np.unique(skel_segs)
+                            if x != background_value]
         len_numbers = len(skel_seg_numbers)
         if len_numbers > 1:
             print('    {0} segments'.format(len_numbers))
@@ -681,7 +687,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
             # Dilate the skeleton within the bounds:
             #-----------------------------------------------------------------
             nedges = 2
-            print('    Dilate skeleton within bounds...')
+            #print('    Dilate skeleton within bounds...')
             dilated = dilate(skel_seg, nedges, neighbor_lists)
             dilated = list(set(dilated).intersection(indices))
             if dilated:
@@ -698,7 +704,7 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
                         dilated, [], [], 1, 0, [], '')
     
                 #-------------------------------------------------------------
-                # Set undilated likelihoods to -1 to preserve neighbors:
+                # Set undilated likelihoods to background to keep neighbors:
                 #-------------------------------------------------------------
                 L = Z.copy()
                 L[dilated] = likelihoods[dilated]
@@ -711,11 +717,11 @@ def smooth_skeleton(skeletons, bounds, vtk_file, likelihoods,
                     neighbor_lists, wN_max)
     
                 ## Plot overlap of dilated and pre-/post-smoothed skeleton:
-                #from mindboggle.utils.plots import plot_vtk
-                #D = -1*np.ones(npoints)
+                #from mindboggle.utils.plots import plot_surfaces
+                #D = background_value * np.ones(npoints)
                 #D[dilated]=1; D[skel_seg]=2; D[new_skeleton]=3
                 #rewrite_scalars(vtk_file, 'test.vtk', D, 'D', bounds)
-                #plot_vtk('test.vtk')
+                #plot_surfaces('test.vtk')
     
                 #-------------------------------------------------------------
                 # Store skeleton:
@@ -776,7 +782,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import track_values
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -796,7 +802,7 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
     >>> T[track] = 1
     >>> T[seed] = 2
     >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', fold)
-    >>> plot_vtk('track.vtk')
+    >>> plot_surfaces('track.vtk')
 
     """
     import numpy as np
@@ -835,7 +841,8 @@ def track_values(seed, indices, neighbor_lists, values, sink=[]):
         return None
 
 
-def track_segments(seed, segments, neighbor_lists, values, sink):
+def track_segments(seed, segments, neighbor_lists, values, sink,
+                   background_value=-1):
     """
     Build a track from a seed vertex through concentric segments of a mesh.
 
@@ -855,6 +862,8 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
         values for all vertices that help to guide a track
     sink : list of integers
         indices for vertices that end a track
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -871,17 +880,18 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> from mindboggle.labels.labels import extract_borders
     >>> from mindboggle.utils.segment import segment_rings
     >>> from mindboggle.utils.paths import track_segments
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_file = os.path.join(path, 'arno', 'shapes', 'likelihoods.vtk')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> neighbor_lists = find_neighbors_from_file(vtk_file)
+    >>> background_value = -1
     >>> folds, name = read_scalars(folds_file, True, True)
     >>> # Select a single fold:
     >>> fold_number = 11
-    >>> folds[folds != fold_number] = -1
+    >>> folds[folds != fold_number] = background_value
     >>> indices = [i for i,x in enumerate(folds) if x == fold_number]
     >>> seeds = [x for x in indices if values[x] > np.median(values[indices])]
     >>> segments = segment_rings(indices, seeds, neighbor_lists, step=1)
@@ -894,10 +904,10 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     >>> track = track_segments(seed, segments, neighbor_lists, values, borders)
     >>> #
     >>> # View:
-    >>> T = -1 * np.ones(len(values))
+    >>> T = background_value * np.ones(len(values))
     >>> T[track] = 1
     >>> rewrite_scalars(vtk_file, 'track.vtk', T, 'track', folds)
-    >>> plot_vtk('track.vtk')
+    >>> plot_surfaces('track.vtk')
 
     """
     import numpy as np
@@ -911,7 +921,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
 
         # Find the seed's neighborhood N in the segment:
         N = neighbor_lists[seed]
-        N = [x for x in N if values[x] != -1]
+        N = [x for x in N if values[x] != background_value]
         segment_set = set(segment)
         N_segment = list(segment_set.intersection(frozenset(N)))
         if N:
@@ -954,14 +964,11 @@ def track_segments(seed, segments, neighbor_lists, values, sink):
     return None
 
 
-#-----------------------------------------------------------------------------
-# Find high-value boundary points:
-#-----------------------------------------------------------------------------
 def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
                        min_separation=10):
     """
     Find vertices on the boundary of a surface mesh region that are the
-    endpoints to multiple, high-value tracks through from the region's center.
+    endpoints to multiple, high-value tracks from the region's center.
 
     This algorithm propagates multiple tracks from seed vertices
     at a given depth within a region of a surface mesh to the boundary
@@ -997,7 +1004,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
     >>> from mindboggle.utils.paths import find_outer_anchors
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> values_seeding_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> values_seeding, name = read_scalars(values_seeding_file, True, True)
@@ -1025,7 +1032,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> values[all_tracks] = max(values) + 0.1
     >>> rewrite_scalars(vtk_file, 'endpoints.vtk',
     ...                 values, 'endpoints_on_values_in_fold', folds)
-    >>> plot_vtk('endpoints.vtk')
+    >>> plot_surfaces('endpoints.vtk')
     >>> #---------------------------------------------------------------------
     >>> # Extract endpoints and their tracks on every fold in a hemisphere:
     >>> #---------------------------------------------------------------------
@@ -1051,7 +1058,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     >>> # Write results to VTK file and view:
     >>> rewrite_scalars(folds_file, 'find_outer_anchors.vtk',
     >>>                 P, 'tracks_endpoints_on_folds', folds)
-    >>> plot_vtk('find_outer_anchors.vtk')
+    >>> plot_surfaces('find_outer_anchors.vtk')
 
     """
     import numpy as np
@@ -1192,12 +1199,9 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     return endpoints, endtracks
 
 
-#------------------------------------------------------------------------------
-# Find points with maximal values that are not too close together.
-#------------------------------------------------------------------------------
 def find_max_values(points, values, min_separation=10, thr=0.5):
     """
-    Find highest value 'special' points that are not too close together.
+    Find points with maximal values that are not too close together.
 
     Steps ::
 
@@ -1214,7 +1218,7 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     points : numpy array of floats
         coordinates for all vertices
     values : list (or array) of integers
-        values of some kind to maximize over for all vertices (default -1)
+        values of some kind to maximize over for all vertices
     min_separation : integer
         minimum number of edges between maximum value vertices
     thr : float
@@ -1261,8 +1265,8 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     >>> values[highest] = np.max(values) + 0.1
     >>> rewrite_scalars(likelihood_file, 'find_max_values.vtk',
     >>>                 values, 'find_max_values_in_folds', folds)
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('find_max_values.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('find_max_values.vtk')
 
     """
     import numpy as np
@@ -1309,69 +1313,6 @@ def find_max_values(points, values, min_separation=10, thr=0.5):
     return highest
 
 
-#------------------------------------------------------------------------------
-# Extract endpoints:
-#------------------------------------------------------------------------------
-def find_endpoints(indices, neighbor_lists):
-    """
-    Extract endpoints from connected set of vertices.
-
-    Parameters
-    ----------
-    indices : list of integers
-        indices to connected vertices
-    neighbor_lists : list of lists of integers
-        each list contains indices to neighboring vertices for each vertex
-
-    Returns
-    -------
-    indices_endpoints : list of integers
-        indices to endpoints of connected vertices
-
-    Examples
-    --------
-    >>> # Extract endpoints from a track in a fold:
-    >>> import os
-    >>> import numpy as np
-    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.utils.paths import track_values, find_endpoints
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> indices_fold = [i for i,x in enumerate(folds) if x == fold_number]
-    >>> # Create a track from the minimum-depth vertex:
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
-    >>> values, name = read_scalars(vtk_file, True, True)
-    >>> neighbor_lists = find_neighbors_from_file(vtk_file)
-    >>> seed = indices_fold[np.argmin(values[indices_fold])]
-    >>> indices = track_values(seed, indices_fold, neighbor_lists, values, sink=[])
-    >>> #
-    >>> # Extract endpoints:
-    >>> indices_endpoints = find_endpoints(indices, neighbor_lists)
-    >>> #
-    >>> # Write results to vtk file and view:
-    >>> IDs = -1 * np.ones(len(values))
-    >>> IDs[indices_fold] = 1
-    >>> IDs[indices] = 2
-    >>> IDs[indices_endpoints] = 3
-    >>> rewrite_scalars(vtk_file, 'find_endpoints.vtk',
-    >>>                 IDs, 'endpoints', IDs)
-    >>> plot_vtk('find_endpoints.vtk')
-
-    """
-
-    # Find vertices with only one neighbor in a set of given indices:
-    I = set(indices)
-    indices_endpoints = [x for x in indices
-                         if len(I.intersection(neighbor_lists[x])) == 1]
-
-    return indices_endpoints
-
-
 # #------------------------------------------------------------------------------
 # # Find points with maximal values that are not too close together.
 # #------------------------------------------------------------------------------
@@ -1394,7 +1335,7 @@ def find_endpoints(indices, neighbor_lists):
 #     points : numpy array of floats
 #         coordinates for all vertices
 #     values : list (or array) of integers
-#         values of some kind to maximize over for all vertices (default -1)
+#         values of some kind to maximize over for all vertices
 #     min_directions : numpy array of floats
 #         minimum directions for all vertices
 #     min_separation : integer
@@ -1443,8 +1384,8 @@ def find_endpoints(indices, neighbor_lists):
 #     >>> values[indices_special] = np.max(values) + 0.1
 #     >>> rewrite_scalars(likelihood_file, 'find_anchors.vtk',
 #     >>>                 values, 'find_anchors_on_values_in_folds', folds)
-#     >>> from mindboggle.utils.plots import plot_vtk
-#     >>> plot_vtk('find_anchors.vtk')
+#     >>> from mindboggle.utils.plots import plot_surfaces
+#     >>> plot_surfaces('find_anchors.vtk')
 #
 #     """
 #     import numpy as np
@@ -1549,5 +1490,5 @@ if __name__ == "__main__":
     folds[folds != fold_number] = -1
     rewrite_scalars(folds_file, 'connect_points_erosion.vtk',
                     D, 'skeleton', folds)
-    from mindboggle.utils.plots import plot_vtk
-    plot_vtk('connect_points_erosion.vtk')
+    from mindboggle.utils.plots import plot_surfaces
+    plot_surfaces('connect_points_erosion.vtk')

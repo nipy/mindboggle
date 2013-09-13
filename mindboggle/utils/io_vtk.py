@@ -282,7 +282,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         each element is an edge on the mesh, consisting of 2 integers
         representing the 2 vertices of the edge
     indices : list of integers
-        indices of vertices not equal to -1
+        indices of vertices
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     npoints : int
@@ -522,9 +522,15 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
     Write per-VERTEX values as a scalar lookup table into a VTK file::
 
         POINT_DATA 150991
-        SCALARS Max_(majority_labels) int 1
+        SCALARS Max_(majority_labels) int 
         LOOKUP_TABLE default
-        11 11 11 11 11 11 11 11 11 11 ...
+        11 
+        11 
+        11 
+        11 
+        .
+        .
+        .
 
     Parameters
     ----------
@@ -562,61 +568,50 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     indices : list of integers
-        indices of vertices, default=[]
+        indices of vertices
     lines : list of 2-tuples of integers
         Each element is an edge on the mesh, consisting of 2 integers
         representing the 2 vertices of the edge
-        default=[]
     faces : list of 3-tuples of integers
-        indices to the three vertices of a face on the mesh, default=[]
-    scalars : list of, or list of lists of, floats (or single list of floats)
-        each list (lookup table) contains values assigned to the vertices,
-        default=[]
+        indices to the three vertices of a face on the mesh
+    scalars : list of floats, or list of lists of floats;
+        each list (lookup table) contains values assigned to the vertices
     scalar_names : string or list of strings
-        each element is the name of a lookup table, default=['scalars']
-        if only one string is given for this field, the program will convert
-        it into a list of only this string.
-
-    Notes
-    -----
-    If you do not have all 7 parameters, it's safer to use syntax like
-    ...``indices=indices, faces=faces``... (as in Toy example)
-    than syntax like ...``indices, faces``... alone to
-    ensure that your variables are aligned with their orders
-    in parameter definition.
+        each element is the name of a scalar list (lookup table)
 
     Examples
     --------
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> points = [[random.random() for i in [1,2,3]] for j in range(4)]
     >>> indices = [1,2,3,0]
     >>> lines = [[1,2],[3,4]]
     >>> faces = [[1,2,3],[0,1,3]]
-    >>> scalar_names = ['curv','depth']
     >>> scalars = [[random.random() for i in range(4)] for j in [1,2]]
-    >>> #
-    >>> write_vtk('write_vtk.vtk', points,
-    >>>          indices, lines, faces, scalars, scalar_names)
-    >>> #
+    >>> scalar_names = ['curv','depth']
+    >>> output_vtk = 'write_vtk.vtk'
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
     >>> # View:
-    >>> plot_vtk('write_vtk.vtk')
+    >>> plot_surfaces(output_vtk)
     >>> #
-    >>> # Write vtk file with curvature values on sulci and view:
+    >>> # Write vtk file with curvature values and view:
+    >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(input_vtk)
-    >>> write_vtk('write_vtk.vtk', points, [], [], faces, curvs, 'curvatures')
-    >>> plot_vtk('write_vtk.vtk')
+    >>> faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk = read_vtk(input_vtk)
+    >>> output_vtk = 'write_vtk.vtk'
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
+    >>> # View:
+    >>> plot_surfaces(output_vtk)
 
     """
     import os
     from mindboggle.utils.io_vtk import write_header, write_points, \
-         write_vertices, write_faces, write_scalars, \
-         scalars_checker
+        write_vertices, write_faces, write_scalars, scalars_checker
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
@@ -642,7 +637,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
                 if len(scalar_names) < i + 1:
                     scalar_name = scalar_names[0]
                 else:
-                    scalar_name  = scalar_names[i]
+                    scalar_name = scalar_names[i]
                 write_scalars(Fp, scalar_list, scalar_name,
                               begin_scalars=False)
     Fp.close()
@@ -654,7 +649,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 
 
 def rewrite_scalars(input_vtk, output_vtk, new_scalars,
-                    new_scalar_names=['scalars'], filter_scalars=[]):
+                    new_scalar_names=['scalars'], filter_scalars=[],
+                    background_value=-1):
     """
     Load VTK format file and save a subset of scalars into a new file.
 
@@ -669,7 +665,9 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     new_scalar_names : string or list of strings
         each element is the new name for a lookup table
     filter_scalars : list or numpy array (optional)
-        scalar values used to filter faces (values > -1 retained)
+        scalar values used to filter faces (foreground values retained)
+    background_value : integer
+        background value
 
     Returns
     -------
@@ -682,17 +680,21 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> curvs, name = read_scalars(curv_file, True,True)
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> output_vtk = 'rewrite_scalars.vtk'
+    >>> curvs, name = read_scalars(input_vtk, True,True)
     >>> sulci, name = read_scalars(sulci_file)
+    >>> new_scalars = [curvs, sulci]
+    >>> new_scalar_names = ['curvs', 'sulci']
+    >>> filter_scalars = sulci
+    >>> background_value = -1
     >>> #
-    >>> rewrite_scalars(curv_file, 'rewrite_scalars.vtk',
-    >>>                 [curvs, sulci], ['curvs', 'sulci'], sulci)
+    >>> rewrite_scalars(input_vtk, output_vtk, new_scalars, new_scalar_names, filter_scalars, background_value)
     >>> #
     >>> # View:
-    >>> from mindboggle.utils.plots import plot_vtk
-    >>> plot_vtk('rewrite_scalars.vtk')
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('rewrite_scalars.vtk')
 
     """
     import os
@@ -700,8 +702,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     from mindboggle.utils.mesh import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
-         write_vertices, write_faces, write_scalars, read_vtk, \
-         scalars_checker
+        write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
 
     # Convert numpy arrays to lists
     if isinstance(new_scalars, np.ndarray):
@@ -716,13 +717,14 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     faces, lines, indices, points, npoints, scalars, name, \
         input_vtk = read_vtk(input_vtk)
 
-    # Find indices to nonzero values
-    indices = range(npoints)
+    # Find indices to foreground values
     if filter_scalars:
-        indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
-        indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
-        # Remove surface mesh faces whose three vertices are not all in indices
-        faces = remove_faces(faces, indices_filter)
+        indices_keep = [i for i,x in enumerate(filter_scalars)
+                        if x != background_value]
+        indices_remove = [i for i,x in enumerate(filter_scalars)
+                          if x == background_value]
+        # Remove surface faces whose three vertices are not all in indices
+        faces = remove_faces(faces, indices_keep)
 
     # Write VTK file
     Fp = open(output_vtk,'w')
@@ -739,7 +741,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         for i, new_scalar_list in enumerate(new_scalars):
             if filter_scalars:
                 for iremove in indices_remove:
-                    new_scalar_list[iremove] = -1
+                    new_scalar_list[iremove] = background_value
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name)
@@ -794,7 +796,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> # Example 1:  explode sulci with thickness values
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_indices_vtk = os.path.join(path, 'arno', 'features', 'sulci.vtk')
     >>> input_values_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -804,12 +806,12 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> #
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
-    >>> plot_vtk(example_vtk)
+    >>> plot_surfaces(example_vtk)
     >>> #
     >>> # Example 2:  explode labels
     >>> import os
     >>> from mindboggle.utils.io_vtk import explode_scalars
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> input_values_vtk = os.path.join(path, 'arno', 'labels',
     >>>                                 'lh.labels.DKT25.manual.vtk')
@@ -826,7 +828,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>>                 output_scalar_name, remove_background_faces, reindex)
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '2.vtk')
-    >>> plot_vtk(example_vtk)
+    >>> plot_surfaces(example_vtk)
 
     """
     import os
@@ -957,41 +959,46 @@ def scalars_checker(scalars, scalar_names):
             print("Error: scalars is neither a list nor a numpy array.")
             sys.exit()
 
-    # If the list contains integers or floats, put in a list.
-    if isinstance(scalars[0], int) or isinstance(scalars[0], float):
-        scalars = [scalars]
-    # If the list contains all lists, accept format.
-    elif all([isinstance(x, list) for x in scalars]):
-        pass
-    # If the list contains arrays (optionally lists), convert arrays to lists.
-    elif all([isinstance(x, list) or isinstance(x, np.ndarray)
-              for x in scalars]):
-        scalars2 = []
-        for x in scalars:
-            if isinstance(x, list):
-                scalars2.append(x)
-            else:
-                scalars2.append(x.tolist())
-        scalars = scalars2
-    else:
-        print("Error: scalars is a 1-D list containing unacceptable elements.")
-        print("scalars type is: {0}".format(type(scalars)))
-        print("scalars length is: {0}".format(len(scalars)))
-        print("scalars[0] type is: {0}".format(type(scalars[0])))
-        sys.exit()
+    if scalars:
 
-    # If scalar_names is a string, create a list containing
-    # as many of this string as there are scalar lists.
-    if isinstance(scalar_names, str):
-        scalar_names = [scalar_names for x in scalars]
-    elif isinstance(scalar_names, list):
-        if len(scalar_names) < len(scalars):
-            scalar_names = [scalar_names[0] for x in scalars]
-        else:
+        # If the list contains integers or floats, put in a list.
+        if isinstance(scalars[0], int) or isinstance(scalars[0], float):
+            scalars = [scalars]
+        # If the list contains all lists, accept format.
+        elif all([isinstance(x, list) for x in scalars]):
             pass
+        # If the list contains arrays (optionally lists), convert arrays to lists.
+        elif all([isinstance(x, list) or isinstance(x, np.ndarray)
+                  for x in scalars]):
+            scalars2 = []
+            for x in scalars:
+                if isinstance(x, list):
+                    scalars2.append(x)
+                else:
+                    scalars2.append(x.tolist())
+            scalars = scalars2
+        else:
+            print("Error: scalars is a 1-D list containing unacceptable elements.")
+            print("scalars type is: {0}".format(type(scalars)))
+            print("scalars length is: {0}".format(len(scalars)))
+            print("scalars[0] type is: {0}".format(type(scalars[0])))
+            sys.exit()
+
+        # If scalar_names is a string, create a list containing
+        # as many of this string as there are scalar lists.
+        if isinstance(scalar_names, str):
+            scalar_names = [scalar_names for x in scalars]
+        elif isinstance(scalar_names, list):
+            if len(scalar_names) < len(scalars):
+                scalar_names = [scalar_names[0] for x in scalars]
+            else:
+                pass
+        else:
+            print("Error: scalar_names is neither a list nor a string")
+            sys.exit()
+
     else:
-        print("Error: scalar_names is neither a list nor a string")
-        sys.exit()
+        print("Warning: scalars is empty")
 
     return scalars, scalar_names
 
@@ -1172,7 +1179,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import apply_affine_transform
-    >>> from mindboggle.utils.plots import plot_vtk
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> transform_file = os.path.join(path, 'arno', 'mri',
     >>>    't1weighted_brain.MNI152Affine.txt')
@@ -1185,7 +1192,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> apply_affine_transform(transform_file, vtk_or_points,
     >>>                        transform_format, save_file)
     >>> # View
-    >>> plot_vtk('affine_lh.pial.mean_curvature.vtk')
+    >>> plot_surfaces('affine_lh.pial.mean_curvature.vtk')
 
     """
     import os
