@@ -26,10 +26,10 @@ Mindboggle-101 atlases
   **Volume atlases**
 
   - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
-    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version]
-  - Corresponding `label probabilities`_
+    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version] (2013)
+  - Corresponding `label probabilities`_ (2013)
   - Corresponding `OASIS-30 brain template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152.nii.gz>`_
-    [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ version]
+    [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ version] (2013)
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
@@ -38,7 +38,7 @@ Mindboggle-101 atlases
 
   **Cortical surface atlases**
 
-  - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants
+  - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants (2012)
 
 Mindboggle-101 templates
 ------------------------
@@ -50,7 +50,7 @@ Mindboggle-101 templates
 
   **Brain volumes**: ANTS nonlinear average templates (nii)
 
-  - `OASIS-TRT-20 brain`_ template from 20 brains (2013) [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version]
+  - `OASIS-TRT-20 brain`_ template from 20 brains [`2mm <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_2mm.nii.gz>`_ version] (2013)
   - `OASIS-TRT-20 MNI152`_: OASIS-TRT-20 template `affine <http://mindboggle.info/data/templates/ants/OASIS-TRT-20_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2013)
   - `MMRR-21 brain`_ template from 21 brains (2012)
   - `MMRR-21 MNI152`_: MMRR-21 template `affine <http://mindboggle.info/data/templates/ants/MMRR-21_template_in_MNI152_affine.txt>`_ transformed to `MNI152`_ (2012)
