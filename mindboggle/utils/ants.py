@@ -240,10 +240,10 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
 
     Parameters
     ----------
-    label_volume : string
-        nibabel-readable image volume with integer labels
     mask_volume : string
         nibabel-readable image volume
+    label_volume : string
+        nibabel-readable image volume with integer labels
     output_file : string
         nibabel-readable labeled image volume
     binarize : Boolean
