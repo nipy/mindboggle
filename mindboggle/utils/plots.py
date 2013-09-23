@@ -171,7 +171,7 @@ def plot_volumes(volume_files):
     execute(cmd, 'os')
 
 
-def plot_scalar_histogram(vtk_file, nbins=100):
+def histogram_of_vtk_scalars(vtk_file, nbins=100):
     """
     Plot histogram of VTK surface mesh scalar values.
 
@@ -185,10 +185,10 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import plot_scalar_histogram
+    >>> from mindboggle.utils.plots import histogram_of_vtk_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> plot_scalar_histogram(vtk_file, nbins=500)
+    >>> histogram_of_vtk_scalars(vtk_file, nbins=500)
 
     """
     import matplotlib.pyplot as plt
@@ -204,8 +204,8 @@ def plot_scalar_histogram(vtk_file, nbins=100):
     plt.show()
 
 
-def plot_histograms(columns, column_name='', ignore_columns=[],
-                    nbins=100, axis_limits=[], titles=[]):
+def histograms_of_lists(columns, column_name='', ignore_columns=[],
+                        nbins=100, axis_limits=[], titles=[]):
     """
     Construct a histogram for each table column.
 
@@ -228,14 +228,14 @@ def plot_histograms(columns, column_name='', ignore_columns=[],
 
     Examples
     --------
-    >>> from mindboggle.utils.plots import plot_histograms
+    >>> from mindboggle.utils.plots import histograms_of_lists
     >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7]]
     >>> column_name = 'label: thickness: median (weighted)'
     >>> ignore_columns = []
     >>> nbins = 100
     >>> axis_limits = []
     >>> titles = ['title1','title2']
-    >>> plot_histograms(columns, column_name, ignore_columns, nbins, axis_limits, titles)
+    >>> histograms_of_lists(columns, column_name, ignore_columns, nbins, axis_limits, titles)
 
     """
     import numpy as np
@@ -259,7 +259,6 @@ def plot_histograms(columns, column_name='', ignore_columns=[],
             column = [np.float(x) for x in column]
             ax.hist(column, nbins, normed=False, facecolor='gray', alpha=0.5)
             plt.xlabel(column_name, fontsize='small')
-            plt.ylabel('frequency')
             if len(titles) == ncolumns:
                 plt.title(titles[icolumn], fontsize='small')
             else:
@@ -269,61 +268,96 @@ def plot_histograms(columns, column_name='', ignore_columns=[],
     plt.show()
 
 
-def plot_columns(columns, x_column, ignore_columns=[], plot_line=True,
-                 connect_markers=True, title='', x_label='', y_label='',
-                 legend=True, legend_labels=[]):
+def boxplots_of_lists(columns):
+    """
+    Construct a box plot for each table column.
+
+    Parameters
+    ----------
+    columns : list of lists
+        list of lists of floats or integers
+
+    Examples
+    --------
+    >>> from mindboggle.utils.plots import boxplots_of_lists
+    >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7],
+    >>>            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
+    >>> boxplots_of_lists(columns)
+
+    """
+    import matplotlib.pyplot as plt
+
+    #-------------------------------------------------------------------------
+    # Construct a box plot from each column and display:
+    #-------------------------------------------------------------------------
+    plt.figure()
+    plt.boxplot(columns, 1)
+    plt.show()
+
+
+def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
+                      connect_markers=True, mstyle='o', msize=1,
+                      title='', x_label='', y_label='',
+                      legend=True, legend_labels=[]):
     """
     Scatter plot columns against the values of one of the columns.
 
     Parameters
     ----------
-    columns : list of lists of numbers
+    y_columns : list of lists of numbers
         columns of data (all of the same length)
     x_column : list of numbers
         column of numbers against which other columns are plotted
     ignore_columns : list of integers
-        indices to columns to exclude
+        indices to y_columns to exclude
     plot_line : Boolean
         plot identity line?
     connect_markers : Boolean
         connect markers?
+    mstyle : string
+        marker style
+    msize : integer
+        marker size
     title :  string
         title
     x_label : string
         description of x_column
     y_label : string
-        description of other columns
+        description of y_columns
     legend : Boolean
         plot legend?
-    legend_labels : list of strings (length = number of columns)
+    legend_labels : list of strings (length = number of y_columns)
         legend labels
 
     Examples
     --------
-    >>> from mindboggle.utils.plots import plot_columns
-    >>> columns = [[1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7]]
+    >>> from mindboggle.utils.plots import scatterplot_lists
+    >>> y_columns = [[1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7]]
     >>> x_column = [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6]
     >>> ignore_columns = []
     >>> plot_line = True
     >>> connect_markers = True
+    >>> mstyle = 'o'
+    >>> msize = 10
     >>> title = 'title'
     >>> x_label = 'xlabel'
     >>> y_label = 'ylabel'
     >>> legend = True
     >>> legend_labels = ['mark1','mark2']
-    >>> plot_columns(columns, x_column, ignore_columns, plot_line, connect_markers, title, x_label, y_label, legend, legend_labels)
+    >>> scatterplot_lists(y_columns, x_column, ignore_columns, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
 
     """
     import matplotlib.pyplot as plt
     from matplotlib.font_manager import FontProperties
+    import matplotlib.cm as cm
     import numpy as np
 
-    ncolumns = len(columns)
+    ncolumns = len(y_columns)
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    #color_indices = np.linspace(0, 1, num=ncolumns, endpoint=False)
-    colors = ['b','r','c','m','k','g','y']
+    #colors = ['b','r','c','m','k','g','y']
+    colors = iter(cm.hsv(np.linspace(0, 1, ncolumns)))
     #-------------------------------------------------------------------------
     # Scatter plot:
     #-------------------------------------------------------------------------
@@ -331,29 +365,28 @@ def plot_columns(columns, x_column, ignore_columns=[], plot_line=True,
     if plot_line:
         min_value = np.inf
         max_value = -np.inf
-    for icolumn, column in enumerate(columns):
+    for icolumn, column in enumerate(y_columns):
         column = [np.float(x) for x in column]
         if icolumn not in ignore_columns:
-            #color_index = color_indices[icolumn]
-            #color_value = plt.cm.hsv(color_index * np.ones(len(column)))
-            color_value = colors[icolumn]
+            color = next(colors)
+            #color = colors[icolumn]
             if len(legend_labels) == ncolumns:
                 color_text = legend_labels[icolumn]
                 if connect_markers and not plot_line:
-                    plt.plot(x_column, column, '-', marker='o',
-                             color=color_value, hold=hold,
+                    plt.plot(x_column, column, '-', marker=mstyle, s=msize,
+                             facecolors='none', edgecolors=color, hold=hold,
                              label=color_text)
                 else:
-                    plt.scatter(x_column, column, marker='o', s=50,
-                                color=color_value, hold=hold,
+                    plt.scatter(x_column, column, marker=mstyle, s=msize,
+                                facecolors='none', edgecolors=color, hold=hold,
                                 label=color_text)
             else:
                 if connect_markers and not plot_line:
-                    plt.plot(x_column, column, '-', marker='o',
-                             color=color_value, hold=hold)
+                    plt.plot(x_column, column, '-', marker=mstyle, s=msize,
+                             facecolors='none', edgecolors=color, hold=hold)
                 else:
-                    plt.scatter(x_column, column, marker='o', s=50,
-                                color=color_value, hold=hold)
+                    plt.scatter(x_column, column, marker=mstyle, s=msize,
+                                facecolors='none', edgecolors=color, hold=hold)
 
         if plot_line:
             if min(column) < min_value:
@@ -380,80 +413,179 @@ def plot_columns(columns, x_column, ignore_columns=[], plot_line=True,
     plt.show()
 
 
+def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
+                           connect_markers=True, mstyle='o', msize=1,
+                           title='', x_label='', y_label='',
+                           legend=True, legend_labels=[]):
+    """
+    Scatter plot pairs of columns.
+
+    Parameters
+    ----------
+    columns : list of lists of numbers
+        alternating columns of data (all of the same length)
+    ignore_first_column : Boolean
+        exclude first column?
+    plot_line : Boolean
+        plot identity line?
+    connect_markers : Boolean
+        connect markers?
+    mstyle : string
+        marker style
+    msize : integer
+        marker size
+    title :  string
+        title
+    x_label : string
+        description of x_column
+    y_label : string
+        description of other columns
+
+    legend : Boolean
+        plot legend?
+    legend_labels : list of strings (length = number of columns)
+        legend labels
+
+    Examples
+    --------
+    >>> from mindboggle.utils.plots import scatterplot_list_pairs
+    >>> columns = [['labels'], [1,1,2,2,2,3,3,4,4,8],[2,2,3,3,3,3,5,6,7,7],
+    >>>            [1,1.5,2.1,1.8,2.2,3,3.1,5,7,6],
+    >>>            [1.2,0.5,2,1.3,1.2,3,1,5.2,4,4.5]]
+    >>> ignore_first_column = True
+    >>> plot_line = True
+    >>> connect_markers = True
+    >>> mstyle = 'o'
+    >>> msize = 10
+    >>> title = 'title'
+    >>> x_label = 'xlabel'
+    >>> y_label = 'ylabel'
+    >>> legend = True
+    >>> legend_labels = ['mark1','mark2']
+    >>> scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
+
+    """
+    import matplotlib.pyplot as plt
+    import matplotlib.cm as cm
+    from matplotlib.font_manager import FontProperties
+    import numpy as np
+
+    ncolumns = len(columns)
+
+    fig = plt.figure()
+    ax = fig.add_subplot(1, 1, 1)
+    colors = iter(cm.hsv(np.linspace(0, 1, ncolumns)))
+    #-------------------------------------------------------------------------
+    # Scatter plot:
+    #-------------------------------------------------------------------------
+    hold = True
+    if plot_line:
+        min_value = np.inf
+        max_value = -np.inf
+    if ignore_first_column:
+        columns = columns[1::]
+    columns1 = [x for i,x in enumerate(columns) if np.mod(i,2) == 1]
+    columns2 = [x for i,x in enumerate(columns) if np.mod(i,2) == 0]
+    for icolumn, column1 in enumerate(columns1):
+        column2 = columns2[icolumn]
+        column1 = [np.float(x) for x in column1]
+        column2 = [np.float(x) for x in column2]
+        color = next(colors)
+        #color = 'blue' #next(colors)
+        if len(legend_labels) == ncolumns:
+            if connect_markers and not plot_line:
+                plt.plot(column1, column2, '-', marker=mstyle, s=msize,
+                         facecolors='none', edgecolors=color, hold=hold,
+                         label=legend_labels[icolumn])
+            else:
+                plt.scatter(column1, column2, marker=mstyle, s=msize,
+                            facecolors='none', edgecolors=color, hold=hold,
+                            label=legend_labels[icolumn])
+        else:
+            if connect_markers and not plot_line:
+                plt.plot(column1, column2, '-', marker=mstyle, s=msize,
+                         facecolors='none', edgecolors=color, hold=hold)
+            else:
+                plt.scatter(column1, column2, marker=mstyle, s=msize,
+                            facecolors='none', edgecolors=color, hold=hold)
+
+        if plot_line:
+            if min(column1) < min_value:
+                min_value = min(column1)
+            if max(column1) > max_value:
+                max_value = max(column1)
+
+    #-------------------------------------------------------------------------
+    # Add legend and display:
+    #-------------------------------------------------------------------------
+    if plot_line:
+        plt.plot(range(int(min_value), int(max_value) + 2))
+    if legend:
+        fontP = FontProperties()
+        fontP.set_size('small')
+        handles, labels = ax.get_legend_handles_labels()
+        ax.legend(handles, labels, loc='lower right', prop=fontP)
+    ax.grid()
+    if x_label:
+        plt.xlabel(x_label)
+    if y_label:
+        plt.ylabel(y_label)
+    plt.title(title)
+    plt.show()
+
+
 if __name__== '__main__':
 
     import os
+    import numpy as np
     from mindboggle.utils.io_table import select_column_from_mindboggle_tables
-    from mindboggle.utils.plots import plot_histograms
-    from mindboggle.utils.plots import plot_columns
+    from mindboggle.utils.plots import histograms_of_lists
+    from mindboggle.utils.plots import scatterplot_list_pairs
 
-    plot_hist = 0#True
-    plot_scat = True
+    # Combine two thickness tables by alternating columns:
+    f1 = '/drop/embarcHC_FSsegment_antsCorticalThickness_means1.csv'
+    f2 = '/drop/embarcHC_FSsegment_antsCorticalThickness_means2.csv'
+    columns1 = []
+    columns2 = []
+    f1 = open(f1,'r')
+    f2 = open(f2,'r')
+    f1 = f1.readlines()
+    f2 = f2.readlines()
+    columns1 = [[] for x in f1[0].split()]
+    for row in f1:
+        row = row.split()
+        for icolumn, column in enumerate(row):
+            columns1[icolumn].append(np.float(column))
+    columns2 = [[] for x in f1[0].split()]
+    for row in f2:
+        row = row.split()
+        for icolumn, column in enumerate(row):
+            columns2[icolumn].append(np.float(column))
+    columns = [columns1[0]]
+    for i in range(1, len(columns1)):
+        columns.append(columns1[i])
+        columns.append(columns2[i])
 
-    hemi = 'left'
-    tables_dir = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
-    label_name = 'label'
-    write_table = False
-    output_table = ''
-    delimiter = ','
-    ignore_columns = []
-    legend = True
-
-    if plot_hist:
-
-        subjects = ['UM0029_2R1_full',
-                    #'UM0029UMMR2R1_repositioned',
-                    'UM0029UMMR2R1_FS11212',
-                    #'UM0029_2R1_half',
-                    'UM0029UMMR2R1_segmented',
-                    'UM0029UMMR1R1_FS11762',
-                    'UM0029UMMR2R1_antsCorticalThickness',
-                    'UM0029UMMR1R1_antsCorticalThickness']
-
-        table_name = "vertices.csv"
-        column_name = "thickness"
-        tables, columns, column_name, row_names, row_names_title, \
-        output_table = select_column_from_mindboggle_tables(subjects, hemi,
-            tables_dir, table_name, column_name, label_name,
-            write_table, output_table, delimiter)
-
-        nbins = 100
-        axis_limits = [0, 5, 0, 6000]
-        plot_histograms(columns, column_name, ignore_columns, nbins, axis_limits, titles=subjects)
-
-    if plot_scat:
-
-        subjects = ['UM0029_2R1_full',
-                    'UM0029UMMR2R1_FS11212',
-                    'UM0029UMMR2R1_segmented',
-                    'UM0029UMMR1R1_FS11762']
-        subjects = ['UM0029UMMR2R1_antsCorticalThickness',
-                    'UM0029UMMR1R1_antsCorticalThickness']
-
-        table_name = "label_shapes.csv"
-        column_name = "label: thickness: mean (weighted)"
-        tables, columns, column_name, row_names, row_names_title, \
-        output_table = select_column_from_mindboggle_tables(subjects, hemi,
-            tables_dir, table_name, column_name, label_name,
-            write_table, output_table, delimiter)
-
-        # Columns against one column, with identity line:
-        x_column = columns[0]
-        columns1 = columns[1::]
-        legend_labels = subjects[1::]
+    # Scatter plot:
+    scat = True
+    if scat:
+        ignore_first_column = True
         plot_line = True
-        connect_markers = False
-        title = 'Median cortical region thicknesses against repositioned results'
-        x_label = 'median thickness of repositioned'
-        y_label = 'median thickness'
-        plot_columns(columns1, x_column, ignore_columns, plot_line, connect_markers, title, x_label, y_label, legend, legend_labels)
-
-        # Columns against labels, with no identity line:
-        x_column = row_names
-        legend_labels = subjects
-        plot_line = False
         connect_markers = True
-        title = 'Median cortical region thicknesses per label'
-        x_label = label_name
-        y_label = 'median thickness'
-        plot_columns(columns, x_column, ignore_columns, plot_line, connect_markers, title, x_label, y_label, legend, legend_labels)
+        mstyle = 'o'
+        msize = 10
+        title = 'EMBARC controls: scan-rescan FS-segmented antsCorticalThickness (62 labels, 40 subjects)'
+        x_label = 'scan antsCorticalThickness (mm)'
+        y_label = 'rescan antsCorticalThickness (mm)'
+        legend = True
+        legend_labels = ['mark1','mark2']
+        scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
+
+    # Histogram:
+    hist = False
+    if hist:
+        ignore_columns = [0]
+        nbins = 10
+        axis_limits = [0, 5, 0, 10]
+        titles = []
+        histograms_of_lists(columns, 'thickness', ignore_columns, nbins, axis_limits, titles)
