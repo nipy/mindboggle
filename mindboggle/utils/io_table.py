@@ -908,6 +908,84 @@ def write_average_face_values_per_label(input_indices_vtk,
             raise(IOError(output_table + " not found"))
 
 
+def alternate_columns_from_tables(table_files, write_table=True,
+                                  output_table='', delimiter=','):
+    """
+    Alternate columns from a list of tables and make a new table.
+
+    This program assumes that the tables consist of only numbers.
+
+    Parameters
+    ----------
+    table_files : list of strings
+        table files (full paths)
+    write_table : Boolean
+        write output table?
+    output_table : string
+        output table file name
+    delimiter : string
+        delimiter between output table columns, such as ','
+
+    Returns
+    -------
+    columns : list of lists of floats or integers
+        columns of data
+    output_table :  string
+        output table file name
+
+    Examples
+    --------
+    >>> from mindboggle.utils.io_table import alternate_columns_from_tables
+    >>> table_files = ['/drop/MB/data/arno/tables/label_shapes.csv',
+    >>>                '/drop/MB/data/arno/tables/label_shapes.csv']
+    >>> write_table = True
+    >>> output_table = ''
+    >>> delimiter = ','
+    >>> columns, output_table = alternate_columns_from_tables(table_files, write_table, output_table, delimiter)
+
+    """
+    import os
+    import csv
+
+    from mindboggle.utils.io_table import write_columns
+
+    #-------------------------------------------------------------------------
+    # Construct a list of all tables:
+    #-------------------------------------------------------------------------
+    tables = []
+    for table_file in table_files:
+        if not os.path.exists(table_file):
+            raise(IOError(table_file + " not found"))
+        else:
+            reader = csv.reader(open(table_file, 'rb'),
+                                delimiter=',', quotechar='"')
+            tables.append([list(x) for x in zip(*reader)])
+
+    #-------------------------------------------------------------------------
+    # Alternate columns:
+    #-------------------------------------------------------------------------
+    columns = []
+    for icolumn, column in enumerate(tables[0]):
+        for table in tables:
+            columns.append(table[icolumn])
+
+    #-------------------------------------------------------------------------
+    # Write table:
+    #-------------------------------------------------------------------------
+    if write_table and columns:
+        if all([len(x) == len(columns[0]) for x in columns]):
+            if not output_table:
+                output_table = os.path.join(os.getcwd(),
+                                            'alternating_columns.csv')
+            write_columns(columns, column_names='', delimiter=delimiter,
+                          quote=True, input_table='',
+                          output_table=output_table)
+        else:
+            print('Columns do not have the same length.')
+
+    return columns, output_table
+
+
 def select_column_from_tables(tables, column_name, label_name='',
                               write_table=True, output_table='',
                               delimiter=','):
