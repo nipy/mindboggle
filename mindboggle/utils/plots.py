@@ -268,7 +268,7 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
     plt.show()
 
 
-def boxplots_of_lists(columns, xlabel='', ylabel='', title=''):
+def boxplots_of_lists(columns, xlabel='', ylabel='', ylimit=None, title=''):
     """
     Construct a box plot for each table column.
 
@@ -276,6 +276,14 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', title=''):
     ----------
     columns : list of lists
         list of lists of floats or integers
+    xlabel : str
+        x-axis label
+    ylabel : str
+        y-axis label
+    ylimit : float
+        maximum y-value
+    title : str
+        title
 
     Examples
     --------
@@ -284,8 +292,9 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', title=''):
     >>>            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
     >>> xlabel = 'xlabel'
     >>> ylabel = 'ylabel'
+    >>> ylimit = None
     >>> title = 'title'
-    >>> boxplots_of_lists(columns, xlabel, ylabel, title)
+    >>> boxplots_of_lists(columns, xlabel, ylabel, ylimit, title)
 
     """
     import matplotlib.pyplot as plt
@@ -297,6 +306,7 @@ def boxplots_of_lists(columns, xlabel='', ylabel='', title=''):
     plt.boxplot(columns, 1)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
+    plt.ylim([0,ylimit])
     plt.title(title)
     plt.show()
 
@@ -544,6 +554,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     plt.xlim([0,limit])
     plt.ylim([0,limit])
     ax.grid()
+    ax.set_aspect(aspect='equal')
     if x_label:
         plt.xlabel(x_label)
     if y_label:
@@ -557,60 +568,32 @@ if __name__== '__main__':
     import os
     import numpy as np
     from mindboggle.utils.io_table import select_column_from_mindboggle_tables
-    from mindboggle.utils.plots import histograms_of_lists
     from mindboggle.utils.plots import scatterplot_list_pairs
     from mindboggle.utils.plots import boxplots_of_lists
+    from mindboggle.utils.plots import histograms_of_lists
 
-    # Load FreeSurfer thickness values from table:
-    #methodname = 'FreeSurfer thickness'
-    #methodname = 'antsCorticalThickness'
-    methodname = 'FS-segmented antsCorticalThickness'
-    #methodname = 'simple'
-    combine_two_tables = True #False
-    #tablename = '/drop/LAB/thicknesses.csv'
-    tablename = '/drop/LAB/embarcHC_FreeSurfer_thickness_means_nonames.csv'
-    #tablename1 = '/drop/LAB/embarcHC_antsCorticalThickness_means1.csv'
-    #tablename2 = '/drop/LAB/embarcHC_antsCorticalThickness_means2.csv'
-    tablename1 = '/drop/LAB/embarcHC_FSsegment_antsCorticalThickness_means1.csv'
-    tablename2 = '/drop/LAB/embarcHC_FSsegment_antsCorticalThickness_means2.csv'
+    #-------------------------------------------------------------------------
+    # Load thickness values from table:
+    #-------------------------------------------------------------------------
+    methodname = 'Thickasabrick FS+Atropos'
+    tablename = '/drop/LAB/thickness_results/tables/thicknesses.csv'
+    title = methodname + ' (62 labels, 7 EMBARC controls)'
 
-    title = 'EMBARC controls: '+methodname+' thickness (62 labels, 40 subjects)'
+    f1 = open(tablename,'r')
+    f1 = f1.readlines()
+    columns = [[] for x in f1[0].split()]
+    for row in f1:
+        row = row.split()
+        for icolumn, column in enumerate(row):
+            columns[icolumn].append(np.float(column))
+    columns1 = [columns[0]]
+    for i in range(1, len(columns)):
+        if np.mod(i,2) == 1:
+            columns1.append(columns[i])
 
-    if not combine_two_tables:
-        f1 = open(tablename,'r')
-        f1 = f1.readlines()
-        columns = [[] for x in f1[0].split()]
-        for row in f1:
-            row = row.split()
-            for icolumn, column in enumerate(row):
-                columns[icolumn].append(np.float(column))
-        columns1 = [columns[0]]
-        for i in range(1, len(columns)):
-            if np.mod(i,2) == 1:
-                columns1.append(columns[i])
-
-    # Combine two thickness tables by alternating columns:
-    else:
-        f1 = open(tablename1,'r')
-        f2 = open(tablename2,'r')
-        f1 = f1.readlines()
-        f2 = f2.readlines()
-        columns1 = [[] for x in f1[0].split()]
-        for row in f1:
-            row = row.split()
-            for icolumn, column in enumerate(row):
-                columns1[icolumn].append(np.float(column))
-        columns2 = [[] for x in f1[0].split()]
-        for row in f2:
-            row = row.split()
-            for icolumn, column in enumerate(row):
-                columns2[icolumn].append(np.float(column))
-        columns = [columns1[0]]
-        for i in range(1, len(columns1)):
-            columns.append(columns1[i])
-            columns.append(columns2[i])
-
+    #-------------------------------------------------------------------------
     # Scatter plot:
+    #-------------------------------------------------------------------------
     scat = True
     if scat:
         ignore_first_column = True
@@ -621,21 +604,16 @@ if __name__== '__main__':
         mcolor = 'black'
         xlabel = 'scan thickness (mm)'
         ylabel = 'rescan thickness (mm)'
-        limit = 7
+        limit = 6.5
         legend = True
         legend_labels = ['mark1','mark2']
         scatterplot_list_pairs(columns, ignore_first_column, plot_line,
                                connect_markers, mstyle, msize, mcolor, title,
                                xlabel, ylabel, limit, legend, legend_labels)
 
-    # Box plot per scan:
-    box_per_scan = True
-    if box_per_scan:
-        xlabel = 'scan index'
-        ylabel = 'thickness (mm)'
-        boxplots_of_lists(columns1[1::], xlabel, ylabel, title)
-
+    #-------------------------------------------------------------------------
     # Box plot per label:
+    #-------------------------------------------------------------------------
     box_per_label = True
     if box_per_label:
         rows1 = []
@@ -643,9 +621,22 @@ if __name__== '__main__':
             rows1.append([np.float(x) for x in row.split()[1::]])
         xlabel = 'label index (10=L_latOrbF; 22=L_preCG)'
         ylabel = 'thickness (mm)'
-        boxplots_of_lists(rows1, xlabel, ylabel, title)
+        ylimit = 6.5
+        boxplots_of_lists(rows1, xlabel, ylabel, ylimit, title)
 
+    #-------------------------------------------------------------------------
+    # Box plot per scan:
+    #-------------------------------------------------------------------------
+    box_per_scan = False
+    if box_per_scan:
+        xlabel = 'scan index'
+        ylabel = 'thickness (mm)'
+        ylimit = 6.5
+        boxplots_of_lists(columns1[1::], xlabel, ylabel, ylimit, title)
+
+    #-------------------------------------------------------------------------
     # Histogram:
+    #-------------------------------------------------------------------------
     hist = False
     if hist:
         ignore_columns = [0]
