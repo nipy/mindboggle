@@ -191,6 +191,8 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
         output_vtk = os.path.join(os.getcwd(),
             os.path.basename(annot_file).strip('.annot') + '.vtk')
 
+    #import numpy as np
+    #labels[np.where(labels==3)[0]]=-1
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 
     if not os.path.exists(output_vtk):
