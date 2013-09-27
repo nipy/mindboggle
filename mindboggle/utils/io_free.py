@@ -147,6 +147,15 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
+    Note ::
+
+        The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
+        gives the original FreeSurfer label values, not the FreeSurferColorLUT
+        labels, and when set to 'False' assigns all otherwise unlabeled
+        left cortical vertices to 3, which is also assigned to the caudal
+        middle frontal gyrus.  To correct this ambiguity, this program assigns
+        -1 to all vertices with label 0 in the original ('True') labels.
+
     Parameters
     ----------
     annot_file : string
@@ -183,9 +192,14 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     """
     import os
     import nibabel as nb
+    import numpy as np
     from mindboggle.utils.io_vtk import rewrite_scalars
 
-    labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
+    labels, ctab, names = nb.freesurfer.read_annot(annot_file)
+    labels[np.where(labels_orig == 0)[0]] = -1
+    # Test removal of unlabeled cortex from label 3:
+    #labels[np.where(labels==3)[0]]=1000
 
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
