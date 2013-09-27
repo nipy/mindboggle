@@ -563,21 +563,22 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     plt.show()
 
 
+#-----------------------------------------------------------------------------
+# Example: Plot scan-rescan thickness values from table (alternating columns)
+#-----------------------------------------------------------------------------
 if __name__== '__main__':
 
     import os
     import numpy as np
-    from mindboggle.utils.io_table import select_column_from_mindboggle_tables
     from mindboggle.utils.plots import scatterplot_list_pairs
     from mindboggle.utils.plots import boxplots_of_lists
     from mindboggle.utils.plots import histograms_of_lists
 
     #-------------------------------------------------------------------------
-    # Load thickness values from table:
+    # Load thickness values from table (alternating columns are scan-rescan):
     #-------------------------------------------------------------------------
-    methodname = 'Thickasabrick FS+Atropos'
-    tablename = '/drop/LAB/thickness_results/tables/thicknesses.csv'
-    title = methodname + ' (62 labels, 7 EMBARC controls)'
+    tablename = '/drop/LAB/thickness_outputs/thicknesses.csv'
+    title = 'Thickasabrick (62 labels, 40 EMBARC controls)'
 
     f1 = open(tablename,'r')
     f1 = f1.readlines()
@@ -619,7 +620,7 @@ if __name__== '__main__':
         rows1 = []
         for row in f1:
             rows1.append([np.float(x) for x in row.split()[1::]])
-        xlabel = 'label index (10=L_latOrbF; 22=L_preCG)'
+        xlabel = 'label index'
         ylabel = 'thickness (mm)'
         ylimit = 6.5
         boxplots_of_lists(rows1, xlabel, ylabel, ylimit, title)
