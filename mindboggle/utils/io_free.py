@@ -213,6 +213,42 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     return labels, output_vtk
 
 
+def thickness_to_ascii(hemi, subject, subjects_path):
+    """
+    Convert a FreeSurfer thickness (per-vertex) file
+    to an ascii file.
+
+    Note:  Untested function
+
+    Parameters
+    ----------
+    hemi : string indicating left or right hemisphere
+    subject_path: string
+        path to subject directory where the binary FreeSurfer
+        thickness file is found ("lh.thickness")
+
+    Returns
+    -------
+    thickness_file : string
+        name of output file, where each element is the thickness
+        value of a FreeSurfer mesh vertex. Elements are ordered
+        by orders of vertices in FreeSurfer surface file.
+
+    """
+    import os
+    from nipype.interfaces.base import CommandLine
+
+    filename = hemi + 'thickness'
+    filename_full = os.path.join(subjects_path, subject, filename)
+    thickness_file = os.path.join(os.getcwd(), filename + '.dat')
+
+    cli = CommandLine(command='mri_convert')
+    cli.inputs.args = ' '.join([filename_full, '--ascii+crsf', thickness_file])
+    cli.cmdline
+    cli.run()
+
+    return thickness_file
+
 
 # def vtk_to_labels(hemi, surface_file, label_numbers, label_names,
 #                   RGBs, scalar_name):
@@ -402,40 +438,3 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 #         cli.run()
 #
 #         return annot_name, annot_file
-#
-#
-# def thickness_to_ascii(hemi, subject, subjects_path):
-#     """
-#     Convert a FreeSurfer thickness (per-vertex) file
-#     to an ascii file.
-#
-#     Note:  Untested function
-#
-#     Parameters
-#     ----------
-#     hemi : string indicating left or right hemisphere
-#     subject_path: string
-#         path to subject directory where the binary FreeSurfer
-#         thickness file is found ("lh.thickness")
-#
-#     Returns
-#     -------
-#     thickness_file : string
-#         name of output file, where each element is the thickness
-#         value of a FreeSurfer mesh vertex. Elements are ordered
-#         by orders of vertices in FreeSurfer surface file.
-#
-#     """
-#     import os
-#     from nipype.interfaces.base import CommandLine
-#
-#     filename = hemi + 'thickness'
-#     filename_full = os.path.join(subjects_path, subject, filename)
-#     thickness_file = os.path.join(os.getcwd(), filename + '.dat')
-#
-#     cli = CommandLine(command='mri_convert')
-#     cli.inputs.args = ' '.join([filename_full, '--ascii+crsf', thickness_file])
-#     cli.cmdline
-#     cli.run()
-#
-#     return thickness_file
