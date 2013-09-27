@@ -268,7 +268,7 @@ def histograms_of_lists(columns, column_name='', ignore_columns=[],
     plt.show()
 
 
-def boxplots_of_lists(columns):
+def boxplots_of_lists(columns, xlabel='', ylabel='', ylimit=None, title=''):
     """
     Construct a box plot for each table column.
 
@@ -276,13 +276,25 @@ def boxplots_of_lists(columns):
     ----------
     columns : list of lists
         list of lists of floats or integers
+    xlabel : str
+        x-axis label
+    ylabel : str
+        y-axis label
+    ylimit : float
+        maximum y-value
+    title : str
+        title
 
     Examples
     --------
     >>> from mindboggle.utils.plots import boxplots_of_lists
     >>> columns = [[1,1,2,2,2,2,2,2,3,3,3,4,4,8],[2,2,3,3,3,3,5,6,7],
     >>>            [2,2,2.5,2,2,2,3,3,3,3,5,6,7]]
-    >>> boxplots_of_lists(columns)
+    >>> xlabel = 'xlabel'
+    >>> ylabel = 'ylabel'
+    >>> ylimit = None
+    >>> title = 'title'
+    >>> boxplots_of_lists(columns, xlabel, ylabel, ylimit, title)
 
     """
     import matplotlib.pyplot as plt
@@ -292,6 +304,10 @@ def boxplots_of_lists(columns):
     #-------------------------------------------------------------------------
     plt.figure()
     plt.boxplot(columns, 1)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.ylim([0,ylimit])
+    plt.title(title)
     plt.show()
 
 
@@ -415,8 +431,8 @@ def scatterplot_lists(y_columns, x_column, ignore_columns=[], plot_line=True,
 
 def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
                            connect_markers=True, mstyle='o', msize=1,
-                           title='', x_label='', y_label='',
-                           legend=True, legend_labels=[]):
+                           mcolor='', title='', x_label='', y_label='',
+                           limit=None, legend=True, legend_labels=[]):
     """
     Scatter plot pairs of columns.
 
@@ -434,13 +450,16 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
         marker style
     msize : integer
         marker size
+    mcolor : string
+        marker color (if empty, generate range of colors)
     title :  string
         title
     x_label : string
         description of x_column
     y_label : string
         description of other columns
-
+    limit : float
+        x- and y-axis extent
     legend : Boolean
         plot legend?
     legend_labels : list of strings (length = number of columns)
@@ -457,12 +476,14 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     >>> connect_markers = True
     >>> mstyle = 'o'
     >>> msize = 10
+    >>> mcolor = ''
     >>> title = 'title'
     >>> x_label = 'xlabel'
     >>> y_label = 'ylabel'
+    >>> limit = None
     >>> legend = True
     >>> legend_labels = ['mark1','mark2']
-    >>> scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
+    >>> scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, mcolor, title, x_label, y_label, limit, legend, legend_labels)
 
     """
     import matplotlib.pyplot as plt
@@ -474,7 +495,8 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
 
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1)
-    colors = iter(cm.hsv(np.linspace(0, 1, ncolumns)))
+    if not mcolor:
+        colors = iter(cm.hsv(np.linspace(0, 1, ncolumns)))
     #-------------------------------------------------------------------------
     # Scatter plot:
     #-------------------------------------------------------------------------
@@ -486,16 +508,20 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
         columns = columns[1::]
     columns1 = [x for i,x in enumerate(columns) if np.mod(i,2) == 1]
     columns2 = [x for i,x in enumerate(columns) if np.mod(i,2) == 0]
+    if not limit:
+        limit = np.ceil(np.max([np.max(columns1), np.max(columns1)]))
     for icolumn, column1 in enumerate(columns1):
         column2 = columns2[icolumn]
         column1 = [np.float(x) for x in column1]
         column2 = [np.float(x) for x in column2]
-        color = next(colors)
-        #color = 'blue' #next(colors)
+        if mcolor:
+            color = mcolor
+        else:
+            color = next(colors)
         if len(legend_labels) == ncolumns:
             if connect_markers and not plot_line:
-                plt.plot(column1, column2, '-', marker=mstyle, s=msize,
-                         facecolors='none', edgecolors=color, hold=hold,
+                plt.plot(column1, column2, '-', marker=mstyle,
+                         color=color, hold=hold,
                          label=legend_labels[icolumn])
             else:
                 plt.scatter(column1, column2, marker=mstyle, s=msize,
@@ -503,8 +529,8 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
                             label=legend_labels[icolumn])
         else:
             if connect_markers and not plot_line:
-                plt.plot(column1, column2, '-', marker=mstyle, s=msize,
-                         facecolors='none', edgecolors=color, hold=hold)
+                plt.plot(column1, column2, '-', marker=mstyle,
+                         color=color, hold=hold)
             else:
                 plt.scatter(column1, column2, marker=mstyle, s=msize,
                             facecolors='none', edgecolors=color, hold=hold)
@@ -525,7 +551,10 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
         fontP.set_size('small')
         handles, labels = ax.get_legend_handles_labels()
         ax.legend(handles, labels, loc='lower right', prop=fontP)
+    plt.xlim([0,limit])
+    plt.ylim([0,limit])
     ax.grid()
+    ax.set_aspect(aspect='equal')
     if x_label:
         plt.xlabel(x_label)
     if y_label:
@@ -534,58 +563,86 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
     plt.show()
 
 
+#-----------------------------------------------------------------------------
+# Example: Plot scan-rescan thickness values from table (alternating columns)
+#-----------------------------------------------------------------------------
 if __name__== '__main__':
 
     import os
     import numpy as np
-    from mindboggle.utils.io_table import select_column_from_mindboggle_tables
-    from mindboggle.utils.plots import histograms_of_lists
     from mindboggle.utils.plots import scatterplot_list_pairs
+    from mindboggle.utils.plots import boxplots_of_lists
+    from mindboggle.utils.plots import histograms_of_lists
 
-    # Combine two thickness tables by alternating columns:
-    f1 = '/drop/embarcHC_FSsegment_antsCorticalThickness_means1.csv'
-    f2 = '/drop/embarcHC_FSsegment_antsCorticalThickness_means2.csv'
-    columns1 = []
-    columns2 = []
-    f1 = open(f1,'r')
-    f2 = open(f2,'r')
+    #-------------------------------------------------------------------------
+    # Load thickness values from table (alternating columns are scan-rescan):
+    #-------------------------------------------------------------------------
+    tablename = '/drop/LAB/thickness_outputs/thicknesses.csv'
+    title = 'Thickasabrick (62 labels, 40 EMBARC controls)'
+
+    f1 = open(tablename,'r')
     f1 = f1.readlines()
-    f2 = f2.readlines()
-    columns1 = [[] for x in f1[0].split()]
+    columns = [[] for x in f1[0].split()]
     for row in f1:
         row = row.split()
         for icolumn, column in enumerate(row):
-            columns1[icolumn].append(np.float(column))
-    columns2 = [[] for x in f1[0].split()]
-    for row in f2:
-        row = row.split()
-        for icolumn, column in enumerate(row):
-            columns2[icolumn].append(np.float(column))
-    columns = [columns1[0]]
-    for i in range(1, len(columns1)):
-        columns.append(columns1[i])
-        columns.append(columns2[i])
+            columns[icolumn].append(np.float(column))
+    columns1 = [columns[0]]
+    for i in range(1, len(columns)):
+        if np.mod(i,2) == 1:
+            columns1.append(columns[i])
 
+    #-------------------------------------------------------------------------
     # Scatter plot:
+    #-------------------------------------------------------------------------
     scat = True
     if scat:
         ignore_first_column = True
-        plot_line = True
-        connect_markers = True
+        plot_line = False
+        connect_markers = False
         mstyle = 'o'
         msize = 10
-        title = 'EMBARC controls: scan-rescan FS-segmented antsCorticalThickness (62 labels, 40 subjects)'
-        x_label = 'scan antsCorticalThickness (mm)'
-        y_label = 'rescan antsCorticalThickness (mm)'
+        mcolor = 'black'
+        xlabel = 'scan thickness (mm)'
+        ylabel = 'rescan thickness (mm)'
+        limit = 6.5
         legend = True
         legend_labels = ['mark1','mark2']
-        scatterplot_list_pairs(columns, ignore_first_column, plot_line, connect_markers, mstyle, msize, title, x_label, y_label, legend, legend_labels)
+        scatterplot_list_pairs(columns, ignore_first_column, plot_line,
+                               connect_markers, mstyle, msize, mcolor, title,
+                               xlabel, ylabel, limit, legend, legend_labels)
 
+    #-------------------------------------------------------------------------
+    # Box plot per label:
+    #-------------------------------------------------------------------------
+    box_per_label = True
+    if box_per_label:
+        rows1 = []
+        for row in f1:
+            rows1.append([np.float(x) for x in row.split()[1::]])
+        xlabel = 'label index'
+        ylabel = 'thickness (mm)'
+        ylimit = 6.5
+        boxplots_of_lists(rows1, xlabel, ylabel, ylimit, title)
+
+    #-------------------------------------------------------------------------
+    # Box plot per scan:
+    #-------------------------------------------------------------------------
+    box_per_scan = False
+    if box_per_scan:
+        xlabel = 'scan index'
+        ylabel = 'thickness (mm)'
+        ylimit = 6.5
+        boxplots_of_lists(columns1[1::], xlabel, ylabel, ylimit, title)
+
+    #-------------------------------------------------------------------------
     # Histogram:
+    #-------------------------------------------------------------------------
     hist = False
     if hist:
         ignore_columns = [0]
         nbins = 10
         axis_limits = [0, 5, 0, 10]
         titles = []
-        histograms_of_lists(columns, 'thickness', ignore_columns, nbins, axis_limits, titles)
+        histograms_of_lists(columns, 'thickness', ignore_columns, nbins,
+                            axis_limits, titles)
