@@ -12,7 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
-                   labels=[], out_dir='', resize=True, propagate=True):
+                   labels=[], out_dir='', resize=True, propagate=True,
+                   use_c3d=False):
     """
     Compute a simple thickness measure for each labeled gray region.
 
@@ -40,6 +41,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         resize (2x) segmented_file for more accurate thickness estimates?
     propagate : Boolean
         propagate labels through gray matter?
+    use_c3d : Boolean
+        use convert3d? (otherwise ANTs ImageMath)
 
     Returns
     -------
@@ -50,7 +53,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Examples
     --------
-    >>> from simple_thickness import thickinthehead
+    >>> from mindboggle.shapes.thickinthehead import thickinthehead
     >>> segmented_file = 'brain_seg.nii.gz'
     >>> labeled_file = 'labeled.nii.gz'
     >>> gray_value = 2
@@ -59,7 +62,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     >>> out_dir = '.'
     >>> resize = True
     >>> propagate = False
-    >>> thicknesses, labels = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate)
+    >>> use_c3d = False
+    >>> thicknesses, labels = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, use_c3d)
 
     """
     import os
@@ -81,17 +85,28 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Extract white and gray matter:
     #-------------------------------------------------------------------------
-    cmd = ' '.join(['c3d', segmented_file,
-                    '-threshold', str(white_value), str(white_value), '1 0',
-                    '-o', white])
-    print(cmd)
-    os.system(cmd)
+    if use_c3d:
+        cmd = ' '.join(['c3d', segmented_file,
+                        '-threshold', str(white_value), str(white_value), '1 0',
+                        '-o', white])
+        print(cmd)
+        os.system(cmd)
 
-    cmd = ' '.join(['c3d', segmented_file,
-                    '-threshold', str(gray_value), str(gray_value), '1 0',
-                    '-o', gray])
-    print(cmd)
-    os.system(cmd)
+        cmd = ' '.join(['c3d', segmented_file,
+                        '-threshold', str(gray_value), str(gray_value), '1 0',
+                        '-o', gray])
+        print(cmd)
+        os.system(cmd)
+    else:
+        cmd = ' '.join(['ThresholdImage 3', segmented_file,
+                        white, str(white_value), str(white_value), '1 0'])
+        print(cmd)
+        os.system(cmd)
+
+        cmd = ' '.join(['ThresholdImage 3', segmented_file,
+                        gray, str(gray_value), str(gray_value), '1 0'])
+        print(cmd)
+        os.system(cmd)
 
     #-------------------------------------------------------------------------
     # Propagate labels through gray matter (or simply multiply):
@@ -103,9 +118,14 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         print(cmd)
         os.system(cmd)
     else:
-        cmd = ' '.join(['c3d', gray, labeled_file, '-multiply', '-o', gray])
-        print(cmd)
-        os.system(cmd)
+        if use_c3d:
+            cmd = ' '.join(['c3d', gray, labeled_file, '-multiply', '-o', gray])
+            print(cmd)
+            os.system(cmd)
+        else:
+            cmd = ' '.join(['ImageMath 3', gray, 'm', gray, labeled_file])
+            print(cmd)
+            os.system(cmd)
 
     #-------------------------------------------------------------------------
     # Resample gray and white files:
@@ -114,31 +134,47 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         rescale = 2
         rescale_percent = str(rescale * 100)
 
-        cmd = ' '.join(['c3d', gray, '-interpolation nearestneighbor',
-                        '-resample '+rescale_percent+'%', '-o', gray])
-        print(cmd)
-        os.system(cmd)
+        if use_c3d:
+            cmd = ' '.join(['c3d', gray, '-interpolation nearestneighbor',
+                            '-resample '+rescale_percent+'%', '-o', gray])
+            print(cmd)
+            os.system(cmd)
 
-        cmd = ' '.join(['c3d', white, '-interpolation nearestneighbor',
-                        '-resample '+rescale_percent+'%', '-o', white])
-        print(cmd)
-        os.system(cmd)
+            cmd = ' '.join(['c3d', white, '-interpolation nearestneighbor',
+                            '-resample '+rescale_percent+'%', '-o', white])
+            print(cmd)
+            os.system(cmd)
+        else:
 
     #-------------------------------------------------------------------------
     # Extract gray inner and outer border voxels:
     #-------------------------------------------------------------------------
-    cmd = ' '.join(['c3d', white, '-dilate 1 1x1x1vox',
-                    gray, '-multiply', '-o', inner_edge])
-    print(cmd)
-    os.system(cmd)
-    if use_outer_edge:
-        cmd = ' '.join(['c3d', gray, '-binarize -erode 1 1x1x1vox',
-                        '-threshold 1 1 0 1', gray, '-multiply',
-                        '-o', outer_edge])
+    if use_c3d:
+        cmd = ' '.join(['c3d', white, '-dilate 1 1x1x1vox',
+                        gray, '-multiply', '-o', inner_edge])
         print(cmd)
         os.system(cmd)
-        cmd = ' '.join(['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
-                        outer_edge, '-multiply', '-o', outer_edge])
+        if use_outer_edge:
+            cmd = ' '.join(['c3d', gray, '-binarize -erode 1 1x1x1vox',
+                            '-threshold 1 1 0 1', gray, '-multiply',
+                            '-o', outer_edge])
+            print(cmd)
+            os.system(cmd)
+            cmd = ' '.join(['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
+                            outer_edge, '-multiply', '-o', outer_edge])
+            print(cmd)
+            os.system(cmd)
+    else:
+
+
+
+
+
+
+
+
+
+        cmd = ' '.join(['ImageMath 3', white, 'D', gray, labeled_file])
         print(cmd)
         os.system(cmd)
 
@@ -187,7 +223,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
 
 def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
-                      atropos_stem='', label_dir='', label_filename=''):
+                       atropos_stem='', label_dir='', label_filename=''):
     """
     Combine FreeSurfer volume outputs (no surface-based outputs) to obtain
     a table of simple thickness measures for each labeled region.
@@ -195,8 +231,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     Steps ::
 
       1. Convert FreeSurfer volumes to nifti format in their original space.
-      2. Create gray matter and white matter volumes,
-         and replace white/gray matter overlap with white matter.
+      2. Combine FreeSurfer (and optionally ANTs) gray & white segmentations.
       3. Compute simple thickness per label = gray / average border
       4. Store thickness values in a table.
 
@@ -204,6 +239,10 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
       1. Include antsCorticalThickness.sh (Atropos) gray matter segmentation.
       2. Use non-FreeSurfer labels.
+
+    Requires ::
+
+        FreeSurfer's mri_vol2vol
 
     Parameters
     ----------
@@ -231,7 +270,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
     Examples
     --------
-    >>> from simple_thickness import run_thickinthehead
+    >>> from mindboggle.shapes.thickinthehead import run_thickinthehead
     >>> subjects=['MMRR-21-2','MMRR-21-2_rescan']
     >>> labels = range(1002,1036) + range(2002,2036)
     >>> labels.remove(1004)
@@ -252,10 +291,12 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     import numpy as np
     import nibabel as nb
 
-    from simple_thickness import thickinthehead
+    from mindboggle.utils.segment import combine_segmentations
+    from mindboggle.shapes.thickinthehead import thickinthehead
 
     subjects_dir = os.environ['SUBJECTS_DIR']
 
+    use_c3d = False
     resize = True
     thickness_table = np.zeros((len(labels), len(subjects)+1))
     thickness_table[:,0] = labels
@@ -269,36 +310,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         out_subdir = os.path.join(out_dir, subject)
         if not os.path.exists(out_subdir):
             os.mkdir(out_subdir)
-        segmented_file = os.path.join(out_subdir, 'segmented.nii.gz')
-        white_file = os.path.join(out_subdir, 'white.nii.gz')
         labeled_file = os.path.join(out_subdir, 'labeled.nii.gz')
-
-        #---------------------------------------------------------------------
-        # Convert FreeSurfer gray matter volume to nifti format:
-        #---------------------------------------------------------------------
-        rawavg = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
-        aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
-        cmd = ' '.join(['mri_vol2vol --mov', aseg, '--targ', rawavg,
-                        '--interp nearest',
-                        '--regheader --o', segmented_file])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['c3d', segmented_file, '-replace 10 0 3 10 42 10',
-                        '-threshold 10 10 1 0', '-o', segmented_file])
-        print(cmd)
-        os.system(cmd)
-
-        #---------------------------------------------------------------------
-        # Convert FreeSurfer white matter volume to nifti format:
-        #---------------------------------------------------------------------
-        filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-        cmd = ' '.join(['mri_vol2vol --mov', filled, '--targ', rawavg,
-                        '--interp nearest', '--regheader --o', white_file])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['c3d', white_file, '-binarize -o', white_file])
-        print(cmd)
-        os.system(cmd)
 
         #---------------------------------------------------------------------
         # Convert FreeSurfer label volume to nifti format (if no label file):
@@ -307,6 +319,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
             labeled_file = os.path.join(label_dir, subject, label_filename)
         else:
             aparc = os.path.join(subjects_dir, subject, 'mri', 'aparc+aseg.mgz')
+            rawavg = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
 
             cmd = ' '.join(['mri_vol2vol --mov', aparc, '--targ', rawavg,
                             '--interp nearest',
@@ -329,29 +342,19 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
                 if atropos_stem in subdir1:
                     subdir = subdir1
             if subdir:
-                atropos_seg = os.path.join(supdir, subdir, atropos_stem + \
-                                           'BrainSegmentation.nii.gz')
+                second_segmentation_file = os.path.join(supdir, subdir,
+                    atropos_stem + 'BrainSegmentation.nii.gz')
             else:
                 sys.exit('No segmentation file for ' + subject)
-            cmd = ' '.join(['c3d', atropos_seg, '-threshold 2 2 1 0',
-                            segmented_file, '-add -binarize',
-                            '-threshold 1 1 2 0', '-o', segmented_file])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['c3d', atropos_seg, '-threshold 3 3 1 0',
-                            white_file, '-add -binarize',
-                            '-threshold 1 1 3 0', '-o', white_file])
-            print(cmd)
-            os.system(cmd)
+        else:
+            second_segmentation_file = ''
 
         #---------------------------------------------------------------------
-        # Replace white/gray matter overlap with white matter:
+        # Combine FreeSurfer and Atropos segmentations:
         #---------------------------------------------------------------------
-        cmd = ' '.join(['c3d', white_file, '-threshold 3 3 0 1',
-                        segmented_file, '-multiply', white_file, '-add',
-                        '-o', segmented_file])
-        print(cmd)
-        os.system(cmd)
+        gray_and_white_file = combine_segmentations(subject,
+                                                    second_segmentation_file,
+                                                    out_subdir, use_c3d)
 
         #---------------------------------------------------------------------
         # Tabulate thickness values:
@@ -359,9 +362,9 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         gray_value = 2
         white_value = 3
         propagate = True
-        thicknesses, u1 = thickinthehead(segmented_file, labeled_file,
-                                        gray_value, white_value, labels,
-                                        out_subdir, resize, propagate)
+        thicknesses, u1 = thickinthehead(gray_and_white_file, labeled_file,
+                                         gray_value, white_value, labels,
+                                         out_subdir, resize, propagate)
 
         thickness_table[:, isubject+1] = thicknesses
 
@@ -378,7 +381,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
 if __name__ == "__main__":
 
-    from simple_thickness import thickinthehead
+    from mindboggle.shapes.thickinthehead import thickinthehead
 
     subjects = ['OASIS-TRT-20-1']
 

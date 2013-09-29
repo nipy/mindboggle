@@ -577,8 +577,9 @@ if __name__== '__main__':
     #-------------------------------------------------------------------------
     # Load thickness values from table (alternating columns are scan-rescan):
     #-------------------------------------------------------------------------
-    tablename = '/drop/LAB/thickness_outputs/thicknesses.csv'
-    title = 'Thickasabrick (62 labels, 40 EMBARC controls)'
+    tablename = '/drop/thickness_evaluation/results/tables/antsCorticalThickness_means_OASIS-TRT.csv'
+    title = 'antsCorticalThickness (62 labels, 20 OASIS test-retest)'
+    #title = 'Thickinthehead (62 labels, 40 EMBARC controls)'
 
     f1 = open(tablename,'r')
     f1 = f1.readlines()
@@ -628,7 +629,7 @@ if __name__== '__main__':
     #-------------------------------------------------------------------------
     # Box plot per scan:
     #-------------------------------------------------------------------------
-    box_per_scan = False
+    box_per_scan = True #False
     if box_per_scan:
         xlabel = 'scan index'
         ylabel = 'thickness (mm)'
