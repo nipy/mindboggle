@@ -1,7 +1,7 @@
 # This file contains all functions to extract fundus curves from per-vertex-value (e.g., curvature) map
 # Last updated: 2011-08-09 Forrest Sheng Bao
 
-from mindboggle.utils import io_file, io_vtk, io_free
+from mindboggle.utils import io_file, io_vtk, freesurfer
 import libbasin
 #import libfundifc as libskel
 from numpy import mean, std, abs, matrix, zeros, flatnonzero, sign, array, argmin, median
@@ -781,11 +781,11 @@ def getFeatures(InputFiles, Type, Options):
         Maps = {}
 
         if ThickFile != "":
-            Maps["thickness"] = io_free.read_curvature(ThickFile)
+            Maps["thickness"] = freesurfer.read_curvature(ThickFile)
         if CurvFile != "":
-            Maps["meancurv"] = io_free.read_curvature(CurvFile)
+            Maps["meancurv"] = freesurfer.read_curvature(CurvFile)
         if ConvFile != "":
-            Maps["conv"] = io_free.read_curvature(ConvFile)
+            Maps["conv"] = freesurfer.read_curvature(ConvFile)
 
         if Use == 'conv':
             Extract_Sulci_on_Map = "conv"
@@ -795,7 +795,7 @@ def getFeatures(InputFiles, Type, Options):
             print "[ERROR] Unrecognized map to use:", Use
             exit()
 
-        Mesh = io_free.read_surface(SurfFile)
+        Mesh = freesurfer.read_surface(SurfFile)
 
         Extract_Fundi_on_Map = "conv"
 
@@ -818,10 +818,10 @@ def getFeatures(InputFiles, Type, Options):
             Faces, Lines, Vertexes, Points, nPoints, Maps['gausscurv'], name, input_vtk = io_vtk.read_vtk(GaussCurvVTK)
 
         if ThickFile != '':
-            Maps['thickness'] = io_free.read_curvature(ThickFile)
+            Maps['thickness'] = freesurfer.read_curvature(ThickFile)
 
         if ConvexityFile != '':
-            Maps['sulc'] = io_free.read_curvature(ConvexityFile)
+            Maps['sulc'] = freesurfer.read_curvature(ConvexityFile)
 
         Mesh = [Vertexes, Faces]
 

@@ -48,12 +48,11 @@ from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
 from mindboggle.data import hashes_url
 from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_free import surface_to_vtk, curvature_to_vtk, \
-    annot_to_vtk
+from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
+    annot_to_vtk, label_with_classifier
 from mindboggle.utils.ants import ANTS, WarpImageMultiTransform, ImageMath, \
     fill_volume_with_surface_labels
 from mindboggle.labels.protocol import dkt_protocol
-from mindboggle.labels.label_free import label_with_classifier
 from mindboggle.labels.relabel import relabel_surface, overwrite_volume_labels
 from mindboggle.shapes.measure import area, travel_depth, geodesic_depth, \
     curvature, volume_per_label, rescale_by_neighborhood

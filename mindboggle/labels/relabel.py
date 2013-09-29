@@ -228,51 +228,6 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     return output_file
 
 
-def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
-    """
-    Combine surface labels in a .annot file.
-
-    https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
-
-     `mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
-
-      ``translation file``: text file that lists the labels (one per line)
-      you want to group, and the new label you want to create.  You have to use
-      the RGB codes; each line will provide the input and output RGB values::
-
-            221     220     60      223     220     60
-            221     220     160     223     220     60
-            221     220     100     223     220     60
-
-    Parameters
-    ----------
-    hemi : string
-        hemisphere ['lh' or 'rh']
-    subject : string
-        subject name
-    annot_name : string
-        name of .annot file (without pre- or post-pends)
-    relabel_file : string
-        text file with old and new RGB values
-    new_annot_name : string
-        new .annot name
-
-    Returns
-    -------
-    new_annot_name : string
-        new .annot name
-
-    """
-    from nipype.interfaces.base import CommandLine
-
-    cli = CommandLine(command='mris_translate_annotation')
-    cli.inputs.args = ' '.join([subject, hemi, annot_name, relabel_file, new_annot_name])
-    cli.cmdline
-    cli.run()
-
-    return new_annot_name
-
-
 def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
                             replace=True, background_value=-1):
     """
@@ -358,3 +313,4 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
         raise(IOError(output_file + " not found"))
 
     return output_file
+

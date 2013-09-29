@@ -14,7 +14,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def zernike_moments(points, faces, order=10, scale_input=True,
-                    decimate_fraction=0, decimate_smooth=25):
+                    decimate_fraction=0, decimate_smooth=0):
     """
     Compute the Zernike moments of a surface patch of points and faces.
 
@@ -77,15 +77,37 @@ def zernike_moments(points, faces, order=10, scale_input=True,
      2.081366518964347e-21,
      5.735003646768394e-05,
      2.433866250546253e-21]
-    >>> decimate_fraction = 0.75
-    >>> decimate_smooth = 25
-    >>> zernike_moments(points, faces, order, scale_input, decimate_fraction, decimate_smooth)
-    [0.006991734011035332,
-     0.013193003020582572,
-     0.004870751616753583,
-     0.013680131900964697,
-     0.0023524006444438673,
-     0.0009947980911615825]
+
+    Arthur Mikhno's result:
+    0
+    0
+    0.2831
+    10.6997
+    2.1352
+    11.8542
+    >>> # Example 2.5: Parallelepiped.vtk:
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> vtk_file = os.path.join(path, 'Parallelepiped.vtk')
+    >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
+    >>> order = 3
+    >>> scale_input = True
+    >>> zernike_moments(points, faces, order, scale_input)
+    [0.2652000150907399,
+     0.27006648207389017,
+     6.902814314591948e-09,
+     7.901431343883835e-09,
+     0.12685697496878662,
+     5.560135951999606e-09]
+    Arthur Mikhno's result:
+    0.0251
+    0.0310
+    0.0255
+    0.0451
+    0.0189
+    0.0133
     >>> # Example 3: Twins-2-1 left postcentral pial surface -- NO decimation:
     >>> # (zernike_moments took 142 seconds for order = 3 with no decimation)
     >>> import os
@@ -251,6 +273,25 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
        0.0008080165707033097]],
      [22])
 
+
+    ([[0.0018758013185778298,
+       0.001757973693050823,
+       0.002352403177686726,
+       0.0032281044369938286,
+       0.002215900343702539,
+       0.0019646380916703856]],
+     [14.0])
+    Arthur Mikhno's result:
+    1.0e+07 *
+    0.0000
+    0.0179
+    0.0008
+    4.2547
+    0.0534
+    4.4043
+
+
+
     """
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk
@@ -273,7 +314,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     for label in ulabels:
       #if label == 22:
       #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
-      #if label == 14:
+      if label == 14:
 
         #---------------------------------------------------------------------
         # Determine the indices per label:
