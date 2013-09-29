@@ -257,7 +257,7 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
 
     output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
 
-    cmd = ['mri_aparc2aseg, '--s', subject, '--annot', annot_name,
+    cmd = ['mri_aparc2aseg', '--s', subject, '--annot', annot_name,
             '--o', output_file1]
     execute(cmd)
     if not os.path.exists(output_file1):
@@ -536,6 +536,8 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     import os
     import nibabel as nb
 
+    from mindboggle.utils.utils import execute
+
     subjects_dir = os.environ['SUBJECTS_DIR']
 
     #-------------------------------------------------------------------------
@@ -555,128 +557,101 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     #-------------------------------------------------------------------------
     rawavg = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
     aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
-    cmd = ' '.join(['mri_vol2vol --mov', aseg, '--targ', rawavg,
-                    '--interp nearest',
-                    '--regheader --o', gray_and_white_file])
-    print(cmd)
-    os.system(cmd)
+    cmd = ['mri_vol2vol --mov', aseg, '--targ', rawavg, '--interp nearest',
+           '--regheader --o', gray_and_white_file]
+    execute(cmd)
+    if not os.path.exists(gray_and_white_file):
+        raise(IOError(gray_and_white_file + " not found"))
 
     filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-    cmd = ' '.join(['mri_vol2vol --mov', filled, '--targ', rawavg,
-                    '--interp nearest', '--regheader --o', white_file])
-    print(cmd)
-    os.system(cmd)
+    cmd = ['mri_vol2vol --mov', filled, '--targ', rawavg, '--interp nearest',
+           '--regheader --o', white_file]
+    execute(cmd)
+    if not os.path.exists(white_file):
+        raise(IOError(white_file + " not found"))
 
     if use_c3d:
         #---------------------------------------------------------------------
         # Retain only gray or white matter values:
         #---------------------------------------------------------------------
-        cmd = ' '.join(['c3d', gray_and_white_file, '-replace 1 0 3 1 42 1',
-                        '-threshold 1 1 2 0', '-o', gray_and_white_file])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['c3d', gray_and_white_file, '-replace 1 0 3 1 42 1',
+               '-threshold 1 1 2 0', '-o', gray_and_white_file]
+        execute(cmd)
 
-        cmd = ' '.join(['c3d', white_file, '-binarize -scale 3',
-                        '-o', white_file])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['c3d', white_file, '-binarize -scale 3', '-o', white_file]
+        execute(cmd)
 
         #---------------------------------------------------------------------
         # Include second segmentation:
         #---------------------------------------------------------------------
         if second_segmentation_file:
-            cmd = ' '.join(['c3d', second_segmentation_file,
-                            '-threshold 2 2 1 0',
-                            gray_and_white_file, '-add -binarize',
-                            '-threshold 1 1 2 0', '-o', gray_and_white_file])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['c3d', second_segmentation_file,
-                            '-threshold 3 3 1 0',
-                            white_file, '-add -binarize',
-                            '-threshold 1 1 3 0', '-o', white_file])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['c3d', second_segmentation_file, '-threshold 2 2 1 0',
+                   gray_and_white_file, '-add -binarize',
+                   '-threshold 1 1 2 0', '-o', gray_and_white_file]
+            execute(cmd)
+            cmd = ['c3d', second_segmentation_file, '-threshold 3 3 1 0',
+                   white_file, '-add -binarize', '-threshold 1 1 3 0',
+                   '-o', white_file]
+            execute(cmd)
 
         #---------------------------------------------------------------------
         # Replace white/gray matter overlap with white matter:
         #---------------------------------------------------------------------
-        cmd = ' '.join(['c3d', white_file, '-threshold 3 3 0 1',
-                        gray_and_white_file, '-multiply', white_file, '-add',
-                        '-o', gray_and_white_file])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['c3d', white_file, '-threshold 3 3 0 1', gray_and_white_file,
+               '-multiply', white_file, '-add', '-o', gray_and_white_file]
+        execute(cmd)
 
     else:
         #---------------------------------------------------------------------
         # Retain only gray or white matter values:
         #---------------------------------------------------------------------
-        cmd = ' '.join(['ImageMath 3', gray_and_white_file,
-                        'ReplaceVoxelValue', gray_and_white_file, '1 1 0'])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['ImageMath 3', gray_and_white_file,
-                        'ReplaceVoxelValue', gray_and_white_file, '3 3 1'])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['ImageMath 3', gray_and_white_file,
-                        'ReplaceVoxelValue', gray_and_white_file, '42 42 1'])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['ThresholdImage 3', gray_and_white_file,
-                        gray_and_white_file, '1 1 2 0'])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ImageMath 3', gray_and_white_file,
+               'ReplaceVoxelValue', gray_and_white_file, '1 1 0']
+        execute(cmd)
+        cmd = ['ImageMath 3', gray_and_white_file,
+               'ReplaceVoxelValue', gray_and_white_file, '3 3 1']
+        execute(cmd)
+        cmd = ['ImageMath 3', gray_and_white_file,
+               'ReplaceVoxelValue', gray_and_white_file, '42 42 1']
+        execute(cmd)
+        cmd = ['ThresholdImage 3', gray_and_white_file,
+               gray_and_white_file, '1 1 2 0']
+        execute(cmd)
 
-        cmd = ' '.join(['ThresholdImage 3', white_file, white_file,
-                        '1 10000 3 0'])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ThresholdImage 3', white_file, white_file, '1 10000 3 0']
+        execute(cmd)
 
         #---------------------------------------------------------------------
         # Include second segmentation:
         #---------------------------------------------------------------------
         if second_segmentation_file:
-            cmd = ' '.join(['ThresholdImage 3', second_segmentation_file,
-                            temp_file, '2 2 1 0'])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['ImageMath 3', temp_file, '+', temp_file,
-                            gray_and_white_file])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['ThresholdImage 3', temp_file,
-                            gray_and_white_file, '1 10000 2 0'])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['ThresholdImage 3', second_segmentation_file,
+                   temp_file, '2 2 1 0']
+            execute(cmd)
+            cmd = ['ImageMath 3', temp_file, '+', temp_file,
+                   gray_and_white_file]
+            execute(cmd)
+            cmd = ['ThresholdImage 3', temp_file,
+                   gray_and_white_file, '1 10000 2 0']
+            execute(cmd)
 
-            cmd = ' '.join(['ThresholdImage 3', second_segmentation_file,
-                            temp_file, '3 3 1 0'])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['ImageMath 3', temp_file,
-                            '+', temp_file, white_file])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['ThresholdImage 3', temp_file, white_file,
-                            '1 10000 3 0'])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['ThresholdImage 3', second_segmentation_file,
+                   temp_file, '3 3 1 0']
+            execute(cmd)
+            cmd = ['ImageMath 3', temp_file, '+', temp_file, white_file]
+            execute(cmd)
+            cmd = ['ThresholdImage 3', temp_file, white_file, '1 10000 3 0']
+            execute(cmd)
 
         #---------------------------------------------------------------------
         # Replace white/gray matter overlap with white matter:
         #---------------------------------------------------------------------
-        cmd = ' '.join(['ThresholdImage 3', white_file, temp_file, '3 3 0 1'])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['ImageMath 3', temp_file,
-                        'm', temp_file, gray_and_white_file])
-        print(cmd)
-        os.system(cmd)
-        cmd = ' '.join(['ImageMath 3', gray_and_white_file,
-                        '+', temp_file, white_file])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ThresholdImage 3', white_file, temp_file, '3 3 0 1']
+        execute(cmd)
+        cmd = ['ImageMath 3', temp_file, 'm', temp_file, gray_and_white_file]
+        execute(cmd)
+        cmd = ['ImageMath 3', gray_and_white_file, '+', temp_file, white_file]
+        execute(cmd)
 
     return gray_and_white_file
 
