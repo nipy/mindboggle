@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
                    labels=[], out_dir='', resize=True, propagate=True,
-                   use_c3d=False):
+                   output_table=False, use_c3d=False):
     """
     Compute a simple thickness measure for each labeled gray region.
 
@@ -41,6 +41,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         resize (2x) segmented_file for more accurate thickness estimates?
     propagate : Boolean
         propagate labels through gray matter?
+    output_table : False
+        output a table with labels and thickness values?
     use_c3d : Boolean
         use convert3d? (otherwise ANTs ImageMath)
 
@@ -50,20 +52,30 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         thickness values
     labels : list of integers
         label indices
+    table_file : string
+        name of file containing thickness values
 
     Examples
     --------
     >>> from mindboggle.shapes.thickness import thickinthehead
     >>> segmented_file = 'gray_and_white.nii.gz'
-    >>> labeled_file = 'gray_and_white.nii.gz' #'labeled.nii.gz'
+    >>> labeled_file = 'aparc+aseg.nii.gz'
     >>> gray_value = 2
     >>> white_value = 3
-    >>> labels = [2]
+    >>> #labels = [2]
+    >>> labels = range(1002,1036) + range(2002,2036)
+    >>> labels.remove(1004)
+    >>> labels.remove(2004)
+    >>> labels.remove(1032)
+    >>> labels.remove(2032)
+    >>> labels.remove(1033)
+    >>> labels.remove(2033)
     >>> out_dir = '.'
     >>> resize = True
     >>> propagate = False
+    >>> thickness_table = True
     >>> use_c3d = False
-    >>> thicknesses, labels = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, use_c3d)
+    >>> thicknesses, labels, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, thickness_table, use_c3d)
 
     """
     import os
@@ -179,11 +191,15 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Load data:
     #-------------------------------------------------------------------------
-    #img = nb.load(gray)
-    #hdr = img.get_header()
-    #voxel_volume = np.prod(hdr.get_zooms())
-    #gray_data = img.get_data().ravel()
-    gray_data = nb.load(gray).get_data().ravel()
+    compute_real_volume = True
+    if compute_real_volume:
+        img = nb.load(gray)
+        hdr = img.get_header()
+        vv = np.prod(hdr.get_zooms())
+        gray_data = img.get_data().ravel()
+    else:
+        vv = 1
+        gray_data = nb.load(gray).get_data().ravel()
     inner_edge_data = nb.load(inner_edge).get_data().ravel()
     if use_outer_edge:
         outer_edge_data = nb.load(outer_edge).get_data().ravel()
@@ -191,34 +207,51 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Loop through labels:
     #-------------------------------------------------------------------------
+    volumes = []
+    areas = []
     thicknesses = []
     if not labels:
         labeled_data = nb.load(labeled_file).get_data().ravel()
         labels = np.unique(labeled_data)
     labels = [int(x) for x in labels]
+    if output_table:
+        thickness_table = np.zeros((len(labels), 4))
+        thickness_table[:,0] = labels
     for label in labels:
 
         #---------------------------------------------------------------------
         # Compute thickness as a ratio of label volume and edge volume:
         #---------------------------------------------------------------------
-        label_gray_voxels = len(np.where(gray_data==label)[0])
-        label_inner_edge_voxels = len(np.where(inner_edge_data==label)[0])
-        if label_inner_edge_voxels:
+        label_gray_volume = vv * len(np.where(gray_data==label)[0])
+        label_inner_edge_volume = vv * len(np.where(inner_edge_data==label)[0])
+        if label_inner_edge_volume:
             if use_outer_edge:
-                label_outer_edge_voxels = \
-                    len(np.where(outer_edge_data==label)[0])
-                label_edge_voxels = (label_inner_edge_voxels +
-                                     label_outer_edge_voxels) / 2.0
+                label_outer_edge_volume = \
+                    vv * len(np.where(outer_edge_data==label)[0])
+                label_area = (label_inner_edge_volume +
+                              label_outer_edge_volume) / 2.0
             else:
-                label_edge_voxels = label_inner_edge_voxels
-            thickness = label_gray_voxels / label_edge_voxels
+                label_area = label_inner_edge_volume
+            thickness = label_gray_volume / label_area
+            volumes.append(label_gray_volume)
+            areas.append(label_area)
             thicknesses.append(thickness)
-            print('label {0} voxels: gray={1:2.2f}, inner_edge={2:2.2f}, '
-                  'outer_edge={3:2.2f}, edge={4:2.2f}, thickness={5:2.2f}mm'.
-                  format(label, label_gray_voxels, label_inner_edge_voxels,
-                  label_outer_edge_voxels, label_edge_voxels, thickness))
+            print('label {0} volume: gray={1:2.2f}, inner_edge={2:2.2f}, '
+                  'outer_edge={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
+                  format(label, label_gray_volume, label_inner_edge_volume,
+                  label_outer_edge_volume, label_area, thickness))
 
-    return thicknesses, labels
+    if output_table:
+        thickness_table[:, 1] = volumes
+        thickness_table[:, 2] = areas
+        thickness_table[:, 3] = thicknesses
+        table_file = os.path.join(out_dir, 'thicknesses.csv')
+        np.savetxt(table_file, thickness_table, fmt='%d %2.4f %2.4f %2.4f',
+                   delimiter='\t', newline='\n')
+    else:
+        thickness_table = None
+
+    return thicknesses, labels, thickness_table
 
 
 def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
@@ -270,7 +303,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     Examples
     --------
     >>> from mindboggle.shapes.thickness import run_thickinthehead
-    >>> subjects=['OASIS-TRT-20-1']
+    >>> subjects = ['OASIS-TRT-20-1']
     >>> labels = range(1002,1036) + range(2002,2036)
     >>> labels.remove(1004)
     >>> labels.remove(2004)
@@ -358,9 +391,11 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         gray_value = 2
         white_value = 3
         propagate = True
-        thicknesses, u1 = thickinthehead(gray_and_white_file, labeled_file,
-                                         gray_value, white_value, labels,
-                                         out_subdir, resize, propagate)
+        output_table = False
+        thicknesses, u1, u2 = thickinthehead(gray_and_white_file, labeled_file,
+                                             gray_value, white_value, labels,
+                                             out_subdir, resize, propagate,
+                                             output_table, use_c3d)
 
         thickness_table[:, isubject+1] = thicknesses
 
@@ -392,10 +427,11 @@ if __name__ == "__main__":
     labels.remove(1033)
     labels.remove(2033)
 
-    out_dir = 'thickness_outputs'
-    atropos_dir = '' #'/data/export/home/mzia/cluster/data/embarc_hc_anatomicals/'
+    out_dir = 'thickness_outputs_fs-ants_embarc40controls_antslabels'
+    atropos_dir = '' #'/data/export/home/mzia/cluster/data/embarc_hc_anatomicals_k1'
+    #atropos_dir = '/homedir/Data/Brains/OASIS-TRT-20/antsCorticalThickness'
     atropos_stem = '' #'tmp'
-    label_dir = '' #/public/embarc/embarc_control_labels'
-    label_filename = '' #labels.nii.gz'
+    label_dir = '' #'/public/embarc/embarc_control_labels'
+    label_filename = '' #'labels.nii.gz'
     thickness_table, table_file = run_thickinthehead(subjects,
         labels, out_dir, atropos_dir, atropos_stem, label_dir, label_filename)
