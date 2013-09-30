@@ -53,12 +53,12 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Examples
     --------
-    >>> from mindboggle.shapes.thickinthehead import thickinthehead
-    >>> segmented_file = 'brain_seg.nii.gz'
-    >>> labeled_file = 'labeled.nii.gz'
+    >>> from mindboggle.shapes.thickness import thickinthehead
+    >>> segmented_file = 'gray_and_white.nii.gz'
+    >>> labeled_file = 'gray_and_white.nii.gz' #'labeled.nii.gz'
     >>> gray_value = 2
     >>> white_value = 3
-    >>> labels = []
+    >>> labels = [2]
     >>> out_dir = '.'
     >>> resize = True
     >>> propagate = False
@@ -70,6 +70,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     import numpy as np
     import nibabel as nb
 
+    from mindboggle.utils.utils import execute
+
     #-------------------------------------------------------------------------
     # Output files:
     #-------------------------------------------------------------------------
@@ -77,6 +79,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         os.mkdir(out_dir)
     gray = os.path.join(out_dir, 'gray.nii.gz')
     white = os.path.join(out_dir, 'white.nii.gz')
+    temp = os.path.join(out_dir, 'temp.nii.gz')
     inner_edge = os.path.join(out_dir, 'gray_inner_edge.nii.gz')
     use_outer_edge = True
     if use_outer_edge:
@@ -86,97 +89,92 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     # Extract white and gray matter:
     #-------------------------------------------------------------------------
     if use_c3d:
-        cmd = ' '.join(['c3d', segmented_file,
-                        '-threshold', str(white_value), str(white_value), '1 0',
-                        '-o', white])
-        print(cmd)
-        os.system(cmd)
-
-        cmd = ' '.join(['c3d', segmented_file,
-                        '-threshold', str(gray_value), str(gray_value), '1 0',
-                        '-o', gray])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['c3d', segmented_file,
+               '-threshold', str(white_value), str(white_value), '1 0',
+               '-o', white]
+        execute(cmd)
+        cmd = ['c3d', segmented_file,
+               '-threshold', str(gray_value), str(gray_value), '1 0',
+               '-o', gray]
+        execute(cmd)
     else:
-        cmd = ' '.join(['ThresholdImage 3', segmented_file,
-                        white, str(white_value), str(white_value), '1 0'])
-        print(cmd)
-        os.system(cmd)
-
-        cmd = ' '.join(['ThresholdImage 3', segmented_file,
-                        gray, str(gray_value), str(gray_value), '1 0'])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ThresholdImage 3', segmented_file,
+               white, str(white_value), str(white_value), '1 0']
+        execute(cmd)
+        cmd = ['ThresholdImage 3', segmented_file,
+               gray, str(gray_value), str(gray_value), '1 0']
+        execute(cmd)
 
     #-------------------------------------------------------------------------
     # Propagate labels through gray matter (or simply multiply):
     #-------------------------------------------------------------------------
     if propagate:
-        args = ['ImageMath', '3', gray, 'PropagateLabelsThroughMask',
-                gray, labeled_file]
-        cmd = ' '.join(args)
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ImageMath', '3', gray, 'PropagateLabelsThroughMask',
+               gray, labeled_file]
+        execute(cmd)
     else:
         if use_c3d:
-            cmd = ' '.join(['c3d', gray, labeled_file, '-multiply', '-o', gray])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['c3d', gray, labeled_file, '-multiply', '-o', gray]
+            execute(cmd)
         else:
-            cmd = ' '.join(['ImageMath 3', gray, 'm', gray, labeled_file])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['ImageMath 3', gray, 'm', gray, labeled_file]
+            execute(cmd)
 
     #-------------------------------------------------------------------------
     # Resample gray and white files:
     #-------------------------------------------------------------------------
     if resize:
-        rescale = 2
+        rescale = 2.0
         rescale_percent = str(rescale * 100)
 
         if use_c3d:
-            cmd = ' '.join(['c3d', gray, '-interpolation nearestneighbor',
-                            '-resample '+rescale_percent+'%', '-o', gray])
-            print(cmd)
-            os.system(cmd)
-
-            cmd = ' '.join(['c3d', white, '-interpolation nearestneighbor',
-                            '-resample '+rescale_percent+'%', '-o', white])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['c3d', gray, '-interpolation nearestneighbor',
+                   '-resample '+rescale_percent+'%', '-o', gray]
+            execute(cmd)
+            cmd = ['c3d', white, '-interpolation nearestneighbor',
+                   '-resample '+rescale_percent+'%', '-o', white]
+            execute(cmd)
         else:
+            dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
+            cmd = ['ResampleImageBySpacing 3', gray, gray, dims, '0 0 1']
+            execute(cmd)
+            cmd = ['ResampleImageBySpacing 3', white, white, dims, '0 0 1']
+            execute(cmd)
 
     #-------------------------------------------------------------------------
     # Extract gray inner and outer border voxels:
     #-------------------------------------------------------------------------
     if use_c3d:
-        cmd = ' '.join(['c3d', white, '-dilate 1 1x1x1vox',
-                        gray, '-multiply', '-o', inner_edge])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['c3d', white, '-dilate 1 1x1x1vox', gray, '-multiply',
+               '-o', inner_edge]
+        execute(cmd)
         if use_outer_edge:
-            cmd = ' '.join(['c3d', gray, '-binarize -erode 1 1x1x1vox',
-                            '-threshold 1 1 0 1', gray, '-multiply',
-                            '-o', outer_edge])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
-                            outer_edge, '-multiply', '-o', outer_edge])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['c3d', gray, '-binarize -erode 1 1x1x1vox',
+                   '-threshold 1 1 0 1', gray, '-multiply', '-o', outer_edge]
+            execute(cmd)
+            cmd = ['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
+                   outer_edge, '-multiply', '-o', outer_edge]
+            execute(cmd)
     else:
-
-
-
-
-
-
-
-
-
-        cmd = ' '.join(['ImageMath 3', white, 'D', gray, labeled_file])
-        print(cmd)
-        os.system(cmd)
+        cmd = ['ImageMath 3', inner_edge, 'MD', white, '1']
+        execute(cmd)
+        cmd = ['ImageMath 3', inner_edge, 'm', gray, inner_edge]
+        execute(cmd)
+        if use_outer_edge:
+            cmd = ['ThresholdImage 3', gray, outer_edge, '1 10000 1 0']
+            execute(cmd)
+            cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
+            execute(cmd)
+            cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
+            execute(cmd)
+            cmd = ['ImageMath 3', outer_edge, 'm', gray, outer_edge]
+            execute(cmd)
+            cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
+            execute(cmd)
+            cmd = ['ThresholdImage 3', temp, temp, '1 1 0 1']
+            execute(cmd)
+            cmd = ['ImageMath 3', outer_edge, 'm', temp, outer_edge]
+            execute(cmd)
 
     #-------------------------------------------------------------------------
     # Load data:
@@ -207,7 +205,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         label_inner_edge_voxels = len(np.where(inner_edge_data==label)[0])
         if label_inner_edge_voxels:
             if use_outer_edge:
-                label_outer_edge_voxels = len(np.where(outer_edge_data==label)[0])
+                label_outer_edge_voxels = \
+                    len(np.where(outer_edge_data==label)[0])
                 label_edge_voxels = (label_inner_edge_voxels +
                                      label_outer_edge_voxels) / 2.0
             else:
@@ -270,8 +269,8 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
     Examples
     --------
-    >>> from mindboggle.shapes.thickinthehead import run_thickinthehead
-    >>> subjects=['MMRR-21-2','MMRR-21-2_rescan']
+    >>> from mindboggle.shapes.thickness import run_thickinthehead
+    >>> subjects=['OASIS-TRT-20-1']
     >>> labels = range(1002,1036) + range(2002,2036)
     >>> labels.remove(1004)
     >>> labels.remove(2004)
@@ -291,8 +290,9 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     import numpy as np
     import nibabel as nb
 
-    from mindboggle.utils.segment import combine_segmentations
-    from mindboggle.shapes.thickinthehead import thickinthehead
+    from mindboggle.utils.freesurfer import combine_whites_over_grays
+    from mindboggle.shapes.thickness import thickinthehead
+    from mindboggle.utils.utils import execute
 
     subjects_dir = os.environ['SUBJECTS_DIR']
 
@@ -321,15 +321,12 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
             aparc = os.path.join(subjects_dir, subject, 'mri', 'aparc+aseg.mgz')
             rawavg = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
 
-            cmd = ' '.join(['mri_vol2vol --mov', aparc, '--targ', rawavg,
-                            '--interp nearest',
-                            '--regheader --o', labeled_file])
-            print(cmd)
-            os.system(cmd)
-            cmd = ' '.join(['c3d', labeled_file, '-replace 2 0 41 0',
-                            '-o', labeled_file])
-            print(cmd)
-            os.system(cmd)
+            cmd = ['mri_vol2vol --mov', aparc, '--targ', rawavg,
+                   '--interp nearest', '--regheader --o', labeled_file]
+            execute(cmd)
+            cmd = ['c3d', labeled_file, '-replace 2 0 41 0',
+                   '-o', labeled_file]
+            execute(cmd)
 
         #---------------------------------------------------------------------
         # Include Atropos segmentation:
@@ -352,9 +349,8 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         #---------------------------------------------------------------------
         # Combine FreeSurfer and Atropos segmentations:
         #---------------------------------------------------------------------
-        gray_and_white_file = combine_segmentations(subject,
-                                                    second_segmentation_file,
-                                                    out_subdir, use_c3d)
+        gray_and_white_file = combine_whites_over_grays(subject,
+            second_segmentation_file, out_subdir, use_c3d)
 
         #---------------------------------------------------------------------
         # Tabulate thickness values:
@@ -381,7 +377,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
 if __name__ == "__main__":
 
-    from mindboggle.shapes.thickinthehead import thickinthehead
+    from mindboggle.shapes.thickness import thickinthehead
 
     subjects = ['OASIS-TRT-20-1']
 
@@ -397,9 +393,9 @@ if __name__ == "__main__":
     labels.remove(2033)
 
     out_dir = 'thickness_outputs'
-    atropos_dir = '/data/export/home/mzia/cluster/data/embarc_hc_anatomicals/'
-    atropos_stem = 'tmp'
+    atropos_dir = '' #'/data/export/home/mzia/cluster/data/embarc_hc_anatomicals/'
+    atropos_stem = '' #'tmp'
     label_dir = '' #/public/embarc/embarc_control_labels'
     label_filename = '' #labels.nii.gz'
-    thickness_table, table_file = run_thickinthehead(subjects, labels, out_dir,
-        atropos_dir, atropos_stem, label_dir, label_filename)
+    thickness_table, table_file = run_thickinthehead(subjects,
+        labels, out_dir, atropos_dir, atropos_stem, label_dir, label_filename)
