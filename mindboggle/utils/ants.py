@@ -223,8 +223,8 @@ def WarpImageMultiTransform(source, target, output='',
     return output
 
 
-def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
-                               binarize=True):
+def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
+                               output_file='', binarize=True):
     """
     Use ANTs to fill a binary volume mask with initial labels.
 
@@ -244,6 +244,8 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
         nibabel-readable image volume
     label_volume : string
         nibabel-readable image volume with integer labels
+    mask_index : integer (optional)
+        mask with just voxels having this value
     output_file : string
         nibabel-readable labeled image volume
     binarize : Boolean
@@ -262,10 +264,10 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> label_volume = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> mask_volume = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = PropagateLabelsThroughMask(mask_volume, label_volume,
-    >>>                                          output_file, binarize)
+    >>> output_file = PropagateLabelsThroughMask(mask_volume, label_volume, mask_index, output_file, binarize)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -274,18 +276,29 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'PropagateLabelsThroughMask.nii.gz')
+        output_file = os.path.join(os.getcwd(),
+                                   'PropagateLabelsThroughMask.nii.gz')
 
     # Binarize image volume:
     if binarize:
-        temp_file = os.path.join(os.getcwd(), 'PropagateLabelsThroughMask.nii.gz')
+        temp_file = os.path.join(os.getcwd(),
+                                 'PropagateLabelsThroughMask.nii.gz')
         cmd = ['ThresholdImage', '3', mask_volume, temp_file, '0 1 0 1']
         execute(cmd, 'os')
         mask_volume = temp_file
 
+    # Mask with just voxels having mask_index value:
+    if mask_index:
+        mask = os.getcwd('temp.nii.gz')
+        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(mask_volume, mask,
+               mask_index, mask_index)
+        execute(cmd)
+    else:
+        mask = mask_volume
+
     # Propagate labels:
     cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
-            mask_volume, label_volume]
+            mask, label_volume]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
@@ -364,17 +377,10 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
                                 surfaces_in_volume, ignore_labels=[0])
         surface_in_volume = surfaces_in_volume
 
-    if mask_index:
-        mask = os.getcwd('temp.nii.gz')
-        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(volume_mask, mask,
-               mask_index, mask_index)
-        execute(cmd)
-    else:
-        mask = volume_mask
-
     # Use ANTs to fill a binary volume mask with initial labels:
-    output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
-                                             output_file, binarize)
+    output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
+                                             mask_index, output_file,
+                                             binarize)
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
 
