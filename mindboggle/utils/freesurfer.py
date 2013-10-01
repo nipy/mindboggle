@@ -499,7 +499,7 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     Steps ::
 
         1. Convert FreeSurfer aseg.mgz (gray) and filled.mgz (white) volumes
-           to nifti format in their original space (using rawavg.mgz).
+           to nifti format in their original space (using 001.mgz/rawavg.mgz).
         2. Load second segmentation file where gray=2 and white=3,
            such as from ANTs (Atropos).
         3. Combine the union of the gray matter from #1 and #2
@@ -538,6 +538,7 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
 
     """
     import os
+    import sys
     import nibabel as nb
 
     from mindboggle.utils.utils import execute
@@ -559,16 +560,21 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     #-------------------------------------------------------------------------
     # Convert FreeSurfer gray and white matter volumes to nifti format:
     #-------------------------------------------------------------------------
-    rawavg = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
     aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
-    cmd = ['mri_vol2vol --mov', aseg, '--targ', rawavg, '--interp nearest',
+    orig = os.path.join(subjects_dir, subject, 'mri', 'orig', '001.mgz')
+    if not os.path.exists(orig):
+        orig = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
+        if not os.path.exists(orig):
+            sys.exit('Could not find ' + orig + ' for subject ' + subject)
+
+    cmd = ['mri_vol2vol --mov', aseg, '--targ', orig, '--interp nearest',
            '--regheader --o', gray_and_white_file]
     execute(cmd)
     if not os.path.exists(gray_and_white_file):
         raise(IOError(gray_and_white_file + " not found"))
 
     filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-    cmd = ['mri_vol2vol --mov', filled, '--targ', rawavg, '--interp nearest',
+    cmd = ['mri_vol2vol --mov', filled, '--targ', orig, '--interp nearest',
            '--regheader --o', white_file]
     execute(cmd)
     if not os.path.exists(white_file):
