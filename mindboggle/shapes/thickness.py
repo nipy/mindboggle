@@ -414,7 +414,6 @@ if __name__ == "__main__":
 
     from mindboggle.shapes.thickness import thickinthehead
 
-    subjects = ['OASIS-TRT-20-1']
     subjects=['CU0009CUMR1R1',
  'CU0009CUMR2R1',
  'CU0013CUMR1R1',
@@ -496,6 +495,11 @@ if __name__ == "__main__":
  'UM0040UMMR1R1',
  'UM0040UMMR2R1']
 
+    subjects = []
+    for i in range(1,21):
+        subjects.append('OASIS-TRT-20-'+str(i))
+        subjects.append('OASIS-TRT2-20-'+str(i))
+
     #-------------------------------------------------------------------------
     # Labels:
     #-------------------------------------------------------------------------
@@ -507,10 +511,11 @@ if __name__ == "__main__":
     labels.remove(1033)
     labels.remove(2033)
 
-    out_dir = 'thickness_outputs_fs-ants_embarc40controls_antslabels'
+    #out_dir = 'thickness_outputs_fs-ants_embarc40controls_antslabels'
+    out_dir = 'thickness_outputs_fs-ants'
     atropos_dir = '' #'/data/export/home/mzia/cluster/data/embarc_hc_anatomicals_k1'
-    #atropos_dir = '/homedir/Data/Brains/OASIS-TRT-20/antsCorticalThickness'
-    atropos_stem = '' #'tmp'
+    atropos_dir = '/homedir/Data/Brains/OASIS-TRT-20/antsCorticalThickness'
+    atropos_stem = 'tmp'
     label_dir = '' #'/public/embarc/embarc_control_labels'
     label_filename = '' #'labels.nii.gz'
     thickness_table, table_file = run_thickinthehead(subjects,
