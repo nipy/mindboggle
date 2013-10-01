@@ -353,14 +353,15 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         else:
             aparc = os.path.join(subjects_dir, subject,
                                  'mri', 'aparc+aseg.mgz')
-            rawavg = os.path.join(subjects_dir, subject,
-                                  'mri', 'orig', '001.mgz')
-            if not os.path.exists(rawavg):
-                rawavg = os.path.join(subjects_dir, subject,
-                                      'mri', 'orig', '001.mgz')
-                if not os.path.exists(rawavg):
-                    sys.exit('Could not find ' + rawavg +
+            orig = os.path.join(subjects_dir, subject,
+                                'mri', 'orig', '001.mgz')
+            if not os.path.exists(orig):
+                orig = os.path.join(subjects_dir, subject,
+                                    'mri', 'rawavg.mgz')
+                if not os.path.exists(orig):
+                    sys.exit('Could not find ' + orig +
                              ' for subject ' + subject)
+
             cmd = ['mri_vol2vol --mov', aparc, '--targ', rawavg,
                    '--interp nearest', '--regheader --o', labeled_file]
             execute(cmd)
