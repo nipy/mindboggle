@@ -486,15 +486,18 @@ def transform_atlas_labels(hemi, subject, transform,
     return output_file
 
 
-def combine_whites_over_grays(subject, second_segmentation_file='',
-                              out_dir='', use_c3d=False):
+def combine_whites_over_grays(subject, out_dir='',
+                              second_segmentation_file='',
+                              ants_subjects_dir='', ants_stem='',
+                              use_c3d=False):
     """
     Combine FreeSurfer segmentation volumes (no surface-based outputs)
     and a segmentation file from another source (such as ANTs Atropos)
     to obtain a single gray=2 and white=3 matter segmentation file.
 
-    If the second file is not provided, the function returns a gray and
-    white matter segmentation file from FreeSurfer volume files.
+    If the second file is not provided, and ants directory and stem
+    are also not provided, the function returns a gray and white matter
+    segmentation file from FreeSurfer volume files.
 
     Steps ::
 
@@ -515,10 +518,15 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     ----------
     subject : string
         name of FreeSurfer subject (for filled.mgz and aseg.mgz files)
-    second_segmentation_file : str (optional)
-        second segmentation file (gray=2, white=3; other labels are fine)
     out_dir : str (optional)
         output directory
+    second_segmentation_file : str (optional)
+        second segmentation file (gray=2, white=3; other labels are fine)
+    ants_subjects_dir : str (optional, if not second_segmentation_file)
+        ANTs directory containing antsCorticalThickness.sh results
+        for each subject
+    ants_stem : str (optional, if not second_segmentation_file)
+        ANTs file stem for antsCorticalThickness.sh results
     use_c3d : Boolean
         use convert3d? (otherwise ANTs ImageMath)
 
@@ -531,10 +539,12 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     --------
     >>> from mindboggle.utils.freesurfer import combine_whites_over_grays
     >>> subject = 'OASIS-TRT-20-1'
-    >>> second_segmentation_file = '/homedir/Data/Atropos/OASIS-TRT-20-1/tmp123/tmpBrainSegmentation.nii.gz'
     >>> out_dir = ''
+    >>> second_segmentation_file = ''
+    >>> ants_subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
+    >>> ants_stem = 'tmp'
     >>> use_c3d = False
-    >>> combine_whites_over_grays(subject, second_segmentation_file, out_dir, use_c3d)
+    >>> combine_whites_over_grays(subject, out_dir, second_segmentation_file, ants_subjects_dir, ants_stem, use_c3d)
 
     """
     import os
@@ -579,6 +589,25 @@ def combine_whites_over_grays(subject, second_segmentation_file='',
     execute(cmd)
     if not os.path.exists(white_file):
         raise(IOError(white_file + " not found"))
+
+    #-------------------------------------------------------------------------
+    # Include Atropos segmentation:
+    #-------------------------------------------------------------------------
+    if not second_segmentation_file:
+        if ants_stem:
+            supdir = os.path.join(ants_subjects_dir, subject)
+            subdirs = os.listdir(supdir)
+            subdir = None
+            for subdir1 in subdirs:
+                if ants_stem in subdir1:
+                    subdir = subdir1
+            if subdir:
+                second_segmentation_file = os.path.join(supdir, subdir,
+                    ants_stem + 'BrainSegmentation.nii.gz')
+            else:
+                sys.exit('No segmentation file for ' + subject)
+        else:
+            second_segmentation_file = ''
 
     if use_c3d:
         #---------------------------------------------------------------------
