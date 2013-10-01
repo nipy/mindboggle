@@ -19,10 +19,14 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Note: gray, white, labeled files are all the same coregistered brain.
 
-    Steps:
-    1. Extract outer and inner borders of gray voxels.
-    2. Optionally calls ImageMath to propagate labels to fill gray mask.
-    3. Compute thickness per label = gray / average border.
+    Steps ::
+
+        1. Extract white and gray matter.
+        2. Propagate labels through gray matter (or simply multiply).
+        3. Resample gray and white files.
+        4. Extract outer and inner borders of gray voxels.
+        5. Optionally call ImageMath to propagate labels to fill gray mask.
+        6. Compute thickness as a ratio of label volume and edge volume.
 
     Parameters
     ----------
@@ -263,15 +267,10 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
     Steps ::
 
-      1. Convert FreeSurfer volumes to nifti format in their original space.
-      2. Combine FreeSurfer (and optionally ANTs) gray & white segmentations.
-      3. Compute simple thickness per label = gray / average border
-      4. Store thickness values in a table.
-
-    Options ::
-
-      1. Include antsCorticalThickness.sh (Atropos) gray matter segmentation.
-      2. Use non-FreeSurfer labels.
+        1. Convert FreeSurfer volumes to nifti format in their original space.
+        2. Combine FreeSurfer (and optionally ANTs) gray & white segmentations.
+        3. Compute simple thickness per (optionally non-FreeSurfer) label.
+        4. Store thickness values in a table.
 
     Requires ::
 
