@@ -21,7 +21,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Steps:
     1. Extract outer and inner borders of gray voxels.
-    2. Compute thickness per label = gray / average border
+    2. Optionally calls ImageMath to propagate labels to fill gray mask.
+    3. Compute thickness per label = gray / average border.
 
     Parameters
     ----------

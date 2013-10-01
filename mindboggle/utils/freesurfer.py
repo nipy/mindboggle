@@ -150,7 +150,7 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     """
     Load a FreeSurfer .annot file and save as a VTK format file.
 
-    Note ::
+    Note regarding current pip install nibabel (fixed in github master repo)::
 
         The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
         gives the original FreeSurfer label values, not the FreeSurferColorLUT
@@ -199,8 +199,12 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
     from mindboggle.utils.io_vtk import rewrite_scalars
 
-    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
     labels, ctab, names = nb.freesurfer.read_annot(annot_file)
+
+    # CAN REMOVE THE FOLLOWING FEW LINES WHEN
+    # https://github.com/nipy/nibabel/issues/205#issuecomment-25294009
+    # RESOLUTION IN THE PIP INSTALL VERSION OF NIBABEL:
+    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
     labels[np.where(labels_orig == 0)[0]] = -1
     # Test removal of unlabeled cortex from label 3:
     #labels[np.where(labels==3)[0]]=1000
