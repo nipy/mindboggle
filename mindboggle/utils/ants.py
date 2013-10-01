@@ -294,7 +294,8 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, output_file='',
 
 
 def fill_volume_with_surface_labels(volume_mask, surface_files,
-                                    output_file='', binarize=False):
+                                    mask_index=None, output_file='',
+                                    binarize=False):
     """
     Use ANTs to fill a volume mask with surface mesh labels.
 
@@ -310,6 +311,8 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
         nibabel-readable image volume
     surface_files : string or list of strings
         VTK file(s) containing surface mesh(es) with labels as scalars
+    mask_index : integer (optional)
+        mask with just voxels having this value
     output_file : string
         name of output file
     binarize : Boolean
@@ -330,9 +333,10 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
     >>>     'rh.labels.DKT25.manual.vtk')]
     >>> volume_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = fill_volume_with_surface_labels(volume_mask, surface_files, output_file, binarize)
+    >>> output_file = fill_volume_with_surface_labels(volume_mask, surface_files, mask_index, output_file, binarize)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -342,6 +346,7 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     from mindboggle.utils.io_vtk import transform_to_volume
     from mindboggle.labels.relabel import overwrite_volume_labels
     from mindboggle.utils.ants import PropagateLabelsThroughMask
+    from mindboggle.utils.utils import execute
 
     if isinstance(surface_files, str):
         surface_files = [surface_files]
@@ -359,8 +364,16 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
                                 surfaces_in_volume, ignore_labels=[0])
         surface_in_volume = surfaces_in_volume
 
+    if mask_index:
+        mask = os.getcwd('temp.nii.gz')
+        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(volume_mask, mask,
+               mask_index, mask_index)
+        execute(cmd)
+    else:
+        mask = volume_mask
+
     # Use ANTs to fill a binary volume mask with initial labels:
-    output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
+    output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
                                              output_file, binarize)
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
