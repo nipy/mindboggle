@@ -362,7 +362,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
                     sys.exit('Could not find ' + orig +
                              ' for subject ' + subject)
 
-            cmd = ['mri_vol2vol --mov', aparc, '--targ', rawavg,
+            cmd = ['mri_vol2vol --mov', aparc, '--targ', orig,
                    '--interp nearest', '--regheader --o', labeled_file]
             execute(cmd)
             cmd = ['c3d', labeled_file, '-replace 2 0 41 0',
