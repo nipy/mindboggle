@@ -370,28 +370,11 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
             execute(cmd)
 
         #---------------------------------------------------------------------
-        # Include Atropos segmentation:
-        #---------------------------------------------------------------------
-        if atropos_stem:
-            supdir = os.path.join(atropos_dir, subject)
-            subdirs = os.listdir(supdir)
-            subdir = None
-            for subdir1 in subdirs:
-                if atropos_stem in subdir1:
-                    subdir = subdir1
-            if subdir:
-                second_segmentation_file = os.path.join(supdir, subdir,
-                    atropos_stem + 'BrainSegmentation.nii.gz')
-            else:
-                sys.exit('No segmentation file for ' + subject)
-        else:
-            second_segmentation_file = ''
-
-        #---------------------------------------------------------------------
         # Combine FreeSurfer and Atropos segmentations:
         #---------------------------------------------------------------------
-        gray_and_white_file = combine_whites_over_grays(subject,
-            second_segmentation_file, out_subdir, use_c3d)
+        second_segmentation_file = ''
+        gray_and_white_file = combine_whites_over_grays(subject, out_subdir,
+            second_segmentation_file, atropos_dir, atropos_stem, use_c3d)
 
         #---------------------------------------------------------------------
         # Tabulate thickness values:
