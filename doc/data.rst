@@ -25,16 +25,26 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in MNI152 space
-    [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version] (2013)
-  - Corresponding `label probabilities`_ (2013)
-  - Corresponding `OASIS-30 brain template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152.nii.gz>`_
-    [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ version] (2013)
+  - OASIS-TRT-20 whole-brain, `joint fusion atlas`_ in OASIS-30 Atropos template space (20130
+    - `version in MNI152 space <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz>`_
+      [`affine transform <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_to_MNI152_affine.txt>`_]
+  - Corresponding `label probabilities`_ (2013) [`version in MNI152 space <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz>`_]
+  - Corresponding `OASIS-30 Atropos whole-brain template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_braincerebellum_template.nii.gz>`_ (2013)
+    - `version in MNI152 space <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_braincerebellum_template_in_MNI152.nii.gz>`_
 
       Probabilistic atlas of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013),
       including a single volume of probabilities corresponding to the winning labels.
       Joint fusion was performed on the 20 brains after antsRegistration warped them
       to the OASIS-30 Atropos brain template in MNI152 space (`code 1 <http://mindboggle.info/data/mindboggle101_extras/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_ and `code 2 <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_).
+
+
+    ..
+       and
+      `2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ resolution]
+
+    ..
+      [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ resolution]
+
 
   **Cortical surface atlases**
 
@@ -99,8 +109,8 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
 
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
-.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz
-.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152.nii.gz
+.. _`joint fusion atlas`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels.nii.gz
+.. _`label probabilities`: http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities.nii.gz
 .. _`DKT40 classifier atlas`: http://mindboggle.info/data/atlases/classifiers/DKTatlas40.tar.gz
 
 
