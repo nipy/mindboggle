@@ -486,18 +486,160 @@ def transform_atlas_labels(hemi, subject, transform,
     return output_file
 
 
-def combine_whites_over_grays(subject, out_dir='',
-                              second_segmentation_file='',
-                              ants_subjects_dir='', ants_stem='',
-                              use_c3d=False):
+def vote_labels(label_lists):
+    """
+    For each vertex, vote on the majority label.
+
+    Parameters
+    ----------
+    label_lists : list of lists of integers
+        vertex labels assigned by each atlas
+
+    Returns
+    -------
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
+
+    Examples
+    --------
+    >>> from collections import Counter
+    >>> X = [1,1,2,3,4,2,1,2,1,2,1,2]
+    >>> Votes = Counter(X)
+    >>> Votes
+    Counter({1: 5, 2: 5, 3: 1, 4: 1})
+    >>> Votes.most_common(1)
+    [(1, 5)]
+    >>> Votes.most_common(2)
+    [(1, 5), (2, 5)]
+    >>> len(Votes)
+    4
+
+    """
+    from collections import Counter
+
+    print("Begin voting...")
+    n_atlases = len(label_lists)  # number of atlases used to label subject
+    npoints = len(label_lists[0])
+    labels_max = [-1 for i in range(npoints)]
+    label_counts = [1 for i in range(npoints)]
+    label_votes = [n_atlases for i in range(npoints)]
+
+    consensus_vertices = []
+    for vertex in range(npoints):
+        votes = Counter([label_lists[i][vertex] for i in range(n_atlases)])
+
+        labels_max[vertex] = votes.most_common(1)[0][0]
+        label_votes[vertex] = votes.most_common(1)[0][1]
+        label_counts[vertex] = len(votes)
+        if len(votes) == n_atlases:
+            consensus_vertices.append(vertex)
+
+    print("Voting done.")
+
+    return labels_max, label_votes, label_counts, consensus_vertices
+
+
+def majority_vote_label(surface_file, annot_files):
+    """
+    Load a VTK surface and corresponding FreeSurfer annot files.
+    Write majority vote labels, and label counts and votes as VTK files.
+
+    Parameters
+    ----------
+    surface_file : string
+        name of VTK surface file
+    annot_files : list of strings
+        names of FreeSurfer annot files
+
+    Returns
+    -------
+    labels_max : list of integers
+        majority labels for vertices
+    label_counts : list of integers
+        number of different labels for vertices
+    label_votes : list of integers
+        number of votes for the majority labels
+    consensus_vertices : list of integers
+        indicating which are consensus labels
+    maxlabel_file : string
+        name of VTK file containing majority vote labels
+    labelcounts_file : string
+        name of VTK file containing number of different label counts
+    labelvotes_file : string
+        name of VTK file containing number of votes per majority label
+
+    """
+    from os import path, getcwd
+    import nibabel as nb
+    import pyvtk
+    from mindboggle.utils.freesurfer import vote_labels
+    from mindboggle.utils.io_table import string_vs_list_check
+
+    # Load multiple label sets
+    print("Load annotation files...")
+    label_lists = []
+    for annot_file in annot_files:
+        labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+        label_lists.append(labels)
+    print("Annotations loaded.")
+
+    # Vote on labels for each vertex
+    labels_max, label_votes, label_counts, \
+    consensus_vertices = vote_labels(label_lists)
+
+    # Check type to make sure the filename is a string
+    # (if a list, return the first element)
+    surface_file = string_vs_list_check(surface_file)
+
+    # Save files
+    VTKReader = pyvtk.VtkData(surface_file)
+    Vertices = VTKReader.structure.points
+    Faces = VTKReader.structure.polygons
+
+    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+    maxlabel_file = output_stem + '.labels.max.vtk'
+    labelcounts_file = output_stem + '.labelcounts.vtk'
+    labelvotes_file = output_stem + '.labelvotes.vtk'
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
+                                  name='Max (majority labels)'))).\
+          tofile(maxlabel_file, 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
+                                  name='Counts (number of different labels)'))).\
+          tofile(labelcounts_file, 'ascii')
+
+    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
+                                  name='Votes (number of votes for majority labels)'))).\
+          tofile(labelvotes_file, 'ascii')
+
+    if not os.path.exists(maxlabel_file):
+        raise(IOError(maxlabel_file + " not found"))
+    if not os.path.exists(labelcounts_file):
+        raise(IOError(labelcounts_file + " not found"))
+    if not os.path.exists(labelvotes_file):
+        raise(IOError(labelvotes_file + " not found"))
+
+    return labels_max, label_counts, label_votes, consensus_vertices, \
+           maxlabel_file, labelcounts_file, labelvotes_file
+
+
+def combine_whites_over_grays(subject='', aseg='', filled='', out_dir='',
+                              second_segmentation_file='', use_c3d=False):
     """
     Combine FreeSurfer segmentation volumes (no surface-based outputs)
     and a segmentation file from another source (such as ANTs Atropos)
     to obtain a single gray=2 and white=3 matter segmentation file.
 
-    If the second file is not provided, and ants directory and stem
-    are also not provided, the function returns a gray and white matter
-    segmentation file from FreeSurfer volume files.
+    If the second file is not provided, the function returns a gray and white
+    matter segmentation file from FreeSurfer volume files.
 
     Steps ::
 
@@ -516,17 +658,16 @@ def combine_whites_over_grays(subject, out_dir='',
 
     Parameters
     ----------
-    subject : string
+    subject : string (optional, if aseg and filled supplied)
         name of FreeSurfer subject (for filled.mgz and aseg.mgz files)
+    aseg : string (optional)
+        name of nibabel-readable file converted from FreeSurfer's aseg.mgz
+    filled : string (optional)
+        name of nibabel-readable file converted from FreeSurfer's filled.mgz
     out_dir : str (optional)
         output directory
     second_segmentation_file : str (optional)
         second segmentation file (gray=2, white=3; other labels are fine)
-    ants_subjects_dir : str (optional, if not second_segmentation_file)
-        ANTs directory containing antsCorticalThickness.sh results
-        for each subject
-    ants_stem : str (optional, if not second_segmentation_file)
-        ANTs file stem for antsCorticalThickness.sh results
     use_c3d : Boolean
         use convert3d? (otherwise ANTs ImageMath)
 
@@ -539,12 +680,12 @@ def combine_whites_over_grays(subject, out_dir='',
     --------
     >>> from mindboggle.utils.freesurfer import combine_whites_over_grays
     >>> subject = 'OASIS-TRT-20-1'
+    >>> aseg = ''
+    >>> filled = ''
     >>> out_dir = ''
     >>> second_segmentation_file = ''
-    >>> ants_subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
-    >>> ants_stem = 'tmp'
     >>> use_c3d = False
-    >>> combine_whites_over_grays(subject, out_dir, second_segmentation_file, ants_subjects_dir, ants_stem, use_c3d)
+    >>> combine_whites_over_grays(subject, aseg, filled, out_dir, second_segmentation_file, use_c3d)
 
     """
     import os
@@ -552,8 +693,6 @@ def combine_whites_over_grays(subject, out_dir='',
     import nibabel as nb
 
     from mindboggle.utils.utils import execute
-
-    subjects_dir = os.environ['SUBJECTS_DIR']
 
     #-------------------------------------------------------------------------
     # Outputs:
@@ -570,44 +709,30 @@ def combine_whites_over_grays(subject, out_dir='',
     #-------------------------------------------------------------------------
     # Convert FreeSurfer gray and white matter volumes to nifti format:
     #-------------------------------------------------------------------------
-    aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
-    orig = os.path.join(subjects_dir, subject, 'mri', 'orig', '001.mgz')
-    if not os.path.exists(orig):
-        orig = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
+    if not aseg or not filled:
+        subjects_dir = os.environ['SUBJECTS_DIR']
+        aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
+        orig = os.path.join(subjects_dir, subject, 'mri', 'orig', '001.mgz')
         if not os.path.exists(orig):
-            sys.exit('Could not find ' + orig + ' for subject ' + subject)
+            orig = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
+            if not os.path.exists(orig):
+                sys.exit('Could not find ' + orig + ' for subject ' + subject)
 
-    cmd = ['mri_vol2vol --mov', aseg, '--targ', orig, '--interp nearest',
-           '--regheader --o', gray_and_white_file]
-    execute(cmd)
-    if not os.path.exists(gray_and_white_file):
-        raise(IOError(gray_and_white_file + " not found"))
+        cmd = ['mri_vol2vol --mov', aseg, '--targ', orig, '--interp nearest',
+               '--regheader --o', gray_and_white_file]
+        execute(cmd)
+        if not os.path.exists(gray_and_white_file):
+            raise(IOError(gray_and_white_file + " not found"))
 
-    filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-    cmd = ['mri_vol2vol --mov', filled, '--targ', orig, '--interp nearest',
-           '--regheader --o', white_file]
-    execute(cmd)
-    if not os.path.exists(white_file):
-        raise(IOError(white_file + " not found"))
-
-    #-------------------------------------------------------------------------
-    # Include Atropos segmentation:
-    #-------------------------------------------------------------------------
-    if not second_segmentation_file:
-        if ants_stem:
-            supdir = os.path.join(ants_subjects_dir, subject)
-            subdirs = os.listdir(supdir)
-            subdir = None
-            for subdir1 in subdirs:
-                if ants_stem in subdir1:
-                    subdir = subdir1
-            if subdir:
-                second_segmentation_file = os.path.join(supdir, subdir,
-                    ants_stem + 'BrainSegmentation.nii.gz')
-            else:
-                sys.exit('No segmentation file for ' + subject)
-        else:
-            second_segmentation_file = ''
+        filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
+        cmd = ['mri_vol2vol --mov', filled, '--targ', orig,
+               '--interp nearest', '--regheader --o', white_file]
+        execute(cmd)
+        if not os.path.exists(white_file):
+            raise(IOError(white_file + " not found"))
+    else:
+        gray_and_white_file = aseg
+        white_file = filled
 
     if use_c3d:
         #---------------------------------------------------------------------

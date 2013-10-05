@@ -933,225 +933,240 @@ def decimate_file(input_vtk, reduction=0.5, smooth_steps=100,
     return output_vtk
 
 
-def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
+def rescale_by_neighborhood(input_vtk, indices=[], nedges=10, p=99,
+    set_max_to_1=True, save_file=False, output_filestring='rescaled_scalars',
+    background_value=-1):
     """
-    Close a surface patch by connecting its border vertices with
-    corresponding vertices in a second surface file.
-
-    Assumes no lines or indices when reading VTK files in.
-
-    Note ::
-
-        Scalar values different than background define the surface patch.
-        The two sets of points have a 1-to-1 mapping; they are from
-        two surfaces whose corresponding vertices are shifted in position.
-        For pial vs. gray-white matter, the two surfaces are not parallel,
-        so connecting the vertices leads to intersecting faces.
+    Rescale the scalar values of a VTK file by a percentile value
+    in each vertex's surface mesh neighborhood.
 
     Parameters
     ----------
-    faces : list of lists of integers
-        each sublist contains 3 indices of vertices that form a face
-        on a surface mesh
-    points1 : list of lists of floats
-        each sublist contains 3-D coordinates of a vertex on a surface mesh
-    points2 : list of lists of floats
-        points from second surface with 1-to-1 correspondence with points1
-    scalars : numpy array of integers
-        labels used to find foreground vertices
+    input_vtk : string
+        name of VTK file with a scalar value for each vertex
+    indices : list of integers (optional)
+        indices of scalars to normalize
+    nedges : integer
+        number or edges from vertex, defining the size of its neighborhood
+    p : float in range of [0,100]
+        percentile used to normalize each scalar
+    set_max_to_1 : Boolean
+        set all rescaled values greater than 1 to 1.0?
+    save_file : Boolean
+        save output VTK file?
+    output_filestring : string (if save_file)
+        name of output file
     background_value : integer
-        scalar value for background vertices
+        background value
 
     Returns
     -------
-    closed_faces : list of lists of integers
-        indices of vertices that form a face on the closed surface mesh
-    closed_points : list of lists of floats
-        3-D coordinates from points1 and points2
-    closed_scalars : list of integers
-        scalar values for points1 and points2
+    rescaled_scalars : list of floats
+        rescaled scalar values
+    rescaled_scalars_file : string (if save_file)
+        name of output VTK file with rescaled scalar values
 
     Examples
     --------
-    >>> # Example 1: build a cube by closing two parallel planes:
     >>> import os
-    >>> from mindboggle.utils.mesh import close_surface_pair
+    >>> from mindboggle.utils.mesh import rescale_by_neighborhood
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import write_vtk
-    >>> # Build plane:
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> indices = []
+    >>> nedges = 10
+    >>> p = 99
+    >>> set_max_to_1 = True
+    >>> save_file = True
+    >>> output_filestring = 'rescaled_scalars'
     >>> background_value = -1
-    >>> n = 10  # plane edge length
-    >>> points1 = []
-    >>> for x in range(n):
-    >>>     for y in range(n):
-    >>>         points1.append([x,y,0])
-    >>> points2 = [[x[0],x[1],1] for x in points1]
-    >>> scalars = [background_value for x in range(len(points1))]
-    >>> p = n*(n-1)/2 - 1
-    >>> for i in [p, p+1, p+n, p+n+1]:
-    >>>     scalars[i] = 1
-    >>> faces = []
-    >>> for x in range(n-1):
-    >>>     for y in range(n-1):
-    >>>         faces.append([x+y*n,x+n+y*n,x+n+1+y*n])
-    >>>         faces.append([x+y*n,x+1+y*n,x+n+1+y*n])
-    >>> #write_vtk('plane.vtk', points1, [], [], faces, scalars)
-    >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
-    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
-    >>> # View:
-    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars)
-    >>> plot_surfaces('cube.vtk') # doctest: +SKIP
     >>> #
-    >>> # Example 2: Gray and white cortical brain surfaces:
-    >>> import os
-    >>> from mindboggle.utils.mesh import close_surface_pair
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> patch_surface1 = 'fold.pial.vtk'
-    >>> whole_surface2 = 'fold.white.vtk'
-    >>> # Select a single fold:
+    >>> rescaled_scalars, rescaled_scalars_file = rescale_by_neighborhood(input_vtk,
+    >>>     indices, nedges, p, set_max_to_1, save_file, output_filestring, background_value)
+    >>> #
+    >>> # View rescaled scalar values per fold:
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> points1 = read_points(folds_file)
-    >>> scalars, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> scalars[scalars != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
-    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
-    >>> background_value = -1
-    >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
-    >>> # View:
-    >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name)
-    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
-
-    """
-    import sys
-    import numpy as np
-
-    from mindboggle.utils.mesh import find_neighbors, remove_faces
-    from mindboggle.labels.labels import extract_borders
-
-    if isinstance(scalars, list):
-        scalars = np.array(scalars)
-
-    N = len(points1)
-    closed_points = points1 + points2
-
-    # Find all vertex neighbors and surface patch border vertices:
-    neighbor_lists = find_neighbors(faces, N)
-    I = np.where(scalars != background_value)[0]
-    scalars[scalars == background_value] = background_value + 1
-    scalars[I] = background_value + 2
-    scalars = scalars.tolist()
-    borders, u1, u2 = extract_borders(range(N), scalars, neighbor_lists)
-    if not len(borders):
-        sys.exit('There are no border vertices!')
-    borders = [x for x in borders if x in I]
-
-    # Reindex copy of faces and combine with original (both zero-index):
-    indices = range(N)
-    indices2 = range(N, 2 * N)
-    reindex = dict([(index, indices2[i]) for i, index in enumerate(indices)])
-    faces = remove_faces(faces, I)
-    faces2 = [[reindex[i] for i in face] for face in faces]
-    closed_faces = faces + faces2
-
-    # Connect border vertices between surface patches and add new faces:
-    add_faces = []
-    taken_already = []
-    for index in borders:
-        if index not in taken_already:
-            neighbors = list(set(neighbor_lists[index]).intersection(borders))
-            taken_already.append(index)
-            #taken_already.extend([index] + neighbors)
-            for neighbor in neighbors:
-                add_faces.append([index, index + N, neighbor])
-                add_faces.append([index + N, neighbor, neighbor + N])
-    closed_faces = closed_faces + add_faces
-
-    closed_scalars = scalars * 2
-
-    return closed_faces, closed_points, closed_scalars
-
-
-def close_surface_pair_from_files(patch_surface1, whole_surface2,
-                                  background_value=-1, output_vtk=''):
-    """
-    Close a surface patch by connecting its border vertices with
-    corresponding vertices in a second surface file.
-
-    Assumes no lines or indices when reading VTK files in.
-
-    Note ::
-
-        The first VTK file contains scalar values different than background
-        for a surface patch.  The second VTK file contains the (entire)
-        surface whose corresponding vertices are shifted in position.
-        For pial vs. gray-white matter, the two surfaces are not parallel,
-        so connecting the vertices leads to intersecting faces.
-
-    Parameters
-    ----------
-    patch_surface1 : string
-        vtk file with surface patch of non-background scalar values
-    whole_surface2 : string
-        second vtk file with 1-to-1 vertex correspondence with patch_surface1
-        (whole surface so as to derive vertex neighbor lists)
-    background_value : integer
-        scalar value for background vertices
-    output_vtk : string
-        output vtk file name with closed surface patch
-
-    Returns
-    -------
-    output_vtk : string
-        output vtk file name with closed surface patch
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.mesh import close_surface_pair_from_files
-    >>> from mindboggle.utils.plots import plot_surfaces
-    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, read_points, write_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> patch_surface1 = 'fold.pial.vtk'
-    >>> whole_surface2 = 'fold.white.vtk'
-    >>> # Select a single fold:
-    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> points = read_points(folds_file)
-    >>> folds, name = read_scalars(folds_file, True, True)
-    >>> fold_number = 11
-    >>> folds[folds != fold_number] = -1
-    >>> white_surface = os.path.join(path, 'arno', 'freesurfer', 'lh.white.vtk')
-    >>> faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(white_surface)
-    >>> write_vtk(patch_surface1, points, [], [], faces, folds, name)
-    >>> write_vtk(whole_surface2, points2, [], [], faces, folds, name)
-    >>> background_value = -1
-    >>> output_vtk = ''
-    >>> close_surface_pair_from_files(patch_surface1, whole_surface2, background_value, output_vtk)
-    >>> # View:
-    >>> plot_surfaces('closed.vtk') # doctest: +SKIP
+    >>> folds, name = read_scalars(folds_file)
+    >>> #
+    >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
+    >>>                 rescaled_scalars, 'rescaled_depths', folds)
+    >>> plot_surfaces(rescaled_scalars_file)
 
     """
     import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    from mindboggle.utils.mesh import find_neighbors_from_file, find_neighborhood
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk
-    from mindboggle.utils.mesh import close_surface_pair
+    # Load scalars and vertex neighbor lists:
+    scalars, name = read_scalars(input_vtk, True, True)
+    if not indices:
+        indices = [i for i,x in enumerate(scalars) if x != background_value]
+    print("  Rescaling {0} scalar values by neighborhood...".format(len(indices)))
+    neighbor_lists = find_neighbors_from_file(input_vtk)
 
-    # Read VTK surface mesh files:
-    u1, u2, u3, points1, N, scalars, name, u4 = read_vtk(patch_surface1,
-                                                         True, True)
-    faces, u1, u2, points2, N, u3, u4, u5 = read_vtk(whole_surface2,
-                                                     True, True)
+    # Loop through vertices:
+    rescaled_scalars = scalars.copy()
+    for index in indices:
 
-    # Close surface:
-    closed_faces, closed_points, closed_scalars = close_surface_pair(faces,
-        points1, points2, scalars, background_value)
+        # Determine the scalars in the vertex's neighborhood:
+        neighborhood = find_neighborhood(neighbor_lists, [index], nedges)
 
-    # Write output file:
-    if not output_vtk:
-        output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
-    write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              name)
+        # Compute a high neighborhood percentile to normalize vertex's value:
+        normalization_factor = np.percentile(scalars[neighborhood], p)
+        rescaled_scalar = scalars[index] / normalization_factor
+        rescaled_scalars[index] = rescaled_scalar
 
-    return output_vtk
+    # Make any rescaled value greater than 1 equal to 1:
+    if set_max_to_1:
+        rescaled_scalars[[x for x in indices if rescaled_scalars[x] > 1.0]] = 1
+
+    rescaled_scalars = rescaled_scalars.tolist()
+
+    #-------------------------------------------------------------------------
+    # Return rescaled scalars and file name
+    #-------------------------------------------------------------------------
+    if save_file:
+
+        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
+        rewrite_scalars(input_vtk, rescaled_scalars_file,
+                        rescaled_scalars, 'rescaled_scalars')
+        if not os.path.exists(rescaled_scalars_file):
+            raise(IOError(rescaled_scalars_file + " not found"))
+
+    else:
+        rescaled_scalars_file = None
+
+    return rescaled_scalars, rescaled_scalars_file
+
+
+def rescale_by_label(input_vtk, labels_or_file, save_file=False,
+                     output_filestring='rescaled_scalars'):
+    """
+    Rescale scalars for each label (such as depth values within each fold).
+
+    Default is to normalize the scalar values of a VTK file by
+    a percentile value in each vertex's surface mesh for each label.
+
+    Parameters
+    ----------
+    input_vtk : string
+        name of VTK file with a scalar value for each vertex
+    labels_or_file : list or string
+        label number for each vertex or name of VTK file with index scalars
+    save_file : Boolean
+        save output VTK file?
+    output_filestring : string (if save_file)
+        name of output file
+
+    Returns
+    -------
+    rescaled_scalars : list of floats
+        scalar values rescaled for each label, for label numbers not equal to -1
+    rescaled_scalars_file : string (if save_file)
+        name of output VTK file with rescaled scalar values for each label
+
+    Examples
+    --------
+    >>> # Rescale depths by neighborhood within each label:
+    >>> import os
+    >>> from mindboggle.utils.mesh import rescale_by_label
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> labels_or_file = os.path.join(path, 'arno', 'features', 'subfolds.vtk')
+    >>> save_file = True
+    >>> output_filestring = 'rescaled_scalars'
+    >>> #
+    >>> rescaled_scalars, rescaled_scalars_file = rescale_by_label(input_vtk,
+    >>>     labels_or_file, save_file, output_filestring)
+    >>> #
+    >>> # View rescaled scalar values per fold:
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file)
+    >>> #
+    >>> rewrite_scalars(rescaled_scalars_file, rescaled_scalars_file,
+    >>>                 rescaled_scalars, 'rescaled_depths', folds)
+    >>> plot_surfaces(rescaled_scalars_file)
+
+    """
+    import os
+    import numpy as np
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+
+    # Load scalars and vertex neighbor lists:
+    scalars, name = read_scalars(input_vtk, True, True)
+    print("  Rescaling scalar values within each label...")
+
+    # Load label numbers:
+    if isinstance(labels_or_file, str):
+        labels, name = read_scalars(labels_or_file, True, True)
+    elif isinstance(labels_or_file, list):
+        labels = labels_or_file
+    unique_labels = np.unique(labels)
+    unique_labels = [x for x in unique_labels if x >= 0]
+
+    # Loop through labels:
+    for label in unique_labels:
+        #print("  Rescaling scalar values within label {0} of {1} labels...".format(
+        #    int(label), len(unique_labels)))
+        indices = [i for i,x in enumerate(labels) if x == label]
+        if indices:
+
+            # Rescale by the maximum label scalar value:
+            scalars[indices] = scalars[indices] / np.max(scalars[indices])
+
+    rescaled_scalars = scalars.tolist()
+
+    #-------------------------------------------------------------------------
+    # Return rescaled scalars and file name
+    #-------------------------------------------------------------------------
+    if save_file:
+
+        rescaled_scalars_file = os.path.join(os.getcwd(), output_filestring + '.vtk')
+        rewrite_scalars(input_vtk, rescaled_scalars_file,
+                        rescaled_scalars, 'rescaled_scalars', labels)
+        if not os.path.exists(rescaled_scalars_file):
+            raise(IOError(rescaled_scalars_file + " not found"))
+
+    else:
+        rescaled_scalars_file = None
+
+    return rescaled_scalars, rescaled_scalars_file
+
+
+def area_of_faces(points, faces):
+    """
+    Compute the areas of all triangles on the mesh.
+
+    Parameters
+    ----------
+    points : list of lists of 3 floats
+        x,y,z coordinates for each vertex of the structure
+    faces : list of lists of 3 integers
+        3 indices to vertices that form a triangle on the mesh
+
+    Returns
+    -------
+    area: 1-D numpy array
+        area[i] is the area of the i-th triangle
+
+    """
+    import numpy as np
+
+    area = np.zeros(len(faces))
+
+    points = np.array(points)
+
+    for i, triangle in enumerate(faces):
+
+        a = np.linalg.norm(points[triangle[0]] - points[triangle[1]])
+        b = np.linalg.norm(points[triangle[1]] - points[triangle[2]])
+        c = np.linalg.norm(points[triangle[2]] - points[triangle[0]])
+        s = (a+b+c) / 2.0
+
+        area[i] = np.sqrt(s*(s-a)*(s-b)*(s-c))
+
+    return area

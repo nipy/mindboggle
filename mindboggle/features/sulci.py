@@ -61,7 +61,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
-    >>> from mindboggle.labels.protocol import dkt_protocol
+    >>> from mindboggle.LABELS import dkt_protocol
     >>> from mindboggle.features.sulci import extract_sulci
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
@@ -88,8 +88,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.labels import extract_borders
-    from mindboggle.utils.segment import propagate, segment
+    from mindboggle.utils.segment import extract_borders, propagate, segment
 
 
     # Load fold numbers if folds_or_file is a string

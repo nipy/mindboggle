@@ -336,8 +336,8 @@ def concatenate_sulcus_scalars(scalar_files, fold_files, label_files):
 
     from mindboggle.utils.io_vtk import read_scalars
     from mindboggle.utils.mesh import find_neighbors_from_file
-    from mindboggle.labels.labels import extract_borders
-    from mindboggle.labels.protocol import dkt_protocol
+    from mindboggle.utils.segment import extract_borders
+    from mindboggle.LABELS import dkt_protocol
 
     protocol = 'DKT25'
     sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \

@@ -53,10 +53,8 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Returns
     -------
-    thicknesses : list of floats
-        thickness values
-    labels : list of integers
-        label indices
+    labels_thicknesses : list containing list of integers and list of floats
+        label indices and thickness values
     table_file : string
         name of file containing thickness values
 
@@ -80,7 +78,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     >>> propagate = False
     >>> thickness_table = True
     >>> use_c3d = False
-    >>> thicknesses, labels, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, thickness_table, use_c3d)
+    >>> labels_thicknesses, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, thickness_table, use_c3d)
 
     """
     import os
@@ -256,7 +254,9 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     else:
         thickness_table = None
 
-    return thicknesses, labels, thickness_table
+    labels_thicknesses = [labels, thicknesses]
+
+    return labels_thicknesses, thickness_table
 
 
 def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
@@ -373,8 +373,11 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         # Combine FreeSurfer and Atropos segmentations:
         #---------------------------------------------------------------------
         second_segmentation_file = ''
-        gray_and_white_file = combine_whites_over_grays(subject, out_subdir,
-            second_segmentation_file, atropos_dir, atropos_stem, use_c3d)
+        aseg = ''
+        filled = ''
+        gray_and_white_file = combine_whites_over_grays(subject, aseg, filled,
+            out_subdir, second_segmentation_file, atropos_dir, atropos_stem,
+            use_c3d)
 
         #---------------------------------------------------------------------
         # Tabulate thickness values:
@@ -383,12 +386,12 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         white_value = 3
         propagate = True
         output_table = False
-        thicknesses, u1, u2 = thickinthehead(gray_and_white_file, labeled_file,
-                                             gray_value, white_value, labels,
-                                             out_subdir, resize, propagate,
-                                             output_table, use_c3d)
+        labels_thicknesses, u1 = thickinthehead(gray_and_white_file,
+                                    labeled_file, gray_value, white_value,
+                                    labels, out_subdir, resize, propagate,
+                                    output_table, use_c3d)
 
-        thickness_table[:, isubject+1] = thicknesses
+        thickness_table[:, isubject+1] = labels_thicknesses[1]
 
     #-------------------------------------------------------------------------
     # Save results:
@@ -404,87 +407,6 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 if __name__ == "__main__":
 
     from mindboggle.shapes.thickness import thickinthehead
-
-    subjects=['CU0009CUMR1R1',
- 'CU0009CUMR2R1',
- 'CU0013CUMR1R1',
- 'CU0013CUMR2R1',
- 'CU0017CUMR1R1',
- 'CU0017CUMR2R1',
- 'CU0018CUMR1R1',
- 'CU0018CUMR2R1',
- 'CU0019CUMR1R1',
- 'CU0019CUMR2R1',
- 'CU0020CUMR1R1',
- 'CU0020CUMR2R1',
- 'CU0023CUMR1R1',
- 'CU0023CUMR2R1',
- 'CU0026CUMR1R1',
- 'CU0026CUMR2R1',
- 'CU0028CUMR1R1',
- 'CU0028CUMR2R1',
- 'CU0031CUMR1R1',
- 'CU0031CUMR2R1',
- 'MG0006MGMR1R2',
- 'MG0006MGMR2R1',
- 'MG0007MGMR1R1',
- 'MG0007MGMR2R1',
- 'MG0008MGMR1R1',
- 'MG0008MGMR2R1',
- 'MG0020MGMR1R1',
- 'MG0020MGMR2R1',
- 'MG0025MGMR1R1',
- 'MG0025MGMR2R1',
- 'MG0026MGMR1R1',
- 'MG0026MGMR2R1',
- 'MG0028MGMR1R1',
- 'MG0028MGMR2R1',
- 'MG0030MGMR1R1',
- 'MG0030MGMR2R1',
- 'MG0040MGMR1R1',
- 'MG0040MGMR2R1',
- 'MG0081MGMR1R1',
- 'MG0081MGMR2R1',
- 'TX0016TXMR1R1',
- 'TX0016TXMR2R1',
- 'TX0019TXMR1R1',
- 'TX0019TXMR2R1',
- 'TX0022TXMR1R1',
- 'TX0022TXMR2R1',
- 'TX0027TXMR1R1',
- 'TX0027TXMR2R1',
- 'TX0029TXMR1R1',
- 'TX0029TXMR2R1',
- 'TX0033TXMR1R1',
- 'TX0033TXMR2R1',
- 'TX0037TXMR1R1',
- 'TX0037TXMR2R1',
- 'TX0038TXMR1R1',
- 'TX0038TXMR2R1',
- 'TX0040TXMR1R1',
- 'TX0040TXMR2R1',
- 'TX0041TXMR1R1',
- 'TX0041TXMR2R1',
- 'UM0012UMMR1R1',
- 'UM0012UMMR2R1',
- 'UM0014UMMR1R1',
- 'UM0014UMMR2R1',
- 'UM0017UMMR1R1',
- 'UM0017UMMR2R1',
- 'UM0023UMMR1R1',
- 'UM0023UMMR2R1',
- 'UM0024UMMR1R1',
- 'UM0024UMMR2R1',
- 'UM0029UMMR1R1',
- 'UM0029UMMR2R1',
- 'UM0031UMMR1R1',
- 'UM0031UMMR2R1',
- 'UM0032UMMR1R1',
- 'UM0032UMMR2R1',
- 'UM0035UMMR1R1',
- 'UM0035UMMR2R1',
- 'UM0040UMMR1R1',
- 'UM0040UMMR2R1']
 
     subjects = []
     for i in range(1,21):
@@ -502,12 +424,10 @@ if __name__ == "__main__":
     labels.remove(1033)
     labels.remove(2033)
 
-    #out_dir = 'thickness_outputs_fs-ants_embarc40controls_antslabels'
     out_dir = 'thickness_outputs_fs-ants'
-    atropos_dir = '' #'/data/export/home/mzia/cluster/data/embarc_hc_anatomicals_k1'
     atropos_dir = '/homedir/Data/Brains/OASIS-TRT-20/antsCorticalThickness'
     atropos_stem = 'tmp'
-    label_dir = '' #'/public/embarc/embarc_control_labels'
-    label_filename = '' #'labels.nii.gz'
+    label_dir = ''
+    label_filename = ''
     thickness_table, table_file = run_thickinthehead(subjects,
         labels, out_dir, atropos_dir, atropos_stem, label_dir, label_filename)
