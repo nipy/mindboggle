@@ -94,8 +94,8 @@ if __name__ == "__main__":
     import numpy as np
     from mindboggle.utils.io_vtk import load_vtk, read_scalars, write_scalars
     from mindboggle.utils.mesh import find_neighbors
-    from mindboggle.labels.labels import extract_borders
-    from mindboggle.labels.protocol import dkt_protocol
+    from mindboggle.utils.segment import extract_borders
+    from mindboggle.LABELS import dkt_protocol
 
     protocol = 'DKT25'
     sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \

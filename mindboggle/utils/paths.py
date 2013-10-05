@@ -331,7 +331,7 @@ def connect_points_hmmf(indices_points, indices, L, neighbor_lists,
     import numpy as np
     from mindboggle.utils.morph import topo_test
     from mindboggle.utils.paths import connect_points_erosion
-    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import extract_borders
 
     # Make sure argument is a numpy array
     if not isinstance(L, np.ndarray):
@@ -877,7 +877,7 @@ def track_segments(seed, segments, neighbor_lists, values, sink,
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
     >>> from mindboggle.utils.mesh import find_neighbors_from_file
-    >>> from mindboggle.labels.labels import extract_borders
+    >>> from mindboggle.utils.segment import extract_borders
     >>> from mindboggle.utils.segment import segment_rings
     >>> from mindboggle.utils.paths import track_segments
     >>> from mindboggle.utils.plots import plot_surfaces
@@ -1063,7 +1063,7 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
     """
     import numpy as np
 
-    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import extract_borders
     from mindboggle.utils.segment import segment_rings
     from mindboggle.utils.paths import track_segments
     from mindboggle.utils.mesh import find_neighborhood

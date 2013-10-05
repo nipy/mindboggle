@@ -226,7 +226,8 @@ def write_rows(filename, list_of_lines, header=""):
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
-        geodesic_depth_file='', convexity_file='', thickness_file='',
+        geodesic_depth_file='', freesurfer_convexity_file='',
+        freesurfer_thickness_file='',
         labels_spectra=[], labels_spectra_IDs=[],
         sulci_spectra=[], sulci_spectra_IDs=[],
         labels_zernike=[], labels_zernike_IDs=[],
@@ -259,10 +260,10 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         name of VTK file with travel depth scalar values
     geodesic_depth_file :  string
         name of VTK file with geodesic depth scalar values
-    convexity_file :  string
-        name of VTK file with convexity scalar values
-    thickness_file :  string
-        name of VTK file with thickness scalar values
+    freesurfer_convexity_file :  string
+        name of VTK file with FreeSurfer convexity scalar values
+    freesurfer_thickness_file :  string
+        name of VTK file with FreeSurfer thickness scalar values
     labels_zernike : list of lists of floats
         Laplace-Beltrami spectra for labeled regions
     labels_spectra_IDs : list of integers
@@ -313,8 +314,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
-    >>> convexity_file = ''
-    >>> thickness_file = ''
+    >>> freesurfer_convexity_file = ''
+    >>> freesurfer_thickness_file = ''
     >>> delimiter = ','
     >>> #
     >>> import numpy as np
@@ -332,7 +333,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> write_shape_stats(labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     convexity_file, thickness_file,
+    >>>     freesurfer_convexity_file, freesurfer_thickness_file,
     >>>     labels_spectra, labels_spectra_IDs,
     >>>     sulci_spectra, sulci_spectra_IDs,
     >>>     labels_zernike, labels_zernike_IDs,
@@ -342,7 +343,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     """
     import os
     import numpy as np
-    from mindboggle.shapes.measure import means_per_label, stats_per_label, \
+    from mindboggle.utils.compute import means_per_label, stats_per_label, \
         sum_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
@@ -376,15 +377,17 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     zernike_lists = [labels_zernike, sulci_zernike]
     zernike_ID_lists = [labels_zernike_IDs, sulci_zernike_IDs]
     zernike_names = ['label zernike', 'sulcus zernike']
-    table_names = ['label_shapes.csv', 'sulcus_shapes.csv', 'fundus_shapes.csv']
+    table_names = ['label_shapes.csv', 'sulcus_shapes.csv',
+                   'fundus_shapes.csv']
 
     # Shape names corresponding to shape files below:
     shape_names = ['area', 'mean curvature', 'travel depth', 'geodesic depth',
-                   'convexity', 'thickness']
+                   'FreeSurfer convexity', 'FreeSurfer thickness']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
     shape_files = [area_file, mean_curvature_file, travel_depth_file,
-                   geodesic_depth_file, convexity_file, thickness_file]
+                   geodesic_depth_file, freesurfer_convexity_file,
+                   freesurfer_thickness_file]
     shape_arrays = []
     column_names = []
     first_pass = True
@@ -575,8 +578,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
-        geodesic_depth_file='', convexity_file='', thickness_file='',
-        delimiter=','):
+        geodesic_depth_file='', freesurfer_convexity_file='',
+        freesurfer_thickness_file='', delimiter=','):
     """
     Make a table of shape values per vertex.
 
@@ -606,10 +609,10 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         name of VTK file with travel depth scalar values
     geodesic_depth_file :  string
         name of VTK file with geodesic depth scalar values
-    convexity_file :  string
-        name of VTK file with convexity scalar values
-    thickness_file :  string
-        name of VTK file with thickness scalar values
+    freesurfer_convexity_file :  string
+        name of VTK file with FreeSurfer convexity scalar values
+    freesurfer_thickness_file :  string
+        name of VTK file with FreeSurfer thickness scalar values
     delimiter : string
         delimiter between columns, such as ','
 
@@ -637,14 +640,14 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
-    >>> convexity_file = ''
-    >>> thickness_file = ''
+    >>> freesurfer_convexity_file = ''
+    >>> freesurfer_thickness_file = ''
     >>> delimiter = ','
     >>> #
     >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
     >>>     affine_transform_file, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
-    >>>     convexity_file, thickness_file, delimiter)
+    >>>     freesurfer_convexity_file, freesurfer_thickness_file, delimiter)
 
     """
     import os
@@ -675,11 +678,12 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     # Shape names corresponding to shape files below:
     shape_names = ['area', 'mean curvature', 'travel depth', 'geodesic depth',
-                   'convexity', 'thickness']
+                   'FreeSurfer convexity', 'FreeSurfer thickness']
 
     # Load shape files as a list of numpy arrays of per-vertex shape values:
     shape_files = [area_file, mean_curvature_file, travel_depth_file,
-                   geodesic_depth_file, convexity_file, thickness_file]
+                   geodesic_depth_file, freesurfer_convexity_file,
+                   freesurfer_thickness_file]
 
     # Append columns of per-vertex scalar values:
     columns = []
@@ -1026,10 +1030,10 @@ def select_column_from_tables(tables, column_name, label_name='',
     --------
     >>> from mindboggle.utils.io_table import select_column_from_tables
     >>> tables = ['/home/arno/mindboggled/tables/left/UM0029UMMR1R1_antsCorticalThickness/label_shapes.csv']
-    >>> column_name = 'label: thickness: mean (weighted)'
+    >>> column_name = 'label: FreeSurfer thickness: mean (weighted)'
     >>> #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
     >>> #          '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
-    >>> #column_name = "thickness"
+    >>> #column_name = "FreeSurfer thickness"
     >>> label_name = 'label'
     >>> write_table = True
     >>> output_table = ''
@@ -1190,7 +1194,7 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     >>> hemi = 'left'
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled', 'tables')
     >>> table_name = "label_shapes.csv"
-    >>> column_name = "label: thickness: median (weighted)"
+    >>> column_name = "label: FreeSurfer thickness: median (weighted)"
     >>> label_name = 'label'
     >>> write_table = True
     >>> output_table = ''

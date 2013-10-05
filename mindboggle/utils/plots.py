@@ -566,7 +566,7 @@ def scatterplot_list_pairs(columns, ignore_first_column=False, plot_line=True,
 #-----------------------------------------------------------------------------
 # Example: Plot scan-rescan thickness values from table (alternating columns)
 #-----------------------------------------------------------------------------
-if __name__== '__main__':
+if __name__ == '__main__':
 
     import os
     import numpy as np
@@ -577,9 +577,8 @@ if __name__== '__main__':
     #-------------------------------------------------------------------------
     # Load thickness values from table (alternating columns are scan-rescan):
     #-------------------------------------------------------------------------
-    tablename = '/drop/thickness_evaluation/results/tables/antsCorticalThickness_means_OASIS-TRT.csv'
-    title = 'antsCorticalThickness (62 labels, 20 OASIS test-retest)'
-    #title = 'Thickinthehead (62 labels, 40 EMBARC controls)'
+    tablename = '/desk/th_embarc40_antslabels.csv'
+    title = 'Thickinthehead, ANTs labels propagated through FS+ANTs gray (62 labels, 40 EMBARC controls)'
 
     f1 = open(tablename,'r')
     f1 = f1.readlines()

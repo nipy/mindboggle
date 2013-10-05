@@ -36,7 +36,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     --------
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
-    >>> from mindboggle.data import hashes_url
+    >>> from mindboggle.DATA import hashes_url
     >>> from mindboggle.utils.io_uri import retrieve_data
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
@@ -86,7 +86,7 @@ def measure_volume_overlap(labels, file1, file2):
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
     >>> from mindboggle.utils.io_table import read_columns
-    >>> from mindboggle.labels.protocol import dkt_protocol
+    >>> from mindboggle.LABELS import dkt_protocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
