@@ -50,7 +50,7 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
     Examples
     --------
     >>> import os
-    >>> from mindboggle.data import hashes_url
+    >>> from mindboggle.DATA import hashes_url
     >>> from mindboggle.utils.io_uri import retrieve_data
     >>> hashes, url, cache_env, cache = hashes_url()
     >>> data_file = hashes.keys()[0]
@@ -156,7 +156,7 @@ def get_data(url, output_file=''):
     Examples
     --------
     >>> from mindboggle.utils.io_uri import get_data
-    >>> from mindboggle.data import hashes_url
+    >>> from mindboggle.DATA import hashes_url
     >>> hashes, url = hashes_url()
     >>> data_file = hashes.keys()[0]
     >>> output_file = 'test_output.nii.gz'
@@ -192,7 +192,7 @@ def get_hash(data_file):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.data import hashes_url
+    >>> from mindboggle.DATA import hashes_url
     >>> from mindboggle.utils.io_uri import get_hash
     >>> cache_env = 'MINDBOGGLE_CACHE'
     >>> hashes, url, cache_env, cache = hashes_url()

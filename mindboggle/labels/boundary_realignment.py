@@ -32,7 +32,7 @@ def realign_boundaries_to_fundus_lines(
     """
 
     import numpy as np
-    from mindboggle.labels.labels import extract_borders
+    from mindboggle.utils.segment import extract_borders
     import mindboggle.utils.graph as go
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
     from mindboggle.utils.mesh import find_neighbors

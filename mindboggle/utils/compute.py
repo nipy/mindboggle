@@ -357,3 +357,406 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
 
     return mad
 
+
+def means_per_label(values, labels, exclude_labels, areas=[]):
+    """
+    Compute the mean value across vertices per label,
+    optionally taking into account surface area per vertex.
+
+    Formula:
+    average value = sum(a_i * v_i) / total_surface_area,
+    where *a_i* and *v_i* are the area and value for each vertex *i*.
+
+    Note ::
+        This function is different than stats_per_label() in two ways:
+            1. It only computes the (weighted) mean and sdev.
+            2. It can accept 2-D arrays (such as [x,y,z] coordinates).
+
+    Parameters
+    ----------
+    values : numpy array of one or more lists of integers or floats
+        values to average per label
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
+    areas : numpy array of floats
+        surface areas
+
+    Returns
+    -------
+    means : list of floats
+        mean(s) for each label
+    sdevs : list of floats
+        standard deviation(s) for each label
+    label_list : list of integers
+        unique label numbers
+    label_areas : list of floats (if normalize_by_area)
+        surface area for each labeled set of vertices
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
+    >>> from mindboggle.utils.compute import means_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> areas, name = read_scalars(area_file, True, True)
+    >>> labels, name = read_scalars(labels_file)
+    >>> exclude_labels = [-1]
+    >>> areas = areas
+    >>> #
+    >>> # Example 1: compute mean curvature per label:
+    >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
+    >>>     exclude_labels, areas)
+    >>> #
+    >>> # Example 2: compute mean coordinates per label:
+    >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(values_file)
+    >>> means, sdevs, label_list, label_areas = means_per_label(points, labels,
+    >>>     exclude_labels, areas)
+
+    """
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
+        values = np.asarray(values)
+    if not isinstance(areas, np.ndarray):
+        areas = np.asarray(areas)
+
+    label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    means = []
+    sdevs = []
+    label_areas = []
+    if values.ndim > 1:
+        dim = np.shape(values)[1]
+    else:
+        dim = 1
+
+    for label in label_list:
+        I = [i for i,x in enumerate(labels) if x == label]
+        if I:
+            X = values[I]
+            if np.size(areas):
+                W = areas[I]
+                label_weight = sum(W)
+                label_areas.append(label_weight)
+                if dim > 1:
+                    W = np.transpose(np.tile(W, (dim,1)))
+                means.append(np.sum(W * X, axis=0) / label_weight)
+                sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X, axis=0))**2,
+                                            axis=0) / label_weight))
+            else:
+                if dim > 1:
+                    means.append(np.mean(X, axis=0))
+                    sdevs.append(np.std(X, axis=0))
+                else:
+                    means.append(np.mean(X))
+                    sdevs.append(np.std(X))
+        else:
+            means.append(0)
+            sdevs.append(0)
+            label_areas.append(0)
+
+    if dim > 1:
+        means = [x.tolist() for x in means]
+        sdevs = [x.tolist() for x in sdevs]
+        label_areas = [x.tolist() for x in label_areas]
+
+    return means, sdevs, label_list, label_areas
+
+
+def sum_per_label(values, labels, exclude_labels):
+    """
+    Compute the sum value across vertices per label.
+
+    Parameters
+    ----------
+    values : numpy array of one or more lists of integers or floats
+        values to average per label
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
+
+    Returns
+    -------
+    sums : list of floats
+        sum for each label
+    label_list : list of integers
+        unique label numbers
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk
+    >>> from mindboggle.utils.compute import sum_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> labels, name = read_scalars(labels_file)
+    >>> exclude_labels = [-1]
+    >>> # Compute sum area per label:
+    >>> sums, label_list = sum_per_label(values, labels, exclude_labels)
+
+    """
+    import numpy as np
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
+        values = np.asarray(values)
+
+    label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    sums = []
+    for label in label_list:
+        I = [i for i,x in enumerate(labels) if x == label]
+        if I:
+            X = values[I]
+            sums.append(np.sum(X))
+        else:
+            sums.append(0)
+
+    return sums, label_list
+
+
+def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
+    """
+    Compute various statistical measures across vertices per label,
+    optionally using weights (such as surface area per vertex).
+
+    Example (area-weighted mean):
+    average value = sum(a_i * v_i) / total_surface_area,
+    where *a_i* and *v_i* are the area and value for each vertex *i*.
+
+    Note ::
+        This function is different than means_per_label() in two ways:
+            1. It computes more than simply the (weighted) mean and sdev.
+            2. It only accepts 1-D arrays of values.
+
+    Reference
+    ---------
+    Weighted skewness and kurtosis unbiased by sample size
+    Lorenzo Rimoldini, arXiv:1304.6564 (2013)
+    http://arxiv.org/abs/1304.6564
+
+    Parameters
+    ----------
+    values : numpy array of individual or lists of integers or floats
+        values for all vertices
+    labels : list or array of integers
+        label for each value
+    exclude_labels : list of integers
+        labels to be excluded
+    weights : numpy array of floats
+        weights to compute weighted statistical measures
+    precision : integer
+        number of decimal places to consider weights
+
+    Returns
+    -------
+    medians : list of floats
+        median for each label
+    mads : list of floats
+        median absolute deviation for each label
+    means : list of floats
+        mean for each label
+    sdevs : list of floats
+        standard deviation for each label
+    skews : list of floats
+        skew for each label
+    kurts : list of floats
+        kurtosis value for each label
+    lower_quarts : list of floats
+        lower quartile for each label
+    upper_quarts : list of floats
+        upper quartile for each label
+    label_list : list of integers
+        list of unique labels
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.utils.compute import stats_per_label
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> values_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> values, name = read_scalars(values_file, True, True)
+    >>> areas, name = read_scalars(area_file, True, True)
+    >>> labels, name = read_scalars(labels_file)
+    >>> exclude_labels = [-1]
+    >>> weights = areas
+    >>> precision = 1
+    >>> stats_per_label(values, labels, exclude_labels, weights, precision)
+
+    """
+    import numpy as np
+    from scipy.stats import skew, kurtosis, scoreatpercentile
+    from mindboggle.utils.compute import weighted_to_repeated_values, median_abs_dev
+
+    # Make sure arguments are numpy arrays
+    if not isinstance(values, np.ndarray):
+        values = np.asarray(values)
+    if not isinstance(weights, np.ndarray):
+        weights = np.asarray(weights)
+
+    label_list = np.unique(labels)
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    medians = []
+    mads = []
+    means = []
+    sdevs = []
+    skews = []
+    kurts = []
+    lower_quarts = []
+    upper_quarts = []
+
+    for label in label_list:
+        I = [i for i,x in enumerate(labels) if x == label]
+        if I:
+            X = values[I]
+            if np.size(weights):
+                W = weights[I]
+                sumW = np.sum(W)
+                Xdiff = X - np.mean(X)
+                means.append(np.sum(W * X) / sumW)
+                sdevs.append(np.sum(W * Xdiff**2) / sumW)
+                skews.append(np.sum(W * Xdiff**3) / sumW)
+                kurts.append(np.sum(W * Xdiff**4) / sumW)
+                X = weighted_to_repeated_values(X, W, precision)
+            else:
+                means.append(np.mean(X))
+                sdevs.append(np.std(X))
+                skews.append(skew(X))
+                kurts.append(kurtosis(X))
+            medians.append(np.median(X))
+            mads.append(median_abs_dev(X))
+            lower_quarts.append(scoreatpercentile(X, 25))
+            upper_quarts.append(scoreatpercentile(X, 75))
+        else:
+            medians.append(0)
+            mads.append(0)
+            means.append(0)
+            sdevs.append(0)
+            skews.append(0)
+            kurts.append(0)
+            lower_quarts.append(0)
+            upper_quarts.append(0)
+
+    return medians, mads, means, sdevs, skews, kurts, \
+           lower_quarts, upper_quarts, label_list
+
+
+def volume_per_label(labels, input_file):
+    """
+    Compute volume per labeled region in a nibabel-readable image.
+
+    Parameters
+    ----------
+    labels : list of integers
+        label numbers for image volumes
+    input_file : string
+        name of image file, consisting of index-labeled pixels/voxels
+
+    Returns
+    -------
+    labels_volumes : list of integer list and float list
+        label numbers for image volumes, and volume for each labeled region
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.LABELS import dkt_protocol
+    >>> from mindboggle.utils.compute import volume_per_label
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
+    ...    label_names, label_numbers, cortex_names, cortex_numbers,
+    ...    noncortex_names, noncortex_numbers = dkt_protocol()
+    >>> labels_volumes = volume_per_label(label_numbers, input_file)
+    >>> print(labels_volumes)
+
+    """
+    import numpy as np
+    import nibabel as nb
+
+    # Load labeled image volumes
+    img = nb.load(input_file)
+    hdr = img.get_header()
+    pixdims = hdr.get_zooms()
+    volume_per_voxel = np.product(pixdims)
+    data = img.get_data().ravel()
+
+    # Initialize output
+    volumes = np.zeros(len(labels))
+
+    # Loop through labels
+    for ilabel, label in enumerate(labels):
+        label = int(label)
+
+        # Find which voxels contain the label in each volume
+        indices = np.where(data==label)[0]
+        volumes[ilabel] = volume_per_voxel * len(indices)
+
+    labels_volumes = [labels, volumes.tolist()]
+
+    return labels_volumes
+
+
+def compute_image_histogram(infile, nbins=100, threshold=0.0):
+    """
+    Compute histogram values from nibabel-readable image.
+
+    Parameters
+    ----------
+    infile : string
+        input nibabel-readable image file name
+    nbins : integer
+        number of bins
+    threshold : float
+        remove values lower than threshold
+
+    Returns
+    -------
+    histogram_values : numpy array
+        histogram bin values
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.compute import compute_image_histogram
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> infile = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> compute_image_histogram(infile, nbins=100, threshold=0.1)
+
+    """
+    import numpy as np
+    import nibabel as nb
+    #from pylab import plot #, hist
+
+    #-------------------------------------------------------------------------
+    # Compute histogram
+    #-------------------------------------------------------------------------
+    # Load image
+    print(infile)
+    data = nb.load(infile).get_data().ravel()
+
+    # Threshold image
+    if threshold > 0:
+        data = data / max(data)
+        data = data[data >= threshold]
+
+    # Compute histogram
+    histogram_values, bin_edges = np.histogram(data, bins=nbins)
+
+    # plot(range(len(histogram_values)), histogram_values, '-')
+    ##a,b,c = hist(data, bins=nbins)
+
+    return histogram_values

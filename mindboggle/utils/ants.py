@@ -10,6 +10,154 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
+def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
+    """
+    Fetch antsCorticalThickness.sh output.
+
+    Assumes <subjects_dir>/<subject>/<stem>#/<files> structure.
+
+    Parameters
+    ----------
+    subjects_dir : string
+        ANTs directory containing antsCorticalThickness.sh results
+    subject : string
+        name of subject (subdirectory)
+    stem : string
+        ANTs file stem for antsCorticalThickness.sh results
+    init_affine : string (optional)
+        initial affine transform to start transform_list
+
+    Returns
+    -------
+    brain : string
+        antsBrainExtraction.sh-extracted brain volume
+    segments : string
+        Atropos-segmented brain volume
+    affine : string
+        subject to template affine transform (antsRegistration)
+    warp : string
+        subject to template nonlinear transform (antsRegistration)
+    invwarp : string
+        subject to template nonlinear inverse transform (antsRegistration)
+    transform_list : list
+        transform files to go from MNI152 to Atropos template to subject
+
+    Examples
+    --------
+    >>> from mindboggle.utils.ants import fetch_ants_data
+    >>> subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
+    >>> subject = 'OASIS-TRT-20-1'
+    >>> stem = 'tmp'
+    >>> fetch_ants_data(subjects_dir, subject, stem)
+
+    """
+    import os
+    import sys
+
+    affine = None
+    warp = None
+    invwarp = None
+    brain = None
+    segments = None
+
+    if stem:
+        dir = os.path.join(subjects_dir, subject)
+        subdirs = os.listdir(dir)
+        subdir = None
+        for subdir1 in subdirs:
+            if stem in subdir1:
+                subdir = subdir1
+        if subdir:
+            files = os.listdir(subdir)
+            for file in files:
+                if 'TemplateToSubject0GenericAffine.mat' in file:
+                    affine = os.path.join(dir, subdir, file)
+                elif 'TemplateToSubject1InverseWarp.nii.gz' in file:
+                    invwarp = file
+                elif 'TemplateToSubject1Warp.nii.gz' in file:
+                    warp = file
+                elif 'BrainExtractionBrain.nii.gz' in file:
+                    brain = file
+                elif 'BrainSegmentation.nii.gz' in file:
+                    segments = file
+        else:
+            sys.exit('No ANTs files for ' + subject)
+    else:
+        sys.exit('No ANTs files for ' + subject)
+
+    if init_affine:
+        transform_list = [init_affine, affine, warp]
+    else:
+        transform_list = [affine, warp]
+
+    return brain, segments, affine, warp, invwarp, transform_list
+
+
+def apply_transform_atlas_to_atropos(subjects_dir, subject, stem, output_file=''):
+    """
+    Fetch antsCorticalThickness.sh output.
+
+    Assumes <subjects_dir>/<subject>/<stem>#/<files> structure.
+
+    Parameters
+    ----------
+    subjects_dir : string
+        ANTs directory containing antsCorticalThickness.sh results
+    subject : string
+        name of subject (subdirectory)
+    stem : string
+        ANTs file stem for antsCorticalThickness.sh results
+    output_file : string
+        transformed atlas file name
+
+    Returns
+    -------
+    affine : string
+        subject to template affine transform (antsRegistration)
+    warp : string
+        subject to template nonlinear transform (antsRegistration)
+    invwarp : string
+        subject to template nonlinear inverse transform (antsRegistration)
+    brain : string
+        antsBrainExtraction.sh-extracted brain volume
+    segments : string
+        Atropos-segmented brain volume
+
+    Examples
+    --------
+    >>> from mindboggle.utils.ants import fetch_ants_data
+    >>> subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
+    >>> subject = 'OASIS-TRT-20-1'
+    >>> stem = 'tmp'
+    >>> fetch_ants_data(subjects_dir, subject, stem)
+    >>> label_dir = '/public/embarc/embarc_control_labels'
+    >>> thick_dir = '/data/export/home/mzia/cluster/data/embarc_hc_anatomicals_k1'
+    >>> t1 = os.path.join(thick_dir, subject, subject + '.nii.gz')
+    >>> atlas = '/home/arno/Data/Brains/Neuromorphometrics/OASIS-TRT-20_whole-brain-atlases/jointfusion_atlas_DKT31_CMA_labels/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
+    >>> atlas2mni_affine = '/homedir/Data/Brains/Atropos_templates/OASIS-30_Atropos_template_to_MNI152_affine.txt'
+    >>> apply_transform_atlas_to_atropos(subjects_dir, subject, stem, output_file='')
+
+    """
+    import os
+
+    from mindboggle.utils.utils import execute
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), 'registered_labels.nii.gz')
+
+    t1 = os.path.join(thick_dir, subject, subject + '.nii.gz')
+    affine = os.path.join(thick_dir, subject, tmpdir, 'tmpTemplateToSubject0GenericAffine.mat')
+    invwarp = os.path.join(thick_dir, subject, tmpdir, 'tmpTemplateToSubject1InverseWarp.nii.gz')
+
+    cmd = ['WarpImageMultiTransform 3', atlas, output_file, '-R', t1,
+           '--use-NN', '-i', affine, invwarp, '-i', atlas2mni_affine]
+    execute(cmd, 'os')
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
 def ImageMath(volume1, volume2, operator='m', output_file=''):
     """
     Use the ImageMath function in ANTS to perform operation on two volumes::
@@ -223,7 +371,7 @@ def WarpImageMultiTransform(source, target, output='',
     return output
 
 
-def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
+def PropagateLabelsThroughMask(mask, labels, mask_index=None,
                                output_file='', binarize=True):
     """
     Use ANTs to fill a binary volume mask with initial labels.
@@ -240,16 +388,16 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
 
     Parameters
     ----------
-    mask_volume : string
+    mask : string
         nibabel-readable image volume
-    label_volume : string
+    labels : string
         nibabel-readable image volume with integer labels
     mask_index : integer (optional)
         mask with just voxels having this value
     output_file : string
         nibabel-readable labeled image volume
     binarize : Boolean
-        binarize mask_volume?
+        binarize mask?
 
     Returns
     -------
@@ -262,12 +410,12 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
     >>> from mindboggle.utils.ants import PropagateLabelsThroughMask
     >>> from mindboggle.utils.plots import plot_volumes
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> label_volume = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> mask_volume = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> labels = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = PropagateLabelsThroughMask(mask_volume, label_volume, mask_index, output_file, binarize)
+    >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index, output_file, binarize)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -283,22 +431,22 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
     if binarize:
         temp_file = os.path.join(os.getcwd(),
                                  'PropagateLabelsThroughMask.nii.gz')
-        cmd = ['ThresholdImage', '3', mask_volume, temp_file, '0 1 0 1']
+        cmd = ['ThresholdImage', '3', mask, temp_file, '0 1 0 1']
         execute(cmd, 'os')
-        mask_volume = temp_file
+        mask = temp_file
 
     # Mask with just voxels having mask_index value:
     if mask_index:
-        mask = os.getcwd('temp.nii.gz')
-        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(mask_volume, mask,
+        mask2 = os.path.join(os.getcwd(), 'temp.nii.gz')
+        cmd = 'ThresholdImage 3 {0} {1} {2} {3} 1 0'.format(mask, mask2,
                mask_index, mask_index)
         execute(cmd)
     else:
-        mask = mask_volume
+        mask2 = mask
 
     # Propagate labels:
     cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
-            mask, label_volume]
+            mask2, labels]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
@@ -306,7 +454,7 @@ def PropagateLabelsThroughMask(mask_volume, label_volume, mask_index=None,
     return output_file
 
 
-def fill_volume_with_surface_labels(volume_mask, surface_files,
+def fill_volume_with_surface_labels(mask, surface_files,
                                     mask_index=None, output_file='',
                                     binarize=False):
     """
@@ -320,7 +468,7 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
 
     Parameters
     ----------
-    volume_mask : string
+    mask : string
         nibabel-readable image volume
     surface_files : string or list of strings
         VTK file(s) containing surface mesh(es) with labels as scalars
@@ -329,7 +477,7 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     output_file : string
         name of output file
     binarize : Boolean
-        binarize volume_mask?
+        binarize mask?
 
     Returns
     -------
@@ -345,11 +493,11 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
     >>> surface_files = [os.path.join(path, 'arno', 'labels',
     >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
     >>>     'rh.labels.DKT25.manual.vtk')]
-    >>> volume_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = fill_volume_with_surface_labels(volume_mask, surface_files, mask_index, output_file, binarize)
+    >>> output_file = fill_volume_with_surface_labels(mask, surface_files, mask_index, output_file, binarize)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -366,19 +514,19 @@ def fill_volume_with_surface_labels(volume_mask, surface_files,
 
     # Transform vtk coordinates to voxel index coordinates in a target
     # volume by using the header transformation:
-    surface_in_volume = transform_to_volume(surface_files[0], volume_mask)
+    surface_in_volume = transform_to_volume(surface_files[0], mask)
 
     # Do the same for additional vtk surfaces:
     if len(surface_files) == 2:
         surfaces_in_volume = os.path.join(os.getcwd(), 'surfaces.nii.gz')
-        surface_in_volume2 = transform_to_volume(surface_files[1], volume_mask)
+        surface_in_volume2 = transform_to_volume(surface_files[1], mask)
 
         overwrite_volume_labels(surface_in_volume, surface_in_volume2,
                                 surfaces_in_volume, ignore_labels=[0])
         surface_in_volume = surfaces_in_volume
 
     # Use ANTs to fill a binary volume mask with initial labels:
-    output_file = PropagateLabelsThroughMask(volume_mask, surface_in_volume,
+    output_file = PropagateLabelsThroughMask(mask, surface_in_volume,
                                              mask_index, output_file,
                                              binarize)
     if not os.path.exists(output_file):

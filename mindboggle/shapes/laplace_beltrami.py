@@ -200,7 +200,7 @@ def area_normalize(points, faces, spectrum):
     new_spectrum : list of floats
         LB spectrum normalized by area
     """
-    from mindboggle.shapes.measure import area_of_faces
+    from mindboggle.utils.mesh import area_of_faces
 
     area = area_of_faces(points, faces)
     total_area = sum(area)
