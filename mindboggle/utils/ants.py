@@ -37,15 +37,13 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
         subject to template affine transform (antsRegistration)
     warp : string
         subject to template nonlinear transform (antsRegistration)
-    invwarp : string
-        subject to template nonlinear inverse transform (antsRegistration)
     transform_list : list
         transform files to go from MNI152 to Atropos template to subject
 
     Examples
     --------
     >>> from mindboggle.utils.ants import fetch_ants_data
-    >>> subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
+    >>> subjects_dir = '/homedir/Data/antsCorticalThickness'
     >>> subject = 'OASIS-TRT-20-1'
     >>> stem = 'tmp'
     >>> fetch_ants_data(subjects_dir, subject, stem)
@@ -54,11 +52,10 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
     import os
     import sys
 
-    affine = None
-    warp = None
-    invwarp = None
     brain = None
     segments = None
+    affine = None
+    warp = None
 
     if stem:
         dir = os.path.join(subjects_dir, subject)
@@ -68,18 +65,16 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
             if stem in subdir1:
                 subdir = subdir1
         if subdir:
-            files = os.listdir(subdir)
+            files = os.listdir(os.path.join(dir, subdir))
             for file in files:
-                if 'TemplateToSubject0GenericAffine.mat' in file:
+                if file.endswith('BrainExtractionBrain.nii.gz'):
+                    brain = os.path.join(dir, subdir, file)
+                elif file.endswith('BrainSegmentation.nii.gz'):
+                    segments = os.path.join(dir, subdir, file)
+                elif file.endswith('TemplateToSubject0GenericAffine.mat'):
                     affine = os.path.join(dir, subdir, file)
-                elif 'TemplateToSubject1InverseWarp.nii.gz' in file:
-                    invwarp = file
-                elif 'TemplateToSubject1Warp.nii.gz' in file:
-                    warp = file
-                elif 'BrainExtractionBrain.nii.gz' in file:
-                    brain = file
-                elif 'BrainSegmentation.nii.gz' in file:
-                    segments = file
+                elif file.endswith('TemplateToSubject1Warp.nii.gz'):
+                    warp = os.path.join(dir, subdir, file)
         else:
             sys.exit('No ANTs files for ' + subject)
     else:
@@ -90,7 +85,7 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
     else:
         transform_list = [affine, warp]
 
-    return brain, segments, affine, warp, invwarp, transform_list
+    return brain, segments, affine, warp, transform_list
 
 
 def apply_transform_atlas_to_atropos(subjects_dir, subject, stem, output_file=''):
@@ -426,6 +421,11 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'PropagateLabelsThroughMask.nii.gz')
+
+
+    print('mask: {0}, labels: {1}'.format(mask, labels))
+
+
 
     # Binarize image volume:
     if binarize:
