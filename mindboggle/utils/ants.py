@@ -10,7 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
+def fetch_ants_data(subjects_dir, subject, stem):
     """
     Fetch antsCorticalThickness.sh output.
 
@@ -24,8 +24,6 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
         name of subject (subdirectory)
     stem : string
         ANTs file stem for antsCorticalThickness.sh results
-    init_affine : string (optional)
-        initial affine transform to start transform_list
 
     Returns
     -------
@@ -35,10 +33,12 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
         Atropos-segmented brain volume
     affine : string
         subject to template affine transform (antsRegistration)
+        Note: transform name contains "TemplateToSubject"
     warp : string
         subject to template nonlinear transform (antsRegistration)
-    transform_list : list
-        transform files to go from MNI152 to Atropos template to subject
+        Note: transform name contains "TemplateToSubject"
+    invwarp : string
+        inverse of subject to template nonlinear transform
 
     Examples
     --------
@@ -56,6 +56,7 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
     segments = None
     affine = None
     warp = None
+    invwarp = None
 
     if stem:
         dir = os.path.join(subjects_dir, subject)
@@ -75,82 +76,67 @@ def fetch_ants_data(subjects_dir, subject, stem, init_affine=''):
                     affine = os.path.join(dir, subdir, file)
                 elif file.endswith('TemplateToSubject1Warp.nii.gz'):
                     warp = os.path.join(dir, subdir, file)
+                elif file.endswith('TemplateToSubject1InverseWarp.nii.gz'):
+                    invwarp = os.path.join(dir, subdir, file)
         else:
             sys.exit('No ANTs files for ' + subject)
     else:
         sys.exit('No ANTs files for ' + subject)
 
-    if init_affine:
-        transform_list = [init_affine, affine, warp]
-    else:
-        transform_list = [affine, warp]
-
-    return brain, segments, affine, warp, transform_list
+    return brain, segments, affine, warp, invwarp
 
 
-def apply_transform_atlas_to_atropos(subjects_dir, subject, stem, output_file=''):
+def ComposeMultiTransform(transform_files, inverse_Booleans,
+                          output_transform_file='', ext='.txt'):
     """
-    Fetch antsCorticalThickness.sh output.
-
-    Assumes <subjects_dir>/<subject>/<stem>#/<files> structure.
+    Run ANTs ComposeMultiTransform function to create a single transform.
 
     Parameters
     ----------
-    subjects_dir : string
-        ANTs directory containing antsCorticalThickness.sh results
-    subject : string
-        name of subject (subdirectory)
-    stem : string
-        ANTs file stem for antsCorticalThickness.sh results
-    output_file : string
-        transformed atlas file name
+    transform_files : list of strings
+        transform file names
+    inverse_Booleans : list of Booleans
+        Booleans to indicate which transforms to take the inverse of
+    output_transform_file : string
+        transform file name
+    ext : string
+        '.txt' to save transform file as text, '.mat' for data file
 
     Returns
     -------
-    affine : string
-        subject to template affine transform (antsRegistration)
-    warp : string
-        subject to template nonlinear transform (antsRegistration)
-    invwarp : string
-        subject to template nonlinear inverse transform (antsRegistration)
-    brain : string
-        antsBrainExtraction.sh-extracted brain volume
-    segments : string
-        Atropos-segmented brain volume
+    output_transform_file : string
+        single composed transform file name
 
     Examples
     --------
-    >>> from mindboggle.utils.ants import fetch_ants_data
-    >>> subjects_dir = '/homedir/Data/Atropos/OASIS-TRT-20-1'
-    >>> subject = 'OASIS-TRT-20-1'
-    >>> stem = 'tmp'
-    >>> fetch_ants_data(subjects_dir, subject, stem)
-    >>> label_dir = '/public/embarc/embarc_control_labels'
-    >>> thick_dir = '/data/export/home/mzia/cluster/data/embarc_hc_anatomicals_k1'
-    >>> t1 = os.path.join(thick_dir, subject, subject + '.nii.gz')
-    >>> atlas = '/home/arno/Data/Brains/Neuromorphometrics/OASIS-TRT-20_whole-brain-atlases/jointfusion_atlas_DKT31_CMA_labels/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
-    >>> atlas2mni_affine = '/homedir/Data/Brains/Atropos_templates/OASIS-30_Atropos_template_to_MNI152_affine.txt'
-    >>> apply_transform_atlas_to_atropos(subjects_dir, subject, stem, output_file='')
+    >>> from mindboggle.utils.ants import ComposeMultiTransform
+    >>> transform_files = ['affine1.mat', 'affine2.mat']
+    >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpTemplateToSubject0GenericAffine.mat','/Users/arno/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
+    >>> inverse_Booleans = [False, True]
+    >>> output_transform_file = ''
+    >>> ext = '.txt'
+    >>> ComposeMultiTransform(transform_files, inverse_Booleans, output_transform_file, ext)
 
     """
     import os
 
     from mindboggle.utils.utils import execute
 
-    if not output_file:
-        output_file = os.path.join(os.getcwd(), 'registered_labels.nii.gz')
+    if not output_transform_file:
+        output_transform_file = os.path.join(os.getcwd(), 'affine' + ext)
 
-    t1 = os.path.join(thick_dir, subject, subject + '.nii.gz')
-    affine = os.path.join(thick_dir, subject, tmpdir, 'tmpTemplateToSubject0GenericAffine.mat')
-    invwarp = os.path.join(thick_dir, subject, tmpdir, 'tmpTemplateToSubject1InverseWarp.nii.gz')
+    xfms = []
+    for ixfm, xfm in enumerate(transform_files):
+        if inverse_Booleans[ixfm]:
+            xfms.append('-i')
+        xfms.append(xfm)
 
-    cmd = ['WarpImageMultiTransform 3', atlas, output_file, '-R', t1,
-           '--use-NN', '-i', affine, invwarp, '-i', atlas2mni_affine]
+    cmd = ['ComposeMultiTransform 3', output_transform_file, ' '.join(xfms)]
     execute(cmd, 'os')
-    if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+    if not os.path.exists(output_transform_file):
+        raise(IOError(output_transform_file + " not found"))
 
-    return output_file
+    return output_transform_file
 
 
 def ImageMath(volume1, volume2, operator='m', output_file=''):
