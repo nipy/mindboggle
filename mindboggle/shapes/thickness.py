@@ -53,16 +53,16 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
 
     Returns
     -------
-    labels_thicknesses : list containing list of integers and list of floats
-        label indices and thickness values
+    thickness_table : numpy array containing integers and floats
+        label indices, volumes, areas, and thickness values
     table_file : string
-        name of file containing thickness values
+        name of output table file
 
     Examples
     --------
     >>> from mindboggle.shapes.thickness import thickinthehead
-    >>> segmented_file = 'gray_and_white.nii.gz'
-    >>> labeled_file = 'aparc+aseg.nii.gz'
+    >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpBrainSegmentation.nii.gz'
+    >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/aparc+aseg.nii.gz'
     >>> gray_value = 2
     >>> white_value = 3
     >>> #labels = [2]
@@ -76,9 +76,9 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     >>> out_dir = '.'
     >>> resize = True
     >>> propagate = False
-    >>> thickness_table = True
+    >>> output_table = True
     >>> use_c3d = False
-    >>> labels_thicknesses, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, thickness_table, use_c3d)
+    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, output_table, use_c3d)
 
     """
     import os
@@ -90,8 +90,11 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Output files:
     #-------------------------------------------------------------------------
-    if not os.path.exists(out_dir):
-        os.mkdir(out_dir)
+    if out_dir:
+        if not os.path.exists(out_dir):
+            os.mkdir(out_dir)
+    else:
+        out_dir = os.getcwd()
     gray = os.path.join(out_dir, 'gray.nii.gz')
     white = os.path.join(out_dir, 'white.nii.gz')
     temp = os.path.join(out_dir, 'temp.nii.gz')
@@ -210,17 +213,14 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Loop through labels:
     #-------------------------------------------------------------------------
-    volumes = []
-    areas = []
-    thicknesses = []
     if not labels:
         labeled_data = nb.load(labeled_file).get_data().ravel()
         labels = np.unique(labeled_data)
     labels = [int(x) for x in labels]
     if output_table:
-        thickness_table = np.zeros((len(labels), 4))
-        thickness_table[:,0] = labels
-    for label in labels:
+        label_volume_area_thickness = np.zeros((len(labels), 4))
+        label_volume_area_thickness[:,0] = labels
+    for ilabel, label in enumerate(labels):
 
         #---------------------------------------------------------------------
         # Compute thickness as a ratio of label volume and edge volume:
@@ -236,27 +236,22 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
             else:
                 label_area = label_inner_edge_volume
             thickness = label_gray_volume / label_area
-            volumes.append(label_gray_volume)
-            areas.append(label_area)
-            thicknesses.append(thickness)
+            label_volume_area_thickness[ilabel,1] = label_gray_volume
+            label_volume_area_thickness[ilabel,2] = label_area
+            label_volume_area_thickness[ilabel,3] = thickness
             print('label {0} volume: gray={1:2.2f}, inner={2:2.2f}, '
                   'outer={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
                   format(label, label_gray_volume, label_inner_edge_volume,
                   label_outer_edge_volume, label_area, thickness))
 
     if output_table:
-        thickness_table[:, 1] = volumes
-        thickness_table[:, 2] = areas
-        thickness_table[:, 3] = thicknesses
-        table_file = os.path.join(out_dir, 'thicknesses.csv')
-        np.savetxt(table_file, thickness_table, fmt='%d %2.4f %2.4f %2.4f',
-                   delimiter='\t', newline='\n')
+        table_file = os.path.join(out_dir, 'label_volume_area_thickness.csv')
+        np.savetxt(table_file, label_volume_area_thickness,
+                   fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
     else:
-        thickness_table = None
+        table_file = None
 
-    labels_thicknesses = [labels, thicknesses]
-
-    return labels_thicknesses, thickness_table
+    return label_volume_area_thickness, table_file
 
 
 def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
@@ -386,12 +381,12 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         white_value = 3
         propagate = True
         output_table = False
-        labels_thicknesses, u1 = thickinthehead(gray_and_white_file,
+        label_volume_area_thickness, u1 = thickinthehead(gray_and_white_file,
                                     labeled_file, gray_value, white_value,
                                     labels, out_subdir, resize, propagate,
                                     output_table, use_c3d)
 
-        thickness_table[:, isubject+1] = labels_thicknesses[1]
+        thickness_table[:, isubject+1] = label_volume_area_thickness[3]
 
     #-------------------------------------------------------------------------
     # Save results:

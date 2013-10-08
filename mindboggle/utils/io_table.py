@@ -305,9 +305,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>> #    'affine_to_template.mat')
-    >>>     't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -318,16 +316,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> freesurfer_thickness_file = ''
     >>> delimiter = ','
     >>> #
-    >>> import numpy as np
     >>> labels, name = read_scalars(labels_or_file)
-    >>> labels_spectra = [[1,2,3] for x in labels]
-    >>> labels_spectra_IDs = np.unique(labels).tolist()
-    >>> sulci_spectra = [[1,2,3] for x in sulci]
-    >>> sulci_spectra_IDs = np.unique(sulci).tolist()
-    >>> labels_zernike = [[1,2,3] for x in labels]
-    >>> labels_zernike_IDs = np.unique(labels).tolist()
-    >>> sulci_zernike = [[1,2,3] for x in sulci]
-    >>> sulci_zernike_IDs = np.unique(sulci).tolist()
+    >>> labels_spectra = []
+    >>> labels_spectra_IDs = []
+    >>> sulci_spectra = []
+    >>> sulci_spectra_IDs = []
+    >>> labels_zernike = []
+    >>> labels_zernike_IDs = []
+    >>> sulci_zernike = []
+    >>> sulci_zernike_IDs = []
     >>> exclude_labels = [-1]
     >>> #
     >>> write_shape_stats(labels_or_file, sulci, fundi,
