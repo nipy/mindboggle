@@ -126,7 +126,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     # Propagate labels through gray matter (or simply multiply):
     #-------------------------------------------------------------------------
-    if propagate:
+    if propagate and not use_c3d:
         cmd = ['ImageMath', '3', gray, 'PropagateLabelsThroughMask',
                gray, labeled_file]
         execute(cmd)

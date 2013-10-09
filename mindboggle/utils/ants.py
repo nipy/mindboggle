@@ -353,7 +353,7 @@ def WarpImageMultiTransform(source, target, output='',
 
 
 def PropagateLabelsThroughMask(mask, labels, mask_index=None,
-                               output_file='', binarize=True):
+                               output_file='', binarize=True, stopvalue=''):
     """
     Use ANTs to fill a binary volume mask with initial labels.
 
@@ -379,6 +379,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
         nibabel-readable labeled image volume
     binarize : Boolean
         binarize mask?
+    stopvalue : integer
+        stopping value
 
     Returns
     -------
@@ -396,7 +398,8 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index, output_file, binarize)
+    >>> stopvalue = None
+    >>> output_file = PropagateLabelsThroughMask(mask, labels, mask_index, output_file, binarize, stopvalue)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -408,10 +411,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
         output_file = os.path.join(os.getcwd(),
                                    'PropagateLabelsThroughMask.nii.gz')
 
-
     print('mask: {0}, labels: {1}'.format(mask, labels))
-
-
 
     # Binarize image volume:
     if binarize:
@@ -432,7 +432,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
 
     # Propagate labels:
     cmd = ['ImageMath', '3', output_file, 'PropagateLabelsThroughMask',
-            mask2, labels]
+            mask2, labels, stopvalue]
+    if stopvalue:
+        cmd.extend(stopvalue)
     execute(cmd, 'os')
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))

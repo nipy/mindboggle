@@ -36,13 +36,14 @@ import argparse
 #-----------------------------------------------------------------------------
 from nipype.pipeline.engine import Workflow, Node
 from nipype.interfaces.utility import Function as Fn
-from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.freesurfer import MRIConvert
 from nipype.interfaces.ants import Registration, ApplyTransforms
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
+from mindboggle.utils.utils import list_strings
 from mindboggle.utils.io_vtk import read_vtk
 from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
@@ -52,8 +53,8 @@ from mindboggle.utils.compute import volume_per_label
 from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk, label_with_classifier, combine_whites_over_grays
-from mindboggle.utils.ants import fetch_ants_data, ImageMath, \
-    fill_volume_with_surface_labels, PropagateLabelsThroughMask
+from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
+    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels
 from mindboggle.LABELS import dkt_protocol
 from mindboggle.labels.relabel import relabel_surface, remove_volume_labels, \
     overwrite_volume_labels
@@ -593,26 +594,84 @@ if run_VolLabelFlow:
         #mbFlow.connect(filledMGH2Nifti, 'out_file', Sink, 'brain.@filled')
 
 if run_VolFlows and do_ants:
-    #---------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Retrieve ANTs data:
-    #---------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
                                   input_names=['subjects_dir',
                                                'subject',
-                                               'stem',
-                                               'init_affine'],
+                                               'stem'],
                                   output_names=['brain',
                                                 'segments',
                                                 'affine',
                                                 'warp',
-                                                'transform_list']))
+                                                'invwarp']))
     mbFlow.add_nodes([FetchANTs])
     FetchANTs.inputs.subjects_dir = ants_data
     mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
     FetchANTs.inputs.stem = ants_stem
-    FetchANTs.inputs.init_affine = retrieve_data(atropos_to_MNI152_affine,
-                                        url, hashes, cache_env, cache)
+
+    #-------------------------------------------------------------------------
+    # Retrieve full atlas path(s):
+    #-------------------------------------------------------------------------
+    FetchAtlas = Node(name='Fetch_atlas',
+                      interface=Fn(function=retrieve_data,
+                                   input_names=['data_file',
+                                                'url',
+                                                'hashes',
+                                                'cache_env',
+                                                'cache',
+                                                'return_missing'],
+                                   output_names=['data_path']))
+    mbFlow.add_nodes([FetchAtlas])
+    mbFlow.connect(InputVolAtlases, 'atlas', FetchAtlas, 'data_file')
+    FetchAtlas.inputs.url = url
+    FetchAtlas.inputs.hashes = hashes
+    FetchAtlas.inputs.cache_env = cache_env
+    FetchAtlas.inputs.cache = cache
+    FetchAtlas.inputs.return_missing = True
+
+    #-------------------------------------------------------------------------
+    # Compose single affine transform from subject to MNI152:
+    #-------------------------------------------------------------------------
+    AffineFileList = Node(name='Merge_affine_file_list',
+                          interface=Fn(function=list_strings,
+                                       input_names=['string1',
+                                                    'string2',
+                                                    'string3',
+                                                    'string4'],
+                                       output_names=['string_list']))
+    mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string1')
+    affine_to_mni = retrieve_data(atropos_to_MNI152_affine,
+                                  url, hashes, cache_env, cache)
+    AffineFileList.inputs.string2 = affine_to_mni
+    AffineFileList.inputs.string3 = ''
+    AffineFileList.inputs.string4 = ''
+
+    ComposeAffine = Node(name='Compose_affine_transform',
+                         interface=Fn(function=ComposeMultiTransform,
+                                      input_names=['transform_files',
+                                                   'inverse_Booleans',
+                                                   'output_transform_file',
+                                                   'ext'],
+                                      output_names=['output_transform_file']))
+    mbFlow.add_nodes([ComposeAffine])
+    mbFlow.connect(AffineFileList, 'string_list',
+                   ComposeAffine, 'transform_files')
+    ComposeAffine.inputs.inverse_Booleans = [False, False]
+    ComposeAffine.inputs.output_transform_file = ''
+    ComposeAffine.inputs.ext = '.txt'
+
+    #---------------------------------------------------------------------
+    # Construct ANTs MNI152-to-subject nonlinear transform lists:
+    #---------------------------------------------------------------------
+    WarpToSubjectFileList = AffineFileList.clone('Merge_warp_file_list')
+    WarpToSubjectFileList.inputs.string1 = affine_to_mni
+    mbFlow.connect(FetchANTs, 'affine', WarpToSubjectFileList, 'string2')
+    mbFlow.connect(FetchANTs, 'invwarp', WarpToSubjectFileList, 'string3')
+    WarpToSubjectFileList.inputs.string4 = ''
+    warp_inverse_Booleans = [True, True, False]
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -1349,16 +1408,10 @@ if run_SurfFlows:
         else:
             ShapeTables.inputs.fundi = []
 
-
-
-        print('FIX INVAFFINE INPUT TO Shape_tables')
-
-
-
-        if run_VolFlows and do_ants and not do_ants:
-            mbFlow.connect(FetchANTs, 'affine',
+        if run_VolFlows and do_ants:
+            mbFlow.connect(ComposeAffine, 'output_transform_file',
                            ShapeTables, 'affine_transform_file')
-            ShapeTables.inputs.transform_format = 'mat'
+            ShapeTables.inputs.transform_format = 'itk'
         else:
             ShapeTables.inputs.affine_transform_file = None
             ShapeTables.inputs.transform_format = None
@@ -1479,9 +1532,9 @@ if run_SurfFlows:
             VertexTable.inputs.fundi = []
 
         if run_VolFlows and do_ants:
-            mbFlow.connect(FetchANTs, 'affine',
-                           ShapeTables, 'affine_transform_file')
-            VertexTable.inputs.transform_format = 'mat'
+            mbFlow.connect(ComposeAffine, 'output_transform_file',
+                           VertexTable, 'affine_transform_file')
+            VertexTable.inputs.transform_format = 'itk'
         else:
             VertexTable.inputs.affine_transform_file = None
             VertexTable.inputs.transform_format = None
@@ -1521,7 +1574,7 @@ if run_SurfFlows:
     #                                                   'output_file']))
     # VolLabelFlow.add_nodes([TransformPoints])
     # if run_VolFlows and do_ants:
-    #    mbFlow.connect(FetchANTs, 'affine',
+    #     mbFlow.connect(ComposeAffine, 'output_transform_file',
     #                   TransformPoints, 'transform_file')
     # SurfShapeFlow.connect(TravelDepth, 'depth_file',
     #                       TransformPoints, 'vtk_or_points')
@@ -1545,57 +1598,6 @@ if run_SurfFlows:
 #=============================================================================
 if run_VolLabelFlow:
     VolLabelFlow = Workflow(name='Volume_labels')
-
-    #=========================================================================
-    # Transform atlas labels in MNI152 to subject via OASIS-30 template
-    #=========================================================================
-    if do_ants:
-        #---------------------------------------------------------------------
-        # Retrieve full atlas path(s):
-        #---------------------------------------------------------------------
-        RetrieveAtlas = Node(name='Retrieve_atlas',
-                             interface=Fn(function=retrieve_data,
-                                          input_names=['data_file',
-                                                       'url',
-                                                       'hashes',
-                                                       'cache_env',
-                                                       'cache',
-                                                       'return_missing'],
-                                          output_names=['data_path']))
-        VolLabelFlow.add_nodes([RetrieveAtlas])
-        mbFlow.connect(InputVolAtlases, 'atlas',
-                       VolLabelFlow, 'Retrieve_atlas.data_file')
-        RetrieveAtlas.inputs.url = url
-        RetrieveAtlas.inputs.hashes = hashes
-        RetrieveAtlas.inputs.cache_env = cache_env
-        RetrieveAtlas.inputs.cache = cache
-        RetrieveAtlas.inputs.return_missing = True
-
-        #---------------------------------------------------------------------
-        # Retrieve Atropos template to MNI152 transform:
-        #---------------------------------------------------------------------
-        RetrieveAtlasTfm = RetrieveAtlas.clone('Retrieve_atlas_transform')
-        VolLabelFlow.add_nodes([RetrieveAtlasTfm])
-        RetrieveAtlasTfm.inputs.data_file = atropos_to_MNI152_affine
-
-        #---------------------------------------------------------------------
-        # Apply transform to register atlas labels to subject:
-        #---------------------------------------------------------------------
-        xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
-        VolLabelFlow.add_nodes([xfm])
-        xfm.inputs.dimension = 3
-        xfm.inputs.default_value = 0
-        xfm.inputs.output_image = os.path.join(os.getcwd(),
-                                    'volume_registered_labels.nii.gz')
-        xfm.inputs.interpolation = 'NearestNeighbor'
-        xfm.inputs.invert_transform_flags = [True, False, False]
-        mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
-                       'antsApplyTransforms.reference_image')
-        VolLabelFlow.connect(RetrieveAtlas, 'data_path', xfm, 'input_image')
-        mbFlow.connect(FetchANTs, 'transform_list', VolLabelFlow,
-                       'antsApplyTransforms.transforms')
-        mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
-                       Sink, 'labels.@antsRegistration')
 
     #=====================================================================
     # Combine FreeSurfer and ANTs segmentation volumes
@@ -1638,6 +1640,26 @@ if run_VolLabelFlow:
     if do_ants:
 
         #---------------------------------------------------------------------
+        # Transform atlas labels in MNI152 to subject via OASIS-30 template
+        #---------------------------------------------------------------------
+        if do_ants:
+            xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
+            VolLabelFlow.add_nodes([xfm])
+            xfm.inputs.dimension = 3
+            xfm.inputs.default_value = 0
+            xfm.inputs.output_image = os.path.join(os.getcwd(),
+                                        'volume_registered_labels.nii.gz')
+            xfm.inputs.interpolation = 'NearestNeighbor'
+            xfm.inputs.invert_transform_flags = warp_inverse_Booleans
+            mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
+                           'antsApplyTransforms.reference_image')
+            mbFlow.connect(FetchAtlas, 'data_path', xfm, 'input_image')
+            mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
+                           'antsApplyTransforms.transforms')
+            mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
+                           Sink, 'labels.@antsRegistration')
+
+        #---------------------------------------------------------------------
         # Remove noncortical ANTs volume labels:
         #---------------------------------------------------------------------
         noANTSwm = Node(name='Remove_noncortex_ANTs_labels',
@@ -1667,7 +1689,9 @@ if run_VolLabelFlow:
                                       input_names=['mask',
                                                    'labels',
                                                    'mask_index',
-                                                   'output_file'],
+                                                   'output_file',
+                                                   'binarize',
+                                                   'stopvalue'],
                                       output_names=['output_file']))
         VolLabelFlow.add_nodes([ants2gray])
         VolLabelFlow.connect(JoinSegs, 'gray_and_white_file',
@@ -1675,6 +1699,8 @@ if run_VolLabelFlow:
         VolLabelFlow.connect(noANTSwm, 'output_file', ants2gray, 'labels')
         ants2gray.inputs.mask_index = 2
         ants2gray.inputs.output_file = ''
+        ants2gray.inputs.binarize = False
+        ants2gray.inputs.stopvalue = ''
         mbFlow.connect(VolLabelFlow,
                        'Fill_cortex_with_ANTs_labels.output_file',
                        Sink, 'labels.@ants_filled_cortex')
@@ -1767,7 +1793,9 @@ if run_VolLabelFlow:
                                      input_names=['mask',
                                                   'labels',
                                                   'mask_index',
-                                                  'output_file'],
+                                                  'output_file',
+                                                  'binarize',
+                                                  'stopvalue'],
                                      output_names=['output_file']))
         VolLabelFlow.add_nodes([FS2white])
         VolLabelFlow.connect(JoinSegs, 'gray_and_white_file',
@@ -1775,6 +1803,8 @@ if run_VolLabelFlow:
         VolLabelFlow.connect(noFSgm, 'output_file', FS2white, 'labels')
         FS2white.inputs.mask_index = 3
         FS2white.inputs.output_file = ''
+        FS2white.inputs.binarize = False
+        FS2white.inputs.stopvalue = ''
         mbFlow.connect(VolLabelFlow,
                        'Fill_noncortex_with_FreeSurfer_labels.output_file',
                        Sink, 'labels.@freesurfer_filled_noncortex')
@@ -1802,7 +1832,7 @@ if run_VolLabelFlow:
     #=========================================================================
     # Combine FreeSurfer and ANTs cortical and noncortical labels 
     #=========================================================================
-    if do_ants:
+    if run_SurfLabelFlow and do_ants:
 
         #---------------------------------------------------------------------
         # Combine ANTs label-filled white and FreeSurfer label-filled gray:
