@@ -9,9 +9,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#-----------------------------------------------------------------------------
-# Functions for running shell commands:
-#-----------------------------------------------------------------------------
+
 def execute(cmd, type='os'):
     """
     Execute command by either subprocess.call or os.system.
@@ -69,3 +67,31 @@ def execute(cmd, type='os'):
         sys.exit('Select either "subprocess" or "os" for execution type.')
 
 
+def list_strings(string1='', string2='', string3='', string4=''):
+    """
+    Put strings in a list.
+
+    Parameters
+    ----------
+    string1 : string
+    string2 : string
+    string3 : string
+    string4 : string
+
+    Returns
+    -------
+    string_list : list of strings
+
+    """
+
+    string_list = []
+    if string1:
+        string_list.append(string1)
+    if string2:
+        string_list.append(string1)
+    if string3:
+        string_list.append(string1)
+    if string4:
+        string_list.append(string1)
+
+    return string_list
