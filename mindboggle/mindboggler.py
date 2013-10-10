@@ -1747,7 +1747,8 @@ if run_VolLabelFlow:
     #=========================================================================
     # Fill gray and white matter segmentation volumes with FreeSurfer labels
     #=========================================================================
-    if run_SurfLabelFlow:
+#@
+    if run_SurfLabelFlow and not run_SurfLabelFlow:
 
         #---------------------------------------------------------------------
         # Propagate FreeSurfer surface labels through gray:
@@ -1836,7 +1837,8 @@ if run_VolLabelFlow:
     #=========================================================================
     # Combine FreeSurfer and ANTs cortical and noncortical labels 
     #=========================================================================
-    if run_SurfLabelFlow and do_ants:
+#@
+    if run_SurfLabelFlow and do_ants and not run_SurfLabelFlow:
 
         #---------------------------------------------------------------------
         # Combine ANTs label-filled white and FreeSurfer label-filled gray:
@@ -1904,7 +1906,8 @@ if run_VolLabelFlow:
 #   Volume feature shapes
 #
 #=============================================================================
-if run_VolShapeFlow and run_VolLabelFlow and do_tables:
+#@
+if run_VolShapeFlow and run_VolLabelFlow and do_tables and not run_SurfLabelFlow:
     VolShapeFlow = Workflow(name='Volume_feature_shapes')
 
     FSVolTable = Node(name='FreeSurfer_label_volumes_table',
