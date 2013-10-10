@@ -610,8 +610,16 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 
     """
     import os
+    import numpy as np
+
     from mindboggle.utils.io_vtk import write_header, write_points, \
         write_vertices, write_faces, write_scalars, scalars_checker
+
+    # Convert numpy arrays to lists
+    if isinstance(faces, np.ndarray):
+        faces = faces.tolist()
+    if isinstance(points, np.ndarray):
+        points = points.tolist()
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
