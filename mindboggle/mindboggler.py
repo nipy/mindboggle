@@ -218,9 +218,11 @@ if do_tables and (do_sulci or do_fundi):
 # Shape arguments:
 #-----------------------------------------------------------------------------
 do_surface_shapes = False
+do_surface_feature_shapes = False
 if do_tables or do_sulci or do_fundi or args.vertices:
     do_surface_shapes = True
-do_surface_feature_shapes = False  # Measure shapes of surface features
+if do_surface_features:
+    do_surface_feature_shapes = True  # Measure shapes of surface features
 do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
 do_zernike = False  # Compute Zernike moments for labels/features
 do_freesurfer_thickness = False  # Include FreeSurfer's thickness measure
@@ -228,9 +230,7 @@ do_freesurfer_convexity = False  # Include FreeSurfer's convexity measure
 if do_surface_shapes and use_FS_inputs:
     do_freesurfer_thickness = True
     do_freesurfer_convexity = True
-if do_surface_features and do_tables:
-    do_surface_feature_shapes = True
-if (do_label or do_surface_features) and do_tables:
+if (do_label or do_surface_feature_shapes) and do_tables:
     if args.spectra > 0:
         do_spectra = True
     if args.moments > 0:
@@ -373,10 +373,10 @@ if do_ants:
                                                     'string3',
                                                     'string4'],
                                        output_names=['string_list']))
-    mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string1')
     affine_to_mni = retrieve_data(atropos_to_MNI152_affine,
                                   url, hashes, cache_env, cache)
-    AffineFileList.inputs.string2 = affine_to_mni
+    AffineFileList.inputs.string1 = affine_to_mni
+    mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string2')
     AffineFileList.inputs.string3 = ''
     AffineFileList.inputs.string4 = ''
 
@@ -397,11 +397,11 @@ if do_ants:
     # Construct ANTs MNI152-to-subject nonlinear transform lists:
     #-------------------------------------------------------------------------
     WarpToSubjectFileList = AffineFileList.clone('Merge_warp_file_list')
-    WarpToSubjectFileList.inputs.string1 = affine_to_mni
-    mbFlow.connect(FetchANTs, 'affine', WarpToSubjectFileList, 'string2')
-    mbFlow.connect(FetchANTs, 'invwarp', WarpToSubjectFileList, 'string3')
+    mbFlow.connect(FetchANTs, 'affine', WarpToSubjectFileList, 'string1')
+    mbFlow.connect(FetchANTs, 'invwarp', WarpToSubjectFileList, 'string2')
+    WarpToSubjectFileList.inputs.string3 = affine_to_mni
     WarpToSubjectFileList.inputs.string4 = ''
-    warp_inverse_Booleans = [True, True, False]
+    warp_inverse_Booleans = [True, False, True]
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -1471,6 +1471,7 @@ if do_volumes:
         # Fill segmentation volumes with ANTs labels
         #=====================================================================
         if do_ants:
+
             #-----------------------------------------------------------------
             # Transform atlas labels in MNI152 to subject via template:
             #-----------------------------------------------------------------
