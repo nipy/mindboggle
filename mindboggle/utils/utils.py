@@ -88,10 +88,10 @@ def list_strings(string1='', string2='', string3='', string4=''):
     if string1:
         string_list.append(string1)
     if string2:
-        string_list.append(string1)
+        string_list.append(string2)
     if string3:
-        string_list.append(string1)
+        string_list.append(string3)
     if string4:
-        string_list.append(string1)
+        string_list.append(string4)
 
     return string_list
