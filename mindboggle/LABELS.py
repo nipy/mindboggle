@@ -146,41 +146,74 @@ def dkt_protocol():
     -------
     sulcus_names : list of strings
         sulcus names
+    unique_sulcus_label_pairs : list of unique pairs of integers
+        unique label pairs corresponding to label boundaries / sulcus / fundus
     sulcus_label_pair_lists : list of two lists of multiple lists of integer pairs
         list containing left and right lists, each with multiple lists of
         integer pairs corresponding to label boundaries / sulcus / fundus
-    unique_sulcus_label_pairs : list of unique pairs of integers
-        unique label pairs
+    left_sulcus_label_pair_lists : list of two lists of lists of integer pairs
+    right_sulcus_label_pair_lists : list of two lists of lists of integer pairs
     label_names : list of strings
         label names
-    label_numbers : list of integers
+    label_names : list of strings
+    left_label_names : list of strings
+    right_label_numbers : list of integers
         label numbers
+    left_label_numbers : list of integers
+    right_label_numbers : list of integers
     cortex_names : list of strings
         label names for cortical regions in the DKT31 protocol
-    cortex_names_DKT25 : list of strings
-        label names for cortical regions in the DKT25 protocol
+    left_cortex_names : list of strings
+    right_cortex_names : list of strings
     cortex_numbers : list of integers
         label numbers for cortical regions in the DKT31 protocol
-    cortex_numbers_DKT25 : list of integers
-        label numbers for cortical regions in the DKT25 protocol
+    left_cortex_numbers : list of integers
+    right_cortex_numbers : list of integers
     noncortex_names : list of strings
         label names for noncortical regions in the CMA protocol
+    left_noncortex_names : list of strings
+    right_noncortex_names : list of strings
+    medial_noncortex_names : list of strings
     noncortex_numbers : list of integers
         label numbers for noncortical regions in the CMA protocol
+    left_noncortex_numbers : list of integers
+    right_noncortex_numbers : list of integers
+    medial_noncortex_numbers : list of integers
+    cortex_names_DKT25 : list of strings
+        label names for cortical regions in the DKT25 protocol
+    left_cortex_names_DKT25 : list of strings
+    right_cortex_names_DKT25 : list of strings
+    cortex_numbers_DKT25 : list of integers
+        label numbers for cortical regions in the DKT25 protocol
+    left_cortex_numbers_DKT25 : list of integers
+    right_cortex_numbers_DKT25 : list of integers
 
     Examples
     --------
     >>> from mindboggle.LABELS import dkt_protocol
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
-    ...    label_names, label_numbers, cortex_names, cortex_numbers,
-    ...    noncortex_names, noncortex_numbers = dkt_protocol()
+    >>> sulcus_names, unique_sulcus_label_pairs, \
+    >>> sulcus_label_pair_lists, \
+    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
+    >>> label_names, left_label_names, right_label_names, \
+    >>> label_numbers, left_label_numbers, right_label_numbers, \
+    >>> cortex_names, left_cortex_names, right_cortex_names, \
+    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
+    >>> noncortex_names, left_noncortex_names, \
+    >>> right_noncortex_names, medial_noncortex_names, \
+    >>> noncortex_numbers, left_noncortex_numbers, \
+    >>> right_noncortex_numbers, medial_noncortex_numbers, \
+    >>> cortex_names_DKT25, \
+    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
+    >>> cortex_numbers_DKT25, \
+    >>> left_cortex_numbers_DKT25, \
+    >>> right_cortex_numbers_DKT25 = dkt_protocol()
 
     """
 
     #-------------------------------------------------------------------------
     # DKT cortical labeling protocol -- 31 labels:
     #-------------------------------------------------------------------------
-    cortex_numbers_names = [
+    left_cortex_numbers_names = [
         [1002,    "left caudal anterior cingulate"],
         [1003,    "left caudal middle frontal"],
         [1005,    "left cuneus"],
@@ -211,7 +244,9 @@ def dkt_protocol():
         [1030,    "left superior temporal"],
         [1031,    "left supramarginal"],
         [1034,    "left transverse temporal"],
-        [1035,    "left insula"],
+        [1035,    "left insula"]]
+
+    right_cortex_numbers_names = [
         [2002,    "right caudal anterior cingulate"],
         [2003,    "right caudal middle frontal"],
         [2005,    "right cuneus"],
@@ -244,36 +279,49 @@ def dkt_protocol():
         [2034,    "right transverse temporal"],
         [2035,    "right insula"]]
 
-    cortex_numbers = [x[0] for x in cortex_numbers_names]
-    cortex_names = [x[1] for x in cortex_numbers_names]
+    left_cortex_numbers = [x[0] for x in left_cortex_numbers_names]
+    right_cortex_numbers = [x[0] for x in right_cortex_numbers_names]
+    left_cortex_names = [x[1] for x in left_cortex_numbers_names]
+    right_cortex_names = [x[1] for x in right_cortex_numbers_names]
+    cortex_numbers = left_cortex_numbers + right_cortex_numbers
+    cortex_names = left_cortex_names + right_cortex_names
 
     #-------------------------------------------------------------------------
     # DKT cortical labeling protocol -- 25 labels:
     #-------------------------------------------------------------------------
     # Region numbers:
     # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
-    cortex_numbers_DKT25 = cortex_numbers[:]
-    for n in [1010, 1019, 1020, 1023, 1026, 1027,
-              2010, 2019, 2020, 2023, 2026, 2027]:
-        cortex_numbers_DKT25.remove(n)
+    left_cortex_numbers_DKT25 = left_cortex_numbers[:]
+    for n in [1010, 1019, 1020, 1023, 1026, 1027]:
+        left_cortex_numbers_DKT25.remove(n)
+    right_cortex_numbers_DKT25 = right_cortex_numbers[:]
+    for n in [2010, 2019, 2020, 2023, 2026, 2027]:
+        right_cortex_numbers_DKT25.remove(n)
+    cortex_numbers_DKT25 = left_cortex_numbers_DKT25 + \
+                           right_cortex_numbers_DKT25
 
     # Consolidate region labels:
-    cortex_names_DKT25 = []
-    for ilabel, label_number in enumerate(cortex_numbers):
+    left_cortex_names_DKT25 = []
+    for ilabel, label_number in enumerate(left_cortex_numbers):
         if label_number == 1002:
-            cortex_names_DKT25.append('left cingulate')
+            left_cortex_names_DKT25.append('left cingulate')
         elif label_number == 1003:
-            cortex_names_DKT25.append('left middle frontal')
+            left_cortex_names_DKT25.append('left middle frontal')
         elif label_number == 1018:
-            cortex_names_DKT25.append('left inferior frontal')
-        elif label_number == 2002:
-            cortex_names_DKT25.append('right cingulate')
-        elif label_number == 2003:
-            cortex_names_DKT25.append('right middle frontal')
-        elif label_number == 2018:
-            cortex_names_DKT25.append('right inferior frontal')
+            left_cortex_names_DKT25.append('left inferior frontal')
         else:
-            cortex_names_DKT25.append(cortex_names[ilabel])
+            left_cortex_names_DKT25.append(left_cortex_names[ilabel])
+    right_cortex_names_DKT25 = []
+    for ilabel, label_number in enumerate(right_cortex_numbers):
+        if label_number == 2002:
+            right_cortex_names_DKT25.append('right cingulate')
+        elif label_number == 2003:
+            right_cortex_names_DKT25.append('right middle frontal')
+        elif label_number == 2018:
+            right_cortex_names_DKT25.append('right inferior frontal')
+        else:
+            right_cortex_names_DKT25.append(right_cortex_names[ilabel])
+    cortex_names_DKT25 = left_cortex_names_DKT25 + right_cortex_names_DKT25
 
     #-------------------------------------------------------------------------
     # Noncortex label numbers and names
@@ -293,13 +341,8 @@ def dkt_protocol():
     #         [91, "left basal forebrain"],
     #         [92, "right basal forebrain"]
     #-------------------------------------------------------------------------
-    noncortex_numbers_names = [
-        [16, "Brain stem"],
-        [24, "CSF"],
-        [14, "3rd ventricle"],
-        [15, "4th ventricle"],
-        [72, "5th ventricle"],
-        [85, "optic chiasm"],
+    left_noncortex_numbers_names = [
+        #[3, "left cerebral cortex"],
         [4, "left lateral ventricle"],
         [5, "left inferior lateral ventricle"],
         [6, "left cerebellum exterior"],
@@ -314,7 +357,9 @@ def dkt_protocol():
         [26, "left accumbens area"],
         [28, "left ventral DC"],
         [30, "left vessel"],
-        [91, "left basal forebrain"],
+        [91, "left basal forebrain"]]
+    right_noncortex_numbers_names = [
+        #[42, "right cerebral cortex"],
         [43, "right lateral ventricle"],
         [44, "right inferior lateral ventricle"],
         [45, "right cerebellum exterior"],
@@ -329,18 +374,36 @@ def dkt_protocol():
         [58, "right accumbens area"],
         [60, "right ventral DC"],
         [62, "right vessel"],
-        [92, "right basal forebrain"],
+        [92, "right basal forebrain"]]
+    medial_noncortex_numbers_names = [
+        [16, "Brain stem"],
+        [24, "CSF"],
+        [14, "3rd ventricle"],
+        [15, "4th ventricle"],
+        [72, "5th ventricle"],
+        [85, "optic chiasm"],
         [630, "cerebellar vermal lobules I-V"],
         [631, "cerebellar vermal lobules VI-VII"],
         [632, "cerebellar vermal lobules VIII-X"]]
 
-    noncortex_numbers = [x[0] for x in noncortex_numbers_names]
-    noncortex_names = [x[1] for x in noncortex_numbers_names]
+    left_noncortex_numbers = [x[0] for x in left_noncortex_numbers_names]
+    right_noncortex_numbers = [x[0] for x in right_noncortex_numbers_names]
+    medial_noncortex_numbers = [x[0] for x in medial_noncortex_numbers_names]
+    left_noncortex_names = [x[1] for x in left_noncortex_numbers_names]
+    right_noncortex_names = [x[1] for x in right_noncortex_numbers_names]
+    medial_noncortex_names = [x[1] for x in medial_noncortex_numbers_names]
+    noncortex_numbers = left_noncortex_numbers + right_noncortex_numbers + \
+                        medial_noncortex_numbers
+    noncortex_names = left_noncortex_names + right_noncortex_names + \
+                      medial_noncortex_names
 
-    label_names = noncortex_names[:]
-    label_names.extend(cortex_names)
-    label_numbers = noncortex_numbers[:]
-    label_numbers.extend(cortex_numbers)
+    left_label_numbers = left_cortex_numbers + left_noncortex_numbers
+    right_label_numbers = right_cortex_numbers + right_noncortex_numbers
+    label_numbers = left_label_numbers + medial_noncortex_numbers
+
+    left_label_names = left_cortex_names + left_noncortex_names
+    right_label_names = right_cortex_names + right_noncortex_names
+    label_names = left_label_names + medial_noncortex_names
 
     #-------------------------------------------------------------------------
     # Sulcus names from the DKT labeling protocol:
@@ -405,8 +468,8 @@ def dkt_protocol():
         [[12,14]],
         [[7,9], [7,11]],
         [[6,7], [7,16], [7,13]]]
-    left_pair_lists = []
-    right_pair_lists = []
+    left_sulcus_label_pair_lists = []
+    right_sulcus_label_pair_lists = []
     unique_sulcus_label_pairs = []  # unique sorted label pairs
     for pair_list in pair_lists:
         left_pairs = []
@@ -420,16 +483,29 @@ def dkt_protocol():
                 unique_sulcus_label_pairs.append(left_pair)
             if right_pair not in unique_sulcus_label_pairs:
                 unique_sulcus_label_pairs.append(right_pair)
-        left_pair_lists.append(left_pairs)
-        right_pair_lists.append(right_pairs)
-    sulcus_label_pair_lists = [left_pair_lists, right_pair_lists]
+        left_sulcus_label_pair_lists.append(left_pairs)
+        right_sulcus_label_pair_lists.append(right_pairs)
+    sulcus_label_pair_lists = left_sulcus_label_pair_lists + \
+                              right_sulcus_label_pair_lists
 
     #-------------------------------------------------------------------------
     # Returns
     #-------------------------------------------------------------------------
-    return sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs, \
-        label_names, label_numbers, cortex_names, cortex_names_DKT25, \
-        cortex_numbers, cortex_numbers_DKT25, noncortex_names, noncortex_numbers
+    return sulcus_names, unique_sulcus_label_pairs, \
+           sulcus_label_pair_lists, \
+           left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
+           label_names, left_label_names, right_label_names, \
+           label_numbers, left_label_numbers, right_label_numbers, \
+           cortex_names, left_cortex_names, right_cortex_names, \
+           cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
+           noncortex_names, left_noncortex_names, \
+           right_noncortex_names, medial_noncortex_names, \
+           noncortex_numbers, left_noncortex_numbers, \
+           right_noncortex_numbers, medial_noncortex_numbers, \
+           cortex_names_DKT25, \
+           left_cortex_names_DKT25, right_cortex_names_DKT25, \
+           cortex_numbers_DKT25, \
+           left_cortex_numbers_DKT25, right_cortex_numbers_DKT25
 
 
 #=============================================================================
