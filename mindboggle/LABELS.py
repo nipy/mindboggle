@@ -468,6 +468,9 @@ def dkt_protocol():
         [[12,14]],
         [[7,9], [7,11]],
         [[6,7], [7,16], [7,13]]]
+
+    relabel = False
+
     left_sulcus_label_pair_lists = []
     right_sulcus_label_pair_lists = []
     unique_sulcus_label_pairs = []  # unique sorted label pairs
@@ -479,14 +482,21 @@ def dkt_protocol():
             right_pair = [2000 + pair[0], 2000 + pair[1]]
             left_pairs.append(left_pair)
             right_pairs.append(right_pair)
-            if left_pair not in unique_sulcus_label_pairs:
-                unique_sulcus_label_pairs.append(left_pair)
-            if right_pair not in unique_sulcus_label_pairs:
-                unique_sulcus_label_pairs.append(right_pair)
+            if relabel:
+                if left_pair not in unique_sulcus_label_pairs:
+                    unique_sulcus_label_pairs.append(left_pair)
+                if right_pair not in unique_sulcus_label_pairs:
+                    unique_sulcus_label_pairs.append(right_pair)
+            else:
+                if pair not in unique_sulcus_label_pairs:
+                    unique_sulcus_label_pairs.append(pair)
         left_sulcus_label_pair_lists.append(left_pairs)
         right_sulcus_label_pair_lists.append(right_pairs)
-    sulcus_label_pair_lists = left_sulcus_label_pair_lists + \
-                              right_sulcus_label_pair_lists
+    if relabel:
+        sulcus_label_pair_lists = left_sulcus_label_pair_lists + \
+                                  right_sulcus_label_pair_lists
+    else:
+        sulcus_label_pair_lists = pair_lists
 
     #-------------------------------------------------------------------------
     # Returns

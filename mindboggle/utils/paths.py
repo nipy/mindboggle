@@ -1189,7 +1189,11 @@ def find_outer_anchors(indices, neighbor_lists, values, values_seeding,
         endpoints = E2
         endtracks = T2
 
-        print('    Retain {0} tracks'.format(len(T2)))
+        if len(T2) == 1:
+            s = 'track'
+        else:
+            s = 'tracks'
+        print('    Retain {0} {1}'.format(len(T2), s))
 
     else:
         # Gather endpoint vertex indices:
