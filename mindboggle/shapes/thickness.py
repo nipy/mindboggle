@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Compute a simple thickness measure for each labeled gray region.
+Compute a simple thickness measure for each labeled cortex region.
 
 
 Authors:
@@ -11,33 +11,33 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
-                   labels=[], out_dir='', resize=True, propagate=True,
-                   output_table=False, use_c3d=False):
+def thickinthehead(segmented_file, labeled_file, cortex_value=2,
+                   noncortex_value=3, labels=[], out_dir='', resize=True,
+                   propagate=True, output_table=False, use_c3d=False):
     """
-    Compute a simple thickness measure for each labeled gray region.
+    Compute a simple thickness measure for each labeled cortex region.
 
-    Note: gray, white, labeled files are all the same coregistered brain.
+    Note: cortex, noncortex, labeled files are all the same coregistered brain.
 
     Steps ::
 
-        1. Extract white and gray matter.
-        2. Propagate labels through gray matter (or simply multiply).
-        3. Resample gray and white files.
-        4. Extract outer and inner borders of gray voxels.
-        5. Optionally call ImageMath to propagate labels to fill gray mask.
+        1. Extract noncortex and cortex.
+        2. Propagate labels through cortex (or simply multiply).
+        3. Resample cortex and noncortex files.
+        4. Extract outer and inner borders of cortex voxels.
+        5. Optionally call ImageMath to propagate labels to fill cortex mask.
         6. Compute thickness as a ratio of label volume and edge volume.
 
     Parameters
     ----------
     segmented_file : str
-        image volume with gray and white matter labels
+        image volume with cortex and noncortex labels
     labeled_file : str
         corresponding image volume with index labels
-    gray_value : integer
-        gray matter label value in segmented_file
-    white_value : integer
-        white matter label value in segmented_file
+    cortex_value : integer
+        cortex label value in segmented_file
+    noncortex_value : integer
+        noncortex label value in segmented_file
     labels : list of integers
         label indices
     out_dir : str
@@ -45,7 +45,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     resize : Boolean
         resize (2x) segmented_file for more accurate thickness estimates?
     propagate : Boolean
-        propagate labels through gray matter?
+        propagate labels through cortex?
     output_table : False
         output a table with labels and thickness values?
     use_c3d : Boolean
@@ -62,9 +62,9 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     --------
     >>> from mindboggle.shapes.thickness import thickinthehead
     >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpBrainSegmentation.nii.gz'
-    >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/aparc+aseg.nii.gz'
-    >>> gray_value = 2
-    >>> white_value = 3
+    >>> labeled_file = 'labels.nii.gz'
+    >>> cortex_value = 2
+    >>> noncortex_value = 3
     >>> #labels = [2]
     >>> labels = range(1002,1036) + range(2002,2036)
     >>> labels.remove(1004)
@@ -78,7 +78,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     >>> propagate = False
     >>> output_table = True
     >>> use_c3d = False
-    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, gray_value, white_value, labels, out_dir, resize, propagate, output_table, use_c3d)
+    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, out_dir, resize, propagate, output_table, use_c3d)
 
     """
     import os
@@ -95,97 +95,97 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
             os.mkdir(out_dir)
     else:
         out_dir = os.getcwd()
-    gray = os.path.join(out_dir, 'gray.nii.gz')
-    white = os.path.join(out_dir, 'white.nii.gz')
+    cortex = os.path.join(out_dir, 'cortex.nii.gz')
+    noncortex = os.path.join(out_dir, 'noncortex.nii.gz')
     temp = os.path.join(out_dir, 'temp.nii.gz')
-    inner_edge = os.path.join(out_dir, 'gray_inner_edge.nii.gz')
+    inner_edge = os.path.join(out_dir, 'cortex_inner_edge.nii.gz')
     use_outer_edge = True
     if use_outer_edge:
-        outer_edge = os.path.join(out_dir, 'gray_outer_edge.nii.gz')
+        outer_edge = os.path.join(out_dir, 'cortex_outer_edge.nii.gz')
 
     #-------------------------------------------------------------------------
-    # Extract white and gray matter:
+    # Extract noncortex and cortex:
     #-------------------------------------------------------------------------
     if use_c3d:
         cmd = ['c3d', segmented_file,
-               '-threshold', str(white_value), str(white_value), '1 0',
-               '-o', white]
+               '-threshold', str(noncortex_value), str(noncortex_value), '1 0',
+               '-o', noncortex]
         execute(cmd)
         cmd = ['c3d', segmented_file,
-               '-threshold', str(gray_value), str(gray_value), '1 0',
-               '-o', gray]
+               '-threshold', str(cortex_value), str(cortex_value), '1 0',
+               '-o', cortex]
         execute(cmd)
     else:
         cmd = ['ThresholdImage 3', segmented_file,
-               white, str(white_value), str(white_value), '1 0']
+               noncortex, str(noncortex_value), str(noncortex_value), '1 0']
         execute(cmd)
         cmd = ['ThresholdImage 3', segmented_file,
-               gray, str(gray_value), str(gray_value), '1 0']
+               cortex, str(cortex_value), str(cortex_value), '1 0']
         execute(cmd)
 
     #-------------------------------------------------------------------------
-    # Propagate labels through gray matter (or simply multiply):
+    # Propagate labels through cortex (or simply multiply):
     #-------------------------------------------------------------------------
     if propagate and not use_c3d:
-        cmd = ['ImageMath', '3', gray, 'PropagateLabelsThroughMask',
-               gray, labeled_file]
+        cmd = ['ImageMath', '3', cortex, 'PropagateLabelsThroughMask',
+               cortex, labeled_file]
         execute(cmd)
     else:
         if use_c3d:
-            cmd = ['c3d', gray, labeled_file, '-multiply', '-o', gray]
+            cmd = ['c3d', cortex, labeled_file, '-multiply', '-o', cortex]
             execute(cmd)
         else:
-            cmd = ['ImageMath 3', gray, 'm', gray, labeled_file]
+            cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
             execute(cmd)
 
     #-------------------------------------------------------------------------
-    # Resample gray and white files:
+    # Resample cortex and noncortex files:
     #-------------------------------------------------------------------------
     if resize:
         rescale = 2.0
         rescale_percent = str(rescale * 100)
 
         if use_c3d:
-            cmd = ['c3d', gray, '-interpolation nearestneighbor',
-                   '-resample '+rescale_percent+'%', '-o', gray]
+            cmd = ['c3d', cortex, '-interpolation nearestneighbor',
+                   '-resample '+rescale_percent+'%', '-o', cortex]
             execute(cmd)
-            cmd = ['c3d', white, '-interpolation nearestneighbor',
-                   '-resample '+rescale_percent+'%', '-o', white]
+            cmd = ['c3d', noncortex, '-interpolation nearestneighbor',
+                   '-resample '+rescale_percent+'%', '-o', noncortex]
             execute(cmd)
         else:
             dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
-            cmd = ['ResampleImageBySpacing 3', gray, gray, dims, '0 0 1']
+            cmd = ['ResampleImageBySpacing 3', cortex, cortex, dims, '0 0 1']
             execute(cmd)
-            cmd = ['ResampleImageBySpacing 3', white, white, dims, '0 0 1']
+            cmd = ['ResampleImageBySpacing 3', noncortex, noncortex, dims, '0 0 1']
             execute(cmd)
 
     #-------------------------------------------------------------------------
-    # Extract gray inner and outer border voxels:
+    # Extract cortex inner and outer border voxels:
     #-------------------------------------------------------------------------
     if use_c3d:
-        cmd = ['c3d', white, '-dilate 1 1x1x1vox', gray, '-multiply',
+        cmd = ['c3d', noncortex, '-dilate 1 1x1x1vox', cortex, '-multiply',
                '-o', inner_edge]
         execute(cmd)
         if use_outer_edge:
-            cmd = ['c3d', gray, '-binarize -erode 1 1x1x1vox',
-                   '-threshold 1 1 0 1', gray, '-multiply', '-o', outer_edge]
+            cmd = ['c3d', cortex, '-binarize -erode 1 1x1x1vox',
+                   '-threshold 1 1 0 1', cortex, '-multiply', '-o', outer_edge]
             execute(cmd)
             cmd = ['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
                    outer_edge, '-multiply', '-o', outer_edge]
             execute(cmd)
     else:
-        cmd = ['ImageMath 3', inner_edge, 'MD', white, '1']
+        cmd = ['ImageMath 3', inner_edge, 'MD', noncortex, '1']
         execute(cmd)
-        cmd = ['ImageMath 3', inner_edge, 'm', gray, inner_edge]
+        cmd = ['ImageMath 3', inner_edge, 'm', cortex, inner_edge]
         execute(cmd)
         if use_outer_edge:
-            cmd = ['ThresholdImage 3', gray, outer_edge, '1 10000 1 0']
+            cmd = ['ThresholdImage 3', cortex, outer_edge, '1 10000 1 0']
             execute(cmd)
             cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
             execute(cmd)
             cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
             execute(cmd)
-            cmd = ['ImageMath 3', outer_edge, 'm', gray, outer_edge]
+            cmd = ['ImageMath 3', outer_edge, 'm', cortex, outer_edge]
             execute(cmd)
             cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
             execute(cmd)
@@ -199,13 +199,13 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
     #-------------------------------------------------------------------------
     compute_real_volume = True
     if compute_real_volume:
-        img = nb.load(gray)
+        img = nb.load(cortex)
         hdr = img.get_header()
         vv = np.prod(hdr.get_zooms())
-        gray_data = img.get_data().ravel()
+        cortex_data = img.get_data().ravel()
     else:
         vv = 1
-        gray_data = nb.load(gray).get_data().ravel()
+        cortex_data = nb.load(cortex).get_data().ravel()
     inner_edge_data = nb.load(inner_edge).get_data().ravel()
     if use_outer_edge:
         outer_edge_data = nb.load(outer_edge).get_data().ravel()
@@ -225,7 +225,7 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
         #---------------------------------------------------------------------
         # Compute thickness as a ratio of label volume and edge volume:
         #---------------------------------------------------------------------
-        label_gray_volume = vv * len(np.where(gray_data==label)[0])
+        label_cortex_volume = vv * len(np.where(cortex_data==label)[0])
         label_inner_edge_volume = vv * len(np.where(inner_edge_data==label)[0])
         if label_inner_edge_volume:
             if use_outer_edge:
@@ -235,13 +235,14 @@ def thickinthehead(segmented_file, labeled_file, gray_value=2, white_value=3,
                               label_outer_edge_volume) / 2.0
             else:
                 label_area = label_inner_edge_volume
-            thickness = label_gray_volume / label_area
-            label_volume_area_thickness[ilabel,1] = label_gray_volume
-            label_volume_area_thickness[ilabel,2] = label_area
-            label_volume_area_thickness[ilabel,3] = thickness
-            print('label {0} volume: gray={1:2.2f}, inner={2:2.2f}, '
+            thickness = label_cortex_volume / label_area
+            if output_table:
+                label_volume_area_thickness[ilabel,1] = label_cortex_volume
+                label_volume_area_thickness[ilabel,2] = label_area
+                label_volume_area_thickness[ilabel,3] = thickness
+            print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
                   'outer={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
-                  format(label, label_gray_volume, label_inner_edge_volume,
+                  format(label, label_cortex_volume, label_inner_edge_volume,
                   label_outer_edge_volume, label_area, thickness))
 
     if output_table:
@@ -263,7 +264,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     Steps ::
 
         1. Convert FreeSurfer volumes to nifti format in their original space.
-        2. Combine FreeSurfer (and optionally ANTs) gray & white segmentations.
+        2. Combine FreeSurfer (and optionally ANTs) cortex & noncortex segmentations.
         3. Compute simple thickness per (optionally non-FreeSurfer) label.
         4. Store thickness values in a table.
 
@@ -280,7 +281,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     out_dir : str (optional)
         output directory
     atropos_dir : str (optional)
-        directory containing subject subdirectories with gray matter files
+        directory containing subject subdirectories with cortex files
     atropos_stem : str (optional)
         stem prepending name of antsCorticalThickness.sh output files
     label_dir : str (optional)
@@ -318,7 +319,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     import numpy as np
     import nibabel as nb
 
-    from mindboggle.utils.freesurfer import combine_whites_over_grays
+    from mindboggle.utils.freesurfer import combine_segmentations
     from mindboggle.shapes.thickness import thickinthehead
     from mindboggle.utils.utils import execute
 
@@ -370,21 +371,20 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         second_segmentation_file = ''
         aseg = ''
         filled = ''
-        gray_and_white_file = combine_whites_over_grays(subject, aseg, filled,
-            out_subdir, second_segmentation_file, atropos_dir, atropos_stem,
-            use_c3d)
-
+        cortex_value = 2
+        noncortex_value = 3
+        segmented_file = combine_segmentations(subject, aseg, filled,
+            out_subdir, second_segmentation_file, cortex_value,
+            noncortex_value, use_c3d)
         #---------------------------------------------------------------------
         # Tabulate thickness values:
         #---------------------------------------------------------------------
-        gray_value = 2
-        white_value = 3
         propagate = True
         output_table = False
-        label_volume_area_thickness, u1 = thickinthehead(gray_and_white_file,
-                                    labeled_file, gray_value, white_value,
-                                    labels, out_subdir, resize, propagate,
-                                    output_table, use_c3d)
+        label_volume_area_thickness, u1 = thickinthehead(segmented_file,
+                                    labeled_file, cortex_value, 
+                                    noncortex_value, labels, out_subdir, 
+                                    resize, propagate, output_table, use_c3d)
 
         thickness_table[:, isubject+1] = label_volume_area_thickness[3]
 
@@ -392,8 +392,8 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     # Save results:
     #-------------------------------------------------------------------------
     table_file = os.path.join(out_dir, 'thicknesses.csv')
-    format = ' '.join(['%2.4f' for x in subjects])
-    np.savetxt(table_file, thickness_table, fmt='%d ' + format,
+    formatting = ' '.join(['%2.4f' for x in subjects])
+    np.savetxt(table_file, thickness_table, fmt='%d ' + formatting,
                delimiter='\t', newline='\n')
 
     return thickness_table, table_file
@@ -401,7 +401,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
 
 if __name__ == "__main__":
 
-    from mindboggle.shapes.thickness import thickinthehead
+    from mindboggle.shapes.thickness import run_thickinthehead
 
     subjects = []
     for i in range(1,21):

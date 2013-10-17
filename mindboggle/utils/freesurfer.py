@@ -631,25 +631,26 @@ def majority_vote_label(surface_file, annot_files):
            maxlabel_file, labelcounts_file, labelvotes_file
 
 
-def combine_whites_over_grays(subject='', aseg='', filled='', out_dir='',
-                              second_segmentation_file='', use_c3d=False):
+def combine_segmentations(subject='', aseg='', filled='', out_dir='',
+                          second_segmentation_file='',
+                          cortex_value=2, noncortex_value=3, use_c3d=False):
     """
     Combine FreeSurfer segmentation volumes (no surface-based outputs)
     and a segmentation file from another source (such as ANTs Atropos)
-    to obtain a single gray=2 and white=3 matter segmentation file.
+    to obtain a single cortex=2 and noncortex=3 segmentation file.
 
-    If the second file is not provided, the function returns a gray and white
-    matter segmentation file from FreeSurfer volume files.
+    If the second file is not provided, the function returns a segmentation
+    file (containing cortex and noncortex) from FreeSurfer volume files.
 
     Steps ::
 
-        1. Convert FreeSurfer aseg.mgz (gray) and filled.mgz (white) volumes
-           to nifti format in their original space (using 001.mgz/rawavg.mgz).
-        2. Load second segmentation file where gray=2 and white=3,
+        1. Convert FreeSurfer aseg.mgz and filled.mgz volumes to nifti format
+           in their original space (using 001.mgz/rawavg.mgz).
+        2. Load second segmentation file where cortex=2 and noncortex=3,
            such as from ANTs (Atropos).
-        3. Combine the union of the gray matter from #1 and #2
-           and the union of the white matter from #1 and #2,
-           replacing white and gray matter overlap with white matter.
+        3. Combine the union of the cortex from #1 and #2
+           and the union of the noncortex from #1 and #2,
+           replacing noncortex and cortex overlap with noncortex.
 
     Note ::
 
@@ -667,25 +668,31 @@ def combine_whites_over_grays(subject='', aseg='', filled='', out_dir='',
     out_dir : str (optional)
         output directory
     second_segmentation_file : str (optional)
-        second segmentation file (gray=2, white=3; other labels are fine)
+        second segmentation file (cortex=2, noncortex=3; other labels are fine)
+    cortex_value : integer
+        cortex value for second segmentation file
+    noncortex_value : integer
+        noncortex value for second segmentation file
     use_c3d : Boolean
         use convert3d? (otherwise ANTs ImageMath)
 
     Returns
     -------
-    gray_and_white_file : string
-        name of gray and white matter segmented file (gray=2, white=3)
+    segmented_file : string
+        name of cortex and noncortex segmented file (cortex=2, noncortex=3)
 
     Examples
     --------
-    >>> from mindboggle.utils.freesurfer import combine_whites_over_grays
+    >>> from mindboggle.utils.freesurfer import combine_segmentations
     >>> subject = 'OASIS-TRT-20-1'
     >>> aseg = ''
     >>> filled = ''
     >>> out_dir = ''
     >>> second_segmentation_file = ''
+    >>> cortex_value = 2
+    >>> noncortex_value = 3
     >>> use_c3d = False
-    >>> combine_whites_over_grays(subject, aseg, filled, out_dir, second_segmentation_file, use_c3d)
+    >>> combine_segmentations(subject, aseg, filled, out_dir, second_segmentation_file, cortex_value, noncortex_value, use_c3d)
 
     """
     import os
@@ -702,87 +709,90 @@ def combine_whites_over_grays(subject='', aseg='', filled='', out_dir='',
             os.mkdir(out_dir)
     else:
         out_dir = os.getcwd()
-    gray_and_white_file = os.path.join(out_dir, 'gray_and_white.nii.gz')
-    white_file = os.path.join(out_dir, 'white.nii.gz')
+    segmented_file = os.path.join(out_dir, 'cortex_and_noncortex.nii.gz')
+    noncortex_file = os.path.join(out_dir, 'noncortex.nii.gz')
     temp_file = os.path.join(out_dir, 'temp.nii.gz')
+    cortex_value = str(cortex_value)
+    noncortex_value = str(noncortex_value)
 
     #-------------------------------------------------------------------------
-    # Convert FreeSurfer gray and white matter volumes to nifti format:
+    # Convert FreeSurfer cortex and noncortex volumes to nifti format:
     #-------------------------------------------------------------------------
     if not aseg or not filled:
+        aseg = os.path.join(out_dir, 'aseg.nii.gz')
+        filled = os.path.join(out_dir, 'filled.nii.gz')
         subjects_dir = os.environ['SUBJECTS_DIR']
-        aseg = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
+        aseg_mgh = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
         orig = os.path.join(subjects_dir, subject, 'mri', 'orig', '001.mgz')
         if not os.path.exists(orig):
             orig = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
             if not os.path.exists(orig):
                 sys.exit('Could not find ' + orig + ' for subject ' + subject)
 
-        cmd = ['mri_vol2vol --mov', aseg, '--targ', orig, '--interp nearest',
-               '--regheader --o', gray_and_white_file]
+        cmd = ['mri_vol2vol --mov', aseg_mgh, '--targ', orig,
+               '--interp nearest --regheader --o', aseg]
         execute(cmd)
-        if not os.path.exists(gray_and_white_file):
-            raise(IOError(gray_and_white_file + " not found"))
+        if not os.path.exists(aseg):
+            raise(IOError(aseg + " not found"))
 
-        filled = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-        cmd = ['mri_vol2vol --mov', filled, '--targ', orig,
-               '--interp nearest', '--regheader --o', white_file]
+        filled_mgh = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
+        cmd = ['mri_vol2vol --mov', filled_mgh, '--targ', orig,
+               '--interp nearest', '--regheader --o', filled]
         execute(cmd)
-        if not os.path.exists(white_file):
-            raise(IOError(white_file + " not found"))
-    else:
-        gray_and_white_file = aseg
-        white_file = filled
+        if not os.path.exists(filled):
+            raise(IOError(filled + " not found"))
 
     if use_c3d:
         #---------------------------------------------------------------------
-        # Retain only gray or white matter values:
+        # Retain only cortex or noncortex values:
         #---------------------------------------------------------------------
-        cmd = ['c3d', gray_and_white_file, '-replace 1 0 3 1 42 1',
-               '-threshold 1 1 2 0', '-o', gray_and_white_file]
+        cmd = ['c3d', aseg, '-replace 1 0 3 1 42 1',
+               '-threshold 1 1 2 0', '-o', segmented_file]
         execute(cmd)
 
-        cmd = ['c3d', white_file, '-binarize -scale 3', '-o', white_file]
+        cmd = ['c3d', filled, '-binarize -scale 3', '-o', noncortex_file]
         execute(cmd)
 
         #---------------------------------------------------------------------
         # Include second segmentation:
         #---------------------------------------------------------------------
         if second_segmentation_file:
-            cmd = ['c3d', second_segmentation_file, '-threshold 2 2 1 0',
-                   gray_and_white_file, '-add -binarize',
-                   '-threshold 1 1 2 0', '-o', gray_and_white_file]
+            cmd = ['c3d', second_segmentation_file, '-threshold',
+                   cortex_value, cortex_value, '1 0',
+                   segmented_file, '-add -binarize',
+                   '-threshold 1 1 2 0', '-o', segmented_file]
             execute(cmd)
-            cmd = ['c3d', second_segmentation_file, '-threshold 3 3 1 0',
-                   white_file, '-add -binarize', '-threshold 1 1 3 0',
-                   '-o', white_file]
+            cmd = ['c3d', second_segmentation_file, '-threshold',
+                   noncortex_value, noncortex_value, '1 0',
+                   noncortex_file, '-add -binarize', '-threshold 1 1 3 0',
+                   '-o', noncortex_file]
             execute(cmd)
 
         #---------------------------------------------------------------------
-        # Replace white/gray matter overlap with white matter:
+        # Replace noncortex/cortex overlap with noncortex:
         #---------------------------------------------------------------------
-        cmd = ['c3d', white_file, '-threshold 3 3 0 1', gray_and_white_file,
-               '-multiply', white_file, '-add', '-o', gray_and_white_file]
+        cmd = ['c3d', noncortex_file, '-threshold 3 3 0 1', segmented_file,
+               '-multiply', noncortex_file, '-add', '-o', segmented_file]
         execute(cmd)
 
     else:
         #---------------------------------------------------------------------
-        # Retain only gray or white matter values:
+        # Retain only cortex or noncortex values:
         #---------------------------------------------------------------------
-        cmd = ['ImageMath 3', gray_and_white_file,
-               'ReplaceVoxelValue', gray_and_white_file, '1 1 0']
+        cmd = ['ImageMath 3', segmented_file,
+               'ReplaceVoxelValue', aseg, '1 1 0']
         execute(cmd)
-        cmd = ['ImageMath 3', gray_and_white_file,
-               'ReplaceVoxelValue', gray_and_white_file, '3 3 1']
+        cmd = ['ImageMath 3', segmented_file,
+               'ReplaceVoxelValue', segmented_file, '3 3 1']
         execute(cmd)
-        cmd = ['ImageMath 3', gray_and_white_file,
-               'ReplaceVoxelValue', gray_and_white_file, '42 42 1']
+        cmd = ['ImageMath 3', segmented_file,
+               'ReplaceVoxelValue', segmented_file, '42 42 1']
         execute(cmd)
-        cmd = ['ThresholdImage 3', gray_and_white_file,
-               gray_and_white_file, '1 1 2 0']
+        cmd = ['ThresholdImage 3', segmented_file,
+               segmented_file, '1 1 2 0']
         execute(cmd)
 
-        cmd = ['ThresholdImage 3', white_file, white_file, '1 10000 3 0']
+        cmd = ['ThresholdImage 3', filled, noncortex_file, '1 10000 3 0']
         execute(cmd)
 
         #---------------------------------------------------------------------
@@ -790,34 +800,35 @@ def combine_whites_over_grays(subject='', aseg='', filled='', out_dir='',
         #---------------------------------------------------------------------
         if second_segmentation_file:
             cmd = ['ThresholdImage 3', second_segmentation_file,
-                   temp_file, '2 2 1 0']
+                   temp_file, cortex_value, cortex_value, '1 0']
             execute(cmd)
             cmd = ['ImageMath 3', temp_file, '+', temp_file,
-                   gray_and_white_file]
+                   segmented_file]
             execute(cmd)
             cmd = ['ThresholdImage 3', temp_file,
-                   gray_and_white_file, '1 10000 2 0']
+                   segmented_file, '1 10000 2 0']
             execute(cmd)
 
             cmd = ['ThresholdImage 3', second_segmentation_file,
-                   temp_file, '3 3 1 0']
+                   temp_file, noncortex_value, noncortex_value, '1 0']
             execute(cmd)
-            cmd = ['ImageMath 3', temp_file, '+', temp_file, white_file]
+            cmd = ['ImageMath 3', temp_file, '+', temp_file, noncortex_file]
             execute(cmd)
-            cmd = ['ThresholdImage 3', temp_file, white_file, '1 10000 3 0']
+            cmd = ['ThresholdImage 3', temp_file, noncortex_file,
+                   '1 10000 3 0']
             execute(cmd)
 
         #---------------------------------------------------------------------
-        # Replace white/gray matter overlap with white matter:
+        # Replace noncortex/cortex overlap with noncortex:
         #---------------------------------------------------------------------
-        cmd = ['ThresholdImage 3', white_file, temp_file, '3 3 0 1']
+        cmd = ['ThresholdImage 3', noncortex_file, temp_file, '3 3 0 1']
         execute(cmd)
-        cmd = ['ImageMath 3', temp_file, 'm', temp_file, gray_and_white_file]
+        cmd = ['ImageMath 3', temp_file, 'm', temp_file, segmented_file]
         execute(cmd)
-        cmd = ['ImageMath 3', gray_and_white_file, '+', temp_file, white_file]
+        cmd = ['ImageMath 3', segmented_file, '+', temp_file, noncortex_file]
         execute(cmd)
 
-    return gray_and_white_file
+    return segmented_file
 
 
 #def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
