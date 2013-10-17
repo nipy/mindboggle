@@ -9,27 +9,21 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#=============================================================================
-# Extract fundi
-#=============================================================================
+
 def extract_fundi(folds, curv_file, depth_file, min_separation=10,
-                  erode_ratio=0.1, erode_min_size=1, sulci=[],
-                  save_file=False):
+                  erode_ratio=0.1, erode_min_size=1, save_file=False):
     """
     Extract fundi from folds.
 
     A fundus is a branching curve that runs along the deepest and most
-    highly curved portions of a sulcus fold.
+    highly curved portions of a fold.
 
     Steps ::
         1. Find fundus endpoints (outer anchors) with find_outer_anchors().
         2. Include inner anchor points.
         3. Connect anchor points using connect_points_erosion();
            inner anchors are removed if they result in endpoints.
-        4. Optionally segment fundi by sulcus definitions.
-           Return both fundi in all folds as well as those in sulcus folds.
-
-        Optional postprocessing step: smooth with smooth_skeleton().
+        4. Optionally smooth with smooth_skeleton().
 
     Parameters
     ----------
@@ -46,26 +40,18 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     erode_ratio : float
         fraction of indices to test for removal at each iteration
         in connect_points_erosion()
-    sulci : numpy array or list of integers
-        sulcus number for each vertex, used to filter and label fundi
     save_file : Boolean
         save output VTK file?
 
     Returns
     -------
-    fundi : list of integers
-        fundus numbers for all vertices, labeled by sulcus
+    fundus_per_fold : list of integers
+        fundus numbers for all vertices, labeled by fold
         (-1 for non-fundus vertices)
-    n_fundi :  integer
+    n_fundi_in_folds :  integer
         number of fundi
-    fundi_file : string (if save_file)
+    fundus_per_fold_file : string (if save_file)
         output VTK file with fundus numbers (-1 for non-fundus vertices)
-    fundi_all_folds : list of integers
-        same as fundi, but labeled by all folds rather than just by sulci
-    n_fundi_all_folds :  integer
-        same as n_fundi, but for all folds
-    fundi_all_folds_file : string (if save_file)
-        same as fundi_file, but for all folds
 
     Examples
     --------
@@ -76,8 +62,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> from mindboggle.features.fundi import extract_fundi
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> sulci, name = read_scalars(sulci_file, True, True)
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -89,9 +73,8 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     >>> erode_ratio = 0.10
     >>> erode_min_size = 10
     >>> save_file = True
-    >>> o1, o2, fundi_file, o3, o4, o5 = extract_fundi(folds, curv_file,
-    ...     depth_file, min_separation, erode_ratio, erode_min_size, sulci,
-    ...     save_file)
+    >>> o1, o2, fundus_per_fold_file = extract_fundi(folds, curv_file,
+    ...     depth_file, min_separation, erode_ratio, erode_min_size, save_file)
     >>> #
     >>> # View:
     >>> plot_surfaces(fundi_file)
@@ -111,8 +94,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
 
     if isinstance(folds, list):
         folds = np.array(folds)
-    if isinstance(sulci, list):
-        sulci = np.array(sulci)
 
     # Load values, inner anchor threshold, and neighbors:
     faces, u1,u2, points, npoints, curvs, u3,u4 = read_vtk(curv_file, True,True)
@@ -170,56 +151,132 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
             if Iremove:
                 skeletons = list(frozenset(skeletons).difference(Iremove))
 
-    #-------------------------------------------------------------------------
-    # Create fundi by segmenting skeletons with overlapping sulcus labels:
-    #-------------------------------------------------------------------------
     indices = [x for x in skeletons if folds[x] != -1]
-    fundi_all_folds = -1 * np.ones(npoints)
-    fundi_all_folds[indices] = folds[indices]
-    n_fundi_all_folds = len([x for x in np.unique(fundi_all_folds)
+    fundus_per_fold = -1 * np.ones(npoints)
+    fundus_per_fold[indices] = folds[indices]
+    n_fundi_in_folds = len([x for x in np.unique(fundus_per_fold)
                              if x != -1])
-    if np.size(sulci):
-        indices = [x for x in skeletons if sulci[x] != -1]
-        fundi = -1 * np.ones(npoints)
-        fundi[indices] = sulci[indices]
-        n_fundi = len([x for x in np.unique(fundi) if x != -1])
+    if n_fundi_in_folds == 1:
+        sdum = 'fold fundus'
     else:
-        fundi = []
-        fundi_file = None
-        n_fundi = 0
-
-    if n_fundi == 1:
-        sdum = 'fundus'
-    else:
-        sdum = 'fundi'
+        sdum = 'fold fundi'
     print('  ...Extracted {0} {1}; {2} total ({3:.2f} seconds)'.
-          format(n_fundi, sdum, n_fundi_all_folds, time() - t1))
+          format(n_fundi_in_folds, sdum, n_fundi_in_folds, time() - t1))
 
     #-------------------------------------------------------------------------
     # Return fundi, number of fundi, and file name:
     #-------------------------------------------------------------------------
-    if n_fundi > 0:
-        fundi = fundi.tolist()
+    if n_fundi_in_folds > 0:
+        fundus_per_fold = fundus_per_fold.tolist()
         if save_file:
-            fundi_file = os.path.join(os.getcwd(), 'fundi.vtk')
-            rewrite_scalars(curv_file, fundi_file, fundi, 'fundi', folds)
-            if not os.path.exists(fundi_file):
-                raise(IOError(fundi_file + " not found"))
-        else:
-            fundi_file = None
-
-    if n_fundi_all_folds > 0:
-        fundi_all_folds = fundi_all_folds.tolist()
-        if save_file:
-            fundi_all_folds_file = os.path.join(os.getcwd(),
-                                                'fundi_all_folds.vtk')
-            rewrite_scalars(curv_file, fundi_all_folds_file, fundi_all_folds,
+            fundus_per_fold_file = os.path.join(os.getcwd(),
+                                                'fundus_per_fold.vtk')
+            rewrite_scalars(curv_file, fundus_per_fold_file, fundus_per_fold,
                             'fundi', folds)
-            if not os.path.exists(fundi_all_folds_file):
-                raise(IOError(fundi_all_folds_file + " not found"))
+            if not os.path.exists(fundus_per_fold_file):
+                raise(IOError(fundus_per_fold_file + " not found"))
         else:
-            fundi_all_folds_file = None
+            fundus_per_fold_file = None
 
-    return fundi, n_fundi, fundi_file, \
-           fundi_all_folds,  n_fundi_all_folds, fundi_all_folds_file
+    return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 
+
+def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
+    """
+    Segment fundi by sulcus definitions.
+
+    Parameters
+    ----------
+    fundus_per_fold : list of integers
+        fundus numbers for all vertices, labeled by fold
+        (-1 for non-fundus vertices)
+    sulci : numpy array or list of integers
+        sulcus number for each vertex, used to filter and label fundi
+    sulci_file : string (if save_file)
+        VTK file with sulcus number for each vertex
+    save_file : Boolean
+        save output VTK file?
+
+    Returns
+    -------
+    fundus_per_sulcus : list of integers
+        fundus numbers for all vertices, labeled by sulcus
+        (-1 for non-fundus vertices)
+    n_fundi :  integer
+        number of fundi
+    fundus_per_sulcus_file : string (if save_file)
+        output VTK file with fundus numbers (-1 for non-fundus vertices)
+
+    Examples
+    --------
+    >>> # Extract fundus from one or more sulci:
+    >>> single_fold = True
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars
+    >>> from mindboggle.features.fundi import extract_fundi, segment_fundi
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> sulci, name = read_scalars(sulci_file, True, True)
+    >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
+    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
+    >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
+    >>> folds, name = read_scalars(folds_file, True, True)
+    >>> if single_fold:
+    >>>     fold_number = 2 #11
+    >>>     folds[folds != fold_number] = -1
+    >>> min_separation = 10
+    >>> erode_ratio = 0.10
+    >>> erode_min_size = 10
+    >>> save_file = True
+    >>> fundus_per_fold, o1, o2 = extract_fundi(folds, curv_file, depth_file, min_separation, erode_ratio, erode_min_size, save_file)
+    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold, sulci, sulci_file, save_file)
+    >>> #
+    >>> # View:
+    >>> plot_surfaces(fundus_per_sulcus_file)
+
+    """
+
+    # Extract a skeleton to connect endpoints in a fold:
+    import os
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import rewrite_scalars
+
+    if isinstance(sulci, list):
+        sulci = np.array(sulci)
+
+    #-------------------------------------------------------------------------
+    # Create fundi by segmenting fold fundi with overlapping sulcus labels:
+    #-------------------------------------------------------------------------
+    indices = [i for i,x in enumerate(fundus_per_fold) if x != -1]
+    if indices and np.size(sulci):
+        fundus_per_sulcus = -1 * np.ones(len(sulci))
+        fundus_per_sulcus[indices] = sulci[indices]
+        n_fundi = len([x for x in np.unique(fundus_per_sulcus) if x != -1])
+    else:
+        fundus_per_sulcus = []
+        n_fundi = 0
+
+    if n_fundi == 1:
+        sdum = 'sulcus fundus'
+    else:
+        sdum = 'sulcus fundi'
+    print('  Segmented {0} {1}'.format(n_fundi, sdum))
+
+    #-------------------------------------------------------------------------
+    # Return fundi, number of fundi, and file name:
+    #-------------------------------------------------------------------------
+    fundus_per_sulcus_file = None
+    if n_fundi > 0:
+        fundus_per_sulcus = fundus_per_sulcus.tolist()
+        if save_file and os.path.exists(sulci_file):
+            fundus_per_sulcus_file = os.path.join(os.getcwd(),
+                                                  'fundus_per_sulcus.vtk')
+            rewrite_scalars(sulci_file, fundus_per_sulcus_file,
+                            fundus_per_sulcus, 'fundus_per_sulcus',
+                            fundus_per_sulcus)
+            if not os.path.exists(fundus_per_sulcus_file):
+                raise(IOError(fundus_per_sulcus_file + " not found"))
+
+    return fundus_per_sulcus, n_fundi, fundus_per_sulcus_file

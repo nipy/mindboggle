@@ -115,24 +115,89 @@ def remove_volume_labels(input_file, labels_to_remove, output_file=''):
     import numpy as np
     import nibabel as nb
 
-    # Load labeled image volume and extract data as 1-D array
+    # Load labeled image volume and extract data as 1-D array:
     vol = nb.load(input_file)
     xfm = vol.get_affine()
     data = vol.get_data().ravel()
 
-    # Initialize output
+    # Initialize output:
     new_data = data.copy()
 
-    # Loop through labels
-    for ilabel, label in enumerate(labels_to_remove):
+    # Loop through labels:
+    for label in labels_to_remove:
         label = int(label)
-        # Relabel
+        # Relabel:
         new_data[np.where(data==label)[0]] = 0
 
-    # Reshape to original dimensions
+    # Reshape to original dimensions:
     new_data = np.reshape(new_data, vol.shape)
 
-    # Save relabeled file
+    # Save relabeled file:
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
+def keep_volume_labels(input_file, labels_to_keep, output_file=''):
+    """
+    Keep only given labels in an image volume.
+
+    Parameters
+    ----------
+    input_file : string
+        labeled nibabel-readable (e.g., nifti) file
+    labels_to_keep : list of integers
+        labels to keep
+    output_file : string
+        output file name
+
+    Returns
+    -------
+    output_file : string
+        output file name
+
+    Examples
+    --------
+    >>> # Remove right hemisphere labels
+    >>> import os
+    >>> from mindboggle.labels.relabel import keep_volume_labels
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> labels_to_keep = range(1000, 1036)
+    >>> output_file = ''
+    >>> keep_volume_labels(input_file, labels_to_keep, output_file)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    # Load labeled image volume and extract data as 1-D array:
+    vol = nb.load(input_file)
+    xfm = vol.get_affine()
+    data = vol.get_data().ravel()
+
+    # Initialize output:
+    new_data = data.copy()
+
+    # Loop through unique labels:
+    ulabels = np.unique(data)
+    for label in ulabels:
+        label = int(label)
+        if label not in labels_to_keep:
+            # Relabel if not a label to keep:
+            new_data[np.where(data == label)[0]] = 0
+
+    # Reshape to original dimensions:
+    new_data = np.reshape(new_data, vol.shape)
+
+    # Save relabeled file:
     if not output_file:
         output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
