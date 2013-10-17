@@ -204,6 +204,59 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     return output_file
 
 
+def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
+    """
+    Use the ThresholdImage function in ANTS to threshold image volume::
+
+    Usage: ThresholdImage ImageDimension ImageIn.ext outImage.ext
+           threshlo threshhi <insideValue> <outsideValue>
+
+    Parameters
+    ----------
+    volume : string
+        nibabel-readable image volume
+    output_file : string
+        nibabel-readable image volume
+    threshlo : integer
+        lower threshold
+    threshhi : integer
+        upper threshold
+
+    Returns
+    -------
+    output_file : string
+        name of output nibabel-readable image volume
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.ants import ThresholdImage
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> volume = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
+    >>> output_file = ''
+    >>> threshlo = 500
+    >>> threshhi = 10000
+    >>> output_file = ThresholdImage(volume, output_file, threshlo, threshhi)
+    >>> # View
+    >>> plot_volumes(output_file)
+
+    """
+    import os
+    from mindboggle.utils.utils import execute
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(), 'ThresholdImage.nii.gz')
+
+    cmd = 'ThresholdImage 3 {0} {1} {2} {3}'.format(volume, output_file,
+                                                    threshlo, threshhi)
+    execute(cmd, 'os')
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
 def ANTS(source, target, iterations='30x99x11', output_stem=''):
     """
     Use ANTs to register a source image volume to a target image volume.

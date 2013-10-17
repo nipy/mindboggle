@@ -9,9 +9,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-#=============================================================================
-# Extract sulci
-#=============================================================================
+
 def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                   unique_sulcus_label_pairs, min_boundary=1, sulcus_names=[]):
     """
@@ -25,20 +23,20 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
         1. Remove fold if it has fewer than two labels.
         2. Remove fold if its labels do not contain a sulcus label pair.
         3. Find vertices with labels that are in only one of the fold's
-           label boundary pairs. Assign the vertices the sulcus with the
-           label pair if they are connected to the label boundary for that pair.
+           label boundary pairs. Assign the vertices the sulcus with the label
+           pair if they are connected to the label boundary for that pair.
         4. If there are remaining vertices, segment into sets of vertices
-           connected to label boundaries, and assign a unique ID to each segment.
+           connected to label boundaries, and assign a unique ID to each set.
 
     Parameters
     ----------
     labels_file : string
         file name for surface mesh VTK containing labels for all vertices
     folds_or_file : list or string
-        fold number for each vertex or name of VTK file containing folds scalars
+        fold number for each vertex / name of VTK file containing fold scalars
     hemi : string
         hemisphere ('lh' or 'rh')
-    sulcus_label_pair_lists : list of two lists of multiple lists of integer pairs
+    sulcus_label_pair_lists : list of two lists of lists of integer pairs
         list containing left and right lists, each with multiple lists of
         integer pairs corresponding to label boundaries / sulcus / fundus
     unique_sulcus_label_pairs : list of unique pairs of integers
@@ -55,7 +53,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     n_sulci : integers
         number of sulci
     sulci_file : string
-        name of output VTK file with sulcus numbers (-1 for non-sulcus vertices)
+        output VTK file with sulcus numbers (-1 for non-sulcus vertices)
 
     Examples
     --------
@@ -71,9 +69,22 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     >>> folds_or_file, name = read_scalars(folds_file)
     >>> protocol = 'DKT31'
     >>> hemi = 'lh'
-    >>> sulcus_names, sulcus_label_pair_lists, unique_sulcus_label_pairs,
-    ...    label_names, label_numbers, cortex_names, cortex_numbers,
-    ...    noncortex_names, noncortex_numbers = dkt_protocol(protocol)
+    >>> sulcus_names, unique_sulcus_label_pairs, \
+    >>> sulcus_label_pair_lists, \
+    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
+    >>> label_names, left_label_names, right_label_names, \
+    >>> label_numbers, left_label_numbers, right_label_numbers, \
+    >>> cortex_names, left_cortex_names, right_cortex_names, \
+    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
+    >>> noncortex_names, left_noncortex_names, \
+    >>> right_noncortex_names, medial_noncortex_names, \
+    >>> noncortex_numbers, left_noncortex_numbers, \
+    >>> right_noncortex_numbers, medial_noncortex_numbers, \
+    >>> cortex_names_DKT25, \
+    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
+    >>> cortex_numbers_DKT25, \
+    >>> left_cortex_numbers_DKT25, \
+    >>> right_cortex_numbers_DKT25 = dkt_protocol()
     >>> min_boundary = 10
     >>> #
     >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file,
@@ -105,7 +116,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
         print("Warning: hemisphere not properly specified ('lh' or 'rh').")
 
     # Load points, faces, and neighbors
-    faces, foo1, foo2, points, npoints, labels, foo3, foo4 = read_vtk(labels_file)
+    faces, foo1, foo2, points, npoints, labels, foo3, \
+    foo4 = read_vtk(labels_file)
     neighbor_lists = find_neighbors(faces, npoints)
 
     # Array of sulcus IDs for fold vertices, initialized as -1.
@@ -134,7 +146,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
         if len(unique_fold_labels) < 2:
             # Ignore: sulci already initialized with -1 values
             if not unique_fold_labels:
-                print("  Fold {0} ({1} vertices): NO MATCH -- fold has no labels".
+                print("  Fold {0} ({1} vertices): "
+                      "NO MATCH -- fold has no labels".
                       format(n_fold, len_fold))
             else:
                 print("  Fold {0} ({1} vertices): "
@@ -144,9 +157,9 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
         else:
             # Find all label boundary pairs within the fold
-            indices_fold_pairs, fold_pairs, unique_fold_pairs = extract_borders(
-                fold, labels, neighbor_lists, ignore_values=[],
-                return_label_pairs=True)
+            indices_fold_pairs, fold_pairs, unique_fold_pairs = \
+                extract_borders(fold, labels, neighbor_lists,
+                                ignore_values=[], return_label_pairs=True)
 
             # Find fold label pairs in the protocol (pairs are already sorted)
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
@@ -154,7 +167,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
             if unique_fold_labels:
                 print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
-                      ', '.join([str(x) for x in unique_fold_labels]), len_fold))
+                      ', '.join([str(x) for x in unique_fold_labels]),
+                      len_fold))
             #-----------------------------------------------------------------
             # NO MATCH -- fold has no sulcus label pair
             #-----------------------------------------------------------------
@@ -170,9 +184,10 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                       ', '.join([str(x) for x in fold_pairs_in_protocol])))
 
                 # Labels in the protocol (includes repeats across label pairs)
-                labels_in_pairs = [x for lst in fold_pairs_in_protocol for x in lst]
+                labels_in_pairs = [x for lst in fold_pairs_in_protocol
+                                   for x in lst]
 
-                # Labels that appear in one or more than one sulcus label boundary
+                # Labels that appear in one or more sulcus label boundary
                 unique_labels = []
                 nonunique_labels = []
                 for label in np.unique(labels_in_pairs):
@@ -185,51 +200,60 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                 # Vertices whose labels are in only one sulcus label pair
                 #-------------------------------------------------------------
                 # Find vertices with a label that is in only one of the fold's
-                # label pairs (the other label in the pair can exist
-                # in other pairs). Assign the vertices the sulcus with the label
-                # pair if they are connected to the label boundary for that pair.
+                # label pairs (the other label in the pair can exist in other
+                # pairs). Assign the vertices the sulcus with the label pair
+                # if they are connected to the label boundary for that pair.
                 #-------------------------------------------------------------
                 if len(unique_labels):
 
                     for pair in fold_pairs_in_protocol:
+
                         # If one or both labels in label pair is/are unique
-                        unique_labels_in_pair = [x for x in pair if x in unique_labels]
+                        unique_labels_in_pair = [x for x in pair
+                                                 if x in unique_labels]
                         n_unique = len(unique_labels_in_pair)
                         if n_unique:
 
-                            ID = [i for i,x in enumerate(sulcus_label_pair_lists)
-                                  if pair in x][0]
+                            ID = [i for i,x
+                                  in enumerate(sulcus_label_pair_lists)
+                                  if pair in x]
+                            if ID:
+                                if len(ID) > 1:
+                                    ID = ID[0]
 
-                            # Construct seeds from label boundary vertices
-                            # (fold_pairs and pair already sorted)
-                            indices_pair = [x for i,x in enumerate(indices_fold_pairs)
-                                            if fold_pairs[i] == pair]
+                                # Seeds from label boundary vertices
+                                # (fold_pairs and pair already sorted)
+                                indices_pair = [x for i,x
+                                    in enumerate(indices_fold_pairs)
+                                    if fold_pairs[i] == pair]
 
-                            # Identify vertices with unique label(s) in pair
-                            indices_unique_labels = [fold[i]
-                                                     for i,x in enumerate(fold_labels)
-                                                     if x in unique_sulcus_label_pairs]
+                                # Vertices with unique label(s) in pair
+                                indices_unique_labels = [fold[i]
+                                     for i,x in enumerate(fold_labels)
+                                     if x in unique_sulcus_label_pairs]
 
-                            # Propagate from seeds to labels in label pair
-                            sulci2 = segment(indices_unique_labels, neighbor_lists,
-                                             min_region_size=1,
-                                             seed_lists=[indices_pair],
-                                             keep_seeding=False,
-                                             spread_within_labels=True,
-                                             labels=labels)
-                            sulci[sulci2 > -1] = ID
+                                # Propagate from seeds to labels in label pair
+                                sulci2 = segment(indices_unique_labels,
+                                                 neighbor_lists,
+                                                 min_region_size=1,
+                                                 seed_lists=[indices_pair],
+                                                 keep_seeding=False,
+                                                 spread_within_labels=True,
+                                                 labels=labels)
+                                sulci[sulci2 > -1] = ID
 
-                            # Print statement
-                            if n_unique == 1:
-                                ps1 = '1 label'
-                            else:
-                                ps1 = 'Both labels'
-                            if len(sulcus_names):
-                                ps2 = sulcus_names[ID]
-                            else:
-                                ps2 = ''
-                            print("    {0} unique to one fold pair: {1} {2}".
-                                  format(ps1, ps2, unique_labels_in_pair))
+                                # Print statement
+                                if n_unique == 1:
+                                    ps1 = '1 label'
+                                else:
+                                    ps1 = 'Both labels'
+                                if len(sulcus_names):
+                                    ps2 = sulcus_names[ID]
+                                else:
+                                    ps2 = ''
+                                print("    {0} unique to one fold pair: "
+                                      "{1} {2}".
+                                      format(ps1, ps2, unique_labels_in_pair))
 
                 #-------------------------------------------------------------
                 # Vertex labels shared by multiple label pairs
@@ -241,36 +265,52 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                     # For each label shared by different label pairs
                     for label in nonunique_labels:
                         # Print statement
-                        print("    Propagate sulcus label borders with label {0}".
+                        print("    Propagate sulcus borders with label {0}".
                               format(int(label)))
 
                         # Construct seeds from label boundary vertices
                         seeds = -1 * np.ones(len(points))
-                        for ID, label_pair_list in enumerate(sulcus_label_pair_lists):
-                            label_pairs = [x for x in label_pair_list if label in x]
+                        for ID, label_pair_list in enumerate(
+                                sulcus_label_pair_lists):
+                            if isinstance(label_pair_list[0], list):
+                                pass
+                            else:
+                                label_pair_list = [label_pair_list]
+                            label_pairs = [x for x in label_pair_list
+                                           if label in x]
                             for label_pair in label_pairs:
-                                indices_pair = [x for i,x in enumerate(indices_fold_pairs)
-                                    if np.sort(fold_pairs[i]).tolist() == label_pair]
+                                indices_pair = [x for i,x
+                                    in enumerate(indices_fold_pairs)
+                                    if np.sort(fold_pairs[i]).
+                                    tolist() == label_pair]
                                 if indices_pair:
 
                                     # Do not include short boundary segments
                                     if min_boundary > 1:
                                         indices_pair2 = []
-                                        seeds2 = segment(indices_pair, neighbor_lists)
-                                        for seed2 in range(int(max(seeds2))+1):
-                                            iseed2 = [i for i,x in enumerate(seeds2)
+                                        seeds2 = segment(indices_pair,
+                                                         neighbor_lists)
+                                        max_seed2 = int(max(seeds2))
+                                        for seed2 in range(max_seed2 + 1):
+                                            iseed2 = [i for i,x
+                                                      in enumerate(seeds2)
                                                       if x == seed2]
                                             if len(iseed2) >= min_boundary:
                                                 indices_pair2.extend(iseed2)
                                             else:
                                                 if len(iseed2) == 1:
-                                                    print("    Remove assignment "
-                                                          "of ID {0} from 1 vertex".
+                                                    print("    Remove "
+                                                          "assignment "
+                                                          "of ID {0} from "
+                                                          "1 vertex".
                                                           format(seed2))
                                                 else:
-                                                    print("    Remove assignment "
-                                                          "of ID {0} from {1} vertices".
-                                                          format(seed2, len(iseed2)))
+                                                    print("    Remove "
+                                                          "assignment "
+                                                          "of ID {0} from "
+                                                          "{1} vertices".
+                                                          format(seed2,
+                                                                 len(iseed2)))
                                         indices_pair = indices_pair2
 
                                     # Assign sulcus IDs to seeds
@@ -278,7 +318,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
 
                         # Identify vertices with the label
                         label_array = -1 * np.ones(len(points))
-                        indices_label = [fold[i] for i,x in enumerate(fold_labels)
+                        indices_label = [fold[i] for i,x
+                                         in enumerate(fold_labels)
                                          if x == label]
                         if len(indices_label):
                             label_array[indices_label] = 1
@@ -286,10 +327,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
                             # Propagate from seeds to vertices with label
                             #indices_seeds = []
                             #for seed in range(int(max(seeds))+1):
-                            #    indices_seeds.append([i for i,x in enumerate(seeds)
+                            #    indices_seeds.append([i for i,x
+                            #                          in enumerate(seeds)
                             #                          if x == seed])
                             #sulci2 = segment(indices_label, neighbor_lists,
-                            #                 50, indices_seeds, False, True, labels)
+                            #                 50, indices_seeds, False, True,
+                            #                 labels)
                             sulci2 = propagate(points, faces,
                                                label_array, seeds, sulci,
                                                max_iters=10000,
@@ -305,7 +348,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
           format(n_sulci, n_folds, time()-t0))
     if len(sulcus_names):
         for sulcus_number in sulcus_numbers:
-            print("  {0}: {1}".format(sulcus_number, sulcus_names[sulcus_number]))
+            print("  {0}: {1}".format(sulcus_number,
+                                      sulcus_names[sulcus_number]))
     else:
         print("  " + ", ".join([str(x) for x in sulcus_numbers]))
 
@@ -317,10 +361,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, sulcus_label_pair_lists,
     if len(unresolved) == 1:
         print("The following sulcus is unaccounted for:")
     else:
-        print("The following {0} sulci are unaccounted for:".format(len(unresolved)))
+        print("The following {0} sulci are unaccounted for:".
+              format(len(unresolved)))
     if len(sulcus_names):
         for sulcus_number in unresolved:
-            print("  {0}: {1}".format(sulcus_number, sulcus_names[sulcus_number]))
+            print("  {0}: {1}".format(sulcus_number,
+                                      sulcus_names[sulcus_number]))
     else:
         print("  " + ", ".join([str(x) for x in unresolved]))
 
