@@ -27,25 +27,27 @@ def read_columns(filename, n_columns=1, trail=False):
     columns :  a list of lists of strings, one list per column of text.
 
     """
+    import os
     import re
 
-    Fp = open(filename, 'r')
-    lines = Fp.readlines()
     columns = [[] for x in range(n_columns)]
-    for line in lines:
-        if line:
-            row = re.findall(r'\S+', line)
-            if len(row) >= n_columns:
-                for icolumn in range(n_columns):
-                    if trail and icolumn == n_columns - 1:
-                        columns[icolumn].append(' '.join(row[icolumn::]))
-                    else:
-                        columns[icolumn].append(row[icolumn])
-            else:
-                import os
-                os.error('The number of columns in {0} is less than {1}.'.format(
-                         filename, n_columns))
-    Fp.close()
+    if os.path.exists(filename):
+        Fp = open(filename, 'r')
+        lines = Fp.readlines()
+        for line in lines:
+            if line:
+                row = re.findall(r'\S+', line)
+                if len(row) >= n_columns:
+                    for icolumn in range(n_columns):
+                        if trail and icolumn == n_columns - 1:
+                            columns[icolumn].append(' '.join(row[icolumn::]))
+                        else:
+                            columns[icolumn].append(row[icolumn])
+                else:
+                    import os
+                    os.error('The number of columns in {0} is less than {1}.'.format(
+                             filename, n_columns))
+        Fp.close()
 
     return columns
 
@@ -146,13 +148,13 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
         #-----------------------------------
         # Read columns from input table file
         #-----------------------------------
-        if input_table:
+        input_names = ''
+        input_columns = ['' for x in columns[0]]
+        if input_table and os.path.exists(input_table):
             input_columns = read_columns(input_table, n_columns=1, trail=True)
-            input_names = input_columns[0][0]
-            input_columns = input_columns[0][1::]
-        #else:
-        #    input_names = ''
-        #    input_columns = ['' for x in columns[0]]
+            if input_columns and len(input_columns[0]) > 0:
+                input_names = input_columns[0][0]
+                input_columns = input_columns[0][1::]
 
         #--------------
         # Write to file
@@ -162,7 +164,7 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
             column_names = [q+x+q for x in column_names]
             if input_table:
                 Fp.write(delimiter.join([input_names,
-                                         delimiter.join(column_names) + "\n"]))
+                         delimiter.join(column_names) + "\n"]))
             else:
                 Fp.write(delimiter.join(column_names) + "\n")
         #else:
@@ -411,9 +413,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     area_array = scalars_array.copy()
 
     # Initialize table file names:
-    label_table = None
-    sulcus_table = None
-    fundus_table = None
+    label_table = ''
+    sulcus_table = ''
+    fundus_table = ''
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
@@ -1068,8 +1070,8 @@ def select_column_from_tables(tables, column_name, label_name='',
             #-----------------------------------------------------------------
             # Extract column with table_name as its header:
             #-----------------------------------------------------------------
-            icolumn_name = None
-            icolumn_label = None
+            icolumn_name = -1
+            icolumn_label = -1
             for icolumn, column in enumerate(input_columns):
                 # new_column = []
                 # rms = ['"', "'"]
