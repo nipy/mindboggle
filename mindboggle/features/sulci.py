@@ -10,7 +10,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def extract_sulci(labels_file, folds_or_file, min_boundary=1, sulcus_names=[]):
+def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
+                  sulcus_names=[]):
     """
     Identify sulci from folds in a brain surface according to a labeling
     protocol that includes a list of label pairs defining each sulcus.
@@ -33,6 +34,8 @@ def extract_sulci(labels_file, folds_or_file, min_boundary=1, sulcus_names=[]):
         file name for surface mesh VTK containing labels for all vertices
     folds_or_file : list or string
         fold number for each vertex / name of VTK file containing fold scalars
+    hemi : string
+        hemisphere abbreviation in {'lh', 'rh'} for sulcus labels
     min_boundary : integer
         minimum number of vertices for a sulcus label boundary segment
     sulcus_names : list of strings
@@ -58,10 +61,11 @@ def extract_sulci(labels_file, folds_or_file, min_boundary=1, sulcus_names=[]):
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'relabeled_lh.DKTatlas40.gcs.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> folds_or_file, name = read_scalars(folds_file)
+    >>> hemi = 'lh'
     >>> min_boundary = 10
     >>> sulcus_names = []
     >>> #
-    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file, min_boundary, sulcus_names)
+    >>> sulci, n_sulci, sulci_file = extract_sulci(labels_file, folds_or_file, hemi, min_boundary, sulcus_names)
     >>> # View:
     >>> plot_surfaces('sulci.vtk')
 
@@ -98,7 +102,12 @@ def extract_sulci(labels_file, folds_or_file, min_boundary=1, sulcus_names=[]):
     left_cortex_numbers_DKT25, \
     right_cortex_numbers_DKT25 = dkt_protocol()
 
-    pair_lists = sulcus_label_pair_lists
+    if hemi == 'lh':
+        pair_lists = left_sulcus_label_pair_lists
+    elif hemi == 'rh':
+        pair_lists = right_sulcus_label_pair_lists
+    else:
+        print("Warning: hemisphere not properly specified ('lh' or 'rh').")
 
     # Load points, faces, and neighbors
     faces, o1, o2, points, npoints, labels, o3, o4 = read_vtk(labels_file)
@@ -273,8 +282,10 @@ def extract_sulci(labels_file, folds_or_file, min_boundary=1, sulcus_names=[]):
                                         indices_pair2 = []
                                         seeds2 = segment(indices_pair,
                                                          neighbor_lists)
-                                        max_seed2 = int(max(seeds2))
-                                        for seed2 in range(max_seed2 + 1):
+                                        useeds2 = [x for x in
+                                                   np.unique(seeds2)
+                                                   if x != -1]
+                                        for seed2 in useeds2:
                                             iseed2 = [i for i,x
                                                       in enumerate(seeds2)
                                                       if x == seed2]

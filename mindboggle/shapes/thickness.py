@@ -73,7 +73,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> labels.remove(2032)
     >>> labels.remove(1033)
     >>> labels.remove(2033)
-    >>> out_dir = '.'
+    >>> out_dir = ''
     >>> resize = True
     >>> propagate = False
     >>> output_table = True
