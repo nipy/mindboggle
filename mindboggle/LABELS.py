@@ -469,7 +469,7 @@ def dkt_protocol():
         [[7,9], [7,11]],
         [[6,7], [7,16], [7,13]]]
 
-    relabel = False
+    relabel = True
 
     left_sulcus_label_pair_lists = []
     right_sulcus_label_pair_lists = []
