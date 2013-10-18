@@ -181,7 +181,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     return fundus_per_fold,  n_fundi_in_folds, fundus_per_fold_file
 
 
-def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
+def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     """
     Segment fundi by sulcus definitions.
 
@@ -192,7 +192,7 @@ def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
         (-1 for non-fundus vertices)
     sulci : numpy array or list of integers
         sulcus number for each vertex, used to filter and label fundi
-    sulci_file : string (if save_file)
+    vtk_file : string (if save_file)
         VTK file with sulcus number for each vertex
     save_file : Boolean
         save output VTK file?
@@ -216,8 +216,8 @@ def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
     >>> from mindboggle.features.fundi import extract_fundi, segment_fundi
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> sulci, name = read_scalars(sulci_file, True, True)
+    >>> vtk_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> sulci, name = read_scalars(vtk_file, True, True)
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> depth_file = os.path.join(path, 'arno', 'shapes', 'travel_depth_rescaled.vtk')
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
@@ -230,7 +230,7 @@ def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
     >>> erode_min_size = 10
     >>> save_file = True
     >>> fundus_per_fold, o1, o2 = extract_fundi(folds, curv_file, depth_file, min_separation, erode_ratio, erode_min_size, save_file)
-    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold, sulci, sulci_file, save_file)
+    >>> o1, o2, fundus_per_sulcus_file = segment_fundi(fundus_per_fold, sulci, vtk_file, save_file)
     >>> #
     >>> # View:
     >>> plot_surfaces(fundus_per_sulcus_file)
@@ -270,10 +270,10 @@ def segment_fundi(fundus_per_fold, sulci=[], sulci_file='', save_file=False):
     fundus_per_sulcus_file = None
     if n_fundi > 0:
         fundus_per_sulcus = fundus_per_sulcus.tolist()
-        if save_file and os.path.exists(sulci_file):
+        if save_file and os.path.exists(vtk_file):
             fundus_per_sulcus_file = os.path.join(os.getcwd(),
                                                   'fundus_per_sulcus.vtk')
-            rewrite_scalars(sulci_file, fundus_per_sulcus_file,
+            rewrite_scalars(vtk_file, fundus_per_sulcus_file,
                             fundus_per_sulcus, 'fundus_per_sulcus',
                             fundus_per_sulcus)
             if not os.path.exists(fundus_per_sulcus_file):
