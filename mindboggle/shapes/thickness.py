@@ -246,7 +246,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                   label_outer_edge_volume, label_area, thickness))
 
     if output_table:
-        table_file = os.path.join(out_dir, 'label_volume_area_thickness.csv')
+        table_file = os.path.join(out_dir,
+                                  'label_volume_area_thickness.csv')
         np.savetxt(table_file, label_volume_area_thickness,
                    fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
     else:
