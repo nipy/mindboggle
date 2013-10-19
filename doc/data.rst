@@ -25,7 +25,7 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 joint fusion atlas `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz>`_ space (2013)
+  - OASIS-TRT-20 joint fusion atlas `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz>`_ space [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version] (2013)
   - Corresponding label probabilities `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_OASIS-30.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152.nii.gz>`_ space
 
       Probabilistic labels of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013; distributed with ANTs),
@@ -33,19 +33,9 @@ Mindboggle-101 atlases
       Joint fusion was performed on the 20 brains after antsRegistration warped them
       to the brain and cerebellum `OASIS-30 Atropos template`_. Results are also given after
       `affine <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_to_MNI152_affine.txt>`_
-      transformation to the `OASIS-30 Atropos template in MNI152`_ space.
-      [`code 1 <http://mindboggle.info/data/mindboggle101_extras/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_
-      and `code 2 <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_]
+      transformation to the `OASIS-30 Atropos template in MNI152`_ space [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ version]
 
-
-
-    ..
-       and
-      `2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ resolution]
-
-    ..
-      [`2mm <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template_in_MNI152_2mm.nii.gz>`_ resolution]
-
+  - Software for `preparing labels <http://mindboggle.info/data/mindboggle101_extras/prep_OASIS-TRT-20_DKT31_CMA_labels.txt>`_, `running jointfusion <http://mindboggle.info/data/atlases/jointfusion/make_jointfusion_atlas.txt>`_, and `resampling to 2mm <http://mindboggle.info/data/resample2mm.txt>`_
 
   **Cortical surface atlases**
 
