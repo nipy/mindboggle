@@ -12,8 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
-                   noncortex_value=3, labels=[], out_dir='', resize=True,
-                   propagate=True, output_table=False, use_c3d=False):
+                   noncortex_value=3, labels=[], resize=True, propagate=True,
+                   output_dir='', output_table='', use_c3d=False):
     """
     Compute a simple thickness measure for each labeled cortex region.
 
@@ -30,9 +30,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Parameters
     ----------
-    segmented_file : str
+    segmented_file : string
         image volume with cortex and noncortex labels
-    labeled_file : str
+    labeled_file : string
         corresponding image volume with index labels
     cortex_value : integer
         cortex label value in segmented_file
@@ -40,14 +40,15 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         noncortex label value in segmented_file
     labels : list of integers
         label indices
-    out_dir : str
-        output directory
     resize : Boolean
         resize (2x) segmented_file for more accurate thickness estimates?
     propagate : Boolean
         propagate labels through cortex?
-    output_table : False
-        output a table with labels and thickness values?
+    output_dir : string
+        output directory
+    output_table : string
+        output table file with labels and thickness values
+        (if empty, don't save table file)
     use_c3d : Boolean
         use convert3d? (otherwise ANTs ImageMath)
 
@@ -73,12 +74,12 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> labels.remove(2032)
     >>> labels.remove(1033)
     >>> labels.remove(2033)
-    >>> out_dir = ''
     >>> resize = True
     >>> propagate = False
-    >>> output_table = True
+    >>> output_dir = ''
+    >>> output_table = label_volume_area_thickness.csv
     >>> use_c3d = False
-    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, out_dir, resize, propagate, output_table, use_c3d)
+    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table, use_c3d)
 
     """
     import os
@@ -90,18 +91,18 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     #-------------------------------------------------------------------------
     # Output files:
     #-------------------------------------------------------------------------
-    if out_dir:
-        if not os.path.exists(out_dir):
-            os.mkdir(out_dir)
+    if output_dir:
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
     else:
-        out_dir = os.getcwd()
-    cortex = os.path.join(out_dir, 'cortex.nii.gz')
-    noncortex = os.path.join(out_dir, 'noncortex.nii.gz')
-    temp = os.path.join(out_dir, 'temp.nii.gz')
-    inner_edge = os.path.join(out_dir, 'cortex_inner_edge.nii.gz')
+        output_dir = os.getcwd()
+    cortex = os.path.join(output_dir, 'cortex.nii.gz')
+    noncortex = os.path.join(output_dir, 'noncortex.nii.gz')
+    temp = os.path.join(output_dir, 'temp.nii.gz')
+    inner_edge = os.path.join(output_dir, 'cortex_inner_edge.nii.gz')
     use_outer_edge = True
     if use_outer_edge:
-        outer_edge = os.path.join(out_dir, 'cortex_outer_edge.nii.gz')
+        outer_edge = os.path.join(output_dir, 'cortex_outer_edge.nii.gz')
 
     #-------------------------------------------------------------------------
     # Extract noncortex and cortex:
@@ -246,17 +247,16 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                   label_outer_edge_volume, label_area, thickness))
 
     if output_table:
-        table_file = os.path.join(out_dir,
-                                  'label_volume_area_thickness.csv')
+        table_file = os.path.join(output_dir, output_table)
         np.savetxt(table_file, label_volume_area_thickness,
                    fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
     else:
-        table_file = None
+        table_file = ''
 
     return label_volume_area_thickness, table_file
 
 
-def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
+def run_thickinthehead(subjects, labels, output_dir='', atropos_dir='',
                        atropos_stem='', label_dir='', label_filename=''):
     """
     Combine FreeSurfer volume outputs (no surface-based outputs) to obtain
@@ -279,7 +279,7 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         names of FreeSurfer subject directories
     labels : list of integers
         label indices
-    out_dir : str (optional)
+    output_dir : str (optional)
         output directory
     atropos_dir : str (optional)
         directory containing subject subdirectories with cortex files
@@ -308,12 +308,12 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
     >>> labels.remove(2032)
     >>> labels.remove(1033)
     >>> labels.remove(2033)
-    >>> out_dir = 'thickness_outputs'
+    >>> output_dir = 'thickness_outputs'
     >>> atropos_dir = ''
     >>> atropos_stem = ''
     >>> label_dir = ''
     >>> label_filename = ''
-    >>> thickness_table, table_file = run_thickinthehead(subjects, labels, out_dir, atropos_dir, atropos_stem, label_dir, label_filename)
+    >>> thickness_table, table_file = run_thickinthehead(subjects, labels, output_dir, atropos_dir, atropos_stem, label_dir, label_filename)
 
     """
     import os, sys
@@ -335,9 +335,9 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         #---------------------------------------------------------------------
         # Outputs:
         #---------------------------------------------------------------------
-        if not os.path.exists(out_dir):
-            os.mkdir(out_dir)
-        out_subdir = os.path.join(out_dir, subject)
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+        out_subdir = os.path.join(output_dir, subject)
         if not os.path.exists(out_subdir):
             os.mkdir(out_subdir)
         labeled_file = os.path.join(out_subdir, 'labeled.nii.gz')
@@ -381,18 +381,19 @@ def run_thickinthehead(subjects, labels, out_dir='', atropos_dir='',
         # Tabulate thickness values:
         #---------------------------------------------------------------------
         propagate = True
-        output_table = False
+        output_table = ''
         label_volume_area_thickness, u1 = thickinthehead(segmented_file,
-                                    labeled_file, cortex_value, 
-                                    noncortex_value, labels, out_subdir, 
-                                    resize, propagate, output_table, use_c3d)
+                                    labeled_file, cortex_value,
+                                    noncortex_value, labels, resize,
+                                    propagate, out_subdir, output_table,
+                                    use_c3d)
 
         thickness_table[:, isubject+1] = label_volume_area_thickness[3]
 
     #-------------------------------------------------------------------------
     # Save results:
     #-------------------------------------------------------------------------
-    table_file = os.path.join(out_dir, 'thicknesses.csv')
+    table_file = os.path.join(output_dir, 'thicknesses.csv')
     formatting = ' '.join(['%2.4f' for x in subjects])
     np.savetxt(table_file, thickness_table, fmt='%d ' + formatting,
                delimiter='\t', newline='\n')
@@ -420,10 +421,10 @@ if __name__ == "__main__":
     labels.remove(1033)
     labels.remove(2033)
 
-    out_dir = 'thickness_outputs_fs-ants'
+    output_dir = 'thickness_outputs_fs-ants'
     atropos_dir = '/homedir/Data/Brains/OASIS-TRT-20/antsCorticalThickness'
     atropos_stem = 'tmp'
     label_dir = ''
     label_filename = ''
     thickness_table, table_file = run_thickinthehead(subjects,
-        labels, out_dir, atropos_dir, atropos_stem, label_dir, label_filename)
+        labels, output_dir, atropos_dir, atropos_stem, label_dir, label_filename)
