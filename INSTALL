@@ -27,16 +27,19 @@ Nipype_ software pipeline framework and its dependencies not included above::
     conda install vtk (after installing anaconda)
 
 FreeSurfer_
-    This software will help to initialize cortical surface labels for
+    This software helps initialize cortical surface labels for
     Mindboggle and generates the directory tree that Mindboggle uses
     to call subject data. To take advantage of the FreeSurfer_ software,
     preprocess T1-weighted data using the ``recon-all -all`` command.
-    Otherwise, place appropriate input files in a file tree corresponding to
-    FreeSurfer's subjects/ directory tree (see README).
+    NOTE: Mindboggle expects that the FreeSurfer SUBJECTS_DIR environment
+    variable is set.
 
 ANTS_
-    ANTS provides volume-based affine registration for reporting locations
-    in a standard space and nonlinear registration for whole-brain labeling.
+    ANTs provides volume-based affine registration that Mindboggle uses to
+    report locations in a standard space, nonlinear registration for
+    whole-brain labeling, brain extraction, and tissue-class segmentation.
+    Mindboggle combines the segmentation from FreeSurfer and ANTs and
+    propagates labels through cortex and noncortex voxels.
 
 
 Download Mindboggle
@@ -56,27 +59,27 @@ Change into the ``mindboggle`` directory and install mindboggle
 
 Step 2: Compile Mindboggle C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Basic compilation software:
+Your system must have basic compilation software:
 
-    - cmake_
     - C++ compiler such as gcc_
+    - cmake_
 
-Move the mindboggle_tools directory to wherever you install your software
-(let's call it YOUR_SOFTWARE_PATH), then run cmake (or ccmake) and make::
+In the mindboggle_tools/bin directory, run cmake (or ccmake) and make::
 
-    mv mindboggle_tools YOUR_SOFTWARE_PATH
-    cd YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
+    cd mindboggle/mindboggle_tools/bin/
     cmake ..
     make
 
 Step 3: Set environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 For your system to recognize the C++ code we just compiled, include
-the following lines in your system's equivalent of a .bash_profile file::
+the following lines in your system's equivalent of a .bash_profile file,
+replacing <path to mindboggle> and <path to anaconda>::
 
-    MINDBOGGLE_TOOLS=YOUR_SOFTWARE_PATH/mindboggle_tools/bin/
+    MINDBOGGLE_TOOLS=<path to mindboggle>/mindboggle_tools/bin/
     export MINDBOGGLE_TOOLS
     export PATH=$PATH:$MINDBOGGLE_TOOLS
+    export DYLD_LIBRARY_PATH=<path to anaconda>/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
 
 Optional environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -89,9 +92,3 @@ directory by including one more environment variable as above::
     export MINDBOGGLE_CACHE
     export PATH=$PATH:$MINDBOGGLE_CACHE
 
-If you do not wish to use FreeSurfer and do not have it installed (see README),
-also include the following environment variable as above::
-
-    SUBJECTS_DIR=YOUR_FREESURFER_SUBJECTS_PATH
-    export SUBJECTS_DIR
-    export PATH=$PATH:$SUBJECTS_DIR
