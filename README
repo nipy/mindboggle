@@ -25,40 +25,55 @@ and documentation is under a `Creative Commons Attribution 3.0 License`_.
 
 Inputs
 ======
-Mindboggle currently uses ANTS for registration-based volume labels
-and FreeSurfer to initialize cortical surface labels. The easiest way
-to prepare inputs for Mindboggle is to simply run FreeSurfer_::
+Mindboggle currently uses output from FreeSurfer v5.3 and the newest ANTs
+software packages.
+FreeSurfer provides labeled cortical surface meshes and subcortical volumes
+as well as white and gray matter segmentation.
+ANTS provides brain extraction, segmentation, and registration-based labeling.
+To prepare inputs for Mindboggle, run FreeSurfer_::
 
     $ recon-all -all -s <subject> -i <T1 image>
 
-Alternatively, a user can provide 2-4 vtk surfaces and 1-3 nifti volumes
-in a FreeSurfer-like directory tree after setting appropriate command-line
-arguments (and $SUBJECTS_DIR, as described in the **INSTALL** file).
-[Warning: this alternative has not been fully tested yet!]
-For the left and right hemispheres [lh,rh] of subject Twins-2-1:
+And run the ANTs script antsCorticalThickness.sh with the
+`OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+on each anatomical_image with an output ants_prefix (backslashes denote line returns)::
 
-    $SUBJECTS_DIR/Twins-2-1/
-        |        surf/[lh,rh].pial.vtk
-        |        label/[lh,rh].labels.DKT25.manual.vtk
-        |        mri/brain.nii.gz
-        |        mri/[lh,rh].ribbon.nii.gz
+    $ antsCorticalThickness.sh -d 3 \
+      -a anatomical_image \
+      -e OASIS-30/template/T_template0.nii.gz \
+      -m OASIS-30/template/T_template0ProbabilityMask.nii.gz \
+      -p OASIS-30/template/Priors/priors%d.nii.gz \
+      -f OASIS-30/template/T_template0ExtractionMask.nii.gz \
+      -k 1 \
+      -o ants_prefix \
+      -w 0.25 \
+      -n 3
 
-Example
-=======
-Terminal command for processing multiple subjects with 4 processors::
+Examples
+========
+Terminal command for processing (on 4 processors) multiple subjects without ANTs data::
 
     >>> python mindboggler.py subject1 subject2 subject3 -n 4
+
+Example using ANTs data::
+
+    >>> python mindboggler.py subject1 subject2 subject3 --ants_data ~/ants_output tmp
+
+Example using most of the currently available options within Mindboggle::
+
+    >>> python mindboggler.py subject1 subject2 subject3 --ants_data ~/ants_output tmp --sulci --fundi --vertices --spectra 10 --visual hier
 
 Outputs
 =======
 By default, all atlas and template data retrieved via the Internet
 as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
-and final outputs are saved in $HOME/mindboggled/:
+and final outputs are saved in $HOME/mindboggled/
+(where $HOME is the home directory):
 
 +-+---------------+----------------------------------------------+----------+
 | |  **Folder**   | **Contents**                                 |**Format**|
 +-+---------------+----------------------------------------------+----------+
-| |   tables/     |  tables of shape measures per feature        | .csv     |
+| |   tables/     |  tables of shape measures per label/feature  | .csv     |
 +-+---------------+----------------------------------------------+----------+
 | |   labels/     |  number-labeled volumes and surfaces         | .nii,.vtk|
 +-+---------------+----------------------------------------------+----------+
@@ -66,11 +81,9 @@ and final outputs are saved in $HOME/mindboggled/:
 +-+---------------+----------------------------------------------+----------+
 | |   features/   |  surface features: folds, sulci, fundi       | .vtk     |
 +-+---------------+----------------------------------------------+----------+
-| |   transforms/ |  ANTS volume registration transforms         | .nii     |
-+-+---------------+----------------------------------------------+----------+
 
 Image volumes (.nii.gz) store anatomical labels as numbers
-listed in mindboggle/labels/protocol.py and the LABELS file and online:
+listed in the mindboggle/LABELS.py file and online:
 http://mindboggle.info/data/mindboggle101/protocol.txt, and
 all left (lh) and right (rh) cortical hemisphere surface (.vtk)
 vertices are number-labeled by anatomical label, feature, or shape.
@@ -78,7 +91,7 @@ vertices are number-labeled by anatomical label, feature, or shape.
 *Volume labels*
     - Cortical gray matter filled with surface labels
     - Whole brain labeled by registered atlas
-    - Combined labels: filled cortex and registered subcortex
+    - Combined labels: filled cortex and filled noncortex
 
 *Surface labels*
     - DKT classifier labels
@@ -86,7 +99,7 @@ vertices are number-labeled by anatomical label, feature, or shape.
 *Surface features*
     - Folds
     - Sulci
-    - Fundi
+    - Fundi (per fold and per sulcus)
 
 *Surface shapes*
     - Surface area
@@ -99,7 +112,46 @@ vertices are number-labeled by anatomical label, feature, or shape.
     - Zernike moments (per feature)
 
 *Tables*
-    - Label shapes and volumes
+    - Label shapes
+    - Label volumes
+    - Cortical label thicknesses
     - Sulcus shapes
     - Fundus shapes
-    - Vertex measures (optional)
+    - Vertex measures
+
+Output directory structure
+==========================
+|
+| mindboggled/
+|     features/
+|         [left,right]_surface/<subject>/
+|             folds.vtk
+|             fundus_per_fold.vtk
+|             fundus_per_sulcus.vtk
+|             sulci.vtk
+|     labels/
+|         [left,right]_surface/<subject>/
+|             FreeSurfer_filled_labels.nii.gz
+|             [lh,rh].parc.vtk
+|             relabeled_[lh,rh].parc.vtk
+|         <subject>/
+|             ANTs_registered_labels.nii.gz
+|             cortex_and_noncortex.nii.gz
+|             [left,right]_ANTs_filled_labels.nii.gz
+|     shapes/
+|         [left,right]_surface/<subject>/
+|             [lh,rh].pial.area.vtk
+|             [lh,rh].pial.geodesic_depth.vtk
+|             [lh,rh].pial.mean_curvature.vtk
+|             [lh,rh].pial.travel_depth.vtk
+|             [lh,rh].pial.sulc.vtk
+|             [lh,rh].pial.thickness.vtk
+|     tables/
+|         [left,right]_surface/<subject>/
+|             fundus_shapes.csv
+|             label_shapes.csv
+|             sulcus_shapes.csv
+|             vertices.csv
+|             volumes_of_FreeSurfer_filled_labels.csv
+|         <subject>/
+|             [left,right]_volumes_of_ANTs_filled_labels.csv
