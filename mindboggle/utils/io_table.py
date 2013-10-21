@@ -57,7 +57,7 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
     """
     Write table with columns and column names.  Assumes space(s) as delimiter.
 
-    If there is an input table file to append to, assume a 1-line header.
+    If there is an input table file to append to, assume a one-line header.
 
     Parameters
     ----------
@@ -71,10 +71,8 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
         string bracketing each element, such as '"'
     input_table : string (default is empty string)
         name of table file to which the columns are to be appended
-    output_dir : string
-        name of output table directory
-    output_file : string
-        name of output table file
+    output_table : string
+        name of output table file (full path)
 
     Returns
     -------
