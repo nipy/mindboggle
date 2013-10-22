@@ -40,7 +40,9 @@ ANTS_
     whole-brain labeling, brain extraction, and tissue-class segmentation.
     Mindboggle combines the segmentation from FreeSurfer and ANTs and
     propagates labels through cortex and noncortex voxels.
-
+    Please download the
+    `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+    to run with ANTs.
 
 Download Mindboggle
 -------------------

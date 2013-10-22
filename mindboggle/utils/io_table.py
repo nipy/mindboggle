@@ -102,11 +102,15 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
     from mindboggle.utils.io_table import read_columns
 
     if not output_table:
-        if not input_table:
-            output_table = os.path.join(os.getcwd(), 'table.csv')
-        else:
+        if input_table:
             s = os.path.basename(input_table).split('.')[0] + '.csv'
             output_table = os.path.join(os.getcwd(), s)
+        else:
+            if column_names:
+                s = '_'.join(column_names) + '_'
+            else:
+                s = ''
+            output_table = os.path.join(os.getcwd(), s + 'table.csv')
 
     if quote:
         q = '"'

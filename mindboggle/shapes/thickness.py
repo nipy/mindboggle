@@ -54,7 +54,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Returns
     -------
-    thickness_table : numpy array containing integers and floats
+    label_volume_area_thickness : list of lists of integers and floats
         label indices, volumes, areas, and thickness values
     table_file : string
         name of output table file
@@ -63,7 +63,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     --------
     >>> from mindboggle.shapes.thickness import thickinthehead
     >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpBrainSegmentation.nii.gz'
-    >>> labeled_file = 'labels.nii.gz'
+    >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
     >>> cortex_value = 2
     >>> noncortex_value = 3
     >>> #labels = [2]
@@ -77,9 +77,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> resize = True
     >>> propagate = False
     >>> output_dir = ''
-    >>> output_table = label_volume_area_thickness.csv
+    >>> output_table = ''
     >>> use_c3d = False
-    >>> thickness_table, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table, use_c3d)
+    >>> label_volume_area_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table, use_c3d)
 
     """
     import os
@@ -218,9 +218,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         labeled_data = nb.load(labeled_file).get_data().ravel()
         labels = np.unique(labeled_data)
     labels = [int(x) for x in labels]
-    if output_table:
-        label_volume_area_thickness = np.zeros((len(labels), 4))
-        label_volume_area_thickness[:,0] = labels
+    label_volume_area_thickness = np.zeros((len(labels), 4))
+    label_volume_area_thickness[:,0] = labels
     for ilabel, label in enumerate(labels):
 
         #---------------------------------------------------------------------
@@ -237,10 +236,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             else:
                 label_area = label_inner_edge_volume
             thickness = label_cortex_volume / label_area
-            if output_table:
-                label_volume_area_thickness[ilabel,1] = label_cortex_volume
-                label_volume_area_thickness[ilabel,2] = label_area
-                label_volume_area_thickness[ilabel,3] = thickness
+            label_volume_area_thickness[ilabel,1] = label_cortex_volume
+            label_volume_area_thickness[ilabel,2] = label_area
+            label_volume_area_thickness[ilabel,3] = thickness
             print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
                   'outer={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
                   format(label, label_cortex_volume, label_inner_edge_volume,
@@ -252,6 +250,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
     else:
         table_file = ''
+
+    label_volume_area_thickness = label_volume_area_thickness.\
+        transpose().tolist()
 
     return label_volume_area_thickness, table_file
 
