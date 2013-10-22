@@ -20,8 +20,7 @@ Help
 License
 =======
 Except where noted, all Mindboggle software is under the `Apache v2.0`_
-license (see the LICENSE file in the Mindboggle distribution),
-and documentation is under a `Creative Commons Attribution 3.0 License`_.
+license, and documentation is under a `Creative Commons Attribution 3.0 License`_.
 
 Inputs
 ======
@@ -30,78 +29,131 @@ software packages.
 FreeSurfer provides labeled cortical surface meshes and subcortical volumes
 as well as white and gray matter segmentation.
 ANTS provides brain extraction, segmentation, and registration-based labeling.
-To prepare inputs for Mindboggle, run FreeSurfer_::
 
-    $ recon-all -all -s <subject> -i <T1 image>
+To prepare inputs for Mindboggle, run FreeSurfer_ on each T1-weighted IMAGE file and set the SUBJECT name
+(replace capitalized text below when typing in a terminal window)::
 
-And run the ANTs script antsCorticalThickness.sh with the
-`OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
-on each anatomical_image with an output ants_prefix (backslashes denote line returns)::
+    $ recon-all -all -s SUBJECT -i IMAGE
+
+To run the antsCorticalThickness.sh script in ANTs on the same IMAGE file,
+download the `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_,
+set an output PREFIX, and set "-k 1" to save registration transforms (backslashes denote line returns)::
 
     $ antsCorticalThickness.sh -d 3 \
-      -a anatomical_image \
-      -e OASIS-30/template/T_template0.nii.gz \
-      -m OASIS-30/template/T_template0ProbabilityMask.nii.gz \
-      -p OASIS-30/template/Priors/priors%d.nii.gz \
-      -f OASIS-30/template/T_template0ExtractionMask.nii.gz \
+      -a IMAGE \
+      -e OASIS-30_Atropos_template/T_template0.nii.gz \
+      -m OASIS-30_Atropos_template/T_template0ProbabilityMask.nii.gz \
+      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz \
+      -f OASIS-30_Atropos_template/T_template0ExtractionMask.nii.gz \
       -k 1 \
-      -o ants_prefix \
+      -o PREFIX \
       -w 0.25 \
       -n 3
 
 Examples
 ========
-Terminal command for processing (on 4 processors) multiple subjects without ANTs data::
+Terminal command for processing (on 4 processors) multiple subjects with only FreeSurfer data::
 
-    >>> python mindboggler.py subject1 subject2 subject3 -n 4
+    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 -n 4
 
-Example using ANTs data::
+Example using ANTs data (with PREFIX for files in folder ~/ants_data)::
 
-    >>> python mindboggler.py subject1 subject2 subject3 --ants_data ~/ants_output tmp
+    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
 
 Example using most of the currently available options within Mindboggle::
 
-    >>> python mindboggler.py subject1 subject2 subject3 --ants_data ~/ants_output tmp --sulci --fundi --vertices --spectra 10 --visual hier
+    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
+    ...                       --sulci --fundi --vertices --spectra 10 --thickness
+    ...                       --visual hier
 
 Outputs
 =======
 By default, all atlas and template data retrieved via the Internet
 as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
 and final outputs are saved in $HOME/mindboggled/
-(where $HOME is the home directory):
+(where $HOME is the home directory).
+Nifti_ image volumes (.nii.gz) store anatomical labels as numbers
+listed in the mindboggle/LABELS.py file and `online <http://mindboggle.info/data/mindboggle101/protocol.txt>`_, and
+all left and right cortical surface (.vtk) vertices are number-labeled
+by anatomical label, feature, or shape measure. Shape measure statistics
+are stored in tables (.csv).
 
-+-+---------------+----------------------------------------------+----------+
-| |  **Folder**   | **Contents**                                 |**Format**|
-+-+---------------+----------------------------------------------+----------+
-| |   tables/     |  tables of shape measures per label/feature  | .csv     |
-+-+---------------+----------------------------------------------+----------+
-| |   labels/     |  number-labeled volumes and surfaces         | .nii,.vtk|
-+-+---------------+----------------------------------------------+----------+
-| |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk     |
-+-+---------------+----------------------------------------------+----------+
-| |   features/   |  surface features: folds, sulci, fundi       | .vtk     |
-+-+---------------+----------------------------------------------+----------+
++-+---------------+----------------------------------------------+--------------+
+| |  **Folder**   | **Contents**                                 | **Format**   |
++-+---------------+----------------------------------------------+--------------+
+| |   features/   |  surface features: folds, sulci, fundi       | .vtk         |
++-+---------------+----------------------------------------------+--------------+
+| |   labels/     |  number-labeled surfaces and volumes         | .vtk, .nii.gz|
++-+---------------+----------------------------------------------+--------------+
+| |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk         |
++-+---------------+----------------------------------------------+--------------+
+| |   tables/     |  tables of shape measures per label/feature  | .csv         |
++-+---------------+----------------------------------------------+--------------+
 
-Image volumes (.nii.gz) store anatomical labels as numbers
-listed in the mindboggle/LABELS.py file and online:
-http://mindboggle.info/data/mindboggle101/protocol.txt, and
-all left (lh) and right (rh) cortical hemisphere surface (.vtk)
-vertices are number-labeled by anatomical label, feature, or shape.
+**mindboggled**/
 
-*Volume labels*
-    - Cortical gray matter filled with surface labels
-    - Whole brain labeled by registered atlas
-    - Combined labels: filled cortex and filled noncortex
+    **features**/[left,right]_surface/SUBJECT/  *# features extracted from cortical surface meshes*
 
-*Surface labels*
-    - DKT classifier labels
+            **folds**.vtk  *# depth-based cortical surface folds (invaginations)*
 
-*Surface features*
-    - Folds
-    - Sulci
-    - Fundi (per fold and per sulcus)
+            **fundus_per_fold**.vtk  *# curves running along depths of folds*
 
-*Surface shapes*
+            **fundus_per_sulcus**.vtk  *# fundus curves segmented by sulcus labels*
+
+            **sulci**.vtk  *# folds segmented into sulci using label pairs*
+
+    **labels**/[left,right]_surface/SUBJECT/  *# FreeSurfer-based surface and volume labels*
+
+            **FreeSurfer_cortex_labels**.vtk  *# DKT40 classifier surface labels*
+
+            **FreeSurfer_cortex_volume_labels**.vtk  *# surfaces relabeled to correspond to volume labels (left=1000+; right=2000+)
+
+            **FreeSurfer_filled_labels**.nii.gz  *# cortex and noncortex separately filled with atlas labels*
+
+    **labels**/SUBJECT/atlas/  *# ANTs-based volume labels*
+
+            **ANTs_registered_labels**.nii.gz  *# atlas labels registered to subject*
+
+            [left,right]_ **ANTs_filled_labels**.nii.gz  *# cortex and noncortex separately filled with atlas labels*
+
+    **labels**/**cortex_and_noncortex**.nii.gz  *# brain segmented into cortex=2 and noncortex=3*
+
+    **shapes**/[left,right]_surface/SUBJECT/  *# per-vertex surface shape measures*
+
+            **area**.vtk
+
+            **FreeSurfer_convexity**.vtk  *# FreeSurfer's [lh,rh].sulc files*
+
+            **FreeSurfer_thickness**.vtk  *# FreeSurfer's [lh,rh].thickness files*
+
+            **geodesic_depth**.vtk
+
+            **mean_curvature**.vtk
+
+            **travel_depth**.vtk
+
+    **tables**/[left,right]_surface/SUBJECT/  *# tables with per-feature surface shape statistics*
+
+            **fundus_shapes**.csv
+
+            **label_shapes**.csv
+
+            **sulcus_shapes**.csv
+
+            **thicknesses_of_FreeSurfer_filled_cortex_labels**.csv
+
+            **vertices**.csv  *# (exception: per-vertex shape table)*
+
+            **volumes_of_FreeSurfer_filled_labels**.csv
+
+    **tables**/SUBJECT/atlas/  *# tables with per-label volumes*
+
+            [left,right]_ **thicknesses_of_ANTs_filled_cortex_labels**.csv
+
+            [left,right]_ **volumes_of_ANTs_filled_labels**.csv
+
+The shape tables above contain a subset of the following measures:
+
     - Surface area
     - Travel depth
     - Geodesic depth
@@ -110,48 +162,4 @@ vertices are number-labeled by anatomical label, feature, or shape.
     - Thickness (FreeSurfer)
     - Laplace-Beltrami spectra (per feature)
     - Zernike moments (per feature)
-
-*Tables*
-    - Label shapes
-    - Label volumes
-    - Cortical label thicknesses
-    - Sulcus shapes
-    - Fundus shapes
-    - Vertex measures
-
-Output directory structure
-==========================
-|
-| mindboggled/
-|     features/
-|         [left,right]_surface/<subject>/
-|             folds.vtk
-|             fundus_per_fold.vtk
-|             fundus_per_sulcus.vtk
-|             sulci.vtk
-|     labels/
-|         [left,right]_surface/<subject>/
-|             FreeSurfer_filled_labels.nii.gz
-|             [lh,rh].parc.vtk
-|             relabeled_[lh,rh].parc.vtk
-|         <subject>/
-|             ANTs_registered_labels.nii.gz
-|             cortex_and_noncortex.nii.gz
-|             [left,right]_ANTs_filled_labels.nii.gz
-|     shapes/
-|         [left,right]_surface/<subject>/
-|             [lh,rh].pial.area.vtk
-|             [lh,rh].pial.geodesic_depth.vtk
-|             [lh,rh].pial.mean_curvature.vtk
-|             [lh,rh].pial.travel_depth.vtk
-|             [lh,rh].pial.sulc.vtk
-|             [lh,rh].pial.thickness.vtk
-|     tables/
-|         [left,right]_surface/<subject>/
-|             fundus_shapes.csv
-|             label_shapes.csv
-|             sulcus_shapes.csv
-|             vertices.csv
-|             volumes_of_FreeSurfer_filled_labels.csv
-|         <subject>/
-|             [left,right]_volumes_of_ANTs_filled_labels.csv
+    - Volume and thickness
