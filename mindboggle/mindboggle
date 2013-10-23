@@ -8,7 +8,7 @@ For help in using Mindboggle ::
     - README file
     - Help on the command line::
 
-        >>> python mindboggler.py --help
+        $ mindboggle --help
 
 This file uses Nipype (http://www.nipy.org/nipype/) to create a workflow
 environment to enable Mindboggle to run in a flexible, modular manner
@@ -79,7 +79,7 @@ from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
 #=============================================================================
 parser = argparse.ArgumentParser()
 parser.add_argument("SUBJECTS",
-                    help=('Example: "python %(prog)s sub1 sub2 sub3" '
+                    help=('Example: "%(prog)s sub1 sub2 sub3" '
                           '"sub1",... are subject names corresponding to '
                           'subject directories within $freesurfer_data'),
                     nargs='+') #, metavar='')
@@ -1642,7 +1642,7 @@ if do_volumes and do_label:
                                     output_names=['output_file']))
         VolLabelFlow.add_nodes([FS2gray])
         FS2gray.inputs.mask_index = 2
-        VolLabelFlow.connect(JoinSegs, 'segmented_file', FS2gray, 'mask')
+        VolLabelFlow.connect(MaskHemi, 'output_file', FS2gray, 'mask')
         mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        VolLabelFlow,
                        'Fill_cortex_with_FreeSurfer_labels.surface_files')
@@ -1684,6 +1684,21 @@ if do_volumes and do_label:
         FS2white.inputs.output_file = ''
         FS2white.inputs.binarize = False
         FS2white.inputs.stopvalue = ''
+        ##---------------------------------------------------------------------
+        ## Split labeled noncortex volume by masking with left or right labels:
+        ##---------------------------------------------------------------------
+        #MaskHemiWM = Node(name='Mask_half_noncortex',
+        #                  interface=Fn(function=ImageMath,
+        #                               input_names=['volume1',
+        #                                            'volume2',
+        #                                            'operator',
+        #                                            'output_file'],
+        #                               output_names=['output_file']))
+        #VolLabelFlow.add_nodes([MaskHemiWM])
+        #VolLabelFlow.connect(FS2white, 'output_file', MaskHemiWM, 'volume1')
+        #VolLabelFlow.connect(CreateHemiMask, 'output_file', MaskHemiWM, 'volume2')
+        #MaskHemiWM.inputs.operator = 'm'
+        #MaskHemiWM.inputs.output_file = ''
         #---------------------------------------------------------------------
         # Combine FreeSurfer label-filled cortex and noncortex:
         #---------------------------------------------------------------------
@@ -1903,7 +1918,7 @@ if do_volumes and do_label:
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSgmThicknesses])
-            VolShapeFlow.connect(JoinSegs, 'segmented_file',
+            VolShapeFlow.connect(MaskHemi, 'output_file',
                                  FSgmThicknesses, 'segmented_file')
             mbFlow.connect(VolLabelFlow,
                    'FreeSurfer_filled_labels.output_file',
