@@ -54,8 +54,7 @@ from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk, label_with_classifier, combine_segmentations
 from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
-    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
-    ThresholdImage
+    PropagateLabelsThroughMask, fill_volume_with_surface_labels, split_brain
 from mindboggle.LABELS import dkt_protocol
 from mindboggle.labels.relabel import relabel_surface, \
     keep_volume_labels, overwrite_volume_labels
@@ -1490,46 +1489,18 @@ if do_volumes and do_label:
     # Split brain by masking with left or right labels:
     #-------------------------------------------------------------------------    
     SplitBrain = Node(name='Split_brain',
-                      interface=Fn(function=keep_volume_labels,
-                                   input_names=['input_file',
-                                                'labels_to_keep',
-                                                'output_file'],
-                                   output_names=['output_file']))
+                      interface=Fn(function=split_brain,
+                                   input_names=['image_file',
+                                                'label_file',
+                                                'left_labels',
+                                                'right_labels'],
+                                   output_names=['left_segmented',
+                                                 'right_segmented']))
     VolLabelFlow.add_nodes([SplitBrain])
-    VolLabelFlow.connect(FillBrain, 'output_file', SplitBrain, 'input_file')
-    SplitBrain.iterables = ('labels_to_keep', [left_label_numbers + [2, 3],
-                                              right_label_numbers + [41, 42]])
-    SplitBrain.inputs.output_file = ''
-    #-------------------------------------------------------------------------
-    # Create a mask for the left or right labels:
-    #-------------------------------------------------------------------------
-    CreateHemiMask = Node(name='Create_half_brain_mask',
-                          interface=Fn(function=ThresholdImage,
-                                       input_names=['volume',
-                                                    'output_file',
-                                                    'threshlo',
-                                                    'threshhi'],
-                                       output_names=['output_file']))
-    VolLabelFlow.add_nodes([CreateHemiMask])
-    VolLabelFlow.connect(SplitBrain, 'output_file', CreateHemiMask, 'volume')
-    CreateHemiMask.inputs.output_file = ''
-    CreateHemiMask.inputs.threshlo = 1
-    CreateHemiMask.inputs.threshhi = 10000
-    #-------------------------------------------------------------------------
-    # Split segmented brain by masking with left or right labels:
-    #-------------------------------------------------------------------------
-    MaskHemi = Node(name='Mask_half_segmented_brain',
-                    interface=Fn(function=ImageMath,
-                                 input_names=['volume1',
-                                              'volume2',
-                                              'operator',
-                                              'output_file'],
-                                 output_names=['output_file']))
-    VolLabelFlow.add_nodes([MaskHemi])
-    VolLabelFlow.connect(JoinSegs, 'segmented_file', MaskHemi, 'volume1')
-    VolLabelFlow.connect(CreateHemiMask, 'output_file', MaskHemi, 'volume2')
-    MaskHemi.inputs.operator = 'm'
-    MaskHemi.inputs.output_file = ''
+    VolLabelFlow.connect(JoinSegs, 'segmented_file', SplitBrain, 'image_file')
+    VolLabelFlow.connect(FillBrain, 'output_file', SplitBrain, 'label_file')
+    SplitBrain.inputs.left_labels = left_label_numbers + [41, 42]
+    SplitBrain.inputs.right_labels = right_label_numbers + [2, 3]
 
     #=========================================================================
     # Fill segmentation volumes with ANTs labels
