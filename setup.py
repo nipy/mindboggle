@@ -88,7 +88,7 @@ def main(**extra_args):
           #                 #pjoin('extract', 'medial_surfaces', '*'),
           #                 #pjoin('measure', 'surface_measures', '*.cpp')
           #                ]},
-          #scripts      = [pjoin('bin', 'parrec2nii'),
+          scripts      = [pjoin('mindboggle', 'mindboggle')],
           #                pjoin('bin', 'nib-ls'),
           #                ],
           cmdclass = cmdclass,

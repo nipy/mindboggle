@@ -13,7 +13,7 @@ Help
 - `Installation instructions <INSTALL.html>`_
 - Help on the command line::
 
-    >>> python mindboggler.py --help
+    $ mindboggle --help
 
 - `Contributor list <THANKS.html>`_
 
@@ -30,14 +30,15 @@ FreeSurfer provides labeled cortical surface meshes and subcortical volumes
 as well as white and gray matter segmentation.
 ANTS provides brain extraction, segmentation, and registration-based labeling.
 
-To prepare inputs for Mindboggle, run FreeSurfer_ on each T1-weighted IMAGE file and set the SUBJECT name
+To prepare inputs for Mindboggle, run FreeSurfer_ on each T1-weighted IMAGE file
+and set the SUBJECT name on the command line
 (replace capitalized text below when typing in a terminal window)::
 
     $ recon-all -all -s SUBJECT -i IMAGE
 
 To run the antsCorticalThickness.sh script in ANTs on the same IMAGE file,
-download the `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_,
-set an output PREFIX, and set "-k 1" to save registration transforms (backslashes denote line returns)::
+set an output PREFIX, set "-k 1" (to save registration transforms),
+and provide paths to OASIS-30 template files (backslashes denote line returns)::
 
     $ antsCorticalThickness.sh -d 3 \
       -a IMAGE \
@@ -54,17 +55,16 @@ Examples
 ========
 Terminal command for processing (on 4 processors) multiple subjects with only FreeSurfer data::
 
-    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 -n 4
+    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 -n 4
 
 Example using ANTs data (with PREFIX for files in folder ~/ants_data)::
 
-    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
+    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
 
 Example using most of the currently available options within Mindboggle::
 
-    >>> python mindboggler.py SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
-    ...                       --sulci --fundi --vertices --spectra 10 --thickness
-    ...                       --visual hier
+    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX \
+                 --sulci --fundi --vertices --spectra 10 --thickness --visual hier
 
 Outputs
 =======
@@ -106,15 +106,15 @@ are stored in tables (.csv).
 
             **FreeSurfer_cortex_labels**.vtk  *# DKT40 classifier surface labels*
 
-            **FreeSurfer_cortex_volume_labels**.vtk  *# surfaces relabeled to correspond to volume labels (left=1000+; right=2000+)
+            **FreeSurfer_cortex_volume_labels**.vtk  *# surface with volume labels (left=1000+; right=2000+)
 
-            **FreeSurfer_filled_labels**.nii.gz  *# cortex and noncortex separately filled with atlas labels*
+            **FreeSurfer_filled_labels**.nii.gz  *# non/cortex separately filled with atlas labels*
 
     **labels**/SUBJECT/atlas/  *# ANTs-based volume labels*
 
             **ANTs_registered_labels**.nii.gz  *# atlas labels registered to subject*
 
-            [left,right]_ **ANTs_filled_labels**.nii.gz  *# cortex and noncortex separately filled with atlas labels*
+            [left,right]_ **ANTs_filled_labels**.nii.gz  *# non/cortex separately filled with atlas labels*
 
     **labels**/**cortex_and_noncortex**.nii.gz  *# brain segmented into cortex=2 and noncortex=3*
 
