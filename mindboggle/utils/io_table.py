@@ -107,10 +107,10 @@ def write_columns(columns, column_names, delimiter=',', quote=True,
             output_table = os.path.join(os.getcwd(), s)
         else:
             if column_names:
-                s = '_'.join(column_names) + '_'
+                s = '_'.join(column_names)
             else:
-                s = ''
-            output_table = os.path.join(os.getcwd(), s + 'table.csv')
+                s = 'table'
+            output_table = os.path.join(os.getcwd(), s + '.csv')
 
     if quote:
         q = '"'

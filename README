@@ -81,76 +81,88 @@ are stored in tables (.csv).
 +-+---------------+----------------------------------------------+--------------+
 | |  **Folder**   | **Contents**                                 | **Format**   |
 +-+---------------+----------------------------------------------+--------------+
-| |   features/   |  surface features: folds, sulci, fundi       | .vtk         |
-+-+---------------+----------------------------------------------+--------------+
 | |   labels/     |  number-labeled surfaces and volumes         | .vtk, .nii.gz|
++-+---------------+----------------------------------------------+--------------+
+| |   features/   |  surface features: folds, sulci, fundi       | .vtk         |
 +-+---------------+----------------------------------------------+--------------+
 | |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk         |
 +-+---------------+----------------------------------------------+--------------+
 | |   tables/     |  tables of shape measures per label/feature  | .csv         |
 +-+---------------+----------------------------------------------+--------------+
 
-**mindboggled**/
+**mindboggled /**
 
-    **features**/[left,right]_surface/SUBJECT/  *# features extracted from cortical surface meshes*
+    *Volume labels:*
 
-            **folds**.vtk  *# depth-based cortical surface folds (invaginations)*
+    **labels** / SUBJECT /
 
-            **fundus_per_fold**.vtk  *# curves running along depths of folds*
+        **cortex_and_noncortex**.nii.gz:    *brain segmented into cortex=2 and noncortex=3*
 
-            **fundus_per_sulcus**.vtk  *# fundus curves segmented by sulcus labels*
+        **ANTs_registered_labels**.nii.gz:    *atlas labels registered to subject with ANTs*
 
-            **sulci**.vtk  *# folds segmented into sulci using label pairs*
+        **ANTs_filled_labels**.nii.gz:    *non/cortex separately filled with ANTs labels*
 
-    **labels**/[left,right]_surface/SUBJECT/  *# FreeSurfer-based surface and volume labels*
+        **FreeSurfer_filled_labels**.nii.gz:    *non/cortex separately filled with FreeSurfer labels*
 
-            **FreeSurfer_cortex_labels**.vtk  *# DKT40 classifier surface labels*
+    *FreeSurfer-based surface labels:*
 
-            **FreeSurfer_cortex_volume_labels**.vtk  *# surface with volume labels (left=1000+; right=2000+)
+    **labels** / [left,right]_surface / SUBJECT /
 
-            **FreeSurfer_filled_labels**.nii.gz  *# non/cortex separately filled with atlas labels*
+        **FreeSurfer_cortex_labels**.vtk:    *DKT40 classifier surface labels*
 
-    **labels**/SUBJECT/atlas/  *# ANTs-based volume labels*
+        **FreeSurfer_cortex_volume_labels**.vtk:    *surface with volume labels (left=1000+; right=2000+)*
 
-            **ANTs_registered_labels**.nii.gz  *# atlas labels registered to subject*
+    *Features extracted from cortical surface meshes:*
 
-            [left,right]_ **ANTs_filled_labels**.nii.gz  *# non/cortex separately filled with atlas labels*
+    **features** / [left,right]_surface / SUBJECT /
 
-    **labels**/**cortex_and_noncortex**.nii.gz  *# brain segmented into cortex=2 and noncortex=3*
+        **folds**.vtk:    *depth-based cortical surface folds (invaginations)*
 
-    **shapes**/[left,right]_surface/SUBJECT/  *# per-vertex surface shape measures*
+        **sulci**.vtk:    *folds segmented into sulci using label pairs*
 
-            **area**.vtk
+        **fundus_per_fold**.vtk:    *curves running along depths of folds*
 
-            **FreeSurfer_convexity**.vtk  *# FreeSurfer's [lh,rh].sulc files*
+        **fundus_per_sulcus**.vtk:    *fundus curves segmented by sulcus labels*
 
-            **FreeSurfer_thickness**.vtk  *# FreeSurfer's [lh,rh].thickness files*
+    *Per-vertex surface shape measures:*
 
-            **geodesic_depth**.vtk
+    **shapes** / [left,right]_surface / SUBJECT /
 
-            **mean_curvature**.vtk
+        **area**.vtk
 
-            **travel_depth**.vtk
+        **mean_curvature**.vtk
 
-    **tables**/[left,right]_surface/SUBJECT/  *# tables with per-feature surface shape statistics*
+        **geodesic_depth**.vtk
 
-            **fundus_shapes**.csv
+        **travel_depth**.vtk
 
-            **label_shapes**.csv
+        **FreeSurfer_convexity**.vtk:    *FreeSurfer's [lh,rh].sulc files*
 
-            **sulcus_shapes**.csv
+        **FreeSurfer_thickness**.vtk:    *FreeSurfer's [lh,rh].thickness files*
 
-            **thicknesses_of_FreeSurfer_filled_cortex_labels**.csv
+    *Tables with per-feature surface shape statistics:*
 
-            **vertices**.csv  *# (exception: per-vertex shape table)*
+    **tables** / [left,right]_surface / SUBJECT /
 
-            **volumes_of_FreeSurfer_filled_labels**.csv
+        **label_shapes**.csv
 
-    **tables**/SUBJECT/atlas/  *# tables with per-label volumes*
+        **sulcus_shapes**.csv
 
-            [left,right]_ **thicknesses_of_ANTs_filled_cortex_labels**.csv
+        **fundus_shapes**.csv
 
-            [left,right]_ **volumes_of_ANTs_filled_labels**.csv
+        **vertices**.csv:    *(exception: per-vertex shape measures)*
+
+    *Tables with per-label volumes and thicknesses:*
+
+    **tables** / SUBJECT /
+
+        **ANTs_filled_labels_volumes**.csv
+
+        **ANTs_filled_labels_volumes_areas_thicknesses**.csv
+
+        **FreeSurfer_filled_labels_volumes**.csv
+
+        **FreeSurfer_filled_labels_volumes_areas_thicknesses**.csv
 
 The shape tables above contain a subset of the following measures:
 

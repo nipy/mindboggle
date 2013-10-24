@@ -194,7 +194,9 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'ImageMath.nii.gz')
+        output_file = os.path.join(os.getcwd(),
+                                   os.path.basename(volume1) + '_' +
+                                   os.path.basename(volume2))
 
     cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
@@ -246,7 +248,8 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     from mindboggle.utils.utils import execute
 
     if not output_file:
-        output_file = os.path.join(os.getcwd(), 'ThresholdImage.nii.gz')
+        output_file = os.path.join(os.getcwd(),
+                                   'threshold_' + os.path.basename(volume))
 
     cmd = 'ThresholdImage 3 {0} {1} {2} {3}'.format(volume, output_file,
                                                     threshlo, threshhi)
@@ -463,6 +466,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'PropagateLabelsThroughMask.nii.gz')
+        output_file = os.path.join(os.getcwd(),
+                                   os.path.basename(labels) + '_through_' +
+                                   os.path.basename(mask))
 
     print('mask: {0}, labels: {1}'.format(mask, labels))
 
@@ -495,9 +501,9 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
     return output_file
 
 
-def fill_volume_with_surface_labels(mask, surface_files,
-                                    mask_index=None, output_file='',
-                                    binarize=False):
+def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
+                                    surface_files, mask_index=None,
+                                    output_file='', binarize=False):
     """
     Use ANTs to fill a volume mask with surface mesh labels.
 
@@ -509,8 +515,12 @@ def fill_volume_with_surface_labels(mask, surface_files,
 
     Parameters
     ----------
-    mask : string
-        nibabel-readable image volume
+    hemi : string
+        either 'lh' or 'rh', indicating brain's left or right hemisphere
+    left_mask : string
+        nibabel-readable left brain image mask volume
+    right_mask : string
+        nibabel-readable left brain image mask volume
     surface_files : string or list of strings
         VTK file(s) containing surface mesh(es) with labels as scalars
     mask_index : integer (optional)
@@ -534,11 +544,14 @@ def fill_volume_with_surface_labels(mask, surface_files,
     >>> surface_files = [os.path.join(path, 'arno', 'labels',
     >>>     'lh.labels.DKT25.manual.vtk'), os.path.join(path, 'arno', 'labels',
     >>>     'rh.labels.DKT25.manual.vtk')]
-    >>> mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> # For a quick test, simply mask with whole brain:
+    >>> hemi = 'rh'
+    >>> left_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> right_mask = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> mask_index = None
     >>> output_file = ''
     >>> binarize = True
-    >>> output_file = fill_volume_with_surface_labels(mask, surface_files, mask_index, output_file, binarize)
+    >>> output_file = fill_volume_with_surface_labels(hemi, left_mask, right_mask, surface_files, mask_index, output_file, binarize)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -552,6 +565,11 @@ def fill_volume_with_surface_labels(mask, surface_files,
 
     if isinstance(surface_files, str):
         surface_files = [surface_files]
+
+    if hemi == 'lh':
+        mask = left_mask
+    elif hemi == 'rh':
+        mask = right_mask
 
     # Transform vtk coordinates to voxel index coordinates in a target
     # volume by using the header transformation:
@@ -634,8 +652,10 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     from mindboggle.labels.relabel import keep_volume_labels
     from mindboggle.utils.ants import ThresholdImage, ImageMath
 
-    left_brain = os.path.join(os.getcwd(), 'left_brain.nii.gz')
-    right_brain = os.path.join(os.getcwd(), 'right_brain.nii.gz')
+    left_brain = os.path.join(os.getcwd(),
+                              'left_' + os.path.basename(image_file))
+    right_brain = os.path.join(os.getcwd(),
+                               'right_' + os.path.basename(image_file))
 
     #-------------------------------------------------------------------------
     # Split brain by masking with left or right labels:
