@@ -150,6 +150,9 @@ parser.add_argument("--cluster", action='store_true',
 parser.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
                                       '{hier,flat,exec}'),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
+parser.add_argument("--hashing", action='store_true',
+                    help=("Use content hashing to, for example, "
+                          "replace a file and run downstream of that step"))
 parser.add_argument("--version", help="Version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
@@ -1938,6 +1941,13 @@ if do_volumes and do_label:
 #-----------------------------------------------------------------------------
 #=============================================================================
 if __name__ == '__main__':
+
+    #-------------------------------------------------------------------------
+    # Set the workflow configuration to use content hashing:
+    #-------------------------------------------------------------------------
+    hashing = args.hashing
+    if hashing:
+        mbFlow.config['execution']['hash_method'] = 'content'
 
     #-------------------------------------------------------------------------
     # Generate a visual graph:
