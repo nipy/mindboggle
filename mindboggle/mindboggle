@@ -355,30 +355,9 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
     ('ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz',
      'ANTs_filled_labels.nii.gz'),
     ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas')]
-#    ('volume_registered_labels.nii.gz', 'ANTs_registered_labels.nii.gz'),
-#    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_relabeled_lh.aparc.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_relabeled_rh.aparc.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
-#     'FreeSurfer_filled_labels'),
-#    ('volume_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz_to_volume_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz',
-#     'ANTs_filled_labels')]
 #Sink.inputs.regexp_substitutions = [
 #    (r'_labels_to_keep_1.*/overwrite_volume_labels.nii.gz',
 #     r'left_ANTs_filled_labels.nii.gz'),
-#    (r'_labels_to_keep_2.*/overwrite_volume_labels.nii.gz',
-#     r'right_ANTs_filled_labels.nii.gz'),
-#    (r'/overwrite_volume_labels.nii.gz',
-#     r'/FreeSurfer_filled_labels.nii.gz'),
-#    (r'_labels_to_keep_1.*/label_volume.csv',
-#     r'left_volumes_of_ANTs_filled_labels.csv'),
-#    (r'_labels_to_keep_2.*/label_volume.csv',
-#     r'right_volumes_of_ANTs_filled_labels.csv'),
-#    (r'_labels_to_keep_1.*/label_volume_area_thickness.csv',
-#     r'left_thicknesses_of_ANTs_filled_cortex_labels.csv'),
-#    (r'_labels_to_keep_2.*/label_volume_area_thickness.csv',
-#     r'right_thicknesses_of_ANTs_filled_cortex_labels.csv'),
-#    (r'label_volume.csv',
-#     r'volumes_of_FreeSurfer_filled_labels.csv'),
-#    (r'label_volume_area_thickness.csv',
-#     r'thicknesses_of_FreeSurfer_filled_cortex_labels.csv')]
 
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
