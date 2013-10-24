@@ -113,7 +113,7 @@ parser.add_argument("--surface_labels",
                           "\"atlas\" (if using FreeSurfer older than 5.3)"),
                     choices=['freesurfer', 'atlas', 'manual'],
                     default='freesurfer', metavar='STR')
-parser.add_argument("--atlases", help=("Label with extra volume "
+parser.add_argument("--add_atlases", help=("Label with extra volume "
                                        "atlas file(s) in MNI152 space"),
                     nargs='+', metavar='')
 parser.add_argument("--sulci", action='store_true',
@@ -272,12 +272,10 @@ sulcus_names, unique_sulcus_label_pairs, \
 # Volume atlases:
 #-----------------------------------------------------------------------------
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
-atlas_volumes = [atlas_volume]
-arg_atlases = args.atlases
-if arg_atlases:
-    if isinstance(arg_atlases, str):
-        arg_atlases = [args_atlases]
-    atlas_volumes.extend(arg_atlases)
+add_atlases = args.add_atlases
+if add_atlases:
+    if isinstance(add_atlases, str):
+        add_atlases = [add_atlases]
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
@@ -303,9 +301,9 @@ mbFlow.base_dir = temp_path
 # Iterate inputs over subjects, hemispheres, and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
-InputVolAtlases = Node(name='Input_volume_atlases',
+InputAddAtlases = Node(name='Input_volume_atlases',
                        interface=IdentityInterface(fields=['atlas']))
-InputVolAtlases.iterables = ('atlas', atlas_volumes)
+InputAddAtlases.iterables = ('atlas', add_atlases)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
 InputSubjects.iterables = ('subject', subjects)
@@ -352,9 +350,8 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
     ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
      'FreeSurfer_filled_labels.nii.gz'),
-    ('ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz',
-     'ANTs_filled_labels.nii.gz'),
-    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas')]
+    ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz',
+     'ANTs_filled_labels.nii.gz')]
 #Sink.inputs.regexp_substitutions = [
 #    (r'_labels_to_keep_1.*/overwrite_volume_labels.nii.gz',
 #     r'left_ANTs_filled_labels.nii.gz'),
@@ -381,13 +378,8 @@ if do_ants:
     mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
     FetchANTs.inputs.stem = ants_prefix
     #-------------------------------------------------------------------------
-    # Retrieve atlas path(s); look up in hash table only for default atlas:
+    # Retrieve atlas path:
     #-------------------------------------------------------------------------
-    CheckAtlas = Node(name='Check_atlas',
-                      interface=Fn(function=check_if_match,
-                                   input_names=['input1',
-                                                'input2'],
-                                   output_names=['is_match']))
     FetchAtlas = Node(name='Fetch_atlas',
                       interface=Fn(function=retrieve_data,
                                    input_names=['data_file',
@@ -398,16 +390,14 @@ if do_ants:
                                                 'return_missing',
                                                 'lookup'],
                                    output_names=['data_path']))
-    mbFlow.add_nodes([CheckAtlas, FetchAtlas])
-    CheckAtlas.inputs.input1 = atlas_volume
-    mbFlow.connect(InputVolAtlases, 'atlas', CheckAtlas, 'input2')
-    mbFlow.connect(CheckAtlas, 'is_match', FetchAtlas, 'lookup')
-    mbFlow.connect(InputVolAtlases, 'atlas', FetchAtlas, 'data_file')
+    mbFlow.add_nodes([FetchAtlas])
+    FetchAtlas.inputs.data_file = atlas_volume
     FetchAtlas.inputs.url = url
     FetchAtlas.inputs.hashes = hashes
     FetchAtlas.inputs.cache_env = cache_env
     FetchAtlas.inputs.cache = cache
     FetchAtlas.inputs.return_missing = False
+    FetchAtlas.inputs.lookup = True
     #-------------------------------------------------------------------------
     # Compose single affine transform from subject to MNI152:
     #-------------------------------------------------------------------------
@@ -1523,16 +1513,8 @@ if do_volumes and do_label:
     # Fill segmentation volumes with ANTs labels
     #=========================================================================
     if do_ants:
-        #Basename = Node(name='Return_basename',
-        #                interface=Fn(function=return_basename,
-        #                             input_names=['input_path'],
-        #                             output_names=['basename']))
-        #VolLabelFlow.add_nodes([Basename])
-        #mbFlow.connect(FetchAtlas, 'data_path',
-        #               VolLabelFlow, 'Return_basename.input_path')
-
         #---------------------------------------------------------------------
-        # Transform atlas labels in MNI152 to subject via template:
+        # Transform default atlas labels in MNI152 to subject via template:
         #---------------------------------------------------------------------
         xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
         VolLabelFlow.add_nodes([xfm])
@@ -1540,8 +1522,7 @@ if do_volumes and do_label:
         xfm.inputs.default_value = 0
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
-        xfm.inputs.output_image = 'ANTS_registered_volume.nii.gz'
-        #VolLabelFlow.connect(Basename, 'basename', xfm, 'output_image')
+        xfm.inputs.output_image = 'ANTS_registered_volume_atlas.nii.gz'
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
@@ -1726,6 +1707,21 @@ if do_volumes and do_label:
         mbFlow.connect(VolLabelFlow, 'FreeSurfer_filled_labels.output_file',
                        Sink, 'labels.@freesurfer_filled')
 
+    #=========================================================================
+    # Transform labels from added atlas(es) in MNI152 to subject
+    #=========================================================================
+    if do_ants:
+        xfm2 = xfm.clone('Transform_added_atlases')
+        VolLabelFlow.add_nodes([xfm2])
+        mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
+                       'Transform_added_atlases.reference_image')
+        mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
+                       'Transform_added_atlases.transforms')
+        mbFlow.connect(InputAddAtlases, 'atlas', VolLabelFlow,
+                       'Transform_added_atlases.input_image')
+        mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
+                       Sink, 'labels.@added_atlases')
+
     ##=========================================================================
     ## Evaluate label volume overlaps
     ##=========================================================================
@@ -1833,6 +1829,28 @@ if do_volumes and do_label:
             mbFlow.connect(VolShapeFlow,
                            'ANTs_filled_label_volume_table.output_table',
                            Sink, 'tables.@volumes_of_ANTs_filled_labels')
+            #-----------------------------------------------------------------
+            # Volumes of labels in additional atlases transformed to subject:
+            #-----------------------------------------------------------------
+            if add_atlases:
+                antsLabelVolumes2 = FSlabelVolumes.clone(
+                    'Added_atlas_label_volumes')
+                VolShapeFlow.add_nodes([antsLabelVolumes2])
+                mbFlow.connect(VolLabelFlow,
+                               'Transform_added_atlases.output_image',
+                               VolShapeFlow,
+                               'Added_atlas_label_volumes.input_file')
+                # Table:
+                antsVolTable2 = FSVolTable.clone(
+                    'Added_atlas_label_volume_table')
+                VolShapeFlow.add_nodes([antsVolTable2])
+                antsVolTable2.inputs.column_names = ['Added_atlas_labels',
+                                                     'volumes']
+                VolShapeFlow.connect(antsLabelVolumes2, 'labels_volumes',
+                                     antsVolTable2, 'columns')
+                mbFlow.connect(VolShapeFlow,
+                               'Added_atlas_label_volume_table.output_table',
+                               Sink, 'tables.@volumes_of_added_atlas_labels')
 
         #=====================================================================
         # Measure volume, thickness of cortical regions of labeled image file
