@@ -94,13 +94,13 @@ are stored in tables (.csv).
 
     *Volume labels:*
 
+    **labels** / atlas / SUBJECT /
+
+        **ANTs_filled_labels**.nii.gz:    *non/cortex separately filled with ANTs labels*
+
     **labels** / SUBJECT /
 
         **cortex_and_noncortex**.nii.gz:    *brain segmented into cortex=2 and noncortex=3*
-
-        **ANTs_registered_labels**.nii.gz:    *atlas labels registered to subject with ANTs*
-
-        **ANTs_filled_labels**.nii.gz:    *non/cortex separately filled with ANTs labels*
 
         **FreeSurfer_filled_labels**.nii.gz:    *non/cortex separately filled with FreeSurfer labels*
 
@@ -154,11 +154,13 @@ are stored in tables (.csv).
 
     *Tables with per-label volumes and thicknesses:*
 
-    **tables** / SUBJECT /
+    **tables** / atlas / SUBJECT /
 
         **ANTs_filled_labels_volumes**.csv
 
         **ANTs_filled_labels_volumes_areas_thicknesses**.csv
+
+    **tables** / SUBJECT /
 
         **FreeSurfer_filled_labels_volumes**.csv
 

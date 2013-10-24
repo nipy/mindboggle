@@ -268,15 +268,14 @@ sulcus_names, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 # Volume atlases:
 #-----------------------------------------------------------------------------
+atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
+atlas_volumes = [atlas_volume]
+arg_atlases = args.atlases
+if arg_atlases:
+    if isinstance(arg_atlases, str):
+        arg_atlases = [args_atlases]
+    atlas_volumes.extend(arg_atlases)
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-atlas = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
-atlas_lookup_pairs = [[atlas, True]]
-atlases = args.atlases
-if atlases:
-    if isinstance(atlases, str):
-        atlases = list(atlases)
-    for x in atlases:
-        atlas_lookup_pairs.append([x, False])
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
@@ -302,8 +301,8 @@ mbFlow.base_dir = temp_path
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
 InputVolAtlases = Node(name='Input_volume_atlases',
-                       interface=IdentityInterface(fields=['atlas_lookup']))
-InputVolAtlases.iterables = ('atlas_lookup', atlas_lookup_pairs)
+                       interface=IdentityInterface(fields=['atlas']))
+InputVolAtlases.iterables = ('atlas', atlas_volumes)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
 InputSubjects.iterables = ('subject', subjects)
@@ -312,14 +311,25 @@ InputHemis = Node(name='Input_hemispheres',
 hemis = ['lh', 'rh']
 InputHemis.iterables = ('hemi', hemis)
 
+#-----------------------------------------------------------------------------
+# Basic functions
+#-----------------------------------------------------------------------------
 def split_list_pair(List):
     element1 = List[0]
     element2 = List[1]
     return element1, element2
 
-def return_output(inFile):
-    outFile = os.path.join(os.getcwd(), os.path.basename(inFile))
-    return outFile
+def return_basename(input_path):
+    import os
+    basename = os.path.basename(input_path)
+    return basename
+
+def check_if_match(input1, input2):
+    if input1 == input2:
+        is_match = True
+    else:
+        is_match = False
+    return is_match
 
 #-----------------------------------------------------------------------------
 # Outputs and name substitutions
@@ -338,10 +348,10 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
      'FreeSurfer_cortex_volume_labels.vtk'),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
     ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
-     'FreeSurfer_filled_labels'),
-    ('ANTs_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTs_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz',
-     'ANTs_filled_labels.nii.gz')]
-#    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas'),
+     'FreeSurfer_filled_labels.nii.gz'),
+    ('ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume.nii.gz_through_cortex_and_noncortex.nii.gz',
+     'ANTs_filled_labels.nii.gz'),
+    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas')]
 #    ('volume_registered_labels.nii.gz', 'ANTs_registered_labels.nii.gz'),
 #    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_relabeled_lh.aparc.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_relabeled_rh.aparc.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
 #     'FreeSurfer_filled_labels'),
@@ -389,13 +399,13 @@ if do_ants:
     mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
     FetchANTs.inputs.stem = ants_prefix
     #-------------------------------------------------------------------------
-    # Retrieve full atlas path(s):
+    # Retrieve atlas path(s); look up in hash table only for default atlas:
     #-------------------------------------------------------------------------
-    SplitAtlasList = Node(name='Split_atlas_list',
-                          interface=Fn(function=split_list_pair,
-                                       input_names=['List'],
-                                       output_names=['element1',
-                                                     'element2']))
+    CheckAtlas = Node(name='Check_atlas',
+                      interface=Fn(function=check_if_match,
+                                   input_names=['input1',
+                                                'input2'],
+                                   output_names=['is_match']))
     FetchAtlas = Node(name='Fetch_atlas',
                       interface=Fn(function=retrieve_data,
                                    input_names=['data_file',
@@ -406,10 +416,11 @@ if do_ants:
                                                 'return_missing',
                                                 'lookup'],
                                    output_names=['data_path']))
-    mbFlow.add_nodes([SplitAtlasList, FetchAtlas])
-    mbFlow.connect(InputVolAtlases, 'atlas_lookup', SplitAtlasList, 'List')
-    mbFlow.connect(SplitAtlasList, 'element1', FetchAtlas, 'data_file')
-    mbFlow.connect(SplitAtlasList, 'element2', FetchAtlas, 'lookup')
+    mbFlow.add_nodes([CheckAtlas, FetchAtlas])
+    CheckAtlas.inputs.input1 = atlas_volume
+    mbFlow.connect(InputVolAtlases, 'atlas', CheckAtlas, 'input2')
+    mbFlow.connect(CheckAtlas, 'is_match', FetchAtlas, 'lookup')
+    mbFlow.connect(InputVolAtlases, 'atlas', FetchAtlas, 'data_file')
     FetchAtlas.inputs.url = url
     FetchAtlas.inputs.hashes = hashes
     FetchAtlas.inputs.cache_env = cache_env
@@ -1530,13 +1541,13 @@ if do_volumes and do_label:
     # Fill segmentation volumes with ANTs labels
     #=========================================================================
     if do_ants:
-        OutFile = Node(name='Output_file',
-                       interface=Fn(function=keep_volume_labels,
-                                    input_names=['inFile'],
-                                    output_names=['outFile']))
-        VolLabelFlow.add_nodes([OutFile])
-        mbFlow.connect(FetchAtlas, 'data_path',
-                       VolLabelFlow, 'Output_file.inFile')
+        #Basename = Node(name='Return_basename',
+        #                interface=Fn(function=return_basename,
+        #                             input_names=['input_path'],
+        #                             output_names=['basename']))
+        #VolLabelFlow.add_nodes([Basename])
+        #mbFlow.connect(FetchAtlas, 'data_path',
+        #               VolLabelFlow, 'Return_basename.input_path')
 
         #---------------------------------------------------------------------
         # Transform atlas labels in MNI152 to subject via template:
@@ -1547,15 +1558,16 @@ if do_volumes and do_label:
         xfm.inputs.default_value = 0
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
+        xfm.inputs.output_image = 'ANTS_registered_volume.nii.gz'
+        #VolLabelFlow.connect(Basename, 'basename', xfm, 'output_image')
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
-        VolLabelFlow.connect(OutFile, 'outFile', xfm, 'output_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'antsApplyTransforms.transforms')
-        mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
-                       Sink, 'labels.@antsRegistration')
+        #mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
+        #               Sink, 'labels.@antsRegistration')
         #---------------------------------------------------------------------
         # Remove ANTs noncortical volume labels:
         #---------------------------------------------------------------------
