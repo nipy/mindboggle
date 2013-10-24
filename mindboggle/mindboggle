@@ -34,7 +34,7 @@ import argparse
 #-----------------------------------------------------------------------------
 # Nipype libraries
 #-----------------------------------------------------------------------------
-from nipype.pipeline.engine import Workflow, Node
+from nipype.pipeline.engine import Workflow, Node, JoinNode
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface, Merge
 from nipype.interfaces.io import DataGrabber, DataSink
@@ -54,7 +54,8 @@ from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk, label_with_classifier, combine_segmentations
 from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
-    PropagateLabelsThroughMask, fill_volume_with_surface_labels, split_brain
+    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
+    split_brain
 from mindboggle.LABELS import dkt_protocol
 from mindboggle.labels.relabel import relabel_surface, \
     keep_volume_labels, overwrite_volume_labels
@@ -132,8 +133,6 @@ parser.add_argument("--moments",
 parser.add_argument("--thickness", action='store_true',
                     help="Compute cortical label thicknesses with "
                          "thickinthehead()")
-#parser.add_argument("--antsurfer_labels", action='store_true',
-#                    help="Combine ANTs and FreeSurfer volume labels")
 parser.add_argument("--no_volumes", action='store_true',
                     help="No volume labels, features, or shape tables")
 parser.add_argument("--no_surfaces", action='store_true',
@@ -193,11 +192,6 @@ do_sulci = args.sulci
 do_fundi = args.fundi
 no_labels = args.no_labels
 do_smooth_fundi = False
-antsurfer_labels = False #args.antsurfer_labels
-if antsurfer_labels:
-    no_surfaces = False
-    no_volumes = False
-    no_labels = False
 do_label = False
 do_surface = False
 do_features = False
@@ -312,7 +306,8 @@ InputSubjects = Node(name='Input_subjects',
 InputSubjects.iterables = ('subject', subjects)
 InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
-InputHemis.iterables = ('hemi', ['lh', 'rh'])
+hemis = ['lh', 'rh']
+InputHemis.iterables = ('hemi', hemis)
 #-----------------------------------------------------------------------------
 # Outputs and name substitutions
 #-----------------------------------------------------------------------------
@@ -329,28 +324,36 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
     ('relabeled_FreeSurfer_cortex_labels.vtk',
      'FreeSurfer_cortex_volume_labels.vtk'),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas'),
-    ('/atlas/volume_registered_labels.nii.gz',
-     '/atlas/ANTs_registered_labels.nii.gz')]
-Sink.inputs.regexp_substitutions = [
-    (r'/atlas/_labels_to_keep_1.*/overwrite_volume_labels.nii.gz',
-     r'/atlas/left_ANTs_filled_labels.nii.gz'),
-    (r'/atlas/_labels_to_keep_2.*/overwrite_volume_labels.nii.gz',
-     r'/atlas/right_ANTs_filled_labels.nii.gz'),
-    (r'/overwrite_volume_labels.nii.gz',
-     r'/FreeSurfer_filled_labels.nii.gz'),
-    (r'/atlas/_labels_to_keep_1.*/label_volume_table.csv',
-     r'/atlas/left_volumes_of_ANTs_filled_labels.csv'),
-    (r'/atlas/_labels_to_keep_2.*/label_volume_table.csv',
-     r'/atlas/right_volumes_of_ANTs_filled_labels.csv'),
-    (r'/atlas/_labels_to_keep_1.*/label_volume_area_thickness_table.csv',
-     r'/atlas/left_thicknesses_of_ANTs_filled_cortex_labels.csv'),
-    (r'/atlas/_labels_to_keep_2.*/label_volume_area_thickness_table.csv',
-     r'/atlas/right_thicknesses_of_ANTs_filled_cortex_labels.csv'),
-    (r'label_volume_table.csv',
-     r'volumes_of_FreeSurfer_filled_labels.csv'),
-    (r'label_volume_area_thickness_table.csv',
-     r'thicknesses_of_FreeSurfer_filled_cortex_labels.csv')]
+    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
+     'FreeSurfer_filled_labels'),
+    ('ANTs_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTs_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz',
+     'ANTs_filled_labels.nii.gz')]
+#    ('OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz', 'atlas'),
+#    ('volume_registered_labels.nii.gz', 'ANTs_registered_labels.nii.gz'),
+#    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_relabeled_lh.aparc.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_relabeled_rh.aparc.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
+#     'FreeSurfer_filled_labels'),
+#    ('volume_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz_to_volume_registered_labels.nii.gz_through_cortex_and_noncortex.nii.gz',
+#     'ANTs_filled_labels')]
+#Sink.inputs.regexp_substitutions = [
+#    (r'_labels_to_keep_1.*/overwrite_volume_labels.nii.gz',
+#     r'left_ANTs_filled_labels.nii.gz'),
+#    (r'_labels_to_keep_2.*/overwrite_volume_labels.nii.gz',
+#     r'right_ANTs_filled_labels.nii.gz'),
+#    (r'/overwrite_volume_labels.nii.gz',
+#     r'/FreeSurfer_filled_labels.nii.gz'),
+#    (r'_labels_to_keep_1.*/label_volume.csv',
+#     r'left_volumes_of_ANTs_filled_labels.csv'),
+#    (r'_labels_to_keep_2.*/label_volume.csv',
+#     r'right_volumes_of_ANTs_filled_labels.csv'),
+#    (r'_labels_to_keep_1.*/label_volume_area_thickness.csv',
+#     r'left_thicknesses_of_ANTs_filled_cortex_labels.csv'),
+#    (r'_labels_to_keep_2.*/label_volume_area_thickness.csv',
+#     r'right_thicknesses_of_ANTs_filled_cortex_labels.csv'),
+#    (r'label_volume.csv',
+#     r'volumes_of_FreeSurfer_filled_labels.csv'),
+#    (r'label_volume_area_thickness.csv',
+#     r'thicknesses_of_FreeSurfer_filled_cortex_labels.csv')]
+
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -1494,8 +1497,8 @@ if do_volumes and do_label:
                                                 'label_file',
                                                 'left_labels',
                                                 'right_labels'],
-                                   output_names=['left_segmented',
-                                                 'right_segmented']))
+                                   output_names=['left_brain',
+                                                 'right_brain']))
     VolLabelFlow.add_nodes([SplitBrain])
     VolLabelFlow.connect(JoinSegs, 'segmented_file', SplitBrain, 'image_file')
     VolLabelFlow.connect(FillBrain, 'output_file', SplitBrain, 'label_file')
@@ -1514,7 +1517,7 @@ if do_volumes and do_label:
         VolLabelFlow.add_nodes([xfm])
         xfm.inputs.dimension = 3
         xfm.inputs.default_value = 0
-        xfm.inputs.output_image = 'volume_registered_labels.nii.gz'
+        xfm.inputs.output_image = 'ANTs_registered_labels.nii.gz'
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
@@ -1526,7 +1529,7 @@ if do_volumes and do_label:
         mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
                        Sink, 'labels.@antsRegistration')
         #---------------------------------------------------------------------
-        # Remove noncortical ANTs volume labels:
+        # Remove ANTs noncortical volume labels:
         #---------------------------------------------------------------------
         noANTSwm = Node(name='Remove_noncortex_ANTs_labels',
                         interface=Fn(function=keep_volume_labels,
@@ -1539,7 +1542,7 @@ if do_volumes and do_label:
         noANTSwm.inputs.labels_to_keep = cortex_numbers
         noANTSwm.inputs.output_file = ''
         #---------------------------------------------------------------------
-        # Remove cortical ANTs volume labels:
+        # Remove ANTs cortical volume labels:
         #---------------------------------------------------------------------
         noANTSgm = noANTSwm.clone('Remove_cortex_ANTs_labels')
         VolLabelFlow.add_nodes([noANTSgm])
@@ -1559,18 +1562,18 @@ if do_volumes and do_label:
                                                    'stopvalue'],
                                       output_names=['output_file']))
         VolLabelFlow.add_nodes([ants2gray])
-        VolLabelFlow.connect(MaskHemi, 'output_file', ants2gray, 'mask')
+        VolLabelFlow.connect(JoinSegs, 'segmented_file', ants2gray, 'mask')
         VolLabelFlow.connect(noANTSwm, 'output_file', ants2gray, 'labels')
         ants2gray.inputs.mask_index = 2
         ants2gray.inputs.output_file = ''
         ants2gray.inputs.binarize = False
         ants2gray.inputs.stopvalue = ''
         #---------------------------------------------------------------------
-        # Propagate ANTs volume labels through noncortex=3:
+        # Propagate ANTs noncortical volume labels through noncortex=3:
         #---------------------------------------------------------------------
         ants2white = ants2gray.clone('Fill_noncortex_with_ANTs_labels')
         VolLabelFlow.add_nodes([ants2white])
-        VolLabelFlow.connect(MaskHemi, 'output_file', ants2white, 'mask')
+        VolLabelFlow.connect(JoinSegs, 'segmented_file', ants2white, 'mask')
         VolLabelFlow.connect(noANTSgm, 'output_file', ants2white, 'labels')
         ants2white.inputs.mask_index = 3
         #---------------------------------------------------------------------
@@ -1585,15 +1588,12 @@ if do_volumes and do_label:
                                                     'replace'],
                                        output_names=['output_file']))
         VolLabelFlow.add_nodes([antslabels])
-        VolLabelFlow.connect(ants2white, 'output_file',
-                             antslabels, 'source')
-        VolLabelFlow.connect(ants2gray, 'output_file',
-                             antslabels, 'target')
+        VolLabelFlow.connect(ants2white, 'output_file', antslabels, 'source')
+        VolLabelFlow.connect(ants2gray, 'output_file', antslabels, 'target')
         antslabels.inputs.output_file = ''
         antslabels.inputs.ignore_labels = [0]
         antslabels.inputs.replace = True
-        mbFlow.connect(VolLabelFlow, 
-                       'ANTs_filled_labels.output_file',
+        mbFlow.connect(VolLabelFlow, 'ANTs_filled_labels.output_file',
                        Sink, 'labels.@ants_filled')
 
     #=========================================================================
@@ -1605,24 +1605,30 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         FS2gray = Node(name='Fill_cortex_with_FreeSurfer_labels',
                        interface=Fn(function=fill_volume_with_surface_labels,
-                                    input_names=['mask',
+                                    input_names=['hemi',
+                                                 'left_mask',
+                                                 'right_mask',
                                                  'surface_files',
                                                  'mask_index',
                                                  'output_file',
                                                  'binarize'],
                                     output_names=['output_file']))
         VolLabelFlow.add_nodes([FS2gray])
-        FS2gray.inputs.mask_index = 2
-        VolLabelFlow.connect(MaskHemi, 'output_file', FS2gray, 'mask')
+        mbFlow.connect(InputHemis, 'hemi', VolLabelFlow,
+                       'Fill_cortex_with_FreeSurfer_labels.hemi')
+        VolLabelFlow.connect(SplitBrain, 'left_brain', FS2gray, 'left_mask')
+        VolLabelFlow.connect(SplitBrain, 'right_brain', FS2gray, 'right_mask')
         mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        VolLabelFlow,
                        'Fill_cortex_with_FreeSurfer_labels.surface_files')
+        FS2gray.inputs.mask_index = 2
         FS2gray.inputs.output_file = ''
         FS2gray.inputs.binarize = False
+
         #---------------------------------------------------------------------
         # Propagate FreeSurfer volume labels through noncortex:
         #---------------------------------------------------------------------
-        # Remove cortical FreeSurfer volume labels:
+        # Remove FreeSurfer cortical volume labels:
         noFSgm = Node(name='Remove_cortex_FreeSurfer_labels',
                       interface=Fn(function=keep_volume_labels,
                                    input_names=['input_file',
@@ -1655,21 +1661,34 @@ if do_volumes and do_label:
         FS2white.inputs.output_file = ''
         FS2white.inputs.binarize = False
         FS2white.inputs.stopvalue = ''
-        ##---------------------------------------------------------------------
-        ## Split labeled noncortex volume by masking with left or right labels:
-        ##---------------------------------------------------------------------
-        #MaskHemiWM = Node(name='Mask_half_noncortex',
-        #                  interface=Fn(function=ImageMath,
-        #                               input_names=['volume1',
-        #                                            'volume2',
-        #                                            'operator',
-        #                                            'output_file'],
-        #                               output_names=['output_file']))
-        #VolLabelFlow.add_nodes([MaskHemiWM])
-        #VolLabelFlow.connect(FS2white, 'output_file', MaskHemiWM, 'volume1')
-        #VolLabelFlow.connect(CreateHemiMask, 'output_file', MaskHemiWM, 'volume2')
-        #MaskHemiWM.inputs.operator = 'm'
-        #MaskHemiWM.inputs.output_file = ''
+        #---------------------------------------------------------------------
+        # Combine left and right cortical labels:
+        #---------------------------------------------------------------------
+        def split_list(List):
+            element1 = List[0]
+            element2 = List[1]
+            return element1, element2
+        SplitList = JoinNode(name='Split_list',
+                             interface=Fn(function=split_list,
+                                          input_names=['List'],
+                                          output_names=['element1',
+                                                        'element2']),
+                             joinsource="Input_hemispheres",
+                             joinfield="List")
+        LRcortex = Node(name='Combine_left_right_cortex_labels',
+                        interface=Fn(function=ImageMath,
+                                     input_names=['volume1',
+                                                  'volume2',
+                                                  'operator',
+                                                  'output_file'],
+                                     output_names=['output_file']))
+
+        VolLabelFlow.add_nodes([SplitList, LRcortex])
+        VolLabelFlow.connect(FS2gray, 'output_file', SplitList, 'List')
+        VolLabelFlow.connect(SplitList, 'element1', LRcortex, 'volume1')
+        VolLabelFlow.connect(SplitList, 'element2', LRcortex, 'volume2')
+        LRcortex.inputs.operator = '+'
+        LRcortex.inputs.output_file = ''
         #---------------------------------------------------------------------
         # Combine FreeSurfer label-filled cortex and noncortex:
         #---------------------------------------------------------------------
@@ -1683,42 +1702,12 @@ if do_volumes and do_label:
                                      output_names=['output_file']))
         VolLabelFlow.add_nodes([FSlabels])
         VolLabelFlow.connect(FS2white, 'output_file', FSlabels, 'source')
-        VolLabelFlow.connect(FS2gray, 'output_file', FSlabels, 'target')
+        VolLabelFlow.connect(LRcortex, 'output_file', FSlabels, 'target')
         FSlabels.inputs.output_file = ''
         FSlabels.inputs.ignore_labels = [0]
         FSlabels.inputs.replace = True
-        mbFlow.connect(VolLabelFlow, 
-                   'FreeSurfer_filled_labels.output_file',
-                   Sink, 'labels.@freesurfer_filled')
-
-    ##=========================================================================
-    ## Combine FreeSurfer and ANTs cortical and noncortical labels
-    ##=========================================================================
-    #if antsurfer_labels and do_ants:
-    #
-    #    #---------------------------------------------------------------------
-    #    # ANTs label-filled noncortex and FreeSurfer label-filled cortex:
-    #    #---------------------------------------------------------------------
-    #    ANTSwFSg = antslabels.\
-    #        clone('FreeSurfer_cortex_ANTs_noncortex_labels')
-    #    VolLabelFlow.add_nodes([ANTSwFSg])
-    #    VolLabelFlow.connect(ants2white, 'output_file',
-    #                         ANTSwFSg, 'source')
-    #    VolLabelFlow.connect(FS2gray, 'output_file', ANTSwFSg, 'target')
-    #    mbFlow.connect(VolLabelFlow,
-    #           'FreeSurfer_cortex_ANTs_noncortex_labels.output_file',
-    #           Sink, 'labels.@fs_cortex_ants_noncortex')
-    #    #---------------------------------------------------------------------
-    #    # FreeSurfer label-filled noncortex and ANTs label-filled cortex:
-    #    #---------------------------------------------------------------------
-    #    FSwANTSg = antslabels.\
-    #        clone('ANTs_cortex_FreeSurfer_noncortex_labels')
-    #    VolLabelFlow.add_nodes([FSwANTSg])
-    #    VolLabelFlow.connect(FS2white, 'output_file', FSwANTSg, 'source')
-    #    VolLabelFlow.connect(ants2gray, 'output_file', FSwANTSg, 'target')
-    #    mbFlow.connect(VolLabelFlow,
-    #           'ANTs_cortex_FreeSurfer_noncortex_labels.output_file',
-    #           Sink, 'labels.@ants_cortex_fs_noncortex')
+        mbFlow.connect(VolLabelFlow, 'FreeSurfer_filled_labels.output_file',
+                       Sink, 'labels.@freesurfer_filled')
 
     ##=========================================================================
     ## Evaluate label volume overlaps
@@ -1778,7 +1767,6 @@ if do_volumes and do_label:
                                                     'output_table'],
                                        output_names=['output_table']))
         VolShapeFlow.add_nodes([FSVolTable])
-        FSVolTable.inputs.column_names = ['label', 'volume']
         FSVolTable.inputs.delimiter = ','
         FSVolTable.inputs.quote = True
         FSVolTable.inputs.input_table = ''
@@ -1803,6 +1791,8 @@ if do_volumes and do_label:
         # Table:
         VolShapeFlow.connect(FSlabelVolumes, 'labels_volumes',
                              FSVolTable, 'columns')
+        FSVolTable.inputs.column_names = ['FreeSurfer_filled_labels',
+                                          'volumes']
         mbFlow.connect(VolShapeFlow,
                        'FreeSurfer_filled_label_volume_table.output_table',
                        Sink, 'tables.@volumes_of_FreeSurfer_filled_labels')
@@ -1819,53 +1809,14 @@ if do_volumes and do_label:
             # Table:
             antsVolTable = FSVolTable.clone('ANTs_filled_label_volume_table')
             VolShapeFlow.add_nodes([antsVolTable])
+            antsVolTable.inputs.column_names = ['ANTs_filled_labels',
+                                                'volumes']
             VolShapeFlow.connect(antsLabelVolumes, 'labels_volumes',
                                  antsVolTable, 'columns')
             mbFlow.connect(VolShapeFlow,
                            'ANTs_filled_label_volume_table.output_table',
                            Sink, 'tables.@volumes_of_ANTs_filled_labels')
-            #if antsurfer_labels:
-            #    #-------------------------------------------------------------
-            #    # Volumes of the FreeSurfer cortex + ANTS noncortex labels:
-            #    #-------------------------------------------------------------
-            #    FSgmANTSwmLabelVolumes = FSlabelVolumes.\
-            #        clone('FreeSurfer_cortex_ANTs_noncortex_label_volumes')
-            #    VolShapeFlow.add_nodes([FSgmANTSwmLabelVolumes])
-            #    mbFlow.connect(VolLabelFlow,
-            #      'FreeSurfer_cortex_ANTs_noncortex_labels.output_file',
-            #      VolShapeFlow,
-            #      'FreeSurfer_cortex_ANTs_noncortex_label_volumes.input_file')
-            #    # Table:
-            #    FSgmANTSwmVolTable = FSVolTable.\
-            #      clone('FreeSurfer_cortex_ANTs_noncortex_label_volume_table')
-            #    VolShapeFlow.add_nodes([FSgmANTSwmVolTable])
-            #    VolShapeFlow.connect(FSgmANTSwmLabelVolumes, 'labels_volumes',
-            #                         FSgmANTSwmVolTable, 'columns')
-            #    mbFlow.connect(VolShapeFlow,
-            #      'FreeSurfer_cortex_ANTs_noncortex_label_volume_table.'
-            #      'output_table', Sink,
-            #      'tables.@volumes_of_FreeSurfer_cortex_ANTs_noncortex_labels')
-            #    #-------------------------------------------------------------
-            #    # Volumes of the FreeSurfer noncortex + ANTS cortex labels:
-            #    #-------------------------------------------------------------
-            #    FSwANTSgLabelVolumes = FSlabelVolumes.\
-            #        clone('ANTs_cortex_FreeSurfer_noncortex_label_volumes')
-            #    VolShapeFlow.add_nodes([FSwANTSgLabelVolumes])
-            #    mbFlow.connect(VolLabelFlow,
-            #      'ANTs_cortex_FreeSurfer_noncortex_labels.output_file',
-            #      VolShapeFlow,
-            #      'ANTs_cortex_FreeSurfer_noncortex_label_volumes.input_file')
-            #    # Table:
-            #    ANTSgmFSwmVolTable = FSVolTable.\
-            #      clone('ANTs_cortex_FreeSurfer_noncortex_label_volume_table')
-            #    VolShapeFlow.add_nodes([ANTSgmFSwmVolTable])
-            #    VolShapeFlow.connect(FSwANTSgLabelVolumes, 'labels_volumes',
-            #                         ANTSgmFSwmVolTable, 'columns')
-            #    mbFlow.connect(VolShapeFlow,
-            #      'ANTs_cortex_FreeSurfer_noncortex_label_volume_table.'
-            #      'output_table', Sink,
-            #      'tables.@volumes_of_ANTs_cortex_FreeSurfer_noncortex_labels')
-    
+
         #=====================================================================
         # Measure volume, thickness of cortical regions of labeled image file
         #=====================================================================
@@ -1889,7 +1840,7 @@ if do_volumes and do_label:
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSgmThicknesses])
-            VolShapeFlow.connect(MaskHemi, 'output_file',
+            VolShapeFlow.connect(JoinSegs, 'segmented_file',
                                  FSgmThicknesses, 'segmented_file')
             mbFlow.connect(VolLabelFlow,
                    'FreeSurfer_filled_labels.output_file',
@@ -1910,8 +1861,9 @@ if do_volumes and do_label:
             VolShapeFlow.connect(FSgmThicknesses,
                                  'label_volume_area_thickness',
                                  FSThickTable, 'columns')
-            FSThickTable.inputs.column_names = ['label', 'volume', 'area',
-                                                'thickness']
+            FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
+                                                'volumes', 'areas',
+                                                'thicknesses']
             mbFlow.connect(VolShapeFlow,
                'FreeSurfer_filled_cortex_label_thickness_table.output_table',
                Sink, 'tables.@thicknesses_of_FreeSurfer_filled_labels')
@@ -1922,7 +1874,7 @@ if do_volumes and do_label:
                 ANTSgmThicknesses = FSgmThicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTSgmThicknesses])
-                VolShapeFlow.connect(MaskHemi, 'output_file',
+                VolShapeFlow.connect(JoinSegs, 'segmented_file',
                                      ANTSgmThicknesses, 'segmented_file')
                 mbFlow.connect(VolLabelFlow,
                        'ANTs_filled_labels.output_file',
@@ -1935,8 +1887,9 @@ if do_volumes and do_label:
                 VolShapeFlow.connect(ANTSgmThicknesses,
                                      'label_volume_area_thickness',
                                      ANTSThickTable, 'columns')
-                ANTSThickTable.inputs.column_names = ['label', 'volume',
-                                                      'area', 'thickness']
+                ANTSThickTable.inputs.column_names = ['ANTs_filled_labels',
+                                                      'volumes', 'areas',
+                                                      'thicknesses']
                 mbFlow.connect(VolShapeFlow,
                    'ANTs_filled_cortex_label_thickness_table.output_table',
                    Sink, 'tables.@thicknesses_of_ANTs_filled_cortex_labels')

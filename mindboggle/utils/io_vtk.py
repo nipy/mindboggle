@@ -1319,7 +1319,9 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
 
     # Write output image volume:
     if not output_volume:
-        output_volume = os.path.join(os.getcwd(), 'affine_volume.nii.gz')
+        output_volume = os.path.join(os.getcwd(),
+                                     os.path.basename(vtk_file) +
+                                     '_to_volume.nii.gz')
 
     img = nb.Nifti1Image(data, affine, header=hdr)
     img.to_filename(output_volume)
