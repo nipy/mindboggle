@@ -13,8 +13,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #-----------------------------------------------------------------------------
 # Get data through a URL call:
 #-----------------------------------------------------------------------------
-def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
-                  return_missing=False):
+def retrieve_data(data_file, url='', hashes={}, cache_env='', cache='',
+                  return_missing=False, lookup=True):
     """
     Get data file through a URL call and check its hash.
 
@@ -25,7 +25,7 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
             3. If data file not in cache, download file, compute hash,
                and verify hash.
             4. If hash correct, save file.
-        Otherwise, simply download file.
+        Otherwise, simply download file or return file path as a string.
 
     Parameters
     ----------
@@ -40,7 +40,9 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
     cache : string
         in case cache_env is not set, use as cache directory
     return_missing : Boolean
-        if data_file not in hash, simply return data_file
+        if data_file not in hash, simply download data_file and return path
+    lookup : Boolean
+        Simply return data_file path
 
     Returns
     -------
@@ -63,77 +65,99 @@ def retrieve_data(data_file, url, hashes={}, cache_env='', cache='',
 
     from mindboggle.utils.io_uri import get_data, get_hash
 
-    #-------------------------------------------------------------------------
-    # If hashes provided, go through steps to check/download file:
-    #-------------------------------------------------------------------------
-    if hashes:
-
-        if not cache_env:
-            cache_env = 'MINDBOGGLE_CACHE'
-        if not cache:
-            cache = os.path.join(os.environ['HOME'], 'hash_temp')
+    if lookup:
 
         #---------------------------------------------------------------------
-        # Check hash table for file:
+        # If hashes provided, go through steps to check/download file:
         #---------------------------------------------------------------------
-        if data_file not in hashes.keys():
-            if return_missing:
-                data_path = data_file
-                print("Retrieved file not in hashes: {0}".format(data_path))
-                return data_path
-            else:
-                sys.exit("Data file '{0}' not in hash table.".
-                format(data_file))
-        else:
-            stored_hash = hashes[data_file]
-
-            #-----------------------------------------------------------------
-            # Create missing cache and hash directories:
-            #-----------------------------------------------------------------
-            if cache_env in os.environ.keys():
-                cache = os.environ[cache_env]
-            if not os.path.exists(cache):
-                print("Create missing cache directory: {0}".format(cache))
-                os.mkdir(cache)
-            hash_dir = os.path.join(cache, stored_hash)
-            if not os.path.exists(hash_dir):
-                print("Create missing hash directory: {0}".format(hash_dir))
-                os.mkdir(os.path.join(hash_dir))
+        if hashes:
+    
+            if not cache_env:
+                cache_env = 'MINDBOGGLE_CACHE'
+            if not cache:
+                cache = os.path.join(os.environ['HOME'], 'hash_temp')
     
             #-----------------------------------------------------------------
-            # Check hash subdirectory for file:
+            # Check hash table for file:
             #-----------------------------------------------------------------
-            data_path = os.path.join(hash_dir, data_file)
-            if os.path.exists(data_path):
-                return data_path
-    
-            #-----------------------------------------------------------------
-            # If file not in cache, download file, compute hash, and verify:
-            #-----------------------------------------------------------------
-            else:
-                print("Retrieve file from the Mindboggle website: {0}".format(url+data_file))
-    
-                # Download file as a temporary file:
-                temp_file = get_data(url+data_file)
-    
-                # Compute the file's hash:
-                data_hash = get_hash(temp_file)
-    
-                # If hash matches name of the hash directory, save file:
-                if os.path.join(cache, data_hash) == hash_dir:
-                    print("Copy file to cache: {0}".format(data_path))
-                    shutil.copyfile(temp_file, data_path)
+            if data_file not in hashes.keys():
+                if return_missing:
+                    data_path = data_file
+                    print("Retrieved file not in hashes: {0}".
+                          format(data_path))
                     return data_path
                 else:
-                    print("Retrieved file's hash does not match stored hash.")
+                    sys.exit("Data file '{0}' not in hash table.".
+                    format(data_file))
+            else:
+                stored_hash = hashes[data_file]
+    
+                #-------------------------------------------------------------
+                # Create missing cache and hash directories:
+                #-------------------------------------------------------------
+                if cache_env in os.environ.keys():
+                    cache = os.environ[cache_env]
+                if not os.path.exists(cache):
+                    print("Create missing cache directory: {0}".format(cache))
+                    os.mkdir(cache)
+                hash_dir = os.path.join(cache, stored_hash)
+                if not os.path.exists(hash_dir):
+                    print("Create missing hash directory: {0}".
+                          format(hash_dir))
+                    os.mkdir(os.path.join(hash_dir))
+        
+                #-------------------------------------------------------------
+                # Check hash subdirectory for file:
+                #-------------------------------------------------------------
+                data_path = os.path.join(hash_dir, data_file)
+                if os.path.exists(data_path):
+                    return data_path
+        
+                #-------------------------------------------------------------
+                # If file not in cache, download, compute hash, and verify:
+                #-------------------------------------------------------------
+                else:
+                    print("Retrieve file from the Mindboggle website: {0}".
+                          format(url+data_file))
+        
+                    # Download file as a temporary file:
+                    temp_file = get_data(url+data_file)
+        
+                    # Compute the file's hash:
+                    data_hash = get_hash(temp_file)
+        
+                    # If hash matches name of the hash directory, save file:
+                    if os.path.join(cache, data_hash) == hash_dir:
+                        print("Copy file to cache: {0}".format(data_path))
+                        shutil.copyfile(temp_file, data_path)
+                        return data_path
+                    else:
+                        print("Retrieved hash does not match stored hash.")
+    
+        #---------------------------------------------------------------------
+        # If hashes not provided, simply download file:
+        #---------------------------------------------------------------------
+        elif url:
+            # Download file as a temporary file:
+            data_path = get_data(url+data_file)
+            print("Hashes not provided. Retrieved file: {0}".format(data_path))
+            return data_path
+    
+        #---------------------------------------------------------------------
+        # If URL also not provided, simply return file path:
+        #---------------------------------------------------------------------
+        else:
+            data_path = data_file
+            print("Neither hashes nor URL provided. "
+                  "Returning file path: {0}".format(data_path))
+            return data_path
 
     #-------------------------------------------------------------------------
-    # If hashes not provided, simply download file:
+    # Simply return file path:
     #-------------------------------------------------------------------------
     else:
-        # Download file as a temporary file:
-        data_path = get_data(url+data_file)
-        print("Retrieved file: {0}".format(data_path))
+        data_path = data_file
+        print("Returning file path: {0}".format(data_path))
         return data_path
 
 
