@@ -268,10 +268,15 @@ sulcus_names, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 # Volume atlases:
 #-----------------------------------------------------------------------------
-atlas_volumes = ['OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz']
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
-if args.atlases:
-    atlas_volumes.extend(args.atlases)
+atlas = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
+atlas_lookup_pairs = [[atlas, True]]
+atlases = args.atlases
+if atlases:
+    if isinstance(atlases, str):
+        atlases = list(atlases)
+    for x in atlases:
+        atlas_lookup_pairs.append([x, False])
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
 # - 'manual': manual edits
@@ -296,11 +301,9 @@ mbFlow.base_dir = temp_path
 # Iterate inputs over subjects, hemispheres, and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
-if isinstance(atlas_volumes, str):
-    atlas_volumes = list(atlas_volumes)
 InputVolAtlases = Node(name='Input_volume_atlases',
-                       interface=IdentityInterface(fields=['atlas']))
-InputVolAtlases.iterables = ('atlas', atlas_volumes)
+                       interface=IdentityInterface(fields=['atlas_lookup']))
+InputVolAtlases.iterables = ('atlas_lookup', atlas_lookup_pairs)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
 InputSubjects.iterables = ('subject', subjects)
@@ -308,6 +311,12 @@ InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
 hemis = ['lh', 'rh']
 InputHemis.iterables = ('hemi', hemis)
+
+def split_list_pair(List):
+    element1 = List[0]
+    element2 = List[1]
+    return element1, element2
+
 #-----------------------------------------------------------------------------
 # Outputs and name substitutions
 #-----------------------------------------------------------------------------
@@ -378,6 +387,11 @@ if do_ants:
     #-------------------------------------------------------------------------
     # Retrieve full atlas path(s):
     #-------------------------------------------------------------------------
+    SplitAtlasList = Node(name='Split_atlas_list',
+                          interface=Fn(function=split_list_pair,
+                                       input_names=['List'],
+                                       output_names=['element1',
+                                                     'element2']))
     FetchAtlas = Node(name='Fetch_atlas',
                       interface=Fn(function=retrieve_data,
                                    input_names=['data_file',
@@ -385,15 +399,18 @@ if do_ants:
                                                 'hashes',
                                                 'cache_env',
                                                 'cache',
-                                                'return_missing'],
+                                                'return_missing',
+                                                'lookup'],
                                    output_names=['data_path']))
-    mbFlow.add_nodes([FetchAtlas])
-    mbFlow.connect(InputVolAtlases, 'atlas', FetchAtlas, 'data_file')
+    mbFlow.add_nodes([SplitAtlasList, FetchAtlas])
+    mbFlow.connect(InputVolAtlases, 'atlas_lookup', SplitAtlasList, 'List')
+    mbFlow.connect(SplitAtlasList, 'element1', FetchAtlas, 'data_file')
+    mbFlow.connect(SplitAtlasList, 'element2', FetchAtlas, 'lookup')
     FetchAtlas.inputs.url = url
     FetchAtlas.inputs.hashes = hashes
     FetchAtlas.inputs.cache_env = cache_env
     FetchAtlas.inputs.cache = cache
-    FetchAtlas.inputs.return_missing = True
+    FetchAtlas.inputs.return_missing = False
     #-------------------------------------------------------------------------
     # Compose single affine transform from subject to MNI152:
     #-------------------------------------------------------------------------
@@ -1664,17 +1681,13 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Combine left and right cortical labels:
         #---------------------------------------------------------------------
-        def split_list(List):
-            element1 = List[0]
-            element2 = List[1]
-            return element1, element2
-        SplitList = JoinNode(name='Split_list',
-                             interface=Fn(function=split_list,
-                                          input_names=['List'],
-                                          output_names=['element1',
-                                                        'element2']),
-                             joinsource="Input_hemispheres",
-                             joinfield="List")
+        SplitHemiList = JoinNode(name='Split_hemisphere_list',
+                                 interface=Fn(function=split_list_pair,
+                                              input_names=['List'],
+                                              output_names=['element1',
+                                                            'element2']),
+                                 joinsource="Input_hemispheres",
+                                 joinfield="List")
         LRcortex = Node(name='Combine_left_right_cortex_labels',
                         interface=Fn(function=ImageMath,
                                      input_names=['volume1',
@@ -1682,11 +1695,10 @@ if do_volumes and do_label:
                                                   'operator',
                                                   'output_file'],
                                      output_names=['output_file']))
-
-        VolLabelFlow.add_nodes([SplitList, LRcortex])
-        VolLabelFlow.connect(FS2gray, 'output_file', SplitList, 'List')
-        VolLabelFlow.connect(SplitList, 'element1', LRcortex, 'volume1')
-        VolLabelFlow.connect(SplitList, 'element2', LRcortex, 'volume2')
+        VolLabelFlow.add_nodes([SplitHemiList, LRcortex])
+        VolLabelFlow.connect(FS2gray, 'output_file', SplitHemiList, 'List')
+        VolLabelFlow.connect(SplitHemiList, 'element1', LRcortex, 'volume1')
+        VolLabelFlow.connect(SplitHemiList, 'element2', LRcortex, 'volume2')
         LRcortex.inputs.operator = '+'
         LRcortex.inputs.output_file = ''
         #---------------------------------------------------------------------
