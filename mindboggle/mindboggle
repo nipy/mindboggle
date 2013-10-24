@@ -317,6 +317,10 @@ def split_list_pair(List):
     element2 = List[1]
     return element1, element2
 
+def return_output(inFile):
+    outFile = os.path.join(os.getcwd(), os.path.basename(inFile))
+    return outFile
+
 #-----------------------------------------------------------------------------
 # Outputs and name substitutions
 #-----------------------------------------------------------------------------
@@ -1526,6 +1530,13 @@ if do_volumes and do_label:
     # Fill segmentation volumes with ANTs labels
     #=========================================================================
     if do_ants:
+        OutFile = Node(name='Output_file',
+                       interface=Fn(function=keep_volume_labels,
+                                    input_names=['inFile'],
+                                    output_names=['outFile']))
+        VolLabelFlow.add_nodes([OutFile])
+        mbFlow.connect(FetchAtlas, 'data_path',
+                       VolLabelFlow, 'Output_file.inFile')
 
         #---------------------------------------------------------------------
         # Transform atlas labels in MNI152 to subject via template:
@@ -1534,13 +1545,13 @@ if do_volumes and do_label:
         VolLabelFlow.add_nodes([xfm])
         xfm.inputs.dimension = 3
         xfm.inputs.default_value = 0
-        xfm.inputs.output_image = 'ANTs_registered_labels.nii.gz'
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
+        VolLabelFlow.connect(OutFile, 'outFile', xfm, 'output_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'antsApplyTransforms.transforms')
         mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
