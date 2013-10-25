@@ -352,10 +352,9 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
      'FreeSurfer_filled_labels.nii.gz'),
     ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz',
      'ANTs_filled_labels.nii.gz')]
-#Sink.inputs.regexp_substitutions = [
-#    (r'_labels_to_keep_1.*/overwrite_volume_labels.nii.gz',
-#     r'left_ANTs_filled_labels.nii.gz'),
-
+Sink.inputs.regexp_substitutions = [
+    (r'/left_surface/(.*)/', r'/\1/left_surface/'),
+    (r'/right_surface/(.*)/', r'/\1/right_surface/')]
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -1710,7 +1709,7 @@ if do_volumes and do_label:
     #=========================================================================
     # Transform labels from added atlas(es) in MNI152 to subject
     #=========================================================================
-    if do_ants:
+    if do_ants and add_atlases:
         xfm2 = xfm.clone('Transform_added_atlases')
         VolLabelFlow.add_nodes([xfm2])
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
