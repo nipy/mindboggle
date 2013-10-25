@@ -90,79 +90,73 @@ are stored in tables (.csv).
 | |   tables/     |  tables of shape measures per label/feature  | .csv         |
 +-+---------------+----------------------------------------------+--------------+
 
-**mindboggled /**
+**mindboggled** / SUBJECT /
 
-    *Volume labels:*
+    **labels** /
 
-    **labels** / SUBJECT /
+        *Volume and surface labels:*
 
-        **cortex_and_noncortex**.nii.gz:    *brain segmented into cortex=2 and noncortex=3*
+        **cortex_and_noncortex** .nii.gz:  *[brain segmented into cortex=2 and noncortex=3]*
 
-        **FreeSurfer_filled_labels**.nii.gz:    *non/cortex separately filled with FreeSurfer labels*
+        **FreeSurfer_filled_labels** .nii.gz:  *[non/cortex separately filled with FreeSurfer labels]*
 
-        **ANTs_filled_labels**.nii.gz:    *non/cortex separately filled with ANTs labels*
+        **ANTs_filled_labels** .nii.gz:  *[non/cortex separately filled with ANTs labels]*
 
-    *FreeSurfer-based surface labels:*
+        [left,right] _surface_ **FreeSurfer_cortex_labels** .vtk:  *[surface labels]*
 
-    **labels** / [left,right]_surface / SUBJECT /
+    **features** /
 
-        **FreeSurfer_cortex_labels**.vtk:    *DKT40 classifier surface labels*
+        *Features extracted from cortical surface meshes:*
 
-        **FreeSurfer_cortex_volume_labels**.vtk:    *surface with volume labels (left=1000+; right=2000+)*
+        [left,right] _surface_ **folds** .vtk:  *[depth-based cortical surface folds (invaginations)]*
 
-    *Features extracted from cortical surface meshes:*
+        [left,right] _surface_ **sulci** .vtk:  *[folds segmented into sulci using label pairs]*
 
-    **features** / [left,right]_surface / SUBJECT /
+        [left,right] _surface_ **fundus_per_fold** .vtk:  *[curves running along depths of folds]*
 
-        **folds**.vtk:    *depth-based cortical surface folds (invaginations)*
+        [left,right] _surface_ **fundus_per_sulcus** .vtk:  *[fundus curves segmented by sulcus labels]*
 
-        **sulci**.vtk:    *folds segmented into sulci using label pairs*
+    **shapes** /
 
-        **fundus_per_fold**.vtk:    *curves running along depths of folds*
+        *Per-vertex surface shape measures:*
 
-        **fundus_per_sulcus**.vtk:    *fundus curves segmented by sulcus labels*
+        [left,right] _surface_ **area** .vtk
 
-    *Per-vertex surface shape measures:*
+        [left,right] _surface_ **mean_curvature** .vtk
 
-    **shapes** / [left,right]_surface / SUBJECT /
+        [left,right] _surface_ **geodesic_depth** .vtk
 
-        **area**.vtk
+        [left,right] _surface_ **travel_depth** .vtk
 
-        **mean_curvature**.vtk
+        [left,right] _surface_ **FreeSurfer_convexity** .vtk:  *[FreeSurfer's [lh,rh].sulc files]*
 
-        **geodesic_depth**.vtk
+        [left,right] _surface_ **FreeSurfer_thickness** .vtk:  *[FreeSurfer's [lh,rh].thickness files]*
 
-        **travel_depth**.vtk
+    **tables** /
 
-        **FreeSurfer_convexity**.vtk:    *FreeSurfer's [lh,rh].sulc files*
+        *Tables with per-label volumes and thicknesses:*
 
-        **FreeSurfer_thickness**.vtk:    *FreeSurfer's [lh,rh].thickness files*
+        **FreeSurfer_filled_labels_volumes** .csv
 
-    *Tables with per-feature surface shape statistics:*
+        **FreeSurfer_filled_labels_volumes_areas_thicknesses** .csv
 
-    **tables** / [left,right]_surface / SUBJECT /
+        **ANTs_filled_labels_volumes** .csv
 
-        **label_shapes**.csv
+        **ANTs_filled_labels_volumes_areas_thicknesses** .csv
 
-        **sulcus_shapes**.csv
+        *Tables with per-label or per-feature surface shape statistics:*
 
-        **fundus_shapes**.csv
+        [left,right] _surface_ **label_shapes** .csv
 
-        **vertices**.csv:    *(exception: per-vertex shape measures)*
+        [left,right] _surface_ **sulcus_shapes** .csv
 
-    *Tables with per-label volumes and thicknesses:*
+        [left,right] _surface_ **fundus_shapes** .csv
 
-    **tables** / SUBJECT /
+        *Table with per-vertex shape measures:*
 
-        **FreeSurfer_filled_labels_volumes**.csv
+        [left,right] _surface_ **vertices** .csv
 
-        **FreeSurfer_filled_labels_volumes_areas_thicknesses**.csv
-
-        **ANTs_filled_labels_volumes**.csv
-
-        **ANTs_filled_labels_volumes_areas_thicknesses**.csv
-
-The shape tables above contain a subset of the following measures:
+The shape tables contain a subset of the following measures:
 
     - Surface area
     - Travel depth
