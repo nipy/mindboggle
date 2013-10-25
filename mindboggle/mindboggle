@@ -344,17 +344,19 @@ Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
     ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
-    ('aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    ('relabeled_FreeSurfer_cortex_labels.vtk',
-     'FreeSurfer_cortex_volume_labels.vtk'),
+    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_volume_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii.gz',
+    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii',
      'FreeSurfer_filled_labels.nii.gz'),
     ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz',
      'ANTs_filled_labels.nii.gz')]
 Sink.inputs.regexp_substitutions = [
-    (r'/left_surface/(.*)/', r'/\1/left_surface/'),
-    (r'/right_surface/(.*)/', r'/\1/right_surface/')]
+    (r'/left_surface/(.*)/(.*)', r'/\1/left_surface_\2'),
+    (r'/right_surface/(.*)/(.*)', r'/\1/right_surface_\2'),
+    (r'/features/(.*)/', r'/\1/features/'),
+    (r'/labels/(.*)/', r'/\1/labels/'),
+    (r'/shapes/(.*)/', r'/\1/shapes/'),
+    (r'/tables/(.*)/', r'/\1/tables/')]
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -615,9 +617,6 @@ if do_surface:
             else:
                 mbFlow.connect(ConvertSurf, 'output_vtk', SurfLabelFlow, 
                                'FreeSurfer_annot_to_vtk.vtk_file')
-            mbFlow.connect(SurfLabelFlow, 
-                           'FreeSurfer_annot_to_vtk.output_vtk',
-                           Sink, 'labels.@Free_surface')
             plug = 'FreeSurfer_annot_to_vtk.output_vtk'
             plug1 = FreeLabels
             plug2 = 'output_vtk'
