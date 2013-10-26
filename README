@@ -98,11 +98,15 @@ are stored in tables (.csv).
 
         **cortex_and_noncortex** .nii.gz:  *[brain segmented into cortex=2 and noncortex=3]*
 
+        **FreeSurfer_labels** .nii.gz:  *[FreeSurfer aparc+aseg labels]*
+
         **FreeSurfer_filled_labels** .nii.gz:  *[non/cortex separately filled with FreeSurfer labels]*
 
         **ANTs_filled_labels** .nii.gz:  *[non/cortex separately filled with ANTs labels]*
 
         [left,right] _surface_ **FreeSurfer_cortex_labels** .vtk:  *[surface labels]*
+
+        **ATLAS_labels** .nii.gz:  *["--atlases ATLAS_PATH" output for each ATLAS_PATH]*
 
     **features** /
 
@@ -112,9 +116,9 @@ are stored in tables (.csv).
 
         [left,right] _surface_ **sulci** .vtk:  *[folds segmented into sulci using label pairs]*
 
-        [left,right] _surface_ **fundus_per_fold** .vtk:  *[curves running along depths of folds]*
+        UNDER EVALUATION: [left,right] _surface_ **fundus_per_fold** .vtk:  *[curves running along depths of folds]*
 
-        [left,right] _surface_ **fundus_per_sulcus** .vtk:  *[fundus curves segmented by sulcus labels]*
+        UNDER EVALUATION: [left,right] _surface_ **fundus_per_sulcus** .vtk:  *[fundus curves segmented by sulcus labels]*
 
     **shapes** /
 
@@ -150,11 +154,13 @@ are stored in tables (.csv).
 
         [left,right] _surface_ **sulcus_shapes** .csv
 
-        [left,right] _surface_ **fundus_shapes** .csv
+        UNDER EVALUATION: [left,right] _surface_ **fundus_shapes** .csv
 
         --- *Table with per-vertex shape measures* ---
 
         [left,right] _surface_ **vertices** .csv
+
+        **ATLAS_labels_volumes** .csv:  *["--atlases ATLAS_PATH" output for each ATLAS_PATH]*
 
 The shape tables contain a subset of the following measures:
 
