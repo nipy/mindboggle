@@ -119,7 +119,8 @@ parser.add_argument("--add_atlases", help=("Label with extra volume "
 parser.add_argument("--sulci", action='store_true',
                     help="Extract, identify, and measure sulci")
 parser.add_argument("--fundi", action='store_true',
-                    help="Extract, identify, and measure fundi")
+                    help="Extract, identify, and measure fundi "
+                         "[UNDER EVALUATION]")
 parser.add_argument("--spectra",
                     help='Number of Laplace-Beltrami spectrum eigenvalues '
                          'per label/feature to store in shape tables: '
@@ -128,7 +129,8 @@ parser.add_argument("--spectra",
 parser.add_argument("--moments",
                     help='Order of Zernike moments per label/feature '
                          'to store in shape tables: "--moments 10" '
-                         'is suggested but SLOW (default is not to run)',
+                         'is suggested but SLOW (default is not to run) '
+                         '[UNDER EVALUATION]',
                     default=0, type=int, metavar='INT')
 parser.add_argument("--thickness", action='store_true',
                     help="Compute cortical label thicknesses with "
