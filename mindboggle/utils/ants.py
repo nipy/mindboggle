@@ -507,11 +507,11 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     """
     Use ANTs to fill a volume mask with surface mesh labels.
 
-    This program uses PropagateLabelsThroughMask in ANTS's ImageMath function.
-
     Note ::
-        Partial volume information is lost when mapping the surface
-        to the volume.
+
+        - This uses PropagateLabelsThroughMask in the ANTS ImageMath function.
+
+        - Partial volume information is lost when mapping surface to volume.
 
     Parameters
     ----------
@@ -592,90 +592,3 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
         raise(IOError(output_file + " not found"))
 
     return output_file  # surface_in_volume
-
-
-def split_brain(image_file, label_file, left_labels, right_labels):
-    """
-    Use ANTs to help split a brain using left/right labels.
-
-    This program uses ThresholdImage and ImageMath in ANTS.
-
-    Parameters
-    ----------
-    image_file : string
-        nibabel-readable image volume
-    label_file : string
-        nibabel-readable labeled brain image volume
-    left_labels : list of integers
-        left label numbers
-    right_labels : list of integers
-        right label numbers
-
-    Returns
-    -------
-    left_brain : string
-        name of nibabel-readable image volume with left half of brain image
-    right_brain : string
-        name of nibabel-readable image volume with right half of brain image
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.ants import split_brain
-    >>> from mindboggle.utils.plots import plot_volumes
-    >>> from mindboggle.LABELS import dkt_protocol
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> image_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
-    >>> label_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> sulcus_names, unique_sulcus_label_pairs, \
-    >>> sulcus_label_pair_lists, \
-    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-    >>> label_names, left_label_names, right_label_names, \
-    >>> label_numbers, left_label_numbers, right_label_numbers, \
-    >>> cortex_names, left_cortex_names, right_cortex_names, \
-    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-    >>> noncortex_names, left_noncortex_names, \
-    >>> right_noncortex_names, medial_noncortex_names, \
-    >>> noncortex_numbers, left_noncortex_numbers, \
-    >>> right_noncortex_numbers, medial_noncortex_numbers, \
-    >>> cortex_names_DKT25, \
-    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
-    >>> cortex_numbers_DKT25, \
-    >>> left_cortex_numbers_DKT25, \
-    >>> right_cortex_numbers_DKT25 = dkt_protocol()
-    >>> left_brain, right_brain = split_brain(image_file, label_file, left_label_numbers, right_label_numbers)
-    >>> # View
-    >>> plot_volumes([left_brain, right_brain])
-    """
-    import os
-
-    from mindboggle.labels.relabel import keep_volume_labels
-    from mindboggle.utils.ants import ThresholdImage, ImageMath
-
-    left_brain = os.path.join(os.getcwd(),
-                              'left_' + os.path.basename(image_file))
-    right_brain = os.path.join(os.getcwd(),
-                               'right_' + os.path.basename(image_file))
-
-    #-------------------------------------------------------------------------
-    # Split brain by masking with left or right labels:
-    #-------------------------------------------------------------------------
-    left_brain = keep_volume_labels(label_file, left_labels, left_brain)
-    right_brain = keep_volume_labels(label_file, right_labels, right_brain)
-    #-------------------------------------------------------------------------
-    # Create a mask for the left or right labels:
-    #-------------------------------------------------------------------------
-    threshlo = 1
-    threshhi = 10000
-    left_brain = ThresholdImage(left_brain, left_brain, threshlo, threshhi)
-    right_brain = ThresholdImage(right_brain, right_brain, threshlo, threshhi)
-    #-------------------------------------------------------------------------
-    # Split segmented brain by masking with left or right labels:
-    #-------------------------------------------------------------------------
-    left_brain = ImageMath(image_file, left_brain, 'm', left_brain)
-    right_brain = ImageMath(image_file, right_brain, 'm', right_brain)
-
-    if not os.path.exists(left_brain) or not os.path.exists(right_brain):
-        raise(IOError(left_brain + " or " + right_brain + " not found"))
-
-    return left_brain, right_brain

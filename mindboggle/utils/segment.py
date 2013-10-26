@@ -1396,3 +1396,193 @@ def extract_borders_2nd_surface(labels_file, mask_file='', values_file='',
 
     return border_file, border_values
 
+
+def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
+                                output_file=''):
+    """
+    Combine the voxels of one label from two files and overlay them
+    on the second label combined from the two files.
+
+    An example application is to combine two segmentation volumes,
+    such as from FreeSurfer and ANTs, to obtain a single cortex=2
+    and noncortex=3 segmentation file, where noncortex overwrites
+    cortex where they intersect.
+
+    Parameters
+    ----------
+    file1 : string
+        name of nibabel-readable file with labels in {label1, label2}
+    file2 : string
+        name of nibabel-readable file with labels in {label1, label2}
+    label1 : integer
+        source label number
+    label2 : integer
+        target label number (to be overwritten by label1 where they intersect)
+    output_file : string
+        output file name
+
+    Returns
+    -------
+    output_file : string
+        name of combined segmented nibabel-readable file
+        with labels in {label1, label2}
+
+    Examples
+    --------
+    >>> from mindboggle.utils.segment import combine_2labels_in_2volumes
+    >>> file1 = 'seg1.nii.gz'
+    >>> file2 = 'seg2.nii.gz'
+    >>> label1 = 3
+    >>> label2 = 2
+    >>> output_file = ''
+    >>> combine_2labels_in_2volumes(file1, file2, label1, label2, output_file)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    #-------------------------------------------------------------------------
+    # Load labeled image volume and extract data as 1-D array:
+    #-------------------------------------------------------------------------
+    vol1 = nb.load(file1)
+    vol2 = nb.load(file2)
+    data1 = vol1.get_data().ravel()
+    data2 = vol2.get_data().ravel()
+    xfm = vol1.get_affine()
+    #-------------------------------------------------------------------------
+    # Indices to voxels with label1 or label2 in two files:
+    #-------------------------------------------------------------------------
+    label1 = int(label1)
+    label2 = int(label2)
+    Ilabel1_vol1 = np.where(data1 == label1)[0]
+    Ilabel1_vol2 = np.where(data1 == label2)[0]
+    Ilabel2_vol1 = np.where(data2 == label1)[0]
+    Ilabel2_vol2 = np.where(data2 == label2)[0]
+    Ilabel1 = Ilabel1_vol1.tolist() + Ilabel1_vol2.tolist()
+    Ilabel2 = Ilabel2_vol1.tolist() + Ilabel2_vol2.tolist()
+    #-------------------------------------------------------------------------
+    # Assign new labels and reshape to original dimensions:
+    #-------------------------------------------------------------------------
+    new_data = data1.copy()
+    new_data[Ilabel2] = label2
+    new_data[Ilabel1] = label1
+    new_data = np.reshape(new_data, vol1.shape)
+    #-------------------------------------------------------------------------
+    # Save relabeled file:
+    #-------------------------------------------------------------------------
+    if not output_file:
+        output_file = os.path.join(os.getcwd(),
+                                   'combined_segmentations.nii.gz')
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
+def split_brain(image_file, label_file, left_labels, right_labels):
+    """
+    Use ANTs to help split a brain using left/right labels.
+
+    Note::
+
+        This program uses ThresholdImage and ImageMath in ANTS.
+
+    Parameters
+    ----------
+    image_file : string
+        nibabel-readable image volume
+    label_file : string
+        nibabel-readable labeled brain image volume
+    left_labels : list of integers
+        left label numbers
+    right_labels : list of integers
+        right label numbers
+
+    Returns
+    -------
+    left_brain : string
+        name of nibabel-readable image volume with left half of brain image
+    right_brain : string
+        name of nibabel-readable image volume with right half of brain image
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.segment import split_brain
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> from mindboggle.LABELS import dkt_protocol
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> image_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> label_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> sulcus_names, unique_sulcus_label_pairs, \
+    >>> sulcus_label_pair_lists, \
+    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
+    >>> label_names, left_label_names, right_label_names, \
+    >>> label_numbers, left_label_numbers, right_label_numbers, \
+    >>> cortex_names, left_cortex_names, right_cortex_names, \
+    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
+    >>> noncortex_names, left_noncortex_names, \
+    >>> right_noncortex_names, medial_noncortex_names, \
+    >>> noncortex_numbers, left_noncortex_numbers, \
+    >>> right_noncortex_numbers, medial_noncortex_numbers, \
+    >>> cortex_names_DKT25, \
+    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
+    >>> cortex_numbers_DKT25, \
+    >>> left_cortex_numbers_DKT25, \
+    >>> right_cortex_numbers_DKT25 = dkt_protocol()
+    >>> left_labels = left_label_numbers
+    >>> right_labels = right_label_numbers
+    >>> left_brain, right_brain = split_brain(image_file, label_file, left_labels, right_labels)
+    >>> # View
+    >>> plot_volumes([left_brain, right_brain])
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    from mindboggle.labels.relabel import keep_volume_labels
+    from mindboggle.utils.ants import ThresholdImage, ImageMath
+
+    left_brain = os.path.join(os.getcwd(),
+                              'left_' + os.path.basename(image_file))
+    right_brain = os.path.join(os.getcwd(),
+                               'right_' + os.path.basename(image_file))
+    #-------------------------------------------------------------------------
+    # Split brain labels by masking with left or right labels:
+    #-------------------------------------------------------------------------
+    left_brain = keep_volume_labels(label_file, left_labels, left_brain)
+    right_brain = keep_volume_labels(label_file, right_labels, right_brain)
+    #-------------------------------------------------------------------------
+    # Load labeled image volumes and extract data as 1-D array:
+    #-------------------------------------------------------------------------
+    vol = nb.load(image_file)
+    volL = nb.load(left_brain)
+    volR = nb.load(right_brain)
+    data = vol.get_data().ravel()
+    dataL = volL.get_data().ravel()
+    dataR = volR.get_data().ravel()
+    xfm = vol.get_affine()
+    #-------------------------------------------------------------------------
+    # Split brain image by masking with left or right labels:
+    #-------------------------------------------------------------------------
+    left_data = data * dataL
+    right_data = data * dataR
+    #-------------------------------------------------------------------------
+    # Save relabeled file:
+    #-------------------------------------------------------------------------
+    left_data = np.reshape(left_data, volL.shape)
+    right_data = np.reshape(right_data, volR.shape)
+    img1 = nb.Nifti1Image(left_data, xfm)
+    img1.to_filename(left_brain)
+    img2 = nb.Nifti1Image(right_data, xfm)
+    img2.to_filename(right_brain)
+
+    if not os.path.exists(right_brain) or not os.path.exists(left_brain):
+        raise(IOError(right_brain + " or " + left_brain + "not found"))
+
+    return left_brain, right_brain
+

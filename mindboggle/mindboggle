@@ -35,42 +35,42 @@ import argparse
 # Nipype libraries
 #-----------------------------------------------------------------------------
 from nipype.pipeline.engine import Workflow, Node, JoinNode
+from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
 from nipype.interfaces.utility import IdentityInterface, Merge
-from nipype.interfaces.io import DataGrabber, DataSink
-from nipype.interfaces.freesurfer import MRIConvert
 from nipype.interfaces.ants import Registration, ApplyTransforms
+from nipype.interfaces.freesurfer import MRIConvert
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
-from mindboggle.utils.utils import list_strings
-from mindboggle.utils.io_vtk import read_vtk
-from mindboggle.utils.io_table import write_columns, \
-    write_shape_stats, write_vertex_measures
-from mindboggle.DATA import hashes_url
-from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.compute import volume_per_label
-from mindboggle.utils.mesh import rescale_by_neighborhood
-from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
-    annot_to_vtk, label_with_classifier, combine_segmentations
-from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
-    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
-    split_brain
 from mindboggle.LABELS import dkt_protocol
-from mindboggle.labels.relabel import relabel_surface, \
-    keep_volume_labels, overwrite_volume_labels
-from mindboggle.shapes.thickness import thickinthehead
-from mindboggle.shapes.shape_tools import area, travel_depth, \
-    geodesic_depth, curvature
-from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
-from mindboggle.features.folds import extract_folds
-from mindboggle.features.sulci import extract_sulci
-from mindboggle.features.fundi import extract_fundi, segment_fundi
-from mindboggle.utils.paths import smooth_skeleton
+from mindboggle.DATA import hashes_url
 from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
     measure_volume_overlap
+from mindboggle.features.folds import extract_folds
+from mindboggle.features.fundi import extract_fundi, segment_fundi
+from mindboggle.features.sulci import extract_sulci
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.likelihood import compute_likelihood
+from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
+    keep_volume_labels, overwrite_volume_labels
+from mindboggle.shapes.shape_tools import area, travel_depth, \
+    geodesic_depth, curvature
+from mindboggle.shapes.thickness import thickinthehead
+from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
+from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
+    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels
+from mindboggle.utils.compute import volume_per_label
+from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
+    annot_to_vtk, label_with_classifier
+from mindboggle.utils.io_table import write_columns, \
+    write_shape_stats, write_vertex_measures
+from mindboggle.utils.io_uri import retrieve_data
+from mindboggle.utils.io_vtk import read_vtk
+from mindboggle.utils.mesh import rescale_by_neighborhood
+from mindboggle.utils.paths import smooth_skeleton
+from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
+from mindboggle.utils.utils import list_strings
 
 #=============================================================================
 #
@@ -338,16 +338,17 @@ def check_if_match(input1, input2):
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.o
 Sink.inputs.container = ''
+"""
 Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
     ('lh.', ''), ('rh.', ''),
     ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
-    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii',
-     'FreeSurfer_filled_labels.nii.gz'),
+#    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
+#    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
+#    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii',
+#     'FreeSurfer_filled_labels.nii.gz'),
     ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz',
      'ANTs_filled_labels.nii.gz')]
 Sink.inputs.regexp_substitutions = [
@@ -357,6 +358,7 @@ Sink.inputs.regexp_substitutions = [
     (r'/labels/(.*)/', r'/\1/labels/'),
     (r'/shapes/(.*)/', r'/\1/shapes/'),
     (r'/tables/(.*)/', r'/\1/tables/')]
+"""
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -1329,31 +1331,24 @@ if do_volumes and do_label:
     #
     #=========================================================================
     #-------------------------------------------------------------------------
-    # Use independently generated label volumes in nifti format:
+    # Use own whole-brain nifti label volumes corresponding to aparc+aseg.mgz:
     #-------------------------------------------------------------------------
     if do_input_fs_labels:
-        asegNifti = Node(name='aseg_nifti',
-                         interface=DataGrabber(infields=['subject'],
-                                               outfields=['aseg'],
-                                               sort_filelist=False))
-        asegNifti.inputs.base_directory = freesurfer_data
-        asegNifti.inputs.template = '%s/mri/aseg.nii.gz'
-        asegNifti.inputs.template_args['aseg'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', asegNifti, 'subject')
-
-        filledNifti = Node(name='filled_nifti',
+        labelsNifti = Node(name='labels_nifti',
                            interface=DataGrabber(infields=['subject'],
-                                                 outfields=['filled'],
+                                                 outfields=['labels'],
                                                  sort_filelist=False))
-        filledNifti.inputs.base_directory = freesurfer_data
-        filledNifti.inputs.template = '%s/mri/filled.nii.gz'
-        filledNifti.inputs.template_args['filled'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', filledNifti, 'subject')
+        labelsNifti.inputs.base_directory = freesurfer_data
+        labelsNifti.inputs.template = '%s/mri/aparc+aseg.nii.gz'
+        labelsNifti.inputs.template_args['labels'] = [['subject']]
+        mbFlow.connect(InputSubjects, 'subject', labelsNifti, 'subject')
     #-------------------------------------------------------------------------
-    # Convert FreeSurfer label volumes to nifti format:
+    # Convert FreeSurfer aparc+aseg whole-brain label volumes to nifti format:
     #-------------------------------------------------------------------------
     else:
+        #---------------------------------------------------------------------
         # Original image (.mgz) for converting from conformal (below):
+        #---------------------------------------------------------------------
         mghOrig = Node(name='mgh_orig',
                        interface=DataGrabber(infields=['subject'],
                                              outfields=['mgh_orig'],
@@ -1362,47 +1357,30 @@ if do_volumes and do_label:
         mghOrig.inputs.template = '%s/mri/orig/001.mgz'
         mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
         mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
-
-        # aseg label volume:
-        asegMGH = Node(name='aseg_mgh',
-                       interface=DataGrabber(infields=['subject'],
-                                             outfields=['aseg'],
-                                             sort_filelist=False))
-        asegMGH.inputs.base_directory = freesurfer_data
-        asegMGH.inputs.template = '%s/mri/aseg.mgz'
-        asegMGH.inputs.template_args['aseg'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', asegMGH, 'subject')
-
-        # Convert FreeSurfer mgh conformal file to nifti format:
-        asegMGH2Nifti = Node(name='aseg_mgh_to_nifti',
-                             interface=MRIConvert())
-        mbFlow.add_nodes([asegMGH2Nifti])
-        mbFlow.connect(asegMGH, 'aseg', asegMGH2Nifti, 'in_file')
-        mbFlow.connect(mghOrig, 'mgh_orig', asegMGH2Nifti, 'reslice_like')
-        asegMGH2Nifti.inputs.resample_type = 'nearest'
-        asegMGH2Nifti.inputs.out_type = 'niigz'
-        asegMGH2Nifti.inputs.out_file = 'aseg.nii.gz'
-        #mbFlow.connect(asegMGH2Nifti, 'out_file', Sink, 'brain.@aseg')
-
-        filledMGH = Node(name='filled_mgh',
+        #---------------------------------------------------------------------
+        #  label volume:
+        #---------------------------------------------------------------------
+        labelsMGH = Node(name='labels_mgh',
                          interface=DataGrabber(infields=['subject'],
-                                               outfields=['filled'],
+                                               outfields=['labels'],
                                                sort_filelist=False))
-        filledMGH.inputs.base_directory = freesurfer_data
-        filledMGH.inputs.template = '%s/mri/filled.mgz'
-        filledMGH.inputs.template_args['filled'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', filledMGH, 'subject')
-
+        labelsMGH.inputs.base_directory = freesurfer_data
+        labelsMGH.inputs.template = '%s/mri/aparc+aseg.mgz'
+        labelsMGH.inputs.template_args['labels'] = [['subject']]
+        mbFlow.connect(InputSubjects, 'subject', labelsMGH, 'subject')
+        #---------------------------------------------------------------------
         # Convert FreeSurfer mgh conformal file to nifti format:
-        filledMGH2Nifti = Node(name='filled_mgh_to_nifti',
+        #---------------------------------------------------------------------
+        labelsMGH2Nifti = Node(name='labels_mgh_to_nifti',
                                interface=MRIConvert())
-        mbFlow.add_nodes([filledMGH2Nifti])
-        mbFlow.connect(filledMGH, 'filled', filledMGH2Nifti, 'in_file')
-        mbFlow.connect(mghOrig, 'mgh_orig', filledMGH2Nifti, 'reslice_like')
-        filledMGH2Nifti.inputs.resample_type = 'nearest'
-        filledMGH2Nifti.inputs.out_type = 'niigz'
-        filledMGH2Nifti.inputs.out_file = 'filled.nii.gz'
-        #mbFlow.connect(filledMGH2Nifti, 'out_file', Sink, 'brain.@filled')
+        mbFlow.add_nodes([labelsMGH2Nifti])
+        mbFlow.connect(labelsMGH, 'labels', labelsMGH2Nifti, 'in_file')
+        mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reslice_like')
+        labelsMGH2Nifti.inputs.resample_type = 'nearest'
+        labelsMGH2Nifti.inputs.out_type = 'niigz'
+        labelsMGH2Nifti.inputs.out_file = 'FreeSurfer_labels.nii.gz'
+        mbFlow.connect(labelsMGH2Nifti, 'out_file',
+                       Sink, 'labels.@freesurfer')
 
     #=========================================================================
     #
@@ -1414,44 +1392,53 @@ if do_volumes and do_label:
     #=========================================================================
     # Combine segmentation volumes to obtain a single file per hemisphere
     #=========================================================================
-    #-------------------------------------------------------------------------    
+    #-------------------------------------------------------------------------
+    # Convert FreeSurfer label volume to non/cortex segmented volume:
+    #-------------------------------------------------------------------------
+    Labels2segments = Node(name='Labels_to_segments',
+                           interface=Fn(function=relabel_volume,
+                                        input_names=['input_file',
+                                                     'old_labels',
+                                                     'new_labels',
+                                                     'output_file'],
+                                        output_names=['output_file']))
+    VolLabelFlow.add_nodes([Labels2segments])
+    if do_input_fs_labels:
+        mbFlow.connect(labelsNifti, 'labels',
+                       VolLabelFlow, 'Labels_to_segments.input_file')
+    else:
+        mbFlow.connect(labelsMGH2Nifti, 'out_file',
+                       VolLabelFlow, 'Labels_to_segments.input_file')
+    Labels2segments.inputs.old_labels = cortex_numbers + noncortex_numbers
+    Labels2segments.inputs.new_labels = [2 for x in cortex_numbers] + \
+                                        [3 for x in noncortex_numbers]
+    Labels2segments.inputs.output_file = ''
+    #-------------------------------------------------------------------------
     # Combine FreeSurfer and ANTs (if do_ants) segmentation volumes
     # to obtain a single cortex (2) and noncortex (3) segmentation file:
-    #-------------------------------------------------------------------------    
+    #-------------------------------------------------------------------------
     JoinSegs = Node(name='Combine_FreeSurfer_ANTs_segmentations',
-                    interface=Fn(function=combine_segmentations,
-                                 input_names=['subject',
-                                              'aseg',
-                                              'filled',
-                                              'out_dir',
-                                              'second_segmentation_file',
-                                              'cortex_value',
-                                              'noncortex_value',
-                                              'use_c3d'],
-                                 output_names=['segmented_file']))
+                    interface=Fn(function=combine_2labels_in_2volumes,
+                                 input_names=['file1',
+                                              'file2',
+                                              'label1',
+                                              'label2',
+                                              'output_file'],
+                                 output_names=['output_file']))
     VolLabelFlow.add_nodes([JoinSegs])
-    if do_input_fs_labels:
-        mbFlow.connect(asegNifti, 'aseg', VolLabelFlow, 
-                       'Combine_FreeSurfer_ANTs_segmentations.aseg')
-        mbFlow.connect(filledNifti, 'filled', 'out_file', VolLabelFlow, 
-                       'Combine_FreeSurfer_ANTs_segmentations.filled')
-    else:
-        mbFlow.connect(asegMGH2Nifti, 'out_file', VolLabelFlow, 
-                       'Combine_FreeSurfer_ANTs_segmentations.aseg')
-        mbFlow.connect(filledMGH2Nifti, 'out_file', VolLabelFlow, 
-                       'Combine_FreeSurfer_ANTs_segmentations.filled')
+    VolLabelFlow.connect(Labels2segments, 'output_file', JoinSegs, 'file1')
     JoinSegs.inputs.out_dir = ''
     if do_ants:
         mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
-            'Combine_FreeSurfer_ANTs_segmentations.second_segmentation_file')
+                       'Combine_FreeSurfer_ANTs_segmentations.file2')
     else:
-        JoinSegs.inputs.second_segmentation_file = ''
-    JoinSegs.inputs.cortex_value = 2
-    JoinSegs.inputs.noncortex_value = 3
-    JoinSegs.inputs.use_c3d = False
+        JoinSegs.inputs.file2 = ''
+    JoinSegs.inputs.label1 = 3
+    JoinSegs.inputs.label2 = 2
+    JoinSegs.inputs.output_file = ''
     mbFlow.connect(VolLabelFlow,
-       'Combine_FreeSurfer_ANTs_segmentations.segmented_file',
-       Sink, 'labels.@cortex_and_noncortex_file')
+                   'Combine_FreeSurfer_ANTs_segmentations.output_file',
+                   Sink, 'labels.@cortex_and_noncortex_file')
     #-------------------------------------------------------------------------
     # Remove medial labels so as to fill brain with left or right labels:
     #-------------------------------------------------------------------------
@@ -1463,13 +1450,13 @@ if do_volumes and do_label:
                                      output_names=['output_file']))
     VolLabelFlow.add_nodes([RemoveMedial])
     if do_input_fs_labels:
-        mbFlow.connect(asegNifti, 'aseg', VolLabelFlow,
+        mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
                        'Remove_medial_labels.input_file')
     else:
-        mbFlow.connect(asegMGH2Nifti, 'out_file', VolLabelFlow,
+        mbFlow.connect(labelsMGH2Nifti, 'out_file', VolLabelFlow,
                        'Remove_medial_labels.input_file')
     RemoveMedial.inputs.labels_to_keep = left_label_numbers + \
-                                         right_label_numbers + [2, 3, 41, 42]
+                                         right_label_numbers
     RemoveMedial.inputs.output_file = ''
     #-------------------------------------------------------------------------
     # Propagate nonmedial FreeSurfer labels through brain:
@@ -1484,7 +1471,7 @@ if do_volumes and do_label:
                                                'stopvalue'],
                                   output_names=['output_file']))
     VolLabelFlow.add_nodes([FillBrain])
-    VolLabelFlow.connect(JoinSegs, 'segmented_file', FillBrain, 'mask')
+    VolLabelFlow.connect(JoinSegs, 'output_file', FillBrain, 'mask')
     VolLabelFlow.connect(RemoveMedial, 'output_file', FillBrain, 'labels')
     FillBrain.inputs.mask_index = ''
     FillBrain.inputs.output_file = ''
@@ -1502,7 +1489,7 @@ if do_volumes and do_label:
                                    output_names=['left_brain',
                                                  'right_brain']))
     VolLabelFlow.add_nodes([SplitBrain])
-    VolLabelFlow.connect(JoinSegs, 'segmented_file', SplitBrain, 'image_file')
+    VolLabelFlow.connect(JoinSegs, 'output_file', SplitBrain, 'image_file')
     VolLabelFlow.connect(FillBrain, 'output_file', SplitBrain, 'label_file')
     SplitBrain.inputs.left_labels = left_label_numbers + [41, 42]
     SplitBrain.inputs.right_labels = right_label_numbers + [2, 3]
@@ -1563,7 +1550,7 @@ if do_volumes and do_label:
                                                    'stopvalue'],
                                       output_names=['output_file']))
         VolLabelFlow.add_nodes([ants2gray])
-        VolLabelFlow.connect(JoinSegs, 'segmented_file', ants2gray, 'mask')
+        VolLabelFlow.connect(JoinSegs, 'output_file', ants2gray, 'mask')
         VolLabelFlow.connect(noANTSwm, 'output_file', ants2gray, 'labels')
         ants2gray.inputs.mask_index = 2
         ants2gray.inputs.output_file = ''
@@ -1574,7 +1561,7 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         ants2white = ants2gray.clone('Fill_noncortex_with_ANTs_labels')
         VolLabelFlow.add_nodes([ants2white])
-        VolLabelFlow.connect(JoinSegs, 'segmented_file', ants2white, 'mask')
+        VolLabelFlow.connect(JoinSegs, 'output_file', ants2white, 'mask')
         VolLabelFlow.connect(noANTSgm, 'output_file', ants2white, 'labels')
         ants2white.inputs.mask_index = 3
         #---------------------------------------------------------------------
@@ -1638,12 +1625,12 @@ if do_volumes and do_label:
                                    output_names=['output_file']))
         VolLabelFlow.add_nodes([noFSgm])
         if do_input_fs_labels:
-            mbFlow.connect(asegNifti, 'aseg', VolLabelFlow,
+            mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
                            'Remove_cortex_FreeSurfer_labels.input_file')
         else:
-            mbFlow.connect(asegMGH2Nifti, 'out_file', VolLabelFlow,
+            mbFlow.connect(labelsMGH2Nifti, 'out_file', VolLabelFlow,
                            'Remove_cortex_FreeSurfer_labels.input_file')
-        noFSgm.inputs.labels_to_keep = noncortex_numbers + [2, 41]
+        noFSgm.inputs.labels_to_keep = noncortex_numbers
         noFSgm.inputs.output_file = ''
 
         FS2white = Node(name='Fill_noncortex_with_FreeSurfer_labels',
@@ -1656,7 +1643,7 @@ if do_volumes and do_label:
                                                   'stopvalue'],
                                      output_names=['output_file']))
         VolLabelFlow.add_nodes([FS2white])
-        VolLabelFlow.connect(JoinSegs, 'segmented_file', FS2white, 'mask')
+        VolLabelFlow.connect(JoinSegs, 'output_file', FS2white, 'mask')
         VolLabelFlow.connect(noFSgm, 'output_file', FS2white, 'labels')
         FS2white.inputs.mask_index = 3
         FS2white.inputs.output_file = ''
@@ -1873,7 +1860,7 @@ if do_volumes and do_label:
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSgmThicknesses])
-            VolShapeFlow.connect(JoinSegs, 'segmented_file',
+            VolShapeFlow.connect(JoinSegs, 'output_file',
                                  FSgmThicknesses, 'segmented_file')
             mbFlow.connect(VolLabelFlow,
                    'FreeSurfer_filled_labels.output_file',
@@ -1907,7 +1894,7 @@ if do_volumes and do_label:
                 ANTSgmThicknesses = FSgmThicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTSgmThicknesses])
-                VolShapeFlow.connect(JoinSegs, 'segmented_file',
+                VolShapeFlow.connect(JoinSegs, 'output_file',
                                      ANTSgmThicknesses, 'segmented_file')
                 mbFlow.connect(VolLabelFlow,
                        'ANTs_filled_labels.output_file',
