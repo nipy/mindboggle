@@ -94,7 +94,7 @@ are stored in tables (.csv).
 
     **labels** /
 
-        *Volume and surface labels:*
+        --- *Volume and surface labels* ---
 
         **cortex_and_noncortex** .nii.gz:  *[brain segmented into cortex=2 and noncortex=3]*
 
@@ -106,7 +106,7 @@ are stored in tables (.csv).
 
     **features** /
 
-        *Features extracted from cortical surface meshes:*
+        --- *Features extracted from cortical surface meshes* ---
 
         [left,right] _surface_ **folds** .vtk:  *[depth-based cortical surface folds (invaginations)]*
 
@@ -118,7 +118,7 @@ are stored in tables (.csv).
 
     **shapes** /
 
-        *Per-vertex surface shape measures:*
+        --- *Per-vertex surface shape measures* ---
 
         [left,right] _surface_ **area** .vtk
 
@@ -134,7 +134,7 @@ are stored in tables (.csv).
 
     **tables** /
 
-        *Tables with per-label volumes and thicknesses:*
+        --- *Tables with per-label volumes and thicknesses* ---
 
         **FreeSurfer_filled_labels_volumes** .csv
 
@@ -144,7 +144,7 @@ are stored in tables (.csv).
 
         **ANTs_filled_labels_volumes_areas_thicknesses** .csv
 
-        *Tables with per-label or per-feature surface shape statistics:*
+        --- *Tables with per-label or per-feature surface shape statistics* ---
 
         [left,right] _surface_ **label_shapes** .csv
 
@@ -152,7 +152,7 @@ are stored in tables (.csv).
 
         [left,right] _surface_ **fundus_shapes** .csv
 
-        *Table with per-vertex shape measures:*
+        --- *Table with per-vertex shape measures* ---
 
         [left,right] _surface_ **vertices** .csv
 
