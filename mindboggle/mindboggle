@@ -226,6 +226,17 @@ do_freesurfer_convexity = False  # Include FreeSurfer's convexity measure
 if do_shapes and use_FS_inputs:
     do_freesurfer_thickness = True
     do_freesurfer_convexity = True
+#-----------------------------------------------------------------------------
+# Basic functions
+#-----------------------------------------------------------------------------
+def split_list_pair(List):
+    element1 = List[0]
+    element2 = List[1]
+    return element1, element2
+
+def first_string_containing_substring(substring, List):
+    first_matching_string = [x for x in List if substring in x][0]
+    return first_matching_string
 
 #=============================================================================
 #
@@ -276,6 +287,9 @@ add_atlases = args.add_atlases
 if add_atlases:
     if isinstance(add_atlases, str):
         add_atlases = [add_atlases]
+add_atlas_names = []
+for add_atlas in add_atlases:
+    add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
@@ -303,7 +317,7 @@ mbFlow.base_dir = temp_path
 #-----------------------------------------------------------------------------
 InputAddAtlases = Node(name='Input_volume_atlases',
                        interface=IdentityInterface(fields=['atlas']))
-InputAddAtlases.iterables = ('atlas', add_atlases)
+InputAddAtlases.iterables = ('atlas', add_atlas_names)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
 InputSubjects.iterables = ('subject', subjects)
@@ -311,54 +325,35 @@ InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
 hemis = ['lh', 'rh']
 InputHemis.iterables = ('hemi', hemis)
-
-#-----------------------------------------------------------------------------
-# Basic functions
-#-----------------------------------------------------------------------------
-def split_list_pair(List):
-    element1 = List[0]
-    element2 = List[1]
-    return element1, element2
-
-def return_basename(input_path):
-    import os
-    basename = os.path.basename(input_path)
-    return basename
-
-def check_if_match(input1, input2):
-    if input1 == input2:
-        is_match = True
-    else:
-        is_match = False
-    return is_match
-
 #-----------------------------------------------------------------------------
 # Outputs and name substitutions
 #-----------------------------------------------------------------------------
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.o
 Sink.inputs.container = ''
-"""
-Sink.inputs.substitutions = [('_subject_', ''), ('_atlas_', ''),
+Sink.inputs.substitutions = [('_subject_', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
-    ('lh.', ''), ('rh.', ''),
-    ('pial.', ''),
+    ('lh.', ''), ('rh.', ''), ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
-#    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
+    ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
+    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.vtk'),
 #    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-#    ('aseg.nii.gz_through_cortex_and_noncortex.nii.gz_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.nii.gz_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.nii',
-#     'FreeSurfer_filled_labels.nii.gz'),
-    ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.nii.gz',
+    ('FreeSurfer_labels.nii.gz_through_cortex_and_noncortex.vtk_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.vtk_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.vtk',
+     'FreeSurfer_filled_labels.nii.gz'),
+    ('ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.vtk_to_ANTS_registered_volume_atlas.nii.gz_through_cortex_and_noncortex.vtk',
      'ANTs_filled_labels.nii.gz')]
 Sink.inputs.regexp_substitutions = [
+    (r'/_atlas_(.*)/added_atlas_labels_volumes.csv',
+     r'/\1_labels_volumes.csv'),
+    (r'/_atlas_(.*)/ANTS_registered_volume_atlas.nii.gz',
+     r'/\1_labels.nii.gz'),
     (r'/left_surface/(.*)/(.*)', r'/\1/left_surface_\2'),
     (r'/right_surface/(.*)/(.*)', r'/\1/right_surface_\2'),
     (r'/features/(.*)/', r'/\1/features/'),
     (r'/labels/(.*)/', r'/\1/labels/'),
     (r'/shapes/(.*)/', r'/\1/shapes/'),
     (r'/tables/(.*)/', r'/\1/tables/')]
-"""
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -1695,15 +1690,30 @@ if do_volumes and do_label:
     #=========================================================================
     # Transform labels from added atlas(es) in MNI152 to subject
     #=========================================================================
-    if do_ants and add_atlases:
+    if do_ants and add_atlas_names:
+        #---------------------------------------------------------------------
+        # Find atlas path that contains atlas name:
+        #---------------------------------------------------------------------
+        MatchAtlas = Node(name='Match_added_atlas',
+                      interface=Fn(function=first_string_containing_substring,
+                                   input_names=['substring',
+                                                'List'],
+                                   output_names=['first_matching_string']))
+        VolLabelFlow.add_nodes([MatchAtlas])
+        mbFlow.connect(InputAddAtlases, 'atlas', VolLabelFlow,
+                       'Match_added_atlas.substring')
+        MatchAtlas.inputs.List = add_atlases
+        #---------------------------------------------------------------------
+        # Transform atlas:
+        #---------------------------------------------------------------------
         xfm2 = xfm.clone('Transform_added_atlases')
         VolLabelFlow.add_nodes([xfm2])
+        VolLabelFlow.connect(MatchAtlas, 'first_matching_string',
+                             xfm2, 'input_image')
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
                        'Transform_added_atlases.reference_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'Transform_added_atlases.transforms')
-        mbFlow.connect(InputAddAtlases, 'atlas', VolLabelFlow,
-                       'Transform_added_atlases.input_image')
         mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
                        Sink, 'labels.@added_atlases')
 
@@ -1817,7 +1827,7 @@ if do_volumes and do_label:
             #-----------------------------------------------------------------
             # Volumes of labels in additional atlases transformed to subject:
             #-----------------------------------------------------------------
-            if add_atlases:
+            if add_atlas_names:
                 antsLabelVolumes2 = FSlabelVolumes.clone(
                     'Added_atlas_label_volumes')
                 VolShapeFlow.add_nodes([antsLabelVolumes2])
@@ -1829,7 +1839,7 @@ if do_volumes and do_label:
                 antsVolTable2 = FSVolTable.clone(
                     'Added_atlas_label_volume_table')
                 VolShapeFlow.add_nodes([antsVolTable2])
-                antsVolTable2.inputs.column_names = ['Added_atlas_labels',
+                antsVolTable2.inputs.column_names = ['added_atlas_labels',
                                                      'volumes']
                 VolShapeFlow.connect(antsLabelVolumes2, 'labels_volumes',
                                      antsVolTable2, 'columns')
@@ -1855,8 +1865,7 @@ if do_volumes and do_label:
                                           'resize',
                                           'propagate',
                                           'output_dir',
-                                          'output_table',
-                                          'use_c3d'],
+                                          'output_table'],
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSgmThicknesses])
