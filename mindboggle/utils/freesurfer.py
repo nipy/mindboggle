@@ -221,77 +221,6 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     return labels, output_vtk
 
 
-def annot_labels_to_volume(subject, annot_name, original_space, reference):
-    """
-    Propagate surface labels through hemisphere's gray matter volume
-    and convert label volume from FreeSurfer 'unconformed' to original space
-    using FreeSurfer's mri_aparc2aseg and mri_vol2vol.
-
-    Note ::
-        From the mri_aparc2aseg documentation:
-        The volumes of the cortical labels will be different than
-        reported by mris_anatomical_stats because partial volume information
-        is lost when mapping the surface to the volume. The values reported by
-        mris_anatomical_stats will be more accurate than the volumes from the
-        aparc+aseg volume.
-
-    Parameters
-    ----------
-    subject : string
-        subject name
-    annot_name: string
-        FreeSurfer annot filename without the hemisphere prepend or .annot append
-    original_space: Boolean
-        convert from FreeSurfer unconformed to original space?
-    reference : string
-        file in original space
-
-    Returns
-    -------
-    output_file : string
-        name of output file
-
-    """
-    import os
-
-    from mindboggle.utils.utils import execute
-
-    # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
-    print("Fill gray matter volume with surface labels using FreeSurfer...")
-
-    output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
-
-    cmd = ['mri_aparc2aseg', '--s', subject, '--annot', annot_name,
-            '--o', output_file1]
-    execute(cmd)
-    if not os.path.exists(output_file1):
-        raise(IOError(output_file1 + " not found"))
-
-    # Convert label volume from FreeSurfer to original space:
-    if original_space:
-        print("Convert label volume from FreeSurfer 'unconformed' to original space...")
-
-        output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
-
-        interp = 'nearest'
-        cmd = ['mri_vol2vol',
-               '--mov', output_file1,
-               '--targ', reference,
-               '--interp', interp,
-               '--regheader --o', output_file2]
-        execute(cmd)
-        if not os.path.exists(output_file2):
-            raise(IOError(output_file2 + " not found"))
-        output_file = output_file2
-    else:
-        output_file = output_file1
-
-    if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
-
-    return output_file
-
-
 def label_with_classifier(subject, hemi, left_classifier='',
                           right_classifier='', annot_file=''):
     """
@@ -392,93 +321,70 @@ def label_with_classifier(subject, hemi, left_classifier='',
     return annot_file
 
 
-def register_template(hemi, sphere_file, transform,
-                      templates_path, template):
+def annot_labels_to_volume(subject, annot_name, original_space, reference):
     """
-    Register surface to template with FreeSurfer's mris_register.
+    Propagate surface labels through hemisphere's gray matter volume
+    and convert label volume from FreeSurfer 'unconformed' to original space
+    using FreeSurfer's mri_aparc2aseg and mri_vol2vol.
 
-    Transform the labels from multiple atlases via a template
-    (using FreeSurfer's mris_register).
+    Note ::
+        From the mri_aparc2aseg documentation:
+        The volumes of the cortical labels will be different than
+        reported by mris_anatomical_stats because partial volume information
+        is lost when mapping the surface to the volume. The values reported by
+        mris_anatomical_stats will be more accurate than the volumes from the
+        aparc+aseg volume.
+
+    Parameters
+    ----------
+    subject : string
+        subject name
+    annot_name: string
+        FreeSurfer annot filename without the hemisphere prepend or .annot append
+    original_space: Boolean
+        convert from FreeSurfer unconformed to original space?
+    reference : string
+        file in original space
+
+    Returns
+    -------
+    output_file : string
+        name of output file
 
     """
     import os
 
     from mindboggle.utils.utils import execute
 
-    template_file = os.path.join(templates_path, hemi + '.' + template)
-    output_file = hemi + '.' + transform
+    # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
+    print("Fill gray matter volume with surface labels using FreeSurfer...")
 
-    cmd = ['mris_register', '-curv', sphere_file, template_file, output_file]
+    output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
+
+    cmd = ['mri_aparc2aseg', '--s', subject, '--annot', annot_name,
+            '--o', output_file1]
     execute(cmd)
-    if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+    if not os.path.exists(output_file1):
+        raise(IOError(output_file1 + " not found"))
 
-    return transform
+    # Convert label volume from FreeSurfer to original space:
+    if original_space:
+        print("Convert label volume from FreeSurfer 'unconformed' to original space...")
 
+        output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
 
-def transform_atlas_labels(hemi, subject, transform,
-                           subjects_path, atlas, atlas_string):
-    """
-    Transform atlas labels.
-
-    Read in the FreeSurfer *.annot file for a subject's brain hemisphere,
-    .
-
-    Transform the labels from a surface atlas via a template
-    using FreeSurfer's mri_surf2surf (wrapped in Nipype).
-
-    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
-    wraps command ``mri_surf2surf`` ::
-
-        "Transform a surface file from one subject to another via a spherical
-        registration. Both the source and target subject must reside in your
-        Subjects Directory, and they must have been processed with recon-all,
-        unless you are transforming to one of the icosahedron meshes."
-
-    Parameters
-    ----------
-    hemi : string
-        hemisphere ['lh' or 'rh']
-    subject : string
-        subject corresponding to FreeSurfer subject directory
-    transform : string
-        name of FreeSurfer spherical surface registration transform file
-    subjects_path : string
-        name of FreeSurfer subjects directory
-    atlas : string
-        name of atlas
-    atlas_string : string
-        name of atlas labeling protocol
-
-    Returns
-    -------
-    output_file : string
-        name of the output file
-
-    """
-    import os
-    from nipype.interfaces.freesurfer import SurfaceTransform
-
-    sxfm = SurfaceTransform()
-    sxfm.inputs.hemi = hemi
-    sxfm.inputs.target_subject = subject
-    sxfm.inputs.source_subject = atlas
-
-    # Source file
-    sxfm.inputs.source_annot_file = os.path.join(subjects_path,
-                                    atlas, 'label',
-                                    hemi + '.' + atlas_string + '.annot')
-    # Output annotation file
-    output_file = os.path.join(os.getcwd(), hemi + '.' + atlas + '.' +
-                               atlas_string + '_to_' + subject + '.annot')
-    sxfm.inputs.out_file = output_file
-
-    # Arguments: strings within registered files
-    args = ['--srcsurfreg', transform,
-            '--trgsurfreg', transform]
-    sxfm.inputs.args = ' '.join(args)
-
-    sxfm.run()
+        interp = 'nearest'
+        cmd = ['mri_vol2vol',
+               '--mov', output_file1,
+               '--targ', reference,
+               '--interp', interp,
+               '--regheader --o', output_file2]
+        execute(cmd)
+        if not os.path.exists(output_file2):
+            raise(IOError(output_file2 + " not found"))
+        output_file = output_file2
+    else:
+        output_file = output_file1
 
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
@@ -486,349 +392,243 @@ def transform_atlas_labels(hemi, subject, transform,
     return output_file
 
 
-def vote_labels(label_lists):
-    """
-    For each vertex, vote on the majority label.
-
-    Parameters
-    ----------
-    label_lists : list of lists of integers
-        vertex labels assigned by each atlas
-
-    Returns
-    -------
-    labels_max : list of integers
-        majority labels for vertices
-    label_counts : list of integers
-        number of different labels for vertices
-    label_votes : list of integers
-        number of votes for the majority labels
-
-    Examples
-    --------
-    >>> from collections import Counter
-    >>> X = [1,1,2,3,4,2,1,2,1,2,1,2]
-    >>> Votes = Counter(X)
-    >>> Votes
-    Counter({1: 5, 2: 5, 3: 1, 4: 1})
-    >>> Votes.most_common(1)
-    [(1, 5)]
-    >>> Votes.most_common(2)
-    [(1, 5), (2, 5)]
-    >>> len(Votes)
-    4
-
-    """
-    from collections import Counter
-
-    print("Begin voting...")
-    n_atlases = len(label_lists)  # number of atlases used to label subject
-    npoints = len(label_lists[0])
-    labels_max = [-1 for i in range(npoints)]
-    label_counts = [1 for i in range(npoints)]
-    label_votes = [n_atlases for i in range(npoints)]
-
-    consensus_vertices = []
-    for vertex in range(npoints):
-        votes = Counter([label_lists[i][vertex] for i in range(n_atlases)])
-
-        labels_max[vertex] = votes.most_common(1)[0][0]
-        label_votes[vertex] = votes.most_common(1)[0][1]
-        label_counts[vertex] = len(votes)
-        if len(votes) == n_atlases:
-            consensus_vertices.append(vertex)
-
-    print("Voting done.")
-
-    return labels_max, label_votes, label_counts, consensus_vertices
-
-
-def majority_vote_label(surface_file, annot_files):
-    """
-    Load a VTK surface and corresponding FreeSurfer annot files.
-    Write majority vote labels, and label counts and votes as VTK files.
-
-    Parameters
-    ----------
-    surface_file : string
-        name of VTK surface file
-    annot_files : list of strings
-        names of FreeSurfer annot files
-
-    Returns
-    -------
-    labels_max : list of integers
-        majority labels for vertices
-    label_counts : list of integers
-        number of different labels for vertices
-    label_votes : list of integers
-        number of votes for the majority labels
-    consensus_vertices : list of integers
-        indicating which are consensus labels
-    maxlabel_file : string
-        name of VTK file containing majority vote labels
-    labelcounts_file : string
-        name of VTK file containing number of different label counts
-    labelvotes_file : string
-        name of VTK file containing number of votes per majority label
-
-    """
-    from os import path, getcwd
-    import nibabel as nb
-    import pyvtk
-    from mindboggle.utils.freesurfer import vote_labels
-    from mindboggle.utils.io_table import string_vs_list_check
-
-    # Load multiple label sets
-    print("Load annotation files...")
-    label_lists = []
-    for annot_file in annot_files:
-        labels, colortable, names = nb.freesurfer.read_annot(annot_file)
-        label_lists.append(labels)
-    print("Annotations loaded.")
-
-    # Vote on labels for each vertex
-    labels_max, label_votes, label_counts, \
-    consensus_vertices = vote_labels(label_lists)
-
-    # Check type to make sure the filename is a string
-    # (if a list, return the first element)
-    surface_file = string_vs_list_check(surface_file)
-
-    # Save files
-    VTKReader = pyvtk.VtkData(surface_file)
-    Vertices = VTKReader.structure.points
-    Faces = VTKReader.structure.polygons
-
-    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
-    maxlabel_file = output_stem + '.labels.max.vtk'
-    labelcounts_file = output_stem + '.labelcounts.vtk'
-    labelvotes_file = output_stem + '.labelvotes.vtk'
-
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
-                                  name='Max (majority labels)'))).\
-          tofile(maxlabel_file, 'ascii')
-
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
-                                  name='Counts (number of different labels)'))).\
-          tofile(labelcounts_file, 'ascii')
-
-    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
-                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
-                                  name='Votes (number of votes for majority labels)'))).\
-          tofile(labelvotes_file, 'ascii')
-
-    if not os.path.exists(maxlabel_file):
-        raise(IOError(maxlabel_file + " not found"))
-    if not os.path.exists(labelcounts_file):
-        raise(IOError(labelcounts_file + " not found"))
-    if not os.path.exists(labelvotes_file):
-        raise(IOError(labelvotes_file + " not found"))
-
-    return labels_max, label_counts, label_votes, consensus_vertices, \
-           maxlabel_file, labelcounts_file, labelvotes_file
-
-
-def combine_segmentations(subject='', aseg='', filled='', out_dir='',
-                          second_segmentation_file='',
-                          cortex_value=2, noncortex_value=3, use_c3d=False):
-    """
-    Combine FreeSurfer segmentation volumes (no surface-based outputs)
-    and a segmentation file from another source (such as ANTs Atropos)
-    to obtain a single cortex=2 and noncortex=3 segmentation file.
-
-    If the second file is not provided, the function returns a segmentation
-    file (containing cortex and noncortex) from FreeSurfer volume files.
-
-    Steps ::
-
-        1. Convert FreeSurfer aseg.mgz and filled.mgz volumes to nifti format
-           in their original space (using 001.mgz/rawavg.mgz).
-        2. Load second segmentation file where cortex=2 and noncortex=3,
-           such as from ANTs (Atropos).
-        3. Combine the union of the cortex from #1 and #2
-           and the union of the noncortex from #1 and #2,
-           replacing noncortex and cortex overlap with noncortex.
-
-    Note ::
-
-        Requires FreeSurfer's mri_vol2vol function and either ANTs ImageMath
-        or the convert3d (c3d) tool.
-
-    Parameters
-    ----------
-    subject : string (optional, if aseg and filled supplied)
-        name of FreeSurfer subject (for filled.mgz and aseg.mgz files)
-    aseg : string (optional)
-        name of nibabel-readable file converted from FreeSurfer's aseg.mgz
-    filled : string (optional)
-        name of nibabel-readable file converted from FreeSurfer's filled.mgz
-    out_dir : str (optional)
-        output directory
-    second_segmentation_file : str (optional)
-        second segmentation file (cortex=2, noncortex=3; other labels are fine)
-    cortex_value : integer
-        cortex value for second segmentation file
-    noncortex_value : integer
-        noncortex value for second segmentation file
-    use_c3d : Boolean
-        use convert3d? (otherwise ANTs ImageMath)
-
-    Returns
-    -------
-    segmented_file : string
-        name of cortex and noncortex segmented file (cortex=2, noncortex=3)
-
-    Examples
-    --------
-    >>> from mindboggle.utils.freesurfer import combine_segmentations
-    >>> subject = 'OASIS-TRT-20-1'
-    >>> aseg = ''
-    >>> filled = ''
-    >>> out_dir = ''
-    >>> second_segmentation_file = ''
-    >>> cortex_value = 2
-    >>> noncortex_value = 3
-    >>> use_c3d = False
-    >>> combine_segmentations(subject, aseg, filled, out_dir, second_segmentation_file, cortex_value, noncortex_value, use_c3d)
-
-    """
-    import os
-    import sys
-    import nibabel as nb
-
-    from mindboggle.utils.utils import execute
-
-    #-------------------------------------------------------------------------
-    # Outputs:
-    #-------------------------------------------------------------------------
-    if out_dir:
-        if not os.path.exists(out_dir):
-            os.mkdir(out_dir)
-    else:
-        out_dir = os.getcwd()
-    segmented_file = os.path.join(out_dir, 'cortex_and_noncortex.nii.gz')
-    noncortex_file = os.path.join(out_dir, 'noncortex.nii.gz')
-    temp_file = os.path.join(out_dir, 'temp.nii.gz')
-    cortex_value = str(cortex_value)
-    noncortex_value = str(noncortex_value)
-
-    #-------------------------------------------------------------------------
-    # Convert FreeSurfer cortex and noncortex volumes to nifti format:
-    #-------------------------------------------------------------------------
-    if not aseg or not filled:
-        aseg = os.path.join(out_dir, 'aseg.nii.gz')
-        filled = os.path.join(out_dir, 'filled.nii.gz')
-        subjects_dir = os.environ['SUBJECTS_DIR']
-        aseg_mgh = os.path.join(subjects_dir, subject, 'mri', 'aseg.mgz')
-        orig = os.path.join(subjects_dir, subject, 'mri', 'orig', '001.mgz')
-        if not os.path.exists(orig):
-            orig = os.path.join(subjects_dir, subject, 'mri', 'rawavg.mgz')
-            if not os.path.exists(orig):
-                sys.exit('Could not find ' + orig + ' for subject ' + subject)
-
-        cmd = ['mri_vol2vol --mov', aseg_mgh, '--targ', orig,
-               '--interp nearest --regheader --o', aseg]
-        execute(cmd)
-        if not os.path.exists(aseg):
-            raise(IOError(aseg + " not found"))
-
-        filled_mgh = os.path.join(subjects_dir, subject, 'mri', 'filled.mgz')
-        cmd = ['mri_vol2vol --mov', filled_mgh, '--targ', orig,
-               '--interp nearest', '--regheader --o', filled]
-        execute(cmd)
-        if not os.path.exists(filled):
-            raise(IOError(filled + " not found"))
-
-    if use_c3d:
-        #---------------------------------------------------------------------
-        # Retain only cortex or noncortex values:
-        #---------------------------------------------------------------------
-        cmd = ['c3d', aseg, '-replace 1 0 3 1 42 1',
-               '-threshold 1 1 2 0', '-o', segmented_file]
-        execute(cmd)
-
-        cmd = ['c3d', filled, '-binarize -scale 3', '-o', noncortex_file]
-        execute(cmd)
-
-        #---------------------------------------------------------------------
-        # Include second segmentation:
-        #---------------------------------------------------------------------
-        if second_segmentation_file:
-            cmd = ['c3d', second_segmentation_file, '-threshold',
-                   cortex_value, cortex_value, '1 0',
-                   segmented_file, '-add -binarize',
-                   '-threshold 1 1 2 0', '-o', segmented_file]
-            execute(cmd)
-            cmd = ['c3d', second_segmentation_file, '-threshold',
-                   noncortex_value, noncortex_value, '1 0',
-                   noncortex_file, '-add -binarize', '-threshold 1 1 3 0',
-                   '-o', noncortex_file]
-            execute(cmd)
-
-        #---------------------------------------------------------------------
-        # Replace noncortex/cortex overlap with noncortex:
-        #---------------------------------------------------------------------
-        cmd = ['c3d', noncortex_file, '-threshold 3 3 0 1', segmented_file,
-               '-multiply', noncortex_file, '-add', '-o', segmented_file]
-        execute(cmd)
-
-    else:
-        #---------------------------------------------------------------------
-        # Retain only cortex or noncortex values:
-        #---------------------------------------------------------------------
-        cmd = ['ImageMath 3', segmented_file,
-               'ReplaceVoxelValue', aseg, '1 1 0']
-        execute(cmd)
-        cmd = ['ImageMath 3', segmented_file,
-               'ReplaceVoxelValue', segmented_file, '3 3 1']
-        execute(cmd)
-        cmd = ['ImageMath 3', segmented_file,
-               'ReplaceVoxelValue', segmented_file, '42 42 1']
-        execute(cmd)
-        cmd = ['ThresholdImage 3', segmented_file,
-               segmented_file, '1 1 2 0']
-        execute(cmd)
-
-        cmd = ['ThresholdImage 3', filled, noncortex_file, '1 10000 3 0']
-        execute(cmd)
-
-        #---------------------------------------------------------------------
-        # Include second segmentation:
-        #---------------------------------------------------------------------
-        if second_segmentation_file:
-            cmd = ['ThresholdImage 3', second_segmentation_file,
-                   temp_file, cortex_value, cortex_value, '1 0']
-            execute(cmd)
-            cmd = ['ImageMath 3', temp_file, '+', temp_file,
-                   segmented_file]
-            execute(cmd)
-            cmd = ['ThresholdImage 3', temp_file,
-                   segmented_file, '1 10000 2 0']
-            execute(cmd)
-
-            cmd = ['ThresholdImage 3', second_segmentation_file,
-                   temp_file, noncortex_value, noncortex_value, '1 0']
-            execute(cmd)
-            cmd = ['ImageMath 3', temp_file, '+', temp_file, noncortex_file]
-            execute(cmd)
-            cmd = ['ThresholdImage 3', temp_file, noncortex_file,
-                   '1 10000 3 0']
-            execute(cmd)
-
-        #---------------------------------------------------------------------
-        # Replace noncortex/cortex overlap with noncortex:
-        #---------------------------------------------------------------------
-        cmd = ['ThresholdImage 3', noncortex_file, temp_file, '3 3 0 1']
-        execute(cmd)
-        cmd = ['ImageMath 3', temp_file, 'm', temp_file, segmented_file]
-        execute(cmd)
-        cmd = ['ImageMath 3', segmented_file, '+', temp_file, noncortex_file]
-        execute(cmd)
-
-    return segmented_file
+#def register_template(hemi, sphere_file, transform,
+#                      templates_path, template):
+#    """
+#    Register surface to template with FreeSurfer's mris_register.
+#
+#    Transform the labels from multiple atlases via a template
+#    (using FreeSurfer's mris_register).
+#
+#    """
+#    import os
+#
+#    from mindboggle.utils.utils import execute
+#
+#    template_file = os.path.join(templates_path, hemi + '.' + template)
+#    output_file = hemi + '.' + transform
+#
+#    cmd = ['mris_register', '-curv', sphere_file, template_file, output_file]
+#    execute(cmd)
+#    if not os.path.exists(output_file):
+#        raise(IOError(output_file + " not found"))
+#
+#    return transform
+#
+#
+#def transform_atlas_labels(hemi, subject, transform,
+#                           subjects_path, atlas, atlas_string):
+#    """
+#    Transform atlas labels.
+#
+#    Read in the FreeSurfer *.annot file for a subject's brain hemisphere,
+#    .
+#
+#    Transform the labels from a surface atlas via a template
+#    using FreeSurfer's mri_surf2surf (wrapped in Nipype).
+#
+#    nipype.workflows.smri.freesurfer.utils.fs.SurfaceTransform
+#    wraps command ``mri_surf2surf`` ::
+#
+#        "Transform a surface file from one subject to another via a spherical
+#        registration. Both the source and target subject must reside in your
+#        Subjects Directory, and they must have been processed with recon-all,
+#        unless you are transforming to one of the icosahedron meshes."
+#
+#    Parameters
+#    ----------
+#    hemi : string
+#        hemisphere ['lh' or 'rh']
+#    subject : string
+#        subject corresponding to FreeSurfer subject directory
+#    transform : string
+#        name of FreeSurfer spherical surface registration transform file
+#    subjects_path : string
+#        name of FreeSurfer subjects directory
+#    atlas : string
+#        name of atlas
+#    atlas_string : string
+#        name of atlas labeling protocol
+#
+#    Returns
+#    -------
+#    output_file : string
+#        name of the output file
+#
+#    """
+#    import os
+#    from nipype.interfaces.freesurfer import SurfaceTransform
+#
+#    sxfm = SurfaceTransform()
+#    sxfm.inputs.hemi = hemi
+#    sxfm.inputs.target_subject = subject
+#    sxfm.inputs.source_subject = atlas
+#
+#    # Source file
+#    sxfm.inputs.source_annot_file = os.path.join(subjects_path,
+#                                    atlas, 'label',
+#                                    hemi + '.' + atlas_string + '.annot')
+#    # Output annotation file
+#    output_file = os.path.join(os.getcwd(), hemi + '.' + atlas + '.' +
+#                               atlas_string + '_to_' + subject + '.annot')
+#    sxfm.inputs.out_file = output_file
+#
+#    # Arguments: strings within registered files
+#    args = ['--srcsurfreg', transform,
+#            '--trgsurfreg', transform]
+#    sxfm.inputs.args = ' '.join(args)
+#
+#    sxfm.run()
+#
+#    if not os.path.exists(output_file):
+#        raise(IOError(output_file + " not found"))
+#
+#    return output_file
+#
+#
+#def vote_labels(label_lists):
+#    """
+#    For each vertex, vote on the majority label.
+#
+#    Parameters
+#    ----------
+#    label_lists : list of lists of integers
+#        vertex labels assigned by each atlas
+#
+#    Returns
+#    -------
+#    labels_max : list of integers
+#        majority labels for vertices
+#    label_counts : list of integers
+#        number of different labels for vertices
+#    label_votes : list of integers
+#        number of votes for the majority labels
+#
+#    Examples
+#    --------
+#    >>> from collections import Counter
+#    >>> X = [1,1,2,3,4,2,1,2,1,2,1,2]
+#    >>> Votes = Counter(X)
+#    >>> Votes
+#    Counter({1: 5, 2: 5, 3: 1, 4: 1})
+#    >>> Votes.most_common(1)
+#    [(1, 5)]
+#    >>> Votes.most_common(2)
+#    [(1, 5), (2, 5)]
+#    >>> len(Votes)
+#    4
+#
+#    """
+#    from collections import Counter
+#
+#    print("Begin voting...")
+#    n_atlases = len(label_lists)  # number of atlases used to label subject
+#    npoints = len(label_lists[0])
+#    labels_max = [-1 for i in range(npoints)]
+#    label_counts = [1 for i in range(npoints)]
+#    label_votes = [n_atlases for i in range(npoints)]
+#
+#    consensus_vertices = []
+#    for vertex in range(npoints):
+#        votes = Counter([label_lists[i][vertex] for i in range(n_atlases)])
+#
+#        labels_max[vertex] = votes.most_common(1)[0][0]
+#        label_votes[vertex] = votes.most_common(1)[0][1]
+#        label_counts[vertex] = len(votes)
+#        if len(votes) == n_atlases:
+#            consensus_vertices.append(vertex)
+#
+#    print("Voting done.")
+#
+#    return labels_max, label_votes, label_counts, consensus_vertices
+#
+#
+#def majority_vote_label(surface_file, annot_files):
+#    """
+#    Load a VTK surface and corresponding FreeSurfer annot files.
+#    Write majority vote labels, and label counts and votes as VTK files.
+#
+#    Parameters
+#    ----------
+#    surface_file : string
+#        name of VTK surface file
+#    annot_files : list of strings
+#        names of FreeSurfer annot files
+#
+#    Returns
+#    -------
+#    labels_max : list of integers
+#        majority labels for vertices
+#    label_counts : list of integers
+#        number of different labels for vertices
+#    label_votes : list of integers
+#        number of votes for the majority labels
+#    consensus_vertices : list of integers
+#        indicating which are consensus labels
+#    maxlabel_file : string
+#        name of VTK file containing majority vote labels
+#    labelcounts_file : string
+#        name of VTK file containing number of different label counts
+#    labelvotes_file : string
+#        name of VTK file containing number of votes per majority label
+#
+#    """
+#    from os import path, getcwd
+#    import nibabel as nb
+#    import pyvtk
+#    from mindboggle.utils.freesurfer import vote_labels
+#    from mindboggle.utils.io_table import string_vs_list_check
+#
+#    # Load multiple label sets
+#    print("Load annotation files...")
+#    label_lists = []
+#    for annot_file in annot_files:
+#        labels, colortable, names = nb.freesurfer.read_annot(annot_file)
+#        label_lists.append(labels)
+#    print("Annotations loaded.")
+#
+#    # Vote on labels for each vertex
+#    labels_max, label_votes, label_counts, \
+#    consensus_vertices = vote_labels(label_lists)
+#
+#    # Check type to make sure the filename is a string
+#    # (if a list, return the first element)
+#    surface_file = string_vs_list_check(surface_file)
+#
+#    # Save files
+#    VTKReader = pyvtk.VtkData(surface_file)
+#    Vertices = VTKReader.structure.points
+#    Faces = VTKReader.structure.polygons
+#
+#    output_stem = path.join(getcwd(), path.basename(surface_file.strip('.vtk')))
+#    maxlabel_file = output_stem + '.labels.max.vtk'
+#    labelcounts_file = output_stem + '.labelcounts.vtk'
+#    labelvotes_file = output_stem + '.labelvotes.vtk'
+#
+#    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+#                  pyvtk.PointData(pyvtk.Scalars(labels_max,\
+#                                  name='Max (majority labels)'))).\
+#          tofile(maxlabel_file, 'ascii')
+#
+#    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+#                  pyvtk.PointData(pyvtk.Scalars(label_counts,\
+#                                  name='Counts (number of different labels)'))).\
+#          tofile(labelcounts_file, 'ascii')
+#
+#    pyvtk.VtkData(pyvtk.PolyData(points=Vertices, polygons=Faces),\
+#                  pyvtk.PointData(pyvtk.Scalars(label_votes,\
+#                                  name='Votes (number of votes for majority labels)'))).\
+#          tofile(labelvotes_file, 'ascii')
+#
+#    if not os.path.exists(maxlabel_file):
+#        raise(IOError(maxlabel_file + " not found"))
+#    if not os.path.exists(labelcounts_file):
+#        raise(IOError(labelcounts_file + " not found"))
+#    if not os.path.exists(labelvotes_file):
+#        raise(IOError(labelvotes_file + " not found"))
+#
+#    return labels_max, label_counts, label_votes, consensus_vertices, \
+#           maxlabel_file, labelcounts_file, labelvotes_file
 
 
 #def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):

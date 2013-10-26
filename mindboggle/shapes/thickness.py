@@ -13,7 +13,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], resize=True, propagate=True,
-                   output_dir='', output_table='', use_c3d=False):
+                   output_dir='', output_table=''):
     """
     Compute a simple thickness measure for each labeled cortex region.
 
@@ -49,8 +49,6 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     output_table : string
         output table file with labels and thickness values
         (if empty, don't save table file)
-    use_c3d : Boolean
-        use convert3d? (otherwise ANTs ImageMath)
 
     Returns
     -------
@@ -78,8 +76,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> propagate = False
     >>> output_dir = ''
     >>> output_table = ''
-    >>> use_c3d = False
-    >>> label_volume_area_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table, use_c3d)
+    >>> label_volume_area_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table)
 
     """
     import os
@@ -107,93 +104,58 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     #-------------------------------------------------------------------------
     # Extract noncortex and cortex:
     #-------------------------------------------------------------------------
-    if use_c3d:
-        cmd = ['c3d', segmented_file,
-               '-threshold', str(noncortex_value), str(noncortex_value), '1 0',
-               '-o', noncortex]
-        execute(cmd)
-        cmd = ['c3d', segmented_file,
-               '-threshold', str(cortex_value), str(cortex_value), '1 0',
-               '-o', cortex]
-        execute(cmd)
-    else:
-        cmd = ['ThresholdImage 3', segmented_file,
-               noncortex, str(noncortex_value), str(noncortex_value), '1 0']
-        execute(cmd)
-        cmd = ['ThresholdImage 3', segmented_file,
-               cortex, str(cortex_value), str(cortex_value), '1 0']
-        execute(cmd)
+    cmd = ['ThresholdImage 3', segmented_file,
+           noncortex, str(noncortex_value), str(noncortex_value), '1 0']
+    execute(cmd)
+    cmd = ['ThresholdImage 3', segmented_file,
+           cortex, str(cortex_value), str(cortex_value), '1 0']
+    execute(cmd)
 
     #-------------------------------------------------------------------------
     # Propagate labels through cortex (or simply multiply):
     #-------------------------------------------------------------------------
-    if propagate and not use_c3d:
+    if propagate:
         cmd = ['ImageMath', '3', cortex, 'PropagateLabelsThroughMask',
                cortex, labeled_file]
         execute(cmd)
     else:
-        if use_c3d:
-            cmd = ['c3d', cortex, labeled_file, '-multiply', '-o', cortex]
-            execute(cmd)
-        else:
-            cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
-            execute(cmd)
+        cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
+        execute(cmd)
 
     #-------------------------------------------------------------------------
     # Resample cortex and noncortex files:
     #-------------------------------------------------------------------------
     if resize:
         rescale = 2.0
-        rescale_percent = str(rescale * 100)
 
-        if use_c3d:
-            cmd = ['c3d', cortex, '-interpolation nearestneighbor',
-                   '-resample '+rescale_percent+'%', '-o', cortex]
-            execute(cmd)
-            cmd = ['c3d', noncortex, '-interpolation nearestneighbor',
-                   '-resample '+rescale_percent+'%', '-o', noncortex]
-            execute(cmd)
-        else:
-            dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
-            cmd = ['ResampleImageBySpacing 3', cortex, cortex, dims, '0 0 1']
-            execute(cmd)
-            cmd = ['ResampleImageBySpacing 3', noncortex, noncortex, dims, '0 0 1']
-            execute(cmd)
+        dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
+        cmd = ['ResampleImageBySpacing 3', cortex, cortex, dims, '0 0 1']
+        execute(cmd)
+        cmd = ['ResampleImageBySpacing 3', noncortex, noncortex, dims, '0 0 1']
+        execute(cmd)
 
     #-------------------------------------------------------------------------
     # Extract cortex inner and outer border voxels:
     #-------------------------------------------------------------------------
-    if use_c3d:
-        cmd = ['c3d', noncortex, '-dilate 1 1x1x1vox', cortex, '-multiply',
-               '-o', inner_edge]
+    cmd = ['ImageMath 3', inner_edge, 'MD', noncortex, '1']
+    execute(cmd)
+    cmd = ['ImageMath 3', inner_edge, 'm', cortex, inner_edge]
+    execute(cmd)
+    if use_outer_edge:
+        cmd = ['ThresholdImage 3', cortex, outer_edge, '1 10000 1 0']
         execute(cmd)
-        if use_outer_edge:
-            cmd = ['c3d', cortex, '-binarize -erode 1 1x1x1vox',
-                   '-threshold 1 1 0 1', cortex, '-multiply', '-o', outer_edge]
-            execute(cmd)
-            cmd = ['c3d', inner_edge, '-binarize -threshold 1 1 0 1',
-                   outer_edge, '-multiply', '-o', outer_edge]
-            execute(cmd)
-    else:
-        cmd = ['ImageMath 3', inner_edge, 'MD', noncortex, '1']
+        cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
         execute(cmd)
-        cmd = ['ImageMath 3', inner_edge, 'm', cortex, inner_edge]
+        cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
         execute(cmd)
-        if use_outer_edge:
-            cmd = ['ThresholdImage 3', cortex, outer_edge, '1 10000 1 0']
-            execute(cmd)
-            cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
-            execute(cmd)
-            cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
-            execute(cmd)
-            cmd = ['ImageMath 3', outer_edge, 'm', cortex, outer_edge]
-            execute(cmd)
-            cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
-            execute(cmd)
-            cmd = ['ThresholdImage 3', temp, temp, '1 1 0 1']
-            execute(cmd)
-            cmd = ['ImageMath 3', outer_edge, 'm', temp, outer_edge]
-            execute(cmd)
+        cmd = ['ImageMath 3', outer_edge, 'm', cortex, outer_edge]
+        execute(cmd)
+        cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
+        execute(cmd)
+        cmd = ['ThresholdImage 3', temp, temp, '1 1 0 1']
+        execute(cmd)
+        cmd = ['ImageMath 3', outer_edge, 'm', temp, outer_edge]
+        execute(cmd)
 
     #-------------------------------------------------------------------------
     # Load data:
