@@ -24,58 +24,72 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 # br.add_data(np.array(d), min=0, max=1, alpha=0.5)
 
 
-def vtkviewer(vtk_file_list, colormap_file=None):
+def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     """
     Use vtkviewer to visualize one or more VTK surface files.
 
+    Optionally provide colormap file or set $COLORMAP environment variable.
+
     Parameters
     ----------
-    vtk_file_list : string or list of strings
+    vtk_files : string or list of strings
         name of VTK surface mesh file or list of file names
+    use_colormap : Boolean
+        use Paraview-style XML colormap file?
     colormap_file : string
-        name of Paraview-style XML colormap file
+        use colormap in given file if use_colormap==True?  if empty and
+        use_colormap==True, use file set by $COLORMAP environment variable
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import vtkviewer
+    >>> from mindboggle.utils.plots import plot_surfaces
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
-    >>> colormap_file = os.path.join(os.environ['MINDBOGGLE_TOOLS'], 'colormap.xml')
-    >>> vtkviewer(vtk_file, colormap_file)
+    >>> vtk_files = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> #vtk_files = [os.path.join(path, 'cube.vtk'), os.path.join(path, 'test_one_label.vtk')]
+    >>> use_colormap = True
+    >>> colormap_file = '/software/mindboggle_tools/colormap.xml'
+    >>> plot_surfaces(vtk_files, use_colormap, colormap_file)
 
     """
     import os
-    import glob
-    import mindboggle.utils.vtkviewer as vv
+    import sys
 
-    if isinstance(vtk_file_list, str):
-        vtk_file_list = [vtk_file_list]
+    import mindboggle.utils.vtkviewer as vtkviewer
 
-    if colormap_file:
-        vtk_colormap = vv.VTKViewer.LoadColorMap(colormap_file)
-    else:
-        vtk_colormap = None
+    if isinstance(vtk_files, str):
+        vtk_files = [vtk_files]
 
-    vtkviewer = vv.VTKViewer()
-    for vtk_file in vtk_file_list:
-        fileNames = glob.glob(vtk_file)
-        if len(fileNames) == 0:
-            print "what:", vtk_file
+    vv = vtkviewer.VTKViewer()
+
+    colormap = None
+    if use_colormap:
+        if colormap_file and os.path.isfile(colormap_file):
+            colormap = vv.LoadColorMap(colormap_file)
+        elif "COLORMAP" in os.environ:
+            colormap = vv.LoadColorMap(os.environ["COLORMAP"])
+
+    for vtk_file in vtk_files:
+        if os.path.isfile(vtk_file):
+            vv.AddFile(vtk_file, colormap)
         else:
-            for fileName in fileNames:
-                if os.path.isfile(fileName):
-                    vtkviewer.AddFile(fileName,vtk_colormap)
-                else:
-                    print "what:", fileName
-    vtkviewer.Start()
+            sys.exit("Huh?: {0}".format(vtk_file))
+
+    vv.Start()
 
 
-def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
-                  masked_output='', program='vtkviewer', colormap_file=None,
-                  background_value=-1):
+def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
+                      masked_output='', remove_nonmask=False,
+                      program='vtkviewer',
+                      use_colormap=False, colormap_file=''):
     """
     Use vtkviewer or mayavi2 to visualize VTK surface mesh data.
+
+    If a mask_file is provided, a temporary masked file is saved,
+    and it is this file that is viewed.
+
+    If using vtkviewer, can optionally provide colormap file
+    or set $COLORMAP environment variable.
 
     Parameters
     ----------
@@ -83,55 +97,90 @@ def plot_surfaces(vtk_file, mask_file='', mask_background=-1,
         name of VTK surface mesh file
     mask_file : string
         name of VTK surface mesh file to mask vtk_file vertices
-    mask_background : integer
-        mask background value
+    nonmask_value : integer
+        nonmask (usually background) value
     masked_output : string
         temporary masked output file name
+    remove_nonmask : Boolean
+        remove vertices that are not in mask? (otherwise assign nonmask_value)
     program : string {'vtkviewer', 'mayavi2'}
         program to visualize VTK file
+    use_colormap : Boolean
+        use Paraview-style XML colormap file set by $COLORMAP env variable?
     colormap_file : string
-        name of Paraview-style XML colormap file (for use with vtkviewer)
-    background_value : integer
-        background value
+        use colormap in given file if use_colormap==True?  if empty and
+        use_colormap==True, use file set by $COLORMAP environment variable
 
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> from mindboggle.utils.plots import plot_mask_surface
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> mask_file = ''#os.path.join(path, 'arno', 'features', 'folds.vtk')
-    >>> mask_background = -1
+    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+    >>> mask_file = os.path.join(path, 'test_one_label.vtk')
+    >>> nonmask_value = 0 #-1
     >>> masked_output = ''
+    >>> remove_nonmask = True
     >>> program = 'vtkviewer'
-    >>> colormap_file = None
-    >>> plot_surfaces(vtk_file, mask_file, mask_background, masked_output, program, colormap_file)
+    >>> use_colormap = True
+    >>> colormap_file = '' #'/software/mindboggle_tools/colormap.xml'
+    >>> plot_mask_surface(vtk_file, mask_file, nonmask_value, masked_output, remove_nonmask, program, use_colormap, colormap_file)
 
     """
-    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    import os
+
+    from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     from mindboggle.utils.utils import execute
-    from mindboggle.utils.plots import vtkviewer
+    from mindboggle.utils.plots import plot_surfaces
+    from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars, \
+                                        read_vtk, write_vtk
 
-    if not program:
-        program = 'vtkviewer'
-
+    #-------------------------------------------------------------------------
     # Filter mesh with non-background values from a second (same-size) mesh:
+    #-------------------------------------------------------------------------
     if mask_file:
-        scalars, name = read_scalars(vtk_file, True, True)
         mask, name = read_scalars(mask_file, True, True)
-        scalars[mask == mask_background] = -1
         if not masked_output:
-            masked_output = 'temp.vtk'
-        rewrite_scalars(vtk_file, masked_output, scalars) #, 'masked', mask)
+            masked_output = os.path.join(os.getcwd(), 'temp.vtk')
         file_to_plot = masked_output
+
+        #---------------------------------------------------------------------
+        # Remove nonmask-valued vertices:
+        #---------------------------------------------------------------------
+        if remove_nonmask:
+            #-----------------------------------------------------------------
+            # Load VTK files:
+            #-----------------------------------------------------------------
+            faces, lines, indices, points, npoints, scalars, scalar_names, \
+            o1 = read_vtk(vtk_file, True, True)
+            #-----------------------------------------------------------------
+            # Find mask indices, remove nonmask faces, and reindex:
+            #-----------------------------------------------------------------
+            Imask = [i for i,x in enumerate(mask) if x != nonmask_value]
+            mask_faces = remove_faces(faces, Imask)
+            mask_faces, points, \
+            original_indices = reindex_faces_points(mask_faces, points)
+            #-----------------------------------------------------------------
+            # Write VTK file with scalar value:
+            #-----------------------------------------------------------------
+            write_vtk(file_to_plot, points, [], [], mask_faces,
+                      scalars[original_indices].tolist(), scalar_names)
+        else:
+            scalars, name = read_scalars(vtk_file, True, True)
+            scalars[mask == nonmask_value] = nonmask_value
+            rewrite_scalars(vtk_file, file_to_plot, scalars)
     else:
         file_to_plot = vtk_file
 
+    #-------------------------------------------------------------------------
     # Display with vtkviewer.py:
+    #-------------------------------------------------------------------------
     if program == 'vtkviewer':
-        vtkviewer(file_to_plot, colormap_file)
-
+        plot_surfaces(file_to_plot, use_colormap=use_colormap,
+                      colormap_file=colormap_file)
+    #-------------------------------------------------------------------------
     # Display with mayavi2:
+    #-------------------------------------------------------------------------
     elif program == 'mayavi2':
         cmd = ["mayavi2", "-d", file_to_plot, "-m", "Surface", "&"]
         execute(cmd, 'os')

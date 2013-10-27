@@ -1201,7 +1201,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
                 # Reindex indices in faces:
                 #-------------------------------------------------------------
                 if reindex:
-                    faces, points = reindex_faces_points(faces, points)
+                    faces, points, o1 = reindex_faces_points(faces, points)
                 else:
                     points = np.array(points)
                     points = points[select_indices].tolist()

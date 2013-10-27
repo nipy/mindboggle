@@ -878,8 +878,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
         # Reindex:
         if reindex:
-            scalar_faces, select_points = reindex_faces_points(scalar_faces,
-                                                               points)
+            scalar_faces, select_points, \
+            o1 = reindex_faces_points(scalar_faces, points)
         else:
             select_points = points
 
