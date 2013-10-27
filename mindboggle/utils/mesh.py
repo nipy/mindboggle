@@ -615,6 +615,8 @@ def reindex_faces_points(faces, points=[]):
         that form a face on a surface mesh
     new_points : list of lists of floats
         each (new) sublist contains 3-D coordinates of a vertex on a surface mesh
+    original_indices : list integers
+        list of indices to original points
 
     Examples
     --------
@@ -629,7 +631,7 @@ def reindex_faces_points(faces, points=[]):
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> fold_file = os.path.join(path, 'arno', 'features', 'fold11.vtk')
     >>> faces, points, npoints = read_faces_points(fold_file)
-    >>> new_faces, new_points = reindex_faces_points(faces, points)
+    >>> new_faces, new_points, original_indices = reindex_faces_points(faces, points)
 
     """
     import itertools
@@ -646,7 +648,9 @@ def reindex_faces_points(faces, points=[]):
     else:
         new_points = None
 
-    return new_faces, new_points
+    original_indices = indices_to_keep
+
+    return new_faces, new_points, original_indices
 
 
 def remove_neighbor_lists(neighbor_lists, indices):

@@ -360,7 +360,7 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
     >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> faces = remove_faces(faces, I22)
-    >>> faces, points = reindex_faces_points(faces, points)
+    >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> #from mindboggle.utils.io_vtk import read_faces_points
     >>> #label_file = os.path.join(path, 'arno', 'labels', 'label22.vtk')
     >>> #faces, points, npoints = read_faces_points(label_file)
@@ -489,7 +489,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> I22 = [i for i,x in enumerate(labels) if x==22] # postcentral
     >>> I22.extend(I20)
     >>> faces = remove_faces(faces, I22)
-    >>> faces, points = reindex_faces_points(faces, points)
+    >>> faces, points, o1 = reindex_faces_points(faces, points)
     >>> areas, u1 = read_scalars(area_file, True, True)
     >>> #
     >>> spectrum_of_largest(points, faces, spectrum_size, exclude_labels,
@@ -709,7 +709,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
 
         # Remove background faces:
         pick_faces = remove_faces(faces, Ilabel)
-        pick_faces, pick_points = reindex_faces_points(pick_faces, points)
+        pick_faces, pick_points, o1 = reindex_faces_points(pick_faces, points)
 
         # Compute Laplace-Beltrami spectrum for the label:
         if largest_segment:
