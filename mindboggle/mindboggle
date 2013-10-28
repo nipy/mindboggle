@@ -37,9 +37,8 @@ import argparse
 from nipype.pipeline.engine import Workflow, Node, JoinNode
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
-from nipype.interfaces.utility import IdentityInterface, Merge
-from nipype.interfaces.ants import Registration, ApplyTransforms
-from nipype.interfaces.freesurfer import MRIConvert
+from nipype.interfaces.utility import IdentityInterface
+from nipype.interfaces.ants import ApplyTransforms
 #-----------------------------------------------------------------------------
 # Mindboggle libraries
 #-----------------------------------------------------------------------------
@@ -56,13 +55,13 @@ from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, overwrite_volume_labels
 from mindboggle.shapes.shape_tools import area, travel_depth, \
     geodesic_depth, curvature
-from mindboggle.shapes.thickness import thickinthehead
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
 from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
-    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels
+    ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
+    thickinthehead
 from mindboggle.utils.compute import volume_per_label
 from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
-    annot_to_vtk, label_with_classifier
+    annot_to_vtk, label_with_classifier, convert_mgh_to_native_nifti
 from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
 from mindboggle.utils.io_uri import retrieve_data
@@ -134,7 +133,7 @@ parser.add_argument("--moments",
                     default=0, type=int, metavar='INT')
 parser.add_argument("--thickness", action='store_true',
                     help="Compute cortical label thicknesses with "
-                         "thickinthehead()")
+                         "thickinthehead() [calls ANTs]")
 parser.add_argument("--no_volumes", action='store_true',
                     help="No volume labels, features, or shape tables")
 parser.add_argument("--no_surfaces", action='store_true',
@@ -339,7 +338,8 @@ Sink.inputs.substitutions = [('_subject_', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.vtk'),
+    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.nii.gz'),
+    ('aparc+aseg.nii.gz', 'FreeSurfer_labels.nii.gz'),
 #    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
     ('FreeSurfer_labels.nii.gz_through_cortex_and_noncortex.vtk_to_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_left_cortex_and_noncortex.vtk_FreeSurfer_cortex_labels.vtk_to_volume.nii.gz_through_right_cortex_and_noncortex.vtk',
      'FreeSurfer_filled_labels.nii.gz'),
@@ -1369,14 +1369,17 @@ if do_volumes and do_label:
         # Convert FreeSurfer mgh conformal file to nifti format:
         #---------------------------------------------------------------------
         labelsMGH2Nifti = Node(name='labels_mgh_to_nifti',
-                               interface=MRIConvert())
-        mbFlow.add_nodes([labelsMGH2Nifti])
-        mbFlow.connect(labelsMGH, 'labels', labelsMGH2Nifti, 'in_file')
-        mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reslice_like')
-        labelsMGH2Nifti.inputs.resample_type = 'nearest'
-        labelsMGH2Nifti.inputs.out_type = 'niigz'
-        labelsMGH2Nifti.inputs.out_file = 'FreeSurfer_labels.nii.gz'
-        mbFlow.connect(labelsMGH2Nifti, 'out_file',
+                           interface=Fn(function=convert_mgh_to_native_nifti,
+                                        input_names=['input_file',
+                                                     'reference_file',
+                                                     'output_file',
+                                                     'interp'],
+                                        output_names=['output_file']))
+        mbFlow.connect(labelsMGH, 'labels', labelsMGH2Nifti, 'input_file')
+        mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reference_file')
+        labelsMGH2Nifti.inputs.output_file = ''
+        labelsMGH2Nifti.inputs.interp = 'nearest'
+        mbFlow.connect(labelsMGH2Nifti, 'output_file',
                        Sink, 'labels.@freesurfer')
 
     #=========================================================================
@@ -1404,7 +1407,7 @@ if do_volumes and do_label:
         mbFlow.connect(labelsNifti, 'labels',
                        VolLabelFlow, 'Labels_to_segments.input_file')
     else:
-        mbFlow.connect(labelsMGH2Nifti, 'out_file',
+        mbFlow.connect(labelsMGH2Nifti, 'output_file',
                        VolLabelFlow, 'Labels_to_segments.input_file')
     Labels2segments.inputs.old_labels = cortex_numbers + noncortex_numbers
     Labels2segments.inputs.new_labels = [2 for x in cortex_numbers] + \
@@ -1450,7 +1453,7 @@ if do_volumes and do_label:
         mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
                        'Remove_medial_labels.input_file')
     else:
-        mbFlow.connect(labelsMGH2Nifti, 'out_file', VolLabelFlow,
+        mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
                        'Remove_medial_labels.input_file')
     RemoveMedial.inputs.labels_to_keep = left_label_numbers + \
                                          right_label_numbers
@@ -1625,7 +1628,7 @@ if do_volumes and do_label:
             mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
                            'Remove_cortex_FreeSurfer_labels.input_file')
         else:
-            mbFlow.connect(labelsMGH2Nifti, 'out_file', VolLabelFlow,
+            mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
                            'Remove_cortex_FreeSurfer_labels.input_file')
         noFSgm.inputs.labels_to_keep = noncortex_numbers
         noFSgm.inputs.output_file = ''

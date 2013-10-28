@@ -321,11 +321,60 @@ def label_with_classifier(subject, hemi, left_classifier='',
     return annot_file
 
 
+def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
+                                interp='nearest'):
+    """
+    Convert volume from FreeSurfer 'unconformed' to original space
+    in nifti format using FreeSurfer's mri_vol2vol.
+
+    Parameters
+    ----------
+    input_file : string
+        input file name
+    reference_file : string
+        file in original space
+    output_file : string
+        name of output file
+    interp : string
+        interpolation method
+
+    Returns
+    -------
+    output_file : string
+        name of output file
+
+    """
+    import os
+
+    from mindboggle.utils.utils import execute
+
+    # Convert volume from FreeSurfer to original space:
+    print("Convert volume from FreeSurfer 'unconformed' to original space...")
+
+    if not output_file:
+        output_file = os.path.join(os.getcwd(),
+            os.path.basename(input_file).strip('.mgz') + '.nii.gz')
+
+    cmd = ['mri_vol2vol',
+           '--mov', input_file,
+           '--targ', reference_file,
+           '--interp', interp,
+           '--regheader --o', output_file]
+    execute(cmd)
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+    output_file = output_file
+
+    if not os.path.exists(output_file):
+        raise(IOError(output_file + " not found"))
+
+    return output_file
+
+
 def annot_labels_to_volume(subject, annot_name, original_space, reference):
     """
     Propagate surface labels through hemisphere's gray matter volume
-    and convert label volume from FreeSurfer 'unconformed' to original space
-    using FreeSurfer's mri_aparc2aseg and mri_vol2vol.
+    using FreeSurfer's mri_aparc2aseg.
 
     Note ::
         From the mri_aparc2aseg documentation:
@@ -354,6 +403,7 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
     """
     import os
 
+    from mindboggle.utils.freesurfer import convert_mgh_to_native_nifti
     from mindboggle.utils.utils import execute
 
     # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
@@ -369,20 +419,10 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
 
     # Convert label volume from FreeSurfer to original space:
     if original_space:
-        print("Convert label volume from FreeSurfer 'unconformed' to original space...")
 
         output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
-
-        interp = 'nearest'
-        cmd = ['mri_vol2vol',
-               '--mov', output_file1,
-               '--targ', reference,
-               '--interp', interp,
-               '--regheader --o', output_file2]
-        execute(cmd)
-        if not os.path.exists(output_file2):
-            raise(IOError(output_file2 + " not found"))
-        output_file = output_file2
+        output_file = convert_mgh_to_native_nifti(output_file1, reference,
+                        output_file2, interp='nearest')
     else:
         output_file = output_file1
 
