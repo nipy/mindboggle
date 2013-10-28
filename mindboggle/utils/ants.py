@@ -592,3 +592,214 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
         raise(IOError(output_file + " not found"))
 
     return output_file  # surface_in_volume
+
+
+def thickinthehead(segmented_file, labeled_file, cortex_value=2,
+                   noncortex_value=3, labels=[], resize=True, propagate=True,
+                   output_dir='', output_table=''):
+    """
+    Compute a simple thickness measure for each labeled cortex region.
+
+    Note::
+
+      - Cortex, noncortex, and labeled files are the same coregistered brain.
+      - Calls ANTs functions: ImageMath, Threshold, ResampleImageBySpacing
+
+    Steps ::
+
+        1. Extract noncortex and cortex.
+        2. Propagate labels through cortex (or simply multiply).
+        3. Resample cortex and noncortex files.
+        4. Extract outer and inner borders of cortex voxels.
+        5. Optionally call ImageMath to propagate labels to fill cortex mask.
+        6. Compute thickness as a ratio of label volume and edge volume.
+
+    Parameters
+    ----------
+    segmented_file : string
+        image volume with cortex and noncortex labels
+    labeled_file : string
+        corresponding image volume with index labels
+    cortex_value : integer
+        cortex label value in segmented_file
+    noncortex_value : integer
+        noncortex label value in segmented_file
+    labels : list of integers
+        label indices
+    resize : Boolean
+        resize (2x) segmented_file for more accurate thickness estimates?
+    propagate : Boolean
+        propagate labels through cortex?
+    output_dir : string
+        output directory
+    output_table : string
+        output table file with labels and thickness values
+        (if empty, don't save table file)
+
+    Returns
+    -------
+    label_volume_area_thickness : list of lists of integers and floats
+        label indices, volumes, areas, and thickness values
+    table_file : string
+        name of output table file
+
+    Examples
+    --------
+    >>> from mindboggle.utils.ants import thickinthehead
+    >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpBrainSegmentation.nii.gz'
+    >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
+    >>> cortex_value = 2
+    >>> noncortex_value = 3
+    >>> #labels = [2]
+    >>> labels = range(1002,1036) + range(2002,2036)
+    >>> labels.remove(1004)
+    >>> labels.remove(2004)
+    >>> labels.remove(1032)
+    >>> labels.remove(2032)
+    >>> labels.remove(1033)
+    >>> labels.remove(2033)
+    >>> resize = True
+    >>> propagate = False
+    >>> output_dir = ''
+    >>> output_table = ''
+    >>> label_volume_area_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table)
+
+    """
+    import os
+    import numpy as np
+    import nibabel as nb
+
+    from mindboggle.utils.utils import execute
+
+    #-------------------------------------------------------------------------
+    # Output files:
+    #-------------------------------------------------------------------------
+    if output_dir:
+        if not os.path.exists(output_dir):
+            os.mkdir(output_dir)
+    else:
+        output_dir = os.getcwd()
+    cortex = os.path.join(output_dir, 'cortex.nii.gz')
+    noncortex = os.path.join(output_dir, 'noncortex.nii.gz')
+    temp = os.path.join(output_dir, 'temp.nii.gz')
+    inner_edge = os.path.join(output_dir, 'cortex_inner_edge.nii.gz')
+    use_outer_edge = True
+    if use_outer_edge:
+        outer_edge = os.path.join(output_dir, 'cortex_outer_edge.nii.gz')
+
+    #-------------------------------------------------------------------------
+    # Extract noncortex and cortex:
+    #-------------------------------------------------------------------------
+    cmd = ['ThresholdImage 3', segmented_file,
+           noncortex, str(noncortex_value), str(noncortex_value), '1 0']
+    execute(cmd)
+    cmd = ['ThresholdImage 3', segmented_file,
+           cortex, str(cortex_value), str(cortex_value), '1 0']
+    execute(cmd)
+
+    #-------------------------------------------------------------------------
+    # Propagate labels through cortex (or simply multiply):
+    #-------------------------------------------------------------------------
+    if propagate:
+        cmd = ['ImageMath', '3', cortex, 'PropagateLabelsThroughMask',
+               cortex, labeled_file]
+        execute(cmd)
+    else:
+        cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
+        execute(cmd)
+
+    #-------------------------------------------------------------------------
+    # Resample cortex and noncortex files:
+    #-------------------------------------------------------------------------
+    if resize:
+        rescale = 2.0
+
+        dims = ' '.join([str(1/rescale), str(1/rescale), str(1/rescale)])
+        cmd = ['ResampleImageBySpacing 3', cortex, cortex, dims, '0 0 1']
+        execute(cmd)
+        cmd = ['ResampleImageBySpacing 3', noncortex, noncortex, dims, '0 0 1']
+        execute(cmd)
+
+    #-------------------------------------------------------------------------
+    # Extract cortex inner and outer border voxels:
+    #-------------------------------------------------------------------------
+    cmd = ['ImageMath 3', inner_edge, 'MD', noncortex, '1']
+    execute(cmd)
+    cmd = ['ImageMath 3', inner_edge, 'm', cortex, inner_edge]
+    execute(cmd)
+    if use_outer_edge:
+        cmd = ['ThresholdImage 3', cortex, outer_edge, '1 10000 1 0']
+        execute(cmd)
+        cmd = ['ImageMath 3', outer_edge, 'ME', outer_edge, '1']
+        execute(cmd)
+        cmd = ['ThresholdImage 3', outer_edge, outer_edge, '1 1 0 1']
+        execute(cmd)
+        cmd = ['ImageMath 3', outer_edge, 'm', cortex, outer_edge]
+        execute(cmd)
+        cmd = ['ThresholdImage 3', inner_edge, temp, '1 10000 1 0']
+        execute(cmd)
+        cmd = ['ThresholdImage 3', temp, temp, '1 1 0 1']
+        execute(cmd)
+        cmd = ['ImageMath 3', outer_edge, 'm', temp, outer_edge]
+        execute(cmd)
+
+    #-------------------------------------------------------------------------
+    # Load data:
+    #-------------------------------------------------------------------------
+    compute_real_volume = True
+    if compute_real_volume:
+        img = nb.load(cortex)
+        hdr = img.get_header()
+        vv = np.prod(hdr.get_zooms())
+        cortex_data = img.get_data().ravel()
+    else:
+        vv = 1
+        cortex_data = nb.load(cortex).get_data().ravel()
+    inner_edge_data = nb.load(inner_edge).get_data().ravel()
+    if use_outer_edge:
+        outer_edge_data = nb.load(outer_edge).get_data().ravel()
+
+    #-------------------------------------------------------------------------
+    # Loop through labels:
+    #-------------------------------------------------------------------------
+    if not labels:
+        labeled_data = nb.load(labeled_file).get_data().ravel()
+        labels = np.unique(labeled_data)
+    labels = [int(x) for x in labels]
+    label_volume_area_thickness = np.zeros((len(labels), 4))
+    label_volume_area_thickness[:,0] = labels
+    for ilabel, label in enumerate(labels):
+
+        #---------------------------------------------------------------------
+        # Compute thickness as a ratio of label volume and edge volume:
+        #---------------------------------------------------------------------
+        label_cortex_volume = vv * len(np.where(cortex_data==label)[0])
+        label_inner_edge_volume = vv * len(np.where(inner_edge_data==label)[0])
+        if label_inner_edge_volume:
+            if use_outer_edge:
+                label_outer_edge_volume = \
+                    vv * len(np.where(outer_edge_data==label)[0])
+                label_area = (label_inner_edge_volume +
+                              label_outer_edge_volume) / 2.0
+            else:
+                label_area = label_inner_edge_volume
+            thickness = label_cortex_volume / label_area
+            label_volume_area_thickness[ilabel,1] = label_cortex_volume
+            label_volume_area_thickness[ilabel,2] = label_area
+            label_volume_area_thickness[ilabel,3] = thickness
+            print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
+                  'outer={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
+                  format(label, label_cortex_volume, label_inner_edge_volume,
+                  label_outer_edge_volume, label_area, thickness))
+
+    if output_table:
+        table_file = os.path.join(output_dir, output_table)
+        np.savetxt(table_file, label_volume_area_thickness,
+                   fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
+    else:
+        table_file = ''
+
+    label_volume_area_thickness = label_volume_area_thickness.\
+        transpose().tolist()
+
+    return label_volume_area_thickness, table_file
