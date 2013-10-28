@@ -36,12 +36,37 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> # Convert DKT31 to DKT25 labels
     >>> import os
     >>> from mindboggle.labels.relabel import relabel_volume
-    >>> data_path = os.environ['MINDBOGGLE_DATA']
-    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
-    >>> old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
-    >>> new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
+    >>> from mindboggle.LABELS import dkt_protocol
+    >>> from mindboggle.utils.plots import plot_volumes
+    >>> # Convert DKT31 to DKT25 protocol:
+    >>> #data_path = os.environ['MINDBOGGLE_DATA']
+    >>> #input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> #old_labels = [1010,1023,1026,1027,1019,1020,2010,2023,2026,2027,2019,2020]
+    >>> #new_labels = [1002,1002,1002,1003,1018,1018,2002,2002,2002,2003,2018,2018]
+    >>> # Convert labels to non/cortex segmentation:
+    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled/OASIS-TRT-20-1/labels/FreeSurfer_labels.nii.gz')
+    >>> sulcus_names, unique_sulcus_label_pairs, \
+    >>>       sulcus_label_pair_lists, \
+    >>>       left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
+    >>>       label_names, left_label_names, right_label_names, \
+    >>>       label_numbers, left_label_numbers, right_label_numbers, \
+    >>>       cortex_names, left_cortex_names, right_cortex_names, \
+    >>>       cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
+    >>>       noncortex_names, left_noncortex_names, \
+    >>>       right_noncortex_names, medial_noncortex_names, \
+    >>>       noncortex_numbers, left_noncortex_numbers, \
+    >>>       right_noncortex_numbers, medial_noncortex_numbers, \
+    >>>       cortex_names_DKT25, \
+    >>>       left_cortex_names_DKT25, right_cortex_names_DKT25, \
+    >>>       cortex_numbers_DKT25, \
+    >>>       left_cortex_numbers_DKT25, \
+    >>>       right_cortex_numbers_DKT25 = dkt_protocol()
+    >>> old_labels = cortex_numbers + noncortex_numbers
+    >>> new_labels = [2 for x in cortex_numbers] + [3 for x in noncortex_numbers]
     >>> output_file = ''
-    >>> relabel_volume(input_file, old_labels, new_labels, output_file)
+    >>> output_file = relabel_volume(input_file, old_labels, new_labels, output_file)
+    >>> # View
+    >>> plot_volumes(output_file)
 
     """
     import os
