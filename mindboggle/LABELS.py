@@ -342,6 +342,7 @@ def dkt_protocol():
     #         [92, "right basal forebrain"]
     #-------------------------------------------------------------------------
     left_noncortex_numbers_names = [
+        [2,   "left cerebral white matter"],
         #[3, "left cerebral cortex"],
         [4, "left lateral ventricle"],
         [5, "left inferior lateral ventricle"],
@@ -359,6 +360,7 @@ def dkt_protocol():
         [30, "left vessel"],
         [91, "left basal forebrain"]]
     right_noncortex_numbers_names = [
+        [41,   "right cerebral white matter"],
         #[42, "right cerebral cortex"],
         [43, "right lateral ventricle"],
         [44, "right inferior lateral ventricle"],

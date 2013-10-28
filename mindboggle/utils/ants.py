@@ -1,6 +1,6 @@
 #!/usr/bin/python
 """
-Functions that call the legacy ANTs package created by PICSL at UPenn.
+Functions that call ANTs (UPenn's PICSL group) commands.
 
 Authors:
 Arno Klein, 2011-2013  .  arno@mindboggle.info  .  www.binarybottle.com

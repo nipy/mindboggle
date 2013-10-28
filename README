@@ -22,23 +22,26 @@ License
 Except where noted, all Mindboggle software is under the `Apache v2.0`_
 license, and documentation is under a `Creative Commons Attribution 3.0 License`_.
 
-Inputs
-======
-Mindboggle currently uses output from FreeSurfer v5.3 and the newest ANTs
+Preprocessing
+=============
+Mindboggle currently takes output from FreeSurfer v5.3 and the newest ANTs
 software packages.
-FreeSurfer provides labeled cortical surface meshes and subcortical volumes
-as well as white and gray matter segmentation.
-ANTS provides brain extraction, segmentation, and registration-based labeling.
+FreeSurfer provides labeled cortical surfaces, and labeled cortical and
+noncortical volumes.
+ANTS provides brain volume extraction, segmentation, and registration-based
+labeling.
 
 To prepare inputs for Mindboggle, run FreeSurfer_ on each T1-weighted IMAGE file
-and set the SUBJECT name on the command line
+and set the SUBJECT name
 (replace capitalized text below when typing in a terminal window)::
 
     $ recon-all -all -s SUBJECT -i IMAGE
 
 To run the antsCorticalThickness.sh script in ANTs on the same IMAGE file,
 set an output PREFIX, set "-k 1" (to save registration transforms),
-and provide paths to OASIS-30 template files (backslashes denote line returns)::
+and provide paths to OASIS-30 template files
+(see `Installation instructions <INSTALL.html>`_).
+Backslashes denote line returns::
 
     $ antsCorticalThickness.sh -d 3 \
       -a IMAGE \
@@ -53,7 +56,7 @@ and provide paths to OASIS-30 template files (backslashes denote line returns)::
 
 Examples
 ========
-Terminal command for processing (on 4 processors) multiple subjects with only FreeSurfer data::
+Terminal command for processing (4 processors) multiple subjects with only FreeSurfer data::
 
     $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 -n 4
 
@@ -72,8 +75,8 @@ By default, all atlas and template data retrieved via the Internet
 as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
 and final outputs are saved in $HOME/mindboggled/
 (where $HOME is the home directory).
-Nifti_ image volumes (.nii.gz) store anatomical labels as numbers
-listed in the mindboggle/LABELS.py file and `online <http://mindboggle.info/data/mindboggle101/protocol.txt>`_, and
+Nifti_ image volumes (.nii.gz) store anatomical labels corresponding to the numbers
+listed in the mindboggle/LABELS.py file and `online <http://mindboggle.info/data/mindboggle101/protocol.txt>`_;
 all left and right cortical surface (.vtk) vertices are number-labeled
 by anatomical label, feature, or shape measure. Shape measure statistics
 are stored in tables (.csv).

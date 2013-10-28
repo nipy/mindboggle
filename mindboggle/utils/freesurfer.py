@@ -353,7 +353,7 @@ def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
 
     if not output_file:
         output_file = os.path.join(os.getcwd(),
-            os.path.basename(input_file).strip('.mgz') + '.nii.gz')
+            os.path.basename(input_file).split('mgz')[0] + 'nii.gz')
 
     cmd = ['mri_vol2vol',
            '--mov', input_file,
