@@ -1396,24 +1396,24 @@ if do_volumes and do_label:
     #-------------------------------------------------------------------------
     # Convert FreeSurfer label volume to non/cortex segmented volume:
     #-------------------------------------------------------------------------
-    Labels2segments = Node(name='Labels_to_segments',
-                           interface=Fn(function=relabel_volume,
-                                        input_names=['input_file',
-                                                     'old_labels',
-                                                     'new_labels',
-                                                     'output_file'],
-                                        output_names=['output_file']))
-    VolLabelFlow.add_nodes([Labels2segments])
+    FS2segments = Node(name='FreeSurfer_labels_to_segments',
+                       interface=Fn(function=relabel_volume,
+                                    input_names=['input_file',
+                                                 'old_labels',
+                                                 'new_labels',
+                                                 'output_file'],
+                                    output_names=['output_file']))
+    VolLabelFlow.add_nodes([FS2segments])
     if do_input_fs_labels:
-        mbFlow.connect(labelsNifti, 'labels',
-                       VolLabelFlow, 'Labels_to_segments.input_file')
+        mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
+                       'FreeSurfer_labels_to_segments.input_file')
     else:
-        mbFlow.connect(labelsMGH2Nifti, 'output_file',
-                       VolLabelFlow, 'Labels_to_segments.input_file')
-    Labels2segments.inputs.old_labels = cortex_numbers + noncortex_numbers
-    Labels2segments.inputs.new_labels = [2 for x in cortex_numbers] + \
+        mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
+                       'FreeSurfer_labels_to_segments.input_file')
+    FS2segments.inputs.old_labels = cortex_numbers + noncortex_numbers
+    FS2segments.inputs.new_labels = [2 for x in cortex_numbers] + \
                                         [3 for x in noncortex_numbers]
-    Labels2segments.inputs.output_file = ''
+    FS2segments.inputs.output_file = ''
 
     RemoveExtraLabels = Node(name='Remove_extra_labels',
                              interface=Fn(function=keep_volume_labels,
@@ -1422,10 +1422,21 @@ if do_volumes and do_label:
                                                        'output_file'],
                                           output_names=['output_file']))
     VolLabelFlow.add_nodes([RemoveExtraLabels])
-    VolLabelFlow.connect(Labels2segments, 'output_file',
+    VolLabelFlow.connect(FS2segments, 'output_file',
                          RemoveExtraLabels, 'input_file')
     RemoveExtraLabels.inputs.labels_to_keep = [2, 3]
     RemoveExtraLabels.inputs.output_file = ''
+    #-------------------------------------------------------------------------
+    # Convert ANTs Atropos-segmented volume to non/cortex segmented volume:
+    #-------------------------------------------------------------------------
+    if do_ants:
+        ANTs2segments = FS2segments.clone('Atropos_to_segments')
+        VolLabelFlow.add_nodes([ANTs2segments])
+        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
+                       'Atropos_to_segments.input_file')
+        ANTs2segments.inputs.old_labels = [1, 4]
+        ANTs2segments.inputs.new_labels = [0, 3]
+        ANTs2segments.inputs.output_file = ''
     #-------------------------------------------------------------------------
     # Combine FreeSurfer and ANTs (if do_ants) segmentation volumes
     # to obtain a single cortex (2) and noncortex (3) segmentation file:
@@ -1442,8 +1453,7 @@ if do_volumes and do_label:
     VolLabelFlow.connect(RemoveExtraLabels, 'output_file', JoinSegs, 'file1')
     JoinSegs.inputs.out_dir = ''
     if do_ants:
-        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
-                       'Combine_FreeSurfer_ANTs_segmentations.file2')
+        VolLabelFlow.connect(ANTs2segments, 'output_file', JoinSegs, 'file2')
     else:
         JoinSegs.inputs.file2 = ''
     JoinSegs.inputs.label1 = 3
