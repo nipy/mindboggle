@@ -4,55 +4,43 @@
 README
 ======
 
-The Mindboggle package enables a user to automate anatomical labeling,
-feature extraction, and shape analysis of human brain MR image data.
+The Mindboggle package automates shape analysis of anatomical labels
+and features extracted from human brain MR image data.
+Mindboggle consists of Python and C++ functions called using a Nipype
+software pipeline framework for modularity, flexibility, and reproducibility
+of results.
 
 Help
 ====
+- See below for information about Mindboggle inputs and outputs.
 - `Online documentation <http://mindboggle.info/documentation.html>`_
 - `Installation instructions <INSTALL.html>`_
-- Help on the command line::
+- Help on the command line ("$" is the prompt in the terminal window)::
 
     $ mindboggle --help
 
-- `Contributor list <THANKS.html>`_
+- `License <http://mindboggle.info/users/LICENSE.html>`_
+- `Background <http://mindboggle.info/faq/background.html>`_
+- `Contributors <THANKS.html>`_
 
-License
-=======
-Except where noted, all Mindboggle software is under the `Apache v2.0`_
-license, and documentation is under a `Creative Commons Attribution 3.0 License`_.
+Mindboggle:
+===========
 
-Preprocessing
-=============
-Mindboggle currently takes output from FreeSurfer v5.3 and the newest ANTs
-software packages.
-FreeSurfer provides labeled cortical surfaces, and labeled cortical and
-noncortical volumes.
-ANTS provides brain volume extraction, segmentation, and registration-based
-labeling.
+    1. combines non/cortex segmentations from FreeSurfer and ANTs software packages
+    2. propagates FreeSurfer and ANTs-registered labels through cortex and noncortex voxels
+    3. computes label volumes and cortical label thicknesses
+    4. computes shape measures on every vertex of FreeSurfer cortical surface meshes
+    5. extracts cortical surface features
+    6. computes statistics on shape measures per cortical surface label/feature:
 
-To prepare inputs for Mindboggle, run FreeSurfer_ on each T1-weighted IMAGE file
-and set the SUBJECT name
-(replace capitalized text below when typing in a terminal window)::
-
-    $ recon-all -all -s SUBJECT -i IMAGE
-
-To run the antsCorticalThickness.sh script in ANTs on the same IMAGE file,
-set an output PREFIX, set "-k 1" (to save registration transforms),
-and provide paths to OASIS-30 template files
-(see `Installation instructions <INSTALL.html>`_).
-Backslashes denote line returns::
-
-    $ antsCorticalThickness.sh -d 3 \
-      -a IMAGE \
-      -e OASIS-30_Atropos_template/T_template0.nii.gz \
-      -m OASIS-30_Atropos_template/T_template0ProbabilityMask.nii.gz \
-      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0ExtractionMask.nii.gz \
-      -k 1 \
-      -o PREFIX \
-      -w 0.25 \
-      -n 3
+        - Surface area
+        - Travel depth
+        - Geodesic depth
+        - Mean curvature
+        - Convexity (FreeSurfer)
+        - Thickness (FreeSurfer)
+        - Laplace-Beltrami spectra
+        - Zernike moments [UNDER EVALUATION]
 
 Examples
 ========
@@ -68,6 +56,46 @@ Example using most of the currently available options within Mindboggle::
 
     $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX \
                  --sulci --fundi --vertices --spectra 10 --thickness --visual hier
+
+Inputs
+======
+Mindboggle currently takes output from FreeSurfer v5.3 and the newest ANTs
+software packages.
+
+FreeSurfer provides labeled cortical surfaces, and labeled cortical and
+noncortical volumes for a given SUBJECT that are used by Mindboggle:
+
+    SUBJECT_DIR/SUBJECT/
+
+        - mri/orig/001.mgz
+        - mri/aparc+aseg.mgz
+        - surf/[lh,rh].pial
+        - label/[lh,rh].aparc.annot
+
+To generate the above, run FreeSurfer_ on each T1-weighted IMAGE file
+and set the SUBJECT name
+(replace capitalized text below when typing in a terminal window)::
+
+    $ recon-all -all -s SUBJECT -i IMAGE
+
+ANTS provides brain volume extraction, segmentation, and registration-based
+labeling. To generate the transforms and segmentation files used by
+Mindboggle, run the antsCorticalThickness.sh script in ANTs on the same
+IMAGE file, set an output PREFIX, set "-k 1" (to save registration transforms),
+and provide paths to OASIS-30 template files
+(see `Installation instructions <INSTALL.html>`_).
+Backslashes denote line returns::
+
+    $ antsCorticalThickness.sh -d 3 \
+      -a IMAGE \
+      -e OASIS-30_Atropos_template/T_template0.nii.gz \
+      -m OASIS-30_Atropos_template/T_template0ProbabilityMask.nii.gz \
+      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz \
+      -f OASIS-30_Atropos_template/T_template0ExtractionMask.nii.gz \
+      -k 1 \
+      -o PREFIX \
+      -w 0.25 \
+      -n 3
 
 Outputs
 =======
@@ -165,14 +193,3 @@ are stored in tables (.csv).
 
         **ATLAS_labels_volumes** .csv:  *["--atlases ATLAS_PATH" output for each ATLAS_PATH]*
 
-The shape tables contain a subset of the following measures:
-
-    - Surface area
-    - Travel depth
-    - Geodesic depth
-    - Mean curvature
-    - Convexity (FreeSurfer)
-    - Thickness (FreeSurfer)
-    - Laplace-Beltrami spectra (per feature)
-    - Zernike moments (per feature)
-    - Volume and thickness

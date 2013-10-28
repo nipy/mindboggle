@@ -16,7 +16,7 @@
 
    README
    INSTALL
-   THANKS
+   LICENSE
 
 .. htmlonly::
 
