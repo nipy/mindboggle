@@ -15,6 +15,12 @@ Documentation
 
 .. toctree::
    :maxdepth: 2
+.. toctree::
+   :maxdepth: 2
+
+   README.rst
+   INSTALL.rst
+   LICENSE.rst
 
    users/index.rst
    faq/index.rst

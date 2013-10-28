@@ -12,38 +12,36 @@ Python_ 2.7, NumPy_, SciPy_, Networkx_.  These distributions also include
 packages that benefit the user, such as IPython_ (parallel processing) and
 Sphinx_ (generating documentation).
 
-Pip python library installation (OSX: ``easy_install pip``;
+``$`` below refers to the command line prompt in a terminal window.
+
+Pip python library installation (OSX: ``$ easy_install pip``;
     Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
 
 Nipype_ software pipeline framework and its dependencies not included above::
 
-    pip install nibabel
-    pip install traits
-    pip install nipype
-    For the latest dev source:  pip install git+git://github.com/nipy/nipype.git
+    $ pip install nibabel
+    $ pip install traits
+    $ pip install git+git://github.com/nipy/nipype.git # latest dev source (soon: $ pip install nipype)
  
 `Visualization Toolkit`_::
 
-    conda install vtk (after installing anaconda)
+    $ conda install vtk (after installing anaconda)
 
 FreeSurfer_
-    This software provides labeled cortical surface meshes and subcortical volumes
-    as well as white and gray matter segmentations, and generates the directory
-    tree that Mindboggle uses to call subject data.
+    FreeSurfer provides labeled cortical surfaces, and labeled cortical and
+    noncortical volumes.
     See `README <http://mindboggle.info/users/README.html>`_ for instructions
     on how to preprocess T1-weighted MRI data using the ``recon-all`` command.
     NOTE: Mindboggle expects that the FreeSurfer SUBJECTS_DIR environment
     variable is set.
 
 ANTS_
-    ANTs provides volume-based affine registration that Mindboggle uses
-    to report locations in a standard space, nonlinear registration for
-    whole-brain labeling, brain extraction, and tissue-class segmentation.
-    Mindboggle combines the segmentation from FreeSurfer and ANTs and
-    propagates labels through cortex and noncortex voxels.
-    Please download the
-    `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
-    to run with ANTs.
+    ANTS provides brain volume extraction, tissue-class segmentation,
+    affine registration that Mindboggle uses to report locations in a standard
+    space, and nonlinear registration for whole-brain labeling.
+
+`OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+    is required to run the antsCorticalThickness.sh script in ANTs.
     See `README <http://mindboggle.info/users/README.html>`_ for instructions
     on how to preprocess T1-weighted MRI data using the
     ``antsCorticalThickness.sh`` script.
@@ -52,7 +50,7 @@ Download Mindboggle
 -------------------
 To check out the latest development version using git_::
 
-    git clone git://github.com/binarybottle/mindboggle.git
+    $ git clone git://github.com/binarybottle/mindboggle.git
 
 Install Mindboggle
 ------------------
@@ -61,7 +59,7 @@ Step 1: Install Mindboggle Python software
 Change into the ``mindboggle`` directory and install mindboggle
 (depending on permissions you may need to use ``sudo``)::
 
-    python setup.py install
+    $ python setup.py install
 
 Step 2: Compile Mindboggle C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -72,9 +70,9 @@ Your system must have basic compilation software:
 
 In the mindboggle_tools/bin directory, run cmake (or ccmake) and make::
 
-    cd mindboggle/mindboggle_tools/bin/
-    cmake ..
-    make
+    $ cd mindboggle/mindboggle_tools/bin/
+    $ cmake ..
+    $ make
 
 Step 3: Set environment variables
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -97,4 +95,3 @@ directory by including one more environment variable as above::
     MINDBOGGLE_CACHE=DESIRED_LOCATION
     export MINDBOGGLE_CACHE
     export PATH=$PATH:$MINDBOGGLE_CACHE
-
