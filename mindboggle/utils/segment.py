@@ -1545,7 +1545,6 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     import nibabel as nb
 
     from mindboggle.labels.relabel import keep_volume_labels
-    from mindboggle.utils.ants import ThresholdImage, ImageMath
 
     left_brain = os.path.join(os.getcwd(),
                               'left_' + os.path.basename(image_file))
