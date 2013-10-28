@@ -285,12 +285,12 @@ sulcus_names, unique_sulcus_label_pairs, \
 #-----------------------------------------------------------------------------
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
 add_atlases = args.add_atlases
+add_atlas_names = []
 if add_atlases:
     if isinstance(add_atlases, str):
         add_atlases = [add_atlases]
-add_atlas_names = []
-for add_atlas in add_atlases:
-    add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
+    for add_atlas in add_atlases:
+        add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 #-----------------------------------------------------------------------------
 # Surface atlas labels:
@@ -316,9 +316,10 @@ mbFlow.base_dir = temp_path
 # Iterate inputs over subjects, hemispheres, and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
-InputAddAtlases = Node(name='Input_volume_atlases',
-                       interface=IdentityInterface(fields=['atlas']))
-InputAddAtlases.iterables = ('atlas', add_atlas_names)
+if add_atlas_names:
+    InputAddAtlases = Node(name='Input_volume_atlases',
+                           interface=IdentityInterface(fields=['atlas']))
+    InputAddAtlases.iterables = ('atlas', add_atlas_names)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
 InputSubjects.iterables = ('subject', subjects)
@@ -1413,6 +1414,18 @@ if do_volumes and do_label:
     Labels2segments.inputs.new_labels = [2 for x in cortex_numbers] + \
                                         [3 for x in noncortex_numbers]
     Labels2segments.inputs.output_file = ''
+
+    RemoveExtraLabels = Node(name='Remove_extra_labels',
+                             interface=Fn(function=keep_volume_labels,
+                                          input_names=['input_file',
+                                                       'labels_to_keep',
+                                                       'output_file'],
+                                          output_names=['output_file']))
+    VolLabelFlow.add_nodes([RemoveExtraLabels])
+    VolLabelFlow.connect(Labels2segments, 'output_file',
+                         RemoveExtraLabels, 'input_file')
+    RemoveExtraLabels.inputs.labels_to_keep = [2, 3]
+    RemoveExtraLabels.inputs.output_file = ''
     #-------------------------------------------------------------------------
     # Combine FreeSurfer and ANTs (if do_ants) segmentation volumes
     # to obtain a single cortex (2) and noncortex (3) segmentation file:
@@ -1426,7 +1439,7 @@ if do_volumes and do_label:
                                               'output_file'],
                                  output_names=['output_file']))
     VolLabelFlow.add_nodes([JoinSegs])
-    VolLabelFlow.connect(Labels2segments, 'output_file', JoinSegs, 'file1')
+    VolLabelFlow.connect(RemoveExtraLabels, 'output_file', JoinSegs, 'file1')
     JoinSegs.inputs.out_dir = ''
     if do_ants:
         mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
