@@ -59,32 +59,30 @@ Example using most of the currently available options within Mindboggle::
 
 Inputs
 ======
-Mindboggle currently takes output from FreeSurfer v5.3 and the newest ANTs
+Mindboggle currently takes output from FreeSurfer_ v5.3 and the newest ANTs_
 software packages.
 
-FreeSurfer provides labeled cortical surfaces, and labeled cortical and
-noncortical volumes for a given SUBJECT that are used by Mindboggle:
-
-    SUBJECT_DIR/SUBJECT/
-
-        - mri/orig/001.mgz
-        - mri/aparc+aseg.mgz
-        - surf/[lh,rh].pial
-        - label/[lh,rh].aparc.annot
-
-To generate the above, run FreeSurfer_ on each T1-weighted IMAGE file
+To generate FreeSurfer labeled cortical surfaces, and labeled cortical and
+noncortical volumes, run ``recon-all`` on each T1-weighted IMAGE file
 and set the SUBJECT name
-(replace capitalized text below when typing in a terminal window)::
+(replace capitalized text below when typing in a terminal window;
+backslashes denote line returns)::
 
     $ recon-all -all -s SUBJECT -i IMAGE
 
-ANTS provides brain volume extraction, segmentation, and registration-based
-labeling. To generate the transforms and segmentation files used by
-Mindboggle, run the antsCorticalThickness.sh script in ANTs on the same
+..
+    - mri/orig/001.mgz
+    - mri/aparc+aseg.mgz
+    - surf/[lh,rh].pial
+    - label/[lh,rh].aparc.annot
+
+    ANTS provides brain volume extraction, segmentation, and registration-based labeling.
+
+To generate the ANTs transforms and segmentation files used by
+Mindboggle, run the antsCorticalThickness.sh script on the same
 IMAGE file, set an output PREFIX, set "-k 1" (to save registration transforms),
 and provide paths to OASIS-30 template files
-(see `Installation instructions <INSTALL.html>`_).
-Backslashes denote line returns::
+(see `Installation instructions <INSTALL.html>`_)::
 
     $ antsCorticalThickness.sh -d 3 \
       -a IMAGE \
