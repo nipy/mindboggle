@@ -1456,8 +1456,8 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     label1 = int(label1)
     label2 = int(label2)
     Ilabel1_vol1 = np.where(data1 == label1)[0]
-    Ilabel1_vol2 = np.where(data1 == label2)[0]
-    Ilabel2_vol1 = np.where(data2 == label1)[0]
+    Ilabel1_vol2 = np.where(data2 == label1)[0]
+    Ilabel2_vol1 = np.where(data1 == label2)[0]
     Ilabel2_vol2 = np.where(data2 == label2)[0]
     Ilabel1 = Ilabel1_vol1.tolist() + Ilabel1_vol2.tolist()
     Ilabel2 = Ilabel2_vol1.tolist() + Ilabel2_vol2.tolist()
