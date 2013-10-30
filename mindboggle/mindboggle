@@ -359,21 +359,31 @@ InputHemis.iterables = ('hemi', hemis)
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
 Sink.inputs.container = ''
+
+fs_filled_in = freesurfer_volume + '.nii.gz_to_' + \
+    freesurfer_volume + '.nii.gz_through_combined_segmentations.nii.gz_to_' +\
+    freesurfer_volume + '.nii.gz_through_combined_segmentations.nii.gz'
+fs_filled_out = 'FreeSurfer_'+freesurfer_volume+'_filled_labels.nii.gz'
+ants_filled_in = 'ANTS_labels.nii.gz_through_' + \
+    freesurfer_volume + '.nii.gz_to_ANTS_labels.nii.gz_through_' + \
+    freesurfer_volume + '.nii.gz_to_ANTS_labels.nii.gz_to_' + \
+    'ANTS_labels.nii.gz_through_combined_segmentations.nii.gz'
+ants_filled_out = 'ANTs_filled_labels.nii.gz'
+fs_in = freesurfer_volume + '.nii.gz'
+fs_out = 'FreeSurfer_'+freesurfer_volume+'_labels.nii.gz'
+
 Sink.inputs.substitutions = [('_subject_', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
-    ('lh.', ''), ('rh.', ''), ('pial.', ''),
+    ('lh.', ''), ('rh.', ''),
+    ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
-    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.nii.gz'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    (freesurfer_volume+'.nii.gz_through_cortex_and_noncortex.nii.gz_to_'+
-     freesurfer_volume+'.nii.gz_through_cortex_and_noncortex.nii.gz',
-     'FreeSurfer_'+freesurfer_volume+'_filled_labels.nii.gz'),
-    (freesurfer_volume + '.nii.gz',
-     'FreeSurfer_'+freesurfer_volume+'_labels.nii.gz'),
-    ('smooth_skeletons.vtk', 'smooth_fundi.vtk'),
-    ('ANTS_labels.nii.gz_to_ANTS_labels.nii.gz_through_cortex_and_noncortex.nii.gz',
-     'Combine_cortex_noncortex_ANTs_labels.nii.gz')]
+    (fs_filled_in, fs_filled_out),
+    (ants_filled_in, ants_filled_out),
+    (fs_in, fs_out),
+    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.nii.gz'),
+    ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ANTS_labels.nii.gz',
      r'/\1_labels.nii.gz'),
@@ -385,6 +395,7 @@ Sink.inputs.regexp_substitutions = [
     (r'/labels/(.*)/', r'/\1/labels/'),
     (r'/shapes/(.*)/', r'/\1/shapes/'),
     (r'/tables/(.*)/', r'/\1/tables/')]
+
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
@@ -1501,11 +1512,11 @@ if do_volumes and do_label:
         JoinSegs.inputs.output_file = ''
         mbFlow.connect(VolLabelFlow,
                    'Combine_FreeSurfer_ANTs_cerebrum_segments.output_file',
-                   Sink, 'labels.@cortex_and_noncortex_file')
+                   Sink, 'labels.@cortex_and_noncortex')
     else:
         mbFlow.connect(VolLabelFlow,
                    'FreeSurfer_cerebrum_labels_to_segments.output_file',
-                   Sink, 'labels.@freesurfer_cortex_and_noncortex_file')
+                   Sink, 'labels.@freesurfer_cortex_and_noncortex')
 
     #=========================================================================
     # Split whole segmented brain into two sides (without medial regions)
@@ -1757,7 +1768,7 @@ if do_volumes and do_label:
         xfm.inputs.default_value = 0
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
-        xfm.inputs.output_image = 'ANTS_labels.nii.gz'
+        xfm.inputs.output_image = 'ANTs_labels.nii.gz'
         mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
@@ -2126,11 +2137,11 @@ if do_volumes and do_label:
         # Table:
         VolShapeFlow.connect(FSlabelVolumes, 'labels_volumes',
                              FSVolTable, 'columns')
-        FSVolTable.inputs.column_names = ['Combine_cortex_noncortex_FreeSurfer_labels',
+        FSVolTable.inputs.column_names = ['FreeSurfer_filled_labels',
                                           'volumes']
         mbFlow.connect(VolShapeFlow,
-                       'FreeSurfer_filled_label_volume_table.output_table',
-                       Sink, 'tables.@volumes_of_Combine_cortex_noncortex_FreeSurfer_labels')
+        'FreeSurfer_filled_label_volume_table.output_table',
+        Sink, 'tables.@volumes_of_FreeSurfer_labels')
         if do_ants:
             #-----------------------------------------------------------------
             # Volumes of the ANTs filled labels:
@@ -2138,19 +2149,20 @@ if do_volumes and do_label:
             antsLabelVolumes = FSlabelVolumes.clone(
                 'ANTs_filled_label_volumes')
             VolShapeFlow.add_nodes([antsLabelVolumes])
-            mbFlow.connect(VolLabelFlow, 'Combine_cortex_noncortex_ANTs_labels.output_file',
+            mbFlow.connect(VolLabelFlow,
+                           'Combine_cortex_noncortex_ANTs_labels.output_file',
                            VolShapeFlow,
                            'ANTs_filled_label_volumes.input_file')
             # Table:
             antsVolTable = FSVolTable.clone('ANTs_filled_label_volume_table')
             VolShapeFlow.add_nodes([antsVolTable])
-            antsVolTable.inputs.column_names = ['Combine_cortex_noncortex_ANTs_labels',
+            antsVolTable.inputs.column_names = ['ANTs_filled_labels',
                                                 'volumes']
             VolShapeFlow.connect(antsLabelVolumes, 'labels_volumes',
                                  antsVolTable, 'columns')
             mbFlow.connect(VolShapeFlow,
-                           'ANTs_filled_label_volume_table.output_table',
-                           Sink, 'tables.@volumes_of_Combine_cortex_noncortex_ANTs_labels')
+            'ANTs_filled_label_volume_table.output_table',
+            Sink, 'tables.@volumes_of_ANTs_labels')
             #-----------------------------------------------------------------
             # Volumes of labels in additional atlases transformed to subject:
             #-----------------------------------------------------------------
@@ -2221,37 +2233,37 @@ if do_volumes and do_label:
             VolShapeFlow.connect(FSgmThicknesses,
                                  'label_volume_area_thickness',
                                  FSThickTable, 'columns')
-            FSThickTable.inputs.column_names = ['Combine_cortex_noncortex_FreeSurfer_labels',
+            FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
                                                 'volumes', 'areas',
                                                 'thicknesses']
             mbFlow.connect(VolShapeFlow,
-               'FreeSurfer_filled_cortex_label_thickness_table.output_table',
-               Sink, 'tables.@thicknesses_of_Combine_cortex_noncortex_FreeSurfer_labels')
+            'FreeSurfer_filled_cortex_label_thickness_table.output_table',
+            Sink, 'tables.@thicknesses_of_FreeSurfer_labels')
             #-----------------------------------------------------------------
-            # Thicknesses of the ANTS cortical labels:
+            # Thicknesses of the ANTs cortical labels:
             #-----------------------------------------------------------------
             if do_ants:
-                ANTSgmThicknesses = FSgmThicknesses.\
+                ANTsThicknesses = FSgmThicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
-                VolShapeFlow.add_nodes([ANTSgmThicknesses])
+                VolShapeFlow.add_nodes([ANTsThicknesses])
                 if do_ants:
                     VolShapeFlow.connect(JoinSegs, 'output_file',
-                                         ANTSgmThicknesses, 'segmented_file')
+                                         ANTsThicknesses, 'segmented_file')
                 else:
                     VolLabelFlow.connect(FSsegments, 'output_file',
-                                         ANTSgmThicknesses, 'segmented_file')
+                                         ANTsThicknesses, 'segmented_file')
                 mbFlow.connect(VolLabelFlow,
                        'Combine_cortex_noncortex_ANTs_labels.output_file',
                        VolShapeFlow,
                        'ANTs_filled_cortex_label_thicknesses.labeled_file')
                 # Table:
-                ANTSThickTable = FSVolTable.clone(
+                ANTsThickTable = FSVolTable.clone(
                     'ANTs_filled_cortex_label_thickness_table')
-                VolShapeFlow.add_nodes([ANTSThickTable])
-                VolShapeFlow.connect(ANTSgmThicknesses,
+                VolShapeFlow.add_nodes([ANTsThickTable])
+                VolShapeFlow.connect(ANTsThicknesses,
                                      'label_volume_area_thickness',
-                                     ANTSThickTable, 'columns')
-                ANTSThickTable.inputs.column_names = ['Combine_cortex_noncortex_ANTs_labels',
+                                     ANTsThickTable, 'columns')
+                ANTsThickTable.inputs.column_names = ['ANTs_filled_labels',
                                                       'volumes', 'areas',
                                                       'thicknesses']
                 mbFlow.connect(VolShapeFlow,
