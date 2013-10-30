@@ -2195,7 +2195,7 @@ if do_volumes and do_label:
             #-----------------------------------------------------------------
             # Thicknesses of the FreeSurfer cortical labels:
             #-----------------------------------------------------------------
-            FSgmThicknesses = Node(
+            FSthicknesses = Node(
                 name='FreeSurfer_filled_cortex_label_thicknesses',
                 interface=Fn(function=thickinthehead,
                              input_names=['segmented_file',
@@ -2209,30 +2209,30 @@ if do_volumes and do_label:
                                           'output_table'],
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
-            VolShapeFlow.add_nodes([FSgmThicknesses])
+            VolShapeFlow.add_nodes([FSthicknesses])
             if do_ants:
                 VolShapeFlow.connect(JoinSegs, 'output_file',
-                                     FSgmThicknesses, 'segmented_file')
+                                     FSthicknesses, 'segmented_file')
             else:
                 VolLabelFlow.connect(FSsegments, 'output_file',
-                                     FSgmThicknesses, 'segmented_file')
+                                     FSthicknesses, 'segmented_file')
             mbFlow.connect(VolLabelFlow,
                    'Combine_cortex_noncortex_FreeSurfer_labels.output_file',
                    VolShapeFlow,
                    'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
-            FSgmThicknesses.inputs.cortex_value = 2
-            FSgmThicknesses.inputs.noncortex_value = 3
-            FSgmThicknesses.inputs.labels = cortex_numbers
-            FSgmThicknesses.inputs.resize = True
-            FSgmThicknesses.inputs.propagate = False
-            FSgmThicknesses.inputs.output_dir = ''
-            FSgmThicknesses.inputs.output_table = ''
-            FSgmThicknesses.inputs.use_c3d = False
+            FSthicknesses.inputs.cortex_value = 2
+            FSthicknesses.inputs.noncortex_value = 3
+            FSthicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
+            FSthicknesses.inputs.resize = True
+            FSthicknesses.inputs.propagate = False
+            FSthicknesses.inputs.output_dir = ''
+            FSthicknesses.inputs.output_table = ''
+            FSthicknesses.inputs.use_c3d = False
             # Table:
             FSThickTable = FSVolTable.clone(
                 'FreeSurfer_filled_cortex_label_thickness_table')
             VolShapeFlow.add_nodes([FSThickTable])
-            VolShapeFlow.connect(FSgmThicknesses,
+            VolShapeFlow.connect(FSthicknesses,
                                  'label_volume_area_thickness',
                                  FSThickTable, 'columns')
             FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
@@ -2245,7 +2245,7 @@ if do_volumes and do_label:
             # Thicknesses of the ANTs cortical labels:
             #-----------------------------------------------------------------
             if do_ants:
-                ANTsThicknesses = FSgmThicknesses.\
+                ANTsThicknesses = FSthicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTsThicknesses])
                 if do_ants:
