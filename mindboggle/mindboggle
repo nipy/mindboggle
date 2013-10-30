@@ -360,17 +360,18 @@ Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
 Sink.inputs.container = ''
 
-fs_filled_in = freesurfer_volume + '.nii.gz_to_' + \
-    freesurfer_volume + '.nii.gz_through_combined_segmentations.nii.gz_to_' +\
-    freesurfer_volume + '.nii.gz_through_combined_segmentations.nii.gz'
-fs_filled_out = 'FreeSurfer_'+freesurfer_volume+'_filled_labels.nii.gz'
-ants_filled_in = 'ANTS_labels.nii.gz_through_' + \
-    freesurfer_volume + '.nii.gz_to_ANTS_labels.nii.gz_through_' + \
-    freesurfer_volume + '.nii.gz_to_ANTS_labels.nii.gz_to_' + \
-    'ANTS_labels.nii.gz_through_combined_segmentations.nii.gz'
-ants_filled_out = 'ANTs_filled_labels.nii.gz'
+seg_in = 'combined_segmentations.nii.gz'
 fs_in = freesurfer_volume + '.nii.gz'
-fs_out = 'FreeSurfer_'+freesurfer_volume+'_labels.nii.gz'
+fs_out = 'FreeSurfer_' + freesurfer_volume + '_labels.nii.gz'
+fs_filled_in = fs_out +'_to_' + fs_out + '_through_' + seg_in + '_to_' + \
+    fs_out + '_through_' + seg_in
+fs_filled_out = 'FreeSurfer_' + freesurfer_volume + '_filled_labels.nii.gz'
+ants_filled_in = \
+    'ANTs_labels.nii.gz_through_' + fs_out + '_to_' + \
+    'ANTs_labels.nii.gz_through_' + fs_out + '_to_' + \
+    'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + \
+    'combined_segmentations.nii.gz'
+ants_filled_out = 'ANTs_filled_labels.nii.gz'
 
 Sink.inputs.substitutions = [('_subject_', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
@@ -379,11 +380,12 @@ Sink.inputs.substitutions = [('_subject_', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
+    (fs_in, fs_out),
     (fs_filled_in, fs_filled_out),
     (ants_filled_in, ants_filled_out),
-    (fs_in, fs_out),
-    ('combined_segmentations.nii.gz', 'cortex_and_noncortex.nii.gz'),
+    (seg_in, 'cortex_and_noncortex.nii.gz'),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
+
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ANTS_labels.nii.gz',
      r'/\1_labels.nii.gz'),
