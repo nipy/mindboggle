@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Brain label numbers and names.
+Brain label numbers, names, and colormap related to the DKT labeling protocol.
 
 For more information about the Desikan-Killiany-Tourville
 cortical labeling protocol see http://mindboggle.info/data
@@ -138,7 +138,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # DKT protocol
 #=============================================================================
-def dkt_protocol():
+class DKTprotocol:
     """
     Variables related to the Desikan-Killiany-Tourville labeling protocol.
 
@@ -155,65 +155,85 @@ def dkt_protocol():
     right_sulcus_label_pair_lists : list of two lists of lists of integer pairs
     label_names : list of strings
         label names
-    label_names : list of strings
     left_label_names : list of strings
-    right_label_numbers : list of integers
+    right_label_names : list of strings
+    label_numbers : list of integers
         label numbers
     left_label_numbers : list of integers
     right_label_numbers : list of integers
-    cortex_names : list of strings
+    cerebrum_names : list of strings
+        label names
+    left_cerebrum_names : list of strings
+    right_cerebrum_names : list of strings
+    cerebrum_numbers : list of integers
+        label numbers
+    left_cerebrum_numbers : list of integers
+    right_cerebrum_numbers : list of integers
+    cerebrum_cortex_names : list of strings
         label names for cortical regions in the DKT31 protocol
-    left_cortex_names : list of strings
-    right_cortex_names : list of strings
-    cortex_numbers : list of integers
+    left_cerebrum_cortex_names : list of strings
+    right_cerebrum_cortex_names : list of strings
+    cerebrum_cortex_numbers : list of integers
         label numbers for cortical regions in the DKT31 protocol
-    left_cortex_numbers : list of integers
-    right_cortex_numbers : list of integers
-    noncortex_names : list of strings
+    left_cerebrum_cortex_numbers : list of integers
+    right_cerebrum_cortex_numbers : list of integers
+    cerebrum_noncortex_names : list of strings
         label names for noncortical regions in the CMA protocol
-    left_noncortex_names : list of strings
-    right_noncortex_names : list of strings
-    medial_noncortex_names : list of strings
-    noncortex_numbers : list of integers
+    left_cerebrum_noncortex_names : list of strings
+    right_cerebrum_noncortex_names : list of strings
+    medial_cerebrum_noncortex_names : list of strings
+    cerebrum_noncortex_numbers : list of integers
         label numbers for noncortical regions in the CMA protocol
-    left_noncortex_numbers : list of integers
-    right_noncortex_numbers : list of integers
-    medial_noncortex_numbers : list of integers
-    cortex_names_DKT25 : list of strings
+    left_cerebrum_noncortex_numbers : list of integers
+    right_cerebrum_noncortex_numbers : list of integers
+    medial_cerebrum_noncortex_numbers : list of integers
+    cerebrum_cortex_names_DKT25 : list of strings
         label names for cortical regions in the DKT25 protocol
-    left_cortex_names_DKT25 : list of strings
-    right_cortex_names_DKT25 : list of strings
-    cortex_numbers_DKT25 : list of integers
+    left_cerebrum_cortex_names_DKT25 : list of strings
+    right_cerebrum_cortex_names_DKT25 : list of strings
+    cerebrum_cortex_numbers_DKT25 : list of integers
         label numbers for cortical regions in the DKT25 protocol
-    left_cortex_numbers_DKT25 : list of integers
-    right_cortex_numbers_DKT25 : list of integers
+    left_cerebrum_cortex_numbers_DKT25 : list of integers
+    right_cerebrum_cortex_numbers_DKT25 : list of integers
+    cerebellum_names : list of strings
+        label names
+    left_cerebellum_names : list of strings
+    right_cerebellum_names : list of strings
+    cerebellum_numbers : list of integers
+        label numbers
+    left_cerebellum_numbers : list of integers
+    right_cerebellum_numbers : list of integers
+    cerebellum_cortex_names : list of strings
+        label names for cortical regions in the DKT31 protocol
+    left_cerebellum_cortex_names : list of strings
+    right_cerebellum_cortex_names : list of strings
+    cerebellum_cortex_numbers : list of integers
+        label numbers for cortical regions in the DKT31 protocol
+    left_cerebellum_cortex_numbers : list of integers
+    right_cerebellum_cortex_numbers : list of integers
+    cerebellum_noncortex_names : list of strings
+        label names for noncortical regions in the CMA protocol
+    left_cerebellum_noncortex_names : list of strings
+    right_cerebellum_noncortex_names : list of strings
+    medial_cerebellum_noncortex_names : list of strings
+    cerebellum_noncortex_numbers : list of integers
+        label numbers for noncortical regions in the CMA protocol
+    left_cerebellum_noncortex_numbers : list of integers
+    right_cerebellum_noncortex_numbers : list of integers
+    medial_cerebellum_noncortex_numbers : list of integers
 
     Examples
     --------
-    >>> from mindboggle.LABELS import dkt_protocol
-    >>> sulcus_names, unique_sulcus_label_pairs, \
-    >>> sulcus_label_pair_lists, \
-    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-    >>> label_names, left_label_names, right_label_names, \
-    >>> label_numbers, left_label_numbers, right_label_numbers, \
-    >>> cortex_names, left_cortex_names, right_cortex_names, \
-    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-    >>> noncortex_names, left_noncortex_names, \
-    >>> right_noncortex_names, medial_noncortex_names, \
-    >>> noncortex_numbers, left_noncortex_numbers, \
-    >>> right_noncortex_numbers, medial_noncortex_numbers, \
-    >>> cortex_names_DKT25, \
-    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
-    >>> cortex_numbers_DKT25, \
-    >>> left_cortex_numbers_DKT25, \
-    >>> right_cortex_numbers_DKT25 = dkt_protocol()
+    >>> from mindboggle.LABELS import DKTprotocol
+    >>> dkt = DKTprotocol()
+    >>> dkt.left_cerebrum_names
 
     """
-
     #-------------------------------------------------------------------------
-    # DKT cortical labeling protocol -- 31 labels:
+    # DKT cerebral cortical labeling protocol -- 31 labels:
     #-------------------------------------------------------------------------
-    left_cortex_numbers_names = [
+    left_cerebrum_cortex_numbers_names = [
+       #[3,       "left cerebral cortex"],
         [1002,    "left caudal anterior cingulate"],
         [1003,    "left caudal middle frontal"],
         [1005,    "left cuneus"],
@@ -246,7 +266,8 @@ def dkt_protocol():
         [1034,    "left transverse temporal"],
         [1035,    "left insula"]]
 
-    right_cortex_numbers_names = [
+    right_cerebrum_cortex_numbers_names = [
+       #[42,      "right cerebral cortex"],
         [2002,    "right caudal anterior cingulate"],
         [2003,    "right caudal middle frontal"],
         [2005,    "right cuneus"],
@@ -279,75 +300,75 @@ def dkt_protocol():
         [2034,    "right transverse temporal"],
         [2035,    "right insula"]]
 
-    left_cortex_numbers = [x[0] for x in left_cortex_numbers_names]
-    right_cortex_numbers = [x[0] for x in right_cortex_numbers_names]
-    left_cortex_names = [x[1] for x in left_cortex_numbers_names]
-    right_cortex_names = [x[1] for x in right_cortex_numbers_names]
-    cortex_numbers = left_cortex_numbers + right_cortex_numbers
-    cortex_names = left_cortex_names + right_cortex_names
+    left_cerebrum_cortex_numbers = \
+        [x[0] for x in left_cerebrum_cortex_numbers_names]
+    right_cerebrum_cortex_numbers = \
+        [x[0] for x in right_cerebrum_cortex_numbers_names]
+    left_cerebrum_cortex_names = \
+        [x[1] for x in left_cerebrum_cortex_numbers_names]
+    right_cerebrum_cortex_names = \
+        [x[1] for x in right_cerebrum_cortex_numbers_names]
+    cerebrum_cortex_numbers = \
+        left_cerebrum_cortex_numbers + right_cerebrum_cortex_numbers
+    cerebrum_cortex_names = \
+        left_cerebrum_cortex_names + right_cerebrum_cortex_names
 
     #-------------------------------------------------------------------------
-    # DKT cortical labeling protocol -- 25 labels:
+    # DKT cerebral cortical labeling protocol -- 25 labels:
     #-------------------------------------------------------------------------
     # Region numbers:
     # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
-    left_cortex_numbers_DKT25 = left_cortex_numbers[:]
+    left_cerebrum_cortex_numbers_DKT25 = left_cerebrum_cortex_numbers[:]
     for n in [1010, 1019, 1020, 1023, 1026, 1027]:
-        left_cortex_numbers_DKT25.remove(n)
-    right_cortex_numbers_DKT25 = right_cortex_numbers[:]
+        left_cerebrum_cortex_numbers_DKT25.remove(n)
+    right_cerebrum_cortex_numbers_DKT25 = right_cerebrum_cortex_numbers[:]
     for n in [2010, 2019, 2020, 2023, 2026, 2027]:
-        right_cortex_numbers_DKT25.remove(n)
-    cortex_numbers_DKT25 = left_cortex_numbers_DKT25 + \
-                           right_cortex_numbers_DKT25
+        right_cerebrum_cortex_numbers_DKT25.remove(n)
+    cerebrum_cortex_numbers_DKT25 = left_cerebrum_cortex_numbers_DKT25 + \
+                                    right_cerebrum_cortex_numbers_DKT25
 
     # Consolidate region labels:
-    left_cortex_names_DKT25 = []
-    for ilabel, label_number in enumerate(left_cortex_numbers):
+    left_cerebrum_cortex_names_DKT25 = []
+    for ilabel, label_number in enumerate(left_cerebrum_cortex_numbers):
         if label_number == 1002:
-            left_cortex_names_DKT25.append('left cingulate')
+            left_cerebrum_cortex_names_DKT25.append('left cingulate')
         elif label_number == 1003:
-            left_cortex_names_DKT25.append('left middle frontal')
+            left_cerebrum_cortex_names_DKT25.append('left middle frontal')
         elif label_number == 1018:
-            left_cortex_names_DKT25.append('left inferior frontal')
+            left_cerebrum_cortex_names_DKT25.append('left inferior frontal')
         else:
-            left_cortex_names_DKT25.append(left_cortex_names[ilabel])
-    right_cortex_names_DKT25 = []
-    for ilabel, label_number in enumerate(right_cortex_numbers):
+            left_cerebrum_cortex_names_DKT25.\
+                append(left_cerebrum_cortex_names[ilabel])
+    right_cerebrum_cortex_names_DKT25 = []
+    for ilabel, label_number in enumerate(right_cerebrum_cortex_numbers):
         if label_number == 2002:
-            right_cortex_names_DKT25.append('right cingulate')
+            right_cerebrum_cortex_names_DKT25.append('right cingulate')
         elif label_number == 2003:
-            right_cortex_names_DKT25.append('right middle frontal')
+            right_cerebrum_cortex_names_DKT25.append('right middle frontal')
         elif label_number == 2018:
-            right_cortex_names_DKT25.append('right inferior frontal')
+            right_cerebrum_cortex_names_DKT25.append('right inferior frontal')
         else:
-            right_cortex_names_DKT25.append(right_cortex_names[ilabel])
-    cortex_names_DKT25 = left_cortex_names_DKT25 + right_cortex_names_DKT25
+            right_cerebrum_cortex_names_DKT25.\
+                append(right_cerebrum_cortex_names[ilabel])
+    cerebrum_cortex_names_DKT25 = \
+        left_cerebrum_cortex_names_DKT25 + right_cerebrum_cortex_names_DKT25
 
     #-------------------------------------------------------------------------
-    # Noncortex label numbers and names
+    # Cerebral noncortex label numbers and names
     # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
-    # labels to be consistent with FreeSurfer labels in FreeSurferColorLUT.txt.
+    # labels to be consistent with FreeSurferColorLUT.txt labels.
     #
-    # Five labels did not have counterparts in FreeSurfer:
-    #         [71, "cerebellar vermal lobules I-V"],
-    #         [72, "cerebellar vermal lobules VI-VII"],
-    #         [73, "cerebellar vermal lobules VIII-X"],
+    # Two labels did not have counterparts in FreeSurfer:
     #         [75, "left basal forebrain"],
     #         [76, "right basal forebrain"]
     # and were reassigned to unused numbers in FreeSurferColorLUT.txt:
-    #         [630, "cerebellar vermal lobules I-V"],
-    #         [631, "cerebellar vermal lobules VI-VII"],
-    #         [632, "cerebellar vermal lobules VIII-X"],
     #         [91, "left basal forebrain"],
     #         [92, "right basal forebrain"]
     #-------------------------------------------------------------------------
-    left_noncortex_numbers_names = [
-        [2,   "left cerebral white matter"],
-        #[3, "left cerebral cortex"],
+    left_cerebrum_noncortex_numbers_names = [
+        [2, "left cerebral white matter"],
         [4, "left lateral ventricle"],
         [5, "left inferior lateral ventricle"],
-        [6, "left cerebellum exterior"],
-        [7, "left cerebellum white matter"],
         [10, "left thalamus proper"],
         [11, "left caudate"],
         [12, "left putamen"],
@@ -359,13 +380,10 @@ def dkt_protocol():
         [28, "left ventral DC"],
         [30, "left vessel"],
         [91, "left basal forebrain"]]
-    right_noncortex_numbers_names = [
-        [41,   "right cerebral white matter"],
-        #[42, "right cerebral cortex"],
+    right_cerebrum_noncortex_numbers_names = [
+        [41, "right cerebral white matter"],
         [43, "right lateral ventricle"],
         [44, "right inferior lateral ventricle"],
-        [45, "right cerebellum exterior"],
-        [46, "right cerebellum white matter"],
         [49, "right thalamus proper"],
         [50, "right caudate"],
         [51, "right putamen"],
@@ -377,35 +395,122 @@ def dkt_protocol():
         [60, "right ventral DC"],
         [62, "right vessel"],
         [92, "right basal forebrain"]]
-    medial_noncortex_numbers_names = [
+    medial_cerebrum_noncortex_numbers_names = [
         [16, "Brain stem"],
         [24, "CSF"],
         [14, "3rd ventricle"],
         [15, "4th ventricle"],
         [72, "5th ventricle"],
-        [85, "optic chiasm"],
+        [85, "optic chiasm"]]
+
+    left_cerebrum_noncortex_numbers = \
+        [x[0] for x in left_cerebrum_noncortex_numbers_names]
+    right_cerebrum_noncortex_numbers = \
+        [x[0] for x in right_cerebrum_noncortex_numbers_names]
+    medial_cerebrum_noncortex_numbers = \
+        [x[0] for x in medial_cerebrum_noncortex_numbers_names]
+    left_cerebrum_noncortex_names = \
+        [x[1] for x in left_cerebrum_noncortex_numbers_names]
+    right_cerebrum_noncortex_names = \
+        [x[1] for x in right_cerebrum_noncortex_numbers_names]
+    medial_cerebrum_noncortex_names = \
+        [x[1] for x in medial_cerebrum_noncortex_numbers_names]
+    cerebrum_noncortex_numbers = \
+        left_cerebrum_noncortex_numbers + right_cerebrum_noncortex_numbers + \
+        medial_cerebrum_noncortex_numbers
+    cerebrum_noncortex_names = \
+        left_cerebrum_noncortex_names + right_cerebrum_noncortex_names + \
+        medial_cerebrum_noncortex_names
+
+    left_cerebrum_numbers = \
+        left_cerebrum_cortex_numbers + left_cerebrum_noncortex_numbers
+    right_cerebrum_numbers = \
+        right_cerebrum_cortex_numbers + right_cerebrum_noncortex_numbers
+    cerebrum_numbers = \
+        left_cerebrum_numbers + right_cerebrum_numbers + \
+        medial_cerebrum_noncortex_numbers
+    left_cerebrum_names = \
+        left_cerebrum_cortex_names + left_cerebrum_noncortex_names
+    right_cerebrum_names = \
+        right_cerebrum_cortex_names + right_cerebrum_noncortex_names
+    cerebrum_names = \
+        left_cerebrum_names + right_cerebrum_names + \
+        medial_cerebrum_noncortex_names
+
+    #-------------------------------------------------------------------------
+    # Cerebellar label numbers and names
+    # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
+    # labels to be consistent with FreeSurferColorLUT.txt labels.
+    #
+    # Three labels did not have counterparts in FreeSurfer:
+    #         [71, "cerebellar vermal lobules I-V"],
+    #         [72, "cerebellar vermal lobules VI-VII"],
+    #         [73, "cerebellar vermal lobules VIII-X"],
+    # and were reassigned to unused numbers in FreeSurferColorLUT.txt:
+    #         [630, "cerebellar vermal lobules I-V"],
+    #         [631, "cerebellar vermal lobules VI-VII"],
+    #         [632, "cerebellar vermal lobules VIII-X"],
+    #-------------------------------------------------------------------------
+    left_cerebellum_cortex_numbers_names = [
+        [6, "left cerebellum exterior"]]
+    right_cerebellum_cortex_numbers_names = [
+        [45, "right cerebellum exterior"]]
+    left_cerebellum_noncortex_numbers_names = [
+        [7, "left cerebellum white matter"]]
+    right_cerebellum_noncortex_numbers_names = [
+        [46, "right cerebellum white matter"]]
+    medial_cerebellum_noncortex_numbers_names = [
         [630, "cerebellar vermal lobules I-V"],
         [631, "cerebellar vermal lobules VI-VII"],
         [632, "cerebellar vermal lobules VIII-X"]]
 
-    left_noncortex_numbers = [x[0] for x in left_noncortex_numbers_names]
-    right_noncortex_numbers = [x[0] for x in right_noncortex_numbers_names]
-    medial_noncortex_numbers = [x[0] for x in medial_noncortex_numbers_names]
-    left_noncortex_names = [x[1] for x in left_noncortex_numbers_names]
-    right_noncortex_names = [x[1] for x in right_noncortex_numbers_names]
-    medial_noncortex_names = [x[1] for x in medial_noncortex_numbers_names]
-    noncortex_numbers = left_noncortex_numbers + right_noncortex_numbers + \
-                        medial_noncortex_numbers
-    noncortex_names = left_noncortex_names + right_noncortex_names + \
-                      medial_noncortex_names
+    left_cerebellum_cortex_numbers = [x[0]
+                        for x in left_cerebellum_cortex_numbers_names]
+    right_cerebellum_cortex_numbers = [x[0]
+                        for x in right_cerebellum_cortex_numbers_names]
+    left_cerebellum_cortex_names = [x[1]
+                        for x in left_cerebellum_cortex_numbers_names]
+    right_cerebellum_cortex_names = [x[1]
+                        for x in right_cerebellum_cortex_numbers_names]
+    left_cerebellum_noncortex_numbers = [x[0]
+                        for x in left_cerebellum_noncortex_numbers_names]
+    right_cerebellum_noncortex_numbers = [x[0]
+                        for x in right_cerebellum_noncortex_numbers_names]
+    medial_cerebellum_noncortex_numbers = [x[0]
+                        for x in medial_cerebellum_noncortex_numbers_names]
+    left_cerebellum_noncortex_names = [x[1]
+                        for x in left_cerebellum_noncortex_numbers_names]
+    right_cerebellum_noncortex_names = [x[1]
+                        for x in right_cerebellum_noncortex_numbers_names]
+    medial_cerebellum_noncortex_names = [x[1]
+                        for x in medial_cerebellum_noncortex_numbers_names]
 
-    left_label_numbers = left_cortex_numbers + left_noncortex_numbers
-    right_label_numbers = right_cortex_numbers + right_noncortex_numbers
-    label_numbers = left_label_numbers + medial_noncortex_numbers
+    left_cerebellum_numbers = left_cerebellum_cortex_numbers + \
+                                    left_cerebellum_noncortex_numbers
+    right_cerebellum_numbers = right_cerebellum_cortex_numbers + \
+                                     right_cerebellum_noncortex_numbers
+    left_cerebellum_names = left_cerebellum_cortex_names + \
+                                  left_cerebellum_noncortex_names
+    right_cerebellum_names = right_cerebellum_cortex_names + \
+                                   right_cerebellum_noncortex_names
 
-    left_label_names = left_cortex_names + left_noncortex_names
-    right_label_names = right_cortex_names + right_noncortex_names
-    label_names = left_label_names + medial_noncortex_names
+    cerebellum_cortex_numbers = left_cerebellum_cortex_numbers + \
+                               right_cerebellum_cortex_numbers
+    cerebellum_noncortex_numbers = left_cerebellum_noncortex_numbers + \
+                                  right_cerebellum_noncortex_numbers + \
+                                  medial_cerebellum_noncortex_numbers
+    cerebellum_cortex_names = left_cerebellum_cortex_names + \
+                             right_cerebellum_cortex_names
+    cerebellum_noncortex_names = left_cerebellum_noncortex_names + \
+                                right_cerebellum_noncortex_names + \
+                                medial_cerebellum_noncortex_names
+    cerebellum_numbers = cerebellum_cortex_numbers + \
+                              cerebellum_noncortex_numbers
+    cerebellum_names = cerebellum_cortex_names + \
+                            cerebellum_noncortex_names
+
+    label_numbers = cerebrum_numbers + cerebellum_numbers
+    label_names = cerebrum_names + cerebellum_names
 
     #-------------------------------------------------------------------------
     # Sulcus names from the DKT labeling protocol:
@@ -500,51 +605,9 @@ def dkt_protocol():
     else:
         sulcus_label_pair_lists = pair_lists
 
-    #-------------------------------------------------------------------------
-    # Returns
-    #-------------------------------------------------------------------------
-    return sulcus_names, unique_sulcus_label_pairs, \
-           sulcus_label_pair_lists, \
-           left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-           label_names, left_label_names, right_label_names, \
-           label_numbers, left_label_numbers, right_label_numbers, \
-           cortex_names, left_cortex_names, right_cortex_names, \
-           cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-           noncortex_names, left_noncortex_names, \
-           right_noncortex_names, medial_noncortex_names, \
-           noncortex_numbers, left_noncortex_numbers, \
-           right_noncortex_numbers, medial_noncortex_numbers, \
-           cortex_names_DKT25, \
-           left_cortex_names_DKT25, right_cortex_names_DKT25, \
-           cortex_numbers_DKT25, \
-           left_cortex_numbers_DKT25, right_cortex_numbers_DKT25
-
-
-#=============================================================================
-# Mindboggle colormap
-#=============================================================================
-def colormap(print_xml=True):
-    """
-    Colormap.
-
-    Parameters
-    ----------
-    print_xml : Boolean
-        print Paraview-style XML colormap for use with vtkviewer.py?
-
-    Returns
-    -------
-    colormap : list of lists of three integers in [0,255]
-        RGB values
-    colormap_normalized : list of lists of three integers in [0,1]
-        normalized RGB values
-
-    Examples
-    --------
-    >>> from mindboggle.LABELS import colormap
-    >>> cmap, cmap2 = colormap()
-
-    """
+    #=========================================================================
+    # Mindboggle colormap
+    #=========================================================================
     number_name_rgb = [
         [0,   "Unknown",    [0, 0, 0]],
         [1,   "Left-Cerebral-Exterior",    [70, 130, 180]],
@@ -722,11 +785,11 @@ def colormap(print_xml=True):
         [216, "entorhinal_cortex",    [255, 204, 102]],
         [217, "molecular_layer_subiculum",    [128, 128, 128]],
         [218, "Amygdala",    [104, 255, 255]],
-        [219, "Cerebral_White_Matter",    [0, 226, 0]],
-        [220, "Cerebral_Cortex",    [205, 63, 78]],
+        [219, "cerebrum_White_Matter",    [0, 226, 0]],
+        [220, "cerebrum_Cortex",    [205, 63, 78]],
         [221, "Inf_Lat_Vent",    [197, 58, 250]],
         [222, "Perirhinal",    [33, 150, 250]],
-        [223, "Cerebral_White_Matter_Edge",    [226, 0, 0]],
+        [223, "cerebrum_White_Matter_Edge",    [226, 0, 0]],
         [224, "Background",    [100, 100, 100]],
         [225, "Ectorhinal",    [197, 150, 250]],
         [250, "Fornix",    [255, 0, 0]],
@@ -811,11 +874,6 @@ def colormap(print_xml=True):
         [2034,    "ctx-rh-transversetemporal",    [150, 150, 200]],
         [2035,    "ctx-rh-insula",    [255, 192, 32]]]
 
-    if print_xml:
-        print('<ColorMap name="Mindboggle Colormap" space="RGB" indexedLookup="false">')
-        print('  <NaN r="0" g="0" b="0"/>')
-        print('  <Point x="-1" o="0"  r="0" g="0" b="0"/>')
-
     colormap = []
     colormap_normalized = []
     for x in number_name_rgb:
@@ -829,14 +887,32 @@ def colormap(print_xml=True):
         colormap.append([label, 1, r, g, b])
         colormap_normalized.append([label, 1, r1, g1, b1])
 
-        if print_xml:
-            print('  <Point x="{0}" o="1"  r="{1:1.2f}" g="{2:1.2f}" b="{3:1.2f}"/>'.
-                  format(label, r1, g1, b1))
+def print_colormap(colormap):
+    """
+    Print colormap.
 
-    if print_xml:
-        print('</ColorMap>')
+    Parameters
+    ----------
+    colormap : list of lists of string and floats
+        label, 1, red, green, blue
 
-    return colormap, colormap_normalized
+    Examples
+    --------
+    >>> from mindboggle.LABELS import DKTprotocol, print_colormap
+    >>> dkt = DKTprotocol()
+    >>> colormap = dkt.colormap_normalized
+    >>> print_colormap(colormap)
+
+    """
+
+    print('<ColorMap name="Mindboggle Colormap" space="RGB" indexedLookup="false">')
+    print('  <NaN r="0" g="0" b="0"/>')
+    print('  <Point x="-1" o="0"  r="0" g="0" b="0"/>')
+    for row in colormap:
+        print('  <Point x="{0}" o="1"  '
+              'r="{1:1.2f}" g="{2:1.2f}" b="{3:1.2f}"/>'.
+              format(row[0], row[2], row[3], row[4]))
+    print('</ColorMap>')
 
 """
 #-------------------------------------------------------------------------
@@ -1018,11 +1094,11 @@ FreeSurferColorLUT = [
     [216, "entorhinal_cortex",    [255, 204, 102]],
     [217, "molecular_layer_subiculum",    [128, 128, 128]],
     [218, "Amygdala",    [104, 255, 255]],
-    [219, "Cerebral_White_Matter",    [0, 226, 0]],
-    [220, "Cerebral_Cortex",    [205, 63, 78]],
+    [219, "cerebrum_White_Matter",    [0, 226, 0]],
+    [220, "cerebrum_Cortex",    [205, 63, 78]],
     [221, "Inf_Lat_Vent",    [197, 58, 250]],
     [222, "Perirhinal",    [33, 150, 250]],
-    [223, "Cerebral_White_Matter_Edge",    [226, 0, 0]],
+    [223, "cerebrum_White_Matter_Edge",    [226, 0, 0]],
     [224, "Background",    [100, 100, 100]],
     [225, "Ectorhinal",    [197, 150, 250]],
     [250, "Fornix",    [255, 0, 0]],
