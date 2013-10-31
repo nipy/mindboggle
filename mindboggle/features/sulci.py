@@ -77,7 +77,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.utils.segment import extract_borders, propagate, segment
-    from mindboggle.LABELS import dkt_protocol
+    from mindboggle.LABELS import DKTprotocol
 
 
     # Load fold numbers if folds_or_file is a string
@@ -86,26 +86,12 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     elif isinstance(folds_or_file, list):
         folds = folds_or_file
 
-    sulcus_names, unique_sulcus_label_pairs, sulcus_label_pair_lists, \
-    left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-    label_names, left_label_names, right_label_names, \
-    label_numbers, left_label_numbers, right_label_numbers, \
-    cortex_names, left_cortex_names, right_cortex_names, \
-    cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-    noncortex_names, left_noncortex_names, \
-    right_noncortex_names, medial_noncortex_names, \
-    noncortex_numbers, left_noncortex_numbers, \
-    right_noncortex_numbers, medial_noncortex_numbers, \
-    cortex_names_DKT25, \
-    left_cortex_names_DKT25, right_cortex_names_DKT25, \
-    cortex_numbers_DKT25, \
-    left_cortex_numbers_DKT25, \
-    right_cortex_numbers_DKT25 = dkt_protocol()
+    dkt = DKTprotocol()
 
     if hemi == 'lh':
-        pair_lists = left_sulcus_label_pair_lists
+        pair_lists = dkt.left_sulcus_label_pair_lists
     elif hemi == 'rh':
-        pair_lists = right_sulcus_label_pair_lists
+        pair_lists = dkt.right_sulcus_label_pair_lists
     else:
         print("Warning: hemisphere not properly specified ('lh' or 'rh').")
 
@@ -156,7 +142,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
 
             # Find fold label pairs in the protocol (pairs are already sorted)
             fold_pairs_in_protocol = [x for x in unique_fold_pairs
-                                      if x in unique_sulcus_label_pairs]
+                                      if x in dkt.unique_sulcus_label_pairs]
 
             if unique_fold_labels:
                 print("  Fold {0} labels: {1} ({2} vertices)".format(n_fold,
@@ -225,7 +211,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                 # Vertices with unique label(s) in pair
                                 indices_unique_labels = [fold[i]
                                      for i,x in enumerate(fold_labels)
-                                     if x in unique_sulcus_label_pairs]
+                                     if x in dkt.unique_sulcus_label_pairs]
 
                                 # Propagate from seeds to labels in label pair
                                 sulci2 = segment(indices_unique_labels,

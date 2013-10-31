@@ -95,24 +95,9 @@ if __name__ == "__main__":
     from mindboggle.utils.io_vtk import load_vtk, read_scalars, write_scalars
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.utils.segment import extract_borders
-    from mindboggle.LABELS import dkt_protocol
+    from mindboggle.LABELS import DKTprotocol
 
-    protocol = 'DKT25'
-    sulcus_names, unique_sulcus_label_pairs, \
-        sulcus_label_pair_lists, \
-        left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-        label_names, left_label_names, right_label_names, \
-        label_numbers, left_label_numbers, right_label_numbers, \
-        cortex_names, left_cortex_names, right_cortex_names, \
-        cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-        noncortex_names, left_noncortex_names, \
-        right_noncortex_names, medial_noncortex_names, \
-        noncortex_numbers, left_noncortex_numbers, \
-        right_noncortex_numbers, medial_noncortex_numbers, \
-        cortex_names_DKT25, \
-        left_cortex_names_DKT25, right_cortex_names_DKT25, \
-        cortex_numbers_DKT25, \
-        left_cortex_numbers_DKT25, right_cortex_numbers_DKT25 = dkt_protocol()
+    dkt = DKTprotocol()
 
     fundi_file = sys.argv[1]
     folds_file = sys.argv[2]
@@ -138,7 +123,7 @@ if __name__ == "__main__":
 
     # Prepare list of all unique sorted label pairs in the labeling protocol
     print('Prepare a list of unique, sorted label pairs in the protocol...')
-    n_fundi = len(sulcus_label_pair_lists)
+    n_fundi = len(dkt.sulcus_label_pair_lists)
 
     # Find label boundary points in any of the folds
     print('Find label boundary points in any of the folds...')
@@ -153,7 +138,7 @@ if __name__ == "__main__":
     label_boundary_fundi = np.zeros(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus)
-    for isulcus, label_pairs in enumerate(sulcus_label_pair_lists):
+    for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
         print('  Sulcus ' + str(isulcus + 1))
 
         # Keep the boundary points with label pair labels
