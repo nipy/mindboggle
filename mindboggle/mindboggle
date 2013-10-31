@@ -174,7 +174,7 @@ disable_group.add_argument("--no_shapes", action='store_true',
 #disable_group.add_argument("--no_freesurfer_inputs", action='store_true',
 #                    help="Don't use FreeSurfer (requires inputs -- UNTESTED)")
 
-extras_group.add_argument("--nprocessors", "-n",
+extras_group.add_argument("-n",
                     help=('Number of processors: "-n 1" (default)'),
                     type=int,
                     default=1, metavar='INT')
@@ -2310,10 +2310,10 @@ if __name__ == '__main__':
     # Run multiple processes or not:
     #-------------------------------------------------------------------------
     else:
-        if args.nprocessors:
-            if args.nprocessors > 1:
+        if args.n:
+            if args.n > 1:
                 mbFlow.run(plugin='MultiProc',
-                           plugin_args={'n_procs': args.nprocessors})
+                           plugin_args={'n_procs': args.n})
             else:
                 mbFlow.run()
         else:
