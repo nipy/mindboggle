@@ -57,23 +57,8 @@ def propagate(points, faces, region, seeds, labels,
     >>> from mindboggle.utils.segment import extract_borders
     >>> from mindboggle.utils.segment import propagate
     >>> from mindboggle.utils.io_vtk import read_scalars, read_vtk, rewrite_scalars
-    >>> from mindboggle.LABELS import dkt_protocol
-    >>> sulcus_names, unique_sulcus_label_pairs,
-    ...       sulcus_label_pair_lists,
-    ...       left_sulcus_label_pair_lists, right_sulcus_label_pair_lists,
-    ...       label_names, left_label_names, right_label_names,
-    ...       label_numbers, left_label_numbers, right_label_numbers,
-    ...       cortex_names, left_cortex_names, right_cortex_names,
-    ...       cortex_numbers, left_cortex_numbers, right_cortex_numbers,
-    ...       noncortex_names, left_noncortex_names,
-    ...       right_noncortex_names, medial_noncortex_names,
-    ...       noncortex_numbers, left_noncortex_numbers,
-    ...       right_noncortex_numbers, medial_noncortex_numbers,
-    ...       cortex_names_DKT25,
-    ...       left_cortex_names_DKT25, right_cortex_names_DKT25,
-    ...       cortex_numbers_DKT25,
-    ...       left_cortex_numbers_DKT25,
-    ...       right_cortex_numbers_DKT25 = dkt_protocol()
+    >>> from mindboggle.LABELS import DKTprotocol
+    >>> dkt = DKTprotocol()
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
@@ -94,7 +79,7 @@ def propagate(points, faces, region, seeds, labels,
     >>>     labels, neighbor_lists)
     >>> # Select boundary segments in the sulcus labeling protocol
     >>> seeds = background_value * np.ones(npoints)
-    >>> for ilist,label_pair_list in enumerate(sulcus_label_pair_lists):
+    >>> for ilist,label_pair_list in enumerate(dkt.sulcus_label_pair_lists):
     >>>     I = [x for i,x in enumerate(indices_borders)
     >>>          if np.sort(label_pairs[i]).tolist() in label_pair_list]
     >>>     seeds[I] = ilist
@@ -236,30 +221,15 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     >>> plot_surfaces('segment.vtk')
     >>> #
     >>> # Example 2: with seed lists
-    >>> from mindboggle.LABELS import dkt_protocol
-    >>> sulcus_names, unique_sulcus_label_pairs,
-    ...       sulcus_label_pair_lists,
-    ...       left_sulcus_label_pair_lists, right_sulcus_label_pair_lists,
-    ...       label_names, left_label_names, right_label_names,
-    ...       label_numbers, left_label_numbers, right_label_numbers,
-    ...       cortex_names, left_cortex_names, right_cortex_names,
-    ...       cortex_numbers, left_cortex_numbers, right_cortex_numbers,
-    ...       noncortex_names, left_noncortex_names,
-    ...       right_noncortex_names, medial_noncortex_names,
-    ...       noncortex_numbers, left_noncortex_numbers,
-    ...       right_noncortex_numbers, medial_noncortex_numbers,
-    ...       cortex_names_DKT25,
-    ...       left_cortex_names_DKT25, right_cortex_names_DKT25,
-    ...       cortex_numbers_DKT25,
-    ...       left_cortex_numbers_DKT25,
-    ...       right_cortex_numbers_DKT25 = dkt_protocol()
-    >>> label_lists = [np.unique(np.ravel(x)) for x in sulcus_label_pair_lists]
+    >>> from mindboggle.LABELS import DKTprotocol
+    >>> dkt = DKTprotocol()
+    >>> label_lists = [np.unique(np.ravel(x)) for x in dkt.sulcus_label_pair_lists]
     >>> labels_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> faces, lines, indices, points, npoints, labels, name, input_vtk = read_vtk(labels_file)
     >>> indices_borders, label_pairs, foo = extract_borders(vertices_to_segment,
     >>>     labels, neighbor_lists, ignore_values=[], return_label_pairs=True)
     >>> seed_lists = []
-    >>> for label_pair_list in sulcus_label_pair_lists:
+    >>> for label_pair_list in dkt.sulcus_label_pair_lists:
     >>>     seed_lists.append([x for i,x in enumerate(indices_borders) if np.sort(label_pairs[i]).tolist() in label_pair_list])
     >>> #
     >>> sulci = segment(vertices_to_segment, neighbor_lists, 1,
@@ -1514,28 +1484,13 @@ def split_brain(image_file, label_file, left_labels, right_labels):
     >>> import os
     >>> from mindboggle.utils.segment import split_brain
     >>> from mindboggle.utils.plots import plot_volumes
-    >>> from mindboggle.LABELS import dkt_protocol
+    >>> from mindboggle.LABELS import DKTprotocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> image_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
     >>> label_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
-    >>> sulcus_names, unique_sulcus_label_pairs, \
-    >>> sulcus_label_pair_lists, \
-    >>> left_sulcus_label_pair_lists, right_sulcus_label_pair_lists, \
-    >>> label_names, left_label_names, right_label_names, \
-    >>> label_numbers, left_label_numbers, right_label_numbers, \
-    >>> cortex_names, left_cortex_names, right_cortex_names, \
-    >>> cortex_numbers, left_cortex_numbers, right_cortex_numbers, \
-    >>> noncortex_names, left_noncortex_names, \
-    >>> right_noncortex_names, medial_noncortex_names, \
-    >>> noncortex_numbers, left_noncortex_numbers, \
-    >>> right_noncortex_numbers, medial_noncortex_numbers, \
-    >>> cortex_names_DKT25, \
-    >>> left_cortex_names_DKT25, right_cortex_names_DKT25, \
-    >>> cortex_numbers_DKT25, \
-    >>> left_cortex_numbers_DKT25, \
-    >>> right_cortex_numbers_DKT25 = dkt_protocol()
-    >>> left_labels = left_label_numbers
-    >>> right_labels = right_label_numbers
+    >>> dkt = DKTprotocol()
+    >>> left_labels = dkt.left_label_numbers
+    >>> right_labels = dkt.right_label_numbers
     >>> left_brain, right_brain = split_brain(image_file, label_file, left_labels, right_labels)
     >>> # View
     >>> plot_volumes([left_brain, right_brain])
