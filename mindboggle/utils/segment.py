@@ -1375,8 +1375,11 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
 
     An example application is to combine two segmentation volumes,
     such as from FreeSurfer and ANTs, to obtain a single cortex=2
-    and noncortex=3 segmentation file, where noncortex overwrites
-    cortex where they intersect.
+    and noncortex=3 segmentation file, by taking the union of cortex voxels
+    from the segmentations, the union of the noncortex voxels from the
+    segmentations, and overwriting intersecting cortex and noncortex voxels
+    with noncortex (3) labels.
+
 
     Parameters
     ----------
