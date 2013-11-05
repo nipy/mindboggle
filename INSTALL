@@ -85,6 +85,10 @@ replacing <path to mindboggle> and <path to anaconda>::
     export PATH=$PATH:$MINDBOGGLE_TOOLS
     export DYLD_LIBRARY_PATH=<path to anaconda>/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
 
+You could alternatively install VTK within the Anaconda environment itself,
+i.e., by changing the CMAKE_INSTALL_PREFIX to /path/to/anaconda/envs/myenv
+
+
 Optional environment variables
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 Mindboggle downloads necessary atlas and template data via the Internet
