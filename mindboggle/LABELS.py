@@ -395,47 +395,52 @@ class DKTprotocol:
         [60, "right ventral DC"],
         [62, "right vessel"],
         [92, "right basal forebrain"]]
-    medial_cerebrum_noncortex_numbers_names = [
-        [16, "Brain stem"],
-        [24, "CSF"],
+    ventricle_numbers_names = [
         [14, "3rd ventricle"],
         [15, "4th ventricle"],
-        [72, "5th ventricle"],
-        [85, "optic chiasm"]]
+        [72, "5th ventricle"]]
 
     left_cerebrum_noncortex_numbers = \
         [x[0] for x in left_cerebrum_noncortex_numbers_names]
     right_cerebrum_noncortex_numbers = \
         [x[0] for x in right_cerebrum_noncortex_numbers_names]
-    medial_cerebrum_noncortex_numbers = \
-        [x[0] for x in medial_cerebrum_noncortex_numbers_names]
+    ventricle_numbers = \
+        [x[0] for x in ventricle_numbers_names]
     left_cerebrum_noncortex_names = \
         [x[1] for x in left_cerebrum_noncortex_numbers_names]
     right_cerebrum_noncortex_names = \
         [x[1] for x in right_cerebrum_noncortex_numbers_names]
-    medial_cerebrum_noncortex_names = \
-        [x[1] for x in medial_cerebrum_noncortex_numbers_names]
+    ventricle_names = \
+        [x[1] for x in ventricle_numbers_names]
     cerebrum_noncortex_numbers = \
         left_cerebrum_noncortex_numbers + right_cerebrum_noncortex_numbers + \
-        medial_cerebrum_noncortex_numbers
+        ventricle_numbers
     cerebrum_noncortex_names = \
         left_cerebrum_noncortex_names + right_cerebrum_noncortex_names + \
-        medial_cerebrum_noncortex_names
+        ventricle_names
 
     left_cerebrum_numbers = \
         left_cerebrum_cortex_numbers + left_cerebrum_noncortex_numbers
     right_cerebrum_numbers = \
         right_cerebrum_cortex_numbers + right_cerebrum_noncortex_numbers
     cerebrum_numbers = \
-        left_cerebrum_numbers + right_cerebrum_numbers + \
-        medial_cerebrum_noncortex_numbers
+        left_cerebrum_numbers + right_cerebrum_numbers + ventricle_numbers
     left_cerebrum_names = \
         left_cerebrum_cortex_names + left_cerebrum_noncortex_names
     right_cerebrum_names = \
         right_cerebrum_cortex_names + right_cerebrum_noncortex_names
     cerebrum_names = \
-        left_cerebrum_names + right_cerebrum_names + \
-        medial_cerebrum_noncortex_names
+        left_cerebrum_names + right_cerebrum_names + ventricle_names
+
+    #-------------------------------------------------------------------------
+    # Nonbrain label numbers and names
+    #-------------------------------------------------------------------------
+    nonbrain_numbers_names = [
+        [16, "Brain stem"],
+        [24, "CSF"],
+        [85, "optic chiasm"]]
+    nonbrain_numbers = [x[0] for x in nonbrain_numbers_names]
+    nonbrain_names = [x[0] for x in nonbrain_numbers_names]
 
     #-------------------------------------------------------------------------
     # Cerebellar label numbers and names
@@ -509,8 +514,8 @@ class DKTprotocol:
     cerebellum_names = cerebellum_cortex_names + \
                             cerebellum_noncortex_names
 
-    label_numbers = cerebrum_numbers + cerebellum_numbers
-    label_names = cerebrum_names + cerebellum_names
+    label_numbers = cerebrum_numbers + cerebellum_numbers + nonbrain_numbers
+    label_names = cerebrum_names + cerebellum_names + nonbrain_names
 
     #-------------------------------------------------------------------------
     # Sulcus names from the DKT labeling protocol:
