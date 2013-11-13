@@ -1380,6 +1380,22 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
     segmentations, and overwriting intersecting cortex and noncortex voxels
     with noncortex (3) labels.
 
+    ANTs tends to include more cortical gray matter at the periphery of
+    the brain than Freesurfer, and FreeSurfer tends to include more white
+    matter that extends deep into gyral folds than ANTs, so this function
+    attempts to remedy their differences by overlaying ANTs cortical gray
+    with FreeSurfer white matter.
+
+    Example preprocessing steps ::
+
+      1. Run Freesurfer and antsCorticalThickness.sh on T1-weighted image.
+      2. Convert FreeSurfer volume labels (e.g., wmparc.mgz or aparc+aseg.mgz)
+         to cortex (2) and noncortex (3) segments using relabel_volume()
+         function [refer to LABELS.py or FreeSurferColorLUT labels file].
+      3. Convert ANTs Atropos-segmented volume (tmpBrainSegmentation.nii.gz)
+         to cortex and noncortex segments, by converting 1-labels to 0 and
+         4-labels to 3 with the relabel_volume() function
+         (the latter is to include deep-gray matter with noncortical tissues).
 
     Parameters
     ----------
