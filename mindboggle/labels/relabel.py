@@ -304,9 +304,16 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
 
 def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
-                            replace=True, background_value=-1):
+                            erase_labels=True, background_value=-1):
     """
-    Overwrite target labels with source labels (same volume dimensions).
+    For every label in a source image, optionally erase all voxels in the
+    target image with this label (if erase_labels is True), and
+    for every voxel in the source image with this label,
+    assign the label to the corresponding voxel in the target image.
+
+    Note::
+
+        Assumes same volume dimensions.
 
     Parameters
     ----------
@@ -318,10 +325,10 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
         labeled nibabel-readable (e.g., nifti) file
     ignore_labels : list
         list of source labels to ignore
-    replace : Boolean
+    erase_labels : Boolean
         erase target labels (that are in source) before overwriting?
     background_value : integer
-        background value (if replace==True)
+        background value (if erase_labels==True)
 
     Returns
     -------
@@ -339,9 +346,9 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     >>> target = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> output_file = ''
     >>> ignore_labels = [0]
-    >>> replace = True
+    >>> erase_labels = True
     >>> background_value = -1
-    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, replace, background_value)
+    >>> output_file = overwrite_volume_labels(source, target, output_file, ignore_labels, erase_labels, background_value)
     >>> # View
     >>> plot_volumes(output_file)
 
@@ -369,7 +376,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     X = [x[1] for x in IX]
 
     # Erase target labels (that are in source) before overwriting:
-    if replace:
+    if erase_labels:
         rm_labels = np.unique(X)
         Irm = [i for i,x in enumerate(data_target) if x in rm_labels]
         new_data[Irm] = background_value

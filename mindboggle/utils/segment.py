@@ -1474,11 +1474,7 @@ def combine_2labels_in_2volumes(file1, file2, label1=3, label2=2,
 
 def split_brain(image_file, label_file, left_labels, right_labels):
     """
-    Use ANTs to help split a brain using left/right labels.
-
-    Note::
-
-        This program uses ThresholdImage and ImageMath in ANTS.
+    Split a brain using left/right labels.
 
     Parameters
     ----------
