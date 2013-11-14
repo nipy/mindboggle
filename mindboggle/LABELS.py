@@ -157,13 +157,13 @@ class DKTprotocol:
     medial_cerebrum_noncortex_[numbers, names, colors]
     [left, right]_ventricle_[numbers, names, colors]
     medial_ventricle_[numbers, names, colors]
-    nonbrain_[numbers, names, colors]
+    extra_[numbers, names, colors]
     [left, right]_cerebellum_cortex_[numbers, names, colors]
     [left, right]_cerebellum_noncortex_[numbers, names, colors]
     medial_cerebellum_noncortex_[numbers, names, colors]
     [left, right]_ventricle_[numbers, names, colors]
     medial_ventricle_[numbers, names, colors]
-    nonbrain_[numbers, names, colors]
+    extra_[numbers, names, colors]
     cerebrum_cortex_[numbers, names, colors]
     cerebrum_noncortex_[numbers, names, colors]
     [left, right]_cerebrum_[numbers, names, colors]
@@ -213,7 +213,7 @@ class DKTprotocol:
                            int(fstrings[4])])
 
     #-------------------------------------------------------------------------
-    # DKT cerebral cortical labeling protocol -- 31 labels (+ duplicates):
+    # Cerebral cortex label numbers (31 + duplicates):
     #-------------------------------------------------------------------------
     left_cerebrum_cortex_numbers = \
         [3, 19, 20] + range(1000, 1004) + range(1005, 1036)
@@ -221,7 +221,14 @@ class DKTprotocol:
         [42, 55, 56] + range(2000, 2004) + range(2005, 2036)
 
     #-------------------------------------------------------------------------
-    # Cerebral noncortex label numbers:
+    # Cerebral ventricle label numbers:
+    #-------------------------------------------------------------------------
+    left_ventricle_numbers = [4, 5]
+    right_ventricle_numbers = [43, 44]
+    medial_ventricle_numbers = [14, 15, 72]
+
+    #-------------------------------------------------------------------------
+    # Cerebral noncortex label numbers (including ventricles above):
     #-------------------------------------------------------------------------
     # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
     # labels to be consistent with FreeSurferColorLUT.txt labels.
@@ -236,49 +243,40 @@ class DKTprotocol:
     left_cerebrum_noncortex_numbers = \
         [2, 9, 10, 11, 12, 13, 17, 18, 25, 26, 27, 28, 30, 31, 78, 91, 96] + \
         range(100, 109) + [155, 157] + range(550, 559) + [1004] + \
-        range(3000, 3036) + [5001]
+        range(3000, 3036) + [5001] + left_ventricle_numbers
     right_cerebrum_noncortex_numbers = \
         [41, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 62, 63, 79, 92, 97] + \
         range(109, 118) + [156, 158] + range(500, 509) + [2004] + \
-        range(4000, 4036) + [5002]
-    medial_cerebrum_noncortex_numbers = [192]
+        range(4000, 4036) + [5002] + right_ventricle_numbers
+    medial_cerebrum_noncortex_numbers = medial_ventricle_numbers + \
+                                        [192] + range(250, 256)
 
     #-------------------------------------------------------------------------
     # Cerebellar label numbers:
     #-------------------------------------------------------------------------
-    # These labels were converted from Neuromorphometrics BrainCOLOR subcortex
-    # labels to be consistent with FreeSurferColorLUT.txt labels.
-    #
-    # Three labels did not have counterparts in FreeSurfer:
-    #         [71, "cerebellar vermal lobules I-V"],
-    #         [72, "cerebellar vermal lobules VI-VII"],
-    #         [73, "cerebellar vermal lobules VIII-X"],
-    # and were reassigned to unused numbers in FreeSurferColorLUT.txt:
-    #         [630, "cerebellar vermal lobules I-V"],
-    #         [631, "cerebellar vermal lobules VI-VII"],
-    #         [632, "cerebellar vermal lobules VIII-X"],
+    # These labels [71, 72, 73] in Neuromorphometrics BrainCOLOR subcortex
+    # did not have counterparts in FreeSurferColorLUT.txt, and were
+    # reassigned to unused numbers in FreeSurferColorLUT.txt:
+    #   [630, "cerebellar vermal lobules I-V"],
+    #   [631, "cerebellar vermal lobules VI-VII"],
+    #   [632, "cerebellar vermal lobules VIII-X"],
     #-------------------------------------------------------------------------
-    left_cerebellum_cortex_numbers = [8]
-    right_cerebellum_cortex_numbers = [47]
+    left_cerebellum_cortex_numbers = [6, 8]
+    right_cerebellum_cortex_numbers = [45, 47]
     left_cerebellum_noncortex_numbers = [7]
     right_cerebellum_noncortex_numbers = [46]
     medial_cerebellum_noncortex_numbers = [630, 631, 632]
 
     #-------------------------------------------------------------------------
-    # Ventricle label numbers:
+    # Extra label numbers:
     #-------------------------------------------------------------------------
-    left_ventricle_numbers = [4, 5]
-    right_ventricle_numbers = [43, 44]
-    medial_ventricle_numbers = [14, 15, 72]
-
+    #  [16, "Brain stem"],
+    #  [24, "CSF"],
+    #  [85, "optic chiasm"]]
+    #  170-175: brain stem
     #-------------------------------------------------------------------------
-    # Nonbrain label numbers:
-    #-------------------------------------------------------------------------
-    #    [16, "Brain stem"],
-    #    [24, "CSF"],
-    #    [85, "optic chiasm"]]
-    #-------------------------------------------------------------------------
-    nonbrain_numbers = [16, 85] + range(170, 176)
+    brainstem_numbers = [16] + range(170, 176)
+    extra_numbers = [24, 85]
 
 
     #-------------------------------------------------------------------------
@@ -286,27 +284,36 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     left_cerebrum_cortex_names = []
     right_cerebrum_cortex_names = []
+    left_ventricle_names = []
+    right_ventricle_names = []
+    medial_ventricle_names = []
     left_cerebrum_noncortex_names = []
     right_cerebrum_noncortex_names = []
     medial_cerebrum_noncortex_names = []
     left_ventricle_names = []
     right_ventricle_names = []
     medial_ventricle_names = []
-    nonbrain_names = []
     left_cerebellum_cortex_names = []
     right_cerebellum_cortex_names = []
     left_cerebellum_noncortex_names = []
     right_cerebellum_noncortex_names = []
     medial_cerebellum_noncortex_names = []
-    left_ventricle_names = []
-    right_ventricle_names = []
-    medial_ventricle_names = []
-    nonbrain_names = []
+    brainstem_names = []
+    extra_names = []
     for i, n in enumerate(numbers):
         if n in left_cerebrum_cortex_numbers:
             left_cerebrum_cortex_names.append(names[i])
         elif n in right_cerebrum_cortex_numbers:
             right_cerebrum_cortex_names.append(names[i])
+        elif n in left_ventricle_numbers:
+            left_ventricle_names.append(names[i])
+            left_cerebrum_noncortex_names.append(names[i])
+        elif n in right_ventricle_numbers:
+            right_ventricle_names.append(names[i])
+            right_cerebrum_noncortex_names.append(names[i])
+        elif n in medial_ventricle_numbers:
+            medial_ventricle_names.append(names[i])
+            medial_cerebrum_noncortex_names.append(names[i])
         elif n in left_cerebrum_noncortex_numbers:
             left_cerebrum_noncortex_names.append(names[i])
         elif n in right_cerebrum_noncortex_numbers:
@@ -329,41 +336,46 @@ class DKTprotocol:
             right_cerebellum_noncortex_names.append(names[i])
         elif n in medial_cerebellum_noncortex_numbers:
             medial_cerebellum_noncortex_names.append(names[i])
-        elif n in left_ventricle_numbers:
-            left_ventricle_names.append(names[i])
-        elif n in right_ventricle_numbers:
-            right_ventricle_names.append(names[i])
-        elif n in medial_ventricle_numbers:
-            medial_ventricle_names.append(names[i])
-        elif n in nonbrain_numbers:
-            nonbrain_names.append(names[i])
+        elif n in brainstem_numbers:
+            brainstem_names.append(names[i])
+        elif n in extra_numbers:
+            extra_names.append(names[i])
 
     #-------------------------------------------------------------------------
     # Colors corresponding to label numbers:
     #-------------------------------------------------------------------------
     left_cerebrum_cortex_colors = []
     right_cerebrum_cortex_colors = []
+    left_ventricle_colors = []
+    right_ventricle_colors = []
+    medial_ventricle_colors = []
     left_cerebrum_noncortex_colors = []
     right_cerebrum_noncortex_colors = []
     medial_cerebrum_noncortex_colors = []
     left_ventricle_colors = []
     right_ventricle_colors = []
     medial_ventricle_colors = []
-    nonbrain_colors = []
     left_cerebellum_cortex_colors = []
     right_cerebellum_cortex_colors = []
     left_cerebellum_noncortex_colors = []
     right_cerebellum_noncortex_colors = []
     medial_cerebellum_noncortex_colors = []
-    left_ventricle_colors = []
-    right_ventricle_colors = []
-    medial_ventricle_colors = []
-    nonbrain_colors = []
+    brainstem_colors = []
+    extra_colors = []
     for i, n in enumerate(numbers):
         if n in left_cerebrum_cortex_numbers:
             left_cerebrum_cortex_colors.append(colors[i])
         elif n in right_cerebrum_cortex_numbers:
             right_cerebrum_cortex_colors.append(colors[i])
+        elif n in left_ventricle_numbers:
+            left_ventricle_colors.append(colors[i])
+            left_cerebrum_noncortex_colors.append(colors[i])
+        elif n in right_ventricle_numbers:
+            right_ventricle_colors.append(colors[i])
+            right_cerebrum_noncortex_colors.append(colors[i])
+        elif n in medial_ventricle_numbers:
+            medial_ventricle_colors.append(colors[i])
+            medial_cerebrum_noncortex_colors.append(colors[i])
         elif n in left_cerebrum_noncortex_numbers:
             left_cerebrum_noncortex_colors.append(colors[i])
         elif n in right_cerebrum_noncortex_numbers:
@@ -386,18 +398,21 @@ class DKTprotocol:
             right_cerebellum_noncortex_colors.append(colors[i])
         elif n in medial_cerebellum_noncortex_numbers:
             medial_cerebellum_noncortex_colors.append(colors[i])
-        elif n in left_ventricle_numbers:
-            left_ventricle_colors.append(colors[i])
-        elif n in right_ventricle_numbers:
-            right_ventricle_colors.append(colors[i])
-        elif n in medial_ventricle_numbers:
-            medial_ventricle_colors.append(colors[i])
-        elif n in nonbrain_numbers:
-            nonbrain_colors.append(colors[i])
+        elif n in brainstem_colors:
+            brainstem_colors.append(names[i])
+        elif n in extra_numbers:
+            extra_colors.append(colors[i])
 
     #-------------------------------------------------------------------------
     # Aggregate lists:
     #-------------------------------------------------------------------------
+    ventricle_numbers = left_ventricle_numbers + right_ventricle_numbers + \
+                        medial_ventricle_numbers
+    ventricle_names = left_ventricle_names + right_ventricle_names + \
+                      medial_ventricle_names
+    ventricle_colors = left_ventricle_colors + right_ventricle_colors + \
+                       medial_ventricle_colors
+
     cerebrum_cortex_numbers = left_cerebrum_cortex_numbers + \
                               right_cerebrum_cortex_numbers
     cerebrum_cortex_names = left_cerebrum_cortex_names + \
@@ -406,13 +421,16 @@ class DKTprotocol:
                              right_cerebrum_cortex_colors
     cerebrum_noncortex_numbers = left_cerebrum_noncortex_numbers + \
                                  right_cerebrum_noncortex_numbers + \
-                                 medial_cerebrum_noncortex_numbers
+                                 medial_cerebrum_noncortex_numbers + \
+                                 ventricle_numbers
     cerebrum_noncortex_names = left_cerebrum_noncortex_names + \
                                right_cerebrum_noncortex_names + \
-                               medial_cerebrum_noncortex_names
+                               medial_cerebrum_noncortex_names + \
+                               ventricle_names
     cerebrum_noncortex_colors = left_cerebrum_noncortex_colors + \
                                 right_cerebrum_noncortex_colors + \
-                                medial_cerebrum_noncortex_colors
+                                medial_cerebrum_noncortex_colors + \
+                                ventricle_colors
     left_cerebrum_numbers = left_cerebrum_cortex_numbers + \
                             left_cerebrum_noncortex_numbers
     left_cerebrum_names = left_cerebrum_cortex_names + \
@@ -428,11 +446,6 @@ class DKTprotocol:
     cerebrum_numbers = left_cerebrum_numbers + right_cerebrum_numbers
     cerebrum_names = left_cerebrum_names + right_cerebrum_names
     cerebrum_colors = left_cerebrum_colors + right_cerebrum_colors
-
-    ventricle_numbers = left_ventricle_numbers + right_ventricle_numbers + \
-                        medial_ventricle_numbers
-    ventricle_names = left_ventricle_names + right_ventricle_names + \
-                      medial_ventricle_names
 
     left_cerebellum_numbers = left_cerebellum_cortex_numbers + \
                               left_cerebellum_noncortex_numbers
@@ -462,9 +475,12 @@ class DKTprotocol:
     cerebellum_names = cerebellum_cortex_names + cerebellum_noncortex_names
     cerebellum_colors = cerebellum_cortex_colors + cerebellum_noncortex_colors
 
-    label_numbers = cerebrum_numbers + cerebellum_numbers + nonbrain_numbers
-    label_names = cerebrum_names + cerebellum_names + nonbrain_names
-    label_colors = cerebrum_colors + cerebellum_colors + nonbrain_colors
+    label_numbers = cerebrum_numbers + cerebellum_numbers + \
+                    brainstem_numbers + extra_numbers
+    label_names = cerebrum_names + cerebellum_names + \
+                  brainstem_names + extra_names
+    label_colors = cerebrum_colors + cerebellum_colors + \
+                   brainstem_colors + extra_colors
 
     #-------------------------------------------------------------------------
     # Colormap:
