@@ -1548,7 +1548,7 @@ if do_volumes and do_label:
     #-------------------------------------------------------------------------
     # Extract cerebrum noncortical volume labels:
     #-------------------------------------------------------------------------
-    FSnoncortex = Node(name='Extract_FreeSurfer_noncortex',
+    FSnoncortex = Node(name='Extract_FreeSurfer_noncortex_labels',
                        interface=Fn(function=keep_volume_labels,
                                     input_names=['input_file',
                                                  'labels_to_keep',
@@ -1557,10 +1557,10 @@ if do_volumes and do_label:
     VolLabelFlow.add_nodes([FSnoncortex])
     if do_input_fs_labels:
         mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
-                       'Extract_FreeSurfer_noncortex.input_file')
+                       'Extract_FreeSurfer_noncortex_labels.input_file')
     else:
         mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
-                       'Extract_FreeSurfer_noncortex.input_file')
+                       'Extract_FreeSurfer_noncortex_labels.input_file')
     labels_to_fill = dkt.cerebrum_noncortex_numbers + \
                      dkt.brainstem_numbers + \
                      dkt.extra_numbers
@@ -1657,14 +1657,14 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Extract FreeSurfer cerebrum cortical volume labels:
         #---------------------------------------------------------------------
-        FScortex = FSnoncortex.clone('Extract_FreeSurfer_cortex')
+        FScortex = FSnoncortex.clone('Extract_FreeSurfer_cortex_labels')
         VolLabelFlow.add_nodes([FScortex])
         if do_input_fs_labels:
             mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
-                           'Extract_FreeSurfer_cortex.input_file')
+                           'Extract_FreeSurfer_cortex_labels.input_file')
         else:
             mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
-                           'Extract_FreeSurfer_cortex.input_file')
+                           'Extract_FreeSurfer_cortex_labels.input_file')
         FScortex.inputs.labels_to_keep = dkt.cerebrum_cortex_numbers
         #---------------------------------------------------------------------
         # Propagate volume labels through whole-brain cortex:
@@ -1685,7 +1685,7 @@ if do_volumes and do_label:
     # Combine FreeSurfer label-filled whole-brain cortex and noncortex:
     #-------------------------------------------------------------------------
     CombineFSLabels = Node(name=
-                           'Combine_cortex_noncortex_FreeSurfer_labels',
+                           'Combine_FreeSurfer_cortex_noncortex_labels',
                            interface=Fn(function=overwrite_volume_labels,
                                         input_names=['source',
                                                      'target',
@@ -1707,7 +1707,7 @@ if do_volumes and do_label:
     CombineFSLabels.inputs.erase_labels = False
     if not overwrite_cerebra_with_cerebella:
         mbFlow.connect(VolLabelFlow,
-               'Combine_cortex_noncortex_FreeSurfer_labels.output_file',
+               'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                Sink, 'labels.@freesurfer_filled')
 
     #=========================================================================
@@ -1735,7 +1735,7 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Extract ANTs cerebral cortical volume labels:
         #---------------------------------------------------------------------
-        ANTsCortex = FSnoncortex.clone('Extract_cortex_ANTs_labels')
+        ANTsCortex = FSnoncortex.clone('Extract_ANTs_cortex_labels')
         VolLabelFlow.add_nodes([ANTsCortex])
         VolLabelFlow.connect(xfm, 'output_image', ANTsCortex, 'input_file')
         ANTsCortex.inputs.labels_to_keep = dkt.cerebrum_cortex_numbers
@@ -1743,7 +1743,7 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Extract ANTs whole-brain noncortical volume labels:
         #---------------------------------------------------------------------
-        ANTsNoncortex = ANTsCortex.clone('Extract_noncortex_ANTs_labels')
+        ANTsNoncortex = ANTsCortex.clone('Extract_ANTs_noncortex_labels')
         VolLabelFlow.add_nodes([ANTsNoncortex])
         VolLabelFlow.connect(xfm, 'output_image', ANTsNoncortex, 'input_file')
         ANTsNoncortex.inputs.labels_to_keep = labels_to_fill
@@ -1777,7 +1777,7 @@ if do_volumes and do_label:
         # Combine ANTs label-filled cortex and label-filled noncortex:
         #---------------------------------------------------------------------
         CombineANTsLabels = CombineFSLabels.clone(
-            'Combine_cortex_noncortex_ANTs_labels')
+            'Combine_ANTs_cortex_noncortex_labels')
         VolLabelFlow.add_nodes([CombineANTsLabels])
         if fill_noncortex_with_ants_labels:
             VolLabelFlow.connect(ANTsFillNoncortex, 'output_file',
@@ -1792,7 +1792,7 @@ if do_volumes and do_label:
         CombineANTsLabels.inputs.replace = True
         if not overwrite_cerebra_with_cerebella:
             mbFlow.connect(VolLabelFlow, 
-                           'Combine_cortex_noncortex_ANTs_labels.output_file',
+                           'Combine_ANTs_cortex_noncortex_labels.output_file',
                            Sink, 'labels.@ants_filled')
 
     #=========================================================================
@@ -1836,7 +1836,7 @@ if do_volumes and do_label:
             #-----------------------------------------------------------------
             # Extract ANTs cerebrum:
             #-----------------------------------------------------------------
-            ANTsCerebrum = FScerebellum.clone('Extract_cerebrum_ANTs_labels')
+            ANTsCerebrum = FScerebellum.clone('Extract_ANTs_cerebrum_labels')
             VolLabelFlow.add_nodes([ANTsCerebrum])
             VolLabelFlow.connect(CombineANTsLabels, 'output_file',
                                  ANTsCerebrum, 'input_file')
@@ -1971,7 +1971,7 @@ if do_volumes and do_label:
                    VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
         else:
             mbFlow.connect(VolLabelFlow,
-                   'Combine_cortex_noncortex_FreeSurfer_labels.output_file',
+                   'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                    VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
         # Table:
         VolShapeFlow.connect(FSlabelVolumes, 'labels_volumes',
@@ -1994,7 +1994,7 @@ if do_volumes and do_label:
                        VolShapeFlow, 'ANTs_filled_label_volumes.input_file')
             else:
                 mbFlow.connect(VolLabelFlow,
-                       'Combine_cortex_noncortex_ANTs_labels.output_file',
+                       'Combine_ANTs_cortex_noncortex_labels.output_file',
                        VolShapeFlow, 'ANTs_filled_label_volumes.input_file')
             # Table:
             antsVolTable = FSVolTable.clone('ANTs_filled_label_volume_table')
@@ -2064,7 +2064,7 @@ if do_volumes and do_label:
                    'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
             else:
                 mbFlow.connect(VolLabelFlow,
-                    'Combine_cortex_noncortex_FreeSurfer_labels.output_file',
+                    'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                     VolShapeFlow,
                     'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
             FSthicknesses.inputs.cortex_value = 2
@@ -2104,7 +2104,7 @@ if do_volumes and do_label:
                        'ANTs_filled_cortex_label_thicknesses.labeled_file')
                 else:
                     mbFlow.connect(VolLabelFlow,
-                    'Combine_cortex_noncortex_ANTs_labels.output_file',
+                    'Combine_ANTs_cortex_noncortex_labels.output_file',
                     VolShapeFlow,
                     'ANTs_filled_cortex_label_thicknesses.labeled_file')
                 # Table:
