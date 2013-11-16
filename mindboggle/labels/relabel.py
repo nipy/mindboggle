@@ -154,9 +154,10 @@ def remove_volume_labels(input_file, labels_to_remove, output_file=''):
     return output_file
 
 
-def keep_volume_labels(input_file, labels_to_keep, output_file=''):
+def keep_volume_labels(input_file, labels_to_keep, output_file='',
+                       second_file=''):
     """
-    Keep only given labels in an image volume.
+    Keep only given labels in an image volume (or use to mask second volume).
 
     Parameters
     ----------
@@ -166,6 +167,8 @@ def keep_volume_labels(input_file, labels_to_keep, output_file=''):
         labels to keep
     output_file : string
         output file name
+    second_file : string
+        second nibabel-readable file to mask with retained labels
 
     Returns
     -------
@@ -181,33 +184,55 @@ def keep_volume_labels(input_file, labels_to_keep, output_file=''):
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
     >>> labels_to_keep = range(1000, 1036)
     >>> output_file = ''
-    >>> keep_volume_labels(input_file, labels_to_keep, output_file)
+    >>> second_file = ''
+    >>> keep_volume_labels(input_file, labels_to_keep, output_file, second_file)
 
     """
     import os
     import numpy as np
     import nibabel as nb
 
+    #-------------------------------------------------------------------------
     # Load labeled image volume and extract data as 1-D array:
+    #-------------------------------------------------------------------------
     vol = nb.load(input_file)
     xfm = vol.get_affine()
     data = vol.get_data().ravel()
 
-    # Initialize output:
-    new_data = data.copy()
+    #-------------------------------------------------------------------------
+    # If second file specified, erase voxels whose corresponding
+    # voxels in the input_file have labels not in labels_to_keep:
+    #-------------------------------------------------------------------------
+    if second_file:
+        # Load second image volume and extract data as 1-D array:
+        vol = nb.load(second_file)
+        xfm = vol.get_affine()
+        new_data = vol.get_data().ravel()
 
-    # Loop through unique labels:
+    #-------------------------------------------------------------------------
+    # If second file not specified, remove labels not in labels_to_keep:
+    #-------------------------------------------------------------------------
+    else:
+        # Initialize copied output:
+        new_data = data.copy()
+
+    #-------------------------------------------------------------------------
+    # Erase voxels as specified above:
+    #-------------------------------------------------------------------------
     ulabels = np.unique(data)
     for label in ulabels:
         label = int(label)
         if label not in labels_to_keep:
-            # Relabel if not a label to keep:
             new_data[np.where(data == label)[0]] = 0
 
+    #-------------------------------------------------------------------------
     # Reshape to original dimensions:
+    #-------------------------------------------------------------------------
     new_data = np.reshape(new_data, vol.shape)
 
+    #-------------------------------------------------------------------------
     # Save relabeled file:
+    #-------------------------------------------------------------------------
     if not output_file:
         output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
