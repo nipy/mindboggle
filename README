@@ -125,11 +125,11 @@ are stored in tables (.csv).
 
         --- *Volume and surface labels* ---
 
-        **cortex_and_noncortex** .nii.gz:  *[brain segmented into cortex=2 and noncortex=3]*
-
         **FreeSurfer_labels** .nii.gz:  *[FreeSurfer aparc+aseg labels]*
 
         **FreeSurfer_filled_labels** .nii.gz:  *[non/cortex separately filled with FreeSurfer labels]*
+
+        **ANTs_labels** .nii.gz:  *[ANTs-registered joint fusion atlas labels]*
 
         **ANTs_filled_labels** .nii.gz:  *[non/cortex separately filled with ANTs labels]*
 
