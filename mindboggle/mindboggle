@@ -118,9 +118,9 @@ outputs_group.add_argument("--cache", help='Download cache directory '
 #                          "segment, and register brain (and to provide"
 #                          "an additional measure of cortical thickness)"))
 inputs_group.add_argument("--freesurfer_data",
-                    help=("FreeSurfer subjects directory "
-                          "(default: $SUBJECTS_DIR environment variable)"),
-                    nargs='+', metavar='STR')
+                    help=("FreeSurfer subjects directory (default if not "
+                          "set: $SUBJECTS_DIR environment variable)"),
+                    metavar='STR')
 inputs_group.add_argument("--freesurfer_volume",
                     help=("Volume labels: \"wmparc\" (default) or "
                           "\"aparc+aseg\""),
