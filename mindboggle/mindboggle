@@ -296,10 +296,10 @@ if args.working:
 else:
     working = os.path.join(cache, 'workspace')
 if not os.path.isdir(args.out):
-    print("Create missing output directory: {0}".format(cache))
+    print("Create missing output directory: {0}".format(args.out))
     os.makedirs(args.out)
 if not os.path.isdir(working):
-    print("Create missing working directory: {0}".format(cache))
+    print("Create missing working directory: {0}".format(working))
     os.makedirs(working)
 if not os.path.isdir(cache):
     print("Create missing cache directory: {0}".format(cache))
