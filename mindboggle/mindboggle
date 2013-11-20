@@ -381,7 +381,6 @@ Sink.inputs.substitutions = [('_subject_', ''),
     (fs_in, fs_out),
     (fs_filled_in, fs_filled_out),
     (ants_filled_in, ants_filled_out),
-    (seg_in, 'cortex_and_noncortex.nii.gz'),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
 
 Sink.inputs.regexp_substitutions = [
@@ -1991,14 +1990,9 @@ if do_volumes and do_label:
                                            output_names=['labels_volumes']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
         FSlabelVolumes.inputs.labels = dkt.label_numbers
-        if overwrite_cerebrum_with_cerebellum:
-            mbFlow.connect(VolLabelFlow,
-                   'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
-                   VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
-        else:
-            mbFlow.connect(VolLabelFlow,
-                   'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
-                   VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
+        mbFlow.connect(VolLabelFlow,
+               'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
+               VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
         # Table:
         VolShapeFlow.connect(FSlabelVolumes, 'labels_volumes',
                              FSVolTable, 'columns')
@@ -2087,16 +2081,10 @@ if do_volumes and do_label:
             else:
                 VolLabelFlow.connect(FSsegments, 'output_file',
                                      FSthicknesses, 'segmented_file')
-            if overwrite_cerebrum_with_cerebellum:
-                mbFlow.connect(VolLabelFlow,
-                   'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
-                   VolShapeFlow,
-                   'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
-            else:
-                mbFlow.connect(VolLabelFlow,
-                    'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
-                    VolShapeFlow,
-                    'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
+            mbFlow.connect(VolLabelFlow,
+                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
+                VolShapeFlow,
+                'FreeSurfer_filled_cortex_label_thicknesses.labeled_file')
             FSthicknesses.inputs.cortex_value = 2
             FSthicknesses.inputs.noncortex_value = 3
             FSthicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
