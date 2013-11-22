@@ -32,6 +32,8 @@ import os
 import sys
 import argparse
 import warnings
+from time import time
+time0 = time()
 #-----------------------------------------------------------------------------
 # Nipype libraries
 #-----------------------------------------------------------------------------
@@ -2192,3 +2194,5 @@ if __name__ == '__main__':
         # # Default is to use all processors:
         #else:
         #    mbFlow.run(plugin='MultiProc')
+
+    print('Mindboggle run finished ({0:0.2f} seconds).'.format(time() - time0))
