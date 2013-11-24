@@ -185,9 +185,9 @@ extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visua
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 extras_group.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
-extras_group.add_argument("--hashing", action='store_true',
-                    help=("Use content hashing to, for example, "
-                          "replace a file and run downstream of that step"))
+#extras_group.add_argument("--hashing", action='store_true',
+#                    help=("Use content hashing to, for example, "
+#                          "replace a file and run downstream of that step"))
 extras_group.add_argument("--version", "-v", help="Version number",
                     action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
@@ -2158,9 +2158,9 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     # Set the workflow configuration to use content hashing:
     #-------------------------------------------------------------------------
-    hashing = args.hashing
-    if hashing:
-        mbFlow.config['execution']['hash_method'] = 'content'
+    #hashing = args.hashing
+    #if hashing:
+    mbFlow.config['execution']['hash_method'] = 'content'
 
     #-------------------------------------------------------------------------
     # Generate a visual graph:
