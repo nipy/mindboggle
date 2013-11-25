@@ -296,7 +296,7 @@ elif cache_env in os.environ.keys():
 if args.working:
     working = args.working
 else:
-    working = os.path.join(cache, 'workspace')
+    working = os.path.join(os.environ['HOME'], 'mindboggle_working')
 if not os.path.isdir(args.out):
     print("Create missing output directory: {0}".format(args.out))
     os.makedirs(args.out)
@@ -2188,10 +2188,11 @@ if __name__ == '__main__':
             if args.n > 1:
                 mbFlow.run(plugin='MultiProc',
                            plugin_args={'n_procs': args.n})
+                           #updatehash=True)
             else:
-                mbFlow.run()
+                mbFlow.run()  #updatehash=True)
         else:
-            mbFlow.run()
+            mbFlow.run()  #updatehash=True)
         # # Default is to use all processors:
         #else:
         #    mbFlow.run(plugin='MultiProc')
