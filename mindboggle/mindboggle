@@ -2161,6 +2161,7 @@ if __name__ == '__main__':
     #hashing = args.hashing
     #if hashing:
     mbFlow.config['execution']['hash_method'] = 'content'
+    mbFlow.config['execution']['use_relative_paths'] = True
 
     #-------------------------------------------------------------------------
     # Generate a visual graph:
