@@ -138,6 +138,9 @@ inputs_group.add_argument("--ants_data",
                           "antsCorticalThickness.sh outputs: "
                           "\"--ants_data /data/ants_output tmp\""),
                     nargs='+', metavar='STR')
+inputs_group.add_argument("--use_segments",
+                    help=("Use this file for non/cortex segments"),
+                    metavar='STR')
 inputs_group.add_argument("--add_atlases", help=("Additional volume atlas(es)"
                                        " in MNI152 space for labeling"),
                     nargs='+', metavar='')
@@ -209,6 +212,10 @@ if args.ants_data:
         do_ants = True
     else:
         sys.exit('--ants_data should be followed by two strings')
+if args.use_segments:
+    use_segments = args.use_segments
+else:
+    use_segments = None
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer data arguments:
 #-----------------------------------------------------------------------------
@@ -362,15 +369,17 @@ Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
 Sink.inputs.container = ''
 
-seg_in = 'combined_segmentations.nii.gz'
+if use_segments:
+    seg_in = os.path.basename(use_segments)
+else:
+    seg_in = 'combined_segmentations.nii.gz'
 fs_in = freesurfer_volume + '.nii.gz'
 fs_out = 'FreeSurfer_' + freesurfer_volume + '_labels.nii.gz'
 fs_filled_in = fs_out +'_to_' + fs_out + '_through_' + seg_in + '_to_' + \
     fs_out + '_through_' + seg_in
 fs_filled_out = 'FreeSurfer_' + freesurfer_volume + '_filled_labels.nii.gz'
 ants_filled_in = fs_out + '_to_' + \
-    'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + \
-    'combined_segmentations.nii.gz'
+    'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + seg_in
 ants_filled_out = 'ANTs_filled_labels.nii.gz'
 
 Sink.inputs.substitutions = [('_subject_', ''),
@@ -442,10 +451,10 @@ if do_ants:
     #-------------------------------------------------------------------------
     # Compose single affine transform from subject to MNI152:
     #-------------------------------------------------------------------------
-    if do_shapes or do_label:
+    if (do_shapes and do_surface) or do_label:
         affine_to_mni = retrieve_data(atropos_to_MNI152_affine,
                                       url, hashes, cache_env, cache)
-    if do_shapes:
+    if do_shapes and do_surface:
         AffineFileList = Node(name='Merge_affine_file_list',
                               interface=Fn(function=list_strings,
                                            input_names=['string1',
@@ -1430,37 +1439,16 @@ if do_volumes and do_label:
     #=========================================================================
     VolLabelFlow = Workflow(name='Volume_labels')
 
-    #=========================================================================
-    # Combine FreeSurfer and ANTs cerebrum segmentation volumes
-    #=========================================================================
-    #-------------------------------------------------------------------------
-    # Extract FreeSurfer cerebrum labels:
-    #-------------------------------------------------------------------------
-    FScerebrum = Node(name='Extract_FreeSurfer_cerebra',
-                      interface=Fn(function=keep_volume_labels,
-                                   input_names=['input_file',
-                                                'labels_to_keep',
-                                                'output_file',
-                                                'second_file'],
-                                   output_names=['output_file']))
-    VolLabelFlow.add_nodes([FScerebrum])
-    if do_input_fs_labels:
-        mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
-                       'Extract_FreeSurfer_cerebra.input_file')
-    else:
-        mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
-                       'Extract_FreeSurfer_cerebra.input_file')
-    labels_to_segment = dkt.cerebrum_cortex_numbers + \
-                        dkt.cerebrum_noncortex_numbers + \
-                        dkt.brainstem_numbers + \
-                        dkt.extra_numbers
-    FScerebrum.inputs.labels_to_keep = labels_to_segment
-    FScerebrum.inputs.output_file = ''
-    FScerebrum.inputs.second_file = ''
     #---------------------------------------------------------------------
     # Extract FreeSurfer cerebellum labels:
     #---------------------------------------------------------------------
-    FScerebellum = FScerebrum.clone('Extract_FreeSurfer_cerebella')
+    FScerebellum = Node(name='Extract_FreeSurfer_cerebella',
+                        interface=Fn(function=keep_volume_labels,
+                                     input_names=['input_file',
+                                                  'labels_to_keep',
+                                                  'output_file',
+                                                  'second_file'],
+                                     output_names=['output_file']))
     VolLabelFlow.add_nodes([FScerebellum])
     if do_input_fs_labels:
         mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
@@ -1471,73 +1459,106 @@ if do_volumes and do_label:
     FScerebellum.inputs.labels_to_keep = dkt.cerebellum_numbers
     FScerebellum.inputs.output_file = ''
     FScerebellum.inputs.second_file = ''
-    #-------------------------------------------------------------------------
-    # Convert FreeSurfer cerebrum labels to non/cortex segments:
-    #-------------------------------------------------------------------------
-    FSsegments = Node(name='FreeSurfer_cerebrum_labels_to_segments',
-                      interface=Fn(function=relabel_volume,
-                                   input_names=['input_file',
-                                                'old_labels',
-                                                'new_labels',
-                                                'output_file'],
-                                   output_names=['output_file']))
-    VolLabelFlow.add_nodes([FSsegments])
-    VolLabelFlow.connect(FScerebrum, 'output_file', FSsegments, 'input_file')
-    FSsegments.inputs.old_labels = labels_to_segment
-    FSsegments.inputs.new_labels = \
-        [2 for x in dkt.cerebrum_cortex_numbers] + \
-        [3 for x in dkt.cerebrum_noncortex_numbers] + \
-        [3 for x in dkt.brainstem_numbers] + \
-        [3 for x in dkt.extra_numbers]
-    FSsegments.inputs.output_file = ''
-    #-------------------------------------------------------------------------
-    # Convert ANTs Atropos-segmented volume to non/cortex segments:
-    #-------------------------------------------------------------------------
-    if do_ants:
-        ANTsSegments = FSsegments.clone('Relabel_ANTs_segments')
-        VolLabelFlow.add_nodes([ANTsSegments])
-        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
-                       'Relabel_ANTs_segments.input_file')
-        ANTsSegments.inputs.old_labels = [1, 4]
-        ANTsSegments.inputs.new_labels = [0, 3]
-        ANTsSegments.inputs.output_file = ''
+
+    #=========================================================================
+    # Combine FreeSurfer and ANTs cerebrum segmentation volumes
+    #=========================================================================
+    if not use_segments:
         #---------------------------------------------------------------------
-        # Combine FreeSurfer and ANTs cerebrum segmentation volumes
-        # to obtain a single cortex (2) and noncortex (3) segmentation file:
+        # Extract FreeSurfer cerebrum labels:
         #---------------------------------------------------------------------
-        JoinSegs = Node(name='Combine_FreeSurfer_ANTs_cerebrum_segments',
-                        interface=Fn(function=combine_2labels_in_2volumes,
-                                     input_names=['file1',
-                                                  'file2',
-                                                  'label1',
-                                                  'label2',
-                                                  'output_file'],
-                                     output_names=['output_file']))
-        VolLabelFlow.add_nodes([JoinSegs])
-        VolLabelFlow.connect(FSsegments, 'output_file', JoinSegs, 'file1')
-        JoinSegs.inputs.out_dir = ''
-        VolLabelFlow.connect(ANTsSegments, 'output_file', JoinSegs, 'file2')
-        JoinSegs.inputs.label1 = 3
-        JoinSegs.inputs.label2 = 2
-        JoinSegs.inputs.output_file = ''
+        FScerebrum = Node(name='Extract_FreeSurfer_cerebra',
+                          interface=Fn(function=keep_volume_labels,
+                                       input_names=['input_file',
+                                                    'labels_to_keep',
+                                                    'output_file',
+                                                    'second_file'],
+                                       output_names=['output_file']))
+        VolLabelFlow.add_nodes([FScerebrum])
+        if do_input_fs_labels:
+            mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
+                           'Extract_FreeSurfer_cerebra.input_file')
+        else:
+            mbFlow.connect(labelsMGH2Nifti, 'output_file', VolLabelFlow,
+                           'Extract_FreeSurfer_cerebra.input_file')
+        labels_to_segment = dkt.cerebrum_cortex_numbers + \
+                            dkt.cerebrum_noncortex_numbers + \
+                            dkt.brainstem_numbers + \
+                            dkt.extra_numbers
+        FScerebrum.inputs.labels_to_keep = labels_to_segment
+        FScerebrum.inputs.output_file = ''
+        FScerebrum.inputs.second_file = ''
         #---------------------------------------------------------------------
-        # Erase cerebrum that overlaps with FreeSurfer cerebellum:
+        # Convert FreeSurfer cerebrum labels to non/cortex segments:
         #---------------------------------------------------------------------
-        if overwrite_cerebrum_with_cerebellum:
-            RemoveCerebellum = Node(name='Remove_cerebrum_cerebellum_overlap',
-                                interface=Fn(function=remove_volume_labels,
-                                             input_names=['input_file',
-                                                          'labels_to_remove',
-                                                          'output_file',
-                                                          'second_file'],
-                                             output_names=['output_file']))
-            VolLabelFlow.add_nodes([RemoveCerebellum])
-            VolLabelFlow.connect(FScerebellum, 'output_file',
-                                 RemoveCerebellum, 'input_file')
-            RemoveCerebellum.inputs.labels_to_remove = dkt.cerebellum_numbers
-            RemoveCerebellum.inputs.output_file = ''
-            VolLabelFlow.connect(JoinSegs, 'output_file',
-                                 RemoveCerebellum, 'second_file')
+        FSsegments = Node(name='FreeSurfer_cerebrum_labels_to_segments',
+                          interface=Fn(function=relabel_volume,
+                                       input_names=['input_file',
+                                                    'old_labels',
+                                                    'new_labels',
+                                                    'output_file'],
+                                       output_names=['output_file']))
+        VolLabelFlow.add_nodes([FSsegments])
+        VolLabelFlow.connect(FScerebrum, 'output_file',
+                             FSsegments, 'input_file')
+        FSsegments.inputs.old_labels = labels_to_segment
+        FSsegments.inputs.new_labels = \
+            [2 for x in dkt.cerebrum_cortex_numbers] + \
+            [3 for x in dkt.cerebrum_noncortex_numbers] + \
+            [3 for x in dkt.brainstem_numbers] + \
+            [3 for x in dkt.extra_numbers]
+        FSsegments.inputs.output_file = ''
+        #---------------------------------------------------------------------
+        # Convert ANTs Atropos-segmented volume to non/cortex segments:
+        #---------------------------------------------------------------------
+        if do_ants:
+            ANTsSegments = FSsegments.clone('Relabel_ANTs_segments')
+            VolLabelFlow.add_nodes([ANTsSegments])
+            mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
+                           'Relabel_ANTs_segments.input_file')
+            ANTsSegments.inputs.old_labels = [1, 4]
+            ANTsSegments.inputs.new_labels = [0, 3]
+            ANTsSegments.inputs.output_file = ''
+            #-----------------------------------------------------------------
+            # Combine FreeSurfer and ANTs cerebrum segmentation volumes to
+            # obtain a single cortex (2) and noncortex (3) segmentation file:
+            #-----------------------------------------------------------------
+            JoinSegs = Node(name='Combine_FreeSurfer_ANTs_cerebrum_segments',
+                            interface=Fn(function=combine_2labels_in_2volumes,
+                                         input_names=['file1',
+                                                      'file2',
+                                                      'label1',
+                                                      'label2',
+                                                      'output_file'],
+                                         output_names=['output_file']))
+            VolLabelFlow.add_nodes([JoinSegs])
+            VolLabelFlow.connect(FSsegments, 'output_file', JoinSegs, 'file1')
+            JoinSegs.inputs.out_dir = ''
+            VolLabelFlow.connect(ANTsSegments, 'output_file',
+                                 JoinSegs, 'file2')
+            JoinSegs.inputs.label1 = 3
+            JoinSegs.inputs.label2 = 2
+            JoinSegs.inputs.output_file = ''
+            #-----------------------------------------------------------------
+            # Erase cerebrum that overlaps with FreeSurfer cerebellum:
+            #-----------------------------------------------------------------
+            if overwrite_cerebrum_with_cerebellum:
+                RemoveCerebellum = Node(
+                    name='Remove_cerebrum_cerebellum_overlap',
+                    interface=Fn(function=remove_volume_labels,
+                                 input_names=['input_file',
+                                              'labels_to_remove',
+                                              'output_file',
+                                              'second_file'],
+                                 output_names=['output_file']))
+                VolLabelFlow.add_nodes([RemoveCerebellum])
+                VolLabelFlow.connect(FScerebellum, 'output_file',
+                                     RemoveCerebellum, 'input_file')
+                RemoveCerebellum.inputs.labels_to_remove = \
+                    dkt.cerebellum_numbers
+                RemoveCerebellum.inputs.output_file = ''
+                VolLabelFlow.connect(JoinSegs, 'output_file',
+                                     RemoveCerebellum, 'second_file')
 
     #=========================================================================
     # Split segmented brain into two sides (without medial regions)
@@ -1555,16 +1576,19 @@ if do_volumes and do_label:
                                            output_names=['left_brain',
                                                          'right_brain']))
         VolLabelFlow.add_nodes([SplitBrainSegs])
-        if do_ants:
-            if overwrite_cerebrum_with_cerebellum:
-                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                     SplitBrainSegs, 'image_file')
-            else:
-                VolLabelFlow.connect(JoinSegs, 'output_file',
-                                     SplitBrainSegs, 'image_file')
+        if use_segments:
+            SplitBrainSegs.inputs.image_file = use_segments
         else:
-            VolLabelFlow.connect(FSsegments, 'output_file',
-                                 SplitBrainSegs, 'image_file')
+            if do_ants:
+                if overwrite_cerebrum_with_cerebellum:
+                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                         SplitBrainSegs, 'image_file')
+                else:
+                    VolLabelFlow.connect(JoinSegs, 'output_file',
+                                         SplitBrainSegs, 'image_file')
+            else:
+                VolLabelFlow.connect(FSsegments, 'output_file',
+                                     SplitBrainSegs, 'image_file')
         if do_input_fs_labels:
             mbFlow.connect(labelsNifti, 'labels', VolLabelFlow,
                            'Split_brain.label_file')
@@ -1613,16 +1637,19 @@ if do_volumes and do_label:
                                                      'stopvalue'],
                                         output_names=['output_file']))
     VolLabelFlow.add_nodes([FSFillNoncortex])
-    if do_ants:
-        if overwrite_cerebrum_with_cerebellum:
-            VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                 FSFillNoncortex, 'mask')
-        else:
-            VolLabelFlow.connect(JoinSegs, 'output_file',
-                                 FSFillNoncortex, 'mask')
+    if use_segments:
+        FSFillNoncortex.inputs.mask = use_segments
     else:
-        VolLabelFlow.connect(FSsegments, 'output_file',
-                             FSFillNoncortex, 'mask')
+        if do_ants:
+            if overwrite_cerebrum_with_cerebellum:
+                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                     FSFillNoncortex, 'mask')
+            else:
+                VolLabelFlow.connect(JoinSegs, 'output_file',
+                                     FSFillNoncortex, 'mask')
+        else:
+            VolLabelFlow.connect(FSsegments, 'output_file',
+                                 FSFillNoncortex, 'mask')
     VolLabelFlow.connect(FSnoncortex, 'output_file',
                          FSFillNoncortex, 'labels')
     FSFillNoncortex.inputs.mask_index = 3
@@ -1713,16 +1740,19 @@ if do_volumes and do_label:
         FSFillCortex = FSFillNoncortex.clone(
                             'Fill_cortex_with_FreeSurfer_labels')
         VolLabelFlow.add_nodes([FSFillCortex])
-        if do_ants:
-            if overwrite_cerebrum_with_cerebellum:
-                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                     FSFillCortex, 'mask')
-            else:
-                VolLabelFlow.connect(JoinSegs, 'output_file',
-                                     FSFillCortex, 'mask')
+        if use_segments:
+            FSFillCortex.inputs.mask = use_segments
         else:
-            VolLabelFlow.connect(FSsegments, 'output_file',
-                                 FSFillCortex, 'mask')
+            if do_ants:
+                if overwrite_cerebrum_with_cerebellum:
+                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                         FSFillCortex, 'mask')
+                else:
+                    VolLabelFlow.connect(JoinSegs, 'output_file',
+                                         FSFillCortex, 'mask')
+            else:
+                VolLabelFlow.connect(FSsegments, 'output_file',
+                                     FSFillCortex, 'mask')
         VolLabelFlow.connect(FScortex, 'output_file',
                              FSFillCortex, 'labels')
         FSFillCortex.inputs.mask_index = 2
@@ -1799,12 +1829,15 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         ANTsFillCortex = FSFillNoncortex.clone('Fill_cortex_with_ANTs_labels')
         VolLabelFlow.add_nodes([ANTsFillCortex])
-        if overwrite_cerebrum_with_cerebellum:
-            VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                 ANTsFillCortex, 'mask')
+        if use_segments:
+            ANTsFillCortex.inputs.mask = use_segments
         else:
-            VolLabelFlow.connect(JoinSegs, 'output_file',
-                                 ANTsFillCortex, 'mask')
+            if overwrite_cerebrum_with_cerebellum:
+                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                     ANTsFillCortex, 'mask')
+            else:
+                VolLabelFlow.connect(JoinSegs, 'output_file',
+                                     ANTsFillCortex, 'mask')
         VolLabelFlow.connect(ANTsCortex, 'output_file',
                              ANTsFillCortex, 'labels')
         ANTsFillCortex.inputs.mask_index = 2
@@ -1818,12 +1851,15 @@ if do_volumes and do_label:
             ANTsFillNoncortex = ANTsFillCortex.clone(
                 'Fill_noncortex_with_ANTs_labels')
             VolLabelFlow.add_nodes([ANTsFillNoncortex])
-            if overwrite_cerebrum_with_cerebellum:
-                VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                     ANTsFillNoncortex, 'mask')
+            if use_segments:
+                ANTsFillNoncortex.inputs.mask = use_segments
             else:
-                VolLabelFlow.connect(JoinSegs, 'output_file',
-                                     ANTsFillNoncortex, 'mask')
+                if overwrite_cerebrum_with_cerebellum:
+                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                         ANTsFillNoncortex, 'mask')
+                else:
+                    VolLabelFlow.connect(JoinSegs, 'output_file',
+                                         ANTsFillNoncortex, 'mask')
             VolLabelFlow.connect(ANTsNoncortex, 'output_file',
                                  ANTsFillNoncortex, 'labels')
             ANTsFillNoncortex.inputs.mask_index = 3
@@ -2073,16 +2109,19 @@ if do_volumes and do_label:
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
-            if do_ants:
-                if overwrite_cerebrum_with_cerebellum:
-                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                         FSthicknesses, 'segmented_file')
-                else:
-                    VolLabelFlow.connect(JoinSegs, 'output_file',
-                                         FSthicknesses, 'segmented_file')
+            if use_segments:
+                FSthicknesses.inputs.segmented_file = use_segments
             else:
-                VolLabelFlow.connect(FSsegments, 'output_file',
-                                     FSthicknesses, 'segmented_file')
+                if do_ants:
+                    if overwrite_cerebrum_with_cerebellum:
+                        VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                             FSthicknesses, 'segmented_file')
+                    else:
+                        VolLabelFlow.connect(JoinSegs, 'output_file',
+                                             FSthicknesses, 'segmented_file')
+                else:
+                    VolLabelFlow.connect(FSsegments, 'output_file',
+                                         FSthicknesses, 'segmented_file')
             mbFlow.connect(VolLabelFlow,
                 'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                 VolShapeFlow,
@@ -2115,12 +2154,15 @@ if do_volumes and do_label:
                 ANTsThicknesses = FSthicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTsThicknesses])
-                if overwrite_cerebrum_with_cerebellum:
-                    VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                         ANTsThicknesses, 'segmented_file')
+                if use_segments:
+                    ANTsThicknesses.inputs.segmented_file = use_segments
                 else:
-                    VolLabelFlow.connect(JoinSegs, 'output_file',
-                                         ANTsThicknesses, 'segmented_file')
+                    if overwrite_cerebrum_with_cerebellum:
+                        VolLabelFlow.connect(RemoveCerebellum, 'output_file',
+                                             ANTsThicknesses, 'segmented_file')
+                    else:
+                        VolLabelFlow.connect(JoinSegs, 'output_file',
+                                             ANTsThicknesses, 'segmented_file')
                 if overwrite_cerebrum_with_cerebellum:
                     mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
@@ -2160,8 +2202,8 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     #hashing = args.hashing
     #if hashing:
-    mbFlow.config['execution']['hash_method'] = 'content'
-    mbFlow.config['execution']['use_relative_paths'] = True
+    #mbFlow.config['execution']['hash_method'] = 'content'
+    #mbFlow.config['execution']['use_relative_paths'] = True
 
     #-------------------------------------------------------------------------
     # Generate a visual graph:
