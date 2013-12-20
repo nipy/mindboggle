@@ -87,13 +87,14 @@ and provide paths to OASIS-30 template files
     $ antsCorticalThickness.sh -d 3 \
       -a IMAGE \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
-      -m OASIS-30_Atropos_template/T_template0ProbabilityMask.nii.gz \
+      -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0ExtractionMask.nii.gz \
+      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
       -k 1 \
       -o PREFIX \
       -w 0.25 \
       -n 3
+
 
 Outputs
 =======
