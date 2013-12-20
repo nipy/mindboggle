@@ -653,14 +653,13 @@ def print_colormap(colormap):
 
 """
     #
-    # Each gyrus has one or two sulcus boundaries:
+    # Each gyrus has one or more sulcus boundaries -- rough breakdown:
     #
-    # labels:  7   5   3   31 115 117  15  17     11      105 121     61  109     77  33  107  71  73
-    #     (R)  8   6   4   32 116 118  16  18     12      106 122     60  110     78  34  108  72  74
+    # labels:  28  3   18  30  15  9   7   16   17    12   14    29  8      24   22      5    25   6   21    2    35   31
     #
-    # Gyrii:  sFG mFG iFG sTG mTG iTG Fus LpH     Orb     sPL iPL    prCG poCG    Fp  Tp  OL Cing Ins
-    #         ---|---|---|---|---|---|---|---  ---------  ---|---  -|----|----|-  --- --- -- ---- ---
-    # Sulci:    sFS iFS Syl sTS iTS  TO Coll   OrbF OrbT    iPS    prCS  CS poCS  FpN TpN OP Cing Ins
+    # Gyrii:  sFG mFG iFG sTG mTG iTG Fus pHip pCen  lOrb mOrb  sPL iPL    prCG poCG    Cun prCun ent pCalc Cing Ins sMarg
+    #         ---|---|---|---|---|---|---|----|----  ---- ----  ---|---  -|----|----|-  ---|----- --- ----- ---- --- -----
+    # Sulci:    sFS iFS Syl sTS iTS TO? Coll?        OrbF OrbT    iPS    prCS  CS poCS                 Cing Ins
     #
     # indices:   1   2   3   4   5   6   7      8    9      10      11   12  13   14  15  16   17  18
 """

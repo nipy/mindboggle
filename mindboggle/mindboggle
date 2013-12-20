@@ -32,8 +32,6 @@ import os
 import sys
 import argparse
 import warnings
-from time import time
-time0 = time()
 #-----------------------------------------------------------------------------
 # Nipype libraries
 #-----------------------------------------------------------------------------
@@ -88,7 +86,7 @@ parser = argparse.ArgumentParser(description="""
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
 inputs_group = parser.add_argument_group('input arguments')
-outputs_group = parser.add_argument_group('output path arguments')
+outputs_group = parser.add_argument_group('output arguments')
 features_group = parser.add_argument_group('feature arguments')
 shapes_group = parser.add_argument_group('shape measure arguments')
 disable_group = parser.add_argument_group('disabling arguments')
@@ -99,19 +97,26 @@ parser.add_argument("SUBJECTS",
                           'directories: "%(prog)s SUBJECT1 SUBJECT2 ..."'),
                     nargs='+') #, metavar='')
 
+parser.add_argument("-v", "--version", help="Version number",
+                    action='version', version='%(prog)s 0.1')
+parser.add_argument("-n",
+                    help=('Number of processors: "-n 1" (default)'),
+                    type=int,
+                    default=1, metavar='INT')
+
 outputs_group.add_argument("--out",
                     help='Output directory (default: $HOME/mindboggled)',
                     default=os.path.join(os.environ['HOME'],
-                                         'mindboggled'))
+                                         'mindboggled'), metavar='STR')
 outputs_group.add_argument("--working",
                     help='Working directory '
                          '(default: $HOME/mindboggle_working)',
                     default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_working'))
+                                         'mindboggle_working'), metavar='STR')
 outputs_group.add_argument("--cache", help='Download cache directory '
                                     '(default: $HOME/mindboggle_cache)',
                     default=os.path.join(os.environ['HOME'],
-                                         'mindboggle_cache'))
+                                         'mindboggle_cache'), metavar='STR')
 #inputs.add_argument("--run_freesurfer", action='store_true',
 #                    help=("Run recon-all -all to generate expected "
 #                          "FreeSurfer files, if not already done."))
@@ -179,10 +184,6 @@ disable_group.add_argument("--no_shapes", action='store_true',
 #disable_group.add_argument("--no_freesurfer_inputs", action='store_true',
 #                    help="Don't use FreeSurfer (requires inputs -- UNTESTED)")
 
-extras_group.add_argument("-n",
-                    help=('Number of processors: "-n 1" (default)'),
-                    type=int,
-                    default=1, metavar='INT')
 extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
                                       '{hier,flat,exec}'),
                     choices=['hier', 'flat', 'exec'], metavar='STR')
@@ -191,8 +192,6 @@ extras_group.add_argument("--cluster", action='store_true',
 #extras_group.add_argument("--hashing", action='store_true',
 #                    help=("Use content hashing to, for example, "
 #                          "replace a file and run downstream of that step"))
-extras_group.add_argument("--version", "-v", help="Version number",
-                    action='version', version='%(prog)s 0.1')
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
@@ -1342,7 +1341,7 @@ if do_surface:
                            Sink, 'tables.@vertices')
 
         # #---------------------------------------------------------------------
-        # # Apply RegFlows's affine transform to surface coordinates:
+        # # Apply affine transform to surface coordinates:
         # #---------------------------------------------------------------------
         # TransformPoints = Node(name='Transform_surface_points',
         #                        interface=Fn(function=apply_affine_transform,
@@ -2196,6 +2195,9 @@ if do_volumes and do_label:
 #-----------------------------------------------------------------------------
 #=============================================================================
 if __name__ == '__main__':
+
+    from time import time
+    time0 = time()
 
     #-------------------------------------------------------------------------
     # Set the workflow configuration to use content hashing:
