@@ -59,8 +59,8 @@ Example using most of the currently available options within Mindboggle::
 
 Inputs
 ======
-Mindboggle currently takes output from FreeSurfer_ v5.3 and the newest ANTs_
-software packages.
+Mindboggle currently takes output from FreeSurfer_ (preferabley v5.3 and above)
+and the latest ANTs_ software packages.
 
 To generate FreeSurfer labeled cortical surfaces, and labeled cortical and
 noncortical volumes, run ``recon-all`` on each T1-weighted IMAGE file
