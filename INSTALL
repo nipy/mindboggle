@@ -14,18 +14,28 @@ Sphinx_ (generating documentation).
 
 ``$`` below refers to the command line prompt in a terminal window.
 
-Pip python library installation (OSX: ``$ easy_install pip``;
-    Debian/Ubuntu Linux: ``sudo apt-get install python-pip``)
+Your system must have basic compilation software (cmake_ and a C++ compiler such as gcc_),
+and pip for installing Python libraries::
+
+    $ easy_install pip  # Apple OS X
+    $ sudo apt-get install python-pip  # Debian/Ubuntu Linux
 
 Nipype_ software pipeline framework and its dependencies not included above::
 
     $ pip install nibabel
     $ pip install traits
-    $ pip install git+git://github.com/nipy/nipype.git # latest dev source (soon: $ pip install nipype)
+    $ pip install nipype
+
+.. $ pip install git+git://github.com/nipy/nipype.git # latest development source
  
+Non-Python software packages
+----------------------------
 `Visualization Toolkit`_::
 
-    $ conda install vtk (after installing anaconda)
+    $ conda install vtk  # after installing the Anaconda Python distribution
+
+(You could alternatively install VTK within the Anaconda environment itself,
+*i.e.*, by changing the CMAKE_INSTALL_PREFIX to /path/to/anaconda/envs/myenv)
 
 FreeSurfer_
     FreeSurfer provides labeled cortical surfaces, and labeled cortical and
@@ -36,7 +46,7 @@ FreeSurfer_
     variable is set.
 
 ANTS_
-    ANTS provides brain volume extraction, tissue-class segmentation,
+    ANTS provides brain volume extraction, tissue-class segmentation, and
     affine registration that Mindboggle uses to report locations in a standard
     space, and nonlinear registration for whole-brain labeling.
 
@@ -63,11 +73,6 @@ Change into the ``mindboggle`` directory and install mindboggle
 
 Step 2: Compile Mindboggle C++ code
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-Your system must have basic compilation software:
-
-    - C++ compiler such as gcc_
-    - cmake_
-
 In the mindboggle_tools/bin directory, run cmake (or ccmake) and make::
 
     $ cd mindboggle/mindboggle_tools/bin/
@@ -84,18 +89,3 @@ replacing <path to mindboggle> and <path to anaconda>::
     export MINDBOGGLE_TOOLS
     export PATH=$PATH:$MINDBOGGLE_TOOLS
     export DYLD_LIBRARY_PATH=<path to anaconda>/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
-
-You could alternatively install VTK within the Anaconda environment itself,
-i.e., by changing the CMAKE_INSTALL_PREFIX to /path/to/anaconda/envs/myenv
-
-
-Optional environment variables
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-Mindboggle downloads necessary atlas and template data via the Internet
-on its first run.  By default, it will save these data to your home directory,
-in a ``mindboggled`` subdirectory.  You may *optionally* set the cache
-directory by including one more environment variable as above::
-
-    MINDBOGGLE_CACHE=DESIRED_LOCATION
-    export MINDBOGGLE_CACHE
-    export PATH=$PATH:$MINDBOGGLE_CACHE
