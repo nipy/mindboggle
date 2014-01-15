@@ -20,10 +20,9 @@ and pip for installing Python libraries::
     $ easy_install pip  # Apple OS X
     $ sudo apt-get install python-pip  # Debian/Ubuntu Linux
 
-Nipype_ software pipeline framework and its dependencies not included above::
+Nibabel_ (medical image read/write library) and Nipype_ (software pipeline framework) not included above::
 
     $ pip install nibabel
-    $ pip install traits
     $ pip install nipype
 
 .. $ pip install git+git://github.com/nipy/nipype.git # latest development source
@@ -88,4 +87,4 @@ replacing <path to mindboggle> and <path to anaconda>::
     MINDBOGGLE_TOOLS=<path to mindboggle>/mindboggle_tools/bin/
     export MINDBOGGLE_TOOLS
     export PATH=$PATH:$MINDBOGGLE_TOOLS
-    export DYLD_LIBRARY_PATH=<path to anaconda>/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
+    #export DYLD_LIBRARY_PATH=<path to anaconda>/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
