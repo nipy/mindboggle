@@ -80,10 +80,11 @@ backslashes denote line returns)::
 
 To generate the ANTs transforms and segmentation files used by
 Mindboggle, run the antsCorticalThickness.sh script on the same
-IMAGE file, set an output PREFIX, set "-k 1" (to save registration transforms),
-and provide paths to OASIS-30 template files
-(see `Installation instructions <INSTALL.html>`_)::
-
+IMAGE file, set an output PREFIX, provide paths to OASIS-30 template files
+(see `Installation instructions <INSTALL.html>`_), set "-k 0"
+and set "-t" with the same input as "-e" (to save registration transforms).
+(The -k option is a boolean to *k*eep all files produced (even temporary ones).
+and the '-t' option is used to specify a target template for registration after the rest of the pipeline is finished.)::
     $ antsCorticalThickness.sh -d 3 -k 0 \
       -a IMAGE \
       -o PREFIX \

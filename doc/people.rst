@@ -50,8 +50,8 @@
 .. |picAK| image:: http://media.mindboggle.info/images/people/ArnoKlein_gallery.jpg
                     :width: 200px
 .. |blurbAK| replace::
-    `Arno Klein`_ (CV_) is a Research Asst. Professor of Psychiatry and Behavioral Science
-    at Stony Brook University.
+    `Arno Klein`_ (CV_) is the Director of Neuroimaging and Principal Scientist of Systems Biology
+    at Sage Bionetworks (non-profit) in Seattle.
     He was the Principal Investigator of the NIMH R01 grant (MH084029-02) 
     that initially funded the Mindboggle project.
     Arno is excited about brain imaging and visualization of complex information.
