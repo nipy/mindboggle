@@ -23,8 +23,8 @@ Help
 - `Background <http://mindboggle.info/faq/background.html>`_
 - `Contributors <THANKS.html>`_
 
-Mindboggle:
-===========
+Mindboggle
+==========
 
     1. combines non/cortex segmentations from FreeSurfer and ANTs software packages
     2. propagates FreeSurfer and ANTs-registered labels through cortex and noncortex voxels
