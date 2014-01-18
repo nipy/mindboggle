@@ -16,6 +16,7 @@
 
    README
    INSTALL
+   LABELS
    LICENSE
 
 .. htmlonly::
