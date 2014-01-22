@@ -23,6 +23,8 @@ and pip for installing Python libraries::
 Nibabel_ (medical image read/write library) and Nipype_ (software pipeline framework) not included above::
 
     $ pip install nibabel
+    # Or: $ git clone https://github.com/nipy/nibabel.git
+    #     $ cd nibabel; python setup.py install
     $ pip install nipype
 
 .. $ pip install git+git://github.com/nipy/nipype.git # latest development source
