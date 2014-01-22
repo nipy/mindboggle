@@ -85,7 +85,6 @@ def measure_volume_overlap(labels, file1, file2):
     --------
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
-    >>> from mindboggle.utils.io_table import read_columns
     >>> from mindboggle.LABELS import DKTprotocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
