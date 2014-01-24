@@ -15,10 +15,12 @@ Sphinx_ (generating documentation).
 ``$`` below refers to the command line prompt in a terminal window.
 
 Your system must have basic compilation software (cmake_ and a C++ compiler such as gcc_),
-and pip for installing Python libraries::
+pip for installing Python libraries, and the `Visualization Toolkit`_
+(after installing the Anaconda Python distribution)::
 
-    $ easy_install pip  # Apple OS X
-    $ sudo apt-get install python-pip  # Debian/Ubuntu Linux
+    $ conda install cmake
+    $ conda install pip
+    $ conda install vtk
 
 Nibabel_ (medical image read/write library) and Nipype_ (software pipeline framework) not included above::
 
@@ -31,13 +33,6 @@ Nibabel_ (medical image read/write library) and Nipype_ (software pipeline frame
  
 Non-Python software packages
 ----------------------------
-`Visualization Toolkit`_::
-
-    $ conda install vtk  # after installing the Anaconda Python distribution
-
-(You could alternatively install VTK within the Anaconda environment itself,
-*i.e.*, by changing the CMAKE_INSTALL_PREFIX to /path/to/anaconda/envs/myenv)
-
 FreeSurfer_
     FreeSurfer provides labeled cortical surfaces, and labeled cortical and
     noncortical volumes.
