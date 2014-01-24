@@ -44,17 +44,17 @@ Mindboggle
 
 Examples
 ========
-Terminal command for processing (4 processors) multiple subjects with only FreeSurfer data::
+Terminal command for processing a single SUBJECT with a single processor with only FreeSurfer data::
 
-    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 -n 4
+    $ mindboggle SUBJECT
 
-Example using ANTs data (with PREFIX for files in folder ~/ants_data)::
+Example using ANTs data (files prepended with PREFIX) on 8 processors::
 
-    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX
+    $ mindboggle SUBJECT --ants_prefix PREFIX -n 8
 
-Example using most of the currently available options within Mindboggle::
+Example using many of the currently available options within Mindboggle::
 
-    $ mindboggle SUBJECT1 SUBJECT2 SUBJECT3 --ants_data ~/ants_output PREFIX \
+    $ mindboggle SUBJECT --ants_data ~/ants_output PREFIX -n 8 \
                  --sulci --fundi --vertices --spectra 10 --thickness --visual hier
 
 Inputs

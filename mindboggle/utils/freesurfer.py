@@ -336,7 +336,7 @@ def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
     output_file : string
         name of output file
     interp : string
-        interpolation method
+        interpolation method {trilin, nearest}
 
     Returns
     -------
