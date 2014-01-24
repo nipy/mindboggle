@@ -10,25 +10,31 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def fetch_ants_data(subjects_dir, subject, stem):
+def fetch_ants_data(prefix):
     """
     Fetch antsCorticalThickness.sh output.
 
-    Assumes <subjects_dir>/<subject>/<stem>#/<files> structure.
+    The input argument "prefix" is a string that prepends all of the relevant
+    antsCorticalThickness.sh output files.
+
+    If prefix == "/home/arno/subject1/ants", then the following would be
+    the relevant output files used by Mindboggle:
+        /home/arno/subject1/antsBrainExtractionMask.nii.gz
+        /home/arno/subject1/antsBrainSegmentation.nii.gz
+        /home/arno/subject1/antsTemplateToSubject0GenericAffine.mat
+        /home/arno/subject1/antsTemplateToSubject1Warp.nii.gz
+        /home/arno/subject1/antsTemplateToSubject1InverseWarp.nii.gz
 
     Parameters
     ----------
-    subjects_dir : string
-        ANTs directory containing antsCorticalThickness.sh results
-    subject : string
-        name of subject (subdirectory)
-    stem : string
-        ANTs file stem for antsCorticalThickness.sh results
+    prefix : string
+        full path (containing antsCorticalThickness.sh results)
+        plus user-defined stem at the beginning of the files
 
     Returns
     -------
-    brain : string
-        antsBrainExtraction.sh-extracted brain volume
+    mask : string
+        antsBrainExtraction.sh brain volume mask for extracting brain volume
     segments : string
         Atropos-segmented brain volume
     affine : string
@@ -43,47 +49,23 @@ def fetch_ants_data(subjects_dir, subject, stem):
     Examples
     --------
     >>> from mindboggle.utils.ants import fetch_ants_data
-    >>> subjects_dir = '/homedir/Data/antsCorticalThickness'
-    >>> subject = 'OASIS-TRT-20-1'
-    >>> stem = 'tmp'
-    >>> fetch_ants_data(subjects_dir, subject, stem)
+    >>> prefix = '/homedir/Data/antsCorticalThickness/OASIS-TRT-20-1/ants'
+    >>> fetch_ants_data(prefix)
 
     """
     import os
-    import sys
 
-    brain = None
-    segments = None
-    affine = None
-    warp = None
-    invwarp = None
+    mask = prefix + 'BrainExtractionMask.nii.gz'
+    segments = prefix + 'BrainSegmentation.nii.gz'
+    affine = prefix + 'TemplateToSubject0GenericAffine.mat'
+    warp = prefix + 'TemplateToSubject1Warp.nii.gz'
+    invwarp = prefix + 'TemplateToSubject1InverseWarp.nii.gz'
 
-    if stem:
-        dir = os.path.join(subjects_dir, subject)
-        subdirs = os.listdir(dir)
-        subdir = None
-        for subdir1 in subdirs:
-            if stem in subdir1:
-                subdir = subdir1
-        if subdir:
-            files = os.listdir(os.path.join(dir, subdir))
-            for file in files:
-                if file.endswith('BrainExtractionBrain.nii.gz'):
-                    brain = os.path.join(dir, subdir, file)
-                elif file.endswith('BrainSegmentation.nii.gz'):
-                    segments = os.path.join(dir, subdir, file)
-                elif file.endswith('TemplateToSubject0GenericAffine.mat'):
-                    affine = os.path.join(dir, subdir, file)
-                elif file.endswith('TemplateToSubject1Warp.nii.gz'):
-                    warp = os.path.join(dir, subdir, file)
-                elif file.endswith('TemplateToSubject1InverseWarp.nii.gz'):
-                    invwarp = os.path.join(dir, subdir, file)
-        else:
-            sys.exit('No ANTs files for ' + subject)
-    else:
-        sys.exit('No ANTs files for ' + subject)
+    for s in [mask, segments, affine, warp, invwarp]:
+        if not os.path.exists(s):
+            raise IOError(s + ' does not exist')
 
-    return brain, segments, affine, warp, invwarp
+    return mask, segments, affine, warp, invwarp
 
 
 def ComposeMultiTransform(transform_files, inverse_Booleans,

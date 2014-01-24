@@ -92,10 +92,10 @@ shapes_group = parser.add_argument_group('shape measure arguments')
 disable_group = parser.add_argument_group('disabling arguments')
 extras_group = parser.add_argument_group('bonus arguments')
 
-parser.add_argument("SUBJECTS",
-                    help=('Subject names corresponding to FreeSurfer subject '
-                          'directories: "%(prog)s SUBJECT1 SUBJECT2 ..."'),
-                    nargs='+') #, metavar='')
+parser.add_argument("SUBJECT",
+                    help=('Subject name corresponding to FreeSurfer subject '
+                          'directory'),
+                    nargs='+', metavar='')
 
 parser.add_argument("-v", "--version", help="Version number",
                     action='version', version='%(prog)s 0.1')
@@ -138,11 +138,11 @@ inputs_group.add_argument("--surface_labels",
                           "\"atlas\" (FreeSurfer older than 5.3)"),
                     choices=['freesurfer', 'atlas', 'manual'],
                     default='freesurfer', metavar='STR')
-inputs_group.add_argument("--ants_data",
-                    help=("Directory and file stem for "
-                          "antsCorticalThickness.sh outputs: "
-                          "\"--ants_data /data/ants_output tmp\""),
-                    nargs='+', metavar='STR')
+inputs_group.add_argument("--ants_prefix",
+                    help=("Prefix string for "
+                          "antsCorticalThickness.sh output files: "
+                          "\"--ants_prefix /data/ants_output/subject1/ants\""),
+                    metavar='STR')
 inputs_group.add_argument("--use_segments",
                     help=("Use this file for non/cortex segments"),
                     metavar='STR')
@@ -199,18 +199,13 @@ args = parser.parse_args()
 #-----------------------------------------------------------------------------
 #run_freesurfer = args.run_freesurfer
 #run_ants = args.run_ants
-subjects = args.SUBJECTS
+subject = args.SUBJECT
 do_ants = False
 freesurfer_data = args.freesurfer_data
 if not freesurfer_data:
     freesurfer_data = os.environ['SUBJECTS_DIR']
-if args.ants_data:
-    if len(args.ants_data) == 2:
-        ants_data = args.ants_data[0]
-        ants_prefix = args.ants_data[1]
-        do_ants = True
-    else:
-        sys.exit('--ants_data should be followed by two strings')
+if args.ants_prefix:
+    do_ants = True
 if args.use_segments:
     use_segments = args.use_segments
 else:
@@ -356,7 +351,7 @@ if add_atlas_names:
     InputAddAtlases.iterables = ('atlas', add_atlas_names)
 InputSubjects = Node(name='Input_subjects',
                      interface=IdentityInterface(fields=['subject']))
-InputSubjects.iterables = ('subject', subjects)
+InputSubjects.iterables = ('subject', subject)
 InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
 hemis = ['lh', 'rh']
@@ -414,18 +409,14 @@ if do_ants:
     #-------------------------------------------------------------------------
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
-                                  input_names=['subjects_dir',
-                                               'subject',
-                                               'stem'],
-                                  output_names=['brain',
+                                  input_names=['prefix'],
+                                  output_names=['mask',
                                                 'segments',
                                                 'affine',
                                                 'warp',
                                                 'invwarp']))
     mbFlow.add_nodes([FetchANTs])
-    FetchANTs.inputs.subjects_dir = ants_data
-    mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
-    FetchANTs.inputs.stem = ants_prefix
+    FetchANTs.inputs.prefix = ants_prefix
     #-------------------------------------------------------------------------
     # Retrieve atlas path:
     #-------------------------------------------------------------------------
@@ -1377,6 +1368,31 @@ if do_volumes and do_label:
     #
     #=========================================================================
     #-------------------------------------------------------------------------
+    # Original image (.mgz) for converting from conformal (below):
+    #-------------------------------------------------------------------------
+    mghOrig = Node(name='mgh_orig',
+                   interface=DataGrabber(infields=['subject'],
+                                         outfields=['mgh_orig'],
+                                         sort_filelist=False))
+    mghOrig.inputs.base_directory = freesurfer_data
+    mghOrig.inputs.template = '%s/mri/orig/001.mgz'
+    mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
+    mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
+    #---------------------------------------------------------------------
+    # Convert FreeSurfer mgh conformal file to nifti format:
+    #---------------------------------------------------------------------
+    MGH2Nifti = Node(name='mgh_to_nifti',
+                     interface=Fn(function=convert_mgh_to_native_nifti,
+                                  input_names=['input_file',
+                                               'reference_file',
+                                               'output_file',
+                                               'interp'],
+                                  output_names=['output_file']))
+    mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'input_file')
+    mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'reference_file')
+    MGH2Nifti.inputs.output_file = ''
+    MGH2Nifti.inputs.interp = 'trilin'
+    #-------------------------------------------------------------------------
     # Use own whole-brain nifti label volume:
     #-------------------------------------------------------------------------
     if do_input_fs_labels:
@@ -1392,17 +1408,6 @@ if do_volumes and do_label:
     # Convert FreeSurfer whole-brain label volume to nifti format:
     #-------------------------------------------------------------------------
     else:
-        #---------------------------------------------------------------------
-        # Original image (.mgz) for converting from conformal (below):
-        #---------------------------------------------------------------------
-        mghOrig = Node(name='mgh_orig',
-                       interface=DataGrabber(infields=['subject'],
-                                             outfields=['mgh_orig'],
-                                             sort_filelist=False))
-        mghOrig.inputs.base_directory = freesurfer_data
-        mghOrig.inputs.template = '%s/mri/orig/001.mgz'
-        mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
         #---------------------------------------------------------------------
         #  label volume:
         #---------------------------------------------------------------------
@@ -1789,6 +1794,22 @@ if do_volumes and do_label:
     #=========================================================================
     if do_ants:
         #---------------------------------------------------------------------
+        # Mask brain volume:
+        #---------------------------------------------------------------------
+        MaskBrain = Node(name= 'Mask_brain',
+                         interface=Fn(function=ImageMath,
+                                      input_names=['volume1',
+                                                   'volume2',
+                                                   'operator',
+                                                   'output_file'],
+                                      output_names=['output_file']))
+        VolLabelFlow.add_nodes([MaskBrain])
+        mbFlow.connect(MGH2Nifti, 'output_file',
+                       VolLabelFlow, 'Mask_brain.volume1')
+        mbFlow.connect(FetchANTs, 'mask', VolLabelFlow, 'Mask_brain.volume2')
+        MaskBrain.inputs.operator = 'm'
+        MaskBrain.inputs.output_file = ''
+        #---------------------------------------------------------------------
         # Transform default atlas labels in MNI152 to subject via template:
         #---------------------------------------------------------------------
         xfm = Node(ApplyTransforms(), name='antsApplyTransforms')
@@ -1798,7 +1819,7 @@ if do_volumes and do_label:
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         xfm.inputs.output_image = 'ANTs_labels.nii.gz'
-        mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
+        mbFlow.connect(MaskBrain, 'brain', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
