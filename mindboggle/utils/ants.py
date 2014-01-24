@@ -93,8 +93,8 @@ def ComposeMultiTransform(transform_files, inverse_Booleans,
     --------
     >>> from mindboggle.utils.ants import ComposeMultiTransform
     >>> transform_files = ['affine1.mat', 'affine2.mat']
-    >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpTemplateToSubject0GenericAffine.mat','/Users/arno/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
-    >>> inverse_Booleans = [False, True]
+    >>> transform_files = ['/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat','/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat']
+    >>> inverse_Booleans = [False, False]
     >>> output_transform_file = ''
     >>> ext = '.txt'
     >>> ComposeMultiTransform(transform_files, inverse_Booleans, output_transform_file, ext)
@@ -114,9 +114,10 @@ def ComposeMultiTransform(transform_files, inverse_Booleans,
         xfms.append(xfm)
 
     cmd = ['ComposeMultiTransform 3', output_transform_file, ' '.join(xfms)]
+    print(cmd)
     execute(cmd, 'os')
-    if not os.path.exists(output_transform_file):
-        raise(IOError(output_transform_file + " not found"))
+    #if not os.path.exists(output_transform_file):
+    #    raise(IOError(output_transform_file + " not found"))
 
     return output_transform_file
 
