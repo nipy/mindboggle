@@ -205,6 +205,7 @@ freesurfer_data = args.freesurfer_data
 if not freesurfer_data:
     freesurfer_data = os.environ['SUBJECTS_DIR']
 if args.ants_prefix:
+    ants_prefix = args.ants_prefix
     do_ants = True
 if args.use_segments:
     use_segments = args.use_segments
@@ -1819,7 +1820,7 @@ if do_volumes and do_label:
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         xfm.inputs.output_image = 'ANTs_labels.nii.gz'
-        mbFlow.connect(MaskBrain, 'brain', VolLabelFlow,
+        mbFlow.connect(MaskBrain, 'output_file', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
