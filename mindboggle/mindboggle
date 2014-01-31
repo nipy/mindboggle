@@ -95,7 +95,7 @@ extras_group = parser.add_argument_group('bonus arguments')
 parser.add_argument("SUBJECT",
                     help=('Subject name corresponding to FreeSurfer subject '
                           'directory'),
-                    nargs='+', metavar='')
+                    nargs='+')
 
 parser.add_argument("-v", "--version", help="Version number",
                     action='version', version='%(prog)s 0.1')
