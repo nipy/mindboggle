@@ -45,6 +45,10 @@ ANTS_
     ANTS provides brain volume extraction, tissue-class segmentation, and
     affine registration that Mindboggle uses to report locations in a standard
     space, and nonlinear registration for whole-brain labeling.
+    (Note: After installing ANTS, be sure to copy the files in ANTs/Scripts/
+    to the antsbin/bin/ directory, and set the ANTSPATH environment variable.)
+2. set the ANTSPATH
+
 
 `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
     is required to run the antsCorticalThickness.sh script in ANTs.

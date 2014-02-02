@@ -91,8 +91,8 @@ and the '-t' option is used to specify a target template for registration after 
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
       -t OASIS-30_Atropos_template/T_template0.nii.gz \
       -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
-      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz
-      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz \
+      -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
+      -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 Outputs
 =======
