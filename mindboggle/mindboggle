@@ -254,7 +254,7 @@ if do_sulci or do_fundi:
 no_shapes = args.no_shapes
 do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
 do_zernike = False  # Compute Zernike moments for labels/features
-if not no_shapes:
+if not no_shapes or do_features:
     do_shapes = True
 if (do_label or do_features) and do_shapes:
     if args.spectra > 0:
