@@ -482,11 +482,11 @@ if do_ants:
                                                        'string3',
                                                        'string4'],
                                           output_names=['string_list']))
-        mbFlow.connect(FetchANTs, 'affine', WarpToSubjectFileList, 'string1')
-        mbFlow.connect(FetchANTs, 'invwarp', WarpToSubjectFileList, 'string2')
+        mbFlow.connect(FetchANTs, 'warp', WarpToSubjectFileList, 'string1')
+        mbFlow.connect(FetchANTs, 'affine', WarpToSubjectFileList, 'string2')
         WarpToSubjectFileList.inputs.string3 = affine_to_mni
         WarpToSubjectFileList.inputs.string4 = ''
-        warp_inverse_Booleans = [True, False, True]
+        warp_inverse_Booleans = [False, False, True]
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -1797,19 +1797,19 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         # Mask brain volume:
         #---------------------------------------------------------------------
-        MaskBrain = Node(name= 'Mask_brain',
-                         interface=Fn(function=ImageMath,
-                                      input_names=['volume1',
-                                                   'volume2',
-                                                   'operator',
-                                                   'output_file'],
-                                      output_names=['output_file']))
-        VolLabelFlow.add_nodes([MaskBrain])
-        mbFlow.connect(MGH2Nifti, 'output_file',
-                       VolLabelFlow, 'Mask_brain.volume1')
-        mbFlow.connect(FetchANTs, 'mask', VolLabelFlow, 'Mask_brain.volume2')
-        MaskBrain.inputs.operator = 'm'
-        MaskBrain.inputs.output_file = ''
+        #MaskBrain = Node(name= 'Mask_brain',
+        #                 interface=Fn(function=ImageMath,
+        #                              input_names=['volume1',
+        #                                           'volume2',
+        #                                           'operator',
+        #                                           'output_file'],
+        #                              output_names=['output_file']))
+        #VolLabelFlow.add_nodes([MaskBrain])
+        #mbFlow.connect(MGH2Nifti, 'output_file',
+        #               VolLabelFlow, 'Mask_brain.volume1')
+        #mbFlow.connect(FetchANTs, 'mask', VolLabelFlow, 'Mask_brain.volume2')
+        #MaskBrain.inputs.operator = 'm'
+        #MaskBrain.inputs.output_file = ''
         #---------------------------------------------------------------------
         # Transform default atlas labels in MNI152 to subject via template:
         #---------------------------------------------------------------------
@@ -1820,7 +1820,7 @@ if do_volumes and do_label:
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         xfm.inputs.output_image = 'ANTs_labels.nii.gz'
-        mbFlow.connect(MaskBrain, 'output_file', VolLabelFlow,
+        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
                        'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
@@ -1964,9 +1964,10 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         xfm2 = xfm.clone('Transform_added_atlases')
         VolLabelFlow.add_nodes([xfm2])
+        xfm2.inputs.output_image = 'ANTs_added_atlas_labels.nii.gz'
         VolLabelFlow.connect(MatchAtlas, 'first_matching_string',
                              xfm2, 'input_image')
-        mbFlow.connect(FetchANTs, 'brain', VolLabelFlow,
+        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
                        'Transform_added_atlases.reference_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'Transform_added_atlases.transforms')
