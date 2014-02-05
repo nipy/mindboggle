@@ -631,7 +631,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
             X = values[I]
             if np.size(weights):
                 W = weights[I]
-                sumW = np.sum(W) * len(X)
+                sumW = np.sum(W)
                 if sumW > 0:
                     Xdiff = X - np.mean(X)
                     Xstd = np.sqrt(np.sum(W * Xdiff**2) / sumW)
