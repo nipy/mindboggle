@@ -2251,6 +2251,7 @@ if __name__ == '__main__':
     # Run multiple processes or not:
     #-------------------------------------------------------------------------
     else:
+        #mbFlow.config['execution']['stop_on_first_rerun'] = True
         if args.n:
             if args.n > 1:
                 mbFlow.run(plugin='MultiProc',
