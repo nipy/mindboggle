@@ -50,7 +50,7 @@ def point_distance(point, points):
 
     # If points is a single point
     if np.ndim(points) == 1:
-#        return np.linalg.norm(np.array(point) - np.array(points))
+       #return np.linalg.norm(np.array(point) - np.array(points))
        return np.sqrt((point[0] - points[0]) ** 2 + \
                        (point[1] - points[1]) ** 2 + \
                        (point[2] - points[2]) ** 2), 0
@@ -65,7 +65,7 @@ def point_distance(point, points):
                                (point[1] - point2[1]) ** 2 + \
                                (point[2] - point2[2]) ** 2)
 
-#            distance = np.linalg.norm(point - np.array(point2))
+            #distance = np.linalg.norm(point - np.array(point2))
 
             if distance < min_distance:
                 min_distance = distance
@@ -107,7 +107,7 @@ def vector_distance(vector1, vector2, normalize=False):
     import numpy as np
 
     if np.size(vector1) == np.size(vector2):
-    # Make sure arguments are numpy arrays
+        # Make sure arguments are numpy arrays
         if not isinstance(vector1, np.ndarray):
             vector1 = np.asarray(vector1)
         if not isinstance(vector2, np.ndarray):
@@ -443,13 +443,21 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
             X = values[I]
             if np.size(areas):
                 W = areas[I]
-                label_weight = sum(W)
-                label_areas.append(label_weight)
-                if dim > 1:
-                    W = np.transpose(np.tile(W, (dim,1)))
-                means.append(np.sum(W * X, axis=0) / label_weight)
-                sdevs.append(np.sqrt(np.sum(W * (X - np.mean(X, axis=0))**2,
-                                            axis=0) / label_weight))
+                sumW = sum(W)
+                label_areas.append(sumW)
+                if sumW > 0:
+                    if dim > 1:
+                        W = np.transpose(np.tile(W, (dim,1)))
+                    means.append(np.sum(W * X, axis=0) / sumW)
+                    Xdiff = X - np.mean(X, axis=0)
+                    sdevs.append(np.sqrt(np.sum(W * Xdiff**2, axis=0) / sumW))
+                else:
+                    if dim > 1:
+                        means.append(np.mean(X, axis=0))
+                        sdevs.append(np.std(X, axis=0))
+                    else:
+                        means.append(np.mean(X))
+                        sdevs.append(np.std(X))
             else:
                 if dim > 1:
                     means.append(np.mean(X, axis=0))
@@ -523,7 +531,6 @@ def sum_per_label(values, labels, exclude_labels):
             sums.append(0)
 
     return sums, label_list
-
 
 def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     """
@@ -624,13 +631,20 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
             X = values[I]
             if np.size(weights):
                 W = weights[I]
-                sumW = np.sum(W)
-                Xdiff = X - np.mean(X)
-                means.append(np.sum(W * X) / sumW)
-                sdevs.append(np.sum(W * Xdiff**2) / sumW)
-                skews.append(np.sum(W * Xdiff**3) / sumW)
-                kurts.append(np.sum(W * Xdiff**4) / sumW)
-                X = weighted_to_repeated_values(X, W, precision)
+                sumW = np.sum(W) * len(X)
+                if sumW > 0:
+                    Xdiff = X - np.mean(X)
+                    Xstd = np.sqrt(np.sum(W * Xdiff**2) / sumW)
+                    means.append(np.sum(W * X) / sumW)
+                    sdevs.append(Xstd)
+                    skews.append((np.sum(W * Xdiff**3) / sumW) / Xstd**3)
+                    kurts.append((np.sum(W * Xdiff**4) / sumW) / Xstd**4 - 3)
+                    X = weighted_to_repeated_values(X, W, precision)
+                else:
+                    means.append(np.mean(X))
+                    sdevs.append(np.std(X))
+                    skews.append(skew(X))
+                    kurts.append(kurtosis(X))
             else:
                 means.append(np.mean(X))
                 sdevs.append(np.std(X))
