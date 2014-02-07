@@ -608,12 +608,13 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     from scipy.stats import skew, kurtosis, scoreatpercentile
     from mindboggle.utils.compute import weighted_to_repeated_values, median_abs_dev
 
-    # Make sure arguments are numpy arrays
+    # Make sure arguments are numpy arrays:
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
     if not isinstance(weights, np.ndarray):
         weights = np.asarray(weights)
 
+    # Initialize all statistical lists:
     label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     medians = []
@@ -625,35 +626,67 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     lower_quarts = []
     upper_quarts = []
 
+    # Extract all vertex indices for each label:
     for label in label_list:
         I = [i for i,x in enumerate(labels) if x == label]
         if I:
+            # Get the vertex values:
             X = values[I]
-            if np.size(weights):
-                W = weights[I]
-                sumW = np.sum(W)
-                if sumW > 0:
-                    Xdiff = X - np.mean(X)
-                    Xstd = np.sqrt(np.sum(W * Xdiff**2) / sumW)
-                    means.append(np.sum(W * X) / sumW)
-                    sdevs.append(Xstd)
-                    skews.append((np.sum(W * Xdiff**3) / sumW) / Xstd**3)
-                    kurts.append((np.sum(W * Xdiff**4) / sumW) / Xstd**4 - 3)
-                    X = weighted_to_repeated_values(X, W, precision)
+            if len([x for x in X if x != 0]):
+                # If there are as many weights as values, apply the weights to the values:
+                if np.size(weights) == np.size(values):
+                    W = weights[I]
+                    sumW = np.sum(W)
+                    # If the sum of the weights and the standard deviation is non-zero,
+                    # compute all statistics of the weighted values:
+                    if sumW > 0:
+                        Xdiff = X - np.mean(X)
+                        Xstd = np.sqrt(np.sum(W * Xdiff**2) / sumW)
+                        means.append(np.sum(W * X) / sumW)
+                        sdevs.append(Xstd)
+                        if Xstd > 0:
+                            skews.append((np.sum(W * Xdiff**3) / sumW) / Xstd**3)
+                            kurts.append((np.sum(W * Xdiff**4) / sumW) / Xstd**4 - 3)
+                        else:
+                            skews.append(skew(X))
+                            kurts.append(kurtosis(X))
+                        X = weighted_to_repeated_values(X, W, precision)
+                    # If the sum of the weights equals zero, simply compute the statistics:
+                    else:
+                        means.append(np.mean(X))
+                        sdevs.append(np.std(X))
+                        skews.append(skew(X))
+                        kurts.append(kurtosis(X))
+                # If there are no (or not enough) weights, simply compute the statistics:
                 else:
                     means.append(np.mean(X))
                     sdevs.append(np.std(X))
                     skews.append(skew(X))
                     kurts.append(kurtosis(X))
+                # Compute median, median absolute deviation, and lower and upper quartiles:
+                if np.size(X):
+                    medians.append(np.median(X))
+                    mads.append(median_abs_dev(X))
+                    lower_quarts.append(scoreatpercentile(X, 25))
+                    upper_quarts.append(scoreatpercentile(X, 75))
+                # If the weights are all smaller than the precision, then X will disappear,
+                # so set the above statistics (in the 'if' block) to zero:
+                else:
+                    medians.append(0)
+                    mads.append(0)
+                    lower_quarts.append(0)
+                    upper_quarts.append(0)
+            # If all values are equal to zero, set all statistics to zero:
             else:
-                means.append(np.mean(X))
-                sdevs.append(np.std(X))
-                skews.append(skew(X))
-                kurts.append(kurtosis(X))
-            medians.append(np.median(X))
-            mads.append(median_abs_dev(X))
-            lower_quarts.append(scoreatpercentile(X, 25))
-            upper_quarts.append(scoreatpercentile(X, 75))
+                medians.append(0)
+                mads.append(0)
+                means.append(0)
+                sdevs.append(0)
+                skews.append(0)
+                kurts.append(0)
+                lower_quarts.append(0)
+                upper_quarts.append(0)
+        # If there are no vertices for the label, set all statistics to zero:
         else:
             medians.append(0)
             mads.append(0)
