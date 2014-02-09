@@ -35,6 +35,7 @@ import warnings
 #-----------------------------------------------------------------------------
 # Nipype libraries
 #-----------------------------------------------------------------------------
+from nipype import config, logging
 from nipype.pipeline.engine import Workflow, Node, JoinNode
 from nipype.interfaces.io import DataGrabber, DataSink
 from nipype.interfaces.utility import Function as Fn
@@ -189,6 +190,9 @@ extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visua
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 extras_group.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
+extras_group.add_argument("--debug", action='store_true',
+                    help="Debug nipype with its DEBUG and "
+                         "stop_on_first_rerun options")
 #extras_group.add_argument("--hashing", action='store_true',
 #                    help=("Use content hashing to, for example, "
 #                          "replace a file and run downstream of that step"))
@@ -2225,6 +2229,7 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     # Set the workflow configuration to use content hashing:
     #-------------------------------------------------------------------------
+    mbFlow.config['execution']['hash_method'] = 'content'
     #hashing = args.hashing
     #if hashing:
     #mbFlow.config['execution']['hash_method'] = 'content'
@@ -2243,6 +2248,14 @@ if __name__ == '__main__':
             mbFlow.write_graph(graph2use=graph_vis)
 
     #-------------------------------------------------------------------------
+    # Debug:
+    #-------------------------------------------------------------------------
+    if args.debug:
+        config.set('logging', 'workflow_level', 'DEBUG')
+        logging.update_logging(config)
+        mbFlow.config['execution']['stop_on_first_rerun'] = True
+
+    #-------------------------------------------------------------------------
     # Run (HTCondor) cluster processes, such as on the Mindboggler cluster:
     #-------------------------------------------------------------------------
     if args.cluster:
@@ -2251,7 +2264,6 @@ if __name__ == '__main__':
     # Run multiple processes or not:
     #-------------------------------------------------------------------------
     else:
-        mbFlow.config['execution']['stop_on_first_rerun'] = True
         if args.n:
             if args.n > 1:
                 mbFlow.run(plugin='MultiProc',
