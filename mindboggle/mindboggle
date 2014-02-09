@@ -2248,7 +2248,7 @@ if __name__ == '__main__':
             mbFlow.write_graph(graph2use=graph_vis)
 
     #-------------------------------------------------------------------------
-    # Debug:
+    # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
     #-------------------------------------------------------------------------
     if args.debug:
         config.set('logging', 'workflow_level', 'DEBUG')
