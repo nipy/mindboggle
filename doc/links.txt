@@ -44,6 +44,8 @@
 .. _doctest-mode: http://www.cis.upenn.edu/~edloper/projects/doctestmode/
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose
 .. _`python coverage tester`: http://nedbatchelder.com/code/modules/coverage.html
+.. _vagrant: http://www.vagrantup.com/downloads.html
+.. _virtualbox: https://www.virtualbox.org/wiki/Downloads
 
 .. Other python projects
 .. _nipype: http://nipy.org/nipype/
