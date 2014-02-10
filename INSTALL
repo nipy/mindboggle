@@ -6,7 +6,7 @@ Installation
 We highly recommend running Mindboggle as a virtual machine, since running
 Mindboggle only requires one to install two cross-platform programs,
 but for those who wish to install from source code, see
-`INSTALL_source <http://mindboggle.info/users/INSTALL_source.html>`_.
+`INSTALL2 <http://mindboggle.info/users/INSTALL2.html>`_.
 
 Dependencies to run Mindboggle
 ------------------------------
