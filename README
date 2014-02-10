@@ -15,9 +15,9 @@ Help
 - See below for information about Mindboggle inputs and outputs.
 - `Online documentation <http://mindboggle.info/documentation.html>`_
 - `Installation instructions <INSTALL.html>`_
-- Help on the command line ("$" is the prompt in the terminal window)::
+- Help on the command line in a terminal window::
 
-    $ mindboggle --help
+    mindboggle --help
 
 - `License <http://mindboggle.info/users/LICENSE.html>`_
 - `Background <http://mindboggle.info/faq/background.html>`_
@@ -44,31 +44,45 @@ Mindboggle
 
 Examples
 ========
-Terminal command for processing a single SUBJECT with a single processor with only FreeSurfer data::
+See `INSTALL <INSTALL.html>`_ for configuring memory and other settings
+and for mounting local (FreeSurfer, ANTs subject) directories
+in Mindboggle's virtual machine. The result is the file ``Vagrantfile''.
 
-    $ mindboggle SUBJECT
+Go to the directory with this Vagrantfile, and type the following two commands
+to launch and log into the Mindboggle virtual machine
+(requires an active internet connection)::
 
-Example using ANTs data (files prepended with PREFIX) on 8 processors::
+    vagrant up
+    vagrant ssh
 
-    $ mindboggle SUBJECT --ants_prefix PREFIX -n 8
+Once logged in, you can type the following to process a single SUBJECT
+with a single processor with only FreeSurfer data (replace capitalized text
+in the commands below when typing in a terminal window;
+backslashes denote line returns)::
 
-Example using many of the currently available options within Mindboggle::
+    mindboggle SUBJECT
 
-    $ mindboggle SUBJECT --ants_data ~/ants_output PREFIX -n 8 \
-                 --sulci --fundi --vertices --spectra 10 --thickness --visual hier
+The following example makes use of 8 processors as well as ANTs data
+(subject files prepended with a PREFIX, such as
+``/subjects_ants/OASIS-TRT-20-1/ants'')::
+
+    mindboggle SUBJECT -n 8 --ants_prefix PREFIX
+
+This example uses many of the currently available options within Mindboggle::
+
+    mindboggle SUBJECT -n 8 --ants_prefix PREFIX \
+               --sulci --fundi --vertices --spectra 10 --thickness --visual hier
 
 Inputs
 ======
-Mindboggle currently takes output from FreeSurfer_ (preferabley v5.3 and above)
+Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
 
 To generate FreeSurfer labeled cortical surfaces, and labeled cortical and
 noncortical volumes, run ``recon-all`` on each T1-weighted IMAGE file
-and set the SUBJECT name
-(replace capitalized text below when typing in a terminal window;
-backslashes denote line returns)::
+and set the SUBJECT name::
 
-    $ recon-all -all -s SUBJECT -i IMAGE
+    recon-all -all -s SUBJECT -i IMAGE
 
 ..
     - mri/orig/001.mgz
@@ -76,16 +90,16 @@ backslashes denote line returns)::
     - surf/[lh,rh].pial
     - label/[lh,rh].aparc.annot
 
-    ANTS provides brain volume extraction, segmentation, and registration-based labeling.
-
+ANTS provides brain volume extraction, segmentation, and registration-based labeling.
 To generate the ANTs transforms and segmentation files used by
 Mindboggle, run the antsCorticalThickness.sh script on the same
-IMAGE file, set an output PREFIX, provide paths to OASIS-30 template files
-(see `Installation instructions <INSTALL.html>`_), set "-k 0"
+IMAGE file, set an output PREFIX, provide paths to
+`OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+files , set "-k 0"
 and set "-t" with the same input as "-e" (to save registration transforms).
 (The -k option is a boolean to *k*eep all files produced (even temporary ones).
 and the '-t' option is used to specify a target template for registration after the rest of the pipeline is finished.)::
-    $ antsCorticalThickness.sh -d 3 -k 0 -n 3 -w 0.25 \
+    antsCorticalThickness.sh -d 3 -k 0 -n 3 -w 0.25 \
       -a IMAGE \
       -o PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
