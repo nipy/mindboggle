@@ -16,7 +16,6 @@
 
    README
    INSTALL
-   INSTALL_source
    LABELS
    LICENSE
 
