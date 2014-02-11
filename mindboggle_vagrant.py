@@ -71,23 +71,24 @@ args = parser.parse_args()
 
 print(args)
 
+home = "/home/vagrant/"
 if not os.path.exists(args.out):
     os.mkdir(args.out)
-out = 'config.vm.synced_folder "{0}", "mindboggled"'.format(args.out)
+out = 'config.vm.synced_folder "{0}", "{1}mindboggled"'.format(args.out, home)
 if args.freesurfer:
     freesurfer = 'config.vm.synced_folder "{0}", ' \
-                 '"freesurfer_subjects"'.format(args.freesurfer)
+                 '"{1}freesurfer_subjects"'.format(args.freesurfer, home)
 else:
     freesurfer = 'config.vm.synced_folder "{0}", ' \
-                 '"freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'])
+    '"{1}freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'], home)
 if args.ants:
     ants = 'config.vm.synced_folder "{0}", ' \
-           '"ants_subjects"'.format(args.ants)
+           '"{1}ants_subjects"'.format(args.ants, home)
 else:
     ants = ''
 if args.atlases:
     atlases = 'config.vm.synced_folder "{0}", ' \
-              '"atlases"'.format(args.atlases)
+              '"{1}atlases"'.format(args.atlases, home)
 else:
     atlases = ''
 if args.cpu:
