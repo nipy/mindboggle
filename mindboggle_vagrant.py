@@ -96,7 +96,7 @@ else:
     atlases = ''
 
 #=============================================================================
-# Vagrant file text
+# Configurations to include in Vagrant file
 #=============================================================================
 vagrant_file = """# Vagrant file (http://www.vagrantup.com)
 # (after https://github.com/nipy/nipype/blob/master/Vagrantfile)
@@ -129,7 +129,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # Create a public network, which generally matched to bridged network.
     # Bridged networks make the machine appear as another physical device on
     # your network:
-    #config.vm.network :public_network
+    config.vm.network :public_network
 
     # If true, then any SSH connections made will enable agent forwarding.
     # Default value: false
@@ -159,16 +159,21 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 end
 """
 
+#=============================================================================
+# Script to include in Vagrant file
+#=============================================================================
 script = """$script = <<SCRIPT
 
 # Install Anaconda Python distribution:
 wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
 chmod +x miniconda.sh
 ./miniconda.sh -b
-echo "export PATH=$HOME/anaconda/bin:\\$PATH" >> .bashrc
+#echo "export PATH=$HOME/anaconda/bin:\$PATH" >> .bashrc
+PATH=$HOME/anaconda/bin:$PATH
 
 # Install nipype and nipype dependencies:
-$HOME/anaconda/bin/conda install --yes pip numpy scipy nose traits networkx
+$HOME/anaconda/bin/conda install --yes pip
+$HOME/anaconda/bin/conda install --yes numpy scipy nose traits networkx
 $HOME/anaconda/bin/conda install --yes dateutil ipython-notebook matplotlib
 $HOME/anaconda/bin/pip install nibabel --use-mirrors
 $HOME/anaconda/bin/pip install https://github.com/RDFLib/rdflib/archive/master.zip
@@ -176,30 +181,56 @@ $HOME/anaconda/bin/pip install https://github.com/satra/prov/archive/enh/rdf.zip
 $HOME/anaconda/bin/pip install https://github.com/nipy/nipype/archive/master.zip
 
 # Install compiling utilities:
-$HOME/anaconda/bin/conda install --yes cmake
+sudo apt-get install g++
+sudo apt-get install cmake  # $HOME/anaconda/bin/conda install --yes cmake
 sudo apt-get install make
+sudo apt-get install git
+sudo apt-get install xorg openbox
 
-# Install Mindboggle and dependencies (besides FreeSurfer and ANTs):
+# Install VTK and set environment variables:
 $HOME/anaconda/bin/conda install --yes vtk
+export VTK_DIR=$HOME/anaconda/lib/vtk-5.10/
+
+# Install Mindboggle:
 #PREFIX_PATH=$HOME/Mindboggle
 #$HOME/anaconda/bin/pip install --install-option="--prefix=$PREFIX_PATH" https://github.com/binarybottle/mindboggle/archive/master.zip
 $HOME/anaconda/bin/pip install https://github.com/binarybottle/mindboggle/archive/master.zip
 
 # Set Mindboggle environment variables:
 MINDBOGGLE_TOOLS=/vagrant/mindboggle_tools/bin/
-echo "export $MINDBOGGLE_TOOLS:\\$PATH" >> .bashrc
+PATH=$MINDBOGGLE_TOOLS:$PATH
 #export DYLD_LIBRARY_PATH=$HOME/anaconda/lib/vtk-5.10:${DYLD_LIBRARY_PATH}
+export MINDBOGGLE_TOOLS
+
+# Install FreeSurfer:
+#wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+#mv freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz /usr/local
+#cd /usr/local
+#tar xzvf freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+#cd $HOME
 
 # Set FreeSurfer environment variables:
-FREESURFER_HOME=$HOME/freesurfer
-SUBJECTS_DIR=$HOME/freesurfer/subjects
-echo "export $FREESURFER_HOME:\\$PATH" >> .bashrc
-echo "export $SUBJECTS_DIR:\\$PATH" >> .bashrc
+FREESURFER_HOME=/usr/local/freesurfer
+SUBJECTS_DIR=${FREESURFER_HOME}/subjects
+PATH=$SUBJECTS_DIR:$FREESURFER_HOME:$PATH
+export FREESURFER_HOME SUBJECTS_DIR
 #source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
+# Install ANTs:
+git clone git://github.com/stnava/ANTs.git
+mkdir antsbin
+cd antsbin
+cmake ../ANTs
+make -j 4
 
 # Set ANTs environment variables:
 ANTSPATH=$HOME/antsbin/bin/
-echo "export $ANTSPATH:\\$PATH" >> .bashrc
+PATH=$ANTSPATH:$PATH
+export ANTSPATH
+
+echo "export $PATH" >> .bashrc
+
+#source .bashrc
 
 # Compile Mindboggle C++ code:
 cd /vagrant/mindboggle_tools/bin/
@@ -209,6 +240,17 @@ cd /
 
 SCRIPT
 """
+
+#=============================================================================
+# Write FreeSurfer .license file
+#=============================================================================
+freesurfer_license = """arno@mindboggle.info
+18192
+ *Cr4e1z13elAY"""
+license_file = os.path.join(os.environ['FREESURFER_HOME'], '.license')
+f = open(license_file, 'w')
+f.write(freesurfer_license)
+f.close()
 
 #=============================================================================
 # Write Vagrantfile with substitutions, and run "vagrant up"
