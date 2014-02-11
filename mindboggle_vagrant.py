@@ -203,6 +203,7 @@ PATH=$MINDBOGGLE_TOOLS:$PATH
 export MINDBOGGLE_TOOLS
 
 # Install FreeSurfer:
+# http://surfer.nmr.mgh.harvard.edu/fswiki/Download
 #wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
 #mv freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz /usr/local
 #cd /usr/local
@@ -217,11 +218,14 @@ export FREESURFER_HOME SUBJECTS_DIR
 #source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 # Install ANTs:
-git clone git://github.com/stnava/ANTs.git
-mkdir antsbin
-cd antsbin
-cmake ../ANTs
-make -j 4
+# http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
+#git clone git://github.com/stnava/ANTs.git
+#mkdir antsbin
+#cd antsbin
+#cmake ../ANTs
+#make # -j 4
+#cp ../ANTs/Scripts/* bin/
+#cd $HOME
 
 # Set ANTs environment variables:
 ANTSPATH=$HOME/antsbin/bin/
