@@ -2254,6 +2254,12 @@ if __name__ == '__main__':
         config.set('logging', 'workflow_level', 'DEBUG')
         logging.update_logging(config)
         mbFlow.config['execution']['stop_on_first_rerun'] = True
+        nproc = 1
+    else:
+        if args.n:
+            nproc = args.n
+        else:
+            nproc = 1
 
     #-------------------------------------------------------------------------
     # Run (HTCondor) cluster processes, such as on the Mindboggler cluster:
@@ -2265,7 +2271,7 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     else:
         if args.n:
-            if args.n > 1:
+            if nproc > 1:
                 mbFlow.run(plugin='MultiProc',
                            plugin_args={'n_procs': args.n})
                            #updatehash=True)
