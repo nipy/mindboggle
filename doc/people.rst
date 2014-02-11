@@ -5,9 +5,9 @@
 +------------+--------------+
 |            |              |
 +------------+--------------+
-| **Current members of      |
-| the Mindboggle Team**     |
-| (see :ref:`thanks`)       |
+| **Members of the          |
+| Mindboggle Team**         |
+|                           |
 +------------+--------------+
 |            |              |
 +------------+--------------+
@@ -50,41 +50,33 @@
 .. |picAK| image:: http://media.mindboggle.info/images/people/ArnoKlein_gallery.jpg
                     :width: 200px
 .. |blurbAK| replace::
-    `Arno Klein`_ (CV_) is the Director of Neuroimaging and Principal Scientist of Systems Biology
-    at Sage Bionetworks (non-profit) in Seattle.
-    He was the Principal Investigator of the NIMH R01 grant (MH084029-02) 
-    that initially funded the Mindboggle project.
+    `Arno Klein`_ (CV_) is the Director of Neuroimaging at Sage Bionetworks
+    (non-profit) in Seattle and heads development of the Mindboggle project.
     Arno is excited about brain imaging and visualization of complex information.
     He has conducted research in 3-D display holography from a high school basement lab to MIT's Media Lab,
     tissue optics at Caltech, and automated anatomical brain labeling and shape analysis at Cornell
-    and at Columbia Universities.  
-    Side projects include the comprehensive photodocumentation of the
-    `Ellora cave temples`_ of India, taxonomic classification of `information visualization`_,
-    time-lapse photography, and text parsing and analytics.
+    and at Columbia Universities. He is actively engaged in a range of
+    `projects`_.
 .. _cv: http://binarybottle.com/docs/ArnoKleinCV.pdf
-.. _`Ellora cave temples`: http://www.elloracaves.org
-.. _`information visualization`: http://www.infovis.info
+.. _`projects`: http://binarybottle.com
 
 
 .. |picFB| image:: http://media.mindboggle.info/images/people/ForrestBao.jpg
                     :width: 200px
 .. |blurbFB| replace::
-    `Forrest Bao`_ recently defended his doctoral thesis on
-    `knowledge representation and reasoning`_
-    and is a postdoctoral associate working from Texas Tech University.
-    He has been developing algorithms to extract sulcal features for Mindboggle.
+    `Forrest Bao`_ is an Assistant Professor in the Department of Electrical
+    and Computer Engineering at the University of Akron in Akron, Ohio.
+    While a postdoctoral associate working from Texas Tech University,
+    Forrest developed algorithms to extract sulcal features for Mindboggle.
 .. _`knowledge representation and reasoning`: http://narnia.cs.ttu.edu/drupal/node/4
 
 
 .. |picJG| image:: http://media.mindboggle.info/images/people/JoachimGiard.jpg
                     :width: 200px
 .. |blurbJG| replace::
-    `Joachim Giard`_ is a postdoctoral researcher of electrical engineering at
-    UCL, Belgium.  He is currently working at the Information and Communication Technologies, 
-    Electronics and Applied Mathematics Institute (ICTEAM) in the Communications and 
-    Remote Sensing Laboratory (TELE) on image-guided proton therapy in collaboration 
-    with an industrial partner.
-    Joachim has been developing algorithms for computing shape measures
+    Joachim Giard of Sony, Belgium, worked on the Mindboggle project
+    as a postdoctoral researcher of electrical engineering at
+    UCL, Belgium. He has been developing algorithms for computing shape measures
     on surface meshes for Mindboggle, including travel depth, the topic of his PhD research.
 
 
