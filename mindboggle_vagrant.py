@@ -36,20 +36,15 @@ parser = argparse.ArgumentParser(description="""
                     in a Vagrant box (virtual machine).
                     You must have Vagrant (http://www.vagrantup.com) and
                     VirtualBox (http://www.virtualbox.org) installed.
-                    Ex: python mindboggle_vagrant.py -n 1 -m 4096 --cpu 50
-                               --ants /data/antsCorticalThickness""",
+                    Ex: python mindboggle_vagrant.py --num 1 --mem 4096
+                        --cpu 50 --ants /data/antsCorticalThickness""",
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
 
-parser.add_argument("-n", "--nprocessors",
-                    help=('Number of processors: "-n 1" (default)'),
-                    type=int, default=1, metavar='INT')
-parser.add_argument("-m", "--memory",
-                    help=('Maximum memory (MB): "-m 4096" (default)'),
-                    type=int, default=4096, metavar='INT')
-parser.add_argument("--cpu",
-                    help=('Maximum CPU (percent): "-cpu 50" (default)'),
-                    type=int, default=50, metavar='INT')
+parser.add_argument("-o", "--out",
+                    help='Output directory (default: $HOME/mindboggled)',
+                    default=os.path.join(os.environ['HOME'],
+                                         'mindboggled'), metavar='STR')
 parser.add_argument("--freesurfer",
                     help=("FreeSurfer subjects directory (default if not "
                           "set: $SUBJECTS_DIR environment variable)"),
@@ -62,38 +57,51 @@ parser.add_argument("--ants",
 parser.add_argument("--atlases",
                     help=("Optional directory containing additional atlases"),
                     metavar='STR')
+parser.add_argument("--cpu",
+                    help=('Maximum CPU (percent): "--cpu 50" (default)'),
+                    type=int, default=50, metavar='INT')
+parser.add_argument("--mem",
+                    help=('Maximum memory (MB): "--mem 4096" (default)'),
+                    type=int, default=4096, metavar='INT')
+parser.add_argument("--num",
+                    help=('Number of processors: "--num 1" (default)'),
+                    type=int, default=1, metavar='INT')
 
 args = parser.parse_args()
 
 print(args)
-if args.nprocessors:
-    nprocessors = args.nprocessors
-else:
-    nprocessors = '1'
-if args.memory:
-    memory = args.memory
-else:
-    memory = '4096'
-if args.cpu:
-    cpu = args.cpu
-else:
-    cpu = '50'
+
+if not os.path.exists(args.out):
+    os.mkdir(args.out)
+out = 'config.vm.synced_folder "{0}", "mindboggled"'.format(args.out)
 if args.freesurfer:
     freesurfer = 'config.vm.synced_folder "{0}", ' \
-                 '"/freesurfer_subjects"'.format(args.freesurfer)
+                 '"freesurfer_subjects"'.format(args.freesurfer)
 else:
     freesurfer = 'config.vm.synced_folder "{0}", ' \
-                 '"/freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'])
+                 '"freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'])
 if args.ants:
     ants = 'config.vm.synced_folder "{0}", ' \
-           '"/ants_subjects"'.format(args.ants)
+           '"ants_subjects"'.format(args.ants)
 else:
     ants = ''
 if args.atlases:
     atlases = 'config.vm.synced_folder "{0}", ' \
-              '"/atlases"'.format(args.atlases)
+              '"atlases"'.format(args.atlases)
 else:
     atlases = ''
+if args.cpu:
+    cpu = args.cpu
+else:
+    cpu = '50'
+if args.mem:
+    mem = args.mem
+else:
+    mem = '4096'
+if args.num:
+    num = args.num
+else:
+    num = '1'
 
 #=============================================================================
 # Configurations to include in Vagrant file
@@ -140,17 +148,18 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # the path on the guest to mount the folder. And the optional third
     # argument is a set of non-required options:
     #config.vm.synced_folder "../data", "/vagrant_data"
+    $out
     $freesurfer
     $ants
     $atlases
 
     # Provider-specific configuration so you can fine-tune various
-    # backing providers for Vagrant. These expose provider-specific options.
+2    # backing providers for Vagrant. These expose provider-specific options.
     # Example for VirtualBox:
     config.vm.provider :virtualbox do |vb|
       vb.customize ["modifyvm", :id, "--cpuexecutioncap", "$cpu"]
-      vb.customize ["modifyvm", :id, "--memory", "$memory"]
-      vb.customize ["modifyvm", :id, "--cpus", "$nprocessors"]
+      vb.customize ["modifyvm", :id, "--memory", "$mem"]
+      vb.customize ["modifyvm", :id, "--cpus", "$num"]
       vb.customize ["modifyvm", :id, "--ioapic", "on"]
     end
 
@@ -261,12 +270,13 @@ f.close()
 #=============================================================================
 template = Template(vagrant_file)
 new_vagrant_file = template.substitute(script=script,
+                                       out=out,
                                        freesurfer=freesurfer,
                                        ants=ants,
                                        atlases=atlases,
                                        cpu=cpu,
-                                       memory=memory,
-                                       nprocessors=nprocessors)
+                                       mem=mem,
+                                       num=num)
 f = open('Vagrantfile', 'w')
 f.write(new_vagrant_file)
 f.close()
