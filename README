@@ -138,17 +138,17 @@ are stored in tables (.csv).
 
         --- *Volume and surface labels* ---
 
-        **FreeSurfer_labels** .nii.gz:  *[FreeSurfer aparc+aseg labels]*
+        **FreeSurfer_wmparc_labels** .nii.gz:  *[FreeSurfer wmparc+aseg labels]*
 
-        **FreeSurfer_filled_labels** .nii.gz:  *[non/cortex separately filled with FreeSurfer labels]*
+        **FreeSurfer_wmparc_filled_labels** .nii.gz:  *[revised non/cortex each filled with FreeSurfer labels]*
 
-        **ANTs_labels** .nii.gz:  *[ANTs-registered joint fusion atlas labels]*
+        **ANTs_labels** .nii.gz:  *[ANTs-registered, joint-fusion atlas labels]*
 
-        **ANTs_filled_labels** .nii.gz:  *[non/cortex separately filled with ANTs labels]*
+        **ANTs_filled_labels** .nii.gz:  *[revised non/cortex each filled with ANTs labels + FreeSurfer cerebellar labels]*
 
         [left,right] _surface_ **FreeSurfer_cortex_labels** .vtk:  *[surface labels]*
 
-        **ATLAS_labels** .nii.gz:  *["--atlases ATLAS_PATH" output for each ATLAS_PATH]*
+        **ATLAS_labels** .nii.gz:  *["--add_atlases ATLAS" output for each ATLAS]*
 
     **features** /
 
@@ -190,6 +190,7 @@ are stored in tables (.csv).
 
         **ANTs_filled_labels_volumes_areas_thicknesses** .csv
 
+        **ATLAS_labels_volumes** .csv:  *["--add_atlases ATLAS" output for each ATLAS]*
         --- *Tables with per-label or per-feature surface shape statistics* ---
 
         [left,right] _surface_ **label_shapes** .csv
@@ -201,6 +202,4 @@ are stored in tables (.csv).
         --- *Table with per-vertex shape measures* ---
 
         [left,right] _surface_ **vertices** .csv
-
-        **ATLAS_labels_volumes** .csv:  *["--atlases ATLAS_PATH" output for each ATLAS_PATH]*
 
