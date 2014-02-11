@@ -2,7 +2,7 @@
 Data
 ====
 
-| Welcome to the largest collection of publicly available, manually labeled human brain image data in the world!
+| Welcome to the world's largest collection of freel, manually labeled human brain image data!
 | Please cite the following article and this website when making use of Mindboggle-101 data:
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
@@ -77,9 +77,9 @@ Mindboggle-101 templates
 Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 -----------------------------------------------------------------------
 
-|  The Mindboggle-101 dataset includes manually labeled anatomical regions for `101 healthy subjects`_.
-|  The manually edited cortical labels follow sulcus landmarks according to the Desikan-Killiany-Tourville
-|  (DKT) protocol (reference at top).
+|  The Mindboggle-101 dataset includes labeled anatomical regions for `101 healthy subjects`_.
+|  The manually edited cortical labels follow sulcus landmarks according to the
+|  Desikan-Killiany-Tourville (DKT) protocol (reference at top).
 
   - **OASIS-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
       All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
