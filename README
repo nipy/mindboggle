@@ -1,14 +1,15 @@
 .. _README:
 
-======
-README
-======
+===============
+Software README
+===============
 
-The Mindboggle package automates shape analysis of anatomical labels
+The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
-Mindboggle consists of Python and C++ functions called using a Nipype
-software pipeline framework for modularity, flexibility, and reproducibility
-of results.
+Mindboggle can be run as a single command, and can be
+easily installed as a cross-platform virtual machine for convenience and
+reproducibility of results. Behind the scenes runs open source
+Python and C++ code within a Nipype pipeline framework.
 
 Help
 ====
@@ -44,31 +45,28 @@ Mindboggle
 
 Examples
 ========
-See `INSTALL <INSTALL.html>`_ for configuring memory and other settings
-and for mounting local (FreeSurfer, ANTs subject) directories
-in Mindboggle's virtual machine. The result is the file ``Vagrantfile''.
-
-Go to the directory with this Vagrantfile, and type the following two commands
-to launch and log into the Mindboggle virtual machine
-(requires an active internet connection)::
+If running Mindboggle in a virtual machine (recommended),
+type the following two commands in the same directory as the Vagrantfile
+you generated (see `INSTALL <INSTALL.html>`_) to launch and log into the
+Mindboggle virtual machine (requires an active internet connection)::
 
     vagrant up
     vagrant ssh
 
-Once logged in, you can type the following to process a single SUBJECT
-with a single processor with only FreeSurfer data (replace capitalized text
-in the commands below when typing in a terminal window;
-backslashes denote line returns)::
+Once logged in, you can type the following in a terminal window to run
+mindboggle on data that has been processed by FreeSurfer but not by ANTs
+(replace SUBJECT with the name of a subject directory created by FreeSurfer)::
 
     mindboggle SUBJECT
 
-The following example makes use of 8 processors as well as ANTs data
-(subject files prepended with a PREFIX, such as
-``/subjects_ants/OASIS-TRT-20-1/ants'')::
+The following example also makes use ANTs output files
+that begin with PREFIX (e.g., ``/home/vagrant/ants_subjects/subject1/ants``,
+corresponding to the **Inputs** example below), as well as 8 processors::
 
     mindboggle SUBJECT -n 8 --ants_prefix PREFIX
 
-This example uses many of the currently available options within Mindboggle::
+This example uses many of the currently available options within Mindboggle
+(backslash denotes a line return)::
 
     mindboggle SUBJECT -n 8 --ants_prefix PREFIX \
                --sulci --fundi --vertices --spectra 10 --thickness --visual hier
@@ -78,11 +76,11 @@ Inputs
 Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
 
-To generate FreeSurfer labeled cortical surfaces, and labeled cortical and
-noncortical volumes, run ``recon-all`` on each T1-weighted IMAGE file
-and set the SUBJECT name::
+**FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
+noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
+(e.g., subject1.nii.gz) and set the output SUBJECT name (e.g., to ``subject1``)::
 
-    recon-all -all -s SUBJECT -i IMAGE
+    recon-all -all -i IMAGE -s SUBJECT
 
 ..
     - mri/orig/001.mgz
@@ -90,16 +88,15 @@ and set the SUBJECT name::
     - surf/[lh,rh].pial
     - label/[lh,rh].aparc.annot
 
-ANTS provides brain volume extraction, segmentation, and registration-based labeling.
+**ANTs** provides brain volume extraction, segmentation, and registration-based labeling.
 To generate the ANTs transforms and segmentation files used by
-Mindboggle, run the antsCorticalThickness.sh script on the same
-IMAGE file, set an output PREFIX, provide paths to
+Mindboggle, run the antsCorticalThickness.sh script on the same IMAGE file,
+set an output PREFIX (e.g., ``/data/subject1/ants`` to create output files such as
+``/data/subject1/antsBrainExtractionMask.nii.gz``),
+and provide paths to
 `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
-files , set "-k 0"
-and set "-t" with the same input as "-e" (to save registration transforms).
-(The -k option is a boolean to *k*eep all files produced (even temporary ones).
-and the '-t' option is used to specify a target template for registration after the rest of the pipeline is finished.)::
-    antsCorticalThickness.sh -d 3 -k 0 -n 3 -w 0.25 \
+files::
+    antsCorticalThickness.sh -d 3 -n 3 -w 0.25 \
       -a IMAGE \
       -o PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
@@ -110,12 +107,10 @@ and the '-t' option is used to specify a target template for registration after 
 
 Outputs
 =======
-By default, all atlas and template data retrieved via the Internet
-as well as Nipype workflow files are saved in $HOME/mindboggle_cache/,
-and final outputs are saved in $HOME/mindboggled/
-(where $HOME is the home directory).
-Nifti_ image volumes (.nii.gz) store anatomical labels corresponding to the numbers
-listed in the mindboggle/LABELS.py file and `online <http://mindboggle.info/data/mindboggle101/protocol.txt>`_;
+By default, final outputs are saved in $HOME/mindboggled/ ($HOME is the
+home directory). Nifti_ image volumes (.nii.gz) store anatomical labels
+corresponding to the numbers listed in the mindboggle/LABELS.py file and
+`online <http://mindboggle.info/data/mindboggle101/protocol.txt>`_;
 all left and right cortical surface (.vtk) vertices are number-labeled
 by anatomical label, feature, or shape measure. Shape measure statistics
 are stored in tables (.csv).
@@ -191,6 +186,7 @@ are stored in tables (.csv).
         **ANTs_filled_labels_volumes_areas_thicknesses** .csv
 
         **ATLAS_labels_volumes** .csv:  *["--add_atlases ATLAS" output for each ATLAS]*
+
         --- *Tables with per-label or per-feature surface shape statistics* ---
 
         [left,right] _surface_ **label_shapes** .csv

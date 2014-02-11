@@ -1,10 +1,9 @@
 .. _INSTALL:
 
 ============
-Installation  **(Vagrantfile UNDER CONSTRUCTION)**
+Installation  **(UNDER CONSTRUCTION)**
 ============
-We highly recommend running Mindboggle as a virtual machine, since running
-Mindboggle only requires one to install two cross-platform programs,
+We highly recommend running Mindboggle as a virtual machine,
 but for those who wish to install from source code, see
 `INSTALL2 <http://mindboggle.info/users/INSTALL2.html>`_.
 
@@ -20,7 +19,7 @@ Vagrant_
 
 Virtualbox_
     VirtualBox is a x86 and AMD64/Intel64 virtualization product.
-    We use VirtualBox as backend provider for Vagrant;
+    We use VirtualBox as a backend provider for Vagrant;
     alternatives include VMware, Amazon Web Services,...
 
 Dependencies to generate input for Mindboggle
@@ -30,8 +29,6 @@ FreeSurfer_
     noncortical volumes.
     See `README <http://mindboggle.info/users/README.html>`_ for instructions
     on how to preprocess T1-weighted MRI data using the ``recon-all`` command.
-    NOTE: Mindboggle expects that the FreeSurfer SUBJECTS_DIR environment
-    variable is set.
 
 ANTS_
     ANTS provides brain volume extraction, tissue-class segmentation, and
@@ -47,26 +44,22 @@ ANTS_
 
 Virtual environment and mounted (FreeSurfer, ANTs) directories
 --------------------------------------------------------------
-Copy the mindboggle_vagrant.py file to wherever you want the vagrant startup
-directory to be. For help on setup options, type in a terminal::
+Mindboggle comes as a single installation program, **mindboggle_vagrant.py**,
+that you can copy to wherever you want the startup directory to be.
+For help on setup options, type in a terminal::
 
     python mindboggle_vagrant.py --help
 
-Generate Mindboggle's Vagrantfile so that the virtual machine
-mounts a local ANTs output directory, and
-uses 1 processor and up to 4096 MB memory and 50 percent of the CPU::
+The following command will set up a virtual machine that can access
+your local ANTs output directory::
 
-    python mindboggle_vagrant.py -n 1 -m 4096 --cpu 50 \
-                                 --ants /data/antsCorticalThickness
+    python mindboggle_vagrant.py --ants /data/ants_out
 
-Optional installations in virtual environment
----------------------------------------------
-After loading up the Mindboggle virtual environment (see README_),
-you have access to not only the Mindboggle distribution
-(Python and C++ source code in /vagrant/Mindboggle),
-but a miniconda (Anaconda) Python distribution (/anaconda),
-the Visualization ToolKit, and other dependencies.
-You can of course install your favorite software (e.g., fsl and afni)
-as well in this environment::
+You can also specify more options, for example, to use 8 processors
+and up to 4096 MB memory and 75 percent of the CPU::
 
-    sudo apt-get install fsl afni
+    python mindboggle_vagrant.py --ants /data/ants_out -n 8 -m 4096 --cpu 75
+
+The above command generates a file called ``Vagrantfile`` that will be used
+when we load up the virtual machine
+(see `README <http://mindboggle.info/users/README.html>`_).

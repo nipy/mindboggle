@@ -4,11 +4,12 @@
 Welcome to Mindboggle!
 ======================
 
-| We are developing Mindboggle to improve the accuracy, precision, and consistency of automated labeling
-| and shape analysis of human brain image data, and to promote open science by making all data, software,
-| and documentation freely and openly available.
+| We are developing Mindboggle to improve the accuracy, precision, and reliability
+| of automated labeling and shape analysis of human brain image data, and to
+| promote open science by making all data, software, and documentation
+| freely and openly available.
 |
-| We are working on a paper to accompany our upcoming first release!
+| We are gearing up for our first official release!
 
 ..
   .. raw:: html
@@ -22,8 +23,9 @@ Software
 
 Data
 ----
-| Feel free to download `Mindboggle-101`_ atlases, templates, and individual manually labeled brain image data,
-| the largest collection of publicly available, manually labeled human brains in the world!
+| Feel free to download `Mindboggle-101`_ atlases, templates, and individual
+| labeled brain image data, the largest collection of publicly available,
+| manually labeled human brains in the world!
 
 |
 .. image:: http://media.mindboggle.info/images/data/DKT_sulci_width400px.png
