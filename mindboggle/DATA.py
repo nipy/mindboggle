@@ -14,9 +14,7 @@ def hashes_url():
     """
     Hashes and URL to verify retrieved data used by the mindboggle software.
 
-    The atlases and templates are necessary for registration and labeling.
-    All other data files serve as example outputs of the mindboggle software
-    run on the left hemisphere of Twins-2-1 of the Mindboggle-101 data set.
+    Data include atlases and templates necessary for registration and labeling.
 
     Returns
     -------

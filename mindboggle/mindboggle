@@ -80,30 +80,74 @@ from mindboggle.utils.utils import list_strings
 #
 #=============================================================================
 parser = argparse.ArgumentParser(description="""
-                    The Mindboggle Python package automates shape analysis of
+                    The Mindboggle software automates shape analysis of
                     anatomical labels and features extracted from human brain
-                    MR image data. For up-to-date documentation, see
-                    http://mindboggle.info/documentation.html""",
+                    MR image data. For more information, please see
+                    http://mindboggle.info/users/README.html""",
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
-inputs_group = parser.add_argument_group('input arguments')
-outputs_group = parser.add_argument_group('output arguments')
-features_group = parser.add_argument_group('feature arguments')
-shapes_group = parser.add_argument_group('shape measure arguments')
-disable_group = parser.add_argument_group('disabling arguments')
-extras_group = parser.add_argument_group('bonus arguments')
+
+ants_group = parser.add_argument_group('ANTs inputs')
+features_group = parser.add_argument_group('more features')
+shapes_group = parser.add_argument_group('more shapes')
+inputs_group = parser.add_argument_group('modify inputs')
+outputs_group = parser.add_argument_group('modify outputs')
+extras_group = parser.add_argument_group('extras')
 
 parser.add_argument("SUBJECT",
-                    help=('Subject name corresponding to FreeSurfer subject '
-                          'directory'),
+                    help=('Subject name corresponding to the name of a '
+                          'directory in the FreeSurfer $SUBJECTS_DIR directory'),
                     nargs='+')
-
-parser.add_argument("-v", "--version", help="Version number",
+parser.add_argument("-v", "--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 parser.add_argument("-n",
-                    help=('Number of processors: "-n 1" (default)'),
-                    type=int,
-                    default=1, metavar='INT')
+                    help=('number of processors (default: 1)'),
+                    type=int, default=1, metavar='INT')
+
+ants_group.add_argument("--ants_segments",
+                    help=("Segmented file from antsCorticalThickness.sh"),
+                    metavar='STR')
+
+features_group.add_argument("--sulci", action='store_true',
+                    help="Extract, identify, and measure sulci")
+features_group.add_argument("--fundi", action='store_true',
+                    help="Extract, identify, and measure fundi "
+                         "[UNTESTED]")
+features_group.add_argument("--vertices", action='store_true',
+                    help=("Make table of per-vertex surface shape measures"))
+
+shapes_group.add_argument("--thickness", action='store_true',
+                    help="Compute cortical label thicknesses with ANTs")
+shapes_group.add_argument("--spectra",
+                    help='Number of Laplace-Beltrami spectrum eigenvalues '
+                         'per label/feature '
+                         '(recommended: 10; default OFF)',
+                    default=0, type=int, metavar='INT')
+shapes_group.add_argument("--moments",
+                    help='Order of Zernike moments per label/feature '
+                         '(recommended but SLOW: 10; default OFF) '
+                         '[UNTESTED]',
+                    default=0, type=int, metavar='INT')
+
+inputs_group.add_argument("--subjects_dir",
+                    help=("FreeSurfer subjects directory (default: "
+                          "$SUBJECTS_DIR)"),
+                    metavar='STR')
+inputs_group.add_argument("--volume_labels",
+                    help=("Volume labels: \"wmparc\" (default) or "
+                          "\"aparc+aseg\""),
+                    choices=['wmparc', 'aparc+aseg'],
+                    default='wmparc', metavar='STR')
+inputs_group.add_argument("--surface_labels",
+                    help=("Surface labels: \"freesurfer\" (default) or \"atlas\""),
+                    choices=['freesurfer', 'atlas', 'manual'],
+                    default='freesurfer', metavar='STR')
+inputs_group.add_argument("--my_segments",
+                    help=("Segmented file instead of --ants_segments"),
+                    metavar='STR')
+inputs_group.add_argument("--atlases", help=("Extra label volume atlas(es)"
+                                             " in MNI152 space"),
+                    nargs='+', metavar='')
 
 outputs_group.add_argument("--out",
                     help='Output directory (default: $HOME/mindboggled)',
@@ -114,76 +158,19 @@ outputs_group.add_argument("--working",
                          '(default: $HOME/mindboggle_working)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_working'), metavar='STR')
-outputs_group.add_argument("--cache", help='Download cache directory '
+outputs_group.add_argument("--cache", help='Download directory '
                                     '(default: $HOME/mindboggle_cache)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_cache'), metavar='STR')
-#inputs.add_argument("--run_freesurfer", action='store_true',
-#                    help=("Run recon-all -all to generate expected "
-#                          "FreeSurfer files, if not already done."))
-#inputs.add_argument("--run_ants", action='store_true',
-#                    help=("Run antsCorticalThickness.sh to extract,"
-#                          "segment, and register brain (and to provide"
-#                          "an additional measure of cortical thickness)"))
-inputs_group.add_argument("--freesurfer_data",
-                    help=("FreeSurfer subjects directory (default if not "
-                          "set: $SUBJECTS_DIR environment variable)"),
-                    metavar='STR')
-inputs_group.add_argument("--freesurfer_volume",
-                    help=("Volume labels: \"wmparc\" (default) or "
-                          "\"aparc+aseg\""),
-                    choices=['wmparc', 'aparc+aseg'],
-                    default='wmparc', metavar='STR')
-inputs_group.add_argument("--surface_labels",
-                    help=("Surface labels: \"freesurfer\" (default) or "
-                          "\"atlas\" (FreeSurfer older than 5.3)"),
-                    choices=['freesurfer', 'atlas', 'manual'],
-                    default='freesurfer', metavar='STR')
-inputs_group.add_argument("--ants_prefix",
-                    help=("Prefix string for "
-                          "antsCorticalThickness.sh output files: "
-                          "\"--ants_prefix /data/ants_output/subject1/ants\""),
-                    metavar='STR')
-inputs_group.add_argument("--use_segments",
-                    help=("Use this file for non/cortex segments"),
-                    metavar='STR')
-inputs_group.add_argument("--add_atlases", help=("Additional volume atlas(es)"
-                                       " in MNI152 space for labeling"),
-                    nargs='+', metavar='')
 
-features_group.add_argument("--sulci", action='store_true',
-                    help="Extract, identify, and measure sulci")
-features_group.add_argument("--fundi", action='store_true',
-                    help="Extract, identify, and measure fundi "
-                         "[UNDER EVALUATION]")
-features_group.add_argument("--vertices", action='store_true',
-                    help=("Make table of per-vertex surface shape measures"))
-
-shapes_group.add_argument("--spectra",
-                    help='Number of Laplace-Beltrami spectrum eigenvalues '
-                         'per label/feature to store in shape tables: '
-                         '"--spectra 10" (default is not to run)',
-                    default=0, type=int, metavar='INT')
-shapes_group.add_argument("--moments",
-                    help='Order of Zernike moments per label/feature '
-                         'to store in shape tables: "--moments 10" '
-                         'is suggested but SLOW (default is not to run) '
-                         '[UNDER EVALUATION]',
-                    default=0, type=int, metavar='INT')
-shapes_group.add_argument("--thickness", action='store_true',
-                    help="Compute cortical label thicknesses with "
-                         "thickinthehead() [calls ANTs]")
-
-disable_group.add_argument("--no_volumes", action='store_true',
+extras_group.add_argument("--no_volumes", action='store_true',
                     help="No volume labels, features, or shape tables")
-disable_group.add_argument("--no_surfaces", action='store_true',
+extras_group.add_argument("--no_surfaces", action='store_true',
                     help="No surface labels, features, or shape tables")
-disable_group.add_argument("--no_labels", action='store_true',
+extras_group.add_argument("--no_labels", action='store_true',
                     help="No surface or volume labels")
-disable_group.add_argument("--no_shapes", action='store_true',
+extras_group.add_argument("--no_shapes", action='store_true',
                     help="No shape tables of surface labels or features")
-#disable_group.add_argument("--no_freesurfer_inputs", action='store_true',
-#                    help="Don't use FreeSurfer (requires inputs -- UNTESTED)")
 
 extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
                                       '{hier,flat,exec}'),
@@ -191,30 +178,25 @@ extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visua
 extras_group.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
 extras_group.add_argument("--debug", action='store_true',
-                    help="Debug nipype with its DEBUG and "
+                    help="Debug nipype: DEBUG and "
                          "stop_on_first_rerun options")
-#extras_group.add_argument("--hashing", action='store_true',
-#                    help=("Use content hashing to, for example, "
-#                          "replace a file and run downstream of that step"))
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
 # Data arguments:
 #-----------------------------------------------------------------------------
-#run_freesurfer = args.run_freesurfer
-#run_ants = args.run_ants
 subject = args.SUBJECT
 do_ants = False
-freesurfer_data = args.freesurfer_data
-if not freesurfer_data:
-    freesurfer_data = os.environ['SUBJECTS_DIR']
-if args.ants_prefix:
-    ants_prefix = args.ants_prefix
+subjects_dir = args.subjects_dir
+if not subjects_dir:
+    subjects_dir = os.environ['SUBJECTS_DIR']
+if args.ants_segments:
+    ants_segments = args.ants_segments
     do_ants = True
-if args.use_segments:
-    use_segments = args.use_segments
+if args.my_segments:
+    my_segments = args.my_segments
 else:
-    use_segments = None
+    my_segments = None
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer data arguments:
 #-----------------------------------------------------------------------------
@@ -231,7 +213,7 @@ if no_freesurfer_inputs:
 #-----------------------------------------------------------------------------
 overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
-freesurfer_volume = args.freesurfer_volume
+volume_labels = args.volume_labels
 surface_labels = args.surface_labels
 no_surfaces = args.no_surfaces
 no_volumes = args.no_volumes
@@ -317,12 +299,12 @@ if not os.path.isdir(cache):
 #-----------------------------------------------------------------------------
 dkt = DKTprotocol()
 atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
-add_atlases = args.add_atlases
+atlases = args.atlases
 add_atlas_names = []
-if add_atlases:
-    if isinstance(add_atlases, str):
-        add_atlases = [add_atlases]
-    for add_atlas in add_atlases:
+if atlases:
+    if isinstance(atlases, str):
+        atlases = [atlases]
+    for add_atlas in atlases:
         add_atlas_names.append(os.path.basename(add_atlas).split('.')[0])
 atropos_to_MNI152_affine = 'OASIS-30_Atropos_template_to_MNI152_affine.txt'
 #-----------------------------------------------------------------------------
@@ -368,15 +350,15 @@ Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
 Sink.inputs.container = ''
 
-if use_segments:
-    seg_in = os.path.basename(use_segments)
+if my_segments:
+    seg_in = os.path.basename(my_segments)
 else:
     seg_in = 'combined_segmentations.nii.gz'
-fs_in = freesurfer_volume + '.nii.gz'
-fs_out = 'FreeSurfer_' + freesurfer_volume + '_labels.nii.gz'
+fs_in = volume_labels + '.nii.gz'
+fs_out = 'FreeSurfer_' + volume_labels + '_labels.nii.gz'
 fs_filled_in = fs_out +'_to_' + fs_out + '_through_' + seg_in + '_to_' + \
     fs_out + '_through_' + seg_in
-fs_filled_out = 'FreeSurfer_' + freesurfer_volume + '_filled_labels.nii.gz'
+fs_filled_out = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
 ants_filled_in = fs_out + '_to_' + \
     'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + seg_in
 ants_filled_out = 'ANTs_filled_labels.nii.gz'
@@ -414,14 +396,14 @@ if do_ants:
     #-------------------------------------------------------------------------
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
-                                  input_names=['prefix'],
+                                  input_names=['segmented_file'],
                                   output_names=['mask',
                                                 'segments',
                                                 'affine',
                                                 'warp',
                                                 'invwarp']))
     mbFlow.add_nodes([FetchANTs])
-    FetchANTs.inputs.prefix = ants_prefix
+    FetchANTs.inputs.segmented_file = ants_segments
     #-------------------------------------------------------------------------
     # Retrieve atlas path:
     #-------------------------------------------------------------------------
@@ -515,7 +497,7 @@ if do_surface:
                     interface=DataGrabber(infields=['subject', 'hemi'],
                                           outfields=['surface_files'],
                                           sort_filelist=False))
-    Surf.inputs.base_directory = freesurfer_data
+    Surf.inputs.base_directory = subjects_dir
     Surf.inputs.template = '%s/surf/%s.%s'
     Surf.inputs.template_args['surface_files'] = [['subject', 'hemi', 'pial']]
     if use_white_surface:
@@ -555,7 +537,7 @@ if do_surface:
                             interface=DataGrabber(infields=['subject','hemi'],
                                                   outfields=['atlas_file'],
                                                   sort_filelist=False))
-        SurfaceAtlas.inputs.base_directory = freesurfer_data
+        SurfaceAtlas.inputs.base_directory = subjects_dir
         SurfaceAtlas.inputs.template = '%s/label/%s.labels.DKT31.' +\
                                        surface_atlas_type + '.vtk'
         SurfaceAtlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
@@ -637,7 +619,7 @@ if do_surface:
                                                              'hemi'],
                                                    outfields=['annot_files'],
                                                    sort_filelist=False))
-                Annot.inputs.base_directory = freesurfer_data
+                Annot.inputs.base_directory = subjects_dir
                 Annot.inputs.template = '%s/label/%s.aparc.annot'
                 Annot.inputs.template_args['annot_files'] = [['subject',
                                                               'hemi']]
@@ -1379,7 +1361,7 @@ if do_volumes and do_label:
                    interface=DataGrabber(infields=['subject'],
                                          outfields=['mgh_orig'],
                                          sort_filelist=False))
-    mghOrig.inputs.base_directory = freesurfer_data
+    mghOrig.inputs.base_directory = subjects_dir
     mghOrig.inputs.template = '%s/mri/orig/001.mgz'
     mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
     mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
@@ -1405,8 +1387,8 @@ if do_volumes and do_label:
                            interface=DataGrabber(infields=['subject'],
                                                  outfields=['labels'],
                                                  sort_filelist=False))
-        labelsNifti.inputs.base_directory = freesurfer_data
-        labelsNifti.inputs.template = '%s/mri/' + freesurfer_volume+'.nii.gz'
+        labelsNifti.inputs.base_directory = subjects_dir
+        labelsNifti.inputs.template = '%s/mri/' + volume_labels+'.nii.gz'
         labelsNifti.inputs.template_args['labels'] = [['subject']]
         mbFlow.connect(InputSubjects, 'subject', labelsNifti, 'subject')
     #-------------------------------------------------------------------------
@@ -1420,8 +1402,8 @@ if do_volumes and do_label:
                          interface=DataGrabber(infields=['subject'],
                                                outfields=['labels'],
                                                sort_filelist=False))
-        labelsMGH.inputs.base_directory = freesurfer_data
-        labelsMGH.inputs.template = '%s/mri/' + freesurfer_volume+'.mgz'
+        labelsMGH.inputs.base_directory = subjects_dir
+        labelsMGH.inputs.template = '%s/mri/' + volume_labels+'.mgz'
         labelsMGH.inputs.template_args['labels'] = [['subject']]
         mbFlow.connect(InputSubjects, 'subject', labelsMGH, 'subject')
         #---------------------------------------------------------------------
@@ -1472,7 +1454,7 @@ if do_volumes and do_label:
     #=========================================================================
     # Combine FreeSurfer and ANTs cerebrum segmentation volumes
     #=========================================================================
-    if not use_segments:
+    if not my_segments:
         #---------------------------------------------------------------------
         # Extract FreeSurfer cerebrum labels:
         #---------------------------------------------------------------------
@@ -1585,8 +1567,8 @@ if do_volumes and do_label:
                                            output_names=['left_brain',
                                                          'right_brain']))
         VolLabelFlow.add_nodes([SplitBrainSegs])
-        if use_segments:
-            SplitBrainSegs.inputs.image_file = use_segments
+        if my_segments:
+            SplitBrainSegs.inputs.image_file = my_segments
         else:
             if do_ants:
                 if overwrite_cerebrum_with_cerebellum:
@@ -1646,8 +1628,8 @@ if do_volumes and do_label:
                                                      'stopvalue'],
                                         output_names=['output_file']))
     VolLabelFlow.add_nodes([FSFillNoncortex])
-    if use_segments:
-        FSFillNoncortex.inputs.mask = use_segments
+    if my_segments:
+        FSFillNoncortex.inputs.mask = my_segments
     else:
         if do_ants:
             if overwrite_cerebrum_with_cerebellum:
@@ -1749,8 +1731,8 @@ if do_volumes and do_label:
         FSFillCortex = FSFillNoncortex.clone(
                             'Fill_cortex_with_FreeSurfer_labels')
         VolLabelFlow.add_nodes([FSFillCortex])
-        if use_segments:
-            FSFillCortex.inputs.mask = use_segments
+        if my_segments:
+            FSFillCortex.inputs.mask = my_segments
         else:
             if do_ants:
                 if overwrite_cerebrum_with_cerebellum:
@@ -1854,8 +1836,8 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         ANTsFillCortex = FSFillNoncortex.clone('Fill_cortex_with_ANTs_labels')
         VolLabelFlow.add_nodes([ANTsFillCortex])
-        if use_segments:
-            ANTsFillCortex.inputs.mask = use_segments
+        if my_segments:
+            ANTsFillCortex.inputs.mask = my_segments
         else:
             if overwrite_cerebrum_with_cerebellum:
                 VolLabelFlow.connect(RemoveCerebellum, 'output_file',
@@ -1876,8 +1858,8 @@ if do_volumes and do_label:
             ANTsFillNoncortex = ANTsFillCortex.clone(
                 'Fill_noncortex_with_ANTs_labels')
             VolLabelFlow.add_nodes([ANTsFillNoncortex])
-            if use_segments:
-                ANTsFillNoncortex.inputs.mask = use_segments
+            if my_segments:
+                ANTsFillNoncortex.inputs.mask = my_segments
             else:
                 if overwrite_cerebrum_with_cerebellum:
                     VolLabelFlow.connect(RemoveCerebellum, 'output_file',
@@ -1962,7 +1944,7 @@ if do_volumes and do_label:
         VolLabelFlow.add_nodes([MatchAtlas])
         mbFlow.connect(InputAddAtlases, 'atlas', VolLabelFlow,
                        'Match_added_atlas.substring')
-        MatchAtlas.inputs.List = add_atlases
+        MatchAtlas.inputs.List = atlases
         #---------------------------------------------------------------------
         # Transform atlas:
         #---------------------------------------------------------------------
@@ -1991,7 +1973,7 @@ if do_volumes and do_label:
     #                                          outfields=['atlas_vol_file'],
     #                                          sort_filelist=False))
     #    VolLabelFlow.add_nodes([VolAtlas])
-    #    VolAtlas.inputs.base_directory = freesurfer_data
+    #    VolAtlas.inputs.base_directory = subjects_dir
     #    VolAtlas.inputs.template = '%s/mri/labels.DKT31.manual.nii.gz'
     #    VolAtlas.inputs.template_args['atlas_vol_file'] = [['subject']]
     #    mbFlow.connect(InputSubjects, 'subject',
@@ -2135,8 +2117,8 @@ if do_volumes and do_label:
                              output_names=['label_volume_area_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
-            if use_segments:
-                FSthicknesses.inputs.segmented_file = use_segments
+            if my_segments:
+                FSthicknesses.inputs.segmented_file = my_segments
             else:
                 if do_ants:
                     if overwrite_cerebrum_with_cerebellum:
@@ -2180,8 +2162,8 @@ if do_volumes and do_label:
                 ANTsThicknesses = FSthicknesses.\
                     clone('ANTs_filled_cortex_label_thicknesses')
                 VolShapeFlow.add_nodes([ANTsThicknesses])
-                if use_segments:
-                    ANTsThicknesses.inputs.segmented_file = use_segments
+                if my_segments:
+                    ANTsThicknesses.inputs.segmented_file = my_segments
                 else:
                     if overwrite_cerebrum_with_cerebellum:
                         VolLabelFlow.connect(RemoveCerebellum, 'output_file',
