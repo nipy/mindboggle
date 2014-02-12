@@ -392,19 +392,6 @@ Sink.inputs.regexp_substitutions = [
 #-----------------------------------------------------------------------------
 if do_ants:
     #-------------------------------------------------------------------------
-    # Retrieve ANTs data:
-    #-------------------------------------------------------------------------
-    FetchANTs = Node(name='Fetch_ants_data',
-                     interface=Fn(function=fetch_ants_data,
-                                  input_names=['segmented_file'],
-                                  output_names=['mask',
-                                                'segments',
-                                                'affine',
-                                                'warp',
-                                                'invwarp']))
-    mbFlow.add_nodes([FetchANTs])
-    FetchANTs.inputs.segmented_file = ants_segments
-    #-------------------------------------------------------------------------
     # Retrieve atlas path:
     #-------------------------------------------------------------------------
     FetchAtlas = Node(name='Fetch_atlas',
@@ -425,6 +412,21 @@ if do_ants:
     FetchAtlas.inputs.cache = cache
     FetchAtlas.inputs.return_missing = False
     FetchAtlas.inputs.lookup = True
+    #-------------------------------------------------------------------------
+    # Retrieve ANTs data:
+    #-------------------------------------------------------------------------
+    FetchANTs = Node(name='Fetch_ants_data',
+                     interface=Fn(function=fetch_ants_data,
+                                  input_names=['segmented_file',
+                                               'subject'],
+                                  output_names=['mask',
+                                                'segments',
+                                                'affine',
+                                                'warp',
+                                                'invwarp']))
+    mbFlow.add_nodes([FetchANTs])
+    FetchANTs.inputs.segmented_file = ants_segments
+    mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
     #-------------------------------------------------------------------------
     # Compose single affine transform from subject to MNI152:
     #-------------------------------------------------------------------------
@@ -725,10 +727,10 @@ if do_surface:
         # Measure surface area:
         #---------------------------------------------------------------------
         SurfaceArea = Node(name='Surface_area',
-                    interface=Fn(function=area,
-                                 input_names=['command',
-                                              'surface_file'],
-                                 output_names=['area_file']))
+                           interface=Fn(function=area,
+                                        input_names=['command',
+                                                     'surface_file'],
+                                        output_names=['area_file']))
         area_command = os.path.join(ccode_path, 'area', 'PointAreaMain')
         SurfaceArea.inputs.command = area_command
         #---------------------------------------------------------------------
@@ -884,7 +886,7 @@ if do_surface:
                                                         'folds_file']))
             SurfFeatureFlow.add_nodes([FoldsNode])
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
-                             SurfFeatureFlow, 'Folds.depth_file')
+                           SurfFeatureFlow, 'Folds.depth_file')
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
