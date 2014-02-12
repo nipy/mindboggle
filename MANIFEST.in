@@ -1,0 +1,12 @@
+include mindboggle/COMMIT_INFO.txt
+recursive-include mindboggle_tools
+include mindboggle_vagrant.py
+include INSTALL
+include INSTALL2
+include LABELS
+include LICENSE
+include MANIFEST.in
+include README
+include THANKS
+include setup.py
+include setup_egg.py

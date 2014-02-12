@@ -1,7 +1,0 @@
-
-
-[test]
-nose>=0.10.1
-
-[doc]
-Sphinx>=0.3

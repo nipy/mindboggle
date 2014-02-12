@@ -1,0 +1,4 @@
+
+Installation of Mindboggle C++ tools:
+
+From bin/ directory, type "ccmake .." (without quotes) to compile, then type "make".
