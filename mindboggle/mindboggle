@@ -29,7 +29,6 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #
 #=============================================================================
 import os
-import sys
 import argparse
 import warnings
 #-----------------------------------------------------------------------------
@@ -177,8 +176,7 @@ extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visua
 extras_group.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
 extras_group.add_argument("--debug", action='store_true',
-                    help="Debug nipype: DEBUG and "
-                         "stop_on_first_rerun options")
+                    help="Debug Nipype")
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
@@ -2116,14 +2114,24 @@ if do_volumes and do_label:
             else:
                 if do_ants:
                     if overwrite_cerebrum_with_cerebellum:
-                        VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                             FSthicknesses, 'segmented_file')
+                        mbFlow.connect(VolLabelFlow,
+                            'Remove_cerebrum_cerebellum_overlap.output_file',
+                            VolShapeFlow,
+                            'FreeSurfer_filled_cortex_label_thicknesses.'
+                            'segmented_file')
                     else:
-                        VolLabelFlow.connect(JoinSegs, 'output_file',
-                                             FSthicknesses, 'segmented_file')
+                        mbFlow.connect(VolLabelFlow,
+                            'Combine_FreeSurfer_ANTs_cerebrum_segments.'
+                            'output_file',
+                            VolShapeFlow,
+                            'FreeSurfer_filled_cortex_label_thicknesses.'
+                            'segmented_file')
                 else:
-                    VolLabelFlow.connect(FSsegments, 'output_file',
-                                         FSthicknesses, 'segmented_file')
+                    mbFlow.connect(VolLabelFlow,
+                        'FreeSurfer_cerebrum_labels_to_segments.output_file',
+                        VolShapeFlow,
+                        'FreeSurfer_filled_cortex_label_thicknesses.'
+                        'segmented_file')
             mbFlow.connect(VolLabelFlow,
                 'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                 VolShapeFlow,
@@ -2135,7 +2143,7 @@ if do_volumes and do_label:
             FSthicknesses.inputs.propagate = False
             FSthicknesses.inputs.output_dir = ''
             FSthicknesses.inputs.output_table = ''
-            FSthicknesses.inputs.use_c3d = False
+
             # Table:
             FSThickTable = FSVolTable.clone(
                 'FreeSurfer_filled_cortex_label_thickness_table')
