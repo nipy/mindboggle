@@ -96,8 +96,7 @@ extras_group = parser.add_argument_group('extras')
 
 parser.add_argument("SUBJECT",
                     help=('Subject name corresponding to the name of a '
-                          'directory in the FreeSurfer $SUBJECTS_DIR directory'),
-                    nargs='+')
+                          'directory in the FreeSurfer $SUBJECTS_DIR directory'))
 parser.add_argument("-v", "--version", help="version number",
                     action='version', version='%(prog)s 0.1')
 parser.add_argument("-n",
@@ -282,9 +281,9 @@ if args.cache:
 elif cache_env in os.environ.keys():
     cache = os.environ[cache_env]
 if args.working:
-    working = args.working
+    working = os.path.join(args.working, subject)
 else:
-    working = os.path.join(os.environ['HOME'], 'mindboggle_working')
+    working = os.path.join(os.environ['HOME'], 'mindboggle_working', subject)
 if not os.path.isdir(args.out):
     print("Create missing output directory: {0}".format(args.out))
     os.makedirs(args.out)
@@ -328,17 +327,15 @@ do_evaluate_vol_labels = False  # Volume overlap: auto vs. manual labels
 #=============================================================================
 mbFlow = Workflow(name='Mindboggle')
 mbFlow.base_dir = working
+
 #-----------------------------------------------------------------------------
-# Iterate inputs over subjects, hemispheres, and atlases
+# Iterate inputs over hemispheres and atlases
 # (surfaces are assumed to take the form: lh.pial or lh.pial.vtk)
 #-----------------------------------------------------------------------------
 if add_atlas_names:
     InputAddAtlases = Node(name='Input_volume_atlases',
                            interface=IdentityInterface(fields=['atlas']))
     InputAddAtlases.iterables = ('atlas', add_atlas_names)
-InputSubjects = Node(name='Input_subjects',
-                     interface=IdentityInterface(fields=['subject']))
-InputSubjects.iterables = ('subject', subject)
 InputHemis = Node(name='Input_hemispheres',
                   interface=IdentityInterface(fields=['hemi']))
 hemis = ['lh', 'rh']
@@ -348,7 +345,7 @@ InputHemis.iterables = ('hemi', hemis)
 #-----------------------------------------------------------------------------
 Sink = Node(DataSink(), name='Results')
 Sink.inputs.base_directory = args.out
-Sink.inputs.container = ''
+Sink.inputs.container = subject
 
 if my_segments:
     seg_in = os.path.basename(my_segments)
@@ -363,9 +360,8 @@ ants_filled_in = fs_out + '_to_' + \
     'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + seg_in
 ants_filled_out = 'ANTs_filled_labels.nii.gz'
 
-Sink.inputs.substitutions = [('_subject_', ''),
+Sink.inputs.substitutions = [    ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
-    ('lh.', ''), ('rh.', ''),
     ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
@@ -417,8 +413,7 @@ if do_ants:
     #-------------------------------------------------------------------------
     FetchANTs = Node(name='Fetch_ants_data',
                      interface=Fn(function=fetch_ants_data,
-                                  input_names=['segmented_file',
-                                               'subject'],
+                                  input_names=['segmented_file'],
                                   output_names=['mask',
                                                 'segments',
                                                 'affine',
@@ -426,7 +421,6 @@ if do_ants:
                                                 'invwarp']))
     mbFlow.add_nodes([FetchANTs])
     FetchANTs.inputs.segmented_file = ants_segments
-    mbFlow.connect(InputSubjects, 'subject', FetchANTs, 'subject')
     #-------------------------------------------------------------------------
     # Compose single affine transform from subject to MNI152:
     #-------------------------------------------------------------------------
@@ -513,7 +507,7 @@ if do_surface:
         Surf.inputs.template_args['freesurfer_convexity_files'] = \
             [['subject', 'hemi', 'sulc']]
 
-    mbFlow.connect(InputSubjects, 'subject', Surf, 'subject')
+    Surf.inputs.subject = subject
     mbFlow.connect(InputHemis, 'hemi', Surf, 'hemi')
     #-------------------------------------------------------------------------
     # Convert surfaces to VTK:
@@ -544,7 +538,7 @@ if do_surface:
                                        surface_atlas_type + '.vtk'
         SurfaceAtlas.inputs.template_args['atlas_file'] = [['subject','hemi']]
 
-        mbFlow.connect(InputSubjects, 'subject', SurfaceAtlas, 'subject')
+        SurfaceAtlas.inputs.subject = subject
         mbFlow.connect(InputHemis, 'hemi', SurfaceAtlas, 'hemi')
 
     #=========================================================================
@@ -571,8 +565,7 @@ if do_surface:
                                                         'annot_file'],
                                            output_names=['annot_file']))
             SurfLabelFlow.add_nodes([Classifier])
-            mbFlow.connect(InputSubjects, 'subject',
-                           SurfLabelFlow, 'mris_ca_label.subject')
+            Classifier.inputs.subject = subject
             mbFlow.connect(InputHemis, 'hemi',
                            SurfLabelFlow, 'mris_ca_label.hemi')
             left_classifier_file = 'lh.' + surface_classifier + '.gcs'
@@ -625,7 +618,7 @@ if do_surface:
                 Annot.inputs.template = '%s/label/%s.aparc.annot'
                 Annot.inputs.template_args['annot_files'] = [['subject',
                                                               'hemi']]
-                mbFlow.connect(InputSubjects, 'subject', Annot, 'subject')
+                Annot.inputs.subject = subject
                 mbFlow.connect(InputHemis, 'hemi', Annot, 'hemi')
             #-----------------------------------------------------------------
             # Convert Annot to VTK format:
@@ -1366,7 +1359,7 @@ if do_volumes and do_label:
     mghOrig.inputs.base_directory = subjects_dir
     mghOrig.inputs.template = '%s/mri/orig/001.mgz'
     mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
-    mbFlow.connect(InputSubjects, 'subject', mghOrig, 'subject')
+    mghOrig.inputs.subject = subject
     #---------------------------------------------------------------------
     # Convert FreeSurfer mgh conformal file to nifti format:
     #---------------------------------------------------------------------
@@ -1392,7 +1385,7 @@ if do_volumes and do_label:
         labelsNifti.inputs.base_directory = subjects_dir
         labelsNifti.inputs.template = '%s/mri/' + volume_labels+'.nii.gz'
         labelsNifti.inputs.template_args['labels'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', labelsNifti, 'subject')
+        labelsNifti.inputs.subject = subject
     #-------------------------------------------------------------------------
     # Convert FreeSurfer whole-brain label volume to nifti format:
     #-------------------------------------------------------------------------
@@ -1407,7 +1400,7 @@ if do_volumes and do_label:
         labelsMGH.inputs.base_directory = subjects_dir
         labelsMGH.inputs.template = '%s/mri/' + volume_labels+'.mgz'
         labelsMGH.inputs.template_args['labels'] = [['subject']]
-        mbFlow.connect(InputSubjects, 'subject', labelsMGH, 'subject')
+        labelsMGH.inputs.subject = subject
         #---------------------------------------------------------------------
         # Convert FreeSurfer mgh conformal file to nifti format:
         #---------------------------------------------------------------------
@@ -1978,8 +1971,7 @@ if do_volumes and do_label:
     #    VolAtlas.inputs.base_directory = subjects_dir
     #    VolAtlas.inputs.template = '%s/mri/labels.DKT31.manual.nii.gz'
     #    VolAtlas.inputs.template_args['atlas_vol_file'] = [['subject']]
-    #    mbFlow.connect(InputSubjects, 'subject',
-    #                   VolLabelFlow, 'Volume_atlas.subject')
+    #    VolAtlas.inputs.subject = subject
     #    #---------------------------------------------------------------------
     #    # Evaluate volume labels
     #    #---------------------------------------------------------------------
