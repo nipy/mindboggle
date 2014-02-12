@@ -10,7 +10,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def fetch_ants_data(segmented_file):
+def fetch_ants_data(segmented_file, subject):
     """
     Fetch antsCorticalThickness.sh output.
 
@@ -25,6 +25,8 @@ def fetch_ants_data(segmented_file):
     ----------
     segmented_file : string
         full path to a subject's antsCorticalThickness.sh segmented file
+    subject : string
+        name of FreeSurfer subject directory (needed for nipype)
 
     Returns
     -------
@@ -45,7 +47,8 @@ def fetch_ants_data(segmented_file):
     --------
     >>> from mindboggle.utils.ants import fetch_ants_data
     >>> segmented_file = 'ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
-    >>> fetch_ants_data(segmented_file)
+    >>> subject = 'OASIS-TRT-20-1'
+    >>> fetch_ants_data(segmented_file, subject)
 
     """
     import os
