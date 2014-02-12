@@ -10,26 +10,21 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def fetch_ants_data(prefix):
+def fetch_ants_data(segmented_file):
     """
     Fetch antsCorticalThickness.sh output.
 
-    The input argument "prefix" is a string that prepends all of the relevant
-    antsCorticalThickness.sh output files.
-
-    If prefix == "/home/arno/subject1/ants", then the following would be
-    the relevant output files used by Mindboggle:
-        /home/arno/subject1/antsBrainExtractionMask.nii.gz
-        /home/arno/subject1/antsBrainSegmentation.nii.gz
-        /home/arno/subject1/antsTemplateToSubject0GenericAffine.mat
-        /home/arno/subject1/antsTemplateToSubject1Warp.nii.gz
-        /home/arno/subject1/antsTemplateToSubject1InverseWarp.nii.gz
+    The input argument "segmented_file" is one of the relevant
+    antsCorticalThickness.sh output files called by Mindboggle:
+        ants_subjects/subject1/antsBrainExtractionMask.nii.gz
+        ants_subjects/subject1/antsBrainSegmentation.nii.gz
+        ants_subjects/subject1/antsTemplateToSubject0GenericAffine.mat
+        ants_subjects/subject1/antsTemplateToSubject1Warp.nii.gz
 
     Parameters
     ----------
-    prefix : string
-        full path (containing antsCorticalThickness.sh results)
-        plus user-defined stem at the beginning of the files
+    segmented_file : string
+        full path to a subject's antsCorticalThickness.sh segmented file
 
     Returns
     -------
@@ -49,14 +44,16 @@ def fetch_ants_data(prefix):
     Examples
     --------
     >>> from mindboggle.utils.ants import fetch_ants_data
-    >>> prefix = '/homedir/Data/antsCorticalThickness/OASIS-TRT-20-1/ants'
-    >>> fetch_ants_data(prefix)
+    >>> segmented_file = 'ants_subjects/OASIS-TRT-20-1/tmpBrainSegmentation.nii.gz'
+    >>> fetch_ants_data(segmented_file)
 
     """
     import os
 
+    prefix = segmented_file.strip('BrainSegmentation.nii.gz')
+
     mask = prefix + 'BrainExtractionMask.nii.gz'
-    segments = prefix + 'BrainSegmentation.nii.gz'
+    segments = segmented_file
     affine = prefix + 'TemplateToSubject0GenericAffine.mat'
     warp = prefix + 'TemplateToSubject1Warp.nii.gz'
     invwarp = prefix + 'TemplateToSubject1InverseWarp.nii.gz'
