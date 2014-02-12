@@ -54,21 +54,21 @@ Mindboggle virtual machine (requires an active internet connection)::
     vagrant ssh
 
 Once logged in, you can type the following in a terminal window to run
-mindboggle on data that has been processed by FreeSurfer but not by ANTs
+mindboggle on data that has been processed by FreeSurfer
 (replace SUBJECT with the name of a subject directory created by FreeSurfer)::
 
     mindboggle SUBJECT
 
-The following example also makes use ANTs output files
-that begin with PREFIX (e.g., ``/home/vagrant/ants_subjects/subject1/ants``,
-corresponding to the **Inputs** example below), as well as 8 processors::
+The following example also makes use ANTs output files and 8 processors
+(replace SEGMENTS with the ANTs segmented output, such as
+``ants_subjects/subject1/tmpBrainSegmentation.nii.gz``)::
 
-    mindboggle SUBJECT -n 8 --ants_prefix PREFIX
+    mindboggle SUBJECT --ants_segments SEGMENTS -n 8
 
 This example uses many of the currently available options within Mindboggle
 (backslash denotes a line return)::
 
-    mindboggle SUBJECT -n 8 --ants_prefix PREFIX \
+    mindboggle SUBJECT --ants_segments SEGMENTS -n 8 \
                --sulci --fundi --vertices --spectra 10 --thickness --visual hier
 
 Inputs
@@ -84,16 +84,14 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 
 ..
     - mri/orig/001.mgz
-    - mri/aparc+aseg.mgz
+    - mri/[wmparc,aparc+aseg].mgz
     - surf/[lh,rh].pial
     - label/[lh,rh].aparc.annot
 
 **ANTs** provides brain volume extraction, segmentation, and registration-based labeling.
 To generate the ANTs transforms and segmentation files used by
 Mindboggle, run the antsCorticalThickness.sh script on the same IMAGE file,
-set an output PREFIX (e.g., ``/data/subject1/ants`` to create output files such as
-``/data/subject1/antsBrainExtractionMask.nii.gz``),
-and provide paths to
+set an output PREFIX, and provide paths to
 `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
 files::
     antsCorticalThickness.sh -d 3 -n 3 -w 0.25 \
