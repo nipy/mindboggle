@@ -141,37 +141,43 @@ are stored in tables (.csv).
 
         **ANTs_filled_labels** .nii.gz:  *[revised non/cortex each filled with ANTs labels + FreeSurfer cerebellar labels]*
 
-        [left,right] _surface_ **FreeSurfer_cortex_labels** .vtk:  *[surface labels]*
+        **ATLAS_labels** .nii.gz:  *["--atlases ATLAS" output for each ATLAS]*
 
-        **ATLAS_labels** .nii.gz:  *["--add_atlases ATLAS" output for each ATLAS]*
+        [left_surface, right_surface] /
+
+            **FreeSurfer_cortex_labels** .vtk:  *[surface labels]*
 
     **features** /
 
         --- *Features extracted from cortical surface meshes* ---
 
-        [left,right] _surface_ **folds** .vtk:  *[depth-based cortical surface folds (invaginations)]*
+        [left_surface, right_surface] /
 
-        [left,right] _surface_ **sulci** .vtk:  *[folds segmented into sulci using label pairs]*
+            **folds** .vtk:  *[depth-based cortical surface folds (invaginations)]*
 
-        UNDER EVALUATION: [left,right] _surface_ **fundus_per_fold** .vtk:  *[curves running along depths of folds]*
+            **sulci** .vtk:  *[folds segmented into sulci using label pairs]*
 
-        UNDER EVALUATION: [left,right] _surface_ **fundus_per_sulcus** .vtk:  *[fundus curves segmented by sulcus labels]*
+            UNDER EVALUATION: **fundus_per_fold** .vtk:  *[curves running along depths of folds]*
+
+            UNDER EVALUATION: **fundus_per_sulcus** .vtk:  *[fundus curves segmented by sulcus labels]*
 
     **shapes** /
 
         --- *Per-vertex surface shape measures* ---
 
-        [left,right] _surface_ **area** .vtk
+        [left_surface, right_surface] /
 
-        [left,right] _surface_ **mean_curvature** .vtk
+            **area** .vtk
 
-        [left,right] _surface_ **geodesic_depth** .vtk
+            **mean_curvature** .vtk
 
-        [left,right] _surface_ **travel_depth** .vtk
+            **geodesic_depth** .vtk
 
-        [left,right] _surface_ **FreeSurfer_convexity** .vtk:  *[FreeSurfer's [lh,rh].sulc files]*
+            **travel_depth** .vtk
 
-        [left,right] _surface_ **FreeSurfer_thickness** .vtk:  *[FreeSurfer's [lh,rh].thickness files]*
+            **FreeSurfer_convexity** .vtk:  *[FreeSurfer's [lh,rh].sulc files]*
+
+            **FreeSurfer_thickness** .vtk:  *[FreeSurfer's [lh,rh].thickness files]*
 
     **tables** /
 
@@ -185,16 +191,18 @@ are stored in tables (.csv).
 
         **ANTs_filled_labels_volumes_areas_thicknesses** .csv
 
-        **ATLAS_labels_volumes** .csv:  *["--add_atlases ATLAS" output for each ATLAS]*
+        **ATLAS_labels_volumes** .csv:  *["--atlases ATLAS" output for each ATLAS]*
 
         --- *Tables with per-label or per-feature surface shape statistics* ---
 
-        [left,right] _surface_ **label_shapes** .csv
+        [left_surface, right_surface] /
 
-        [left,right] _surface_ **sulcus_shapes** .csv
+        **label_shapes** .csv
 
-        UNDER EVALUATION: [left,right] _surface_ **fundus_shapes** .csv
+        **sulcus_shapes** .csv
+
+        UNDER EVALUATION: **fundus_shapes** .csv
 
         --- *Table with per-vertex shape measures* ---
 
-        [left,right] _surface_ **vertices** .csv
+        **vertices** .csv
