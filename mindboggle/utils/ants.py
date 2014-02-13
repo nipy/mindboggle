@@ -655,7 +655,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Returns
     -------
-    label_volume_area_thickness : list of lists of integers and floats
+    label_volume_area51_thickness : list of lists of integers and floats
         label indices, volumes, areas, and thickness values
     table_file : string
         name of output table file
@@ -679,7 +679,7 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> propagate = False
     >>> output_dir = ''
     >>> output_table = ''
-    >>> label_volume_area_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table)
+    >>> label_volume_area51_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table)
 
     """
     import os
@@ -786,8 +786,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         labeled_data = nb.load(labeled_file).get_data().ravel()
         labels = np.unique(labeled_data)
     labels = [int(x) for x in labels]
-    label_volume_area_thickness = np.zeros((len(labels), 4))
-    label_volume_area_thickness[:,0] = labels
+    label_volume_area51_thickness = np.zeros((len(labels), 4))
+    label_volume_area51_thickness[:,0] = labels
     for ilabel, label in enumerate(labels):
 
         #---------------------------------------------------------------------
@@ -809,22 +809,22 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             else:
                 label_area = label_inner_edge_volume
             thickness = label_cortex_volume / label_area
-            label_volume_area_thickness[ilabel,1] = label_cortex_volume
-            label_volume_area_thickness[ilabel,2] = label_area
-            label_volume_area_thickness[ilabel,3] = thickness
+            label_volume_area51_thickness[ilabel,1] = label_cortex_volume
+            label_volume_area51_thickness[ilabel,2] = label_area
+            label_volume_area51_thickness[ilabel,3] = thickness
             print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
-                  'outer={3:2.2f}, area={4:2.2f}, thickness={5:2.2f}mm'.
+                  'outer={3:2.2f}, area51={4:2.2f}, thickness={5:2.2f}mm'.
                   format(label, label_cortex_volume, label_inner_edge_volume,
                   label_outer_edge_volume, label_area, thickness))
 
     if output_table:
         table_file = os.path.join(output_dir, output_table)
-        np.savetxt(table_file, label_volume_area_thickness,
+        np.savetxt(table_file, label_volume_area51_thickness,
                    fmt='%d %2.4f %2.4f %2.4f', delimiter='\t', newline='\n')
     else:
         table_file = ''
 
-    label_volume_area_thickness = label_volume_area_thickness.\
+    label_volume_area51_thickness = label_volume_area51_thickness.\
         transpose().tolist()
 
-    return label_volume_area_thickness, table_file
+    return label_volume_area51_thickness, table_file
