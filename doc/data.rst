@@ -1,13 +1,12 @@
-====
+==============================================================================
 Data
-====
-
+==============================================================================
 | Welcome to the world's largest collection of freel, manually labeled human brain image data!
 | Please cite the following article and this website when making use of Mindboggle-101 data:
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
 |
-| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, labeling protocol_, the `CHANGELOG <http://mindboggle.info/data/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
+| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, `labels <http://mindboggle.info/faq/labels.html>`_, the `CHANGELOG <http://mindboggle.info/data/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
 | which describe the labeled nifti volumes (nii), vtk surfaces (vtk), and FreeSurfer files (mgh, etc.).
 | Except where noted, all data are licensed under a Creative Commons License: |CC_license|_
 
@@ -16,9 +15,9 @@ Data
 .. image:: http://media.mindboggle.info/images/data/DKT_labels_width400px.png
 |
 
+------------------------------------------------------------------------------
 Mindboggle-101 atlases
-----------------------
-
+------------------------------------------------------------------------------
 | Each of the 101 manually labeled individual brain surfaces and volumes is an atlas,
 | a labeled or annotated brain image that can be used in registration-based labeling.
 | We have combined the individual labels to create aggregate atlases here as well.
@@ -41,9 +40,9 @@ Mindboggle-101 atlases
 
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants (2012)
 
+------------------------------------------------------------------------------
 Mindboggle-101 templates
-------------------------
-
+------------------------------------------------------------------------------
 |  A template is an unlabeled image used as a reference or standard, often for
 |  registering other images to each other. Each one of the image volumes and
 |  surfaces below was constructed by combining the images from multiple subjects.
@@ -74,9 +73,9 @@ Mindboggle-101 templates
   - `MMRR-21 surface`_ template from 21 brains (2012)
   - `HLN-12 surface`_ template from 12 brains (2012)
 
+------------------------------------------------------------------------------
 Mindboggle-101: Individual, manually labeled brain surfaces and volumes
------------------------------------------------------------------------
-
+------------------------------------------------------------------------------
 |  The Mindboggle-101 dataset includes labeled anatomical regions for `101 healthy subjects`_.
 |  The manually edited cortical labels follow sulcus landmarks according to the
 |  Desikan-Killiany-Tourville (DKT) protocol (reference at top).
@@ -153,9 +152,9 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 .. _`OASIS-TRT-20 surface`: http://mindboggle.info/data/templates/freesurfer/OASIS-TRT-20_surface_template.tar.gz
 
 
+------------------------------------------------------------------------------
 Other templates and manually labeled brains
--------------------------------------------
-
+------------------------------------------------------------------------------
 | The following images are not from the Mindboggle-101 data above, and the manual labels are not the same
 | as those of the DKT labeling protocol used for the Mindboggle-101 data above:
 
@@ -190,3 +189,5 @@ Other templates and manually labeled brains
 .. _`CUMC12 brain`: http://mindboggle.info/data/templates/ants/CUMC-12_template.nii.gz
 .. _`LPBA40 brain`: http://mindboggle.info/data/templates/ants/LPBA-40_template.nii.gz
 .. _`pediatric template`: http://www.mit.edu/~satra/research/pubdata/index.html
+
+.. include:: ./links.txt

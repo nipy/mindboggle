@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 """
-Brain label numbers, names, and colormap related to the DKT labeling protocol.
+
+==============================================================================
+Brain label numbers, names, and colormap related to the DKT labeling protocol
+==============================================================================
 
 For more information about the Desikan-Killiany-Tourville
 cortical labeling protocol see http://mindboggle.info/data
@@ -11,9 +14,9 @@ http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
 DOI: 10.3389/fnins.2012.00171
 
-==============================================================================
+------------------------------------------------------------------------------
 Combined/eliminated regions:
-==============================================================================
+------------------------------------------------------------------------------
 (1) Temporal (33) and frontal (32) poles, and bankstss (see note #1)
     regions eliminated, corresponding cortex absorbed by adjacent regions.
 (2) Caudal (2), isthmus (10), posterior (23), and rostral anterior (26)
@@ -45,68 +48,72 @@ rely on the margins of sulcal banks.
 
 (5) Parahippocampal + entorhinal cortex + and lingual gyrus?
 
-==============================================================================
+------------------------------------------------------------------------------
 Regions bounded by sulcal fundi:
-==============================================================================
+------------------------------------------------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Lateral surface:
-------------------------------------------------------------------------------
-frontomarginal sulcus: [12,28]
-superior frontal: [3,28],[27,28]
-inferior frontal: [3,18],[3,19],[3,20], [18,27],[19,27],[20,27]
-precentral: [24,28]*, [[3,24],[24,27]]*, [[18,24],[19,24],[20,24]]*
-central sulcus: [22,24]
-postcentral: [22,29],[22,31], not:[22,24]
-intraparietal: [29,31], [8,29]
-primary intermediate sulcus /
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- frontomarginal sulcus: [12,28]
+- superior frontal: [3,28],[27,28]
+- inferior frontal: [3,18],[3,19],[3,20], [18,27],[19,27],[20,27]
+- precentral: [24,28]*, [[3,24],[24,27]]*, [[18,24],[19,24],[20,24]]*
+- central sulcus: [22,24]
+- postcentral: [22,29],[22,31], not:[22,24]
+- intraparietal: [29,31], [8,29]
+- primary intermediate sulcus /
     1st segment of the posterior superior temporal sulcus: [8,31]*
-sylvian fissure: [30,31]*, not:[18,30] (see note #2)
-lateral occipital sulcus: [8,11]*,[11,29]*
-anterior occipital sulcus: [11,15]*,[9,11]
-superior temporal sulcus: [15,30]
-inferior temporal sulcus: [9,15]*
-------------------------------------------------------------------------------
+- sylvian fissure: [30,31]*, not:[18,30] (see note #2)
+- lateral occipital sulcus: [8,11]*,[11,29]*
+- anterior occipital sulcus: [11,15]*,[9,11]
+- superior temporal sulcus: [15,30]
+- inferior temporal sulcus: [9,15]*
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 PeriSylvian area (folds within the Sylvian fissure):
-------------------------------------------------------------------------------
-circular sulcus: [12,35],[30,35],[34,35], [2,35],[10,35],[23,35],[26,35],
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- circular sulcus: [12,35],[30,35],[34,35], [2,35],[10,35],[23,35],[26,35],
                  [22,35], [24,35], [31,35]
-1st transverse temporal sulcus: [30,34]
-Heschl's sulcus: [30,34]
-------------------------------------------------------------------------------
+- 1st transverse temporal sulcus: [30,34]
+- Heschl's sulcus: [30,34]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Medial surface:
-------------------------------------------------------------------------------
-cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see note #3),
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- cingulate sulcus: [2,14],[10,14],[14,23],[14,26] (see note #3),
                   [2,28],[10,28],[23,28],[26,28],
                   [2,17],[10,17],[17,23],[17,26], [17,25]
-paracentral sulcus: [17,28]*
-parietooccipital fissure: [5,25]
-calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (note #4)
-superior rostral sulcus: [14,28]
-callosal sulcus: [2,4],[4,10],[4,23],[4,26]
-------------------------------------------------------------------------------
+- paracentral sulcus: [17,28]*
+- parietooccipital fissure: [5,25]
+- calcarine fissure: [13,25], [2,13],[10,13],[13,23],[13,26] not:[5,13] (note #4)
+- superior rostral sulcus: [14,28]
+- callosal sulcus: [2,4],[4,10],[4,23],[4,26]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Ventral surface:
-------------------------------------------------------------------------------
-lateral H-shaped orbital sulcus: [3,12],[12,27], [12,18],[12,19],[12,20]
-olfactory sulcus: [12,14]
-occipitotemporal sulcus: [7,9],[7,11]
-collateral sulcus: [6,7], [7,13], [7,16]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- lateral H-shaped orbital sulcus: [3,12],[12,27], [12,18],[12,19],[12,20]
+- olfactory sulcus: [12,14]
+- occipitotemporal sulcus: [7,9],[7,11]
+- collateral sulcus: [6,7], [7,13], [7,16]
 
-==============================================================================
+------------------------------------------------------------------------------
 What boundaries will NEVER be derived by fundi, but instead by curvature, etc.
-==============================================================================
+------------------------------------------------------------------------------
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Regions bounded by sulcal margins:
-------------------------------------------------------------------------------
-interhemispheric fissure, dorsal margin:
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+- interhemispheric fissure, dorsal margin:
     [17,28],[17,24],[17,22],[25,29],[5,29],[5,11]
-calcarine sulcus, dorsal margin: [5,21]
-calcarine sulcus, ventral margin: [21,13]
-------------------------------------------------------------------------------
+- calcarine sulcus, dorsal margin: [5,21]
+- calcarine sulcus, ventral margin: [21,13]
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 Regions with additional non-sulcal boundaries with subcortical regions:
-------------------------------------------------------------------------------
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 [16,6,9,30,12,14]
 
-==============================================================================
+------------------------------------------------------------------------------
 Notes:
-==============================================================================
+------------------------------------------------------------------------------
 [1] This was eliminated b/c it spanned the superior temporal sulcus fundus
     and because the anterior boundary was ambiguous.
 [2] The insula lies b/w these regions and is separated from them by the

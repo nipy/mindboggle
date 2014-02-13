@@ -1,10 +1,8 @@
-.. _python-faq:
+.. _PYTHON:
 
 =============
  Why Python?
 =============
-
-.. _why-python:
 
 From Nipy's documentation::
 
