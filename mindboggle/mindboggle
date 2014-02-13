@@ -358,7 +358,7 @@ ants_filled_in = fs_out + '_to_' + \
     'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + seg_in
 ants_filled_out = 'ANTs_filled_labels.nii.gz'
 
-Sink.inputs.substitutions = [    ('lh.', ''), ('rh.', ''),
+Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
     ('pial.', ''),
     ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
@@ -368,18 +368,10 @@ Sink.inputs.substitutions = [    ('lh.', ''), ('rh.', ''),
     (fs_filled_in, fs_filled_out),
     (ants_filled_in, ants_filled_out),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
-
-Sink.inputs.regexp_substitutions = [
-    (r'/_atlas_(.*)/ANTS_labels.nii.gz',
+Sink.inputs.regexp_substitutions = [ (r'/_atlas_(.*)/ANTS_labels.nii.gz',
      r'/\1_labels.nii.gz'),
     (r'/_atlas_(.*)/added_atlas_labels_volumes.csv',
-     r'/\1_labels_volumes.csv'),
-    (r'/left_surface/(.*)/(.*)', r'/\1/left_surface_\2'),
-    (r'/right_surface/(.*)/(.*)', r'/\1/right_surface_\2'),
-    (r'/features/(.*)/', r'/\1/features/'),
-    (r'/labels/(.*)/', r'/\1/labels/'),
-    (r'/shapes/(.*)/', r'/\1/shapes/'),
-    (r'/tables/(.*)/', r'/\1/tables/')]
+     r'/\1_labels_volumes.csv')]
 
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
