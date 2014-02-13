@@ -2168,11 +2168,18 @@ if do_volumes and do_label:
                     ANTsThicknesses.inputs.segmented_file = my_segments
                 else:
                     if overwrite_cerebrum_with_cerebellum:
-                        VolLabelFlow.connect(RemoveCerebellum, 'output_file',
-                                             ANTsThicknesses, 'segmented_file')
+                        mbFlow.connect(VolLabelFlow,
+                            'Remove_cerebrum_cerebellum_overlap.output_file',
+                            VolShapeFlow,
+                            'ANTs_filled_cortex_label_thicknesses.'
+                            'segmented_file')
                     else:
-                        VolLabelFlow.connect(JoinSegs, 'output_file',
-                                             ANTsThicknesses, 'segmented_file')
+                        mbFlow.connect(VolLabelFlow,
+                            'Combine_FreeSurfer_ANTs_cerebrum_segments.'
+                            'output_file',
+                            VolShapeFlow,
+                            'ANTs_filled_cortex_label_thicknesses.'
+                            'segmented_file')
                 if overwrite_cerebrum_with_cerebellum:
                     mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',

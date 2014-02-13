@@ -62,7 +62,7 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'mindboggle'
-copyright = '2012, Mindboggle team' 
+copyright = 'Mindboggle team'
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -181,10 +181,10 @@ htmlhelp_basename = project
 # (source start file, target name, title, author, document class
 # [howto/manual]).
 
-latex_documents = [
-  ('documentation', 'mindboggle.tex', 'Neuroimaging in Python Documentation',
-   ur'Neuroimaging in Python team.','manual'),
-  ]
+#latex_documents = [
+#  ('documentation', 'mindboggle.tex', 'Neuroimaging in Python Documentation',
+#   ur'Neuroimaging in Python team.','manual'),
+#  ]
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.

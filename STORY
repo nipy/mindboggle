@@ -1,10 +1,4 @@
-.. _mindboggle-faq:
-
-==========
-Background
-==========
-
-.. _purpose:
+.. _STORY:
 
 Purpose
 -------
@@ -13,9 +7,6 @@ The purpose of Mindboggle is to improve the accuracy, precision, and
 consistency of labeling and morphometry of brain imaging data,
 and to promote open science by making all data, software, and documentation
 freely and openly available.
-
-
-.. _motivation:
 
 Motivation
 ----------
@@ -32,9 +23,6 @@ answering the neuroscientific and clinical questions that interest them.
    Carp, J. (2012) *The secret lives of experiments:
    Methods reporting in the fMRI literature*. NeuroImage, 63(1), 289–300.
    doi:10.1016/j.neuroimage.2012.07.004
-
-
-.. _history:
 
 History
 -------
@@ -59,7 +47,7 @@ People who have contributed to the codebase during this period include:
 
     - `Forrest Bao`_
     - `Satrajit Ghosh`_
-    - `Joachim Giard`_
+    - Joachim Giard
     - Yrjö Häme
     - Eliezer Stavsky
 
@@ -72,7 +60,6 @@ shape analysis.  Tank Think Labs joined this effort:
     - Brian Rossa
     - Oliver Hinds
 
-For more information about the Mindboggle team, see http://mindboggle.info/people.html.
-
-
-.. include:: ../links.txt
+Please see our updated list of
+`contributors <http://mindboggle.info/users/THANKS.html>`_
+and Mindboggle `team page <http://mindboggle.info/people.html>`_.

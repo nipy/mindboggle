@@ -42,8 +42,8 @@ ANTS_
     on how to preprocess T1-weighted MRI data using the
     ``antsCorticalThickness.sh`` script.
 
-Virtual environment and mounted (FreeSurfer, ANTs) directories
---------------------------------------------------------------
+Virtual environment and mounted subjects directories
+----------------------------------------------------
 Mindboggle comes as a single installation program, **mindboggle_vagrant.py**,
 that you can copy to wherever you want the startup directory to be.
 For help on setup options, type in a terminal::
