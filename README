@@ -1,9 +1,8 @@
 .. _README:
 
-===============
-Software README
-===============
-
+==============================================================================
+Software
+==============================================================================
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
 Mindboggle can be run as a single command, and can be
@@ -11,22 +10,22 @@ easily installed as a cross-platform virtual machine for convenience and
 reproducibility of results. Behind the scenes runs open source
 Python and C++ code within a Nipype pipeline framework.
 
+------------------------------------------------------------------------------
 Help
-====
-- See below for information about Mindboggle inputs and outputs.
-- `Online documentation <http://mindboggle.info/documentation.html>`_
-- `Installation instructions <INSTALL.html>`_
-- Help on the command line in a terminal window::
+------------------------------------------------------------------------------
+- Help in a terminal window (see below for inputs and outputs)::
 
     mindboggle --help
 
+- `Documentation <http://mindboggle.info/documentation.html>`_
+- `Installation <http://mindboggle.info/users/INSTALL.html>`_
+- `FAQ <http://mindboggle.info/faq/index.html>`_
 - `License <http://mindboggle.info/users/LICENSE.html>`_
-- `Background <http://mindboggle.info/faq/background.html>`_
-- `Contributors <THANKS.html>`_
+- `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
+------------------------------------------------------------------------------
 Mindboggle
-==========
-
+------------------------------------------------------------------------------
     1. combines non/cortex segmentations from FreeSurfer and ANTs software packages
     2. propagates FreeSurfer and ANTs-registered labels through cortex and noncortex voxels
     3. computes label volumes and cortical label thicknesses
@@ -43,8 +42,9 @@ Mindboggle
         - Laplace-Beltrami spectra
         - Zernike moments [UNDER EVALUATION]
 
+------------------------------------------------------------------------------
 Examples
-========
+------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
 type the following two commands in the same directory as the Vagrantfile
 you generated (see `INSTALL <INSTALL.html>`_) to launch and log into the
@@ -71,8 +71,9 @@ This example uses many of the currently available options within Mindboggle
     mindboggle SUBJECT --ants_segments SEGMENTS -n 8 \
                --sulci --fundi --vertices --spectra 10 --thickness --visual hier
 
+------------------------------------------------------------------------------
 Inputs
-======
+------------------------------------------------------------------------------
 Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
 
@@ -103,8 +104,9 @@ files::
       -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
+------------------------------------------------------------------------------
 Outputs
-=======
+------------------------------------------------------------------------------
 By default, final outputs are saved in $HOME/mindboggled/ ($HOME is the
 home directory). Nifti_ image volumes (.nii.gz) store anatomical labels
 corresponding to the numbers listed in the mindboggle/LABELS.py file and
@@ -196,4 +198,3 @@ are stored in tables (.csv).
         --- *Table with per-vertex shape measures* ---
 
         [left,right] _surface_ **vertices** .csv
-
