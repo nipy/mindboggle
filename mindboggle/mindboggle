@@ -2098,7 +2098,7 @@ if do_volumes and do_label:
                                           'propagate',
                                           'output_dir',
                                           'output_table'],
-                             output_names=['label_volume_area_thickness',
+                             output_names=['label_volume_area51_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
             if my_segments:
@@ -2141,7 +2141,7 @@ if do_volumes and do_label:
                 'FreeSurfer_filled_cortex_label_thickness_table')
             VolShapeFlow.add_nodes([FSThickTable])
             VolShapeFlow.connect(FSthicknesses,
-                                 'label_volume_area_thickness',
+                                 'label_volume_area51_thickness',
                                  FSThickTable, 'columns')
             FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
                                                 'volumes', 'areas',
@@ -2187,7 +2187,7 @@ if do_volumes and do_label:
                     'ANTs_filled_cortex_label_thickness_table')
                 VolShapeFlow.add_nodes([ANTsThickTable])
                 VolShapeFlow.connect(ANTsThicknesses,
-                                     'label_volume_area_thickness',
+                                     'label_volume_area51_thickness',
                                      ANTsThickTable, 'columns')
                 ANTsThickTable.inputs.column_names = ['ANTs_filled_labels',
                                                       'volumes', 'areas',
