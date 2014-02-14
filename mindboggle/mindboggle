@@ -368,7 +368,8 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     (fs_filled_in, fs_filled_out),
     (ants_filled_in, ants_filled_out),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
-Sink.inputs.regexp_substitutions = [ (r'/_atlas_(.*)/ANTS_labels.nii.gz',
+Sink.inputs.regexp_substitutions = [
+    (r'/_atlas_(.*)/ANTs_added_atlas_labels.nii.gz',
      r'/\1_labels.nii.gz'),
     (r'/_atlas_(.*)/added_atlas_labels_volumes.csv',
      r'/\1_labels_volumes.csv')]

@@ -161,7 +161,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     config.vm.define :build do |build_config|
 
         # Build from an existing Vagrant virtual box:
-        build_config.vm.box = "base"
+        build_config.vm.box = "precise64"
         build_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
 
         # Create a forwarded port mapping which allows access to a specific port
@@ -188,10 +188,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
 
         # Build from the mindboggle.box Vagrant virtual box
         # (VirtualBox caches it so you only download once):
-#        install_config.vm.box = "mindboggle"
-#        install_config.vm.box_url = "http://mindboggle.info/mindboggle_20120214.box"
-        install_config.vm.box = "baseplus"
-        install_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+        install_config.vm.box = "mindboggle_install"
+        install_config.vm.box_url = "http://mindboggle.info/mindboggle_20140214.box"
         install_config.vm.hostname = "boggler"
 
         # Create a forwarded port mapping which allows access to a specific port
