@@ -1,13 +1,13 @@
 #!/usr/bin/env python
 """
 Evaluate deep surface features by computing the minimum distance from each
-label boundary vertex to all of the feature vertices in the same fold.
-The label boundaries run along the deepest parts of many folds and
+label boundary vertex to all of the feature vertices in the same sulcus.
+The label boundaries run along the deepest parts of many sulci and
 correspond to fundi in the DKT cortical labeling protocol.
 
 Examples
 --------
-$ python evaluate_fundi.py fundi.vtk folds.vtk lh.labels.DKT25.manual.vtk
+$ python evaluate_fundi.py
 
 
 Authors:
@@ -18,26 +18,26 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def evaluate_deep_features(features_file, labels_file, folds_file='',
+def evaluate_deep_features(features_file, labels_file, sulci_file='',
                            output_vtk='', exclude=[-1]):
     """
     Evaluate deep surface features by computing the minimum distance from each
-    label boundary vertex to all of the feature vertices in the same fold.
-    The label boundaries run along the deepest parts of many folds and
+    label boundary vertex to all of the feature vertices in the same sulcus.
+    The label boundaries run along the deepest parts of sulci and
     correspond to fundi in the DKT cortical labeling protocol.
 
     Parameters
     ----------
     features_file : string
         VTK surface file with feature numbers for vertex scalars
-    folds_file : string
-        VTK surface file with fold numbers for vertex scalars
     labels_file : string
         VTK surface file with label numbers for vertex scalars
+    sulci_file : string
+        VTK surface file with sulcus numbers for vertex scalars
     output_vtk : string
         name of output VTK file containing surface with distances as scalars
-    exclude_values : list of integers or floats
-        values to exclude (background)
+    exclude : list of integers or floats
+        values to exclude (background otherwise set to -1)
 
     Returns
     -------
@@ -49,7 +49,7 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
     """
     import sys
     import numpy as np
-    from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_scalars
+    from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.utils.segment import extract_borders
     from mindboggle.utils.compute import source_to_target_distances
@@ -57,17 +57,17 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
 
     dkt = DKTprotocol()
 
-    # Load labels, features, and folds:
+    # Load labels, features, and sulci:
     faces, lines, indices, points, npoints, labels, scalar_names, \
         input_vtk = read_vtk(labels_file, True, True)
     features, name = read_scalars(features_file, True, True)
-    if folds_file:
-        folds, name = read_scalars(folds_file, True, True)
-        # List of indices to fold vertices:
-        fold_indices = [i for i,x in enumerate(folds) if x > 0]
-        segmentIDs = folds
+    if sulci_file:
+        sulci, name = read_scalars(sulci_file, True, True)
+        # List of indices to sulcus vertices:
+        sulcus_indices = [i for i,x in enumerate(sulci) if x > 0]
+        segmentIDs = sulci
     else:
-        fold_indices = range(len(labels))
+        sulcus_indices = range(len(labels))
         segmentIDs = []
 
     # Calculate neighbor lists for all points:
@@ -78,18 +78,23 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
     print('Prepare a list of unique, sorted label pairs in the protocol...')
     nsulcus_lists = len(dkt.sulcus_label_pair_lists)
 
-    # Find label boundary points in any of the folds:
-    print('Find label boundary points in any of the folds...')
+    # Find label boundary points in any of the sulci:
+    print('Find label boundary points in any of the sulci...')
     border_indices, border_label_tuples, unique_border_label_tuples = \
-        extract_borders(fold_indices, labels, neighbor_lists,
+        extract_borders(sulcus_indices, labels, neighbor_lists,
                         ignore_values=[], return_label_pairs=True)
     if not len(border_indices):
         sys.exit('There are no label boundary points!')
 
+    if exclude:
+        background = exclude[0]
+    else:
+        background = -1
+
     # Initialize an array of label boundaries fundus IDs
     # (label boundary vertices that define sulci in the labeling protocol):
     print('Build an array of label boundary fundus IDs...')
-    label_boundary_fundi = exclude * np.ones(npoints)
+    label_boundary_fundi = background * np.ones(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
@@ -104,8 +109,8 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
         if fundus_indices:
             label_boundary_fundi[fundus_indices] = isulcus + 1
 
-    feature_mean_distances = np.zeros(nsulcus_lists)
-    feature_std_distances = np.zeros(nsulcus_lists)
+    feature_mean_distances = background * np.ones(nsulcus_lists)
+    feature_std_distances = background * np.ones(nsulcus_lists)
 
     if len(np.unique(label_boundary_fundi)) > 1:
 
@@ -120,8 +125,8 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
 
         # Compute mean distances for each feature:
         for ifeature in range(nsulcus_lists):
-            feature_distances = distance_matrix[:, ifeature]
-            feature_distances = [x for x in feature_distances if x not in exclude]
+            feature_distances = [x for x in distance_matrix[:, ifeature]
+                                 if x != background]
             feature_mean_distances[ifeature] = np.mean(feature_distances)
             feature_std_distances[ifeature] = np.std(feature_distances)
 
@@ -133,8 +138,8 @@ def evaluate_deep_features(features_file, labels_file, folds_file='',
         # Write resulting feature-label boundary distances to VTK file:
         if output_vtk:
             print('Write distances to a VTK file for visualization...')
-            write_scalars(output_vtk, points, range(npoints), faces,
-                          [distances], ['feature-label_boundary_distances'])
+            write_vtk(output_vtk, points, [], [], faces,
+                      [distances], ['feature-label_boundary_distances'])
 
     return feature_mean_distances, feature_std_distances, output_vtk
 
@@ -175,32 +180,32 @@ if __name__ == "__main__":
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
 
-                # Identify surface files with labels and folds:
+                # Identify surface files with labels and sulci:
                 mdir = os.path.join(fmethod, subject)
                 labels_file = os.path.join(mdir, 'labels', surf,
                                            'relabeled_labels.DKT31.manual.vtk')
-                folds_file = os.path.join(mdir, 'features', surf, 'folds.vtk')
+                sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
                 output_vtk = os.path.join(output_dir,
                                           subject + '_fundus-label_distances.vtk')
 
                 # Identify features file:
                 if nmethod == 0:
                     features_file = os.path.join(mdir, 'features', surf,
-                                                 'fundus_per_fold.vtk')
+                                                 'fundus_per_sulcus.vtk')
                 else:
                     features_file = os.path.join(fmethod,
                         '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
                         hemi + '.pial.fundi.vtk')
 
-                # Compute distances from features to label boundaries in folds
+                # Compute distances from features to label boundaries in sulci
                 # corresponding to fundi:
                 feature_mean_distances, feature_std_distances, \
                 output_vtk = evaluate_deep_features(features_file, labels_file,
-                                                    folds_file, output_vtk,
+                                                    sulci_file, output_vtk,
                                                     exclude=[-1])
                 print('***')
                 print('Input features:' + features_file)
-                print('Input folds:' + folds_file)
+                print('Input sulci:' + sulci_file)
                 print('Input labels:' + labels_file)
                 print('Output VTK file:' + output_vtk)
                 print('feature_mean_distances:')

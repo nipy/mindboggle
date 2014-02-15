@@ -278,7 +278,7 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
 
 
 def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
-                    output_file=''):
+                    erase_labels=[-1], erase_value=-1, output_file=''):
     """
     Relabel surface in a VTK file.
 
@@ -295,6 +295,10 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     new_labels : list of integers
         new labels (empty list if labels drawn from vtk scalars);
         may be used in conjunction with hemi
+    erase_labels : list of integers
+        values to erase (set to erase_value); NOTE: include erase_value
+    erase_value : integer
+        set vertices with labels in erase_labels to this value
     output_file : string
         new vtk file name
 
@@ -313,9 +317,11 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     >>> hemi = 'lh'
     >>> old_labels = []
     >>> new_labels = []
+    >>> erase_labels = [-1, 0]
+    >>> erase_value = -1
     >>> output_file = ''
     >>> #
-    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, output_file)
+    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, erase_labels, erase_value, output_file)
     >>> # View
     >>> plot_surfaces('relabeled_lh.labels.DKT25.manual.vtk')
 
@@ -332,7 +338,10 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     if hemi and not old_labels and not new_labels:
         ulabels = np.unique(scalars)
         for label in ulabels:
-            if label != -1:
+            if label in erase_labels:
+                I = np.where(scalars == int(label))[0]
+                scalars[I] = erase_value
+            else:
                 I = np.where(scalars == int(label))[0]
                 if hemi == 'lh':
                     scalars[I] = 1000 + int(label)
