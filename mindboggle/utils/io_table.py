@@ -807,7 +807,7 @@ def write_average_face_values_per_label(input_indices_vtk,
                     input_values_vtk='', area_file='',
                     output_stem='', exclude_values=[-1], background_value=-1):
     """
-    Write out a separate VTK file for each integer (!=-1)
+    Write out a separate VTK file for each integer
     in (the first) scalar list of an input VTK file.
     Optionally write the values drawn from a second VTK file.
 
