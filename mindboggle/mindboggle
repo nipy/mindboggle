@@ -1138,50 +1138,47 @@ if do_surface:
                                               'sulcus_table',
                                               'fundus_table']))
         mbFlow.add_nodes([ShapeTables])
+        ShapeTables.inputs.labels_or_file = []
+        ShapeTables.inputs.sulci = []
+        ShapeTables.inputs.fundi = []
+        ShapeTables.inputs.affine_transform_file = None
+        ShapeTables.inputs.transform_format = None
+        ShapeTables.inputs.freesurfer_convexity_file = ''
+        ShapeTables.inputs.freesurfer_thickness_file = ''
+        ShapeTables.inputs.labels_spectra = []
+        ShapeTables.inputs.sulci_spectra = []
+        ShapeTables.inputs.labels_spectra_IDs = []
+        ShapeTables.inputs.sulci_spectra_IDs = []
+        ShapeTables.inputs.labels_zernike = []
+        ShapeTables.inputs.sulci_zernike = []
+        ShapeTables.inputs.labels_zernike_IDs = []
+        ShapeTables.inputs.sulci_zernike_IDs = []
         if do_label:
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            ShapeTables, 'labels_or_file')
-        else:
-            ShapeTables.inputs.labels_or_file = []
         if do_sulci:
             mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
                            ShapeTables, 'sulci')
-        else:
-            ShapeTables.inputs.sulci = []
         if do_fundi:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        else:
-            ShapeTables.inputs.fundi = []
-
         if do_ants:
             mbFlow.connect(ComposeAffine, 'output_transform_file',
                            ShapeTables, 'affine_transform_file')
             ShapeTables.inputs.transform_format = 'itk'
-        else:
-            ShapeTables.inputs.affine_transform_file = None
-            ShapeTables.inputs.transform_format = None
 
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
-                           [('Surface_area.area_file',
-                             'area_file'),
-                            ('Curvature.mean_curvature_file',
-                             'mean_curvature_file'),
-                            ('Travel_depth.depth_file',
-                             'travel_depth_file'),
-                            ('Geodesic_depth.depth_file',
-                             'geodesic_depth_file')])])
+                   [('Surface_area.area_file', 'area_file'),
+                    ('Curvature.mean_curvature_file', 'mean_curvature_file'),
+                    ('Travel_depth.depth_file', 'travel_depth_file'),
+                    ('Geodesic_depth.depth_file', 'geodesic_depth_file')])])
         if do_freesurfer_convexity:
             mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
                            ShapeTables, 'freesurfer_convexity_file')
-        else:
-            ShapeTables.inputs.freesurfer_convexity_file = ''
         if do_freesurfer_thickness:
             mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
                            ShapeTables, 'freesurfer_thickness_file')
-        else:
-            ShapeTables.inputs.freesurfer_thickness_file = ''
 
         # Laplace-Beltrami spectra:
         if do_spectra:
@@ -1200,11 +1197,6 @@ if do_surface:
             else:
                 ShapeTables.inputs.sulci_spectra = []
                 ShapeTables.inputs.sulci_spectra_IDs = []
-        else:
-            ShapeTables.inputs.labels_spectra = []
-            ShapeTables.inputs.sulci_spectra = []
-            ShapeTables.inputs.labels_spectra_IDs = []
-            ShapeTables.inputs.sulci_spectra_IDs = []
 
         # Zernike moments:
         if do_zernike:
@@ -1223,11 +1215,6 @@ if do_surface:
             else:
                 ShapeTables.inputs.sulci_zernike = []
                 ShapeTables.inputs.sulci_zernike_IDs = []
-        else:
-            ShapeTables.inputs.labels_zernike = []
-            ShapeTables.inputs.sulci_zernike = []
-            ShapeTables.inputs.labels_zernike_IDs = []
-            ShapeTables.inputs.sulci_zernike_IDs = []
 
         ShapeTables.inputs.exclude_labels = [-1]
         ShapeTables.inputs.delimiter = ","
@@ -1258,30 +1245,28 @@ if do_surface:
                                     output_names=['output_table']))
             mbFlow.add_nodes([VertexTable])
             VertexTable.inputs.output_table = ''
+            VertexTable.inputs.labels_or_file = []
+            VertexTable.inputs.sulci = []
+            VertexTable.inputs.fundi = []
+            VertexTable.inputs.affine_transform_file = None
+            VertexTable.inputs.transform_format = None
+            VertexTable.inputs.freesurfer_thickness_file = ''
+            VertexTable.inputs.freesurfer_convexity_file = ''
             if do_label:
                 mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                                VertexTable, 'labels_or_file')
-            else:
-                VertexTable.inputs.labels_or_file = []
             if do_sulci:
                 mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci',
                                VertexTable, 'sulci')
-            else:
-                VertexTable.inputs.sulci = []
             if do_fundi:
                 mbFlow.connect(SurfFeatureFlow,
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
-            else:
-                VertexTable.inputs.fundi = []
 
             if do_ants:
                 mbFlow.connect(ComposeAffine, 'output_transform_file',
                                VertexTable, 'affine_transform_file')
                 VertexTable.inputs.transform_format = 'itk'
-            else:
-                VertexTable.inputs.affine_transform_file = None
-                VertexTable.inputs.transform_format = None
 
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
@@ -1295,14 +1280,10 @@ if do_surface:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Thickness_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_thickness_file')
-            else:
-                VertexTable.inputs.freesurfer_thickness_file = ''
             if do_freesurfer_convexity:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Convexity_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_convexity_file')
-            else:
-                VertexTable.inputs.freesurfer_convexity_file = ''
 
             VertexTable.inputs.delimiter = ","
             mbFlow.connect(VertexTable, 'output_table',
@@ -2020,11 +2001,13 @@ if do_volumes and do_label:
         #---------------------------------------------------------------------
         FSlabelVolumes = Node(name='FreeSurfer_filled_label_volumes',
                               interface=Fn(function=volume_per_label,
-                                           input_names=['labels',
-                                                        'input_file'],
+                                           input_names=['input_file',
+                                                        'labels',
+                                                        'exclude_labels'],
                                            output_names=['labels_volumes']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
         FSlabelVolumes.inputs.labels = dkt.label_numbers
+        FSlabelVolumes.inputs.exclude_labels = [-1]
         mbFlow.connect(VolLabelFlow,
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
@@ -2043,6 +2026,8 @@ if do_volumes and do_label:
             antsLabelVolumes = FSlabelVolumes.clone(
                 'ANTs_filled_label_volumes')
             VolShapeFlow.add_nodes([antsLabelVolumes])
+            antsLabelVolumes.inputs.labels = dkt.label_numbers
+            antsLabelVolumes.inputs.exclude_labels = [-1]
             if overwrite_cerebrum_with_cerebellum:
                 mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
@@ -2068,6 +2053,8 @@ if do_volumes and do_label:
                 antsLabelVolumes2 = FSlabelVolumes.clone(
                     'Added_atlas_label_volumes')
                 VolShapeFlow.add_nodes([antsLabelVolumes2])
+                antsLabelVolumes2.inputs.labels = []
+                antsLabelVolumes2.inputs.exclude_labels = [-1]
                 mbFlow.connect(VolLabelFlow,
                                'Transform_added_atlases.output_image',
                                VolShapeFlow,
@@ -2076,6 +2063,7 @@ if do_volumes and do_label:
                 antsVolTable2 = FSVolTable.clone(
                     'Added_atlas_label_volume_table')
                 VolShapeFlow.add_nodes([antsVolTable2])
+                antsLabelVolumes2.inputs.labels = []
                 antsVolTable2.inputs.column_names = ['added_atlas_labels',
                                                      'volumes']
                 VolShapeFlow.connect(antsLabelVolumes2, 'labels_volumes',
@@ -2103,7 +2091,7 @@ if do_volumes and do_label:
                                           'propagate',
                                           'output_dir',
                                           'output_table'],
-                             output_names=['label_volume_area51_thickness',
+                             output_names=['label_volume_thickness',
                                            'thickness_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
             if my_segments:
@@ -2146,11 +2134,10 @@ if do_volumes and do_label:
                 'FreeSurfer_filled_cortex_label_thickness_table')
             VolShapeFlow.add_nodes([FSThickTable])
             VolShapeFlow.connect(FSthicknesses,
-                                 'label_volume_area51_thickness',
+                                 'label_volume_thickness',
                                  FSThickTable, 'columns')
             FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
-                                                'volumes', 'areas',
-                                                'thicknesses']
+                    'volumes', 'thickinthehead() cortical thicknesses']
             mbFlow.connect(VolShapeFlow,
             'FreeSurfer_filled_cortex_label_thickness_table.output_table',
             Sink, 'tables.@thicknesses_of_FreeSurfer_labels')
@@ -2192,11 +2179,10 @@ if do_volumes and do_label:
                     'ANTs_filled_cortex_label_thickness_table')
                 VolShapeFlow.add_nodes([ANTsThickTable])
                 VolShapeFlow.connect(ANTsThicknesses,
-                                     'label_volume_area51_thickness',
+                                     'label_volume_thickness',
                                      ANTsThickTable, 'columns')
                 ANTsThickTable.inputs.column_names = ['ANTs_filled_labels',
-                                                      'volumes', 'areas',
-                                                      'thicknesses']
+                    'volumes', 'thickinthehead() cortical thicknesses']
                 mbFlow.connect(VolShapeFlow,
                    'ANTs_filled_cortex_label_thickness_table.output_table',
                    Sink, 'tables.@thicknesses_of_ANTs_filled_cortex_labels')
