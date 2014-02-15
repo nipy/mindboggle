@@ -780,21 +780,23 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
            lower_quarts, upper_quarts, label_list
 
 
-def volume_per_label(labels, input_file):
+def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
     """
     Compute volume per labeled region in a nibabel-readable image.
 
     Parameters
     ----------
-    labels : list of integers
-        label numbers for image volumes
     input_file : string
         name of image file, consisting of index-labeled pixels/voxels
+    labels : list of integers
+        label numbers for image volumes (if empty, use unique numbers in file)
+    exclude_labels : list of integers
+        label IDs to exclude
 
     Returns
     -------
     labels_volumes : list of integer list and float list
-        label numbers for image volumes, and volume for each labeled region
+        label numbers and volume for each labeled region (default -1)
 
     Examples
     --------
@@ -804,28 +806,30 @@ def volume_per_label(labels, input_file):
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> dkt = DKTprotocol()
-    >>> labels_volumes = volume_per_label(dkt.label_numbers, input_file)
+    >>> labels_volumes = volume_per_label(input_file, dkt.label_numbers, [-1])
     >>> print(labels_volumes)
 
     """
     import numpy as np
     import nibabel as nb
 
-    # Load labeled image volumes
+    # Load labeled image volumes:
     img = nb.load(input_file)
     hdr = img.get_header()
     pixdims = hdr.get_zooms()
     volume_per_voxel = np.product(pixdims)
     data = img.get_data().ravel()
 
-    # Initialize output
-    volumes = np.zeros(len(labels))
+    # Initialize output:
+    if not labels:
+        labels = np.unique(data).tolist()
+    labels = [int(x) for x in labels if x not in exclude_labels]
+    volumes = -1 * np.ones(len(labels))
 
-    # Loop through labels
+    # Loop through labels:
     for ilabel, label in enumerate(labels):
-        label = int(label)
 
-        # Find which voxels contain the label in each volume
+        # Find which voxels contain the label in each volume:
         indices = np.where(data==label)[0]
         volumes[ilabel] = volume_per_voxel * len(indices)
 
