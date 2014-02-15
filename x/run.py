@@ -17,7 +17,8 @@ if run_all:
         for n in range(1,number+1):
             s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
                 '{2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz ' \
-                '--sulci --fundi --vertices --spectra 10 --thickness'\
+                '--sulci --fundi --vertices --spectra 10 --thickness ' \
+                '--surface_labels manual'\
                 .format(name, n, ants_dir, prefix)
             print(s)
             os.system(s)
@@ -32,7 +33,9 @@ if run_all:
         for n in range(1,number+1):
             s = 'mindboggle -n 8 {0}-{1} --ants_segments {2}/{0}-{1}/' \
                 'antsBrainSegmentation.nii.gz --sulci --fundi --vertices ' \
-                '--spectra 10 --thickness'.format(name, n, ants_dir, prefix)
+                '--spectra 10 --thickness '\
+                '--surface_labels manual'\
+                .format(name, n, ants_dir, prefix)
             print(s)
             os.system(s)
 
@@ -45,7 +48,9 @@ else:
     ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness' #OASIS-TRT-20_volumes/OASIS-TRT-20-11
 
     for number in enumerate(numbers):
-        s = 'mindboggle -n 6 {0}-{1} --ants_segments {2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi --vertices --spectra 10 --thickness'.format(name, number, ants_dir, prefix)
+        s = 'mindboggle -n 6 {0}-{1} --ants_segments {2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz --sulci ' \
+                '--fundi --vertices --spectra 10 --thickness ' \
+                '--surface_labels manual'.format(name, number, ants_dir, prefix)
         print(s)
         os.system(s)
     """
@@ -60,7 +65,7 @@ else:
     for number in numbers:
         s = 'mindboggle -n 6 {0}-{1} --ants_segments ' \
             '{2}/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi ' \
-            '--vertices --spectra 10 --thickness'.format(name, number,
-                                                         ants_dir, prefix)
+            '--vertices --spectra 10 --thickness ' \
+            '--surface_labels manual'.format(name, number, ants_dir, prefix)
         print(s)
         os.system(s)

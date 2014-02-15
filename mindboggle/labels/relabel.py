@@ -332,11 +332,12 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     if hemi and not old_labels and not new_labels:
         ulabels = np.unique(scalars)
         for label in ulabels:
-            I = np.where(scalars == int(label))[0]
-            if hemi == 'lh':
-                scalars[I] = 1000 + int(label)
-            elif hemi == 'rh':
-                scalars[I] = 2000 + int(label)
+            if label != -1:
+                I = np.where(scalars == int(label))[0]
+                if hemi == 'lh':
+                    scalars[I] = 1000 + int(label)
+                elif hemi == 'rh':
+                    scalars[I] = 2000 + int(label)
     # OR replace each old label with a corresponding new label
     # (hemisphere setting optionally adds 1000 or 2000 to the new label):
     else:
