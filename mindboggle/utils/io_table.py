@@ -1149,7 +1149,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     For example, extract the median travel depth column for a given feature
     (label region or sulcus ID) across a set of subjects, and make a table.
 
-    Expects: <tables_dir>/['left','right']/<subject>/<table_name>
+    Expects::
+        <tables_dir>/<subject>/tables/['left','right']_surface/<table_name>
 
     Parameters
     ----------
@@ -1215,7 +1216,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     #-------------------------------------------------------------------------
     tables = []
     for subject in subjects:
-        tables.append(os.path.join(tables_dir, hemi, subject, table_name))
+        tables.append(os.path.join(tables_dir, subject, 'tables',
+                                   hemi+'_surface', table_name))
 
     #-------------------------------------------------------------------------
     # Extract columns and construct new table:
