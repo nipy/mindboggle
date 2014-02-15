@@ -10,12 +10,15 @@ if run_all:
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
     numbers = [20,21,22,20]
     prefix = 'ants'
-    ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness' #OASIS-TRT-20_volumes/OASIS-TRT-20-11
+    ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness'
 
     for i,name in enumerate(names):
         number = numbers[i]
         for n in range(1,number+1):
-            s = 'mindboggle -n 8 {0}-{1} --ants_segments {2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi --vertices --spectra 10 --thickness'.format(name, n, ants_dir, prefix)
+            s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
+                '{2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz ' \
+                '--sulci --fundi --vertices --spectra 10 --thickness'\
+                .format(name, n, ants_dir, prefix)
             print(s)
             os.system(s)
 
@@ -27,7 +30,9 @@ if run_all:
     for i,name in enumerate(names):
         number = numbers[i]
         for n in range(1,number+1):
-            s = 'mindboggle -n 8 {0}-{1} --ants_segments {2}/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi --vertices --spectra 10 --thickness'.format(name, n, ants_dir, prefix)
+            s = 'mindboggle -n 8 {0}-{1} --ants_segments {2}/{0}-{1}/' \
+                'antsBrainSegmentation.nii.gz --sulci --fundi --vertices ' \
+                '--spectra 10 --thickness'.format(name, n, ants_dir, prefix)
             print(s)
             os.system(s)
 
@@ -53,6 +58,9 @@ else:
     ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness/Extra-18_volumes'
 
     for number in numbers:
-        s = 'mindboggle -n 6 {0}-{1} --ants_segments {2}/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi --vertices --spectra 10 --thickness'.format(name, number, ants_dir, prefix)
+        s = 'mindboggle -n 6 {0}-{1} --ants_segments ' \
+            '{2}/{0}-{1}/antsBrainSegmentation.nii.gz --sulci --fundi ' \
+            '--vertices --spectra 10 --thickness'.format(name, number,
+                                                         ants_dir, prefix)
         print(s)
         os.system(s)
