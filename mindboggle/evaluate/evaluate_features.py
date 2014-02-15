@@ -19,7 +19,7 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def evaluate_deep_features(features_file, labels_file, sulci_file='',
-                           output_vtk='', exclude=[-1]):
+                           output_vtk='', excludeIDs=[-1]):
     """
     Evaluate deep surface features by computing the minimum distance from each
     label boundary vertex to all of the feature vertices in the same sulcus.
@@ -36,8 +36,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         VTK surface file with sulcus numbers for vertex scalars
     output_vtk : string
         name of output VTK file containing surface with distances as scalars
-    exclude : list of integers or floats
-        values to exclude (background otherwise set to -1)
+        (not written if empty string)
+    excludeIDs : list of integers
+        feature/sulcus/label IDs to exclude (background set to -1)
 
     Returns
     -------
@@ -86,15 +87,10 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     if not len(border_indices):
         sys.exit('There are no label boundary points!')
 
-    if exclude:
-        background = exclude[0]
-    else:
-        background = -1
-
     # Initialize an array of label boundaries fundus IDs
     # (label boundary vertices that define sulci in the labeling protocol):
     print('Build an array of label boundary fundus IDs...')
-    label_boundary_fundi = background * np.ones(npoints)
+    label_boundary_fundi = -1 * np.ones(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
@@ -109,8 +105,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         if fundus_indices:
             label_boundary_fundi[fundus_indices] = isulcus + 1
 
-    feature_mean_distances = background * np.ones(nsulcus_lists)
-    feature_std_distances = background * np.ones(nsulcus_lists)
+    feature_mean_distances = -1 * np.ones(nsulcus_lists)
+    feature_std_distances = -1 * np.ones(nsulcus_lists)
 
     if len(np.unique(label_boundary_fundi)) > 1:
 
@@ -121,12 +117,12 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         ntargets = nsulcus_lists
         distances, distance_matrix = source_to_target_distances(
             sourceIDs, targetIDs, points, ntargets, segmentIDs,
-            exclude)
+            excludeIDs)
 
         # Compute mean distances for each feature:
         for ifeature in range(nsulcus_lists):
             feature_distances = [x for x in distance_matrix[:, ifeature]
-                                 if x != background]
+                                 if x != -1]
             feature_mean_distances[ifeature] = np.mean(feature_distances)
             feature_std_distances[ifeature] = np.std(feature_distances)
 
@@ -202,7 +198,7 @@ if __name__ == "__main__":
                 feature_mean_distances, feature_std_distances, \
                 output_vtk = evaluate_deep_features(features_file, labels_file,
                                                     sulci_file, output_vtk,
-                                                    exclude=[-1])
+                                                    excludeIDs=[-1])
                 print('***')
                 print('Input features:' + features_file)
                 print('Input sulci:' + sulci_file)
