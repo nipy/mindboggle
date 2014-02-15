@@ -339,31 +339,31 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
         ulabels = np.unique(scalars)
         for label in ulabels:
             if label in erase_labels:
-                I = np.where(scalars == int(label))[0]
+                I = np.where(scalars == label)[0]
                 scalars[I] = erase_value
             else:
-                I = np.where(scalars == int(label))[0]
+                I = np.where(scalars == label)[0]
                 if hemi == 'lh':
-                    scalars[I] = 1000 + int(label)
+                    scalars[I] = 1000 + label
                 elif hemi == 'rh':
-                    scalars[I] = 2000 + int(label)
+                    scalars[I] = 2000 + label
     # OR replace each old label with a corresponding new label
     # (hemisphere setting optionally adds 1000 or 2000 to the new label):
     else:
         for ilabel, new_label in enumerate(new_labels):
-            I = np.where(scalars == int(old_labels[ilabel]))[0]
+            I = np.where(scalars == old_labels[ilabel])[0]
             if hemi == 'lh':
-                scalars[I] = 1000 + int(new_label)
+                scalars[I] = 1000 + new_label
             elif hemi == 'rh':
-                scalars[I] = 2000 + int(new_label)
+                scalars[I] = 2000 + new_label
             else:
-                scalars[I] = int(new_label)
+                scalars[I] = new_label
+    scalars = [int(x) for x in scalars]
 
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'relabeled_' + os.path.basename(vtk_file))
-    write_vtk(output_file, points, indices, lines, faces,
-              [scalars.tolist()], ['Labels'])
+    write_vtk(output_file, points, indices, lines, faces, [scalars], ['Labels'])
 
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))
