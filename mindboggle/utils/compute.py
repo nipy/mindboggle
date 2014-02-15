@@ -219,14 +219,14 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
         segment IDs (e.g., folds; ignore -1); compute distances
         between source and target features within each segment
     exclude : list of integers or floats
-        values to exclude (background)
+        values to exclude (background otherwise set to -1)
 
     Returns
     -------
     distances : numpy array
-        distance value for each vertex (zero where there is no vertex)
-    distance_matrix : numpy array [points by target features]
-        rows are for vertices and columns for source features (default -1)
+        distance value for each vertex (exclude[0] or -1 where there is no vertex)
+    distance_matrix : numpy array [#vertices by #target features]
+        distances organized by targetIDs (columns)
 
     """
     import numpy as np
@@ -236,8 +236,13 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
         points = np.asarray(points)
 
     npoints = len(points)
-    distances = np.zeros(npoints)
-    distance_matrix = np.zeros((npoints, ntargets))
+
+    if exclude:
+        background = exclude[0]
+    else:
+        background = -1
+    distances = background * np.ones(npoints)
+    distance_matrix = background * np.ones((npoints, ntargets))
     if not np.size(segmentIDs):
         segmentIDs = np.ones(len(targetIDs))
 

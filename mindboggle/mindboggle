@@ -688,6 +688,8 @@ if do_surface:
                                                        'hemi',
                                                        'old_labels',
                                                        'new_labels',
+                                                       'erase_labels',
+                                                       'erase_value',
                                                        'output_file'],
                                           output_names=['output_file']))
         SurfLabelFlow.add_nodes([ReindexLabels])
@@ -696,6 +698,8 @@ if do_surface:
                        SurfLabelFlow, 'Reindex_labels.hemi')
         ReindexLabels.inputs.old_labels = ''
         ReindexLabels.inputs.new_labels = ''
+        ReindexLabels.inputs.erase_labels = [-1, 0]
+        ReindexLabels.inputs.erase_value = -1
         ReindexLabels.inputs.output_file = ''
         mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                        Sink, 'labels.@surface')
