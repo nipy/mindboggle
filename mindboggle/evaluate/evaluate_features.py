@@ -18,8 +18,8 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def evaluate_deep_features(features_file, labels_file, folds_file=[],
-                           output_vtk=''):
+def evaluate_deep_features(features_file, labels_file, folds_file='',
+                           output_vtk='', exclude=[-1]):
     """
     Evaluate deep surface features by computing the minimum distance from each
     label boundary vertex to all of the feature vertices in the same fold.
@@ -36,6 +36,8 @@ def evaluate_deep_features(features_file, labels_file, folds_file=[],
         VTK surface file with label numbers for vertex scalars
     output_vtk : string
         name of output VTK file containing surface with distances as scalars
+    exclude_values : list of integers or floats
+        values to exclude (background)
 
     Returns
     -------
@@ -55,7 +57,9 @@ def evaluate_deep_features(features_file, labels_file, folds_file=[],
 
     dkt = DKTprotocol()
 
-    # Load features, folds, labels:
+    # Load labels, features, and folds:
+    faces, lines, indices, points, npoints, labels, scalar_names, \
+        input_vtk = read_vtk(labels_file, True, True)
     features, name = read_scalars(features_file, True, True)
     if folds_file:
         folds, name = read_scalars(folds_file, True, True)
@@ -63,10 +67,8 @@ def evaluate_deep_features(features_file, labels_file, folds_file=[],
         fold_indices = [i for i,x in enumerate(folds) if x > 0]
         segmentIDs = folds
     else:
-        fold_indices = range(len(folds))
+        fold_indices = range(len(labels))
         segmentIDs = []
-    faces, lines, indices, points, npoints, labels, scalar_names, \
-        input_vtk = read_vtk(labels_file, True, True)
 
     # Calculate neighbor lists for all points:
     print('Find neighbors to all vertices...')
@@ -87,11 +89,11 @@ def evaluate_deep_features(features_file, labels_file, folds_file=[],
     # Initialize an array of label boundaries fundus IDs
     # (label boundary vertices that define sulci in the labeling protocol):
     print('Build an array of label boundary fundus IDs...')
-    label_boundary_fundi = -1 * np.ones(npoints)
+    label_boundary_fundi = exclude * np.ones(npoints)
 
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
-        print('  Sulcus ' + str(isulcus + 1))
+        #print('  Sulcus ' + str(isulcus + 1))
 
         # Keep the boundary points with label pair labels:
         fundus_indices = [x for i,x in enumerate(border_indices)
@@ -109,13 +111,17 @@ def evaluate_deep_features(features_file, labels_file, folds_file=[],
 
         # Construct a distance matrix:
         print('Construct a boundary-to-feature distance matrix...')
+        sourceIDs = features
+        targetIDs = label_boundary_fundi
+        ntargets = nsulcus_lists
         distances, distance_matrix = source_to_target_distances(
-            features, label_boundary_fundi, points, segmentIDs)
+            sourceIDs, targetIDs, points, ntargets, segmentIDs,
+            exclude)
 
         # Compute mean distances for each feature:
         for ifeature in range(nsulcus_lists):
             feature_distances = distance_matrix[:, ifeature]
-            feature_distances = [x for x in feature_distances if x != -1]
+            feature_distances = [x for x in feature_distances if x not in exclude]
             feature_mean_distances[ifeature] = np.mean(feature_distances)
             feature_std_distances[ifeature] = np.std(feature_distances)
 
@@ -138,7 +144,6 @@ if __name__ == "__main__":
     import os
     from mindboggle.evaluate.evaluate_features import evaluate_deep_features
 
-    subjects_dir = '/data/Brains/Mindboggle101/subjects'
     mindboggled = '/homedir/mindboggled'
     fundi_dir = '/home/arno/Projects/BrainImaging/fundus_evaluation_2014'
     output_dir = '/desk'
@@ -152,9 +157,9 @@ if __name__ == "__main__":
     nmethod = 0
     fmethods = [mindboggled,
                 os.path.join(fundi_dir, 'Forrest_Fundi.scalars'),
-                os.path.join(fundi_dir, 'Forrest_Fundi.lines/_hemi_'),
-                os.path.join(fundi_dir, 'GangLiFundi/_hemi_'),
-                os.path.join(fundi_dir, 'Olivier_fundi/_hemi_')]
+                os.path.join(fundi_dir, 'Forrest_Fundi.lines'),
+                os.path.join(fundi_dir, 'GangLiFundi'),
+                os.path.join(fundi_dir, 'Olivier_fundi')]
     fmethod = fmethods[nmethod]
 
     # Loop through subjects and hemispheres:
@@ -167,30 +172,32 @@ if __name__ == "__main__":
         number = numbers[iname]
         for n in range(1,number+1):
             subject = name+'-'+str(n)
-            sdir = os.path.join(subjects_dir, subject, 'label')
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
 
                 # Identify surface files with labels and folds:
-                mdir = os.path.join(fmethod, subject, 'features', surf)
-                fdir = os.path.join(fmethod, '_hemi_' + hemi + '_subject_' + subject)
-                labels_file = os.path.join(sdir, hemi+'.labels.DKT31.manual.vtk')
-                folds_file = os.path.join(mdir, 'folds.vtk')
+                mdir = os.path.join(fmethod, subject)
+                labels_file = os.path.join(mdir, 'labels', surf,
+                                           'relabeled_labels.DKT31.manual.vtk')
+                folds_file = os.path.join(mdir, 'features', surf, 'folds.vtk')
                 output_vtk = os.path.join(output_dir,
                                           subject + '_fundus-label_distances.vtk')
 
                 # Identify features file:
                 if nmethod == 0:
-                    features_file = os.path.join(mdir, 'fundus_per_fold.vtk')
+                    features_file = os.path.join(mdir, 'features', surf,
+                                                 'fundus_per_fold.vtk')
                 else:
-                    features_file = os.path.join(fdir, hemi + '.pial.fundi.vtk')
+                    features_file = os.path.join(fmethod,
+                        '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
+                        hemi + '.pial.fundi.vtk')
 
                 # Compute distances from features to label boundaries in folds
                 # corresponding to fundi:
                 feature_mean_distances, feature_std_distances, \
                 output_vtk = evaluate_deep_features(features_file, labels_file,
-                                                    folds_file, output_vtk)
-
+                                                    folds_file, output_vtk,
+                                                    exclude=[-1])
                 print('***')
                 print('Input features:' + features_file)
                 print('Input folds:' + folds_file)
