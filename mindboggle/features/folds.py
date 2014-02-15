@@ -173,7 +173,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         #---------------------------------------------------------------------
         if min_fold_size > 1:
             print('  Remove folds smaller than {0}'.format(min_fold_size))
-            unique_folds = [x for x in np.unique(folds) if x > -1]
+            unique_folds = [x for x in np.unique(folds) if x != -1]
             for nfold in unique_folds:
                 indices_fold = [i for i,x in enumerate(folds) if x == nfold]
                 if len(indices_fold) < min_fold_size:
@@ -193,7 +193,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         # Renumber folds so they are sequential
         #---------------------------------------------------------------------
         renumber_folds = -1 * np.ones(len(folds))
-        fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
+        fold_numbers = [int(x) for x in np.unique(folds) if x != -1]
         for i_fold, n_fold in enumerate(fold_numbers):
             fold = [i for i,x in enumerate(folds) if x == n_fold]
             renumber_folds[fold] = i_fold
@@ -329,7 +329,7 @@ def extract_subfolds(depth_file, folds, min_size=10, depth_factor=0.25,
     #-------------------------------------------------------------------------
     # Segment folds into "watershed basins"
     #-------------------------------------------------------------------------
-    indices_folds = [i for i,x in enumerate(folds) if x > -1]
+    indices_folds = [i for i,x in enumerate(folds) if x != -1]
     subfolds, seed_indices = watershed(depths, points, indices_folds,
                                  neighbor_lists, min_size, depth_factor=0.25,
                                  depth_ratio=0.1, tolerance=0.01, regrow=True)

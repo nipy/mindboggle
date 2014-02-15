@@ -108,7 +108,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     #-------------------------------------------------------------------------
     # Loop through folds
     #-------------------------------------------------------------------------
-    fold_numbers = [int(x) for x in np.unique(folds) if x > -1]
+    fold_numbers = [int(x) for x in np.unique(folds) if x != -1]
     n_folds = len(fold_numbers)
     print("Extract sulci from {0} folds...".format(n_folds))
     t0 = time()
@@ -117,7 +117,8 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
         len_fold = len(fold)
         # List the labels in this fold (greater than zero)
         fold_labels = [labels[x] for x in fold]
-        unique_fold_labels = [int(x) for x in np.unique(fold_labels) if x > 0]
+        unique_fold_labels = [int(x) for x in np.unique(fold_labels)
+                              if x != -1]
 
         #---------------------------------------------------------------------
         # NO MATCH -- fold has fewer than two labels
@@ -317,7 +318,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
                                                label_array, seeds, sulci,
                                                max_iters=10000,
                                                tol=0.001, sigma=5)
-                            sulci[sulci2 > -1] = sulci2[sulci2 > -1]
+                            sulci[sulci2 != -1] = sulci2[sulci2 != -1]
 
     #-------------------------------------------------------------------------
     # Print out assigned sulci

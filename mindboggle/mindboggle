@@ -932,10 +932,10 @@ if do_surface:
             FoldFundi.inputs.min_separation = 10
             FoldFundi.inputs.erode_ratio = 0.10
             FoldFundi.inputs.erode_min_size = 10
-            FoldFundi.inputs.save_file = True
-            mbFlow.connect(SurfFeatureFlow,
-                           'Fundus_per_fold.fundus_per_fold_file',
-                           Sink, 'features.@fundus_per_fold')
+            FoldFundi.inputs.save_file = False
+            #mbFlow.connect(SurfFeatureFlow,
+            #               'Fundus_per_fold.fundus_per_fold_file',
+            #               Sink, 'features.@fundus_per_fold')
 
             if do_smooth_fundi:
                 #-------------------------------------------------------------
