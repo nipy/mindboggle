@@ -191,7 +191,8 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     return vector_distances, outfile
 
-def source_to_target_distances(sourceIDs, targetIDs, points, segmentIDs=[]):
+def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
+                               segmentIDs=[]):
     """
     Create a distance matrix between source and target points.
 
@@ -207,13 +208,15 @@ def source_to_target_distances(sourceIDs, targetIDs, points, segmentIDs=[]):
     Parameters
     ----------
     sourceIDs : list of N integers (N is the number of vertices)
-        source feature IDs (e.g., fundi; ignore 0)
+        source feature IDs (e.g., fundi; ignore -1)
     targetIDs : list of N integers (N is the number of vertices)
-        target feature IDs (e.g., label boundaries; ignore 0)
+        target feature IDs (e.g., label boundaries; ignore -1)
     points : list of N lists of three floats (N is the number of vertices)
         coordinates of all vertices
+    ntargets : integer
+        number of total possible targets (to ensure indices are meaningful)
     segmentIDs : list of N integers (N is the number of vertices)
-        segment IDs (e.g., folds; ignore 0); compute distances
+        segment IDs (e.g., folds; ignore -1); compute distances
         between source and target features within each segment
 
     Returns
@@ -227,38 +230,32 @@ def source_to_target_distances(sourceIDs, targetIDs, points, segmentIDs=[]):
     import numpy as np
     from mindboggle.utils.compute import point_distance
 
+    if isinstance(points, list):
+        points = np.asarray(points)
+
     npoints = len(points)
-    nfeatures = len([x for x in np.unique(sourceIDs) if x != 0])
-
     distances = np.zeros(npoints)
-    distance_matrix = -1 * np.ones((npoints, nfeatures))
-
-    sum_distances = 0
-    num_distances = 0
+    distance_matrix = np.zeros((npoints, ntargets))
 
     # For each target point:
     for itarget, targetID in enumerate(targetIDs):
-        if targetID > 0:
+        if targetID != -1:
 
             # Find (indices of) source points in the same fold:
-            if segmentIDs:
+            if np.size(segmentIDs):
                 source_indices = [i for i,x in enumerate(sourceIDs)
-                                  if x > 0
+                                  if x != -1
                                   if segmentIDs[i] == segmentIDs[itarget]]
             else:
                 source_indices = [i for i,x in enumerate(sourceIDs)
-                                  if x > 0]
+                                  if x != -1]
+            if source_indices:
 
-            # Find the closest source point to the target point:
-            d, i = point_distance(points[itarget],
-                                  points[source_indices])
-            distances[itarget] = d
-            distance_matrix[itarget, targetID - 1] = d
-
-            sum_distances += d
-            num_distances += 1
-
-    print('Done: mean distance = {0}'.format(sum_distances / num_distances))
+                # Find the closest source point to the target point:
+                d, i = point_distance(points[itarget],
+                                      points[source_indices])
+                distances[itarget] = d
+                distance_matrix[itarget, targetID - 1] = d
 
     return distances, distance_matrix
 
