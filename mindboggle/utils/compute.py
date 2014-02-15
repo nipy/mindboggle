@@ -192,7 +192,7 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
     return vector_distances, outfile
 
 def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
-                               segmentIDs=[], exclude=[-1]):
+                               segmentIDs=[], excludeIDs=[-1]):
     """
     Create a distance matrix between source and target points.
 
@@ -218,13 +218,13 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
     segmentIDs : list of N integers (N is the number of vertices)
         segment IDs (e.g., folds; ignore -1); compute distances
         between source and target features within each segment
-    exclude : list of integers or floats
-        values to exclude (background otherwise set to -1)
+    excludeIDs : list of integers
+        source/target/segment IDs to exclude
 
     Returns
     -------
     distances : numpy array
-        distance value for each vertex (exclude[0] or -1 where there is no vertex)
+        distance value for each vertex (default -1)
     distance_matrix : numpy array [#vertices by #target features]
         distances organized by targetIDs (columns)
 
@@ -237,17 +237,13 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
 
     npoints = len(points)
 
-    if exclude:
-        background = exclude[0]
-    else:
-        background = -1
-    distances = background * np.ones(npoints)
-    distance_matrix = background * np.ones((npoints, ntargets))
+    distances = -1 * np.ones(npoints)
+    distance_matrix = -1 * np.ones((npoints, ntargets))
     if not np.size(segmentIDs):
         segmentIDs = np.ones(len(targetIDs))
 
     # For each segment:
-    segments = [x for x in np.unique(segmentIDs) if x not in exclude]
+    segments = [x for x in np.unique(segmentIDs) if x not in excludeIDs]
     if segments:
         for segment in segments:
             segment_indices = [i for i,x in enumerate(segmentIDs)
@@ -255,11 +251,11 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
 
             # Find all target points in the segment:
             source_indices = [i for i,x in enumerate(sourceIDs)
-                              if x not in exclude
+                              if x not in excludeIDs
                               if i in segment_indices]
             # Find all source points in the segment:
             target_indices = [i for i,x in enumerate(targetIDs)
-                              if x not in exclude
+                              if x not in excludeIDs
                               if i in segment_indices]
             if source_indices and target_indices:
 
