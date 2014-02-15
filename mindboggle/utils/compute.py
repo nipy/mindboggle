@@ -4,7 +4,7 @@ Compute functions.
 
 
 Authors:
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
@@ -190,6 +190,77 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
         outfile = ''
 
     return vector_distances, outfile
+
+def source_to_target_distances(sourceIDs, targetIDs, points, segmentIDs=[]):
+    """
+    Create a distance matrix between source and target points.
+
+    Compute distances between source and target features,
+    optionally within each segment.
+
+    Example::
+
+        Compute the minimum distance from each label boundary vertex
+        (corresponding to a fundus in the DKT cortical labeling protocol)
+        to all of the fundus vertices in the same fold.
+
+    Parameters
+    ----------
+    sourceIDs : list of N integers (N is the number of vertices)
+        source feature IDs (e.g., fundi; ignore 0)
+    targetIDs : list of N integers (N is the number of vertices)
+        target feature IDs (e.g., label boundaries; ignore 0)
+    points : list of N lists of three floats (N is the number of vertices)
+        coordinates of all vertices
+    segmentIDs : list of N integers (N is the number of vertices)
+        segment IDs (e.g., folds; ignore 0); compute distances
+        between source and target features within each segment
+
+    Returns
+    -------
+    distances : numpy array
+        distance value for each vertex (zero where there is no vertex)
+    distance_matrix : numpy array [points by target features]
+        rows are for vertices and columns for source features (default -1)
+
+    """
+    import numpy as np
+    from mindboggle.utils.compute import point_distance
+
+    npoints = len(points)
+    nfeatures = len([x for x in np.unique(sourceIDs) if x != 0])
+
+    distances = np.zeros(npoints)
+    distance_matrix = -1 * np.ones((npoints, nfeatures))
+
+    sum_distances = 0
+    num_distances = 0
+
+    # For each target point:
+    for itarget, targetID in enumerate(targetIDs):
+        if targetID > 0:
+
+            # Find (indices of) source points in the same fold:
+            if segmentIDs:
+                source_indices = [i for i,x in enumerate(sourceIDs)
+                                  if x > 0
+                                  if segmentIDs[i] == segmentIDs[itarget]]
+            else:
+                source_indices = [i for i,x in enumerate(sourceIDs)
+                                  if x > 0]
+
+            # Find the closest source point to the target point:
+            d, i = point_distance(points[itarget],
+                                  points[source_indices])
+            distances[itarget] = d
+            distance_matrix[itarget, targetID - 1] = d
+
+            sum_distances += d
+            num_distances += 1
+
+    print('Done: mean distance = {0}'.format(sum_distances / num_distances))
+
+    return distances, distance_matrix
 
 def weighted_to_repeated_values(X, W=[], precision=1):
     """
