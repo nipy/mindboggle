@@ -15,11 +15,11 @@ environment to enable Mindboggle to run in a flexible, modular manner
 while storing provenance information.
 
 Authors:
-    - Arno Klein, 2010-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2010-2014  (arno@mindboggle.info)  http://binarybottle.com
     - Satrajit S. Ghosh, 2013  (satra@mit.edu)  http://www.mit.edu/~satra/
     - Each file lists Mindboggle team members who contributed to its content.
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
