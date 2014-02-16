@@ -363,7 +363,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'relabeled_' + os.path.basename(vtk_file))
-    write_vtk(output_file, points, indices, lines, faces, [scalars], ['Labels'])
+    write_vtk(output_file, points, indices, lines, faces, [scalars], ['Labels'], 'int')
 
     if not os.path.exists(output_file):
         raise(IOError(output_file + " not found"))

@@ -506,7 +506,7 @@ def spectrum_of_largest(points, faces, spectrum_size=10, exclude_labels=[-1],
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
-    >>>           scalars, scalar_names='scalars')
+    >>>           scalars, scalar_names='scalars', scalar_type='int')
     >>> plot_surfaces(vtk_file)
 
     """

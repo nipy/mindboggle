@@ -2014,6 +2014,7 @@ if do_volumes and do_label:
         # Table:
         VolShapeFlow.connect(FSlabelVolumes, 'labels_volumes',
                              FSVolTable, 'columns')
+        # These column names are joined to create the table file name:
         FSVolTable.inputs.column_names = ['FreeSurfer_filled_labels',
                                           'volumes']
         mbFlow.connect(VolShapeFlow,
@@ -2039,6 +2040,7 @@ if do_volumes and do_label:
             # Table:
             antsVolTable = FSVolTable.clone('ANTs_filled_label_volume_table')
             VolShapeFlow.add_nodes([antsVolTable])
+            # These column names are joined to create the table file name:
             antsVolTable.inputs.column_names = ['ANTs_filled_labels',
                                                 'volumes']
             VolShapeFlow.connect(antsLabelVolumes, 'labels_volumes',
@@ -2064,6 +2066,7 @@ if do_volumes and do_label:
                     'Added_atlas_label_volume_table')
                 VolShapeFlow.add_nodes([antsVolTable2])
                 antsLabelVolumes2.inputs.labels = []
+                # These column names are joined to create the table file name:
                 antsVolTable2.inputs.column_names = ['added_atlas_labels',
                                                      'volumes']
                 VolShapeFlow.connect(antsLabelVolumes2, 'labels_volumes',
@@ -2136,8 +2139,9 @@ if do_volumes and do_label:
             VolShapeFlow.connect(FSthicknesses,
                                  'label_volume_thickness',
                                  FSThickTable, 'columns')
+            # These column names are joined to create the table file name:
             FSThickTable.inputs.column_names = ['FreeSurfer_filled_labels',
-                    'volumes', 'thickinthehead() cortical thicknesses']
+                    'volumes', 'thickinthehead_cortical_thicknesses']
             mbFlow.connect(VolShapeFlow,
             'FreeSurfer_filled_cortex_label_thickness_table.output_table',
             Sink, 'tables.@thicknesses_of_FreeSurfer_labels')
@@ -2181,8 +2185,9 @@ if do_volumes and do_label:
                 VolShapeFlow.connect(ANTsThicknesses,
                                      'label_volume_thickness',
                                      ANTsThickTable, 'columns')
+                # These column names are joined to create the table file name:
                 ANTsThickTable.inputs.column_names = ['ANTs_filled_labels',
-                    'volumes', 'thickinthehead() cortical thicknesses']
+                    'volumes', 'thickinthehead_cortical_thicknesses']
                 mbFlow.connect(VolShapeFlow,
                    'ANTs_filled_cortex_label_thickness_table.output_table',
                    Sink, 'tables.@thicknesses_of_ANTs_filled_cortex_labels')
