@@ -759,6 +759,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
         new_scalars, new_scalar_names = scalars_checker(new_scalars,
                                                         new_scalar_names)
 
+        # scalars_checker() returns a list of lists for scalars:
         for i, new_scalar_list in enumerate(new_scalars):
             if filter_scalars:
                 for iremove in indices_remove:
@@ -767,7 +768,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                 new_scalar_name = new_scalar_names[0]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
                               begin_scalars=True,
-                              scalar_type=type(new_scalars[0]))
+                              scalar_type=type(new_scalars[0][0]).__name__)
             else:
                 if len(new_scalar_names) < i + 1:
                     new_scalar_name = new_scalar_names[0]
@@ -775,7 +776,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                     new_scalar_name = new_scalar_names[i]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
                               begin_scalars=False,
-                              scalar_type=type(new_scalars[0]))
+                              scalar_type=type(new_scalars[0][0]).__name__)
     else:
         print('Error: new_scalars is empty')
         exit()
@@ -912,12 +913,12 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
 
         print("  Scalar {0}: {1} vertices".format(scalar, len_indices))
 
-        # Write VTK file with scalar value:
+        # Write VTK file with scalar values (list of values):
         output_vtk = os.path.join(os.getcwd(),
                                   output_stem + str(scalar) + '.vtk')
         write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
                   select_values.tolist(), output_scalar_name,
-                  type(select_values[0]))
+                  type(select_values[0]).__name__)
 
 
 def scalars_checker(scalars, scalar_names):
@@ -1263,7 +1264,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
         output_file = os.path.join(os.getcwd(),
                                    'affine_' + os.path.basename(vtk_or_points))
         write_vtk(output_file, affine_points, indices, lines, faces,
-                  scalars, name, type(scalars[0]))
+                  scalars, name, type(scalars[0]).__name__)
     else:
         output_file = None
 

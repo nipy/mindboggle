@@ -161,11 +161,11 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
             mask_faces, points, \
             original_indices = reindex_faces_points(mask_faces, points)
             #-----------------------------------------------------------------
-            # Write VTK file with scalar value:
+            # Write VTK file with scalar values:
             #-----------------------------------------------------------------
             write_vtk(file_to_plot, points, [], [], mask_faces,
                       scalars[original_indices].tolist(), scalar_names,
-                      type(scalars[0]))
+                      type(scalars[0]).__name__)
         else:
             scalars, name = read_scalars(vtk_file, True, True)
             scalars[mask == nonmask_value] = nonmask_value
