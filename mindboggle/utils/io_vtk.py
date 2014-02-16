@@ -517,7 +517,8 @@ def write_vertices(Fp, indices):
     Fp.write('\n')
 
 
-def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
+def write_scalars(Fp, scalars, scalar_name, begin_scalars=True,
+                  scalar_type='float'):
     """
     Write per-VERTEX values as a scalar lookup table into a VTK file::
 
@@ -534,15 +535,22 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
 
     Parameters
     ----------
-    scalars :  list of floats
+    Fp : string
+        name of VTK surface mesh file
+    scalars :  list of integers or floats
+        scalar values, one per vertex of mesh
+    scalar_name : string
+        name for scalars (use unbroken string)
     begin_scalars : Boolean
         True if the first vertex lookup table in a VTK file
+    scalar_type : string
+        type of scalars ('float' or 'int')
 
     """
 
     if begin_scalars:
         Fp.write('POINT_DATA {0}\n'.format(len(scalars)))
-    Fp.write('SCALARS {0} float\n'.format(scalar_name))
+    Fp.write('SCALARS {0} {1}\n'.format(scalar_name, scalar_type))
     Fp.write('LOOKUP_TABLE {0}\n'.format(scalar_name))
     for Value in scalars:
         Fp.write('{0}\n'.format(Value))
@@ -550,7 +558,7 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
 
 
 def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
-              scalars=[], scalar_names=['scalars']):
+              scalars=[], scalar_names=['scalars'], scalar_type='float'):
     """
     Save lists of scalars into the lookup table of a VTK-format file.
 
@@ -578,6 +586,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         each list (lookup table) contains values assigned to the vertices
     scalar_names : string or list of strings
         each element is the name of a scalar list (lookup table)
+    scalar_type : string
+        type of scalars ('float' or 'int')
 
     Examples
     --------
@@ -592,7 +602,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> scalars = [[random.random() for i in range(4)] for j in [1,2]]
     >>> scalar_names = ['curv','depth']
     >>> output_vtk = 'write_vtk.vtk'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
+    >>> scalar_type = 'float'
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
     >>> # View:
     >>> plot_surfaces(output_vtk)
     >>> #
@@ -604,7 +615,8 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, scalars, scalar_names, input_vtk = read_vtk(input_vtk)
     >>> output_vtk = 'write_vtk.vtk'
-    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names)
+    >>> scalar_type = 'float'
+    >>> write_vtk(output_vtk, points, indices, lines, faces, scalars, scalar_names, scalar_type)
     >>> # View:
     >>> plot_surfaces(output_vtk)
 
@@ -640,14 +652,15 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         for i, scalar_list in enumerate(scalars):
             if i == 0:
                 scalar_name = scalar_names[i]
-                write_scalars(Fp, scalar_list, scalar_name)
+                write_scalars(Fp, scalar_list, scalar_name,
+                              begin_scalars=True, scalar_type=scalar_type)
             else:
                 if len(scalar_names) < i + 1:
                     scalar_name = scalar_names[0]
                 else:
                     scalar_name = scalar_names[i]
                 write_scalars(Fp, scalar_list, scalar_name,
-                              begin_scalars=False)
+                              begin_scalars=False, scalar_type=scalar_type)
     Fp.close()
 
     if not os.path.exists(output_vtk):
@@ -752,14 +765,17 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                     new_scalar_list[iremove] = background_value
             if i == 0:
                 new_scalar_name = new_scalar_names[0]
-                write_scalars(Fp, new_scalar_list, new_scalar_name)
+                write_scalars(Fp, new_scalar_list, new_scalar_name,
+                              begin_scalars=True,
+                              scalar_type=type(new_scalars[0]))
             else:
                 if len(new_scalar_names) < i + 1:
                     new_scalar_name = new_scalar_names[0]
                 else:
                     new_scalar_name  = new_scalar_names[i]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
-                              begin_scalars=False)
+                              begin_scalars=False,
+                              scalar_type=type(new_scalars[0]))
     else:
         print('Error: new_scalars is empty')
         exit()
@@ -786,6 +802,7 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     ----------
     input_indices_vtk : string
         path of the input VTK file that contains indices as scalars
+        (assumes that the scalars are a list of floats or integers)
     input_values_vtk : string
         path of the input VTK file that contains values as scalars
     output_stem : string
@@ -899,7 +916,8 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         output_vtk = os.path.join(os.getcwd(),
                                   output_stem + str(scalar) + '.vtk')
         write_vtk(output_vtk, select_points, indices, lines, scalar_faces,
-                  select_values.tolist(), output_scalar_name)
+                  select_values.tolist(), output_scalar_name,
+                  type(select_values[0]))
 
 
 def scalars_checker(scalars, scalar_names):
@@ -1169,6 +1187,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
         name of ITK affine transform file
     vtk_or_points : string or list of lists of three integers
         name of VTK file containing point coordinate data, or the data
+        (if vtk file, assumes scalars are a list of floats or integers)
     transform_format : string
         format for transform file
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
@@ -1244,7 +1263,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
         output_file = os.path.join(os.getcwd(),
                                    'affine_' + os.path.basename(vtk_or_points))
         write_vtk(output_file, affine_points, indices, lines, faces,
-                  scalars, name)
+                  scalars, name, type(scalars[0]))
     else:
         output_file = None
 

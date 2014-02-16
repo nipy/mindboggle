@@ -287,7 +287,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> holes[N2] = 40
     >>> indices = [i for i,x in enumerate(holes) if x != background_value]
     >>> write_vtk('holes.vtk', points, indices, lines,
-    >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'])
+    >>>           remove_faces(faces, indices), [holes.tolist()], ['holes'], 'int')
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> plot_surfaces('holes.vtk')
     >>> #
@@ -300,7 +300,7 @@ def fill_holes(regions, neighbor_lists, values=[], exclude_range=[],
     >>> # Write results to vtk file and view:
     >>> indices = [i for i,x in enumerate(regions) if x != background_value]
     >>> write_vtk('fill_holes.vtk', points, indices, lines,
-    >>>           remove_faces(faces, indices), regions.tolist(), 'regions')
+    >>>           remove_faces(faces, indices), regions.tolist(), 'regions', 'int')
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> plot_surfaces('fill_holes.vtk')
 
@@ -492,7 +492,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> #plot_surfaces('plane.vtk') # doctest: +SKIP
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
     >>> # View:
-    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars)
+    >>> write_vtk('cube.vtk', closed_points, [], [], closed_faces, closed_scalars, 'int')
     >>> plot_surfaces('cube.vtk') # doctest: +SKIP
     >>> #
     >>> # Example 2: Gray and white cortical brain surfaces:
@@ -514,7 +514,7 @@ def close_surface_pair(faces, points1, points2, scalars, background_value=-1):
     >>> background_value = -1
     >>> closed_faces, closed_points, closed_scalars = close_surface_pair(faces, points1, points2, scalars, background_value)
     >>> # View:
-    >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name)
+    >>> write_vtk('closed.vtk', closed_points, [], [], closed_faces, closed_scalars, name, 'int')
     >>> plot_surfaces('closed.vtk') # doctest: +SKIP
 
     """
@@ -645,7 +645,7 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
     write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              name)
+              name, type(closed_scalars[0]))
 
     return output_vtk
 
