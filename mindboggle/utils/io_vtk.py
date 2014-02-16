@@ -772,7 +772,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                 if len(new_scalar_names) < i + 1:
                     new_scalar_name = new_scalar_names[0]
                 else:
-                    new_scalar_name  = new_scalar_names[i]
+                    new_scalar_name = new_scalar_names[i]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
                               begin_scalars=False,
                               scalar_type=type(new_scalars[0]))
@@ -932,7 +932,7 @@ def scalars_checker(scalars, scalar_names):
 
     Returns
     -------
-    scalars : list of lists of floats
+    scalars : list of lists of floats or integers
     scalar_names : list of strings
 
     Examples
