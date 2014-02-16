@@ -154,7 +154,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> scalars = -1*np.ones(np.shape(labels))
     >>> scalars[I22] = 1
     >>> vtk_file = 'test_two_labels.vtk'
-    >>> write_vtk(vtk_file, points, [],[], faces, scalars, scalar_names='scalars')
+    >>> write_vtk(vtk_file, points, [],[], faces, scalars, scalar_names='scalars', scalar_type='int')
     >>> plot_surfaces(vtk_file)
 
     """

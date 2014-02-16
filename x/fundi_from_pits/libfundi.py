@@ -724,7 +724,7 @@ def fundiFromPits(Pits, Maps, Mesh, FundiVTK, SulciThld, SulciMap, Extract_Fundi
 
 #    io_vtk.write_lines(FundiVTK, Vrtx, Pits, PSegs, scalar_lists, scalar_names)
     io_vtk.write_vtk(FundiVTK, Vrtx, indices=Pits, lines=PSegs, faces=[],
-     scalars=scalar_lists, scalar_names=scalar_names)
+     scalars=scalar_lists, scalar_names=scalar_names, scalar_type='int')
 
 def getFeatures(InputFiles, Type, Options):
     '''Loads input files of different types and extraction types,  and pass them to functions that really does fundi/pits/sulci extraction

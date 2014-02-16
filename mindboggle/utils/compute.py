@@ -831,7 +831,8 @@ def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
 
         # Find which voxels contain the label in each volume:
         indices = np.where(data==label)[0]
-        volumes[ilabel] = volume_per_voxel * len(indices)
+        if len(indices):
+            volumes[ilabel] = volume_per_voxel * len(indices)
 
     labels_volumes = [labels, volumes.tolist()]
 

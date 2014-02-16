@@ -176,7 +176,8 @@ def main(argv):
     closed_fundus_lines, points, faces = propagate_fundus_lines(argv[1],
                                                                 argv[2],
                                                                 argv[3])
-    write_vtk(argv[4], points, faces=faces, scalars=closed_fundus_lines)
+    write_vtk(argv[4], points, faces=faces, scalars=closed_fundus_lines,
+              scalar_type='int')
 
 if __name__ == "__main__":
     import sys

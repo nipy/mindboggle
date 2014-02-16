@@ -1091,7 +1091,7 @@ def select_largest(points, faces, exclude_labels=[-1], areas=None,
     >>> scalars[I28] = 1
     >>> vtk_file = 'test_two_labels.vtk'
     >>> write_vtk(vtk_file, points, indices, lines, faces,
-    >>>           scalars, scalar_names='scalars')
+    >>>           scalars, scalar_names='scalars', scalar_type='int')
     >>> plot_surfaces(vtk_file)
 
     """

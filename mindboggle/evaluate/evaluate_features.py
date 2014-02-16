@@ -135,7 +135,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         if output_vtk:
             print('Write distances to a VTK file for visualization...')
             write_vtk(output_vtk, points, [], [], faces,
-                      [distances], ['feature-label_boundary_distances'])
+                      [distances], ['feature-label_boundary_distances'],
+                      'float')
 
     return feature_mean_distances, feature_std_distances, output_vtk
 
