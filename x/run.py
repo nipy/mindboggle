@@ -7,8 +7,8 @@ run_all = True
 
 if run_all:
 
-    names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
-    numbers = [20,21,22,20]
+    names = ['OASIS-TRT-20']#, 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
+    numbers = [1]#20,21,22,20]
     prefix = 'ants'
     ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness'
 
@@ -31,9 +31,9 @@ if run_all:
     for i,name in enumerate(names):
         number = numbers[i]
         for n in range(1,number+1):
-            s = 'mindboggle -n 8 {0}-{1} --ants_segments {2}/{0}-{1}/' \
-                'antsBrainSegmentation.nii.gz --sulci --fundi --vertices ' \
-                '--spectra 10 --thickness '\
+            s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
+                '{2}/{0}-{1}/antsBrainSegmentation.nii.gz ' \
+                '--sulci --fundi --vertices --spectra 10 --thickness '\
                 '--surface_labels manual'\
                 .format(name, n, ants_dir, prefix)
             print(s)
