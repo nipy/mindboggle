@@ -393,7 +393,7 @@ class Bounds:
                         LABELS = np.zeros(self.num_points)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
                         write_vtk(filename, self.Points, self.Vertices,
-                                  [], self.Faces, [LABELS], 'int')
+                                  [], self.Faces, [LABELS], scalar_type='int')
 
                 # column matrix
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense()
@@ -499,11 +499,11 @@ class Bounds:
         # We can now output a file to show the boundary.
         if not realigned_labels:
             write_vtk(output_filename, self.Points, self.Vertices,
-                               self.Faces, [self.label_boundary], 'int')
+                               self.Faces, [self.label_boundary], scalar_type='int')
             self.label_boundary_file = output_filename
         else:
             write_vtk(output_filename, self.Points, self.Vertices,
-                      [], self.Faces, [self.Rlabel_boundary], 'int')
+                      [], self.Faces, [self.Rlabel_boundary], scalar_type='int')
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -607,7 +607,8 @@ class Bounds:
             colored_segments[value] = color
             color += 1
         write_vtk(self.highlighted_segment_file, self.Points,
-                  self.Vertices, [], self.Faces, [colored_segments], 'int')
+                  self.Vertices, [], self.Faces, [colored_segments],
+                  scalar_type='int')
 
         return self.label_boundary_segments, self.highlighted_segment_file
 
@@ -660,7 +661,8 @@ class Bounds:
             labels[segment] = 100
             labels[endpoint] = 200
             write_vtk('debug_intersections.vtk',self.Points,
-                      self.Vertices, [], self.Faces, [labels], 'int')
+                      self.Vertices, [], self.Faces, [labels],
+                      scalar_type='int')
             #raw_input("Check this out...")
 
         return intersection
@@ -909,7 +911,8 @@ class Bounds:
                 print('______________Preserving Label Boundary Segment_____________')
 
         write_vtk(dir + '/propagating_regions.vtk',self.Points,
-                  self.Vertices, [], self.Faces, [vertices_to_highlight], 'int')
+                  self.Vertices, [], self.Faces, [vertices_to_highlight],
+                  scalar_type='int')
 
         return self.label_segment_matrix
 
@@ -1131,7 +1134,7 @@ class Bounds:
         # Write VTK file with the new labels
         self.RLabels_file = filename
         write_vtk(self.RLabels_file, self.Points, self.Vertices,
-                  [], self.Faces, [self.RLabels], 'int')
+                  [], self.Faces, [self.RLabels], scalar_type='int')
 
         return self.RLabels, self.RLabels_file
 
