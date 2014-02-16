@@ -627,6 +627,7 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
 
     """
     import os
+    import numpy as np
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
     from mindboggle.utils.morph import close_surface_pair
@@ -645,8 +646,14 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
     # closed_scalars is a list
+    if np.ndim(closed_scalars) == 1:
+        scalar_type = type(closed_scalars[0]).__name__
+    elif np.ndim(closed_scalars) == 2:
+        scalar_type = type(closed_scalars[0][0]).__name__
+    else:
+        print("Undefined scalar type!")
     write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              name, type(closed_scalars[0]).__name__)
+              name, scalar_type=scalar_type)
 
     return output_vtk
 

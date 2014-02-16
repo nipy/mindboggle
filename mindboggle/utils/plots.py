@@ -128,6 +128,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
 
     """
     import os
+    import numpy as np
 
     from mindboggle.utils.mesh import remove_faces, reindex_faces_points
     from mindboggle.utils.utils import execute
@@ -163,9 +164,15 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
             #-----------------------------------------------------------------
             # Write VTK file with scalar values:
             #-----------------------------------------------------------------
+            if np.ndim(scalars) == 1:
+                scalar_type = type(scalars[0]).__name__
+            elif np.ndim(scalars) == 2:
+                scalar_type = type(scalars[0][0]).__name__
+            else:
+                print("Undefined scalar type!")
             write_vtk(file_to_plot, points, [], [], mask_faces,
                       scalars[original_indices].tolist(), scalar_names,
-                      type(scalars[0]).__name__)
+                      scalar_type=scalar_type)
         else:
             scalars, name = read_scalars(vtk_file, True, True)
             scalars[mask == nonmask_value] = nonmask_value
