@@ -7,8 +7,8 @@ run_all = True
 
 if run_all:
 
-    names = ['OASIS-TRT-20']#, 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
-    numbers = [1]#20,21,22,20]
+    names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
+    numbers = [20,21,22,20]
     prefix = 'ants'
     ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness'
 
