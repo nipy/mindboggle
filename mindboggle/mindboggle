@@ -137,9 +137,9 @@ inputs_group.add_argument("--volume_labels",
                     choices=['wmparc', 'aparc+aseg'],
                     default='wmparc', metavar='STR')
 inputs_group.add_argument("--surface_labels",
-                    help=("Surface labels: \"freesurfer\" (default) or \"atlas\""),
-                    choices=['freesurfer', 'atlas', 'manual'],
-                    default='freesurfer', metavar='STR')
+                    help=("Surface labels: \"atlas\" (default) or \"freesurfer\""),
+                    choices=['atlas', 'freesurfer', 'manual'],
+                    default='atlas', metavar='STR')
 inputs_group.add_argument("--my_segments",
                     help=("Segmented file instead of --ants_segments"),
                     metavar='STR')
