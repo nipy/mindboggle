@@ -644,8 +644,9 @@ def close_surface_pair_from_files(patch_surface1, whole_surface2,
     # Write output file:
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(), 'closed.vtk')
+    # closed_scalars is a list
     write_vtk(output_vtk, closed_points, [], [], closed_faces, closed_scalars,
-              name, type(closed_scalars[0]))
+              name, type(closed_scalars[0]).__name__)
 
     return output_vtk
 

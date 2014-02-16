@@ -807,6 +807,7 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
 #         """
 #
 #         # Check type:
+# NOTE:  change to: type(var).__name__
 #         if type(var) == str:
 #             return var
 #         elif type(var) == list:
