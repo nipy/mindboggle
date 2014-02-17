@@ -371,7 +371,7 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ANTs_added_atlas_labels.nii.gz',
      r'/\1_labels.nii.gz'),
-    (r'/_atlas_(.*)/added_atlas_labels_volumes.csv',
+    (r'/_atlas_(.*)/volumes.csv',
      r'/\1_labels_volumes.csv')]
 
 #-----------------------------------------------------------------------------
