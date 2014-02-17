@@ -229,9 +229,9 @@ def write_rows(filename, list_of_lines, header=""):
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         affine_transform_file='', transform_format='itk',
-        area_file='', mean_curvature_file='', travel_depth_file='',
-        geodesic_depth_file='', freesurfer_convexity_file='',
-        freesurfer_thickness_file='',
+        area_file='', normalize_by_area=True, mean_curvature_file='',
+        travel_depth_file='', geodesic_depth_file='',
+        freesurfer_convexity_file='', freesurfer_thickness_file='',
         labels_spectra=[], labels_spectra_IDs=[],
         sulci_spectra=[], sulci_spectra_IDs=[],
         labels_zernike=[], labels_zernike_IDs=[],
@@ -258,6 +258,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
     area_file :  string
         name of VTK file with surface area scalar values
+    normalize_by_area : Boolean
+        normalize all shape measures by area of label/feature?
     mean_curvature_file :  string
         name of VTK file with mean curvature scalar values
     travel_depth_file :  string
@@ -313,6 +315,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> normalize_by_area = True
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
@@ -332,7 +335,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> exclude_labels = [-1]
     >>> #
     >>> write_shape_stats(labels_or_file, sulci, fundi,
-    >>>     affine_transform_file, transform_format, area_file,
+    >>>     affine_transform_file, transform_format, area_file, normalize_by_area,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     freesurfer_convexity_file, freesurfer_thickness_file,
     >>>     labels_spectra, labels_spectra_IDs,
@@ -344,11 +347,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     """
     import os
     import numpy as np
+
     from mindboggle.utils.compute import means_per_label, stats_per_label, \
         sum_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
     from mindboggle.utils.io_table import write_columns
+    from mindboggle.LABELS import DKTprotocol
+
+    dkt = DKTprotocol()
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -371,13 +378,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     #-------------------------------------------------------------------------
     # Feature lists:
     feature_lists = [labels, sulci, fundi]
-    feature_names = ['label', 'sulcus', 'fundus']
+    feature_names = ['Label', 'Sulcus', 'Fundus']
     spectra_lists = [labels_spectra, sulci_spectra]
     spectra_ID_lists = [labels_spectra_IDs, sulci_spectra_IDs]
-    spectra_names = ['label spectrum', 'sulcus spectrum']
     zernike_lists = [labels_zernike, sulci_zernike]
     zernike_ID_lists = [labels_zernike_IDs, sulci_zernike_IDs]
-    zernike_names = ['label zernike', 'sulcus zernike']
     table_names = ['label_shapes.csv', 'sulcus_shapes.csv',
                    'fundus_shapes.csv']
 
@@ -390,9 +395,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                    geodesic_depth_file, freesurfer_convexity_file,
                    freesurfer_thickness_file]
     shape_arrays = []
-    column_names = []
     first_pass = True
     area_array = []
+
     for ishape, shape_file in enumerate(shape_files):
         if os.path.exists(shape_file):
             if first_pass:
@@ -414,6 +419,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 if ishape == 0:
                     area_array = scalars_array.copy()
 
+    if normalize_by_area:
+        use_area = area_array
+    else:
+        use_area = []
+
     # Initialize table file names:
     label_table = ''
     sulcus_table = ''
@@ -421,7 +431,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
     # Loop through features / tables:
     for itable, feature_list in enumerate(feature_lists):
-        table_column_names = []
+        column_names = []
 
         #---------------------------------------------------------------------
         # For each feature, construct a table of average shape values:
@@ -431,51 +441,20 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             columns = []
 
             #-----------------------------------------------------------------
-            # Mean positions in the original space:
-            #-----------------------------------------------------------------
-            # Compute mean position per feature:
-            positions, sdevs, label_list, foo = means_per_label(points,
-                feature_list, exclude_labels, area_array)
-
-            # Append mean position per feature to columns:
-            table_column_names.append('mean position')
-            columns.append(positions)
-
-            #-----------------------------------------------------------------
-            # Mean positions in standard space:
-            #-----------------------------------------------------------------
-            if affine_transform_file:
-                # Compute standard space mean position per feature:
-                standard_positions, sdevs, label_list, \
-                foo = means_per_label(affine_points,
-                    feature_list, exclude_labels, area_array)
-
-                # Append standard space mean position per feature to columns:
-                table_column_names.append('mean position in standard space')
-                columns.append(standard_positions)
-
-            #-----------------------------------------------------------------
             # Loop through shape measures:
             #-----------------------------------------------------------------
-            table_column_names.extend(column_names[:])
+            column_names.extend(column_names[:])
             for ishape, shape_array in enumerate(shape_arrays):
-                shape_name = shape_names[ishape]
-                print('  Compute statistics on {0} {1}'.
-                      format(feature_name, shape_name))
-
-                # Append shape names and values per feature to columns:
-                pr = feature_name + ": " + shape_name + ": "
-                if np.size(area_array):
-                    po = " (weighted)"
-                else:
-                    po = ""
+                shape = shape_names[ishape]
+                print('  Compute statistics on {0} {1}...'.
+                      format(feature_name, shape))
                 #-------------------------------------------------------------
-                # Append total feature areas to columns:
+                # Append feature areas to columns:
                 #-------------------------------------------------------------
                 if ishape == 0 and np.size(area_array):
                     sums, label_list = sum_per_label(shape_array,
-                        feature_list, exclude_labels)
-                    table_column_names.append(pr + 'total')
+                                            feature_list, exclude_labels)
+                    column_names.append(shape)
                     columns.append(sums)
                 #-------------------------------------------------------------
                 # Append feature shape statistics to columns:
@@ -486,14 +465,14 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     label_list = stats_per_label(shape_array,
                         feature_list, exclude_labels, area_array, precision=1)
 
-                    table_column_names.append(pr + 'median' + po)
-                    table_column_names.append(pr + 'median absolute deviation' + po)
-                    table_column_names.append(pr + 'mean' + po)
-                    table_column_names.append(pr + 'standard deviation' + po)
-                    table_column_names.append(pr + 'skew' + po)
-                    table_column_names.append(pr + 'kurtosis' + po)
-                    table_column_names.append(pr + 'lower quartile' + po)
-                    table_column_names.append(pr + 'upper quartile' + po)
+                    column_names.append(shape + ': median')
+                    column_names.append(shape + ': MAD')
+                    column_names.append(shape + ': mean')
+                    column_names.append(shape + ': SD')
+                    column_names.append(shape + ': skew')
+                    column_names.append(shape + ': kurtosis')
+                    column_names.append(shape + ': 25%')
+                    column_names.append(shape + ': 75%')
                     columns.append(medians)
                     columns.append(mads)
                     columns.append(means)
@@ -504,46 +483,79 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     columns.append(upper_quarts)
 
             #-----------------------------------------------------------------
+            # Mean positions in the original space:
+            #-----------------------------------------------------------------
+            # Compute mean position per feature:
+            positions, sdevs, label_list, foo = means_per_label(points,
+                feature_list, exclude_labels, use_area)
+
+            # Append mean position per feature to columns:
+            column_names.append('mean position')
+            columns.append(positions)
+
+            #-----------------------------------------------------------------
+            # Mean positions in standard space:
+            #-----------------------------------------------------------------
+            if affine_transform_file:
+                # Compute standard space mean position per feature:
+                standard_positions, sdevs, label_list, \
+                foo = means_per_label(affine_points,
+                    feature_list, exclude_labels, use_area)
+
+                # Append standard space mean position per feature to columns:
+                column_names.append('mean position in standard space')
+                columns.append(standard_positions)
+
+            #-----------------------------------------------------------------
+            # Label names:
+            #-----------------------------------------------------------------
+            label_numbers = dkt.label_numbers
+            label_names = dkt.label_names
+            name_list = []
+            for ilabel in label_list:
+                name_list.append(label_names[label_numbers.index(ilabel)])
+
+            #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
             #-----------------------------------------------------------------
             if itable in [0, 1]:
                 spectra = spectra_lists[itable]
-                spectra_name = spectra_names[itable]
-                spectra_IDs = spectra_ID_lists[itable]
+                if spectra:
+                    spectra_IDs = spectra_ID_lists[itable]
 
-                # Order spectra into a list:
-                spectrum_list = []
-                for label in label_list:
-                    if label in spectra_IDs:
-                        spectrum = spectra[spectra_IDs.index(label)]
-                        spectrum_list.append(spectrum)
-                    else:
-                        spectrum_list.append('')
+                    # Order spectra into a list:
+                    spectrum_list = []
+                    for label in label_list:
+                        if label in spectra_IDs:
+                            spectrum = spectra[spectra_IDs.index(label)]
+                            spectrum_list.append(spectrum)
+                        else:
+                            spectrum_list.append('')
 
-                # Append spectral shape name and values to relevant columns:
-                columns.append(spectrum_list)
-                table_column_names.append(spectra_name)
+                    # Append spectral shape name and values to relevant columns:
+                    columns.append(spectrum_list)
+                    column_names.append('Laplace-Beltrami spectra')
 
             #-----------------------------------------------------------------
             # Zernike moments:
             #-----------------------------------------------------------------
             if itable in [0, 1]:
                 zernike = zernike_lists[itable]
-                zernike_name = zernike_names[itable]
-                zernike_IDs = zernike_ID_lists[itable]
+                if zernike:
+                    zernike_IDs = zernike_ID_lists[itable]
 
-                # Order zernike into a list:
-                spectrum_list = []
-                for label in label_list:
-                    if label in zernike_IDs:
-                        spectrum = zernike[zernike_IDs.index(label)]
-                        spectrum_list.append(spectrum)
-                    else:
-                        spectrum_list.append('')
+                    # Order zernike into a list:
+                    spectrum_list = []
+                    for label in label_list:
+                        if label in zernike_IDs:
+                            spectrum = zernike[zernike_IDs.index(label)]
+                            spectrum_list.append(spectrum)
+                        else:
+                            spectrum_list.append('')
 
-                # Append Zernike shape name and values to relevant columns:
-                columns.append(spectrum_list)
-                table_column_names.append(zernike_name)
+                    # Append Zernike shape name and values to relevant columns:
+                    columns.append(spectrum_list)
+                    column_names.append('Zernike moments')
 
             #-----------------------------------------------------------------
             # Write labels/IDs and values to table:
@@ -553,10 +565,14 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             output_table = write_columns(label_list, feature_name, delimiter,
                                          quote=True, input_table='',
                                          output_table=output_table)
+            if itable == 0:
+                write_columns(name_list, 'Label name', delimiter,
+                              quote=True, input_table=output_table,
+                              output_table=output_table)
 
             # Append columns of shape values to table:
             if columns:
-                write_columns(columns, table_column_names, delimiter,
+                write_columns(columns, column_names, delimiter,
                               quote=True, input_table=output_table,
                               output_table=output_table)
 
@@ -674,7 +690,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         sys.exit('No feature data to tabulate in write_vertex_measures().')
 
     # Feature names and corresponding feature lists:
-    feature_names = ['label', 'sulcus', 'fundus']
+    feature_names = ['Label', 'Sulcus', 'Fundus']
     feature_lists = [labels, sulci, fundi]
 
     # Shape names corresponding to shape files below:
@@ -702,12 +718,12 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
-                if affine_transform_file:
-                    affine_points, \
-                        foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format)
-                    columns.append(affine_points)
-                    column_names.append('coordinates in standard space')
+                #if affine_transform_file:
+                #    affine_points, \
+                #        foo1 = apply_affine_transform(affine_transform_file,
+                #                    points, transform_format)
+                #    columns.append(affine_points)
+                #    column_names.append('coordinates in standard space')
             else:
                 scalars, name = read_scalars(shape_file)
             if len(scalars):

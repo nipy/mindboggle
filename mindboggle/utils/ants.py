@@ -575,8 +575,8 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 
 
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
-                   noncortex_value=3, labels=[], resize=True, propagate=True,
-                   output_dir='', output_table=''):
+                   noncortex_value=3, labels=[], names=[], resize=True,
+                   propagate=True, output_dir='', save_table=False):
     """
     Compute a simple thickness measure for each labeled cortex region.
 
@@ -643,22 +643,23 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         noncortex label value in segmented_file
     labels : list of integers
         label indices
+    names : list of strings
+        label names
     resize : Boolean
         resize (2x) segmented_file for more accurate thickness estimates?
     propagate : Boolean
         propagate labels through cortex?
     output_dir : string
         output directory
-    output_table : string
-        output table file with labels and thickness values
-        (if empty, don't save table file)
+    save_table : Boolean
+        save output table file with labels and thickness values?
 
     Returns
     -------
     label_volume_thickness : list of lists of integers and floats
         label indices, volumes, and thickness values (default -1)
-    table_file : string
-        name of output table file
+    output_table : string
+        name of output thickness table file (if save_table==True)
 
     Examples
     --------
@@ -675,11 +676,12 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> labels.remove(2032)
     >>> labels.remove(1033)
     >>> labels.remove(2033)
+    >>> names = []
     >>> resize = True
     >>> propagate = False
     >>> output_dir = ''
-    >>> output_table = ''
-    >>> label_volume_thickness, table_file = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, resize, propagate, output_dir, output_table)
+    >>> save_table = True
+    >>> label_volume_thickness, output_table = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, names, resize, propagate, output_dir, save_table)
 
     """
     import os
@@ -703,6 +705,16 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     use_outer_edge = True
     if use_outer_edge:
         outer_edge = os.path.join(output_dir, 'cortex_outer_edge.nii.gz')
+    if save_table:
+        output_table = os.path.join(os.getcwd(), 'thickinthehead.csv')
+        fid = open(output_table, 'w')
+        if names:
+            fid.write("Label name, Label number, Volume, "
+                      "Thickness (thickinthehead)\n")
+        else:
+            fid.write("Label number, Volume, Thickness (thickinthehead)\n")
+    else:
+        output_table = ''
 
     #-------------------------------------------------------------------------
     # Extract noncortex and cortex:
@@ -787,8 +799,10 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
         labels = np.unique(labeled_data)
     labels = [int(x) for x in labels]
     label_volume_thickness = -1 * np.ones((len(labels), 3))
-    label_volume_thickness[:,0] = labels
+    label_volume_thickness[:, 0] = labels
     for ilabel, label in enumerate(labels):
+        if names:
+            name = names[ilabel]
 
         #---------------------------------------------------------------------
         # Compute thickness as a ratio of label volume and edge volume:
@@ -809,22 +823,28 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             else:
                 label_area = label_inner_edge_volume
             thickness = label_cortex_volume / label_area
-            label_volume_thickness[ilabel,1] = label_cortex_volume
-            #label_volume_thickness[ilabel,2] = label_area
-            label_volume_thickness[ilabel,2] = thickness
-            print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
-                  'outer={3:2.2f}, area51={4:2.2f}, thickness={5:2.2f}mm'.
-                  format(label, label_cortex_volume, label_inner_edge_volume,
-                  label_outer_edge_volume, label_area, thickness))
+            label_volume_thickness[ilabel, 1] = label_cortex_volume
+            label_volume_thickness[ilabel, 2] = thickness
 
-    if output_table:
-        table_file = os.path.join(output_dir, output_table)
-        np.savetxt(table_file, label_volume_thickness,
-                   fmt='%d %2.4f %2.4f', delimiter='\t', newline='\n')
-    else:
-        table_file = ''
+            #print('label {0} volume: cortex={1:2.2f}, inner={2:2.2f}, '
+            #      'outer={3:2.2f}, area51={4:2.2f}, thickness={5:2.2f}mm'.
+            #      format(name, label, label_cortex_volume, label_inner_edge_volume,
+            #      label_outer_edge_volume, label_area, thickness))
+            if names:
+                print('{0} ({1}) volume={2:2.2f}, thickness={3:2.2f}mm'.
+                      format(name, label, label_cortex_volume, thickness))
+            else:
+                print('{0}, volume={2:2.2f}, thickness={3:2.2f}mm'.
+                      format(label, label_cortex_volume, thickness))
 
-    label_volume_thickness = label_volume_thickness.\
-        transpose().tolist()
+            if save_table:
+                if names:
+                    fid.write('{0}, {1}, {2:2.4f}, {3:2.4f}\n'.format(name,
+                                label, label_cortex_volume, thickness))
+                else:
+                    fid.write('{0}, {1:2.4f}, {2:2.4f}\n'.format(label,
+                                label_cortex_volume, thickness))
 
-    return label_volume_thickness, table_file
+    label_volume_thickness = label_volume_thickness.transpose().tolist()
+
+    return label_volume_thickness, output_table

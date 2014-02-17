@@ -659,6 +659,7 @@ def print_colormap(colormap):
 
 
 """
+    # 2-D cortical map (UNDER CONSTRUCTION):
     #
     # Each gyrus has one or more sulcus boundaries -- rough breakdown:
     #

@@ -460,7 +460,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
     exclude_labels : list of integers
         labels to be excluded
     areas : numpy array of floats
-        surface areas
+        surface areas (if provided, used to normalize means and sdevs)
 
     Returns
     -------
@@ -780,7 +780,7 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
            lower_quarts, upper_quarts, label_list
 
 
-def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
+def volume_per_label(input_file, labels=[], names=[], save_table=False):
     """
     Compute volume per labeled region in a nibabel-readable image.
 
@@ -790,13 +790,17 @@ def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
         name of image file, consisting of index-labeled pixels/voxels
     labels : list of integers
         label numbers for image volumes (if empty, use unique numbers in file)
-    exclude_labels : list of integers
-        label IDs to exclude
+    names : list of strings
+        label names
+    save_table : Boolean
+        save output table file with labels and volume values?
 
     Returns
     -------
     labels_volumes : list of integer list and float list
         label numbers and volume for each labeled region (default -1)
+    output_table : string
+        name of output volume table file (if save_table==True)
 
     Examples
     --------
@@ -806,10 +810,11 @@ def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> dkt = DKTprotocol()
-    >>> labels_volumes = volume_per_label(input_file, dkt.label_numbers, [-1])
+    >>> labels_volumes, output_table = volume_per_label(input_file, dkt.label_numbers, names=[], save_table=True)
     >>> print(labels_volumes)
 
     """
+    import os
     import numpy as np
     import nibabel as nb
 
@@ -823,20 +828,39 @@ def volume_per_label(input_file, labels=[], exclude_labels=[-1]):
     # Initialize output:
     if not labels:
         labels = np.unique(data).tolist()
-    labels = [int(x) for x in labels if x not in exclude_labels]
+    labels = [int(x) for x in labels]
     volumes = -1 * np.ones(len(labels))
+
+    # Output table:
+    if save_table:
+        output_table = os.path.join(os.getcwd(), 'volumes.csv')
+        fid = open(output_table, 'w')
+        if names:
+            fid.write("Label number, Label name, Volume\n")
+        else:
+            fid.write("Label number, Volume\n")
+    else:
+        output_table = ''
 
     # Loop through labels:
     for ilabel, label in enumerate(labels):
 
         # Find which voxels contain the label in each volume:
-        indices = np.where(data==label)[0]
+        indices = np.where(data == label)[0]
         if len(indices):
-            volumes[ilabel] = volume_per_voxel * len(indices)
+            volume = volume_per_voxel * len(indices)
+            volumes[ilabel] = volume
+
+            if save_table:
+                if names:
+                    fid.write('{0}, ({1}), {2:2.4f}\n'.format(names[ilabel],
+                        label, volume))
+                else:
+                    fid.write('{0}, {1:2.4f}\n'.format(label, volume))
 
     labels_volumes = [labels, volumes.tolist()]
 
-    return labels_volumes
+    return labels_volumes, output_table
 
 
 def compute_image_histogram(infile, nbins=100, threshold=0.0):
