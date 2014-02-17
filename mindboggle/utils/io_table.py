@@ -509,11 +509,12 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Label names:
             #-----------------------------------------------------------------
-            label_numbers = dkt.label_numbers
-            label_names = dkt.label_names
-            name_list = []
-            for ilabel in label_list:
-                name_list.append(label_names[label_numbers.index(ilabel)])
+            if itable == 0:
+                label_numbers = dkt.label_numbers
+                label_names = dkt.label_names
+                name_list = []
+                for label in label_list:
+                    name_list.append(label_names[label_numbers.index(label)])
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
@@ -733,7 +734,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     # Prepend with column of indices and write table
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'vertices.csv')
-    write_columns(range(len(columns[0])), 'index', delimiter, quote=True,
+    write_columns(range(len(columns[0])), 'Index', delimiter, quote=True,
                   input_table='', output_table=output_table)
     write_columns(columns, column_names, delimiter, quote=True,
                   input_table=output_table, output_table=output_table)
