@@ -324,6 +324,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     # Print out assigned sulci
     #-------------------------------------------------------------------------
     sulcus_numbers = [int(x) for x in np.unique(sulci) if x != -1]
+                      # if not np.isnan(x)]
     n_sulci = len(sulcus_numbers)
     print("Extracted {0} sulci from {1} folds ({2:.1f}s):".
           format(n_sulci, n_folds, time()-t0))
@@ -356,7 +357,7 @@ def extract_sulci(labels_file, folds_or_file, hemi, min_boundary=1,
     #-------------------------------------------------------------------------
     sulci_file = os.path.join(os.getcwd(), 'sulci.vtk')
     rewrite_scalars(labels_file, sulci_file, sulci, 'sulci', sulci)
-    sulci.tolist()
+    sulci = sulci.tolist()
 
     if not os.path.exists(sulci_file):
         raise(IOError(sulci_file + " not found"))
