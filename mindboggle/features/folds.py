@@ -220,7 +220,9 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     else:
         folds_file = None
 
-    return folds.tolist(), n_folds, depth_threshold, bins, bin_edges, folds_file
+    folds = folds.tolist()
+
+    return folds, n_folds, depth_threshold, bins, bin_edges, folds_file
 
 
 #=============================================================================
