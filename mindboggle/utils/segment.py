@@ -248,7 +248,7 @@ def segment(vertices_to_segment, neighbor_lists, min_region_size=1,
     if isinstance(vertices_to_segment, np.ndarray):
         vertices_to_segment = vertices_to_segment.tolist()
     if isinstance(labels, np.ndarray):
-        labels = labels.tolist()
+        labels = [int(x) for x in labels]
     if isinstance(values, np.ndarray):
         values = values.tolist()
 
