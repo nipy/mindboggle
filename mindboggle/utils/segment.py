@@ -790,7 +790,7 @@ def watershed(depths, points, indices, neighbor_lists, min_size=1,
 
     # Make sure argument is a list
     if isinstance(indices, np.ndarray):
-        indices.tolist()
+        indices = indices.tolist()
 
     print('Segment {0} vertices by a surface watershed algorithm'.
           format(len(indices)))
