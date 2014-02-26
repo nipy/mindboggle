@@ -206,6 +206,8 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     else:
         print('  No deep vertices')
 
+    folds = [int(x) for x in folds]
+
     #-------------------------------------------------------------------------
     # Return folds, number of folds, file name
     #-------------------------------------------------------------------------
@@ -219,8 +221,6 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
 
     else:
         folds_file = None
-
-    folds = folds.tolist()
 
     return folds, n_folds, depth_threshold, bins, bin_edges, folds_file
 
