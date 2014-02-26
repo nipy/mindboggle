@@ -149,7 +149,7 @@ def compute_likelihood(trained_file, depth_file, curvature_file, folds,
         probs_nonborder[I] = probs_nonborder[I] + norm_nonborder[j] * np.exp(expNB)
 
     likelihoods = probs_border / (probs_nonborder + probs_border + tiny)
-    likelihoods.tolist()
+    likelihoods = likelihoods.tolist()
 
     #-------------------------------------------------------------------------
     # Return likelihoods and output file name

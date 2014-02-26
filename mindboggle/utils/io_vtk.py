@@ -1268,7 +1268,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     points = np.concatenate((points, np.ones((np.shape(points)[0],1))),axis=1)
     affine_points = np.transpose(np.dot(transform,
                                         np.transpose(points)))[:,0:3]
-    affine_points.tolist()
+    affine_points = affine_points.tolist()
     affine_points = [x.tolist() for x in affine_points]
 
     # Write transformed VTK file:
