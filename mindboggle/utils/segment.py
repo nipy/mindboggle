@@ -98,7 +98,7 @@ def propagate(points, faces, region, seeds, labels,
     import mindboggle.utils.kernels as kernels
     import mindboggle.labels.rebound as rb
 
-    # Make sure arguments are numpy arrays
+    # Make sure arguments are numpy arrays:
     if not isinstance(seeds, np.ndarray):
         seeds = np.array(seeds)
     if not isinstance(labels, np.ndarray):
@@ -106,12 +106,12 @@ def propagate(points, faces, region, seeds, labels,
     if not isinstance(points, np.ndarray):
         points = np.array(points)
 
-    indices_region = [i for i,x in enumerate(region) if x != background_value]
-    if indices_region and faces:
-        local_indices_region = background_value * np.ones(labels.shape)
-        local_indices_region[indices_region] = range(len(indices_region))
-
-        if points.size:
+    if points.size and faces:
+        segments = background_value * np.ones(len(points))
+        indices_region = [i for i,x in enumerate(region) if x != background_value]
+        if indices_region:
+            local_indices_region = background_value * np.ones(labels.shape)
+            local_indices_region[indices_region] = range(len(indices_region))
 
             n_sets = len(np.unique([x for x in seeds if x != background_value]))
             if n_sets == 1:
@@ -124,7 +124,7 @@ def propagate(points, faces, region, seeds, labels,
             # Remove faces whose three vertices are not among specified indices:
             refaces = remove_faces(faces, indices_region)
 
-            # Set up rebound Bounds class instance
+            # Set up rebound Bounds class instance:
             B = rb.Bounds()
             if refaces:
                 B.Faces = np.array(refaces)
@@ -134,22 +134,20 @@ def propagate(points, faces, region, seeds, labels,
                 B.seed_labels = seeds[indices_region]
                 B.num_points = len(B.Points)
 
-                # Propagate seed IDs from seeds
+                # Propagate seed IDs from seeds:
                 B.graph_based_learning(method='propagate_labels', realign=False,
                                        kernel=kernels.rbf_kernel, sigma=sigma,
                                        max_iters=max_iters, tol=tol, vis=False)
+
+                # Assign maximum probability seed IDs to each point of region:
+                max_prob_labels = B.assign_max_prob_label()
+
+                # Return segment IDs in original vertex array:
+                segments[indices_region] = max_prob_labels
             else:
                 print("  No faces")
-
-            # Assign maximum probability seed IDs to each point of region
-            max_prob_labels = B.assign_max_prob_label()
-
-            # Return segment IDs in original vertex array
-            segments = background_value * np.ones(len(points))
-            if max_prob_labels:
-                segments[indices_region] = max_prob_labels
     else:
-        segments = background_value * np.ones(len(points))
+        segments = []
 
     return segments
 
