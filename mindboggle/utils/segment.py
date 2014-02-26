@@ -146,7 +146,8 @@ def propagate(points, faces, region, seeds, labels,
 
             # Return segment IDs in original vertex array
             segments = background_value * np.ones(len(points))
-            segments[indices_region] = max_prob_labels
+            if max_prob_labels:
+                segments[indices_region] = max_prob_labels
     else:
         segments = background_value * np.ones(len(points))
 
