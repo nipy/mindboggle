@@ -359,15 +359,15 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
-        labels = labels_or_file.tolist()
+        labels = [int(x) for x in labels_or_file]
     elif isinstance(labels_or_file, list):
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
     if isinstance(sulci, np.ndarray):
-        sulci = sulci.tolist()
+        sulci = [int(x) for x in sulci]
     if isinstance(fundi, np.ndarray):
-        fundi = fundi.tolist()
+        fundi = [int(x) for x in fundi]
 
     if not labels and not sulci and not fundi:
         import sys
@@ -676,15 +676,15 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
-        labels = labels_or_file.tolist()
+        labels = [int(x) for x in labels_or_file]
     elif isinstance(labels_or_file, list):
         labels = labels_or_file
     elif isinstance(labels_or_file, str):
         labels, name = read_scalars(labels_or_file)
     if isinstance(sulci, np.ndarray):
-        sulci = sulci.tolist()
+        sulci = [int(x) for x in sulci]
     if isinstance(fundi, np.ndarray):
-        fundi = fundi.tolist()
+        fundi = [int(x) for x in fundi]
 
     if not labels and not sulci and not fundi:
         import sys

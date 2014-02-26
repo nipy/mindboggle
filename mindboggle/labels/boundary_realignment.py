@@ -120,7 +120,7 @@ def realign_boundaries_to_fundus_lines(
     # save
     if out_label_file is not None:
         write_vtk(out_label_file, points, faces=faces,
-                  scalars=new_labels.tolist(), scalar_type='int')
+                  scalars=[int(x) for x in new_labels], scalar_type='int')
 
     return new_labels
 

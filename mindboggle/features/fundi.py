@@ -167,7 +167,7 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
     # Return fundi, number of fundi, and file name:
     #-------------------------------------------------------------------------
     if n_fundi_in_folds > 0:
-        fundus_per_fold = fundus_per_fold.tolist()
+        fundus_per_fold = [int(x) for x in fundus_per_fold]
         if save_file:
             fundus_per_fold_file = os.path.join(os.getcwd(),
                                                 'fundus_per_fold.vtk')
@@ -269,7 +269,7 @@ def segment_fundi(fundus_per_fold, sulci=[], vtk_file='', save_file=False):
     #-------------------------------------------------------------------------
     fundus_per_sulcus_file = None
     if n_fundi > 0:
-        fundus_per_sulcus = fundus_per_sulcus.tolist()
+        fundus_per_sulcus = [int(x) for x in fundus_per_sulcus]
         if save_file and os.path.exists(vtk_file):
             fundus_per_sulcus_file = os.path.join(os.getcwd(),
                                                   'fundus_per_sulcus.vtk')
