@@ -1268,7 +1268,6 @@ if do_surface:
                 #mbFlow.connect(ComposeAffine, 'output_transform_file',
                 #               VertexTable, 'affine_transform_file')
                 #VertexTable.inputs.transform_format = 'itk'
-
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
                                 ('Travel_depth.depth_file',
