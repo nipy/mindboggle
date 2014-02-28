@@ -405,7 +405,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     input_vtk = read_vtk(shape_file, True, True)
                 points = np.array(points)
                 first_pass = False
-                if affine_transform_file:
+                if affine_transform_file and transform_format:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
                                     points, transform_format, save_file=False)
@@ -496,7 +496,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Mean positions in standard space:
             #-----------------------------------------------------------------
-            if affine_transform_file:
+            if affine_transform_file and transform_format:
                 # Compute standard space mean position per feature:
                 standard_positions, sdevs, label_list, \
                 foo = means_per_label(affine_points,
@@ -719,12 +719,12 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
-                #if affine_transform_file:
-                #    affine_points, \
-                #        foo1 = apply_affine_transform(affine_transform_file,
-                #                    points, transform_format)
-                #    columns.append(affine_points)
-                #    column_names.append('coordinates in standard space')
+                if affine_transform_file and transform_format:
+                    affine_points, \
+                        foo1 = apply_affine_transform(affine_transform_file,
+                                    points, transform_format)
+                    columns.append(affine_points)
+                    column_names.append('coordinates in standard space')
             else:
                 scalars, name = read_scalars(shape_file)
             if len(scalars):
