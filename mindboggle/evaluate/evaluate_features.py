@@ -19,12 +19,13 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 def evaluate_deep_features(features_file, labels_file, sulci_file='',
-                           output_vtk='', excludeIDs=[-1]):
+                           excludeIDs=[-1], output_vtk_name='', verbose=True):
     """
     Evaluate deep surface features by computing the minimum distance from each
-    label boundary vertex to all of the feature vertices in the same sulcus.
-    The label boundaries run along the deepest parts of sulci and
-    correspond to fundi in the DKT cortical labeling protocol.
+    label boundary vertex to all of the feature vertices in the same sulcus,
+    and from each feature vertex to all of the label boundary vertices in the
+    same sulcus.  The label boundaries run along the deepest parts of sulci
+    and correspond to fundi in the DKT cortical labeling protocol.
 
     Parameters
     ----------
@@ -34,20 +35,31 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         VTK surface file with label numbers for vertex scalars
     sulci_file : string
         VTK surface file with sulcus numbers for vertex scalars
-    output_vtk : string
-        name of output VTK file containing surface with distances as scalars
-        (not written if empty string)
     excludeIDs : list of integers
         feature/sulcus/label IDs to exclude (background set to -1)
+    output_vtk_name : Boolean
+        if not empty, output a VTK file beginning with output_vtk_name that
+        contains a surface with mean distances as scalars
+    verbose : Boolean
+        print mean distances to standard output?
 
     Returns
     -------
-    feature_mean_distances: numpy array [number of features x 1]
-        mean distances from source to target features
-    feature_std_distances: numpy array [number of features x 1]
-        standard deviations of distances from source to target features
+    feature_to_fundus_mean_distances : numpy array [number of features x 1]
+        mean distance from each feature to sulcus label boundary ("fundus")
+    feature_to_fundus_sd_distances : numpy array [number of features x 1]
+        standard deviations of feature-to-fundus distances
+    feature_to_fundus_mean_distances_vtk : string
+        VTK surface file containing feature_to_fundus_mean_distances
+    fundus_to_feature_mean_distances : numpy array [number of features x 1]
+        mean distances from each sulcus label boundary ("fundus") to feature
+    fundus_to_feature_sd_distances : numpy array [number of features x 1]
+        standard deviations of fundus-to-feature distances
+    fundus_to_feature_mean_distances_vtk : string
+        VTK surface file containing fundus_to_feature_mean_distances
 
     """
+    import os
     import sys
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
@@ -57,8 +69,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     from mindboggle.LABELS import DKTprotocol
 
     dkt = DKTprotocol()
-
+    #-------------------------------------------------------------------------
     # Load labels, features, and sulci:
+    #-------------------------------------------------------------------------
     faces, lines, indices, points, npoints, labels, scalar_names, \
         input_vtk = read_vtk(labels_file, True, True)
     features, name = read_scalars(features_file, True, True)
@@ -71,6 +84,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         sulcus_indices = range(len(labels))
         segmentIDs = []
 
+    #-------------------------------------------------------------------------
+    # Prepare neighbors, label pairs, fundus IDs, and outputs:
+    #-------------------------------------------------------------------------
     # Calculate neighbor lists for all points:
     print('Find neighbors to all vertices...')
     neighbor_lists = find_neighbors(faces, npoints)
@@ -92,6 +108,16 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     print('Build an array of label boundary fundus IDs...')
     label_boundary_fundi = -1 * np.ones(npoints)
 
+    feature_to_fundus_mean_distances = -1 * np.ones(nsulcus_lists)
+    feature_to_fundus_sd_distances = -1 * np.ones(nsulcus_lists)
+    fundus_to_feature_mean_distances = -1 * np.ones(nsulcus_lists)
+    fundus_to_feature_sd_distances = -1 * np.ones(nsulcus_lists)
+    feature_to_fundus_mean_distances_vtk = ''
+    fundus_to_feature_mean_distances_vtk = ''
+
+    #-------------------------------------------------------------------------
+    # Loop through sulci:
+    #-------------------------------------------------------------------------
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
         #print('  Sulcus ' + str(isulcus + 1))
@@ -103,15 +129,15 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
 
         # Store the points as sulcus IDs in the fundus IDs array:
         if fundus_indices:
-            label_boundary_fundi[fundus_indices] = isulcus + 1
-
-    feature_mean_distances = -1 * np.ones(nsulcus_lists)
-    feature_std_distances = -1 * np.ones(nsulcus_lists)
+            label_boundary_fundi[fundus_indices] = isulcus
 
     if len(np.unique(label_boundary_fundi)) > 1:
 
+        #---------------------------------------------------------------------
+        # Construct a feature-to-fundus distance matrix and VTK file:
+        #---------------------------------------------------------------------
         # Construct a distance matrix:
-        print('Construct a boundary-to-feature distance matrix...')
+        print('Construct a feature-to-fundus distance matrix...')
         sourceIDs = features
         targetIDs = label_boundary_fundi
         ntargets = nsulcus_lists
@@ -123,22 +149,72 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         for ifeature in range(nsulcus_lists):
             feature_distances = [x for x in distance_matrix[:, ifeature]
                                  if x != -1]
-            feature_mean_distances[ifeature] = np.mean(feature_distances)
-            feature_std_distances[ifeature] = np.std(feature_distances)
+            feature_to_fundus_mean_distances[ifeature] = \
+                np.mean(feature_distances)
+            feature_to_fundus_sd_distances[ifeature] = \
+                np.std(feature_distances)
 
-        print('Feature mean distances')
-        print(feature_mean_distances)
-        print('Feature standard deviations of distances')
-        print(feature_std_distances)
+        if verbose:
+            print('Feature-to-fundus mean distances:')
+            print(feature_to_fundus_mean_distances)
+            print('Feature-to-fundus standard deviations of distances:')
+            print(feature_to_fundus_sd_distances)
 
         # Write resulting feature-label boundary distances to VTK file:
-        if output_vtk:
-            print('Write distances to a VTK file for visualization...')
-            write_vtk(output_vtk, points, [], [], faces,
-                      [distances], ['feature-label_boundary_distances'],
+        if output_vtk_name:
+            feature_to_fundus_mean_distances_vtk = os.path.join(os.getcwd(),
+                output_vtk_name + '_fundus_to_feature_mean_distances.vtk')
+            print('Write feature-to-fundus distances to {0}...'.
+                  format(feature_to_fundus_mean_distances_vtk))
+            write_vtk(feature_to_fundus_mean_distances_vtk, points, [], [],
+                      faces, [distances], ['feature-to-fundus_distances'],
                       'float')
 
-    return feature_mean_distances, feature_std_distances, output_vtk
+        #---------------------------------------------------------------------
+        # Construct a fundus-to-feature distance matrix and VTK file:
+        #---------------------------------------------------------------------
+        # Construct a distance matrix:
+        print('Construct a fundus-to-feature distance matrix...')
+        sourceIDs = label_boundary_fundi
+        targetIDs = features
+        ntargets = nsulcus_lists
+        distances, distance_matrix = source_to_target_distances(
+            sourceIDs, targetIDs, points, ntargets, segmentIDs,
+            excludeIDs)
+
+        # Compute mean distances for each feature:
+        for ifeature in range(nsulcus_lists):
+            fundus_distances = [x for x in distance_matrix[:, ifeature]
+                                 if x != -1]
+            fundus_to_feature_mean_distances[ifeature] = \
+                np.mean(fundus_distances)
+            fundus_to_feature_sd_distances[ifeature] = \
+                np.std(fundus_distances)
+
+        if verbose:
+            print('Fundus-to-feature mean distances:')
+            print(fundus_to_feature_mean_distances)
+            print('Fundus-to-feature standard deviations of distances:')
+            print(fundus_to_feature_sd_distances)
+
+        # Write resulting feature-label boundary distances to VTK file:
+        if output_vtk_name:
+            fundus_to_feature_mean_distances_vtk = os.path.join(os.getcwd(),
+                output_vtk_name + '_fundus_to_feature_mean_distances.vtk')
+            print('Write fundus-to-feature distances to {0}...'.
+                  format(fundus_to_feature_mean_distances_vtk))
+            write_vtk(fundus_to_feature_mean_distances_vtk, points, [], [],
+                      faces, [distances], ['fundus-to-feature_distances'],
+                      'float')
+
+    #-------------------------------------------------------------------------
+    # Return outputs:
+    #-------------------------------------------------------------------------
+    return feature_to_fundus_mean_distances, feature_to_fundus_sd_distances,\
+           feature_to_fundus_mean_distances_vtk,\
+           fundus_to_feature_mean_distances, fundus_to_feature_sd_distances,\
+           fundus_to_feature_mean_distances_vtk
+
 
 
 if __name__ == "__main__":
@@ -147,7 +223,7 @@ if __name__ == "__main__":
     from mindboggle.evaluate.evaluate_features import evaluate_deep_features
 
     mindboggled = '/homedir/mindboggled'
-    fundi_dir = '/home/arno/Projects/BrainImaging/fundus_evaluation_2014'
+    fundi_dir = '/homedir/Projects/BrainImaging/fundus_evaluation_2014'
     output_dir = '/desk'
 
     # Features: fundus method:
@@ -165,11 +241,12 @@ if __name__ == "__main__":
     fmethod = fmethods[nmethod]
 
     # Loop through subjects and hemispheres:
-    names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
+    names = ['OASIS-TRT-20'] #, 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
             #['Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
-    numbers = [20,21,22,20]  #[1,1,2,2,12]
+    numbers = [1] #[20,21,22,20]  #[1,1,2,2,12]
     surfs = ['left_surface','right_surface']
     hemis = ['lh','rh']
+    #Feature_mean_distances = np.ones((len()))
     for iname, name in enumerate(names):
         number = numbers[iname]
         for n in range(1,number+1):
@@ -179,8 +256,20 @@ if __name__ == "__main__":
 
                 # Identify surface files with labels and sulci:
                 mdir = os.path.join(fmethod, subject)
+
+
+
+
+
+                #labels_file = os.path.join(mdir, 'labels', surf,
+                #                           'relabeled_labels.DKT31.manual.vtk')
                 labels_file = os.path.join(mdir, 'labels', surf,
-                                           'relabeled_labels.DKT31.manual.vtk')
+                                           'relabeled_classifier.vtk')
+
+
+
+
+
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
                 output_vtk = os.path.join(output_dir,
                                           subject + '_fundus-label_distances.vtk')
@@ -196,15 +285,14 @@ if __name__ == "__main__":
 
                 # Compute distances from features to label boundaries in sulci
                 # corresponding to fundi:
-                feature_mean_distances, feature_std_distances, \
-                output_vtk = evaluate_deep_features(features_file, labels_file,
-                                                    sulci_file, output_vtk,
-                                                    excludeIDs=[-1])
-                print('***')
-                print('Input features:' + features_file)
-                print('Input sulci:' + sulci_file)
-                print('Input labels:' + labels_file)
-                print('Output VTK file:' + output_vtk)
-                print('feature_mean_distances:')
-                print(feature_mean_distances)
-                print('***')
+                feature_to_fundus_mean_distances, \
+                feature_to_fundus_sd_distances,\
+                feature_to_fundus_mean_distances_vtk,\
+                fundus_to_feature_mean_distances, \
+                fundus_to_feature_sd_distances,\
+                fundus_to_feature_mean_distances_vtk = \
+                    evaluate_deep_features(features_file, labels_file,
+                                           sulci_file, excludeIDs=[-1],
+                                           output_vtk_name=subject+'_'+hemi,
+                                           verbose=True)
+                print('*' * 79)

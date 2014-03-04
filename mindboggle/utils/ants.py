@@ -119,6 +119,78 @@ def ComposeMultiTransform(transform_files, inverse_Booleans,
     return output_transform_file
 
 
+def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
+    """
+    Run ANTs antsApplyTransformsToPoints function to transform points.
+    (Creates pre- and post-transformed .csv points files for ANTs.)
+
+    Parameters
+    ----------
+    points : list of lists of three integers
+        point coordinate data
+    transform_files : list
+        transform file names
+    inverse_booleans : list
+        for each transform, one to apply inverse of transform (otherwise zero)
+
+    Returns
+    -------
+    transformed_points : list of lists of three integers
+        transformed point coordinate data
+
+    Examples
+    --------
+    >>> from mindboggle.utils.ants import antsApplyTransformsToPoints
+    >>> from mindboggle.utils.io_vtk import read_vtk
+    >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
+    >>> vtk_file = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
+    >>> faces, lines, indices, points, npoints, scalars, name, foo1 = read_vtk(vtk_file)
+    >>> inverse_booleans = [0]
+    >>> transformed_points = antsApplyTransformsToPoints(points, transform_files, inverse_booleans)
+
+    """
+    import os
+
+    from mindboggle.utils.utils import execute
+
+    #-------------------------------------------------------------------------
+    # Write points (x,y,z,1) to a .csv file:
+    #-------------------------------------------------------------------------
+    points_file = os.path.join(os.getcwd(), 'points.csv')
+    fid = open(points_file, 'wa')
+    fid.write('x,y,z\n')
+    for point in points:
+        fid.write(','.join([str(x) for x in point]) + '\n')
+
+    #-------------------------------------------------------------------------
+    # Apply transforms to points in .csv file:
+    #-------------------------------------------------------------------------
+    transformed_points_file = os.path.join(os.getcwd(),
+                                           'transformed_points.csv')
+    transform_string = ''
+    for ixfm, transform_file in enumerate(transform_files):
+        transform_string += "--t [{0},{1}]".format(transform_file,
+                                   str(inverse_booleans[ixfm]))
+    cmd = ['antsApplyTransformsToPoints', '-d 3', '-i', points_file,
+           '-o', transformed_points_file, transform_string]
+    execute(cmd, 'os')
+    if not os.path.exists(transformed_points_file):
+        raise(IOError(transformed_points_file + " not found"))
+
+    #-------------------------------------------------------------------------
+    # Return transformed points:
+    #-------------------------------------------------------------------------
+    fid = open(transformed_points_file, 'r')
+    lines = fid.readlines()
+    transformed_points = []
+    for iline, line in enumerate(lines):
+        if iline > 0:
+            point_xyz1 = [float(x) for x in line.split(',')]
+            transformed_points.append(point_xyz1[0:3])
+
+    return transformed_points
+
+
 def ImageMath(volume1, volume2, operator='m', output_file=''):
     """
     Use the ImageMath function in ANTS to perform operation on two volumes::
