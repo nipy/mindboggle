@@ -161,6 +161,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     fid.write('x,y,z\n')
     for point in points:
         fid.write(','.join([str(x) for x in point]) + '\n')
+    fid.close()
 
     #-------------------------------------------------------------------------
     # Apply transforms to points in .csv file:
@@ -171,7 +172,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     for ixfm, transform_file in enumerate(transform_files):
         transform_string += "--t [{0},{1}]".format(transform_file,
                                    str(inverse_booleans[ixfm]))
-    cmd = ['antsApplyTransformsToPoints', '-d 3', '-i', points_file,
+    cmd = ['antsApplyTransformsToPoints', '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
     execute(cmd, 'os')
     if not os.path.exists(transformed_points_file):
@@ -182,11 +183,13 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     #-------------------------------------------------------------------------
     fid = open(transformed_points_file, 'r')
     lines = fid.readlines()
+    fid.close()
     transformed_points = []
     for iline, line in enumerate(lines):
         if iline > 0:
             point_xyz1 = [float(x) for x in line.split(',')]
             transformed_points.append(point_xyz1[0:3])
+
 
     return transformed_points
 
