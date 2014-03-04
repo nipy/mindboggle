@@ -2155,7 +2155,7 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     # Set the workflow configuration enable provenance tracking:
     #-------------------------------------------------------------------------
-    config.enable_provenance()
+    #config.enable_provenance()
 
     #-------------------------------------------------------------------------
     # Set the workflow configuration to use content hashing:
