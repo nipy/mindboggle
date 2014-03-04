@@ -194,9 +194,9 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
                                segmentIDs=[], excludeIDs=[-1]):
     """
-    Create a distance matrix between source and target points.
+    Create a Euclidean distance matrix between source and target points.
 
-    Compute distances between source and target features,
+    Compute Euclidean distances between source and target features,
     optionally within each segment.
 
     Example::

@@ -1190,20 +1190,23 @@ def read_itk_transform(transform_file):
 
 
 def apply_affine_transform(transform_file, vtk_or_points,
-                           transform_format='txt', save_file=False):
+                           transform_format='itk', save_file=False):
     """
     Transform coordinates using an affine matrix.
 
     Parameters
     ----------
     transform file : string
-        name of ITK affine transform file
+        name of affine transform file
     vtk_or_points : string or list of lists of three integers
         name of VTK file containing point coordinate data, or the data
         (if vtk file, assumes scalars are a list of floats or integers)
     transform_format : string
-        format for transform file
-        Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
+        format for transform file (currently 'itk');
+        complications arise with other formats, such as
+        'txt' for text, or 'mat' for Matlab format, since
+        software-specific assignment of parameters such as
+        the origin need to be taken into account
     save_file : Boolean
         save transformed coordinates in a vtk file?
         (False if vtk_or_points is points)
@@ -1220,19 +1223,16 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> import os
     >>> from mindboggle.utils.io_vtk import apply_affine_transform
     >>> from mindboggle.utils.plots import plot_surfaces
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> transform_file = os.path.join(path, 'arno', 'mri',
-    >>>    't1weighted_brain.MNI152Affine.txt')
-    >>> #    'affine_to_template.mat')
+    >>> #path = os.environ['MINDBOGGLE_DATA']
+    >>> #transform_file = os.path.join(path, 'arno', 'mri',
+    >>> #   't1weighted_brain.MNI152Affine.txt')
+    >>> transform_file = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt'
+    >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> transform_format = 'itk'
-    >>> #transform_format = 'mat'
-    >>> vtk_or_points = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> save_file = True
-    >>> #
-    >>> apply_affine_transform(transform_file, vtk_or_points,
-    >>>                        transform_format, save_file)
+    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, save_file)
     >>> # View
-    >>> plot_surfaces('affine_lh.pial.mean_curvature.vtk')
+    >>> plot_surfaces('affine_lh.pial.vtk')
 
     """
     import os
@@ -1240,14 +1240,16 @@ def apply_affine_transform(transform_file, vtk_or_points,
     from scipy.io import loadmat
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
+    #from mindboggle.utils.ants import antsApplyTransformsToPoints
 
-    # Read ITK affine transform file:
-    if transform_format == 'txt':
+    # Read affine transform file:
+    if transform_format == 'itk':
+        #pass
+        transform = read_itk_transform(transform_file)
+    elif transform_format == 'txt':
         transform = np.loadtxt(transform_file)
     elif transform_format == 'mat':
         transform = loadmat(transform_file)
-    elif transform_format == 'itk':
-        transform = read_itk_transform(transform_file)
     else:
         import sys
         sys.exit('Transform file format not understood.')
@@ -1265,24 +1267,38 @@ def apply_affine_transform(transform_file, vtk_or_points,
         save_file = False
 
     # Transform points:
-    points = np.concatenate((points, np.ones((np.shape(points)[0],1))),axis=1)
-    affine_points = np.transpose(np.dot(transform,
-                                        np.transpose(points)))[:,0:3]
-    affine_points = affine_points.tolist()
-    affine_points = [x.tolist() for x in affine_points]
+    if transform_format == 'itk':
+        #affine_points2 = antsApplyTransformsToPoints(points,
+        #                                            [transform_file], [0])
+        points = np.concatenate((points,
+                                 np.ones((np.shape(points)[0],1))), axis=1)
+        affine_points = np.transpose(np.dot(transform,
+                                            np.transpose(points)))[:,0:3]
+        affine_points = [x.tolist() for x in affine_points]
+    else:
+        points = np.concatenate((points,
+                                 np.ones((np.shape(points)[0],1))), axis=1)
+        affine_points = np.transpose(np.dot(transform,
+                                            np.transpose(points)))[:,0:3]
+        affine_points = [x.tolist() for x in affine_points]
 
     # Write transformed VTK file:
-    if save_file:
-        if np.ndim(scalars) == 1:
-            scalar_type = type(scalars[0]).__name__
-        elif np.ndim(scalars) == 2:
-            scalar_type = type(scalars[0][0]).__name__
-        else:
-            print("Undefined scalar type!")
+    if save_file and isinstance(vtk_or_points, str):
         output_file = os.path.join(os.getcwd(),
                                    'affine_' + os.path.basename(vtk_or_points))
+        if np.size(scalars):
+            if np.ndim(scalars) == 1:
+                scalar_type = type(scalars[0]).__name__
+            elif np.ndim(scalars) == 2:
+                scalar_type = type(scalars[0][0]).__name__
+            else:
+                print("Undefined scalar type!")
+        else:
+            scalars = []
+            scalar_type = 'int'
+
         write_vtk(output_file, affine_points, indices, lines, faces,
-                  scalars, name, scalar_type=scalar_type)
+                  scalars, name, scalar_type)
     else:
         output_file = None
 
