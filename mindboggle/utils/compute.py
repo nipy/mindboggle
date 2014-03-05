@@ -208,9 +208,9 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
     Parameters
     ----------
     sourceIDs : list of N integers (N is the number of vertices)
-        source feature IDs (e.g., fundi; ignore -1)
+        source feature IDs (e.g., fundi; ignore -1; from zero)
     targetIDs : list of N integers (N is the number of vertices)
-        target feature IDs (e.g., label boundaries; ignore -1)
+        target feature IDs (e.g., label boundaries; ignore -1; from zero)
     points : list of N lists of three floats (N is the number of vertices)
         coordinates of all vertices
     ntargets : integer
@@ -266,7 +266,7 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
                     d, i = point_distance(points[itarget],
                                           points[source_indices])
                     distances[itarget] = d
-                    distance_matrix[itarget, targetIDs[itarget] - 1] = d
+                    distance_matrix[itarget, targetIDs[itarget]] = d
 
     return distances, distance_matrix
 
