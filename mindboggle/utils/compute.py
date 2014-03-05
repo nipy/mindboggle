@@ -191,42 +191,43 @@ def pairwise_vector_distances(vectors, save_file=False, normalize=False):
 
     return vector_distances, outfile
 
-def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
+def source_to_target_distances(sourceIDs, targetIDs, points,
                                segmentIDs=[], excludeIDs=[-1]):
     """
     Create a Euclidean distance matrix between source and target points.
 
-    Compute Euclidean distances between source and target features,
-    optionally within each segment.
+    Compute the Euclidean distance from each source point to
+    its nearest target point, optionally within each segment.
 
     Example::
 
-        Compute the minimum distance from each label boundary vertex
-        (corresponding to a fundus in the DKT cortical labeling protocol)
-        to all of the fundus vertices in the same fold.
+        Compute fundus-to-feature distances, the minimum distance
+        from each label boundary vertex (corresponding to a fundus
+        in the DKT cortical labeling protocol) to all of the
+        feature vertices in the same fold.
 
     Parameters
     ----------
     sourceIDs : list of N integers (N is the number of vertices)
-        source feature IDs (e.g., fundi; ignore -1; from zero)
+        source IDs, where any ID not in excludeIDs is a source point
     targetIDs : list of N integers (N is the number of vertices)
-        target feature IDs (e.g., label boundaries; ignore -1; from zero)
+        target IDs, where any ID not in excludeIDs is a target point
     points : list of N lists of three floats (N is the number of vertices)
         coordinates of all vertices
-    ntargets : integer
-        number of total possible targets (to ensure indices are meaningful)
     segmentIDs : list of N integers (N is the number of vertices)
-        segment IDs (e.g., folds; ignore -1); compute distances
-        between source and target features within each segment
+        segment IDs, where each ID not in excludeIDs is considered a
+        different segment (unlike above, where value in sourceIDs or
+        targetIDs doesn't matter, so long as its not in excludeIDs);
+        source/target distances are computed within each segment
     excludeIDs : list of integers
-        source/target/segment IDs to exclude
+        IDs to exclude
 
     Returns
     -------
     distances : numpy array
         distance value for each vertex (default -1)
-    distance_matrix : numpy array [#vertices by #target features]
-        distances organized by targetIDs (columns)
+    distance_matrix : numpy array [#points by maximum segment ID + 1]
+        distances organized by segments (columns)
 
     """
     import numpy as np
@@ -234,39 +235,43 @@ def source_to_target_distances(sourceIDs, targetIDs, points, ntargets,
 
     if isinstance(points, list):
         points = np.asarray(points)
-
     npoints = len(points)
 
+    # Extract unique segment IDs (or use all points as a single segment):
+    if np.size(segmentIDs):
+        segments = [x for x in np.unique(segmentIDs) if x not in excludeIDs]
+    else:
+        segmentIDs = np.zeros(npoints)
+        segments = [0]
+    nsegments = max(segments) + 1
+
+    # Initialize outputs:
     distances = -1 * np.ones(npoints)
-    distance_matrix = -1 * np.ones((npoints, ntargets))
-    if not np.size(segmentIDs):
-        segmentIDs = np.ones(len(targetIDs))
+    distance_matrix = -1 * np.ones((npoints, nsegments))
 
     # For each segment:
-    segments = [x for x in np.unique(segmentIDs) if x not in excludeIDs]
-    if segments:
-        for segment in segments:
-            segment_indices = [i for i,x in enumerate(segmentIDs)
-                               if x == segment]
+    for segment in segments:
+        segment_indices = [i for i,x in enumerate(segmentIDs)
+                           if x == segment]
 
-            # Find all target points in the segment:
-            source_indices = [i for i,x in enumerate(sourceIDs)
-                              if x not in excludeIDs
-                              if i in segment_indices]
-            # Find all source points in the segment:
-            target_indices = [i for i,x in enumerate(targetIDs)
-                              if x not in excludeIDs
-                              if i in segment_indices]
-            if source_indices and target_indices:
+        # Find all source points in the segment:
+        source_indices = [i for i,x in enumerate(sourceIDs)
+                          if x not in excludeIDs
+                          if i in segment_indices]
+        # Find all target points in the segment:
+        target_indices = [i for i,x in enumerate(targetIDs)
+                          if x not in excludeIDs
+                          if i in segment_indices]
+        if source_indices and target_indices:
 
-                # For each target point in the segment:
-                for itarget in target_indices:
+            # For each source point in the segment:
+            for isource in source_indices:
 
-                    # Find the closest source point to the target point:
-                    d, i = point_distance(points[itarget],
-                                          points[source_indices])
-                    distances[itarget] = d
-                    distance_matrix[itarget, targetIDs[itarget]] = d
+                # Find the closest target point:
+                d, i = point_distance(points[isource],
+                                      points[target_indices])
+                distances[isource] = d
+                distance_matrix[isource, segment] = d
 
     return distances, distance_matrix
 
