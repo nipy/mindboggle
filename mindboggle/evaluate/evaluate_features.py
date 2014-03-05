@@ -63,7 +63,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     import sys
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, read_scalars, write_vtk
-    from mindboggle.utils.mesh import find_neighbors
+    from mindboggle.utils.mesh import find_neighbors, remove_faces
     from mindboggle.utils.segment import extract_borders
     from mindboggle.utils.compute import source_to_target_distances
     from mindboggle.LABELS import DKTprotocol
@@ -80,9 +80,11 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
         # List of indices to sulcus vertices:
         sulcus_indices = [i for i,x in enumerate(sulci) if x != -1]
         segmentIDs = sulci
+        sulcus_faces = remove_faces(faces, sulcus_indices)
     else:
         sulcus_indices = range(len(labels))
         segmentIDs = []
+        sulcus_faces = faces
 
     #-------------------------------------------------------------------------
     # Prepare neighbors, label pairs, fundus IDs, and outputs:
@@ -164,9 +166,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
                 output_vtk_name + '_feature_to_fundus_mean_distances.vtk')
             print('Write feature-to-fundus distances to {0}...'.
                   format(feature_to_fundus_mean_distances_vtk))
-            write_vtk(feature_to_fundus_mean_distances_vtk, points, [], [],
-                      faces, [distances], ['feature-to-fundus_distances'],
-                      'float')
+            write_vtk(feature_to_fundus_mean_distances_vtk, points,
+                      [], [], sulcus_faces, [distances],
+                      ['feature-to-fundus_distances'], 'float')
 
         #---------------------------------------------------------------------
         # Construct a fundus-to-feature distance matrix and VTK file:
@@ -200,9 +202,9 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
                 output_vtk_name + '_fundus_to_feature_mean_distances.vtk')
             print('Write fundus-to-feature distances to {0}...'.
                   format(fundus_to_feature_mean_distances_vtk))
-            write_vtk(fundus_to_feature_mean_distances_vtk, points, [], [],
-                      faces, [distances], ['fundus-to-feature_distances'],
-                      'float')
+            write_vtk(fundus_to_feature_mean_distances_vtk, points,
+                      [], [], sulcus_faces, [distances],
+                      ['fundus-to-feature_distances'], 'float')
 
     #-------------------------------------------------------------------------
     # Return outputs:
@@ -217,6 +219,8 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
 if __name__ == "__main__":
 
     import os
+    import numpy as np
+
     from mindboggle.evaluate.evaluate_features import evaluate_deep_features
 
     mindboggled = '/homedir/mindboggled'
@@ -243,13 +247,23 @@ if __name__ == "__main__":
     numbers = [1] #[20,21,22,20]  #[1,1,2,2,12]
     surfs = ['left_surface','right_surface']
     hemis = ['lh','rh']
-    #Feature_mean_distances = np.ones((len()))
+    nsubjects = sum(numbers)
+    feature_to_fundus_mean_distances_left = -1 * np.ones((nsubjects, 25))
+    feature_to_fundus_sd_distances_left = -1 * np.ones((nsubjects, 25))
+    fundus_to_feature_mean_distances_left = -1 * np.ones((nsubjects, 25))
+    fundus_to_feature_sd_distances_left = -1 * np.ones((nsubjects, 25))
+    feature_to_fundus_mean_distances_right = -1 * np.ones((nsubjects, 25))
+    feature_to_fundus_sd_distances_right = -1 * np.ones((nsubjects, 25))
+    fundus_to_feature_mean_distances_right = -1 * np.ones((nsubjects, 25))
+    fundus_to_feature_sd_distances_right = -1 * np.ones((nsubjects, 25))
+    isubject = 0
     for iname, name in enumerate(names):
         number = numbers[iname]
         for n in range(1,number+1):
             subject = name+'-'+str(n)
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
+                print('{0}: {1}'.format(subject, hemi))
 
                 # Identify surface files with labels and sulci:
                 mdir = os.path.join(fmethod, subject)
@@ -285,3 +299,81 @@ if __name__ == "__main__":
                                            output_vtk_name=subject+'_'+hemi,
                                            verbose=True)
                 print('*' * 79)
+
+                if isurf == 0:
+                    feature_to_fundus_mean_distances_left[isubject, :] = \
+                        feature_to_fundus_mean_distances
+                    feature_to_fundus_sd_distances_left[isubject, :] = \
+                       feature_to_fundus_sd_distances
+                    fundus_to_feature_mean_distances_left[isubject, :] = \
+                        fundus_to_feature_mean_distances
+                    fundus_to_feature_sd_distances_left[isubject, :] = \
+                        fundus_to_feature_sd_distances
+                else:
+                    feature_to_fundus_mean_distances_right[isubject, :] = \
+                        feature_to_fundus_mean_distances
+                    feature_to_fundus_sd_distances_right[isubject, :] = \
+                       feature_to_fundus_sd_distances
+                    fundus_to_feature_mean_distances_right[isubject, :] = \
+                        fundus_to_feature_mean_distances
+                    fundus_to_feature_sd_distances_right[isubject, :] = \
+                        fundus_to_feature_sd_distances
+
+            isubject += 1
+
+    # Save tables of mean distances:
+    np.savetxt('feature_to_fundus_mean_distances_left.csv',
+               feature_to_fundus_mean_distances_left)
+    np.savetxt('feature_to_fundus_sd_distances_left.csv',
+               feature_to_fundus_sd_distances_left)
+    np.savetxt('fundus_to_feature_mean_distances_left.csv',
+               fundus_to_feature_mean_distances_left)
+    np.savetxt('fundus_to_feature_sd_distances_left.csv',
+               fundus_to_feature_sd_distances_left)
+
+    np.savetxt('feature_to_fundus_mean_distances_right.csv',
+               feature_to_fundus_mean_distances_right)
+    np.savetxt('feature_to_fundus_sd_distances_right.csv',
+               feature_to_fundus_sd_distances_right)
+    np.savetxt('fundus_to_feature_mean_distances_right.csv',
+               fundus_to_feature_mean_distances_right)
+    np.savetxt('fundus_to_feature_sd_distances_right.csv',
+               fundus_to_feature_sd_distances_right)
+
+    # Average of the mean distances across all subjects:
+    mean_feature_to_fundus_mean_distances_left = \
+        np.mean(feature_to_fundus_mean_distances_left, axis=0)
+    mean_feature_to_fundus_sd_distances_left = \
+        np.mean(feature_to_fundus_mean_distances_left, axis=0)
+    mean_fundus_to_feature_mean_distances_left = \
+        np.mean(fundus_to_feature_mean_distances_left, axis=0)
+    mean_fundus_to_feature_sd_distances_left = \
+        np.mean(fundus_to_feature_mean_distances_left, axis=0)
+
+    mean_feature_to_fundus_mean_distances_right = \
+        np.mean(feature_to_fundus_mean_distances_right, axis=0)
+    mean_feature_to_fundus_sd_distances_right = \
+        np.mean(feature_to_fundus_mean_distances_right, axis=0)
+    mean_fundus_to_feature_mean_distances_right = \
+        np.mean(fundus_to_feature_mean_distances_right, axis=0)
+    mean_fundus_to_feature_sd_distances_right = \
+        np.mean(fundus_to_feature_mean_distances_right, axis=0)
+
+    # Save tables of mean distances averaged across all subjects:
+    np.savetxt('mean_feature_to_fundus_mean_distances_left.csv',
+               mean_feature_to_fundus_mean_distances_left)
+    np.savetxt('mean_feature_to_fundus_sd_distances_left.csv',
+               mean_feature_to_fundus_sd_distances_left)
+    np.savetxt('mean_fundus_to_feature_mean_distances_left.csv',
+               mean_fundus_to_feature_mean_distances_left)
+    np.savetxt('mean_fundus_to_feature_sd_distances_left.csv',
+               mean_fundus_to_feature_sd_distances_left)
+
+    np.savetxt('mean_feature_to_fundus_mean_distances_right.csv',
+               mean_feature_to_fundus_mean_distances_right)
+    np.savetxt('mean_feature_to_fundus_sd_distances_right.csv',
+               mean_feature_to_fundus_sd_distances_right)
+    np.savetxt('mean_fundus_to_feature_mean_distances_right.csv',
+               mean_fundus_to_feature_mean_distances_right)
+    np.savetxt('mean_fundus_to_feature_sd_distances_right.csv',
+               mean_fundus_to_feature_sd_distances_right)
