@@ -120,12 +120,11 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     #-------------------------------------------------------------------------
     # For each list of sorted label pairs (corresponding to a sulcus):
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
-        #print('  Sulcus ' + str(isulcus + 1))
 
         # Keep the boundary points with label pair labels:
         fundus_indices = [x for i,x in enumerate(border_indices)
                           if np.unique(border_label_tuples[i]).tolist()
-                              in label_pairs]
+                          in label_pairs]
 
         # Store the points as sulcus IDs in the fundus IDs array:
         if fundus_indices:
@@ -163,7 +162,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         # Write resulting feature-label boundary distances to VTK file:
         if output_vtk_name:
             feature_to_fundus_mean_distances_vtk = os.path.join(os.getcwd(),
-                output_vtk_name + '_fundus_to_feature_mean_distances.vtk')
+                output_vtk_name + '_feature_to_fundus_mean_distances.vtk')
             print('Write feature-to-fundus distances to {0}...'.
                   format(feature_to_fundus_mean_distances_vtk))
             write_vtk(feature_to_fundus_mean_distances_vtk, points, [], [],
@@ -185,7 +184,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         # Compute mean distances for each feature:
         for ifeature in range(nsulcus_lists):
             fundus_distances = [x for x in distance_matrix[:, ifeature]
-                                 if x != -1]
+                                if x != -1]
             fundus_to_feature_mean_distances[ifeature] = \
                 np.mean(fundus_distances)
             fundus_to_feature_sd_distances[ifeature] = \
@@ -283,8 +282,8 @@ if __name__ == "__main__":
                         '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
                         hemi + '.pial.fundi.vtk')
 
-                # Compute distances from features to label boundaries in sulci
-                # corresponding to fundi:
+                # Compute distances between features and label boundaries
+                # in sulci corresponding to fundi:
                 feature_to_fundus_mean_distances, \
                 feature_to_fundus_sd_distances,\
                 feature_to_fundus_mean_distances_vtk,\
