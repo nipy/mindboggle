@@ -18,7 +18,7 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-def evaluate_deep_features(features_file, labels_file, sulci_file='',
+def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
                            excludeIDs=[-1], output_vtk_name='', verbose=True):
     """
     Evaluate deep surface features by computing the minimum distance from each
@@ -91,10 +91,6 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     print('Find neighbors to all vertices...')
     neighbor_lists = find_neighbors(faces, npoints)
 
-    # Prepare list of all unique sorted label pairs in the labeling protocol:
-    print('Prepare a list of unique, sorted label pairs in the protocol...')
-    nsulcus_lists = len(dkt.sulcus_label_pair_lists)
-
     # Find label boundary points in any of the sulci:
     print('Find label boundary points in any of the sulci...')
     border_indices, border_label_tuples, unique_border_label_tuples = \
@@ -108,6 +104,10 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
     print('Build an array of label boundary fundus IDs...')
     label_boundary_fundi = -1 * np.ones(npoints)
 
+    if hemi == 'lh':
+        nsulcus_lists = len(dkt.left_sulcus_label_pair_lists)
+    else:
+        nsulcus_lists = len(dkt.right_sulcus_label_pair_lists)
     feature_to_fundus_mean_distances = -1 * np.ones(nsulcus_lists)
     feature_to_fundus_sd_distances = -1 * np.ones(nsulcus_lists)
     fundus_to_feature_mean_distances = -1 * np.ones(nsulcus_lists)
@@ -139,13 +139,12 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         print('Construct a feature-to-fundus distance matrix...')
         sourceIDs = features
         targetIDs = label_boundary_fundi
-        ntargets = nsulcus_lists
         distances, distance_matrix = source_to_target_distances(
-            sourceIDs, targetIDs, points, ntargets, segmentIDs,
-            excludeIDs)
+            sourceIDs, targetIDs, points, segmentIDs, excludeIDs)
 
         # Compute mean distances for each feature:
-        for ifeature in range(nsulcus_lists):
+        nfeatures = min(np.shape(distance_matrix)[1], nsulcus_lists)
+        for ifeature in range(nfeatures):
             feature_distances = [x for x in distance_matrix[:, ifeature]
                                  if x != -1]
             feature_to_fundus_mean_distances[ifeature] = \
@@ -176,13 +175,12 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='',
         print('Construct a fundus-to-feature distance matrix...')
         sourceIDs = label_boundary_fundi
         targetIDs = features
-        ntargets = nsulcus_lists
         distances, distance_matrix = source_to_target_distances(
-            sourceIDs, targetIDs, points, ntargets, segmentIDs,
-            excludeIDs)
+            sourceIDs, targetIDs, points, segmentIDs, excludeIDs)
 
         # Compute mean distances for each feature:
-        for ifeature in range(nsulcus_lists):
+        nfeatures = min(np.shape(distance_matrix)[1], nsulcus_lists)
+        for ifeature in range(nfeatures):
             fundus_distances = [x for x in distance_matrix[:, ifeature]
                                 if x != -1]
             fundus_to_feature_mean_distances[ifeature] = \
@@ -255,8 +253,7 @@ if __name__ == "__main__":
 
                 # Identify surface files with labels and sulci:
                 mdir = os.path.join(fmethod, subject)
-
-
+                sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
 
 
 
@@ -265,13 +262,6 @@ if __name__ == "__main__":
                 labels_file = os.path.join(mdir, 'labels', surf,
                                            'relabeled_classifier.vtk')
 
-
-
-
-
-                sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
-                output_vtk = os.path.join(output_dir,
-                                          subject + '_fundus-label_distances.vtk')
 
                 # Identify features file:
                 if nmethod == 0:
@@ -291,7 +281,7 @@ if __name__ == "__main__":
                 fundus_to_feature_sd_distances,\
                 fundus_to_feature_mean_distances_vtk = \
                     evaluate_deep_features(features_file, labels_file,
-                                           sulci_file, excludeIDs=[-1],
+                                           sulci_file, hemi, excludeIDs=[-1],
                                            output_vtk_name=subject+'_'+hemi,
                                            verbose=True)
                 print('*' * 79)
