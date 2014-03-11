@@ -1190,7 +1190,7 @@ def read_itk_transform(transform_file):
 
 
 def apply_affine_transform(transform_file, vtk_or_points,
-                           transform_format='itk', save_file=False):
+                           transform_format='itk', vtk_file_stem='affine_'):
     """
     Transform coordinates using an affine matrix.
 
@@ -1207,15 +1207,15 @@ def apply_affine_transform(transform_file, vtk_or_points,
         'txt' for text, or 'mat' for Matlab format, since
         software-specific assignment of parameters such as
         the origin need to be taken into account
-    save_file : Boolean
-        save transformed coordinates in a vtk file?
-        (False if vtk_or_points is points)
+    vtk_file_stem : string
+        save transformed coordinates in a vtk file with this file append
+        (empty string if vtk_or_points is points)
 
     Returns
     -------
     affine_points : list of lists of floats
         transformed coordinates
-    output_file : string or None (if not save_file or vtk_or_points is points)
+    output_file : string or None (if not vtk_file_stem or vtk_or_points is points)
         name of VTK file containing transformed point data
 
     Examples
@@ -1229,8 +1229,8 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> transform_file = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt'
     >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> transform_format = 'itk'
-    >>> save_file = True
-    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, save_file)
+    >>> vtk_file_stem = True
+    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, vtk_file_stem)
     >>> # View
     >>> plot_surfaces('affine_lh.pial.vtk')
 
@@ -1240,7 +1240,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
     from scipy.io import loadmat
 
     from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
-    #from mindboggle.utils.ants import antsApplyTransformsToPoints
+    from mindboggle.utils.ants import antsApplyTransformsToPoints
 
     # Read affine transform file:
     if transform_format == 'itk':
@@ -1261,20 +1261,20 @@ def apply_affine_transform(transform_file, vtk_or_points,
         points = np.array(points)
     elif isinstance(vtk_or_points, list):
         points = np.array(vtk_or_points)
-        save_file = False
+        vtk_file_stem = ''
     elif isinstance(vtk_or_points, np.ndarray):
         points = vtk_or_points.copy()
-        save_file = False
+        vtk_file_stem = ''
 
     # Transform points:
     if transform_format == 'itk':
-        #affine_points2 = antsApplyTransformsToPoints(points,
-        #                                            [transform_file], [0])
-        points = np.concatenate((points,
-                                 np.ones((np.shape(points)[0],1))), axis=1)
-        affine_points = np.transpose(np.dot(transform,
-                                            np.transpose(points)))[:,0:3]
-        affine_points = [x.tolist() for x in affine_points]
+        affine_points = antsApplyTransformsToPoints(points,
+                                                    [transform_file], [0])
+        #points = np.concatenate((points,
+        #                         np.ones((np.shape(points)[0],1))), axis=1)
+        #affine_points = np.transpose(np.dot(transform,
+        #                                    np.transpose(points)))[:,0:3]
+        #affine_points = [x.tolist() for x in affine_points]
     else:
         points = np.concatenate((points,
                                  np.ones((np.shape(points)[0],1))), axis=1)
@@ -1283,9 +1283,9 @@ def apply_affine_transform(transform_file, vtk_or_points,
         affine_points = [x.tolist() for x in affine_points]
 
     # Write transformed VTK file:
-    if save_file and isinstance(vtk_or_points, str):
-        output_file = os.path.join(os.getcwd(),
-                                   'affine_' + os.path.basename(vtk_or_points))
+    if vtk_file_stem and isinstance(vtk_or_points, str):
+        output_file = os.path.join(os.getcwd(), vtk_file_stem +
+                                   os.path.basename(vtk_or_points))
         if np.size(scalars):
             if np.ndim(scalars) == 1:
                 scalar_type = type(scalars[0]).__name__
