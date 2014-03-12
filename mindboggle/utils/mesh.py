@@ -567,7 +567,7 @@ def remove_faces(faces, indices):
     faces : list of lists of three integers
         the integers for each face are indices to vertices, starting from zero
     indices : integers
-        indices to vertices of the surface mesh
+        indices to vertices of the surface mesh that are to be retained
 
     Returns
     -------
