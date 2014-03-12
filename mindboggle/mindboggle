@@ -67,7 +67,7 @@ from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
 from mindboggle.utils.io_table import write_columns, \
     write_shape_stats, write_vertex_measures
 from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_vtk import read_vtk
+from mindboggle.utils.io_vtk import read_vtk, apply_affine_transform
 from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
@@ -426,8 +426,8 @@ if do_ants:
                                                         'string3',
                                                         'string4'],
                                            output_names=['string_list']))
-        AffineFileList.inputs.string1 = affine_to_mni
-        mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string2')
+        mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string1')
+        AffineFileList.inputs.string2 = affine_to_mni
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
 
@@ -441,7 +441,7 @@ if do_ants:
         mbFlow.add_nodes([ComposeAffine])
         mbFlow.connect(AffineFileList, 'string_list',
                        ComposeAffine, 'transform_files')
-        ComposeAffine.inputs.inverse_Booleans = [False, False]
+        ComposeAffine.inputs.inverse_Booleans = [False, True]
         ComposeAffine.inputs.output_transform_file = ''
         ComposeAffine.inputs.ext = '.txt'
     #-------------------------------------------------------------------------
@@ -1164,10 +1164,10 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        #if do_ants:
-            #mbFlow.connect(ComposeAffine, 'output_transform_file',
-            #               ShapeTables, 'affine_transform_file')
-            #ShapeTables.inputs.transform_format = 'itk'
+        if do_ants:
+            mbFlow.connect(ComposeAffine, 'output_transform_file',
+                           ShapeTables, 'affine_transform_file')
+            ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = True
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
                    [('Surface_area.area_file', 'area_file'),
@@ -1264,10 +1264,10 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            #if do_ants:
-                #mbFlow.connect(ComposeAffine, 'output_transform_file',
-                #               VertexTable, 'affine_transform_file')
-                #VertexTable.inputs.transform_format = 'itk'
+            if do_ants:
+                mbFlow.connect(ComposeAffine, 'output_transform_file',
+                               VertexTable, 'affine_transform_file')
+                VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
                                 ('Travel_depth.depth_file',
@@ -1289,26 +1289,24 @@ if do_surface:
             mbFlow.connect(VertexTable, 'output_table',
                            Sink, 'tables.@vertices')
 
-        # #---------------------------------------------------------------------
-        # # Apply affine transform to surface coordinates:
-        # #---------------------------------------------------------------------
-        # TransformPoints = Node(name='Transform_surface_points',
-        #                        interface=Fn(function=apply_affine_transform,
-        #                                     input_names=['transform_file',
-        #                                                  'vtk_or_points',
-        #                                                  'transform_format',
-        #                                                  'save_file'],
-        #                                     output_names=['affine_points',
-        #                                                   'output_file']))
-        # VolLabelFlow.add_nodes([TransformPoints])
-        # if do_ants:
-        #     mbFlow.connect(ComposeAffine, 'output_transform_file',
-        #                   TransformPoints, 'transform_file')
-        # SurfShapeFlow.connect(TravelDepth, 'depth_file',
-        #                       TransformPoints, 'vtk_or_points')
-        # TransformPoints.inputs.save_file = True
-        # mbFlow.connect(SurfShapeFlow, 'Transform_surface_points.output_file',
-        #                Sink, 'transforms.@points_to_template')
+        #---------------------------------------------------------------------
+        # Apply affine transform to surface coordinates:
+        #---------------------------------------------------------------------
+        if args.debug and do_ants:
+            TransformVTK = Node(name='Transform_surface_points',
+                                interface=Fn(function=apply_affine_transform,
+                                             input_names=['transform_file',
+                                                          'vtk_or_points',
+                                                          'transform_format',
+                                                          'vtk_file_stem'],
+                                             output_names=['affine_points',
+                                                           'output_file']))
+            mbFlow.add_nodes([TransformVTK])
+            mbFlow.connect(ComposeAffine, 'output_transform_file',
+                           TransformVTK, 'transform_file')
+            mbFlow.connect(TravelDepth, 'depth_file',
+                           TransformVTK, 'vtk_or_points')
+            TransformVTK.inputs.vtk_file_stem = 'affine_'
 
 
 #=============================================================================

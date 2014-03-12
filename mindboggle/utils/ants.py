@@ -33,13 +33,13 @@ def fetch_ants_data(segmented_file):
     segments : string
         Atropos-segmented brain volume
     affine : string
-        subject to template affine transform (antsRegistration)
+        template to subject affine transform (antsRegistration)
         Note: transform name contains "TemplateToSubject"
     warp : string
-        subject to template nonlinear transform (antsRegistration)
+        template to subject nonlinear transform (antsRegistration)
         Note: transform name contains "TemplateToSubject"
     invwarp : string
-        inverse of subject to template nonlinear transform
+        inverse of template to subject nonlinear transform
 
     Examples
     --------
