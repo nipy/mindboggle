@@ -408,7 +408,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 if affine_transform_file and transform_format:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format, save_file=False)
+                                    points, transform_format,
+                                    vtk_file_stem='')
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -722,7 +723,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 if affine_transform_file and transform_format:
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format)
+                                    points, transform_format,
+                                    vtk_file_stem='')
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:
