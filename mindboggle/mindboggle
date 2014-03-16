@@ -426,8 +426,8 @@ if do_ants:
                                                         'string3',
                                                         'string4'],
                                            output_names=['string_list']))
-        mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string1')
-        AffineFileList.inputs.string2 = affine_to_mni
+        AffineFileList.inputs.string1 = affine_to_mni
+        mbFlow.connect(FetchANTs, 'affine', AffineFileList, 'string2')
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
 
@@ -441,7 +441,7 @@ if do_ants:
         mbFlow.add_nodes([ComposeAffine])
         mbFlow.connect(AffineFileList, 'string_list',
                        ComposeAffine, 'transform_files')
-        ComposeAffine.inputs.inverse_Booleans = [False, True]
+        ComposeAffine.inputs.inverse_Booleans = [False, False]
         ComposeAffine.inputs.output_transform_file = ''
         ComposeAffine.inputs.ext = '.txt'
     #-------------------------------------------------------------------------
@@ -1292,13 +1292,14 @@ if do_surface:
         #---------------------------------------------------------------------
         # Apply affine transform to surface coordinates:
         #---------------------------------------------------------------------
-        if args.debug and do_ants:
+        if do_ants and args.debug:
             TransformVTK = Node(name='Transform_surface_points',
                                 interface=Fn(function=apply_affine_transform,
                                              input_names=['transform_file',
                                                           'vtk_or_points',
                                                           'transform_format',
-                                                          'vtk_file_stem'],
+                                                          'vtk_file_stem',
+                                                          'use_ants'],
                                              output_names=['affine_points',
                                                            'output_file']))
             mbFlow.add_nodes([TransformVTK])
@@ -1306,7 +1307,9 @@ if do_surface:
                            TransformVTK, 'transform_file')
             mbFlow.connect(TravelDepth, 'depth_file',
                            TransformVTK, 'vtk_or_points')
+            TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
+            TransformVTK.inputs.use_ants = False
 
 
 #=============================================================================

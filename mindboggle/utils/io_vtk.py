@@ -1190,7 +1190,8 @@ def read_itk_transform(transform_file):
 
 
 def apply_affine_transform(transform_file, vtk_or_points,
-                           transform_format='itk', vtk_file_stem='affine_'):
+                           transform_format='itk', vtk_file_stem='affine_',
+                           use_ants=False):
     """
     Transform coordinates using an affine matrix.
 
@@ -1210,6 +1211,8 @@ def apply_affine_transform(transform_file, vtk_or_points,
     vtk_file_stem : string
         save transformed coordinates in a vtk file with this file append
         (empty string if vtk_or_points is points)
+    use_ants : Boolean
+        use antsApplyTransformsToPoints?
 
     Returns
     -------
@@ -1268,13 +1271,15 @@ def apply_affine_transform(transform_file, vtk_or_points,
 
     # Transform points:
     if transform_format == 'itk':
-        affine_points = antsApplyTransformsToPoints(points,
-                                                    [transform_file], [0])
-        #points = np.concatenate((points,
-        #                         np.ones((np.shape(points)[0],1))), axis=1)
-        #affine_points = np.transpose(np.dot(transform,
-        #                                    np.transpose(points)))[:,0:3]
-        #affine_points = [x.tolist() for x in affine_points]
+        if use_ants:
+            affine_points = antsApplyTransformsToPoints(points,
+                                [transform_file], [0])
+        else:
+            points = np.concatenate((points,
+                                     np.ones((np.shape(points)[0],1))), axis=1)
+            affine_points = np.transpose(np.dot(transform,
+                                                np.transpose(points)))[:,0:3]
+            affine_points = [x.tolist() for x in affine_points]
     else:
         points = np.concatenate((points,
                                  np.ones((np.shape(points)[0],1))), axis=1)
