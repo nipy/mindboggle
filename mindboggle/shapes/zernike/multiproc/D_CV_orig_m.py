@@ -4,7 +4,7 @@ def D_CV_orig(cfg,facet,num_vertices,N,X,K,tri_matrix) :      #function [C,Vol] 
                                                               #
                                                               #    % Vertex 1
                                                               #    % Monomial combinations for each vertex in a given facet
-    vertex_1=X[K[facet-1,0]-1,:] #! facet is 1-indexed        #    vertex_1=X(K(facet,1),:);
+    vertex_1=X[K[facet-1,0],:] #! facet is 1-indexed        #    vertex_1=X(K(facet,1),:);
                                                               #    % Vertex
     vx = vertex_1[0] #!                                       #    vx=vertex_1(1);
     vy = vertex_1[1] #!                                       #    vy=vertex_1(2);
@@ -13,7 +13,7 @@ def D_CV_orig(cfg,facet,num_vertices,N,X,K,tri_matrix) :      #function [C,Vol] 
                                                               #
                                                               #    % Vertex 2
                                                               #    % Monomial combinations for each vertex in a given facet
-    vertex_2=X[K[facet-1,1]-1,:] #!                           #    vertex_2=X(K(facet,2),:);
+    vertex_2=X[K[facet-1,1],:] #!                           #    vertex_2=X(K(facet,2),:);
                                                               #    % Vertex
     vx=vertex_2[0] #!                                         #    vx=vertex_2(1);
     vy=vertex_2[1] #!                                         #    vy=vertex_2(2);
@@ -22,7 +22,7 @@ def D_CV_orig(cfg,facet,num_vertices,N,X,K,tri_matrix) :      #function [C,Vol] 
                                                               #
                                                               #    % Vertex 1
                                                               #    % Monomial combinations for each vertex in a given facet
-    vertex_3=X[K[facet-1,2]-1,:] #!                           #    vertex_3=X(K(facet,3),:);
+    vertex_3=X[K[facet-1,2],:] #!                           #    vertex_3=X(K(facet,3),:);
                                                               #    % Vertex
     vx=vertex_3[0] #!                                         #    vx=vertex_3(1);
     vy=vertex_3[1] #!                                         #    vy=vertex_3(2);
