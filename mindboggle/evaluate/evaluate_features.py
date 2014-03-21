@@ -230,7 +230,8 @@ if __name__ == "__main__":
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
     numbers = [20,21,22,20, 1,1,2,2,12]
-    mindboggled = '/homedir/mindboggled'
+    mindboggled = '/homedir/mindboggledOLD'
+    labels_dir = '/data/Brains/Mindboggle101/subjects'
 
     #-------------------------------------------------------------------------
     # Feature-specific settings:
@@ -290,9 +291,10 @@ if __name__ == "__main__":
                 # Identify surface files with labels and with sulci:
                 #-------------------------------------------------------------
                 mdir = os.path.join(mindboggled, subject)
+                ldir = os.path.join(labels_dir, subject)
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
-                labels_file = os.path.join(mdir, 'labels', surf,
-                                           'relabeled_labels.DKT31.manual.vtk')
+                labels_file = os.path.join(ldir, 'label',
+                                           hemi + '.labels.DKT25.manual.vtk')
                 #labels_file = os.path.join(mdir, 'labels', surf,
                 #                           'relabeled_classifier.vtk')
                 #-------------------------------------------------------------
