@@ -23,7 +23,6 @@ def extract_fundi(folds, curv_file, depth_file, min_separation=10,
         2. Include inner anchor points.
         3. Connect anchor points using connect_points_erosion();
            inner anchors are removed if they result in endpoints.
-        4. Optionally smooth with smooth_skeleton().
 
     Parameters
     ----------
