@@ -2,7 +2,7 @@
 """
 Evaluate deep surface features by computing the minimum distance from each
 label border vertex to all of the feature vertices in the same sulcus.
-The label boundaries run along the deepest parts of many sulci and
+The label borders run along the deepest parts of many sulci and
 correspond to fundi in the DKT cortical labeling protocol.
 
 Examples
@@ -24,7 +24,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     Evaluate deep surface features by computing the minimum distance from each
     label border vertex to all of the feature vertices in the same sulcus,
     and from each feature vertex to all of the label border vertices in the
-    same sulcus.  The label boundaries run along the deepest parts of sulci
+    same sulcus.  The label borders run along the deepest parts of sulci
     and correspond to fundi in the DKT cortical labeling protocol.
 
     Parameters
@@ -124,13 +124,13 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     for isulcus, label_pairs in enumerate(dkt.sulcus_label_pair_lists):
 
         # Keep the border points with label pair labels:
-        border_indices = [x for i,x in enumerate(border_indices)
+        label_pair_border_indices = [x for i,x in enumerate(border_indices)
                           if np.unique(border_label_tuples[i]).tolist()
                           in label_pairs]
 
         # Store the points as sulcus IDs in the border IDs array:
-        if border_indices:
-            label_borders[border_indices] = isulcus
+        if label_pair_border_indices:
+            label_borders[label_pair_border_indices] = isulcus
 
     if len(np.unique(label_borders)) > 1:
 
@@ -223,45 +223,61 @@ if __name__ == "__main__":
 
     from mindboggle.evaluate.evaluate_features import evaluate_deep_features
 
-    feature_type = 'fundi'  # Otherwise measure distances to all vertices
-
+    #-------------------------------------------------------------------------
+    # Set feature type ('fundi' or '' for every sulcus vertex), subjects:
+    #-------------------------------------------------------------------------
+    feature_type = ''#'fundi'
+    names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
+             'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
+    numbers = [20,21,22,20, 1,1,2,2,12]
     mindboggled = '/homedir/mindboggled'
-    output_dir = '/desk'
 
+    #-------------------------------------------------------------------------
+    # Feature-specific settings:
+    #-------------------------------------------------------------------------
     if feature_type == 'fundi':
+        # Features: fundus method:
+        # 0 = mindboggle
+        # 1 = forrest scalars
+        # 2 = forrest lines
+        # 3 = gang li
+        # 4 = olivier coulon
+        nmethod = 0
         feature_dir = '/homedir/Projects/BrainImaging/fundus_evaluation_2014'
+        fmethods = ['Mindboggle_fundi',
+                    'Forrest_Fundi.scalars',
+                    'Forrest_Fundi.lines',
+                    'GangLiFundi',
+                    'Olivier_fundi']
+        fmethod_dirs = [mindboggled,
+                        os.path.join(feature_dir, fmethods[1]),
+                        os.path.join(feature_dir, fmethods[2]),
+                        os.path.join(feature_dir, fmethods[3]),
+                        os.path.join(feature_dir, fmethods[4])]
+        fmethod_dir = fmethod_dirs[nmethod]
+        fmethod = fmethods[nmethod]
     else:
-        feature_dir = ''
+        fmethod = 'all'
 
-    # Features: fundus method:
-    # 0 = mindboggle
-    # 1 = forrest scalars
-    # 2 = forrest lines
-    # 3 = gang li
-    # 4 = olivier coulon
-    nmethod = 0
-    fmethods = [mindboggled,
-                os.path.join(feature_dir, 'Forrest_Fundi.scalars'),
-                os.path.join(feature_dir, 'Forrest_Fundi.lines'),
-                os.path.join(feature_dir, 'GangLiFundi'),
-                os.path.join(feature_dir, 'Olivier_fundi')]
-    fmethod = fmethods[nmethod]
+    #-------------------------------------------------------------------------
+    # Miscellaneous defaults:
+    #-------------------------------------------------------------------------
+    surfs = ['left_surface', 'right_surface']
+    hemis = ['lh', 'rh']
+    nsulci = 25
 
+    #-------------------------------------------------------------------------
     # Loop through subjects and hemispheres:
-    names = ['OASIS-TRT-20'] #, 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20']
-            #['Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
-    numbers = [1] #[20,21,22,20]  #[1,1,2,2,12]
-    surfs = ['left_surface','right_surface']
-    hemis = ['lh','rh']
+    #-------------------------------------------------------------------------
     nsubjects = sum(numbers)
-    feature_to_border_mean_distances_left = -1 * np.ones((nsubjects, 25))
-    feature_to_border_sd_distances_left = -1 * np.ones((nsubjects, 25))
-    border_to_feature_mean_distances_left = -1 * np.ones((nsubjects, 25))
-    border_to_feature_sd_distances_left = -1 * np.ones((nsubjects, 25))
-    feature_to_border_mean_distances_right = -1 * np.ones((nsubjects, 25))
-    feature_to_border_sd_distances_right = -1 * np.ones((nsubjects, 25))
-    border_to_feature_mean_distances_right = -1 * np.ones((nsubjects, 25))
-    border_to_feature_sd_distances_right = -1 * np.ones((nsubjects, 25))
+    feature_to_border_mean_distances_left = -1 * np.ones((nsubjects, nsulci))
+    feature_to_border_sd_distances_left = -1 * np.ones((nsubjects, nsulci))
+    border_to_feature_mean_distances_left = -1 * np.ones((nsubjects, nsulci))
+    border_to_feature_sd_distances_left = -1 * np.ones((nsubjects, nsulci))
+    feature_to_border_mean_distances_right = -1 * np.ones((nsubjects, nsulci))
+    feature_to_border_sd_distances_right = -1 * np.ones((nsubjects, nsulci))
+    border_to_feature_mean_distances_right = -1 * np.ones((nsubjects, nsulci))
+    border_to_feature_sd_distances_right = -1 * np.ones((nsubjects, nsulci))
     isubject = 0
     for iname, name in enumerate(names):
         number = numbers[iname]
@@ -270,30 +286,32 @@ if __name__ == "__main__":
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
                 print('{0}: {1}'.format(subject, hemi))
-
-                # Identify surface files with labels and sulci:
-                mdir = os.path.join(fmethod, subject)
+                #-------------------------------------------------------------
+                # Identify surface files with labels and with sulci:
+                #-------------------------------------------------------------
+                mdir = os.path.join(mindboggled, subject)
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
-
-
-
-                #labels_file = os.path.join(mdir, 'labels', surf,
-                #                           'relabeled_labels.DKT31.manual.vtk')
                 labels_file = os.path.join(mdir, 'labels', surf,
-                                           'relabeled_classifier.vtk')
-
-
+                                           'relabeled_labels.DKT31.manual.vtk')
+                #labels_file = os.path.join(mdir, 'labels', surf,
+                #                           'relabeled_classifier.vtk')
+                #-------------------------------------------------------------
                 # Identify features file:
-                if nmethod == 0:
-                    features_file = os.path.join(mdir, 'features', surf,
-                                                 'border_per_sulcus.vtk')
+                #-------------------------------------------------------------
+                if feature_type == 'fundi':
+                    if nmethod == 0:
+                        features_file = os.path.join(mdir, 'features', surf,
+                                                     'fundus_per_sulcus.vtk')
+                    else:
+                        features_file = os.path.join(fmethod_dir, subject,
+                            '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
+                            hemi + '.pial.fundi.vtk')
                 else:
-                    features_file = os.path.join(fmethod,
-                        '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
-                        hemi + '.pial.fundi.vtk')
-
-                # Compute distances between features and label boundaries
+                    features_file = sulci_file
+                #-------------------------------------------------------------
+                # Compute distances between features and label borders
                 # in sulci corresponding to fundi:
+                #-------------------------------------------------------------
                 feature_to_border_mean_distances, \
                 feature_to_border_sd_distances,\
                 feature_to_border_distances_vtk,\
@@ -301,9 +319,9 @@ if __name__ == "__main__":
                 border_to_feature_sd_distances,\
                 border_to_feature_distances_vtk = \
                     evaluate_deep_features(features_file, labels_file,
-                                           sulci_file, hemi, excludeIDs=[-1],
-                                           output_vtk_name=subject+'_'+hemi,
-                                           verbose=True)
+                        sulci_file, hemi, excludeIDs=[-1],
+                        output_vtk_name=subject+'_'+hemi+'_'+fmethod,
+                        verbose=True)
                 print('*' * 79)
 
                 if isurf == 0:
@@ -327,26 +345,30 @@ if __name__ == "__main__":
 
             isubject += 1
 
+    #-------------------------------------------------------------------------
     # Save tables of mean distances:
-    np.savetxt('feature_to_border_mean_distances_left.csv',
+    #-------------------------------------------------------------------------
+    np.savetxt(name + '_' + fmethod + '_to_border_mean_distances_left.csv',
                feature_to_border_mean_distances_left)
-    np.savetxt('feature_to_border_sd_distances_left.csv',
+    np.savetxt(name + '_' + fmethod + '_to_border_sd_distances_left.csv',
                feature_to_border_sd_distances_left)
-    np.savetxt('border_to_feature_mean_distances_left.csv',
+    np.savetxt(name + '_border_to_' + fmethod + '_mean_distances_left.csv',
                border_to_feature_mean_distances_left)
-    np.savetxt('border_to_feature_sd_distances_left.csv',
+    np.savetxt(name + '_border_to_' + fmethod + '_sd_distances_left.csv',
                border_to_feature_sd_distances_left)
 
-    np.savetxt('feature_to_border_mean_distances_right.csv',
+    np.savetxt(name + '_' + fmethod + '_to_border_mean_distances_right.csv',
                feature_to_border_mean_distances_right)
-    np.savetxt('feature_to_border_sd_distances_right.csv',
+    np.savetxt(name + '_' + fmethod + '_to_border_sd_distances_right.csv',
                feature_to_border_sd_distances_right)
-    np.savetxt('border_to_feature_mean_distances_right.csv',
+    np.savetxt(name + '_border_to_' + fmethod + '_mean_distances_right.csv',
                border_to_feature_mean_distances_right)
-    np.savetxt('border_to_feature_sd_distances_right.csv',
+    np.savetxt(name + '_border_to_' + fmethod + '_sd_distances_right.csv',
                border_to_feature_sd_distances_right)
 
-    # Average of the mean distances across all subjects:
+    #-------------------------------------------------------------------------
+    # Save tables of mean distances averaged across all subjects:
+    #-------------------------------------------------------------------------
     mean_feature_to_border_mean_distances_left = \
         np.mean(feature_to_border_mean_distances_left, axis=0)
     mean_feature_to_border_sd_distances_left = \
@@ -365,21 +387,20 @@ if __name__ == "__main__":
     mean_border_to_feature_sd_distances_right = \
         np.mean(border_to_feature_mean_distances_right, axis=0)
 
-    # Save tables of mean distances averaged across all subjects:
-    np.savetxt('mean_feature_to_border_mean_distances_left.csv',
+    np.savetxt(name + '_mean_' + fmethod + '_to_border_mean_distances_left.csv',
                mean_feature_to_border_mean_distances_left)
-    np.savetxt('mean_feature_to_border_sd_distances_left.csv',
+    np.savetxt(name + '_mean_' + fmethod + '_to_border_sd_distances_left.csv',
                mean_feature_to_border_sd_distances_left)
-    np.savetxt('mean_border_to_feature_mean_distances_left.csv',
+    np.savetxt(name + '_mean_border_to_' + fmethod + '_mean_distances_left.csv',
                mean_border_to_feature_mean_distances_left)
-    np.savetxt('mean_border_to_feature_sd_distances_left.csv',
+    np.savetxt(name + '_mean_border_to_' + fmethod + '_sd_distances_left.csv',
                mean_border_to_feature_sd_distances_left)
 
-    np.savetxt('mean_feature_to_border_mean_distances_right.csv',
+    np.savetxt(name + '_mean_' + fmethod + '_to_border_mean_distances_right.csv',
                mean_feature_to_border_mean_distances_right)
-    np.savetxt('mean_feature_to_border_sd_distances_right.csv',
+    np.savetxt(name + '_mean_' + fmethod + '_to_border_sd_distances_right.csv',
                mean_feature_to_border_sd_distances_right)
-    np.savetxt('mean_border_to_feature_mean_distances_right.csv',
+    np.savetxt(name + '_mean_border_to_' + fmethod + '_mean_distances_right.csv',
                mean_border_to_feature_mean_distances_right)
-    np.savetxt('mean_border_to_feature_sd_distances_right.csv',
+    np.savetxt(name + '_mean_border_to_' + fmethod + '_sd_distances_right.csv',
                mean_border_to_feature_sd_distances_right)
