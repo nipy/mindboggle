@@ -262,6 +262,7 @@ def source_to_target_distances(sourceIDs, targetIDs, points,
         target_indices = [i for i,x in enumerate(targetIDs)
                           if x not in excludeIDs
                           if i in segment_indices]
+
         if source_indices and target_indices:
 
             # For each source point in the segment:
