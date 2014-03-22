@@ -17,9 +17,10 @@ if run_all:
         for n in range(1,number+1):
             s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
                 '{2}/{0}_volumes/{0}-{1}/antsBrainSegmentation.nii.gz ' \
-                '--sulci --fundi --vertices --spectra 10 --thickness ' \
+                '--sulci --fundi --thickness ' \
                 '--surface_labels manual'\
                 .format(name, n, ants_dir, prefix)
+                #'--sulci --fundi --vertices --spectra 10 --thickness ' \
             print(s)
             os.system(s)
 
@@ -33,9 +34,10 @@ if run_all:
         for n in range(1,number+1):
             s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
                 '{2}/{0}-{1}/antsBrainSegmentation.nii.gz ' \
-                '--sulci --fundi --vertices --spectra 10 --thickness '\
+                '--sulci --fundi --thickness '\
                 '--surface_labels manual'\
                 .format(name, n, ants_dir, prefix)
+                #'--sulci --fundi --vertices --spectra 10 --thickness ' \
             print(s)
             os.system(s)
 

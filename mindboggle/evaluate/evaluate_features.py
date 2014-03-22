@@ -90,7 +90,7 @@ def evaluate_deep_features(features_file, labels_file, sulci_file='', hemi='',
     # Prepare neighbors, label pairs, border IDs, and outputs:
     #-------------------------------------------------------------------------
     # Calculate neighbor lists for all points:
-    print('Find neighbors to all vertices...')
+    print('Find neighbors for all vertices...')
     neighbor_lists = find_neighbors(faces, npoints)
 
     # Find label border points in any of the sulci:
@@ -226,12 +226,12 @@ if __name__ == "__main__":
     #-------------------------------------------------------------------------
     # Set feature type ('fundi' or '' for every sulcus vertex), subjects:
     #-------------------------------------------------------------------------
-    feature_type = ''#'fundi'
+    feature_type = 'fundi'
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
     numbers = [20,21,22,20, 1,1,2,2,12]
     mindboggled = '/homedir/mindboggledOLD'
-    labels_dir = '/data/Brains/Mindboggle101/subjects'
+    labels_dir = mindboggled # Need relabeled according to DKT
 
     #-------------------------------------------------------------------------
     # Feature-specific settings:
@@ -293,8 +293,8 @@ if __name__ == "__main__":
                 mdir = os.path.join(mindboggled, subject)
                 ldir = os.path.join(labels_dir, subject)
                 sulci_file = os.path.join(mdir, 'features', surf, 'sulci.vtk')
-                labels_file = os.path.join(ldir, 'label',
-                                           hemi + '.labels.DKT25.manual.vtk')
+                labels_file = os.path.join(ldir, 'labels', surf,
+                                           'relabeled_labels.DKT31.manual.vtk')
                 #labels_file = os.path.join(mdir, 'labels', surf,
                 #                           'relabeled_classifier.vtk')
                 #-------------------------------------------------------------
