@@ -15,11 +15,14 @@ def fetch_ants_data(segmented_file):
     Fetch antsCorticalThickness.sh output.
 
     The input argument "segmented_file" is one of the relevant
-    antsCorticalThickness.sh output files called by Mindboggle:
+    antsCorticalThickness.sh output files called by Mindboggle
+    (assume path and PREFIX="ants"):
         ants_subjects/subject1/antsBrainExtractionMask.nii.gz
         ants_subjects/subject1/antsBrainSegmentation.nii.gz
-        ants_subjects/subject1/antsTemplateToSubject0GenericAffine.mat
-        ants_subjects/subject1/antsTemplateToSubject1Warp.nii.gz
+        ants_subjects/subject1/antsSubjectToTemplate0GenericAffine.mat
+        ants_subjects/subject1/antsSubjectToTemplate1Warp.nii.gz
+        ants_subjects/subject1/antsTemplateToSubject0Warp.nii.gz
+        ants_subjects/subject1/antsTemplateToSubject1GenericAffine.mat
 
     Parameters
     ----------
@@ -32,14 +35,14 @@ def fetch_ants_data(segmented_file):
         antsBrainExtraction.sh brain volume mask for extracting brain volume
     segments : string
         Atropos-segmented brain volume
-    affine : string
+    affine_subject2template : string
+        subject to template affine transform (antsRegistration)
+    warp_subject2template : string
+        subject to template nonlinear transform (antsRegistration)
+    affine_template2subject : string
         template to subject affine transform (antsRegistration)
-        Note: transform name contains "TemplateToSubject"
-    warp : string
+    warp_template2subject : string
         template to subject nonlinear transform (antsRegistration)
-        Note: transform name contains "TemplateToSubject"
-    invwarp : string
-        inverse of template to subject nonlinear transform
 
     Examples
     --------
@@ -54,16 +57,18 @@ def fetch_ants_data(segmented_file):
 
     mask = prefix + 'BrainExtractionMask.nii.gz'
     segments = segmented_file
-    affine = prefix + 'TemplateToSubject0GenericAffine.mat'
-    warp = prefix + 'TemplateToSubject1Warp.nii.gz'
-    invwarp = prefix + 'TemplateToSubject1InverseWarp.nii.gz'
+    affine_subject2template = prefix + 'SubjectToTemplate0GenericAffine.mat'
+    warp_subject2template = prefix + 'SubjectToTemplate1Warp.nii.gz'
+    affine_template2subject = prefix + 'TemplateToSubject1GenericAffine.mat'
+    warp_template2subject = prefix + 'TemplateToSubject0Warp.nii.gz'
 
-    for s in [mask, segments, affine, warp, invwarp]:
+    for s in [mask, segments, affine_subject2template, warp_subject2template,
+                              affine_template2subject, warp_template2subject]:
         if not os.path.exists(s):
             raise IOError(s + ' does not exist')
 
-    return mask, segments, affine, warp, invwarp
-
+    return mask, segments, affine_subject2template, warp_subject2template, \
+                           affine_template2subject, warp_template2subject
 
 def ComposeMultiTransform(transform_files, inverse_Booleans,
                           output_transform_file='', ext='.txt'):
