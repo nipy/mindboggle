@@ -23,7 +23,7 @@ for i,name in enumerate(names):
     for n in range(1,number+1):
         s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
             '{2}/{0}-{1}/{3}BrainSegmentation.nii.gz ' \
-            '--sulci --fundi --thickness --spectra 10 --vertices ' \
+            '--sulci --fundi --thickness --spectra 10 --moments 10 --vertices ' \
             '--surface_labels manual' \
             .format(name, n, ants_dir, prefix)
         print(s)

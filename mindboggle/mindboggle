@@ -123,8 +123,7 @@ shapes_group.add_argument("--spectra",
                     default=0, type=int, metavar='INT')
 shapes_group.add_argument("--moments",
                     help='Order of Zernike moments per label/feature '
-                         '(recommended but SLOW: 10; default OFF) '
-                         '[UNTESTED]',
+                         '(recommended but SLOW: 10; default OFF)',
                     default=0, type=int, metavar='INT')
 
 inputs_group.add_argument("--subjects_dir",
