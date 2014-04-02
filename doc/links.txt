@@ -75,6 +75,8 @@
 .. _Visualization Toolkit: http://www.vtk.org/
 
 .. Other organizations
+.. _`Sage`: http://sagebase.org
+.. _`Sage Bionetworks`: http://sagebase.org
 .. _Enthought: http://www.enthought.com
 .. _Kitware: http://www.kitware.com
 
@@ -84,6 +86,8 @@
 .. People
 .. _Arno: http://binarybottle.com
 .. _`Arno Klein`: http://binarybottle.com
+.. _`CV`: http://binarybottle.com/cv.php
+.. _`projects`: http://binarybottle.com/projects.php
 .. _`Satrajit Ghosh`: http://mit.edu/~satra
 .. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
 .. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
