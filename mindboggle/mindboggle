@@ -1782,8 +1782,11 @@ if do_volumes and do_label:
         xfm.inputs.interpolation = 'NearestNeighbor'
         xfm.inputs.invert_transform_flags = warp_inverse_Booleans
         xfm.inputs.output_image = 'ANTs_labels.nii.gz'
-        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
-                       'antsApplyTransforms.reference_image')
+        if my_segments:
+            xfm.inputs.reference_image = my_segments
+        else:
+            mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
+                           'antsApplyTransforms.reference_image')
         mbFlow.connect(FetchAtlas, 'data_path',
                        VolLabelFlow, 'antsApplyTransforms.input_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
@@ -1929,8 +1932,11 @@ if do_volumes and do_label:
         xfm2.inputs.output_image = 'ANTs_added_atlas_labels.nii.gz'
         VolLabelFlow.connect(MatchAtlas, 'first_matching_string',
                              xfm2, 'input_image')
-        mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
-                       'Transform_added_atlases.reference_image')
+        if my_segments:
+            xfm2.inputs.reference_image = my_segments
+        else:
+            mbFlow.connect(FetchANTs, 'segments', VolLabelFlow,
+                           'Transform_added_atlases.reference_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'Transform_added_atlases.transforms')
         mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
