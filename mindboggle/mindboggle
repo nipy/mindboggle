@@ -140,7 +140,8 @@ inputs_group.add_argument("--surface_labels",
                     choices=['atlas', 'freesurfer', 'manual'],
                     default='atlas', metavar='STR')
 inputs_group.add_argument("--my_segments",
-                    help=("Segmented file instead of --ants_segments"),
+                    help=("Use this segmented file, but still call "
+                          "--ants_segments to fetch ANTs transforms"),
                     metavar='STR')
 inputs_group.add_argument("--atlases", help=("Extra label volume atlas(es)"
                                              " in MNI152 space"),
