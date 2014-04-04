@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 """
-Functions for writing tables
+Functions for reading and writing tables.
 
 
 Authors:
@@ -1259,6 +1259,10 @@ def xyz2nii(input_xyz_file, output_nii_file='', origin=[], pad=10):
         input [x,y,z] coordinate text file
     output_nii_file : string
         output nifti (nii.gz) volume file
+    origin : list of floats
+        [x,y,z] coordinates for origin
+    pad : integer
+        number of voxels to pad input coordinates in x, y, and z directions
 
     Returns
     -------
