@@ -1165,8 +1165,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     """
     Select column from Mindboggle shape tables and make a new table.
 
-    For example, extract the median travel depth column for a given feature
-    (label region or sulcus ID) across a set of subjects, and make a table.
+    For example, extract the median travel depth column for the label regions
+    across a set of subjects, and make a new table.
 
     Expects::
         <tables_dir>/<subject>/tables/['left','right']_surface/<table_name>
@@ -1247,3 +1247,66 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
                                              delimiter)
 
     return tables, columns, column_name, row_names, row_names_title, output_table
+
+
+def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
+        table_name, output_table='', delimiter=','):
+    """
+    Concatenate Mindboggle shape tables across subjects and make a new table.
+
+    Expects::
+        <tables_dir>/<subject>/tables/['left','right']_surface/<table_name>
+
+    Parameters
+    ----------
+    subjects :  list of strings
+        names of subjects processed by Mindboggle
+    hemi :  string
+        hemisphere in {'left', 'right}
+    tables_dir : string
+        name of Mindboggle tables directory
+    table_name : string
+        name of Mindboggle table file
+    output_table : string
+        output table file name
+    delimiter : string
+        delimiter between output table columns, such as ','
+
+    Returns
+    -------
+    output_table :  string
+        output table file name
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_table import concatenate_mindboggle_tables
+    >>> subjects = ['Twins-2-1', 'Twins-2-2']
+    >>> hemi = 'left'
+    >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled')
+    >>> table_name = "label_shapes.csv"
+    >>> output_table = ''
+    >>> delimiter = ','
+    >>> #
+    >>> concatenate_mindboggle_tables(subjects, hemi, tables_dir,
+    >>>     table_name, output_table, delimiter)
+
+    """
+    import os
+
+    from mindboggle.utils.utils import execute
+
+    if not output_table:
+        output_table = os.path.join(os.getcwd(), 'concatenated_' + table_name)
+
+    #-------------------------------------------------------------------------
+    # Concatenate Mindboggle shape tables:
+    #-------------------------------------------------------------------------
+    for subject in subjects:
+        table = os.path.join(tables_dir, subject, 'tables',
+                             hemi+'_surface', table_name)
+        type = 'os'
+        cmd = ' '.join(['cat', table, '>>', output_table])
+        execute(cmd, type)
+
+    return output_table
