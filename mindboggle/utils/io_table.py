@@ -513,6 +513,13 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             if itable == 0:
                 label_numbers = dkt.label_numbers
                 label_names = dkt.label_names
+            elif itable in [1, 2]:
+                label_numbers = dkt.sulcus_numbers
+                label_names = dkt.sulcus_names
+            else:
+                label_numbers = []
+                label_names = []
+            if label_numbers:
                 name_list = []
                 for label in label_list:
                     name_list.append(label_names[label_numbers.index(label)])
@@ -567,7 +574,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             output_table = write_columns(label_list, feature_name, delimiter,
                                          quote=True, input_table='',
                                          output_table=output_table)
-            if itable == 0:
+            if label_numbers:
                 write_columns(name_list, 'Label name', delimiter,
                               quote=True, input_table=output_table,
                               output_table=output_table)
@@ -1305,6 +1312,28 @@ def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
     for subject in subjects:
         table = os.path.join(tables_dir, subject, 'tables',
                              hemi+'_surface', table_name)
+
+        if os.path.isfile(table):
+            Fp = open(table, 'r')
+            lines = Fp.readlines()
+            for line in lines:
+                if line:
+                    row = re.findall(r'\S+', line)
+                    if len(row) >= n_columns:
+                        for icolumn in range(n_columns):
+                            if trail and icolumn == n_columns - 1:
+                                columns[icolumn].append(' '.join(row[icolumn::]))
+                            else:
+                                columns[icolumn].append(row[icolumn])
+                    else:
+                        import os
+                        os.error('The number of columns in {0} is less than {1}.'.format(
+                                 filename, n_columns))
+            Fp.close()
+
+
+
+
         type = 'os'
         cmd = ' '.join(['cat', table, '>>', output_table])
         execute(cmd, type)
