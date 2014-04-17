@@ -217,17 +217,17 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (31 + duplicates):
     #-------------------------------------------------------------------------
-    left_cerebrum_cortex_numbers = \
+    left_cerebrum_cortex_list = \
         [3, 19, 20] + range(1000, 1004) + range(1005, 1036)
-    right_cerebrum_cortex_numbers = \
+    right_cerebrum_cortex_list = \
         [42, 55, 56] + range(2000, 2004) + range(2005, 2036)
 
     #-------------------------------------------------------------------------
     # Cerebral ventricle label numbers:
     #-------------------------------------------------------------------------
-    left_ventricle_numbers = [4, 5]
-    right_ventricle_numbers = [43, 44]
-    medial_ventricle_numbers = [14, 15, 72]
+    left_ventricle_list = [4, 5]
+    right_ventricle_list = [43, 44]
+    medial_ventricle_list = [14, 15, 72]
 
     #-------------------------------------------------------------------------
     # Cerebral noncortex label numbers (including ventricles above):
@@ -242,15 +242,15 @@ class DKTprotocol:
     #         [91, "left basal forebrain"],
     #         [92, "right basal forebrain"]
     #-------------------------------------------------------------------------
-    left_cerebrum_noncortex_numbers = \
+    left_cerebrum_noncortex_list = \
         [2, 9, 10, 11, 12, 13, 17, 18, 25, 26, 27, 28, 30, 31, 78, 91, 96] + \
         range(100, 109) + [155, 157] + range(550, 559) + [1004] + \
-        range(3000, 3036) + [5001] + left_ventricle_numbers
-    right_cerebrum_noncortex_numbers = \
+        range(3000, 3036) + [5001] + left_ventricle_list
+    right_cerebrum_noncortex_list = \
         [41, 48, 49, 50, 51, 52, 53, 54, 57, 58, 59, 60, 62, 63, 79, 92, 97] + \
         range(109, 118) + [156, 158] + range(500, 509) + [2004] + \
-        range(4000, 4036) + [5002] + right_ventricle_numbers
-    medial_cerebrum_noncortex_numbers = medial_ventricle_numbers + \
+        range(4000, 4036) + [5002] + right_ventricle_list
+    medial_cerebrum_noncortex_list = medial_ventricle_list + \
                                         [192] + range(250, 256)
 
     #-------------------------------------------------------------------------
@@ -263,11 +263,11 @@ class DKTprotocol:
     #   [631, "cerebellar vermal lobules VI-VII"],
     #   [632, "cerebellar vermal lobules VIII-X"],
     #-------------------------------------------------------------------------
-    left_cerebellum_cortex_numbers = [6, 8]
-    right_cerebellum_cortex_numbers = [45, 47]
-    left_cerebellum_noncortex_numbers = [7]
-    right_cerebellum_noncortex_numbers = [46]
-    medial_cerebellum_noncortex_numbers = [630, 631, 632]
+    left_cerebellum_cortex_list = [6, 8]
+    right_cerebellum_cortex_list = [45, 47]
+    left_cerebellum_noncortex_list = [7]
+    right_cerebellum_noncortex_list = [46]
+    medial_cerebellum_noncortex_list = [630, 631, 632]
 
     #-------------------------------------------------------------------------
     # Extra label numbers:
@@ -277,10 +277,31 @@ class DKTprotocol:
     #  [85, "optic chiasm"]]
     #  170-175: brain stem
     #-------------------------------------------------------------------------
-    brainstem_numbers = [16] + range(170, 176)
-    extra_numbers = [24, 85]
+    brainstem_list = [16] + range(170, 176)
+    extra_list = [24, 85]
 
-
+    #-------------------------------------------------------------------------
+    # Label numbers:
+    #-------------------------------------------------------------------------
+    left_cerebrum_cortex_numbers = []
+    right_cerebrum_cortex_numbers = []
+    left_ventricle_numbers = []
+    right_ventricle_numbers = []
+    medial_ventricle_numbers = []
+    left_cerebrum_noncortex_numbers = []
+    right_cerebrum_noncortex_numbers = []
+    medial_cerebrum_noncortex_numbers = []
+    left_ventricle_numbers = []
+    right_ventricle_numbers = []
+    medial_ventricle_numbers = []
+    left_cerebellum_cortex_numbers = []
+    right_cerebellum_cortex_numbers = []
+    left_cerebellum_noncortex_numbers = []
+    right_cerebellum_noncortex_numbers = []
+    medial_cerebellum_noncortex_numbers = []
+    brainstem_numbers = []
+    extra_numbers = []
+    misc_numbers = []
     #-------------------------------------------------------------------------
     # Names corresponding to label numbers:
     #-------------------------------------------------------------------------
@@ -302,47 +323,7 @@ class DKTprotocol:
     medial_cerebellum_noncortex_names = []
     brainstem_names = []
     extra_names = []
-    for i, n in enumerate(numbers):
-        if n in left_cerebrum_cortex_numbers:
-            left_cerebrum_cortex_names.append(names[i])
-        elif n in right_cerebrum_cortex_numbers:
-            right_cerebrum_cortex_names.append(names[i])
-        elif n in left_ventricle_numbers:
-            left_ventricle_names.append(names[i])
-            left_cerebrum_noncortex_names.append(names[i])
-        elif n in right_ventricle_numbers:
-            right_ventricle_names.append(names[i])
-            right_cerebrum_noncortex_names.append(names[i])
-        elif n in medial_ventricle_numbers:
-            medial_ventricle_names.append(names[i])
-            medial_cerebrum_noncortex_names.append(names[i])
-        elif n in left_cerebrum_noncortex_numbers:
-            left_cerebrum_noncortex_names.append(names[i])
-        elif n in right_cerebrum_noncortex_numbers:
-            right_cerebrum_noncortex_names.append(names[i])
-        elif n in medial_cerebrum_noncortex_numbers:
-            medial_cerebrum_noncortex_names.append(names[i])
-        elif n in left_ventricle_numbers:
-            left_ventricle_names.append(names[i])
-        elif n in right_ventricle_numbers:
-            right_ventricle_names.append(names[i])
-        elif n in medial_ventricle_numbers:
-            medial_ventricle_names.append(names[i])
-        elif n in left_cerebellum_cortex_numbers:
-            left_cerebellum_cortex_names.append(names[i])
-        elif n in right_cerebellum_cortex_numbers:
-            right_cerebellum_cortex_names.append(names[i])
-        elif n in left_cerebellum_noncortex_numbers:
-            left_cerebellum_noncortex_names.append(names[i])
-        elif n in right_cerebellum_noncortex_numbers:
-            right_cerebellum_noncortex_names.append(names[i])
-        elif n in medial_cerebellum_noncortex_numbers:
-            medial_cerebellum_noncortex_names.append(names[i])
-        elif n in brainstem_numbers:
-            brainstem_names.append(names[i])
-        elif n in extra_numbers:
-            extra_names.append(names[i])
-
+    misc_names = []
     #-------------------------------------------------------------------------
     # Colors corresponding to label numbers:
     #-------------------------------------------------------------------------
@@ -364,46 +345,93 @@ class DKTprotocol:
     medial_cerebellum_noncortex_colors = []
     brainstem_colors = []
     extra_colors = []
+    misc_colors = []
     for i, n in enumerate(numbers):
-        if n in left_cerebrum_cortex_numbers:
+        if n in left_cerebrum_cortex_list:
+            left_cerebrum_cortex_numbers.append(numbers[i])
+            left_cerebrum_cortex_names.append(names[i])
             left_cerebrum_cortex_colors.append(colors[i])
-        elif n in right_cerebrum_cortex_numbers:
+        elif n in right_cerebrum_cortex_list:
+            right_cerebrum_cortex_numbers.append(numbers[i])
+            right_cerebrum_cortex_names.append(names[i])
             right_cerebrum_cortex_colors.append(colors[i])
-        elif n in left_ventricle_numbers:
+        elif n in left_ventricle_list:
+            left_ventricle_numbers.append(numbers[i])
+            left_cerebrum_noncortex_numbers.append(numbers[i])
+            left_ventricle_names.append(names[i])
+            left_cerebrum_noncortex_names.append(names[i])
             left_ventricle_colors.append(colors[i])
             left_cerebrum_noncortex_colors.append(colors[i])
-        elif n in right_ventricle_numbers:
+        elif n in right_ventricle_list:
+            right_ventricle_numbers.append(numbers[i])
+            right_cerebrum_noncortex_numbers.append(numbers[i])
+            right_ventricle_names.append(names[i])
+            right_cerebrum_noncortex_names.append(names[i])
             right_ventricle_colors.append(colors[i])
             right_cerebrum_noncortex_colors.append(colors[i])
-        elif n in medial_ventricle_numbers:
+        elif n in medial_ventricle_list:
+            medial_ventricle_numbers.append(numbers[i])
+            medial_cerebrum_noncortex_numbers.append(numbers[i])
+            medial_ventricle_names.append(names[i])
+            medial_cerebrum_noncortex_names.append(names[i])
             medial_ventricle_colors.append(colors[i])
             medial_cerebrum_noncortex_colors.append(colors[i])
-        elif n in left_cerebrum_noncortex_numbers:
+        elif n in left_cerebrum_noncortex_list:
+            left_cerebrum_noncortex_numbers.append(numbers[i])
+            left_cerebrum_noncortex_names.append(names[i])
             left_cerebrum_noncortex_colors.append(colors[i])
-        elif n in right_cerebrum_noncortex_numbers:
+        elif n in right_cerebrum_noncortex_list:
+            right_cerebrum_noncortex_numbers.append(numbers[i])
+            right_cerebrum_noncortex_names.append(names[i])
             right_cerebrum_noncortex_colors.append(colors[i])
-        elif n in medial_cerebrum_noncortex_numbers:
+        elif n in medial_cerebrum_noncortex_list:
+            medial_cerebrum_noncortex_numbers.append(numbers[i])
+            medial_cerebrum_noncortex_names.append(names[i])
             medial_cerebrum_noncortex_colors.append(colors[i])
-        elif n in left_ventricle_numbers:
+        elif n in left_ventricle_list:
+            left_ventricle_numbers.append(numbers[i])
+            left_ventricle_names.append(names[i])
             left_ventricle_colors.append(colors[i])
-        elif n in right_ventricle_numbers:
+        elif n in right_ventricle_list:
+            right_ventricle_numbers.append(numbers[i])
+            right_ventricle_names.append(names[i])
             right_ventricle_colors.append(colors[i])
-        elif n in medial_ventricle_numbers:
+        elif n in medial_ventricle_list:
+            medial_ventricle_numbers.append(numbers[i])
+            medial_ventricle_names.append(names[i])
             medial_ventricle_colors.append(colors[i])
-        elif n in left_cerebellum_cortex_numbers:
+        elif n in left_cerebellum_cortex_list:
+            left_cerebellum_cortex_numbers.append(numbers[i])
+            left_cerebellum_cortex_names.append(names[i])
             left_cerebellum_cortex_colors.append(colors[i])
-        elif n in right_cerebellum_cortex_numbers:
+        elif n in right_cerebellum_cortex_list:
+            right_cerebellum_cortex_numbers.append(numbers[i])
+            right_cerebellum_cortex_names.append(names[i])
             right_cerebellum_cortex_colors.append(colors[i])
-        elif n in left_cerebellum_noncortex_numbers:
+        elif n in left_cerebellum_noncortex_list:
+            left_cerebellum_noncortex_numbers.append(numbers[i])
+            left_cerebellum_noncortex_names.append(names[i])
             left_cerebellum_noncortex_colors.append(colors[i])
-        elif n in right_cerebellum_noncortex_numbers:
+        elif n in right_cerebellum_noncortex_list:
+            right_cerebellum_noncortex_numbers.append(numbers[i])
+            right_cerebellum_noncortex_names.append(names[i])
             right_cerebellum_noncortex_colors.append(colors[i])
-        elif n in medial_cerebellum_noncortex_numbers:
+        elif n in medial_cerebellum_noncortex_list:
+            medial_cerebellum_noncortex_numbers.append(numbers[i])
+            medial_cerebellum_noncortex_names.append(names[i])
             medial_cerebellum_noncortex_colors.append(colors[i])
-        elif n in brainstem_colors:
-            brainstem_colors.append(names[i])
-        elif n in extra_numbers:
+        elif n in brainstem_list:
+            brainstem_numbers.append(numbers[i])
+            brainstem_names.append(names[i])
+            brainstem_colors.append(colors[i])
+        elif n in extra_list:
+            extra_numbers.append(numbers[i])
+            extra_names.append(names[i])
             extra_colors.append(colors[i])
+        else:
+            misc_numbers.append(numbers[i])
+            misc_names.append(names[i])
+            misc_colors.append(colors[i])
 
     #-------------------------------------------------------------------------
     # Aggregate lists:
@@ -562,6 +590,7 @@ class DKTprotocol:
         "olfactory sulcus",
         "occipitotemporal sulcus",
         "collateral sulcus"]
+    sulcus_numbers = range(len(sulcus_names))
 
     #-------------------------------------------------------------------------
     # Lists of label pairs that define sulcus boundaries (or fundi)

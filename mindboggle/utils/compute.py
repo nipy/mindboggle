@@ -786,7 +786,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
            lower_quarts, upper_quarts, label_list
 
 
-def volume_per_label(input_file, labels=[], names=[], save_table=False):
+def volume_per_label(input_file, labels=[], names=[], save_table=False,
+                     output_table=''):
     """
     Compute volume per labeled region in a nibabel-readable image.
 
@@ -800,23 +801,28 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False):
         label names
     save_table : Boolean
         save output table file with labels and volume values?
+    output_table : string
+        name of output table file with labels and volume values
 
     Returns
     -------
     labels_volumes : list of integer list and float list
         label numbers and volume for each labeled region (default -1)
     output_table : string
-        name of output volume table file (if save_table==True)
+        name of output volume table file (if output_table not empty)
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.LABELS import DKTprotocol
     >>> from mindboggle.utils.compute import volume_per_label
-    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
-    >>> input_file = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()
-    >>> labels_volumes, output_table = volume_per_label(input_file, dkt.label_numbers, names=[], save_table=True)
+    >>> labels = dkt.label_numbers
+    >>> names = dkt.label_names
+    >>> save_table = True
+    >>> output_table = 'volumes.csv'
+    >>> labels_volumes, output_table = volume_per_label(input_file, labels, names, save_table, output_table)
     >>> print(labels_volumes)
 
     """
@@ -827,8 +833,7 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False):
     # Load labeled image volumes:
     img = nb.load(input_file)
     hdr = img.get_header()
-    pixdims = hdr.get_zooms()
-    volume_per_voxel = np.product(pixdims)
+    volume_per_voxel = np.product(hdr.get_zooms())
     data = img.get_data().ravel()
 
     # Initialize output:
@@ -839,10 +844,13 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False):
 
     # Output table:
     if save_table:
-        output_table = os.path.join(os.getcwd(), 'volumes.csv')
+        if output_table:
+            output_table = os.path.join(os.getcwd(), output_table)
+        else:
+            output_table = os.path.join(os.getcwd(), 'volume_per_label.csv')
         fid = open(output_table, 'w')
         if names:
-            fid.write("Label number, Label name, Volume\n")
+            fid.write("Label name, Label number, Volume\n")
         else:
             fid.write("Label number, Volume\n")
     else:
@@ -859,7 +867,7 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False):
 
             if save_table:
                 if names:
-                    fid.write('{0}, ({1}), {2:2.4f}\n'.format(names[ilabel],
+                    fid.write('{0}, {1}, {2:2.4f}\n'.format(names[ilabel],
                         label, volume))
                 else:
                     fid.write('{0}, {1:2.4f}\n'.format(label, volume))

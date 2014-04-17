@@ -656,7 +656,8 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 
 def thickinthehead(segmented_file, labeled_file, cortex_value=2,
                    noncortex_value=3, labels=[], names=[], resize=True,
-                   propagate=True, output_dir='', save_table=False):
+                   propagate=True, output_dir='', save_table=False,
+                   output_table=''):
     """
     Compute a simple thickness measure for each labeled cortex region.
 
@@ -732,19 +733,21 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     output_dir : string
         output directory
     save_table : Boolean
-        save output table file with labels and thickness values?
+        save output table file with label volumes and thickness values?
+    output_table : string
+        name of output table file with label volumes and thickness values
 
     Returns
     -------
     label_volume_thickness : list of lists of integers and floats
         label indices, volumes, and thickness values (default -1)
     output_table : string
-        name of output thickness table file (if save_table==True)
+        name of output table file with label volumes and thickness values
 
     Examples
     --------
     >>> from mindboggle.utils.ants import thickinthehead
-    >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/tmp23314/tmpBrainSegmentation.nii.gz'
+    >>> segmented_file = '/Users/arno/Data/antsCorticalThickness/OASIS-TRT-20-1/antsBrainSegmentation.nii.gz'
     >>> labeled_file = '/appsdir/freesurfer/subjects/OASIS-TRT-20-1/mri/labels.DKT31.manual.nii.gz'
     >>> cortex_value = 2
     >>> noncortex_value = 3
@@ -761,7 +764,8 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     >>> propagate = False
     >>> output_dir = ''
     >>> save_table = True
-    >>> label_volume_thickness, output_table = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, names, resize, propagate, output_dir, save_table)
+    >>> output_table = ''
+    >>> label_volume_thickness, output_table = thickinthehead(segmented_file, labeled_file, cortex_value, noncortex_value, labels, names, resize, propagate, output_dir, save_table, output_table)
 
     """
     import os
@@ -785,12 +789,15 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     use_outer_edge = True
     if use_outer_edge:
         outer_edge = os.path.join(output_dir, 'cortex_outer_edge.nii.gz')
+
     if save_table:
-        output_table = os.path.join(os.getcwd(), 'thickinthehead.csv')
+        if output_table:
+            output_table = os.path.join(os.getcwd(), output_table)
+        else:
+            output_table = os.path.join(os.getcwd(), 'thickinthehead_per_label.csv')
         fid = open(output_table, 'w')
         if names:
-            fid.write("Label name, Label number, Volume, "
-                      "Thickness (thickinthehead)\n")
+            fid.write("Label name, Label number, Volume, Thickness (thickinthehead)\n")
         else:
             fid.write("Label number, Volume, Thickness (thickinthehead)\n")
     else:
@@ -816,6 +823,19 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     else:
         cmd = ['ImageMath 3', cortex, 'm', cortex, labeled_file]
         execute(cmd)
+
+    #-------------------------------------------------------------------------
+    # Load data:
+    #-------------------------------------------------------------------------
+    compute_real_volume = True
+    if compute_real_volume:
+        img = nb.load(cortex)
+        hdr = img.get_header()
+        vv = np.prod(hdr.get_zooms())
+        cortex_data = img.get_data().ravel()
+    else:
+        vv = 1
+        cortex_data = nb.load(cortex).get_data().ravel()
 
     #-------------------------------------------------------------------------
     # Resample cortex and noncortex files from 1x1x1 to 0.5x0.5x0.5
@@ -858,15 +878,6 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     #-------------------------------------------------------------------------
     # Load data:
     #-------------------------------------------------------------------------
-    compute_real_volume = True
-    if compute_real_volume:
-        img = nb.load(cortex)
-        hdr = img.get_header()
-        vv = np.prod(hdr.get_zooms())
-        cortex_data = img.get_data().ravel()
-    else:
-        vv = 1
-        cortex_data = nb.load(cortex).get_data().ravel()
     inner_edge_data = nb.load(inner_edge).get_data().ravel()
     if use_outer_edge:
         outer_edge_data = nb.load(outer_edge).get_data().ravel()

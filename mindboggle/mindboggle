@@ -1999,12 +1999,16 @@ if do_volumes and do_label:
                               interface=Fn(function=volume_per_label,
                                            input_names=['input_file',
                                                         'labels',
-                                                        'save_table'],
+                                                        'names',
+                                                        'save_table',
+                                                        'output_table'],
                                            output_names=['labels_volumes',
                                                          'output_table']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
         FSlabelVolumes.inputs.labels = dkt.label_numbers
+        FSlabelVolumes.inputs.names = dkt.label_names
         FSlabelVolumes.inputs.save_table = True
+        FSlabelVolumes.inputs.output_table = 'volumes_FreeSurfer_labels.csv'
         mbFlow.connect(VolLabelFlow,
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                VolShapeFlow, 'FreeSurfer_filled_label_volumes.input_file')
@@ -2020,6 +2024,7 @@ if do_volumes and do_label:
             VolShapeFlow.add_nodes([antsLabelVolumes])
             antsLabelVolumes.inputs.labels = dkt.label_numbers
             antsLabelVolumes.inputs.exclude_labels = [-1,0]
+            antsLabelVolumes.inputs.output_table = 'volumes_ANTs_labels.csv'
             if overwrite_cerebrum_with_cerebellum:
                 mbFlow.connect(VolLabelFlow,
                        'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
@@ -2028,7 +2033,6 @@ if do_volumes and do_label:
                 mbFlow.connect(VolLabelFlow,
                        'Combine_ANTs_cortex_noncortex_labels.output_file',
                        VolShapeFlow, 'ANTs_filled_label_volumes.input_file')
-            # Save table:
             mbFlow.connect(VolShapeFlow,
                            'ANTs_filled_label_volumes.output_table',
                            Sink, 'tables.@volumes_of_ANTs_labels')
@@ -2045,6 +2049,10 @@ if do_volumes and do_label:
                                'Transform_added_atlases.output_image',
                                VolShapeFlow,
                                'Added_atlas_label_volumes.input_file')
+                mbFlow.connect(VolLabelFlow,
+                               'Transform_added_atlases.output_image',
+                               VolShapeFlow,
+                               'Added_atlas_label_volumes.output_table')
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
                                'Added_atlas_label_volumes.output_table',
@@ -2069,7 +2077,8 @@ if do_volumes and do_label:
                                           'resize',
                                           'propagate',
                                           'output_dir',
-                                          'save_table'],
+                                          'save_table',
+                                          'output_table'],
                              output_names=['label_volume_thickness',
                                            'output_table']))
             VolShapeFlow.add_nodes([FSthicknesses])
@@ -2108,6 +2117,7 @@ if do_volumes and do_label:
             FSthicknesses.inputs.propagate = False
             FSthicknesses.inputs.output_dir = ''
             FSthicknesses.inputs.save_table = True
+            FSthicknesses.inputs.output_table = 'thickinthehead_FreeSurfer_labels.csv'
             # Save table:
             mbFlow.connect(VolShapeFlow,
             'FreeSurfer_filled_cortex_label_thicknesses.output_table',
@@ -2145,6 +2155,7 @@ if do_volumes and do_label:
                     'Combine_ANTs_cortex_noncortex_labels.output_file',
                     VolShapeFlow,
                     'ANTs_filled_cortex_label_thicknesses.labeled_file')
+                ANTsThicknesses.inputs.output_table = 'thickinthehead_ANTs_labels.csv'
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
                    'ANTs_filled_cortex_label_thicknesses.output_table',
