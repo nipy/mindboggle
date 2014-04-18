@@ -40,36 +40,47 @@ Mindboggle
         - Convexity (FreeSurfer)
         - Thickness (FreeSurfer)
         - Laplace-Beltrami spectra
-        - Zernike moments [UNDER EVALUATION]
+        - Zernike moments
 
 ------------------------------------------------------------------------------
 Examples
 ------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
-type the following two commands in the same directory as the Vagrantfile
-you generated (see `INSTALL <INSTALL.html>`_) to launch and log into the
-Mindboggle virtual machine (requires an active internet connection)::
+type the following two commands in a terminal window,
+in the same directory as the Vagrantfile
+you generated (see `INSTALL <INSTALL.html>`_). This will launch and log into
+the Mindboggle virtual machine (requires an active Internet connection)::
 
     vagrant up
     vagrant ssh
 
-Once logged in, you can type the following in a terminal window to run
-mindboggle on data that has been processed by FreeSurfer
-(replace SUBJECT with the name of a subject directory created by FreeSurfer)::
+**Example 1:**
+The following bare-bones command runs Mindboggle
+on data processed by FreeSurfer but not ANTs
+(replace ``SUBJECT`` with the name of a FreeSurfer subject directory)::
 
     mindboggle SUBJECT
 
-The following example also makes use ANTs output files and 8 processors
-(replace SEGMENTS with the ANTs segmented output, such as
-``ants_subjects/subject1/tmpBrainSegmentation.nii.gz``)::
+**Example 2:**
+To generate only volume labels and measures (no surface labels or measures),
+this command runs on 8 processors and uses ANTs output files
+(replace ``SEGMENTS`` with an ANTs segmented file, such as
+``ants_output/subject1/tmpBrainSegmentation.nii.gz``)::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS -n 8
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness --no_surfaces -n 8
 
-This example uses many of the currently available options within Mindboggle
-(backslash denotes a line return)::
+**Example 3:**
+To also generate cortical surface labels and measures::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS -n 8 \
-               --sulci --fundi --vertices --spectra 10 --thickness --visual hier
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -n 8
+
+**Example 4:**
+Additional outputs include sulcus folds
+and Laplace-Beltrami spectral measures
+(type ``mindboggle --help`` for more options)::
+
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -n 8 --sulci --spectra 10
+
 
 ------------------------------------------------------------------------------
 Inputs
@@ -94,7 +105,7 @@ To generate the ANTs transforms and segmentation files used by
 Mindboggle, run the antsCorticalThickness.sh script on the same IMAGE file,
 set an output PREFIX, and provide paths to
 `OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
-files::
+files (backslash denotes a line return)::
     antsCorticalThickness.sh -d 3 -n 3 -w 0.25 \
       -a IMAGE \
       -o PREFIX \

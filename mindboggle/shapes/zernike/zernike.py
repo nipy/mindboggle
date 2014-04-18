@@ -259,10 +259,10 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> # Twins-2-1 left postcentral (22) pial surface:
     >>> import os
     >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1')
+    >>> vtk_file = os.path.join(path, 'labels', 'left_surface', 'relabeled_classifier.vtk')
     >>> order = 3
-    >>> exclude_labels = [0]
+    >>> exclude_labels = [-1, 0]
     >>> scale_input = True
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, scale_input)
     ([[0.00528486237819844,
@@ -312,9 +312,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     label_list = []
     descriptors_lists = []
     for label in ulabels:
-      #if label == 22:
-      #  print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
-      if label == 14:
+      #if label == 1022:  # 22:
+      #    print("DEBUG: COMPUTE FOR ONLY ONE LABEL")
 
         #---------------------------------------------------------------------
         # Determine the indices per label:
