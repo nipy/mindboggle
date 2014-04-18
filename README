@@ -24,25 +24,6 @@ Help
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-Mindboggle
-------------------------------------------------------------------------------
-    1. combines non/cortex segmentations from FreeSurfer and ANTs software packages
-    2. propagates FreeSurfer and ANTs-registered labels through cortex and noncortex voxels
-    3. computes label volumes and cortical label thicknesses
-    4. computes shape measures on every vertex of FreeSurfer cortical surface meshes
-    5. extracts cortical surface features
-    6. computes statistics on shape measures per cortical surface label/feature:
-
-        - Surface area
-        - Travel depth
-        - Geodesic depth
-        - Mean curvature
-        - Convexity (FreeSurfer)
-        - Thickness (FreeSurfer)
-        - Laplace-Beltrami spectra
-        - Zernike moments
-
-------------------------------------------------------------------------------
 Examples
 ------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
@@ -114,6 +95,25 @@ files (backslash denotes a line return)::
       -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
       -f OASIS-30_Atropos_template/T_template0_BrainCerebellumExtractionMask.nii.gz \
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
+
+------------------------------------------------------------------------------
+Steps
+------------------------------------------------------------------------------
+    1. Combine FreeSurfer and ANTs gray/white volume segmentations.
+    2. Propagate (FreeSurfer-/ANTs-) registered labels through non/cortex masks.
+    3. Compute label volumes and cortical label thicknesses.
+    4. Compute shape measures on every (FreeSurfer) cortical surface vertex.
+    5. Extract cortical surface features (e.g., sulci, fundi).
+    6. Compute statistics on the following shape measures per surface label/feature:
+
+        - Surface area
+        - Travel depth
+        - Geodesic depth
+        - Mean curvature
+        - Convexity (FreeSurfer)
+        - Thickness (FreeSurfer)
+        - Laplace-Beltrami spectra
+        - Zernike moments
 
 ------------------------------------------------------------------------------
 Outputs
