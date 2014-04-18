@@ -443,7 +443,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
     return mad
 
 
-def means_per_label(values, labels, exclude_labels, areas=[]):
+def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=[]):
     """
     Compute the mean value across vertices per label,
     optionally taking into account surface area per vertex.
@@ -463,6 +463,8 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
         values to average per label
     labels : list or array of integers
         label for each value
+    include_labels : list of integers
+        labels to include
     exclude_labels : list of integers
         labels to be excluded
     areas : numpy array of floats
@@ -491,17 +493,18 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
+    >>> include_labels = []
     >>> exclude_labels = [-1]
     >>> areas = areas
     >>> #
     >>> # Example 1: compute mean curvature per label:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,
-    >>>     exclude_labels, areas)
+    >>>     include_labels, exclude_labels, areas)
     >>> #
     >>> # Example 2: compute mean coordinates per label:
     >>> faces, lines, indices, points, npoints, curvs, name, input_vtk = read_vtk(values_file)
     >>> means, sdevs, label_list, label_areas = means_per_label(points, labels,
-    >>>     exclude_labels, areas)
+    >>>     include_labels, exclude_labels, areas)
 
     """
     import numpy as np
@@ -512,7 +515,10 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
     if not isinstance(areas, np.ndarray):
         areas = np.asarray(areas)
 
-    label_list = np.unique(labels)
+    if include_labels:
+        label_list = include_labels
+    else:
+        label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     means = []
     sdevs = []
@@ -551,9 +557,9 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
                     means.append(np.mean(X))
                     sdevs.append(np.std(X))
         else:
-            means.append(0)
-            sdevs.append(0)
-            label_areas.append(0)
+            means.append(np.zeros(dim))
+            sdevs.append(np.zeros(dim))
+            label_areas.append(np.zeros(dim))
 
     if dim > 1:
         means = [x.tolist() for x in means]
@@ -563,7 +569,7 @@ def means_per_label(values, labels, exclude_labels, areas=[]):
     return means, sdevs, label_list, label_areas
 
 
-def sum_per_label(values, labels, exclude_labels):
+def sum_per_label(values, labels, include_labels=[], exclude_labels=[]):
     """
     Compute the sum value across vertices per label.
 
@@ -573,6 +579,8 @@ def sum_per_label(values, labels, exclude_labels):
         values to average per label
     labels : list or array of integers
         label for each value
+    include_labels : list of integers
+        labels to include
     exclude_labels : list of integers
         labels to be excluded
 
@@ -593,9 +601,10 @@ def sum_per_label(values, labels, exclude_labels):
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> values, name = read_scalars(values_file, True, True)
     >>> labels, name = read_scalars(labels_file)
+    >>> include_labels = []
     >>> exclude_labels = [-1]
     >>> # Compute sum area per label:
-    >>> sums, label_list = sum_per_label(values, labels, exclude_labels)
+    >>> sums, label_list = sum_per_label(values, labels, include_labels, exclude_labels)
 
     """
     import numpy as np
@@ -604,7 +613,10 @@ def sum_per_label(values, labels, exclude_labels):
     if not isinstance(values, np.ndarray):
         values = np.asarray(values)
 
-    label_list = np.unique(labels)
+    if include_labels:
+        label_list = include_labels
+    else:
+        label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     sums = []
     for label in label_list:
@@ -617,7 +629,8 @@ def sum_per_label(values, labels, exclude_labels):
 
     return sums, label_list
 
-def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
+def stats_per_label(values, labels, include_labels=[], exclude_labels=[],
+                    weights=[], precision=1):
     """
     Compute various statistical measures across vertices per label,
     optionally using weights (such as surface area per vertex).
@@ -643,6 +656,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
         values for all vertices
     labels : list or array of integers
         label for each value
+    include_labels : list of integers
+        labels to include
     exclude_labels : list of integers
         labels to be excluded
     weights : numpy array of floats
@@ -683,10 +698,11 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
     >>> values, name = read_scalars(values_file, True, True)
     >>> areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
+    >>> include_labels = []
     >>> exclude_labels = [-1]
     >>> weights = areas
     >>> precision = 1
-    >>> stats_per_label(values, labels, exclude_labels, weights, precision)
+    >>> stats_per_label(values, labels, include_labels, exclude_labels, weights, precision)
 
     """
     import numpy as np
@@ -700,7 +716,10 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
         weights = np.asarray(weights)
 
     # Initialize all statistical lists:
-    label_list = np.unique(labels)
+    if include_labels:
+        label_list = include_labels
+    else:
+        label_list = np.unique(labels)
     label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
     medians = []
     mads = []
@@ -786,7 +805,8 @@ def stats_per_label(values, labels, exclude_labels, weights=[], precision=1):
            lower_quarts, upper_quarts, label_list
 
 
-def volume_per_label(input_file, labels=[], names=[], save_table=False,
+def volume_per_label(input_file, include_labels=[], exclude_labels=[],
+                     label_names=[], save_table=False,
                      output_table=''):
     """
     Compute volume per labeled region in a nibabel-readable image.
@@ -795,10 +815,13 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False,
     ----------
     input_file : string
         name of image file, consisting of index-labeled pixels/voxels
-    labels : list of integers
-        label numbers for image volumes (if empty, use unique numbers in file)
-    names : list of strings
-        label names
+    include_labels : list of integers
+        labels to include
+        (if empty, use unique numbers in image volume file)
+    exclude_labels : list of integers
+        labels to be excluded
+    label_names : list of strings
+        label names corresponding to labels to include
     save_table : Boolean
         save output table file with labels and volume values?
     output_table : string
@@ -818,11 +841,12 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False,
     >>> from mindboggle.utils.compute import volume_per_label
     >>> input_file = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1', 'labels', 'ANTs_filled_labels.nii.gz')
     >>> dkt = DKTprotocol()
-    >>> labels = dkt.label_numbers
-    >>> names = dkt.label_names
+    >>> include_labels = dkt.label_numbers
+    >>> exclude_labels = []
+    >>> label_names = dkt.label_names
     >>> save_table = True
     >>> output_table = 'volumes.csv'
-    >>> labels_volumes, output_table = volume_per_label(input_file, labels, names, save_table, output_table)
+    >>> labels_volumes, output_table = volume_per_label(input_file, include_labels, exclude_labels, label_names, save_table, output_table)
     >>> print(labels_volumes)
 
     """
@@ -837,10 +861,12 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False,
     data = img.get_data().ravel()
 
     # Initialize output:
-    if not labels:
-        labels = np.unique(data).tolist()
-    labels = [int(x) for x in labels]
-    volumes = -1 * np.ones(len(labels))
+    if include_labels:
+        label_list = include_labels
+    else:
+        label_list = np.unique(data).tolist()
+    label_list = [int(x) for x in label_list if int(x) not in exclude_labels]
+    volumes = -1 * np.ones(len(label_list))
 
     # Output table:
     if save_table:
@@ -849,7 +875,7 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False,
         else:
             output_table = os.path.join(os.getcwd(), 'volume_per_label.csv')
         fid = open(output_table, 'w')
-        if names:
+        if len(label_names) == len(label_list):
             fid.write("Label name, Label number, Volume\n")
         else:
             fid.write("Label number, Volume\n")
@@ -857,22 +883,24 @@ def volume_per_label(input_file, labels=[], names=[], save_table=False,
         output_table = ''
 
     # Loop through labels:
-    for ilabel, label in enumerate(labels):
+    for ilabel, label in enumerate(label_list):
 
         # Find which voxels contain the label in each volume:
         indices = np.where(data == label)[0]
         if len(indices):
             volume = volume_per_voxel * len(indices)
-            volumes[ilabel] = volume
+        else:
+            volume = 0
+        volumes[ilabel] = volume
 
-            if save_table:
-                if names:
-                    fid.write('{0}, {1}, {2:2.4f}\n'.format(names[ilabel],
-                        label, volume))
-                else:
-                    fid.write('{0}, {1:2.4f}\n'.format(label, volume))
+        if save_table:
+            if len(label_names) == len(label_list):
+                fid.write('{0}, {1}, {2:2.4f}\n'.format(label_names[ilabel],
+                    label, volume))
+            else:
+                fid.write('{0}, {1:2.4f}\n'.format(label, volume))
 
-    labels_volumes = [labels, volumes.tolist()]
+    labels_volumes = [label_list, volumes.tolist()]
 
     return labels_volumes, output_table
 

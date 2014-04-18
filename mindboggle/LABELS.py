@@ -527,37 +527,39 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Region numbers:
     # DKT31 to DKT25: [[10,23,26,27,19,20], [2,2,2,3,18,18]]
-    left_cerebrum_cortex_numbers_DKT25 = left_cerebrum_cortex_numbers[:]
-    for n in [1010, 1019, 1020, 1023, 1026, 1027]:
+    left_cerebrum_cortex_numbers_DKT25 = range(1002, 1036)
+    for n in [1004, 1010, 1019, 1020, 1023, 1026, 1027, 1032, 1033]:
         left_cerebrum_cortex_numbers_DKT25.remove(n)
-    right_cerebrum_cortex_numbers_DKT25 = right_cerebrum_cortex_numbers[:]
-    for n in [2010, 2019, 2020, 2023, 2026, 2027]:
+    right_cerebrum_cortex_numbers_DKT25 = range(2002, 2036)
+    for n in [2004, 2010, 2019, 2020, 2023, 2026, 2027, 2032, 2033]:
         right_cerebrum_cortex_numbers_DKT25.remove(n)
     cerebrum_cortex_numbers_DKT25 = left_cerebrum_cortex_numbers_DKT25 + \
                                     right_cerebrum_cortex_numbers_DKT25
     # Consolidate region labels:
     left_cerebrum_cortex_names_DKT25 = []
     for ilabel, label_number in enumerate(left_cerebrum_cortex_numbers):
-        if label_number == 1002:
-            left_cerebrum_cortex_names_DKT25.append('left cingulate')
-        elif label_number == 1003:
-            left_cerebrum_cortex_names_DKT25.append('left middle frontal')
-        elif label_number == 1018:
-            left_cerebrum_cortex_names_DKT25.append('left inferior frontal')
-        else:
-            left_cerebrum_cortex_names_DKT25. \
-                append(left_cerebrum_cortex_names[ilabel])
+        if label_number in left_cerebrum_cortex_numbers_DKT25:
+            if label_number == 1002:
+                left_cerebrum_cortex_names_DKT25.append('left cingulate')
+            elif label_number == 1003:
+                left_cerebrum_cortex_names_DKT25.append('left middle frontal')
+            elif label_number == 1018:
+                left_cerebrum_cortex_names_DKT25.append('left inferior frontal')
+            else:
+                left_cerebrum_cortex_names_DKT25. \
+                    append(left_cerebrum_cortex_names[ilabel])
     right_cerebrum_cortex_names_DKT25 = []
     for ilabel, label_number in enumerate(right_cerebrum_cortex_numbers):
-        if label_number == 2002:
-            right_cerebrum_cortex_names_DKT25.append('right cingulate')
-        elif label_number == 2003:
-            right_cerebrum_cortex_names_DKT25.append('right middle frontal')
-        elif label_number == 2018:
-            right_cerebrum_cortex_names_DKT25.append('right inferior frontal')
-        else:
-            right_cerebrum_cortex_names_DKT25. \
-                append(right_cerebrum_cortex_names[ilabel])
+        if label_number in right_cerebrum_cortex_numbers_DKT25:
+            if label_number == 2002:
+                right_cerebrum_cortex_names_DKT25.append('right cingulate')
+            elif label_number == 2003:
+                right_cerebrum_cortex_names_DKT25.append('right middle frontal')
+            elif label_number == 2018:
+                right_cerebrum_cortex_names_DKT25.append('right inferior frontal')
+            else:
+                right_cerebrum_cortex_names_DKT25. \
+                    append(right_cerebrum_cortex_names[ilabel])
     cerebrum_cortex_names_DKT25 = \
         left_cerebrum_cortex_names_DKT25 + right_cerebrum_cortex_names_DKT25
 
