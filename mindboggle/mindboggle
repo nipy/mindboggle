@@ -1998,15 +1998,17 @@ if do_volumes and do_label:
         FSlabelVolumes = Node(name='FreeSurfer_filled_label_volumes',
                               interface=Fn(function=volume_per_label,
                                            input_names=['input_file',
-                                                        'labels',
-                                                        'names',
+                                                        'include_labels',
+                                                        'exclude_labels',
+                                                        'label_names',
                                                         'save_table',
                                                         'output_table'],
                                            output_names=['labels_volumes',
                                                          'output_table']))
         VolShapeFlow.add_nodes([FSlabelVolumes])
-        FSlabelVolumes.inputs.labels = dkt.label_numbers
-        FSlabelVolumes.inputs.names = dkt.label_names
+        FSlabelVolumes.inputs.include_labels = dkt.label_numbers
+        FSlabelVolumes.inputs.exclude_labels = []
+        FSlabelVolumes.inputs.label_names = dkt.label_names
         FSlabelVolumes.inputs.save_table = True
         FSlabelVolumes.inputs.output_table = 'volumes_FreeSurfer_labels.csv'
         mbFlow.connect(VolLabelFlow,
@@ -2022,7 +2024,6 @@ if do_volumes and do_label:
             antsLabelVolumes = FSlabelVolumes.clone(
                 'ANTs_filled_label_volumes')
             VolShapeFlow.add_nodes([antsLabelVolumes])
-            antsLabelVolumes.inputs.labels = dkt.label_numbers
             antsLabelVolumes.inputs.exclude_labels = [-1,0]
             antsLabelVolumes.inputs.output_table = 'volumes_ANTs_labels.csv'
             if overwrite_cerebrum_with_cerebellum:
@@ -2043,7 +2044,7 @@ if do_volumes and do_label:
                 antsLabelVolumes2 = FSlabelVolumes.clone(
                     'Added_atlas_label_volumes')
                 VolShapeFlow.add_nodes([antsLabelVolumes2])
-                antsLabelVolumes2.inputs.labels = []
+                antsLabelVolumes2.inputs.label_names = []
                 antsLabelVolumes2.inputs.exclude_labels = [-1,0]
                 mbFlow.connect(VolLabelFlow,
                                'Transform_added_atlases.output_image',
@@ -2155,6 +2156,8 @@ if do_volumes and do_label:
                     'Combine_ANTs_cortex_noncortex_labels.output_file',
                     VolShapeFlow,
                     'ANTs_filled_cortex_label_thicknesses.labeled_file')
+                ANTsThicknesses.inputs.labels = dkt.cerebrum_cortex_numbers_DKT25
+                ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names_DKT25
                 ANTsThicknesses.inputs.output_table = 'thickinthehead_ANTs_labels.csv'
                 # Save table:
                 mbFlow.connect(VolShapeFlow,

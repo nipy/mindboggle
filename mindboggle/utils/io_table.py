@@ -305,20 +305,20 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> from mindboggle.utils.io_table import write_shape_stats
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> labels_or_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
-    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
-    >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
+    >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1')
+    >>> labels_or_file = os.path.join(path, 'labels', 'left_surface', 'relabeled_classifier.vtk')
+    >>> sulci_file = os.path.join(path, 'features', 'left_surface', 'sulci.vtk')
+    >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
-    >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
+    >>> area_file = os.path.join(path, 'arno', 'shapes', 'left_surface', 'area.vtk')
     >>> normalize_by_area = True
-    >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
-    >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
-    >>> geodesic_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.geodesic_depth.vtk')
+    >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_surface', 'mean_curvature.vtk')
+    >>> travel_depth_file = os.path.join(path, 'shapes', 'left_surface', 'travel_depth.vtk')
+    >>> geodesic_depth_file = os.path.join(path, 'shapes', 'left_surface', 'geodesic_depth.vtk')
     >>> freesurfer_convexity_file = ''
     >>> freesurfer_thickness_file = ''
     >>> delimiter = ','
@@ -434,6 +434,23 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     for itable, feature_list in enumerate(feature_lists):
         column_names = []
 
+        #-----------------------------------------------------------------
+        # Label names:
+        #-----------------------------------------------------------------
+        if itable == 0:
+            label_numbers = dkt.cerebrum_cortex_numbers_DKT25
+            label_names = dkt.cerebrum_cortex_names_DKT25
+            label_title = 'Label name'
+        elif itable in [1, 2]:
+            label_numbers = dkt.sulcus_numbers
+            label_names = dkt.sulcus_names
+            label_title = 'Sulcus name'
+        else:
+            label_numbers = []
+            label_names = []
+            label_title = ''
+        include_labels = label_numbers
+
         #---------------------------------------------------------------------
         # For each feature, construct a table of average shape values:
         #---------------------------------------------------------------------
@@ -454,7 +471,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 #-------------------------------------------------------------
                 if ishape == 0 and np.size(area_array):
                     sums, label_list = sum_per_label(shape_array,
-                                            feature_list, exclude_labels)
+                        feature_list, include_labels, exclude_labels)
                     column_names.append(shape)
                     columns.append(sums)
                 #-------------------------------------------------------------
@@ -463,8 +480,9 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 else:
                     medians, mads, means, sdevs, skews, kurts, \
                     lower_quarts, upper_quarts, \
-                    label_list = stats_per_label(shape_array,
-                        feature_list, exclude_labels, area_array, precision=1)
+                    label_list = stats_per_label(shape_array, feature_list,
+                                        include_labels, exclude_labels,
+                                        area_array, precision=1)
 
                     column_names.append(shape + ': median')
                     column_names.append(shape + ': MAD')
@@ -488,7 +506,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Compute mean position per feature:
             positions, sdevs, label_list, foo = means_per_label(points,
-                feature_list, exclude_labels, use_area)
+                feature_list, include_labels, exclude_labels, use_area)
 
             # Append mean position per feature to columns:
             column_names.append('mean position')
@@ -501,28 +519,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 # Compute standard space mean position per feature:
                 standard_positions, sdevs, label_list, \
                 foo = means_per_label(affine_points,
-                    feature_list, exclude_labels, use_area)
+                    feature_list, include_labels, exclude_labels, use_area)
 
                 # Append standard space mean position per feature to columns:
                 column_names.append('mean position in standard space')
                 columns.append(standard_positions)
-
-            #-----------------------------------------------------------------
-            # Label names:
-            #-----------------------------------------------------------------
-            if itable == 0:
-                label_numbers = dkt.label_numbers
-                label_names = dkt.label_names
-            elif itable in [1, 2]:
-                label_numbers = dkt.sulcus_numbers
-                label_names = dkt.sulcus_names
-            else:
-                label_numbers = []
-                label_names = []
-            if label_numbers:
-                name_list = []
-                for label in label_list:
-                    name_list.append(label_names[label_numbers.index(label)])
 
             #-----------------------------------------------------------------
             # Laplace-Beltrami spectra:
@@ -534,7 +535,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
                     # Order spectra into a list:
                     spectrum_list = []
-                    for label in label_list:
+                    for label in include_labels:
                         if label in spectra_IDs:
                             spectrum = spectra[spectra_IDs.index(label)]
                             spectrum_list.append(spectrum)
@@ -555,7 +556,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
                     # Order zernike into a list:
                     spectrum_list = []
-                    for label in label_list:
+                    for label in include_labels:
                         if label in zernike_IDs:
                             spectrum = zernike[zernike_IDs.index(label)]
                             spectrum_list.append(spectrum)
@@ -571,13 +572,18 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Write labels/IDs to table:
             output_table = os.path.join(os.getcwd(), table_names[itable])
-            output_table = write_columns(label_list, feature_name, delimiter,
-                                         quote=True, input_table='',
-                                         output_table=output_table)
-            if label_numbers:
-                write_columns(name_list, 'Label name', delimiter,
-                              quote=True, input_table=output_table,
-                              output_table=output_table)
+
+            if label_names:
+                output_table = write_columns(label_names, label_title,
+                    delimiter, quote=True, input_table='',
+                    output_table=output_table)
+                write_columns(include_labels, feature_name,
+                    delimiter, quote=True, input_table=output_table,
+                    output_table=output_table)
+            else:
+                output_table = write_columns(include_labels, feature_name,
+                    delimiter, quote=True, input_table='',
+                    output_table=output_table)
 
             # Append columns of shape values to table:
             if columns:
