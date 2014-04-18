@@ -311,7 +311,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_file = '' #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'left_surface', 'area.vtk')
