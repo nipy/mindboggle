@@ -270,22 +270,22 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         name of VTK file with FreeSurfer convexity scalar values
     freesurfer_thickness_file :  string
         name of VTK file with FreeSurfer thickness scalar values
-    labels_zernike : list of lists of floats
-        Laplace-Beltrami spectra for labeled regions
+    labels_spectra : list of lists of floats
+        Laplace-Beltrami spectra for each labeled region
     labels_spectra_IDs : list of integers
-        unique ID numbers (labels) for labels_spectra
+        unique labels for labels_spectra
     sulci_spectra : list of lists of floats
-        Laplace-Beltrami spectra for sulci
+        Laplace-Beltrami spectra for each sulcus
     sulci_spectra_IDs : list of integers
-        unique ID numbers (labels) for sulci_spectra
+        unique sulcus IDs for sulci_spectra
     labels_zernike : list of lists of floats
-        Zernike moments for labeled regions
+        Zernike moments for each labeled region
     labels_zernike_IDs : list of integers
-        unique ID numbers (labels) for labels_zernike
+        unique labels for labels_zernike
     sulci_zernike : list of lists of floats
-        Zernike moments for sulci
+        Zernike moments for each sulcus
     sulci_zernike_IDs : list of integers
-        unique ID numbers (labels) for sulci_zernike
+        unique sulcus IDs for sulci_zernike
     exclude_labels : list of lists of integers
         indices to be excluded (in addition to -1)
     delimiter : string
@@ -554,17 +554,17 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                 if zernike:
                     zernike_IDs = zernike_ID_lists[itable]
 
-                    # Order zernike into a list:
-                    spectrum_list = []
+                    # Order Zernike moments into a list:
+                    moments_list = []
                     for label in include_labels:
                         if label in zernike_IDs:
-                            spectrum = zernike[zernike_IDs.index(label)]
-                            spectrum_list.append(spectrum)
+                            moments = zernike[zernike_IDs.index(label)]
+                            moments_list.append(moments)
                         else:
-                            spectrum_list.append('')
+                            moments_list.append('')
 
                     # Append Zernike shape name and values to relevant columns:
-                    columns.append(spectrum_list)
+                    columns.append(moments_list)
                     column_names.append('Zernike moments')
 
             #-----------------------------------------------------------------
