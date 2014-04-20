@@ -77,6 +77,9 @@ def surface_to_vtk(surface_file, output_vtk):
         points = np.transpose(np.dot(xfm, np.transpose(
             np.concatenate((points, np.ones((np.shape(points)[0],1))),
                            axis=1))))[:,0:3]
+    else:
+        raise IOError(("orig.mgz does not exist in the FreeSurfer subjects "
+                       "directory."))
 
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
