@@ -457,10 +457,10 @@ if do_ants:
                                                        'string3',
                                                        'string4'],
                                           output_names=['string_list']))
-        mbFlow.connect(FetchANTs, 'warp_template2subject',
-                       WarpToSubjectFileList, 'string1')
         mbFlow.connect(FetchANTs, 'affine_template2subject',
                        WarpToSubjectFileList, 'string2')
+        mbFlow.connect(FetchANTs, 'warp_template2subject',
+                       WarpToSubjectFileList, 'string1')
         WarpToSubjectFileList.inputs.string3 = affine_to_mni
         WarpToSubjectFileList.inputs.string4 = ''
         warp_inverse_Booleans = [False, False, True]
