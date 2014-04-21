@@ -40,8 +40,8 @@ def surface_to_vtk(surface_file, output_vtk):
     --------
     >>> import os
     >>> from mindboggle.utils.freesurfer import surface_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial')
+    >>> path = os.environ['FREESURFER_HOME']
+    >>> surface_file = os.path.join(path, 'subjects', 'OASIS-TRT-20-1', 'surf', 'lh.pial')
     >>> output_vtk = ''
     >>> #
     >>> surface_to_vtk(surface_file, output_vtk)
@@ -78,8 +78,8 @@ def surface_to_vtk(surface_file, output_vtk):
             np.concatenate((points, np.ones((np.shape(points)[0],1))),
                            axis=1))))[:,0:3]
     else:
-        raise IOError(("orig.mgz does not exist in the FreeSurfer subjects "
-                       "directory."))
+        raise IOError((orig_file + " does not exist in the FreeSurfer "
+                       "subjects directory."))
 
     if not output_vtk:
         output_vtk = os.path.join(os.getcwd(),
