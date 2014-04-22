@@ -1168,10 +1168,10 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        if do_ants:
-            mbFlow.connect(ComposeAffine, 'output_transform_file',
-                           ShapeTables, 'affine_transform_file')
-            ShapeTables.inputs.transform_format = 'itk'
+        #if do_ants:
+        #    mbFlow.connect(ComposeAffine, 'output_transform_file',
+        #                   ShapeTables, 'affine_transform_file')
+        #    ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = True
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
                    [('Surface_area.area_file', 'area_file'),
@@ -1268,10 +1268,10 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            if do_ants:
-                mbFlow.connect(ComposeAffine, 'output_transform_file',
-                               VertexTable, 'affine_transform_file')
-                VertexTable.inputs.transform_format = 'itk'
+            #if do_ants:
+            #    mbFlow.connect(ComposeAffine, 'output_transform_file',
+            #                   VertexTable, 'affine_transform_file')
+            #    VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
                                 ('Travel_depth.depth_file',
