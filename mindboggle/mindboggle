@@ -590,8 +590,8 @@ if do_surface:
             else:
                 mbFlow.connect(ConvertSurf, 'output_vtk',
                                SurfLabelFlow, 'annot_to_vtk.vtk_file')
-            mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
-                           Sink, 'labels.@DKT_surface')
+            #mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
+            #               Sink, 'labels.@DKT_surface')
             plug = 'annot_to_vtk.output_vtk'
             plug1 = Classifier2vtk
             plug2 = 'output_vtk'
@@ -882,8 +882,8 @@ if do_surface:
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
-            mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
-                           Sink, 'features.@folds')
+            #mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
+            #               Sink, 'features.@folds')
             #-----------------------------------------------------------------
             # Sulci:
             #-----------------------------------------------------------------
@@ -1396,8 +1396,8 @@ if do_volumes and do_label:
         mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reference_file')
         labelsMGH2Nifti.inputs.output_file = ''
         labelsMGH2Nifti.inputs.interp = 'nearest'
-        mbFlow.connect(labelsMGH2Nifti, 'output_file',
-                       Sink, 'labels.@freesurfer')
+        #mbFlow.connect(labelsMGH2Nifti, 'output_file',
+        #               Sink, 'labels.@freesurfer')
 
     #=========================================================================
     #
@@ -1791,8 +1791,8 @@ if do_volumes and do_label:
                        VolLabelFlow, 'antsApplyTransforms.input_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'antsApplyTransforms.transforms')
-        mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
-                       Sink, 'labels.@antsRegistration')
+        #mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
+        #               Sink, 'labels.@antsRegistration')
         #---------------------------------------------------------------------
         # Extract ANTs cerebral cortical volume labels:
         #---------------------------------------------------------------------
@@ -1874,39 +1874,40 @@ if do_volumes and do_label:
     #=========================================================================
     # Add FreeSurfer cerebellum labels
     #=========================================================================
-    #-------------------------------------------------------------------------
-    # ...to FreeSurfer cerebrum labels:
-    #-------------------------------------------------------------------------
-    AddFScerebellum = CombineFSLabels.clone(
-        'FreeSurfer_cerebrum_cerebellum')
-    VolLabelFlow.add_nodes([AddFScerebellum])
-    VolLabelFlow.connect(FScerebellum, 'output_file',
-                         AddFScerebellum, 'source')
-    VolLabelFlow.connect(CombineFSLabels, 'output_file',
-                         AddFScerebellum, 'target')
-    AddFScerebellum.inputs.output_file = ''
-    AddFScerebellum.inputs.ignore_labels = [0]
-    AddFScerebellum.inputs.erase_labels = False
-    mbFlow.connect(VolLabelFlow,
-           'FreeSurfer_cerebrum_cerebellum.output_file',
-           Sink, 'labels.@freesurfer_filled_and_cerebellum')
-    #-------------------------------------------------------------------------
-    # ...to ANTs cerebrum labels:
-    #-------------------------------------------------------------------------
-    if do_ants:
-        AddFScerebellum2ANTs = AddFScerebellum.clone(
-            'FreeSurfer_cerebellum_ANTs_cerebrum')
-        VolLabelFlow.add_nodes([AddFScerebellum2ANTs])
+    if overwrite_cerebrum_with_cerebellum:
+        #---------------------------------------------------------------------
+        # ...to FreeSurfer cerebrum labels:
+        #---------------------------------------------------------------------
+        AddFScerebellum = CombineFSLabels.clone(
+            'FreeSurfer_cerebrum_cerebellum')
+        VolLabelFlow.add_nodes([AddFScerebellum])
         VolLabelFlow.connect(FScerebellum, 'output_file',
-                             AddFScerebellum2ANTs, 'source')
-        VolLabelFlow.connect(CombineANTsLabels, 'output_file',
-                             AddFScerebellum2ANTs, 'target')
-        AddFScerebellum2ANTs.inputs.output_file = ''
-        AddFScerebellum2ANTs.inputs.ignore_labels = [0]
-        AddFScerebellum2ANTs.inputs.erase_labels = False
+                             AddFScerebellum, 'source')
+        VolLabelFlow.connect(CombineFSLabels, 'output_file',
+                             AddFScerebellum, 'target')
+        AddFScerebellum.inputs.output_file = ''
+        AddFScerebellum.inputs.ignore_labels = [0]
+        AddFScerebellum.inputs.erase_labels = False
         mbFlow.connect(VolLabelFlow,
-               'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
-               Sink, 'labels.@ants_filled_and_cerebellum')
+               'FreeSurfer_cerebrum_cerebellum.output_file',
+               Sink, 'labels.@freesurfer_filled_and_cerebellum')
+        #---------------------------------------------------------------------
+        # ...to ANTs cerebrum labels:
+        #---------------------------------------------------------------------
+        if do_ants:
+            AddFScerebellum2ANTs = AddFScerebellum.clone(
+                'FreeSurfer_cerebellum_ANTs_cerebrum')
+            VolLabelFlow.add_nodes([AddFScerebellum2ANTs])
+            VolLabelFlow.connect(FScerebellum, 'output_file',
+                                 AddFScerebellum2ANTs, 'source')
+            VolLabelFlow.connect(CombineANTsLabels, 'output_file',
+                                 AddFScerebellum2ANTs, 'target')
+            AddFScerebellum2ANTs.inputs.output_file = ''
+            AddFScerebellum2ANTs.inputs.ignore_labels = [0]
+            AddFScerebellum2ANTs.inputs.erase_labels = False
+            mbFlow.connect(VolLabelFlow,
+                   'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
+                   Sink, 'labels.@ants_filled_and_cerebellum')
 
     #=========================================================================
     # Transform labels from added atlas(es) in MNI152 to subject
