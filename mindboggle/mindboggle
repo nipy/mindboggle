@@ -161,6 +161,8 @@ outputs_group.add_argument("--cache", help='Download directory '
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_cache'), metavar='STR')
 
+extras_group.add_argument("--save_surfaces", action='store_true',
+                    help="Save all label, shape, and feature vtk files")
 extras_group.add_argument("--no_volumes", action='store_true',
                     help="No volume labels, features, or shape tables")
 extras_group.add_argument("--no_surfaces", action='store_true',
@@ -212,6 +214,7 @@ overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
 volume_labels = args.volume_labels
 surface_labels = args.surface_labels
+save_surfaces = args.save_surfaces
 no_surfaces = args.no_surfaces
 no_volumes = args.no_volumes
 do_sulci = args.sulci
@@ -590,8 +593,9 @@ if do_surface:
             else:
                 mbFlow.connect(ConvertSurf, 'output_vtk',
                                SurfLabelFlow, 'annot_to_vtk.vtk_file')
-            #mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
-            #               Sink, 'labels.@DKT_surface')
+            #if save_surfaces:
+            #    mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
+            #                   Sink, 'labels.@DKT_surface')
             plug = 'annot_to_vtk.output_vtk'
             plug1 = Classifier2vtk
             plug2 = 'output_vtk'
@@ -705,8 +709,9 @@ if do_surface:
         ReindexLabels.inputs.erase_labels = [-1, 0]
         ReindexLabels.inputs.erase_value = -1
         ReindexLabels.inputs.output_file = ''
-        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
-                       Sink, 'labels.@surface')
+        if save_surfaces:
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
+                           Sink, 'labels.@surface')
 
     #=========================================================================
     #
@@ -809,8 +814,9 @@ if do_surface:
             mbFlow.connect(ConvertSurf, 'output_vtk',
                            WholeSurfShapeFlow, 'Convexity_to_vtk.vtk_file')
             ConvexNode.inputs.output_vtk = ''
-            mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
-                           Sink, 'shapes.@freesurfer_convexity')
+            if save_surfaces:
+                mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_convexity')
         if do_freesurfer_thickness:
             ThickNode = Node(name='Thickness_to_vtk',
                              interface=Fn(function=curvature_to_vtk,
@@ -825,8 +831,9 @@ if do_surface:
             mbFlow.connect(ConvertSurf, 'output_vtk',
                            WholeSurfShapeFlow, 'Thickness_to_vtk.vtk_file')
             ThickNode.inputs.output_vtk = ''
-            mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
-                           Sink, 'shapes.@freesurfer_thickness')
+            if save_surfaces:
+                mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_thickness')
         #---------------------------------------------------------------------
         # Connect nodes:
         #---------------------------------------------------------------------
@@ -843,11 +850,12 @@ if do_surface:
                                 ('output_vtk', 'Travel_depth.surface_file'),
                                 ('output_vtk', 'Geodesic_depth.surface_file'),
                                 ('output_vtk', 'Curvature.surface_file')])])
-        mbFlow.connect([(WholeSurfShapeFlow, Sink,
-           [('Surface_area.area_file', 'shapes.@surface_area'),
-            ('Travel_depth.depth_file', 'shapes.@travel_depth'),
-            ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
-            ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
+        if save_surfaces:
+            mbFlow.connect([(WholeSurfShapeFlow, Sink,
+               [('Surface_area.area_file', 'shapes.@surface_area'),
+                ('Travel_depth.depth_file', 'shapes.@travel_depth'),
+                ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
+                ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
     #=========================================================================
     #
@@ -882,8 +890,9 @@ if do_surface:
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
-            #mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
-            #               Sink, 'features.@folds')
+            #if save_surfaces:
+            #   mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
+            #                  Sink, 'features.@folds')
             #-----------------------------------------------------------------
             # Sulci:
             #-----------------------------------------------------------------
@@ -905,8 +914,9 @@ if do_surface:
             mbFlow.connect(InputHemis, 'hemi', SurfFeatureFlow, 'Sulci.hemi')
             SulciNode.inputs.min_boundary = 1
             SulciNode.inputs.sulcus_names = dkt.sulcus_names
-            mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
-                           Sink, 'features.@sulci')
+            if save_surfaces:
+                mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
+                               Sink, 'features.@sulci')
 
         #=====================================================================
         # Fundi
@@ -937,9 +947,10 @@ if do_surface:
             FoldFundi.inputs.erode_ratio = 0.10
             FoldFundi.inputs.erode_min_size = 10
             FoldFundi.inputs.save_file = False
-            #mbFlow.connect(SurfFeatureFlow,
-            #               'Fundus_per_fold.fundus_per_fold_file',
-            #               Sink, 'features.@fundus_per_fold')
+            #if save_surfaces:
+            #    mbFlow.connect(SurfFeatureFlow,
+            #                   'Fundus_per_fold.fundus_per_fold_file',
+            #                   Sink, 'features.@fundus_per_fold')
 
             if do_smooth_fundi:
                 #-------------------------------------------------------------
@@ -968,8 +979,9 @@ if do_surface:
                 SurfFeatureFlow.connect(FoldsNode, 'folds',
                                         LikelihoodNode, 'folds')
                 LikelihoodNode.inputs.save_file = True
-                #mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
-                #               Sink, 'features.@likelihoods')
+                #if save_surfaces:
+                #    mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
+                #                   Sink, 'features.@likelihoods')
                 #-------------------------------------------------------------
                 # Smooth fundi:
                 #-------------------------------------------------------------
@@ -997,8 +1009,9 @@ if do_surface:
                 SmoothFundi.inputs.wN_max = 1.0
                 SmoothFundi.inputs.erode_again = False
                 SmoothFundi.inputs.save_file = True
-                mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
-                               Sink, 'features.@smooth_fundi')
+                if save_surfaces:
+                    mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
+                                   Sink, 'features.@smooth_fundi')
 
             #-----------------------------------------------------------------
             # Segment a fundus per sulcus:
@@ -1023,9 +1036,10 @@ if do_surface:
                            'Curvature.mean_curvature_file',
                            SurfFeatureFlow, 'Fundus_per_sulcus.vtk_file')
             SulcusFundi.inputs.save_file = True
-            mbFlow.connect(SurfFeatureFlow,
-                           'Fundus_per_sulcus.fundus_per_sulcus_file',
-                           Sink, 'features.@fundus_per_sulcus')
+            if save_surfaces:
+                mbFlow.connect(SurfFeatureFlow,
+                               'Fundus_per_sulcus.fundus_per_sulcus_file',
+                               Sink, 'features.@fundus_per_sulcus')
 
     #=========================================================================
     #
