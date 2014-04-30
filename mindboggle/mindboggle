@@ -136,9 +136,11 @@ inputs_group.add_argument("--volume_labels",
                     choices=['wmparc', 'aparc+aseg'],
                     default='wmparc', metavar='STR')
 inputs_group.add_argument("--surface_labels",
-                    help=("Surface labels: \"atlas\" (default) or \"freesurfer\""),
-                    choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas', metavar='STR')
+                    help=("Surface labels: \"freesurfer\" (default) or "
+                          "\"atlas\" (for output from older versions of "
+                          "FreeSurfer; expects default $SUBJECTS_DIR)"),
+                    choices=['freesurfer', 'atlas', 'manual'],
+                    default='freesurfer', metavar='STR')
 inputs_group.add_argument("--my_segments",
                     help=("Use this segmented file, but still call "
                           "--ants_segments to fetch ANTs transforms"),
@@ -563,7 +565,8 @@ if do_surface:
                                                         'hemi',
                                                         'left_classifier',
                                                         'right_classifier',
-                                                        'annot_file'],
+                                                        'annot_file',
+                                                        'subjects_directory'],
                                            output_names=['annot_file']))
             SurfLabelFlow.add_nodes([Classifier])
             Classifier.inputs.subject = subject
@@ -578,6 +581,7 @@ if do_surface:
             Classifier.inputs.left_classifier = left_classifier
             Classifier.inputs.right_classifier = right_classifier
             Classifier.inputs.annot_file = ''
+            Classifier.inputs.subjects_directory = subjects_dir
             #-----------------------------------------------------------------
             # Convert .annot file to VTK format:
             #-----------------------------------------------------------------
