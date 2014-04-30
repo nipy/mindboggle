@@ -1262,8 +1262,8 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     return tables, columns, column_name, row_names, row_names_title, output_table
 
 
-def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
-        table_name, output_table='', delimiter=','):
+def concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
+        table_name, delimiter=',', output_table=''):
     """
     Concatenate Mindboggle shape tables across subjects and make a new table.
 
@@ -1280,10 +1280,10 @@ def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
         name of Mindboggle tables directory
     table_name : string
         name of Mindboggle table file
-    output_table : string
-        output table file name
     delimiter : string
         delimiter between output table columns, such as ','
+    output_table : string
+        output table file name
 
     Returns
     -------
@@ -1293,55 +1293,51 @@ def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_table import concatenate_mindboggle_tables
+    >>> from mindboggle.utils.io_table import concatenate_mindboggle_surface_tables
     >>> subjects = ['Twins-2-1', 'Twins-2-2']
+    >>> subjects = ['20060914_155122i0000_0000bt1mprnssagINNOMEDs001a001','OASIS-TRT-20-1']
     >>> hemi = 'left'
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled')
     >>> table_name = "label_shapes.csv"
-    >>> output_table = ''
     >>> delimiter = ','
+    >>> output_table = ''
     >>> #
-    >>> concatenate_mindboggle_tables(subjects, hemi, tables_dir,
-    >>>     table_name, output_table, delimiter)
+    >>> concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
+    >>>     table_name, delimiter, output_table)
 
     """
     import os
 
-    from mindboggle.utils.utils import execute
-
     if not output_table:
         output_table = os.path.join(os.getcwd(), 'concatenated_' + table_name)
+    Fout = open(output_table, 'w')
 
     #-------------------------------------------------------------------------
     # Concatenate Mindboggle shape tables:
     #-------------------------------------------------------------------------
-    for subject in subjects:
+    for isubject, subject in enumerate(subjects):
         table = os.path.join(tables_dir, subject, 'tables',
                              hemi+'_surface', table_name)
 
         if os.path.isfile(table):
-            Fp = open(table, 'r')
-            lines = Fp.readlines()
-            for line in lines:
-                if line:
-                    row = re.findall(r'\S+', line)
-                    if len(row) >= n_columns:
-                        for icolumn in range(n_columns):
-                            if trail and icolumn == n_columns - 1:
-                                columns[icolumn].append(' '.join(row[icolumn::]))
-                            else:
-                                columns[icolumn].append(row[icolumn])
-                    else:
-                        import os
-                        os.error('The number of columns in {0} is less than {1}.'.format(
-                                 filename, n_columns))
-            Fp.close()
+            Fin = open(table, 'r')
+            lines = Fin.readlines()
+            for iline, line in enumerate(lines):
+                if isubject == 0 and iline == 0:
+                    Fout.write(line)
+                if iline == 0:
+                    Fout.write("Subject: {0}\n".format(subject))
+                else:
+                    Fout.write(line)
+                    #row = [x.strip() for x in line.split(delimiter)]
 
+            Fin.close()
 
+            #from mindboggle.utils.utils import execute
+            #type = 'os'
+            #cmd = ' '.join(['cat', table, '>>', output_table])
+            #execute(cmd, type)
 
-
-        type = 'os'
-        cmd = ' '.join(['cat', table, '>>', output_table])
-        execute(cmd, type)
+    Fout.close()
 
     return output_table
