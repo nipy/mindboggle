@@ -1262,13 +1262,19 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     return tables, columns, column_name, row_names, row_names_title, output_table
 
 
-def concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
-        table_name, delimiter=',', output_table=''):
+def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
+        table_name, delimiter=',', is_surface_table=True, output_table=''):
     """
-    Concatenate Mindboggle shape tables across subjects and make a new table.
+    Concatenate specified Mindboggle surface shape tables across subjects.
+
+    This function concatenates specified surface tables, with the first row
+    written only once at top, and 'Subject: <subject name>' preceding each
+    subject's table.
 
     Expects::
         <tables_dir>/<subject>/tables/['left','right']_surface/<table_name>
+        Or:
+        <tables_dir>/<subject>/tables/<table_name>
 
     Parameters
     ----------
@@ -1282,6 +1288,8 @@ def concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
         name of Mindboggle table file
     delimiter : string
         delimiter between output table columns, such as ','
+    is_surface_table : Boolean
+        if True, use path to surface tables
     output_table : string
         output table file name
 
@@ -1293,17 +1301,19 @@ def concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.io_table import concatenate_mindboggle_surface_tables
+    >>> from mindboggle.utils.io_table import concatenate_mindboggle_tables
     >>> subjects = ['Twins-2-1', 'Twins-2-2']
     >>> subjects = ['20060914_155122i0000_0000bt1mprnssagINNOMEDs001a001','OASIS-TRT-20-1']
     >>> hemi = 'left'
     >>> tables_dir = os.path.join(os.environ['HOME'], 'mindboggled')
     >>> table_name = "label_shapes.csv"
+    >>> table_name = "volumes_FreeSurfer_labels.csv"
     >>> delimiter = ','
+    >>> is_surface_table = 0
     >>> output_table = ''
     >>> #
-    >>> concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
-    >>>     table_name, delimiter, output_table)
+    >>> concatenate_mindboggle_tables(subjects, hemi, tables_dir,
+    >>>     table_name, delimiter, is_surface_table, output_table)
 
     """
     import os
@@ -1316,8 +1326,11 @@ def concatenate_mindboggle_surface_tables(subjects, hemi, tables_dir,
     # Concatenate Mindboggle shape tables:
     #-------------------------------------------------------------------------
     for isubject, subject in enumerate(subjects):
-        table = os.path.join(tables_dir, subject, 'tables',
-                             hemi+'_surface', table_name)
+        if is_surface_table:
+            table = os.path.join(tables_dir, subject, 'tables',
+                                 hemi+'_surface', table_name)
+        else:
+            table = os.path.join(tables_dir, subject, 'tables', table_name)
 
         if os.path.isfile(table):
             Fin = open(table, 'r')
