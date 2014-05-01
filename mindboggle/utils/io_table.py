@@ -1025,9 +1025,9 @@ def alternate_columns_from_tables(table_files, write_table=True,
 
 def select_column_from_tables(tables, column_name, label_name='',
                               write_table=True, output_table='',
-                              delimiter=','):
+                              delimiter=',', compute_stats=True):
     """
-    Select column from list of tables and make a new table.
+    Select column from list of tables, make a new table, compute statistics.
 
     Parameters
     ----------
@@ -1043,6 +1043,8 @@ def select_column_from_tables(tables, column_name, label_name='',
         output table file name
     delimiter : string
         delimiter between output table columns, such as ','
+    compute_stats : Boolean
+        compute statistics on columns?
 
     Returns
     -------
@@ -1056,15 +1058,18 @@ def select_column_from_tables(tables, column_name, label_name='',
         row labels (common strings in the label column of tables)
     row_names_title : string
         row_names column header
+    row_stats :  list
+        row statistics
+    row_stats_names :  list
+        names of column statistics
     output_table :  string
         output table file name
+    output_stats_table :  string
+        output table file name with column statistics
 
     Examples
     --------
     >>> from mindboggle.utils.io_table import select_column_from_tables
-    >>> #tables = ['/drop/tables/left/UM0029UMMR2R1_FS11212/vertices.csv',
-    >>> #          '/drop/tables/left/UM0029UMMR2R1_repositioned/vertices.csv']
-    >>> #column_name = "FreeSurfer thickness"
     >>> table_name = "volumes_FreeSurfer_labels.csv"
     >>> tables = ['/homedir/mindboggled/OASIS-TRT-20-1/tables/'+table_name, '/homedir/mindboggled/20060914_155122i0000_0000bt1mprnssagINNOMEDs001a001/tables/'+table_name]
     >>> column_name = 'Volume'
@@ -1072,16 +1077,19 @@ def select_column_from_tables(tables, column_name, label_name='',
     >>> write_table = True
     >>> output_table = ''
     >>> delimiter = ','
+    >>> compute_stats = True
     >>> #
     >>> select_column_from_tables(tables, column_name, label_name,
-    >>>                           write_table, output_table, delimiter)
+    >>>     write_table, output_table, delimiter, compute_stats)
 
     """
     import os
     import sys
     import csv
+    import numpy as np
 
     from mindboggle.utils.io_table import write_columns
+    from mindboggle.utils.compute import stats_per_label
 
     #-------------------------------------------------------------------------
     # Construct a table:
@@ -1140,8 +1148,47 @@ def select_column_from_tables(tables, column_name, label_name='',
                     label_name = False
 
     #-------------------------------------------------------------------------
-    # Write table:
+    # Compute statistics on rows:
     #-------------------------------------------------------------------------
+    if compute_stats:
+        labels = np.ones(len(columns))
+        include_labels = [1]
+        exclude_labels = []
+        weights = []
+        precision = None
+
+        values = np.asarray(columns, dtype=float)
+        nrows = values.shape[1]
+        row_stats = np.zeros((nrows, 8))
+        row_stats_names = ['medians', 'mads', 'means', 'sdevs',
+                           'skews', 'kurts', 'lower_quarts', 'upper_quarts']
+
+        value_rows = np.vstack(values).transpose()
+        for irow in range(nrows):
+            row = value_rows[irow, :]
+
+            medians, mads, means, sdevs, skews, kurts, \
+            lower_quarts, upper_quarts, label_list = stats_per_label(row,
+                labels, include_labels, exclude_labels, weights, precision)
+
+            row_stats[irow, 0] = medians[0]
+            row_stats[irow, 1] = mads[0]
+            row_stats[irow, 2] = means[0]
+            row_stats[irow, 3] = sdevs[0]
+            row_stats[irow, 4] = skews[0]
+            row_stats[irow, 5] = kurts[0]
+            row_stats[irow, 6] = lower_quarts[0]
+            row_stats[irow, 7] = upper_quarts[0]
+        row_stats = row_stats.transpose().tolist()
+
+    else:
+        row_stats = []
+        row_stats_names = []
+
+    #-------------------------------------------------------------------------
+    # Write tables:
+    #-------------------------------------------------------------------------
+    output_stats_table = ''
     if write_table and columns:
         if all([len(x) == len(columns[0]) for x in columns]):
 
@@ -1158,6 +1205,12 @@ def select_column_from_tables(tables, column_name, label_name='',
                 table_name = table_name.replace(' ', '')
                 output_table = os.path.join(os.getcwd(), table_name + '.csv')
                 output_table = output_table.replace('_.', '.')
+                if compute_stats:
+                    output_stats_table = os.path.join(os.getcwd(), 
+                                             table_name + '_stats.csv')
+            else:
+                if compute_stats:
+                    output_stats_table = output_table + '_stats.csv'
 
             if label_name:
                 write_columns(row_names, row_names_title, delimiter, quote=True,
@@ -1168,10 +1221,26 @@ def select_column_from_tables(tables, column_name, label_name='',
                 write_columns(columns, labels, delimiter, quote=True,
                               input_table='', output_table=output_table)
 
+            if compute_stats:
+                if label_name:
+                    write_columns(row_names, row_names_title, delimiter, 
+                                  quote=True, input_table='', 
+                                  output_table=output_stats_table)
+                    write_columns(row_stats, row_stats_names,
+                                  delimiter, quote=True,
+                                  input_table=output_stats_table, 
+                                  output_table=output_stats_table)
+                else:
+                    write_columns(row_stats, row_stats_names,
+                                  delimiter, quote=True, input_table='',
+                                  output_table=output_stats_table)
+            else:
+                print('Not saving statistics table.')
         else:
             print('Not saving table.')
 
-    return tables, columns, column_name, row_names, row_names_title, output_table
+    return tables, columns, column_name, row_names, row_names_title, \
+           row_stats, row_stats_names, output_table, output_stats_table
 
 
 def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
@@ -1221,8 +1290,14 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
         row labels (common strings in the label column of tables)
     row_names_title : string
         row_names column header
+    row_stats :  list
+        row statistics
+    row_stats_names :  list
+        names of row statistics
     output_table :  string
         output table file name
+    output_stats_table :  string
+        output table file name with column statistics
 
     Examples
     --------
@@ -1267,12 +1342,14 @@ def select_column_from_mindboggle_tables(subjects, hemi, tables_dir,
     #-------------------------------------------------------------------------
     # Extract columns and construct new table:
     #-------------------------------------------------------------------------
+    compute_stats = True
     tables, columns, column_name, row_names, row_names_title, \
-    output_table = select_column_from_tables(tables, column_name, label_name,
-                                             write_table, output_table,
-                                             delimiter)
+    row_stats, row_stats_names, output_table, \
+    output_stats_table = select_column_from_tables(tables, column_name,
+        label_name, write_table, output_table, delimiter, compute_stats)
 
-    return tables, columns, column_name, row_names, row_names_title, output_table
+    return tables, columns, column_name, row_names, row_names_title, \
+           row_stats, row_stats_names, output_table, output_stats_table
 
 
 def concatenate_mindboggle_tables(subjects, hemi, tables_dir,
