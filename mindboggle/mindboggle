@@ -136,9 +136,11 @@ inputs_group.add_argument("--volume_labels",
                     choices=['wmparc', 'aparc+aseg'],
                     default='wmparc', metavar='STR')
 inputs_group.add_argument("--surface_labels",
-                    help=("Surface labels: \"atlas\" (default) or \"freesurfer\""),
-                    choices=['atlas', 'freesurfer', 'manual'],
-                    default='atlas', metavar='STR')
+                    help=("Surface labels: \"freesurfer\" (default) or "
+                          "\"atlas\" (for output from older versions of "
+                          "FreeSurfer; expects default $SUBJECTS_DIR)"),
+                    choices=['freesurfer', 'atlas', 'manual'],
+                    default='freesurfer', metavar='STR')
 inputs_group.add_argument("--my_segments",
                     help=("Use this segmented file, but still call "
                           "--ants_segments to fetch ANTs transforms"),
@@ -169,6 +171,8 @@ extras_group.add_argument("--no_labels", action='store_true',
                     help="No surface or volume labels")
 extras_group.add_argument("--no_shapes", action='store_true',
                     help="No shape tables of surface labels or features")
+extras_group.add_argument("--save_only_tables", action='store_true',
+                    help="Do not save surface or volume files")
 
 extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
                                       '{hier,flat,exec}'),
@@ -212,6 +216,10 @@ overwrite_cerebrum_with_cerebellum = True
 fill_noncortex_with_ants_labels = False
 volume_labels = args.volume_labels
 surface_labels = args.surface_labels
+save_all = False
+save_only_tables = args.save_only_tables
+if not save_only_tables:
+    save_all = True
 no_surfaces = args.no_surfaces
 no_volumes = args.no_volumes
 do_sulci = args.sulci
@@ -557,7 +565,8 @@ if do_surface:
                                                         'hemi',
                                                         'left_classifier',
                                                         'right_classifier',
-                                                        'annot_file'],
+                                                        'annot_file',
+                                                        'subjects_directory'],
                                            output_names=['annot_file']))
             SurfLabelFlow.add_nodes([Classifier])
             Classifier.inputs.subject = subject
@@ -572,6 +581,7 @@ if do_surface:
             Classifier.inputs.left_classifier = left_classifier
             Classifier.inputs.right_classifier = right_classifier
             Classifier.inputs.annot_file = ''
+            Classifier.inputs.subjects_directory = subjects_dir
             #-----------------------------------------------------------------
             # Convert .annot file to VTK format:
             #-----------------------------------------------------------------
@@ -590,8 +600,9 @@ if do_surface:
             else:
                 mbFlow.connect(ConvertSurf, 'output_vtk',
                                SurfLabelFlow, 'annot_to_vtk.vtk_file')
-            mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
-                           Sink, 'labels.@DKT_surface')
+            #if save_all:
+            #    mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
+            #                   Sink, 'labels.@DKT_surface')
             plug = 'annot_to_vtk.output_vtk'
             plug1 = Classifier2vtk
             plug2 = 'output_vtk'
@@ -705,8 +716,9 @@ if do_surface:
         ReindexLabels.inputs.erase_labels = [-1, 0]
         ReindexLabels.inputs.erase_value = -1
         ReindexLabels.inputs.output_file = ''
-        mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
-                       Sink, 'labels.@surface')
+        if save_all:
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
+                           Sink, 'labels.@surface')
 
     #=========================================================================
     #
@@ -809,8 +821,9 @@ if do_surface:
             mbFlow.connect(ConvertSurf, 'output_vtk',
                            WholeSurfShapeFlow, 'Convexity_to_vtk.vtk_file')
             ConvexNode.inputs.output_vtk = ''
-            mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
-                           Sink, 'shapes.@freesurfer_convexity')
+            if save_all:
+                mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_convexity')
         if do_freesurfer_thickness:
             ThickNode = Node(name='Thickness_to_vtk',
                              interface=Fn(function=curvature_to_vtk,
@@ -825,8 +838,9 @@ if do_surface:
             mbFlow.connect(ConvertSurf, 'output_vtk',
                            WholeSurfShapeFlow, 'Thickness_to_vtk.vtk_file')
             ThickNode.inputs.output_vtk = ''
-            mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
-                           Sink, 'shapes.@freesurfer_thickness')
+            if save_all:
+                mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_thickness')
         #---------------------------------------------------------------------
         # Connect nodes:
         #---------------------------------------------------------------------
@@ -843,11 +857,12 @@ if do_surface:
                                 ('output_vtk', 'Travel_depth.surface_file'),
                                 ('output_vtk', 'Geodesic_depth.surface_file'),
                                 ('output_vtk', 'Curvature.surface_file')])])
-        mbFlow.connect([(WholeSurfShapeFlow, Sink,
-           [('Surface_area.area_file', 'shapes.@surface_area'),
-            ('Travel_depth.depth_file', 'shapes.@travel_depth'),
-            ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
-            ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
+        if save_all:
+            mbFlow.connect([(WholeSurfShapeFlow, Sink,
+               [('Surface_area.area_file', 'shapes.@surface_area'),
+                ('Travel_depth.depth_file', 'shapes.@travel_depth'),
+                ('Geodesic_depth.depth_file', 'shapes.@geodesic_depth'),
+                ('Curvature.mean_curvature_file', 'shapes.@mean_curvature')])])
 
     #=========================================================================
     #
@@ -882,8 +897,9 @@ if do_surface:
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
-            mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
-                           Sink, 'features.@folds')
+            #if save_all:
+            #   mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
+            #                  Sink, 'features.@folds')
             #-----------------------------------------------------------------
             # Sulci:
             #-----------------------------------------------------------------
@@ -905,8 +921,9 @@ if do_surface:
             mbFlow.connect(InputHemis, 'hemi', SurfFeatureFlow, 'Sulci.hemi')
             SulciNode.inputs.min_boundary = 1
             SulciNode.inputs.sulcus_names = dkt.sulcus_names
-            mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
-                           Sink, 'features.@sulci')
+            if save_all:
+                mbFlow.connect(SurfFeatureFlow, 'Sulci.sulci_file',
+                               Sink, 'features.@sulci')
 
         #=====================================================================
         # Fundi
@@ -937,9 +954,10 @@ if do_surface:
             FoldFundi.inputs.erode_ratio = 0.10
             FoldFundi.inputs.erode_min_size = 10
             FoldFundi.inputs.save_file = False
-            #mbFlow.connect(SurfFeatureFlow,
-            #               'Fundus_per_fold.fundus_per_fold_file',
-            #               Sink, 'features.@fundus_per_fold')
+            #if save_all:
+            #    mbFlow.connect(SurfFeatureFlow,
+            #                   'Fundus_per_fold.fundus_per_fold_file',
+            #                   Sink, 'features.@fundus_per_fold')
 
             if do_smooth_fundi:
                 #-------------------------------------------------------------
@@ -968,8 +986,9 @@ if do_surface:
                 SurfFeatureFlow.connect(FoldsNode, 'folds',
                                         LikelihoodNode, 'folds')
                 LikelihoodNode.inputs.save_file = True
-                #mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
-                #               Sink, 'features.@likelihoods')
+                #if save_all:
+                #    mbFlow.connect(SurfFeatureFlow, 'Likelihood.likelihoods_file',
+                #                   Sink, 'features.@likelihoods')
                 #-------------------------------------------------------------
                 # Smooth fundi:
                 #-------------------------------------------------------------
@@ -997,8 +1016,9 @@ if do_surface:
                 SmoothFundi.inputs.wN_max = 1.0
                 SmoothFundi.inputs.erode_again = False
                 SmoothFundi.inputs.save_file = True
-                mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
-                               Sink, 'features.@smooth_fundi')
+                if save_all:
+                    mbFlow.connect(SurfFeatureFlow, 'Smooth_fundi.skeletons_file',
+                                   Sink, 'features.@smooth_fundi')
 
             #-----------------------------------------------------------------
             # Segment a fundus per sulcus:
@@ -1023,9 +1043,10 @@ if do_surface:
                            'Curvature.mean_curvature_file',
                            SurfFeatureFlow, 'Fundus_per_sulcus.vtk_file')
             SulcusFundi.inputs.save_file = True
-            mbFlow.connect(SurfFeatureFlow,
-                           'Fundus_per_sulcus.fundus_per_sulcus_file',
-                           Sink, 'features.@fundus_per_sulcus')
+            if save_all:
+                mbFlow.connect(SurfFeatureFlow,
+                               'Fundus_per_sulcus.fundus_per_sulcus_file',
+                               Sink, 'features.@fundus_per_sulcus')
 
     #=========================================================================
     #
@@ -1396,8 +1417,9 @@ if do_volumes and do_label:
         mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reference_file')
         labelsMGH2Nifti.inputs.output_file = ''
         labelsMGH2Nifti.inputs.interp = 'nearest'
-        mbFlow.connect(labelsMGH2Nifti, 'output_file',
-                       Sink, 'labels.@freesurfer')
+        #if save_all:
+        #    mbFlow.connect(labelsMGH2Nifti, 'output_file',
+        #                   Sink, 'labels.@freesurfer')
 
     #=========================================================================
     #
@@ -1747,7 +1769,7 @@ if do_volumes and do_label:
     CombineFSLabels.inputs.output_file = ''
     CombineFSLabels.inputs.ignore_labels = [0]
     CombineFSLabels.inputs.erase_labels = False
-    if not overwrite_cerebrum_with_cerebellum:
+    if save_all and not overwrite_cerebrum_with_cerebellum:
         mbFlow.connect(VolLabelFlow,
                'Combine_FreeSurfer_cortex_noncortex_labels.output_file',
                Sink, 'labels.@freesurfer_filled')
@@ -1791,8 +1813,9 @@ if do_volumes and do_label:
                        VolLabelFlow, 'antsApplyTransforms.input_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'antsApplyTransforms.transforms')
-        mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
-                       Sink, 'labels.@antsRegistration')
+        #if save_all:
+        #    mbFlow.connect(VolLabelFlow, 'antsApplyTransforms.output_image',
+        #                   Sink, 'labels.@antsRegistration')
         #---------------------------------------------------------------------
         # Extract ANTs cerebral cortical volume labels:
         #---------------------------------------------------------------------
@@ -1866,7 +1889,7 @@ if do_volumes and do_label:
         CombineANTsLabels.inputs.output_file = ''
         CombineANTsLabels.inputs.ignore_labels = [0]
         CombineANTsLabels.inputs.erase_labels = False
-        if not overwrite_cerebrum_with_cerebellum:
+        if save_all and not overwrite_cerebrum_with_cerebellum:
             mbFlow.connect(VolLabelFlow, 
                            'Combine_ANTs_cortex_noncortex_labels.output_file',
                            Sink, 'labels.@ants_filled')
@@ -1874,39 +1897,42 @@ if do_volumes and do_label:
     #=========================================================================
     # Add FreeSurfer cerebellum labels
     #=========================================================================
-    #-------------------------------------------------------------------------
-    # ...to FreeSurfer cerebrum labels:
-    #-------------------------------------------------------------------------
-    AddFScerebellum = CombineFSLabels.clone(
-        'FreeSurfer_cerebrum_cerebellum')
-    VolLabelFlow.add_nodes([AddFScerebellum])
-    VolLabelFlow.connect(FScerebellum, 'output_file',
-                         AddFScerebellum, 'source')
-    VolLabelFlow.connect(CombineFSLabels, 'output_file',
-                         AddFScerebellum, 'target')
-    AddFScerebellum.inputs.output_file = ''
-    AddFScerebellum.inputs.ignore_labels = [0]
-    AddFScerebellum.inputs.erase_labels = False
-    mbFlow.connect(VolLabelFlow,
-           'FreeSurfer_cerebrum_cerebellum.output_file',
-           Sink, 'labels.@freesurfer_filled_and_cerebellum')
-    #-------------------------------------------------------------------------
-    # ...to ANTs cerebrum labels:
-    #-------------------------------------------------------------------------
-    if do_ants:
-        AddFScerebellum2ANTs = AddFScerebellum.clone(
-            'FreeSurfer_cerebellum_ANTs_cerebrum')
-        VolLabelFlow.add_nodes([AddFScerebellum2ANTs])
+    if overwrite_cerebrum_with_cerebellum:
+        #---------------------------------------------------------------------
+        # ...to FreeSurfer cerebrum labels:
+        #---------------------------------------------------------------------
+        AddFScerebellum = CombineFSLabels.clone(
+            'FreeSurfer_cerebrum_cerebellum')
+        VolLabelFlow.add_nodes([AddFScerebellum])
         VolLabelFlow.connect(FScerebellum, 'output_file',
-                             AddFScerebellum2ANTs, 'source')
-        VolLabelFlow.connect(CombineANTsLabels, 'output_file',
-                             AddFScerebellum2ANTs, 'target')
-        AddFScerebellum2ANTs.inputs.output_file = ''
-        AddFScerebellum2ANTs.inputs.ignore_labels = [0]
-        AddFScerebellum2ANTs.inputs.erase_labels = False
-        mbFlow.connect(VolLabelFlow,
-               'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
-               Sink, 'labels.@ants_filled_and_cerebellum')
+                             AddFScerebellum, 'source')
+        VolLabelFlow.connect(CombineFSLabels, 'output_file',
+                             AddFScerebellum, 'target')
+        AddFScerebellum.inputs.output_file = ''
+        AddFScerebellum.inputs.ignore_labels = [0]
+        AddFScerebellum.inputs.erase_labels = False
+        if save_all:
+            mbFlow.connect(VolLabelFlow,
+                   'FreeSurfer_cerebrum_cerebellum.output_file',
+                    Sink, 'labels.@freesurfer_filled_and_cerebellum')
+        #---------------------------------------------------------------------
+        # ...to ANTs cerebrum labels:
+        #---------------------------------------------------------------------
+        if do_ants:
+            AddFScerebellum2ANTs = AddFScerebellum.clone(
+                'FreeSurfer_cerebellum_ANTs_cerebrum')
+            VolLabelFlow.add_nodes([AddFScerebellum2ANTs])
+            VolLabelFlow.connect(FScerebellum, 'output_file',
+                                 AddFScerebellum2ANTs, 'source')
+            VolLabelFlow.connect(CombineANTsLabels, 'output_file',
+                                 AddFScerebellum2ANTs, 'target')
+            AddFScerebellum2ANTs.inputs.output_file = ''
+            AddFScerebellum2ANTs.inputs.ignore_labels = [0]
+            AddFScerebellum2ANTs.inputs.erase_labels = False
+            if save_all:
+                mbFlow.connect(VolLabelFlow,
+                       'FreeSurfer_cerebellum_ANTs_cerebrum.output_file',
+                       Sink, 'labels.@ants_filled_and_cerebellum')
 
     #=========================================================================
     # Transform labels from added atlas(es) in MNI152 to subject
@@ -1939,8 +1965,9 @@ if do_volumes and do_label:
                            'Transform_added_atlases.reference_image')
         mbFlow.connect(WarpToSubjectFileList, 'string_list', VolLabelFlow,
                        'Transform_added_atlases.transforms')
-        mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
-                       Sink, 'labels.@added_atlases')
+        if save_all:
+            mbFlow.connect(VolLabelFlow, 'Transform_added_atlases.output_image',
+                           Sink, 'labels.@added_atlases')
 
     ##=========================================================================
     ## Evaluate label volume overlaps
