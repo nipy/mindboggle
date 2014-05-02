@@ -264,6 +264,8 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> order = 3
     >>> exclude_labels = [-1, 0]
     >>> scale_input = True
+    >>> decimate_fraction = 0
+    >>> decimate_smooth = 25
     >>> zernike_moments_per_label(vtk_file, order, exclude_labels, scale_input)
     ([[0.00528486237819844,
        0.009571754617699853,
