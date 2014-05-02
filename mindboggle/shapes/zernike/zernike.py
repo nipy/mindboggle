@@ -164,10 +164,8 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     from mindboggle.shapes.zernike.multiproc import MultiprocPipeline
     from mindboggle.utils.mesh import decimate
 
-    #-------------------------------------------------------------------------
     # Convert 0-indices (Python) to 1-indices (Matlab) for all face indices:
-    #-------------------------------------------------------------------------
-    index1 = True
+    index1 = False  # already done elsewhere in the code
     if index1:
         faces = reindex_faces_0to1(faces)
 
