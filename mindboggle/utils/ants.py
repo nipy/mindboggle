@@ -797,9 +797,9 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
             output_table = os.path.join(os.getcwd(), 'thickinthehead_per_label.csv')
         fid = open(output_table, 'w')
         if names:
-            fid.write("Label name, Label number, Volume, Thickness (thickinthehead)\n")
+            fid.write("Label name,Label number,Volume,Thickness (thickinthehead)\n")
         else:
-            fid.write("Label number, Volume, Thickness (thickinthehead)\n")
+            fid.write("Label number,Volume,Thickness (thickinthehead)\n")
     else:
         output_table = ''
 
