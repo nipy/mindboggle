@@ -48,7 +48,7 @@ class MultiprocPipeline(object) :
     def Dabc_orig(*args,**dargs) : return Dabc_orig(*args,**dargs) # you have to do this for "import ... as ..." functions that are run asynch
     def display(self,astring,*args) :
         if len(args) > 0 : astring = astring.format(*args)
-        print astring
+        print(astring)
     def zeros(self,*args,**dargs) : return numpy.zeros(args,**dargs)
     def rng(self,*args) :
         if len(args) == 1 : return xrange(args[0]+1)
