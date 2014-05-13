@@ -225,7 +225,8 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
 
 
 def label_with_classifier(subject, hemi, left_classifier='',
-                          right_classifier='', annot_file=''):
+                          right_classifier='', annot_file='',
+                          subjects_directory=''):
     """
     Label a brain with the DKT atlas using FreeSurfer's mris_ca_label
 
@@ -273,6 +274,8 @@ def label_with_classifier(subject, hemi, left_classifier='',
         name of right hemisphere FreeSurfer classifier atlas (full path)
     annot_file : string
         name of output .annot file
+    subjects_directory : string
+        FreeSurfer subjects directory (mris_ca_label -sdir option)
 
     Returns
     -------
@@ -289,7 +292,8 @@ def label_with_classifier(subject, hemi, left_classifier='',
     >>> left_classifier = '/homedir/mindboggle_cache/b28a600a713c269f4c561f66f64337b2/lh.DKTatlas40.gcs'
     >>> right_classifier = ''
     >>> annot_file = './lh.classifier.annot'
-    >>> label_with_classifier(subject, hemi, left_classifier, right_classifier, annot_file)
+    >>> subjects_directory = ''
+    >>> label_with_classifier(subject, hemi, left_classifier, right_classifier, annot_file, subjects_directory)
     >>> #
     >>> # View:
     >>> from mindboggle.utils.freesurfer import annot_to_vtk
@@ -315,8 +319,12 @@ def label_with_classifier(subject, hemi, left_classifier='',
     else:
         print("label_with_classifier()'s hemi should be 'lh' or 'rh'")
 
+    if subjects_directory:
+        sdir = ' -sdir ' + subjects_directory
+    else:
+        sdir = ''
     cmd = ['mris_ca_label', subject, hemi, hemi+'.sphere.reg', classifier,
-            annot_file]
+            annot_file, sdir]
     execute(cmd)
     if not os.path.exists(annot_file):
         raise(IOError(annot_file + " not found"))
