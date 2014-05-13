@@ -12,6 +12,7 @@ import logging
 LOG = logging.getLogger(__name__)
 import decorator
 
+
 @decorator.decorator
 def logcall(fn, *args, **dargs):
     LOG.debug(fn.__name__)
@@ -21,205 +22,224 @@ IMAG_CONST = scipy.sqrt(-1)
 PI_CONST = np.pi
 NAN_CONST = np.NaN
 
+
 class Pipeline(object):
+
     def geometric_moments_approx(self, points_array, faces_array, N):
         raise NotImplementedError()
+
     def geometric_moments_exact(self, points_array, faces_array, N):
         raise NotImplementedError()
 
-class SerialPipeline(Pipeline) :
+
+class SerialPipeline(Pipeline):
 
     def geometric_moments_exact(self, points_array, faces_array, N):
         n_facets, n_vertices = faces_array.shape[:2]
         assert n_vertices == 3
-        moments_array = np.zeros([N+1, N+1, N+1])
+        moments_array = np.zeros([N + 1, N + 1, N + 1])
         monomial_array = self.monomial_precalc(points_array, N)
         for face in faces_array:
             vertex_list = [points_array[_i, ...] for _i in face]
             Cf_list = [monomial_array[_i, ...] for _i in face]
             Vf = self.facet_volume(vertex_list)
-            moments_array += Vf*self.term_Sijk(Cf_list, N)
-        return self.factorial_scalar(N)*moments_array
+            moments_array += Vf * self.term_Sijk(Cf_list, N)
+        return self.factorial_scalar(N) * moments_array
 
     def factorial_scalar(self, N):
-        i, j, k = np.mgrid[0:N+1, 0:N+1, 0:N+1]
-        return factorial(i)*factorial(j)*factorial(k)/(factorial(i+j+k+2)*(i+j+k+3))
+        i, j, k = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]
+        return factorial(i) * factorial(j) * factorial(k) / (factorial(i + j + k + 2) * (i + j + k + 3))
 
     def monomial_precalc(self, points_array, N):
         n_points = points_array.shape[0]
-        monomial_array = np.zeros([n_points, N+1, N+1, N+1])
+        monomial_array = np.zeros([n_points, N + 1, N + 1, N + 1])
         tri_array = self.trinomial_precalc(N)
         for point_indx, point in enumerate(points_array):
-            monomial_array[point_indx, ...] = self.mon_comb(point, tri_array, N)
+            monomial_array[point_indx, ...] = self.mon_comb(
+                point, tri_array, N)
         return monomial_array
 
     def mon_comb(self, vertex, tri_array, N, out=None):
         x, y, z = vertex
-        c = np.zeros([N+1, N+1, N+1])
-        for i, j, k in nest(lambda: xrange(N+1),
-                            lambda _i: xrange(N-_i+1),
-                            lambda _i, _j: xrange(N-_i-_j+1),
+        c = np.zeros([N + 1, N + 1, N + 1])
+        for i, j, k in nest(lambda: xrange(N + 1),
+                            lambda _i: xrange(N - _i + 1),
+                            lambda _i, _j: xrange(N - _i - _j + 1),
                             ):
-            c[i, j, k] = tri_array[i, j, k]*np.power(x, i)*np.power(y, j)*np.power(z, k)
+            c[i, j, k] = tri_array[i, j, k] * \
+                np.power(x, i) * np.power(y, j) * np.power(z, k)
         return c
 
     def term_Sijk(self, Cf_list, N):
-        S = np.zeros([N+1, N+1, N+1])
+        S = np.zeros([N + 1, N + 1, N + 1])
         C0, C1, C2 = Cf_list
         Dabc = self.term_Dabc(C1, C2, N)
-        for i, j, k, ii, jj, kk in nest(lambda: xrange(N+1),
-                                        lambda _i: xrange(N-_i+1),
-                                        lambda _i, _j: xrange(N-_i-_j+1),
-                                        lambda _i, _j, _k: xrange(_i+1),
-                                        lambda _i, _j, _k, _ii: xrange(_j+1),
-                                        lambda _i, _j, _k, _ii, _jj: xrange(_k+1),
+        for i, j, k, ii, jj, kk in nest(lambda: xrange(N + 1),
+                                        lambda _i: xrange(N - _i + 1),
+                                        lambda _i, _j: xrange(N - _i - _j + 1),
+                                        lambda _i, _j, _k: xrange(_i + 1),
+                                        lambda _i, _j, _k, _ii: xrange(_j + 1),
+                                        lambda _i, _j, _k, _ii, _jj: xrange(
+                                            _k + 1),
                                         ):
-            S[i, j, k] += C0[ii, jj, kk]*Dabc[i-ii, j-jj, k-kk]
+            S[i, j, k] += C0[ii, jj, kk] * Dabc[i - ii, j - jj, k - kk]
         return S
 
     def trinomial_precalc(self, N):
-        tri_array = np.zeros([N+1, N+1, N+1])
-        for i, j, k in nest( lambda: xrange(N+1),
-                             lambda _i: xrange(N-_i+1),
-                             lambda _i, _j: xrange(N-_i-_j+1)
-                             ):
+        tri_array = np.zeros([N + 1, N + 1, N + 1])
+        for i, j, k in nest(lambda: xrange(N + 1),
+                            lambda _i: xrange(N - _i + 1),
+                            lambda _i, _j: xrange(N - _i - _j + 1)
+                            ):
             tri_array[i, j, k] = self.trinomial(i, j, k)
         return tri_array
 
     def trinomial(self, i, j, k):
-        return factorial(i+j+k)/(factorial(i)*factorial(j)*factorial(k))
+        return factorial(i + j + k) / (factorial(i) * factorial(j) * factorial(k))
 
     def facet_volume(self, vertex_list):
         return np.linalg.det(autocat(vertex_list, axis=1))
 
     def term_Dabc(self, C1, C2, N):
-        D = np.zeros([N+1, N+1, N+1])
-        for i, j, k, ii, jj, kk in nest(lambda: xrange(N+1),
-                                        lambda _i: xrange(N+1),
-                                        lambda _i, _j: xrange(N+1),
-                                        lambda _i, _j, _k: xrange(_i+1),
-                                        lambda _i, _j, _k, _ii: xrange(_j+1),
-                                        lambda _i, _j, _k, _ii, _jj: xrange(_k+1)
+        D = np.zeros([N + 1, N + 1, N + 1])
+        for i, j, k, ii, jj, kk in nest(lambda: xrange(N + 1),
+                                        lambda _i: xrange(N + 1),
+                                        lambda _i, _j: xrange(N + 1),
+                                        lambda _i, _j, _k: xrange(_i + 1),
+                                        lambda _i, _j, _k, _ii: xrange(_j + 1),
+                                        lambda _i, _j, _k, _ii, _jj: xrange(
+                                            _k + 1)
                                         ):
-            D[i, j, k] += C1[ii, jj, kk]*C2[i-ii, j-jj, k-kk]
+            D[i, j, k] += C1[ii, jj, kk] * C2[i - ii, j - jj, k - kk]
         return D
 
-    def zernike(self, G, N) :
-        V = np.zeros([N+1, N+1, N+1], dtype=complex)
-        for a, b, c, alpha in nest( lambda: xrange(N//2+1),
-                                    lambda _a: xrange(N-2*_a+1),
-                                    lambda _a, _b: xrange(N-2*_a-_b+1),
-                                    lambda _a, _b, _c: xrange(_a+_c+1),
-                                    ):
-            V[a, b, c] += np.power(IMAG_CONST, alpha)*nchoosek(a+c,alpha)*G[2*a+c-alpha,alpha,b]
+    def zernike(self, G, N):
+        V = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
+        for a, b, c, alpha in nest(lambda: xrange(N // 2 + 1),
+                                   lambda _a: xrange(N - 2 * _a + 1),
+                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: xrange(_a + _c + 1),
+                                   ):
+            V[a, b, c] += np.power(IMAG_CONST, alpha) * \
+                nchoosek(a + c, alpha) * G[2 * a + c - alpha, alpha, b]
 
-        W = np.zeros([N+1, N+1, N+1], dtype=complex)
-        for a, b, c, alpha in nest( lambda: xrange(N//2+1),
-                                    lambda _a: xrange(N-2*_a+1),
-                                    lambda _a, _b: xrange(N-2*_a-_b+1),
-                                    lambda _a, _b, _c: xrange(_a+1),
-                                    ):
-            W[a, b, c] += np.power(-1,alpha)*np.power(2,a-alpha)*nchoosek(a,alpha)*V[a-alpha,b,c+2*alpha]
+        W = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
+        for a, b, c, alpha in nest(lambda: xrange(N // 2 + 1),
+                                   lambda _a: xrange(N - 2 * _a + 1),
+                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: xrange(_a + 1),
+                                   ):
+            W[a, b, c] += np.power(-1, alpha) * np.power(2, a - alpha) * \
+                nchoosek(a, alpha) * V[a - alpha, b, c + 2 * alpha]
 
+        X = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
+        for a, b, c, alpha in nest(lambda: xrange(N // 2 + 1),
+                                   lambda _a: xrange(N - 2 * _a + 1),
+                                   lambda _a, _b: xrange(N - 2 * _a - _b + 1),
+                                   lambda _a, _b, _c: xrange(_a + 1),
+                                   ):
+            X[a, b, c] += nchoosek(a, alpha) * W[a - alpha, b + 2 * alpha, c]
 
-        X = np.zeros([N+1, N+1, N+1], dtype=complex)
-        for a, b, c, alpha in nest( lambda: xrange(N//2+1),
-                                    lambda _a: xrange(N-2*_a+1),
-                                    lambda _a, _b: xrange(N-2*_a-_b+1),
-                                    lambda _a, _b, _c: xrange(_a+1),
-                                    ):
-            X[a, b, c] += nchoosek(a, alpha)*W[a-alpha, b+2*alpha, c]
+        Y = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
+        for l, nu, m, j in nest(lambda: xrange(N + 1),
+                                lambda _l: xrange((N - _l) // 2 + 1),
+                                lambda _l, _nu: xrange(_l + 1),
+                                lambda _l, _nu, _m: xrange((_l - _m) // 2 + 1),
+                                ):
+            Y[l, nu, m] += self.Yljm(l, j, m) * X[nu + j, l - m - 2 * j, m]
 
-        Y = np.zeros([N+1, N+1, N+1], dtype=complex)
-        for l, nu, m, j in nest( lambda: xrange(N+1), 
-                                 lambda _l: xrange((N-_l)//2+1),
-                                 lambda _l, _nu: xrange(_l+1),
-                                 lambda _l, _nu, _m: xrange((_l-_m)//2+1),
+        Z = np.zeros([N + 1, N + 1, N + 1], dtype=complex)
+        for n, l, m, nu, in nest(lambda: xrange(N + 1),
+                                 lambda _n: xrange(_n + 1),
+                                 # there's an if...mod missing in this but it
+                                 # still works?
+                                 lambda _n, _l: xrange(_l + 1),
+                                 lambda _n, _l, _m: xrange((_n - _l) // 2 + 1),
                                  ):
-            Y[l, nu, m] += self.Yljm(l, j, m)*X[nu+j, l-m-2*j, m]
+            k = (n - l) // 2
+            Z[n, l, m] += (3 / (4 * PI_CONST)) * \
+                self.Qklnu(k, l, nu) * np.conj(Y[l, nu, m])
 
-        Z=np.zeros([N+1, N+1, N+1], dtype=complex)
-        for n, l, m, nu, in nest( lambda: xrange(N+1),
-                                  lambda _n: xrange(_n+1),
-                                  lambda _n, _l: xrange(_l+1), # there's an if...mod missing in this but it still works?
-                                  lambda _n, _l, _m: xrange((_n-_l)//2+1),
-                                  ):
-            k = (n-l)//2
-            Z[n, l, m] += (3/(4*PI_CONST))*self.Qklnu(k,l,nu)*np.conj(Y[l,nu,m])
-
-        for n, l, m in nest( lambda: xrange( N+1),
-                             lambda _n: xrange( n+1),
-                             lambda _n, _l: xrange( l+1),
-                             ):
+        for n, l, m in nest(lambda: xrange(N + 1),
+                            lambda _n: xrange(n + 1),
+                            lambda _n, _l: xrange(l + 1),
+                            ):
             if np.mod(np.sum([n, l, m]), 2) == 0:
-                Z[n,l,m] = np.real(Z[n,l,m]) - np.imag(Z[n,l,m])*IMAG_CONST
+                Z[n, l, m] = np.real(
+                    Z[n, l, m]) - np.imag(Z[n, l, m]) * IMAG_CONST
             else:
-                Z[n,l,m] = -np.real(Z[n,l,m]) + np.imag(Z[n,l,m])*IMAG_CONST
+                Z[n, l, m] = -np.real(Z[n, l, m]) + \
+                    np.imag(Z[n, l, m]) * IMAG_CONST
 
         return Z
 
     def Yljm(self, l, j, m):
-        aux_1 = np.power(-1, j)*(np.sqrt(2*l+1)/np.power(2, l))
-        aux_2 = self.trinomial(m, j, l-m-2*j)*nchoosek(2*(l-j), l-j)
-        aux_3 = np.sqrt(self.trinomial(m, m, l-m))
-        y = (aux_1*aux_2)/aux_3
+        aux_1 = np.power(-1, j) * (np.sqrt(2 * l + 1) / np.power(2, l))
+        aux_2 = self.trinomial(
+            m, j, l - m - 2 * j) * nchoosek(2 * (l - j), l - j)
+        aux_3 = np.sqrt(self.trinomial(m, m, l - m))
+        y = (aux_1 * aux_2) / aux_3
         return y
-    
+
     def Qklnu(self, k, l, nu):
-        aux_1 = np.power(-1, k+nu)/np.power(4.0, k)
-        aux_2 = np.sqrt((2*l+4*k+3)/3.0)
-        aux_3 = self.trinomial(nu, k-nu, l+nu+1)*nchoosek(2*(l+nu+1+k), l+nu+1+k)
-        aux_4 = nchoosek(2.0*(l+nu+1), l+nu+1)
-        return (aux_1*aux_2*aux_3)/aux_4
+        aux_1 = np.power(-1, k + nu) / np.power(4.0, k)
+        aux_2 = np.sqrt((2 * l + 4 * k + 3) / 3.0)
+        aux_3 = self.trinomial(
+            nu, k - nu, l + nu + 1) * nchoosek(2 * (l + nu + 1 + k), l + nu + 1 + k)
+        aux_4 = nchoosek(2.0 * (l + nu + 1), l + nu + 1)
+        return (aux_1 * aux_2 * aux_3) / aux_4
 
     def feature_extraction(self, Z, N):
-        F = np.zeros([N+1, N+1])-1 #+NAN_CONST
-        for n in xrange(N+1):
-            for l in xrange(n+1):
-                if np.mod(n-l, 2) != 0:
+        F = np.zeros([N + 1, N + 1]) - 1  # +NAN_CONST
+        for n in xrange(N + 1):
+            for l in xrange(n + 1):
+                if np.mod(n - l, 2) != 0:
                     continue
-                aux_1 = Z[n, l, 0:(l+1)]
+                aux_1 = Z[n, l, 0:(l + 1)]
                 if l > 0:
-                    aux_2 = np.conj(aux_1[1:(l+1)])
+                    aux_2 = np.conj(aux_1[1:(l + 1)])
                     for m in xrange(0, l):
-                        aux_2[m] = aux_2[m]*np.power(-1, m+1)
+                        aux_2[m] = aux_2[m] * np.power(-1, m + 1)
                     aux_2 = np.flipud(aux_2)
                     aux_1 = np.concatenate([aux_2, aux_1])
                 F[n, l] = np.linalg.norm(aux_1, ord=2)
         F = F.transpose()
-        return F[F>=0]
+        return F[F >= 0]
 
 import multiprocessing as mp
 
+
 def _mp_geometric_moments_exact_worker(pipeline, vertex_list, Cf_list, N):
-    Vf = pipeline.facet_volume(vertex_list) # volume of the whole face
-    return Vf*pipeline.term_Sijk(Cf_list, N)
+    Vf = pipeline.facet_volume(vertex_list)  # volume of the whole face
+    return Vf * pipeline.term_Sijk(Cf_list, N)
+
 
 def _mp_mon_comb_worker(pipeline, *args, **dargs):
     return pipeline.mon_comb(*args, **dargs)
+
 
 class MultiprocPipeline(SerialPipeline):
 
     def geometric_moments_exact(self, points_array, faces_array, N):
         n_facets, n_vertices = faces_array.shape[:2]
         assert n_vertices == 3
-        moments_array = np.zeros([N+1, N+1, N+1])
-        monomial_array = self.monomial_precalc(points_array, N)        
+        moments_array = np.zeros([N + 1, N + 1, N + 1])
+        monomial_array = self.monomial_precalc(points_array, N)
         process_pool = mp.Pool()
         for face in faces_array:
             vertex_list = [points_array[_i, ...] for _i in face]
             monomial_list = [monomial_array[_i, ...] for _i in face]
             process_pool.apply_async(_mp_geometric_moments_exact_worker,
-                             args=(self, vertex_list, monomial_list, N),
-                             callback=moments_array.__iadd__,
-                             )
+                                     args=(self, vertex_list, monomial_list, N),
+                                     callback=moments_array.__iadd__,
+                                     )
         process_pool.close()
         process_pool.join()
-        return self.factorial_scalar(N)*moments_array
+        return self.factorial_scalar(N) * moments_array
 
     def monomial_precalc(self, points_array, N):
         n_points = points_array.shape[0]
-        monomial_array = np.zeros([n_points, N+1, N+1, N+1])
+        monomial_array = np.zeros([n_points, N + 1, N + 1, N + 1])
         tri_array = self.trinomial_precalc(N)
         process_pool = mp.Pool()
         for point_indx, point in enumerate(points_array):
@@ -228,80 +248,52 @@ class MultiprocPipeline(SerialPipeline):
                     monomial_array[_i, ...] = result
                 return __callback
             process_pool.apply_async(_mp_mon_comb_worker,
-                             args=(self, point, tri_array, N),
-                             callback=get_callback(point_indx),
-                             )
+                                     args=(self, point, tri_array, N),
+                                     callback=get_callback(point_indx),
+                                     )
         process_pool.close()
         process_pool.join()
         return monomial_array
 
 import itertools as it
 
+
 def threeD_reversed(C):
     return C[::-1, ::-1, ::-1]
+
 
 class NumpyOptimizations(Pipeline):
 
     def term_Dabc(self, C1, C2, N):
         D = np.zeros_like(C1)
-        for a, b, c in it.product(xrange(N+1), repeat=3) :
-            c1 = C1[:a+1, :b+1, :c+1]
-            c2 = threeD_reversed(C2[:a+1, :b+1, :c+1])
-            D[a, b, c] = np.sum(c1*c2)
+        for a, b, c in it.product(xrange(N + 1), repeat=3):
+            c1 = C1[:a + 1, :b + 1, :c + 1]
+            c2 = threeD_reversed(C2[:a + 1, :b + 1, :c + 1])
+            D[a, b, c] = np.sum(c1 * c2)
         return D
 
     def term_Sijk(self, Cf_list, N):
-        S = np.zeros([N+1, N+1, N+1])
+        S = np.zeros([N + 1, N + 1, N + 1])
         C0, C1, C2 = Cf_list
         Dabc = self.term_Dabc(C1, C2, N)
-        for i, j, k in nest(lambda: xrange(N+1),
-                            lambda _i: xrange(N-_i+1),
-                            lambda _i, _j: xrange(N-_i-_j+1),
+        for i, j, k in nest(lambda: xrange(N + 1),
+                            lambda _i: xrange(N - _i + 1),
+                            lambda _i, _j: xrange(N - _i - _j + 1),
                             ):
-            C_ijk = C0[:i+1, :j+1, :k+1]
-            D_ijk = threeD_reversed(Dabc[:i+1, :j+1, :k+1])
-            S[i, j, k] += np.sum(C_ijk*D_ijk)
+            C_ijk = C0[:i + 1, :j + 1, :k + 1]
+            D_ijk = threeD_reversed(Dabc[:i + 1, :j + 1, :k + 1])
+            S[i, j, k] += np.sum(C_ijk * D_ijk)
         return S
 
     def trinomial_precalc(self, N):
-        i, k, j = np.mgrid[0:N+1, 0:N+1, 0:N+1]
-        return factorial(i+j+k)/(factorial(i)*factorial(j)*factorial(k))
+        i, k, j = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]
+        return factorial(i + j + k) / (factorial(i) * factorial(j) * factorial(k))
 
     def mon_comb(self, vertex, tri_array, N):
-        i, j, k = np.mgrid[0:N+1, 0:N+1, 0:N+1]
+        i, j, k = np.mgrid[0:N + 1, 0:N + 1, 0:N + 1]
         x, y, z = vertex
-        return tri_array*(x**i)*(y**j)*(z**k)
-
-class KoehlOptimizations(Pipeline):
-
-    def geometric_moments_exact(self, points_array, faces_array, N):
-        n_facets, n_vertices = faces_array.shape[:2]
-        assert n_vertices == 3
-        moments_array = np.zeros([N+1, N+1, N+1])
-        for face in faces_array:
-            vertex_list = [points_array[_i, ...] for _i in face]
-            Vf = self.facet_volume(vertex_list)
-            moments_array += Vf*self.term_Sijk(vertex_list, N)
-        return self.factorial_scalar(N)*moments_array
-
-
-    def term_Sijk(self, Cf_list, N):
-        xa, ya, za = Cf_list[0]
-        xb, yb, zb = Cf_list[1]
-        xc, yc, zc = Cf_list[2]
-        C = lambda i, j, k: 0 if -1 in [i, j, k] else 1 if i*j*k == 0 else (xc*C(i-1, j, k) + yc*C(i, j-1, k) + zc*C(i, j, k-1))
-        D = lambda i, j, k: 0 if -1 in [i, j, k] else 1 if i*j*k == 0 else (xb*D(i-1, j, k) + yb*D(i, j-1, k) + zb*D(i, j, k-1) + C(i, j, k))
-        S = lambda i, j, k: 0 if -1 in [i, j, k] else 1 if i*j*k == 0 else (xa*S(i-1, j, k) + ya*S(i, j-1, k) + za*S(i, j, k-1) + D(i, j, k))
-        _S = np.zeros([N+1, N+1, N+1])
-        for i, j, k in nest(lambda: xrange(N+1),
-                            lambda _i: xrange(N-_i+1),
-                            lambda _i, _j: xrange(N-_i-_j+1),
-                            ):
-            _S[i, j, k] = S(i, j, k)
-        return _S
-        
-        
+        return tri_array * (x ** i) * (y ** j) * (z ** k)
 
 #DefaultPipeline = type('DefaultPipeline', (SerialPipeline,), {})
-#DefaultPipeline = type('DefaultPipeline', (KoehlOptimizations, NumpyOptimizations, SerialPipeline,), {})
-DefaultPipeline = type('DefaultPipeline', (NumpyOptimizations, MultiprocPipeline,), {})
+DefaultPipeline = type(
+    'DefaultPipeline', (NumpyOptimizations, MultiprocPipeline,), {})
