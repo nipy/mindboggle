@@ -226,11 +226,11 @@ if __name__ == "__main__":
     #-------------------------------------------------------------------------
     # Set feature type ('fundi' or '' for every sulcus vertex), subjects:
     #-------------------------------------------------------------------------
-    feature_type = 'fundi'
+    feature_type = 'sulci' #'fundi'
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
     numbers = [20,21,22,20, 1,1,2,2,12]
-    mindboggled = '/homedir/mindboggledOLD'
+    mindboggled = '/homedir/mindboggled'
     labels_dir = mindboggled # Need relabeled according to DKT
 
     #-------------------------------------------------------------------------
