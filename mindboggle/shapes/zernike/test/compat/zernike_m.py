@@ -21,7 +21,7 @@ def zernike(cfg,G,N) :                                                          
                 for alpha in cfg.rng(0,a+c) :                                                         #            for alpha=0:(a+c)
                     tmp=tmp+cfg.power(i,alpha)*cfg.nchoosek(a+c,alpha)*G[2*a+c-alpha,alpha,b] #!  #                tmp=tmp+power(i,alpha)*nchoosek(a+c,alpha)*G(2*a+c-alpha+1,alpha+1,b+1);
                                                                                             #            end
-                    V[a,b,c]=tmp #!                                                      #            V(a+1,b+1,c+1)=tmp;
+                V[a,b,c]=tmp #!                                                      #            V(a+1,b+1,c+1)=tmp;
                                                                                             #        end
                                                                                             #    end
                                                                                             #end
