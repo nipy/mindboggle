@@ -1250,12 +1250,12 @@ def apply_affine_transform(transform_file, vtk_or_points,
         if isinstance(points, list):
             points = np.array(points)
         if len(points[0]) > 2:
-            points = [points[:,1].tolist(),
-                      points[:,0].tolist(),
-                      np.hstack(points[:,2::]).tolist()]
+            points = [points[:, 1].tolist(),
+                      points[:, 0].tolist(),
+                      np.hstack(points[:, 2::]).tolist()]
         else:
-            points = [points[:,1].tolist(),
-                      points[:,0].tolist()]
+            points = [points[:, 1].tolist(),
+                      points[:, 0].tolist()]
         return np.array(points)
 
     # Read affine transform file:
@@ -1300,6 +1300,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
         affine_points = np.transpose(np.dot(transform, points))[:, 0:3]
     if swap_xy:
         affine_points = swap_dim1dim2(affine_points)
+    affine_points = affine_points.transpose()
 
     # Write transformed VTK file:
     if vtk_file_stem and isinstance(vtk_or_points, str):
@@ -1316,7 +1317,7 @@ def apply_affine_transform(transform_file, vtk_or_points,
             scalars = []
             scalar_type = 'int'
 
-        write_vtk(output_file, affine_points.transpose(),
+        write_vtk(output_file, affine_points,
                   indices, lines, faces, scalars, name, scalar_type)
     else:
         output_file = None
