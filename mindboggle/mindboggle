@@ -179,8 +179,8 @@ extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visua
                     choices=['hier', 'flat', 'exec'], metavar='STR')
 extras_group.add_argument("--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
-extras_group.add_argument("--debug", action='store_true',
-                    help="Debug Nipype")
+extras_group.add_argument("--xfm", action='store_true',
+                    help="Transform surfaces to MNI152 space")
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
@@ -438,6 +438,9 @@ if do_ants:
         AffineFileList.inputs.string1 = affine_to_mni
         mbFlow.connect(FetchANTs, 'affine_subject2template',
                        AffineFileList, 'string2')
+        #AffineFileList.inputs.string2 = affine_to_mni
+        #mbFlow.connect(FetchANTs, 'affine_subject2template',
+        #               AffineFileList, 'string1')
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
 
@@ -452,6 +455,7 @@ if do_ants:
         mbFlow.connect(AffineFileList, 'string_list',
                        ComposeAffine, 'transform_files')
         ComposeAffine.inputs.inverse_Booleans = [False, False]
+        #ComposeAffine.inputs.inverse_Booleans = [True, True]
         ComposeAffine.inputs.output_transform_file = ''
         ComposeAffine.inputs.ext = '.txt'
     #-------------------------------------------------------------------------
@@ -1317,14 +1321,15 @@ if do_surface:
         #---------------------------------------------------------------------
         # Apply affine transform to surface coordinates:
         #---------------------------------------------------------------------
-        if do_ants and args.debug:
+        if do_ants and args.xfm:
             TransformVTK = Node(name='Transform_surface_points',
                                 interface=Fn(function=apply_affine_transform,
                                              input_names=['transform_file',
                                                           'vtk_or_points',
                                                           'transform_format',
                                                           'vtk_file_stem',
-                                                          'use_ants'],
+                                                          'use_ants',
+                                                          'swap_xy'],
                                              output_names=['affine_points',
                                                            'output_file']))
             mbFlow.add_nodes([TransformVTK])
@@ -1335,6 +1340,7 @@ if do_surface:
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
             TransformVTK.inputs.use_ants = False
+            TransformVTK.inputs.swap_xy = True
 
 
 #=============================================================================
@@ -2233,7 +2239,8 @@ if __name__ == '__main__':
     #-------------------------------------------------------------------------
     # Debug: http://nipy.org/nipype/users/config_file.html#debug-configuration
     #-------------------------------------------------------------------------
-    if args.debug:
+    debug = False
+    if debug:
         config.set('logging', 'workflow_level', 'DEBUG')
         logging.update_logging(config)
         mbFlow.config['execution']['stop_on_first_rerun'] = True
