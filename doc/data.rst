@@ -168,7 +168,6 @@ Other templates and manually labeled brains
   **Templates**: built with buildtemplateparallel.sh_ with images from `2009 evaluation`_ (nii)
 
   - `CUMC12 brain`_ template from 12 brains (2010)
-  - `LPBA40 brain`_ template from 40 brains (2011)
   - See Satrajit Ghosh's `pediatric template`_ of 31 brains (2011)
 
   **Atlases**: manually labeled volumes from `2009 evaluation`_ (nii)
@@ -187,7 +186,7 @@ Other templates and manually labeled brains
 .. _IBSR-18: http://mindboggle.info/papers/evaluation_NeuroImage2009/data/IBSR18.tar.gz
 .. _MGH-10: http://mindboggle.info/papers/evaluation_NeuroImage2009/data/MGH10.tar.gz
 .. _`CUMC12 brain`: http://mindboggle.info/data/templates/ants/CUMC-12_template.nii.gz
-.. _`LPBA40 brain`: http://mindboggle.info/data/templates/ants/LPBA-40_template.nii.gz
+.. _`LPBA40 brain template from 40 brains (2011)`: http://mindboggle.info/data/templates/ants/LPBA-40_template.nii.gz
 .. _`pediatric template`: http://www.mit.edu/~satra/research/pubdata/index.html
 
 .. include:: ./links.txt
