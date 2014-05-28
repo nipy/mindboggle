@@ -356,6 +356,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     from mindboggle.LABELS import DKTprotocol
 
     dkt = DKTprotocol()
+    use_ants = False
+    swap_xy = True
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -409,7 +411,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
                                     points, transform_format,
-                                    vtk_file_stem='')
+                                    vtk_file_stem='',
+                                    use_ants=use_ants, swap_xy=swap_xy)
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -668,6 +671,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
     >>>     't1weighted_brain.MNI152Affine.txt')
     >>> transform_format = 'itk'
+    >>> swap_xy = True
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> mean_curvature_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
@@ -687,6 +691,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
         apply_affine_transform
     from mindboggle.utils.io_table import write_columns
+
+    use_ants = False
+    swap_xy = True
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -737,7 +744,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                     affine_points, \
                         foo1 = apply_affine_transform(affine_transform_file,
                                     points, transform_format,
-                                    vtk_file_stem='')
+                                    vtk_file_stem='',
+                                    use_ants=use_ants, swap_xy=swap_xy)
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:
