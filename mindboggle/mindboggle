@@ -1323,8 +1323,7 @@ if do_surface:
                                              input_names=['transform_file',
                                                           'vtk_or_points',
                                                           'transform_format',
-                                                          'vtk_file_stem',
-                                                          'use_ants'],
+                                                          'vtk_file_stem'],
                                              output_names=['affine_points',
                                                            'output_file']))
             mbFlow.add_nodes([TransformVTK])
@@ -1334,7 +1333,6 @@ if do_surface:
                            TransformVTK, 'vtk_or_points')
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
-            TransformVTK.inputs.use_ants = True
 
 
 #=============================================================================
