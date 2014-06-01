@@ -1271,7 +1271,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     # For use with ANTs, x and y columns are multiplied by -1 before and after
     # applying the inverse affine transform because ITK uses a different
     # coordinate system than the NIfTI coordinate system.
-    if transform_format == 'itk' and points:
+    if transform_format == 'itk' and len(points):
         points[:, :2] = points[:, :2] * np.array((-1, -1))
         affine_points = antsApplyTransformsToPoints(points,
                             transform_files, inverse_booleans)
@@ -1281,6 +1281,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
         # points = np.concatenate((points,
         #                          np.ones((1, np.shape(points)[1]))), axis=0)
         # affine_points = np.transpose(np.dot(transform, points))[:, 0:3]
+    else:
+        affine_points = []
 
     # Write transformed VTK file:
     if vtk_file_stem and isinstance(vtk_or_points, str):
