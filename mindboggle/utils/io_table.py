@@ -228,7 +228,7 @@ def write_rows(filename, list_of_lines, header=""):
 
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
-        affine_transform_file='', transform_format='itk',
+        affine_transform_files='', inverse_booleans=[], transform_format='itk',
         area_file='', normalize_by_area=True, mean_curvature_file='',
         travel_depth_file='', geodesic_depth_file='',
         freesurfer_convexity_file='', freesurfer_thickness_file='',
@@ -251,8 +251,10 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         indices to sulci, one per vertex, with -1 indicating no sulcus
     fundi :  list of integers
         indices to fundi, one per vertex, with -1 indicating no fundus
-    affine_transform_file : string
-        affine transform file to standard space
+    affine_transform_files : list of strings
+        affine transform files to standard space
+    inverse_booleans : list of Booleans
+        take the inverse of each transform?
     transform_format : string
         format for transform file
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
@@ -311,7 +313,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_file = '' #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_files = [''] #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> inverse_booleans = []
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'left_surface', 'area.vtk')
@@ -335,7 +338,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> exclude_labels = [-1]
     >>> #
     >>> write_shape_stats(labels_or_file, sulci, fundi,
-    >>>     affine_transform_file, transform_format, area_file, normalize_by_area,
+    >>>     affine_transform_files, inverse_booleans, transform_format,
+    >>>     area_file, normalize_by_area,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     freesurfer_convexity_file, freesurfer_thickness_file,
     >>>     labels_spectra, labels_spectra_IDs,
@@ -351,7 +355,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     from mindboggle.utils.compute import means_per_label, stats_per_label, \
         sum_per_label
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
-        apply_affine_transform
+        apply_affine_transforms
     from mindboggle.utils.io_table import write_columns
     from mindboggle.LABELS import DKTprotocol
 
@@ -405,11 +409,11 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                     input_vtk = read_vtk(shape_file, True, True)
                 points = np.array(points)
                 first_pass = False
-                if affine_transform_file and transform_format:
+                if affine_transform_files and transform_format:
                     affine_points, \
-                        foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format,
-                                    vtk_file_stem='')
+                        foo1 = apply_affine_transforms(affine_transform_files,
+                                    inverse_booleans, transform_format,
+                                    points, vtk_file_stem='')
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -515,7 +519,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
             #-----------------------------------------------------------------
             # Mean positions in standard space:
             #-----------------------------------------------------------------
-            if affine_transform_file and transform_format:
+            if affine_transform_files and transform_format:
                 # Compute standard space mean position per feature:
                 standard_positions, sdevs, label_list, \
                 foo = means_per_label(affine_points,
@@ -608,7 +612,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
 
 def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
-        affine_transform_file='', transform_format='itk',
+        affine_transform_files=[''], inverse_booleans=[],
+        transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', freesurfer_convexity_file='',
         freesurfer_thickness_file='', delimiter=','):
@@ -628,8 +633,10 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         indices to sulci, one per vertex, with -1 indicating no sulcus
     fundi :  list of integers
         indices to fundi, one per vertex, with -1 indicating no fundus
-    affine_transform_file : string
-        affine transform file to standard space
+    affine_transform_files : list of strings
+        affine transform files to standard space
+    inverse_booleans : list of Booleans
+        take the inverse of each transform?
     transform_format : string
         format for transform file
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
@@ -665,8 +672,9 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'arno', 'features', 'fundi.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_file = os.path.join(path, 'arno', 'mri',
-    >>>     't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_files = [os.path.join(path, 'arno', 'mri',
+    >>>     't1weighted_brain.MNI152Affine.txt')]
+    >>> inverse_booleans = [True]
     >>> transform_format = 'itk'
     >>> swap_xy = True
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
@@ -678,7 +686,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> delimiter = ','
     >>> #
     >>> write_vertex_measures(output_table, labels_or_file, sulci, fundi,
-    >>>     affine_transform_file, transform_format, area_file,
+    >>>     affine_transform_files, inverse_booleans, transform_format, area_file,
     >>>     mean_curvature_file, travel_depth_file, geodesic_depth_file,
     >>>     freesurfer_convexity_file, freesurfer_thickness_file, delimiter)
 
@@ -686,7 +694,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, \
-        apply_affine_transform
+        apply_affine_transforms
     from mindboggle.utils.io_table import write_columns
 
     # Make sure inputs are lists:
@@ -734,11 +742,11 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                 columns.append(points)
                 column_names.append('coordinates')
                 first_pass = False
-                if affine_transform_file and transform_format:
+                if affine_transform_files and transform_format:
                     affine_points, \
-                        foo1 = apply_affine_transform(affine_transform_file,
-                                    points, transform_format,
-                                    vtk_file_stem='')
+                        foo1 = apply_affine_transforms(affine_transform_files,
+                                    inverse_booleans, transform_format,
+                                    points, vtk_file_stem='')
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:

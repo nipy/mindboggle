@@ -1189,24 +1189,27 @@ def read_itk_transform(transform_file):
     return transform
 
 
-def apply_affine_transform(transform_file, vtk_or_points,
-                           transform_format='itk', vtk_file_stem='affine_'):
+def apply_affine_transforms(transform_files, inverse_booleans,
+                            transform_format='itk',
+                            vtk_or_points=[], vtk_file_stem='affine_'):
     """
     Transform coordinates using an affine matrix.
 
     Parameters
     ----------
-    transform file : string
-        name of affine transform file
-    vtk_or_points : string or list of lists of three integers
-        name of VTK file containing point coordinate data, or the data
-        (if vtk file, assumes scalars are a list of floats or integers)
+    transform files : list of strings
+        names of affine transform files
+    inverse_booleans : list of Booleans
+        take the inverse of each transform?
     transform_format : string
         format for transform file (currently 'itk');
         complications arise with other formats, such as
         'txt' for text, or 'mat' for Matlab format, since
         software-specific assignment of parameters such as
         the origin need to be taken into account
+    vtk_or_points : string or list of lists of three integers
+        name of VTK file containing point coordinate data, or the data
+        (if vtk file, assumes scalars are a list of floats or integers)
     vtk_file_stem : string
         save transformed coordinates in a vtk file with this file append
         (empty string if vtk_or_points is points)
@@ -1220,36 +1223,37 @@ def apply_affine_transform(transform_file, vtk_or_points,
 
     Examples
     --------
-    >>> from mindboggle.utils.io_vtk import apply_affine_transform
+    >>> from mindboggle.utils.io_vtk import apply_affine_transforms
     >>> from mindboggle.utils.plots import plot_surfaces
-    >>> transform_file = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt'
-    >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
+    >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
+    >>> inverse_booleans = [True]
     >>> transform_format = 'itk'
+    >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> vtk_file_stem = 'affine_'
-    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, vtk_file_stem)
+    >>> affine_points, output_file = apply_affine_transforms(transform_files, inverse_booleans, transform_format, vtk_or_points, vtk_file_stem)
     >>> # View
     >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points)
 
     """
     import os
     import numpy as np
-    from scipy.io import loadmat
+    #from scipy.io import loadmat
 
-    from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
     from mindboggle.utils.ants import antsApplyTransformsToPoints
-
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+                                        #read_itk_transform
     transform_format = 'itk'
 
-    # Read affine transform file:
-    if transform_format == 'itk':
-        transform = read_itk_transform(transform_file)
-    elif transform_format == 'txt':
-        transform = np.loadtxt(transform_file)
-    elif transform_format == 'mat':
-        transform = loadmat(transform_file)
-    else:
-        import sys
-        sys.exit('Transform file format not understood.')
+    ## Read affine transform file:
+    # if transform_format == 'itk':
+    #     transform = read_itk_transform(transform_file)
+    # elif transform_format == 'txt':
+    #     transform = np.loadtxt(transform_file)
+    # elif transform_format == 'mat':
+    #     transform = loadmat(transform_file)
+    # else:
+    #     import sys
+    #     sys.exit('Transform file format not understood.')
 
     # Read VTK file:
     if isinstance(vtk_or_points, str):
@@ -1267,12 +1271,13 @@ def apply_affine_transform(transform_file, vtk_or_points,
     # For use with ANTs, x and y columns are multiplied by -1 before and after
     # applying the inverse affine transform because ITK uses a different
     # coordinate system than the NIfTI coordinate system.
-    if transform_format == 'itk':
+    if transform_format == 'itk' and points:
         points[:, :2] = points[:, :2] * np.array((-1, -1))
         affine_points = antsApplyTransformsToPoints(points,
-                            [transform_file], [1])
+                            transform_files, inverse_booleans)
         affine_points = np.array(affine_points)
         affine_points[:, :2] = affine_points[:, :2] * np.array((-1, -1))
+        ## fix alternative to ANTs: compose transforms and take inverse(s)
         # points = np.concatenate((points,
         #                          np.ones((1, np.shape(points)[1]))), axis=0)
         # affine_points = np.transpose(np.dot(transform, points))[:, 0:3]
