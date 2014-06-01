@@ -1242,18 +1242,6 @@ def apply_affine_transform(transform_file, vtk_or_points,
     from mindboggle.utils.io_vtk import read_vtk, write_vtk, read_itk_transform
     from mindboggle.utils.ants import antsApplyTransformsToPoints
 
-    def swap_dim1dim2(points):
-        if isinstance(points, list):
-            points = np.array(points)
-        if len(points[0]) > 2:
-            points = [points[:, 1].tolist(),
-                      points[:, 0].tolist(),
-                      np.hstack(points[:, 2::]).tolist()]
-        else:
-            points = [points[:, 1].tolist(),
-                      points[:, 0].tolist()]
-        return np.array(points)
-
     # Read affine transform file:
     if transform_format == 'itk':
         #pass
@@ -1279,12 +1267,15 @@ def apply_affine_transform(transform_file, vtk_or_points,
         vtk_file_stem = ''
 
     # Transform points:
-    if use_ants:
-        points[:,:2] = points[:,:2] * np.array((-1, -1))
+    # For use with ANTs, x and y columns are multiplied by -1 before and after
+    # applying the inverse affine transform because ITK uses a different
+    # coordinate system than the NIfTI coordinate system.
     if transform_format == 'itk':
         if use_ants:
+            points[:,:2] = points[:,:2] * np.array((-1, -1))
             affine_points = antsApplyTransformsToPoints(points,
                                 [transform_file], [1])
+            affine_points = affine_points[:,:2] * np.array((-1, -1))
         else:
             points = np.concatenate((points,
                                      np.ones((1, np.shape(points)[1]))),
@@ -1294,8 +1285,6 @@ def apply_affine_transform(transform_file, vtk_or_points,
         points = np.concatenate((points,
                                  np.ones((1, np.shape(points)[1]))), axis=0)
         affine_points[:,:2] = np.transpose(np.dot(transform, points))[:, 0:3]
-    if use_ants:
-        affine_points = affine_points[:,:2] * np.array((-1, -1))
     affine_points = affine_points.transpose()
 
     # Write transformed VTK file:
