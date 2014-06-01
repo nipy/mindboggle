@@ -175,7 +175,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
                                            'transformed_points.csv')
     transform_string = ''
     for ixfm, transform_file in enumerate(transform_files):
-        transform_string += "--t [{0},{1}]".format(transform_file,
+        transform_string += " --t [{0},{1}]".format(transform_file,
                                    str(inverse_booleans[ixfm]))
     cmd = ['antsApplyTransformsToPoints', '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
