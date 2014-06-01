@@ -5,6 +5,14 @@ Papers related to Mindboggle
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+| |pic_paper8|    | |authors_paper8|    |
++                 +---------------------+
+|                 | |title_paper8|      |
++                 +---------------------+
+|                 | |ref_paper8|        |
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
 | |pic_paper7|    | |authors_paper7|    |
 +                 +---------------------+
 |                 | |title_paper7|      |
@@ -199,6 +207,18 @@ Conferences
 +                 +---------------------+
 |                 | |ref_pres1|         |
 +-----------------+---------------------+
+
+
+.. |pic_paper8| image:: http://media.mindboggle.info/images/papers/ANTs_FS_corticalthickness_NeuroImage2014.png
+                    :width: 300px
+.. |authors_paper8| replace::
+    Tustison, NJ, Cook, PA, Klein, A, Song, G, Das, SR, Duda, JT, Kandel, BM, van Strien, N, Stone, JR, Gee, JC, Avants, BB. 2014.
+.. |title_paper8| replace::
+    `Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`_.
+.. |ref_paper8| replace::
+    *NeuroImage* (accepted).
+.. _`Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`:
+    http://mindboggle.info/papers/ANTs_FS_corticalthickness_NeuroImage2014.pdf
 
 
 .. |pic_paper7| image:: http://media.mindboggle.info/images/papers/Mindboggle101_FIBIM2012.png

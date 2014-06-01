@@ -1191,7 +1191,7 @@ def read_itk_transform(transform_file):
 
 def apply_affine_transform(transform_file, vtk_or_points,
                            transform_format='itk', vtk_file_stem='affine_',
-                           use_ants=False, swap_xy=True):
+                           use_ants=True):
     """
     Transform coordinates using an affine matrix.
 
@@ -1213,9 +1213,6 @@ def apply_affine_transform(transform_file, vtk_or_points,
         (empty string if vtk_or_points is points)
     use_ants : Boolean
         use antsApplyTransformsToPoints?
-    swap_xy : Boolean
-        swap first two dimensions before and after applying transform?
-        (useful for ANTs transforms applied to points)
 
     Returns
     -------
@@ -1232,9 +1229,8 @@ def apply_affine_transform(transform_file, vtk_or_points,
     >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> transform_format = 'itk'
     >>> vtk_file_stem = 'affine_'
-    >>> use_ants = False
-    >>> swap_xy = True
-    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, vtk_file_stem, use_ants, swap_xy)
+    >>> use_ants = True
+    >>> affine_points, output_file = apply_affine_transform(transform_file, vtk_or_points, transform_format, vtk_file_stem, use_ants)
     >>> # View
     >>> plot_surfaces('affine_lh.pial.vtk', vtk_or_points)
 
@@ -1283,12 +1279,12 @@ def apply_affine_transform(transform_file, vtk_or_points,
         vtk_file_stem = ''
 
     # Transform points:
-    if swap_xy:
-        points = swap_dim1dim2(points)
+    if use_ants:
+        points[:,:2] = points[:,:2] * np.array((-1, -1))
     if transform_format == 'itk':
         if use_ants:
             affine_points = antsApplyTransformsToPoints(points,
-                                [transform_file], [0])
+                                [transform_file], [1])
         else:
             points = np.concatenate((points,
                                      np.ones((1, np.shape(points)[1]))),
@@ -1297,9 +1293,9 @@ def apply_affine_transform(transform_file, vtk_or_points,
     else:
         points = np.concatenate((points,
                                  np.ones((1, np.shape(points)[1]))), axis=0)
-        affine_points = np.transpose(np.dot(transform, points))[:, 0:3]
-    if swap_xy:
-        affine_points = swap_dim1dim2(affine_points)
+        affine_points[:,:2] = np.transpose(np.dot(transform, points))[:, 0:3]
+    if use_ants:
+        affine_points = affine_points[:,:2] * np.array((-1, -1))
     affine_points = affine_points.transpose()
 
     # Write transformed VTK file:

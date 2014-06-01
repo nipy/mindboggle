@@ -356,8 +356,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     from mindboggle.LABELS import DKTprotocol
 
     dkt = DKTprotocol()
-    use_ants = False
-    swap_xy = True
+    use_ants = True
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -412,7 +411,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                         foo1 = apply_affine_transform(affine_transform_file,
                                     points, transform_format,
                                     vtk_file_stem='',
-                                    use_ants=use_ants, swap_xy=swap_xy)
+                                    use_ants=use_ants)
                     affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
@@ -692,8 +691,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         apply_affine_transform
     from mindboggle.utils.io_table import write_columns
 
-    use_ants = False
-    swap_xy = True
+    use_ants = True
 
     # Make sure inputs are lists:
     if isinstance(labels_or_file, np.ndarray):
@@ -745,7 +743,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                         foo1 = apply_affine_transform(affine_transform_file,
                                     points, transform_format,
                                     vtk_file_stem='',
-                                    use_ants=use_ants, swap_xy=swap_xy)
+                                    use_ants=use_ants)
                     columns.append(affine_points)
                     column_names.append('coordinates in standard space')
             else:
