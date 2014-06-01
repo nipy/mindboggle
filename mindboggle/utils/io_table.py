@@ -228,7 +228,7 @@ def write_rows(filename, list_of_lines, header=""):
 
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
-        affine_transform_files='', inverse_booleans=[], transform_format='itk',
+        affine_transform_files=[], inverse_booleans=[], transform_format='itk',
         area_file='', normalize_by_area=True, mean_curvature_file='',
         travel_depth_file='', geodesic_depth_file='',
         freesurfer_convexity_file='', freesurfer_thickness_file='',
@@ -313,7 +313,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> fundi_file = os.path.join(path, 'features', 'left_surface', 'fundus_per_sulcus.vtk')
     >>> sulci, name = read_scalars(sulci_file)
     >>> fundi, name = read_scalars(fundi_file)
-    >>> affine_transform_files = [''] #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
+    >>> affine_transform_files = [] #os.path.join(path, 'arno', 'mri', 't1weighted_brain.MNI152Affine.txt')
     >>> inverse_booleans = []
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
@@ -414,7 +414,6 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
                         foo1 = apply_affine_transforms(affine_transform_files,
                                     inverse_booleans, transform_format,
                                     points, vtk_file_stem='')
-                    affine_points = np.array(affine_points)
             else:
                 scalars_array, name = read_scalars(shape_file, True, True)
             if scalars_array.size:
@@ -612,7 +611,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
 
 
 def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
-        affine_transform_files=[''], inverse_booleans=[],
+        affine_transform_files=[], inverse_booleans=[],
         transform_format='itk',
         area_file='', mean_curvature_file='', travel_depth_file='',
         geodesic_depth_file='', freesurfer_convexity_file='',
@@ -747,7 +746,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
                         foo1 = apply_affine_transforms(affine_transform_files,
                                     inverse_booleans, transform_format,
                                     points, vtk_file_stem='')
-                    columns.append(affine_points)
+                    columns.append(affine_points.tolist())
                     column_names.append('coordinates in standard space')
             else:
                 scalars, name = read_scalars(shape_file)

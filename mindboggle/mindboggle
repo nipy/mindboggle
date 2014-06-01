@@ -428,7 +428,7 @@ if do_ants:
         affine_to_mni = retrieve_data(atropos_to_MNI152_affine,
                                       url, hashes, cache_env, cache)
     if do_shapes and do_surface:
-        AffineFileList = Node(name='Merge_affine_file_list',
+        AffineFileList = Node(name='Affine_file_list',
                               interface=Fn(function=list_strings,
                                            input_names=['string1',
                                                         'string2',
