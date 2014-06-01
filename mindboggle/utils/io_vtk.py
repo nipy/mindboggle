@@ -1195,6 +1195,10 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     """
     Transform coordinates using an affine matrix.
 
+    For use with ANTs, x and y columns are multiplied by -1 before and after
+    applying the inverse affine transform because ITK uses a different
+    coordinate system than the NIfTI coordinate system.
+
     Parameters
     ----------
     transform files : list of strings
