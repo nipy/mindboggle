@@ -46,8 +46,8 @@ warnings.filterwarnings("ignore")
 #-----------------------------------------------------------------------------
 from mindboggle.LABELS import DKTprotocol
 from mindboggle.DATA import hashes_url
-from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
-    measure_volume_overlap
+#from mindboggle.evaluate.evaluate_labels import measure_surface_overlap, \
+#    measure_volume_overlap
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
@@ -58,16 +58,16 @@ from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
 from mindboggle.shapes.shape_tools import area, travel_depth, \
     geodesic_depth, curvature
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
-from mindboggle.utils.ants import fetch_ants_data, ComposeMultiTransform, \
+from mindboggle.utils.ants import fetch_ants_data, \
     ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
     thickinthehead
 from mindboggle.utils.compute import volume_per_label
 from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
     annot_to_vtk, label_with_classifier, convert_mgh_to_native_nifti
-from mindboggle.utils.io_table import write_columns, \
-    write_shape_stats, write_vertex_measures
+from mindboggle.utils.io_table import write_shape_stats, \
+    write_vertex_measures
 from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_vtk import read_vtk, apply_affine_transform
+from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms
 from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
@@ -441,19 +441,19 @@ if do_ants:
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
 
-        ComposeAffine = Node(name='Compose_affine_transform',
-                             interface=Fn(function=ComposeMultiTransform,
-                                          input_names=['transform_files',
-                                                       'inverse_Booleans',
-                                                       'output_transform_file',
-                                                       'ext'],
-                                          output_names=['output_transform_file']))
-        mbFlow.add_nodes([ComposeAffine])
-        mbFlow.connect(AffineFileList, 'string_list',
-                       ComposeAffine, 'transform_files')
-        ComposeAffine.inputs.inverse_Booleans = [False, False]
-        ComposeAffine.inputs.output_transform_file = ''
-        ComposeAffine.inputs.ext = '.txt'
+        # ComposeAffine = Node(name='Compose_affine_transform',
+        #                      interface=Fn(function=ComposeMultiTransform,
+        #                                   input_names=['transform_files',
+        #                                                'inverse_Booleans',
+        #                                                'output_transform_file',
+        #                                                'ext'],
+        #                                   output_names=['output_transform_file']))
+        # mbFlow.add_nodes([ComposeAffine])
+        # mbFlow.connect(AffineFileList, 'string_list',
+        #                ComposeAffine, 'transform_files')
+        # ComposeAffine.inputs.inverse_Booleans = [False, False]
+        # ComposeAffine.inputs.output_transform_file = ''
+        # ComposeAffine.inputs.ext = '.txt'
     #-------------------------------------------------------------------------
     # Construct ANTs MNI152-to-subject nonlinear transform lists:
     #-------------------------------------------------------------------------
@@ -1141,7 +1141,8 @@ if do_surface:
                                 input_names=['labels_or_file',
                                              'sulci',
                                              'fundi',
-                                             'affine_transform_file',
+                                             'affine_transform_files',
+                                             'inverse_booleans',
                                              'transform_format',
                                              'area_file',
                                              'normalize_by_area',
@@ -1167,7 +1168,8 @@ if do_surface:
         ShapeTables.inputs.labels_or_file = []
         ShapeTables.inputs.sulci = []
         ShapeTables.inputs.fundi = []
-        ShapeTables.inputs.affine_transform_file = None
+        ShapeTables.inputs.affine_transform_files = None
+        ShapeTables.inputs.inverse_booleans = None
         ShapeTables.inputs.transform_format = None
         ShapeTables.inputs.freesurfer_convexity_file = ''
         ShapeTables.inputs.freesurfer_thickness_file = ''
@@ -1190,8 +1192,9 @@ if do_surface:
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
         if do_ants:
-            mbFlow.connect(ComposeAffine, 'output_transform_file',
-                           ShapeTables, 'affine_transform_file')
+            mbFlow.connect(AffineFileList, 'string_list',
+                           ShapeTables, 'affine_transform_files')
+            ShapeTables.inputs.inverse_booleans = [1, 1]
             ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = True
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
@@ -1259,7 +1262,8 @@ if do_surface:
                                                  'labels_or_file',
                                                  'sulci',
                                                  'fundi',
-                                                 'affine_transform_file',
+                                                 'affine_transform_files',
+                                                 'inverse_booleans',
                                                  'transform_format',
                                                  'area_file',
                                                  'mean_curvature_file',
@@ -1274,7 +1278,8 @@ if do_surface:
             VertexTable.inputs.labels_or_file = []
             VertexTable.inputs.sulci = []
             VertexTable.inputs.fundi = []
-            VertexTable.inputs.affine_transform_file = None
+            VertexTable.inputs.affine_transform_files = None
+            VertexTable.inputs.inverse_booleans = None
             VertexTable.inputs.transform_format = None
             VertexTable.inputs.freesurfer_thickness_file = ''
             VertexTable.inputs.freesurfer_convexity_file = ''
@@ -1290,8 +1295,9 @@ if do_surface:
                                VertexTable, 'fundi')
 
             if do_ants:
-                mbFlow.connect(ComposeAffine, 'output_transform_file',
-                               VertexTable, 'affine_transform_file')
+                mbFlow.connect(AffineFileList, 'string_list',
+                               VertexTable, 'affine_transform_files')
+                VertexTable.inputs.inverse_booleans = [1, 1]
                 VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
@@ -1319,18 +1325,20 @@ if do_surface:
         #---------------------------------------------------------------------
         if do_ants and args.xfm:
             TransformVTK = Node(name='Transform_surface_points',
-                                interface=Fn(function=apply_affine_transform,
-                                             input_names=['transform_file',
-                                                          'vtk_or_points',
+                                interface=Fn(function=apply_affine_transforms,
+                                             input_names=['transform_files',
+                                                          'inverse_booleans',
                                                           'transform_format',
+                                                          'vtk_or_points',
                                                           'vtk_file_stem'],
                                              output_names=['affine_points',
                                                            'output_file']))
             mbFlow.add_nodes([TransformVTK])
-            mbFlow.connect(ComposeAffine, 'output_transform_file',
-                           TransformVTK, 'transform_file')
+            mbFlow.connect(AffineFileList, 'string_list',
+                           TransformVTK, 'transform_files')
             mbFlow.connect(TravelDepth, 'depth_file',
                            TransformVTK, 'vtk_or_points')
+            TransformVTK.inputs.inverse_booleans = [1, 1]
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
 
