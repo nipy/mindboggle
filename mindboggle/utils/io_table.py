@@ -253,8 +253,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         indices to fundi, one per vertex, with -1 indicating no fundus
     affine_transform_files : list of strings
         affine transform files to standard space
-    inverse_booleans : list of Booleans
-        take the inverse of each transform?
+    inverse_booleans : list of of zeros and ones
+        for each transform, 1 to take the inverse, else 0
     transform_format : string
         format for transform file
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
@@ -635,8 +635,8 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
         indices to fundi, one per vertex, with -1 indicating no fundus
     affine_transform_files : list of strings
         affine transform files to standard space
-    inverse_booleans : list of Booleans
-        take the inverse of each transform?
+    inverse_booleans : list of of zeros and ones
+        for each transform, 1 to take the inverse, else 0
     transform_format : string
         format for transform file
         Ex: 'txt' for text, 'itk' for ITK, and 'mat' for Matlab format
@@ -674,7 +674,7 @@ def write_vertex_measures(output_table, labels_or_file, sulci=[], fundi=[],
     >>> fundi, name = read_scalars(fundi_file)
     >>> affine_transform_files = [os.path.join(path, 'arno', 'mri',
     >>>     't1weighted_brain.MNI152Affine.txt')]
-    >>> inverse_booleans = [True]
+    >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> swap_xy = True
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.area.vtk')
