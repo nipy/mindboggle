@@ -1199,8 +1199,8 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     ----------
     transform files : list of strings
         names of affine transform files
-    inverse_booleans : list of Booleans
-        take the inverse of each transform?
+    inverse_booleans : list of of zeros and ones
+        for each transform, 1 to take the inverse, else 0
     transform_format : string
         format for transform file (currently 'itk');
         complications arise with other formats, such as
@@ -1226,7 +1226,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
     >>> from mindboggle.utils.io_vtk import apply_affine_transforms
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
-    >>> inverse_booleans = [True]
+    >>> inverse_booleans = [1]
     >>> transform_format = 'itk'
     >>> vtk_or_points = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> vtk_file_stem = 'affine_'

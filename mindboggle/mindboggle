@@ -440,20 +440,7 @@ if do_ants:
                        AffineFileList, 'string2')
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
-
-        # ComposeAffine = Node(name='Compose_affine_transform',
-        #                      interface=Fn(function=ComposeMultiTransform,
-        #                                   input_names=['transform_files',
-        #                                                'inverse_Booleans',
-        #                                                'output_transform_file',
-        #                                                'ext'],
-        #                                   output_names=['output_transform_file']))
-        # mbFlow.add_nodes([ComposeAffine])
-        # mbFlow.connect(AffineFileList, 'string_list',
-        #                ComposeAffine, 'transform_files')
-        # ComposeAffine.inputs.inverse_Booleans = [False, False]
-        # ComposeAffine.inputs.output_transform_file = ''
-        # ComposeAffine.inputs.ext = '.txt'
+        inverse_Booleans = [1, 1]  # list of ones or zeros for use with ANTs
     #-------------------------------------------------------------------------
     # Construct ANTs MNI152-to-subject nonlinear transform lists:
     #-------------------------------------------------------------------------
@@ -1194,7 +1181,7 @@ if do_surface:
         if do_ants:
             mbFlow.connect(AffineFileList, 'string_list',
                            ShapeTables, 'affine_transform_files')
-            ShapeTables.inputs.inverse_booleans = [1, 1]
+            ShapeTables.inputs.inverse_booleans = inverse_Booleans
             ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = True
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
@@ -1297,7 +1284,7 @@ if do_surface:
             if do_ants:
                 mbFlow.connect(AffineFileList, 'string_list',
                                VertexTable, 'affine_transform_files')
-                VertexTable.inputs.inverse_booleans = [1, 1]
+                VertexTable.inputs.inverse_booleans = inverse_Booleans
                 VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
@@ -1338,7 +1325,7 @@ if do_surface:
                            TransformVTK, 'transform_files')
             mbFlow.connect(TravelDepth, 'depth_file',
                            TransformVTK, 'vtk_or_points')
-            TransformVTK.inputs.inverse_booleans = [1, 1]
+            TransformVTK.inputs.inverse_booleans = inverse_Booleans
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
 
