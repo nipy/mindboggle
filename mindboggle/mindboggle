@@ -438,9 +438,6 @@ if do_ants:
         AffineFileList.inputs.string1 = affine_to_mni
         mbFlow.connect(FetchANTs, 'affine_subject2template',
                        AffineFileList, 'string2')
-        #AffineFileList.inputs.string2 = affine_to_mni
-        #mbFlow.connect(FetchANTs, 'affine_subject2template',
-        #               AffineFileList, 'string1')
         AffineFileList.inputs.string3 = ''
         AffineFileList.inputs.string4 = ''
 
@@ -455,7 +452,6 @@ if do_ants:
         mbFlow.connect(AffineFileList, 'string_list',
                        ComposeAffine, 'transform_files')
         ComposeAffine.inputs.inverse_Booleans = [False, False]
-        #ComposeAffine.inputs.inverse_Booleans = [True, True]
         ComposeAffine.inputs.output_transform_file = ''
         ComposeAffine.inputs.ext = '.txt'
     #-------------------------------------------------------------------------
@@ -1193,10 +1189,10 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        #if do_ants:
-        #    mbFlow.connect(ComposeAffine, 'output_transform_file',
-        #                   ShapeTables, 'affine_transform_file')
-        #    ShapeTables.inputs.transform_format = 'itk'
+        if do_ants:
+            mbFlow.connect(ComposeAffine, 'output_transform_file',
+                           ShapeTables, 'affine_transform_file')
+            ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = True
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
                    [('Surface_area.area_file', 'area_file'),
@@ -1293,10 +1289,10 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            #if do_ants:
-            #    mbFlow.connect(ComposeAffine, 'output_transform_file',
-            #                   VertexTable, 'affine_transform_file')
-            #    VertexTable.inputs.transform_format = 'itk'
+            if do_ants:
+                mbFlow.connect(ComposeAffine, 'output_transform_file',
+                               VertexTable, 'affine_transform_file')
+                VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
                                 ('Travel_depth.depth_file',
@@ -1328,8 +1324,7 @@ if do_surface:
                                                           'vtk_or_points',
                                                           'transform_format',
                                                           'vtk_file_stem',
-                                                          'use_ants',
-                                                          'swap_xy'],
+                                                          'use_ants'],
                                              output_names=['affine_points',
                                                            'output_file']))
             mbFlow.add_nodes([TransformVTK])
@@ -1339,8 +1334,7 @@ if do_surface:
                            TransformVTK, 'vtk_or_points')
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
-            TransformVTK.inputs.use_ants = False
-            TransformVTK.inputs.swap_xy = True
+            TransformVTK.inputs.use_ants = True
 
 
 #=============================================================================
