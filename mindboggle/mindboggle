@@ -422,7 +422,7 @@ if do_ants:
     mbFlow.add_nodes([FetchANTs])
     FetchANTs.inputs.segmented_file = ants_segments
     #-------------------------------------------------------------------------
-    # Compose single affine transform from subject to MNI152:
+    # Create list of affine transforms from subject to MNI152:
     #-------------------------------------------------------------------------
     if (do_shapes and do_surface) or do_label:
         affine_to_mni = retrieve_data(atropos_to_MNI152_affine,
