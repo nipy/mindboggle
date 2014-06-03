@@ -1195,7 +1195,7 @@ if do_surface:
         #                    ShapeTables, 'affine_transform_files')
         #     ShapeTables.inputs.inverse_booleans = inverse_Booleans
         #     ShapeTables.inputs.transform_format = 'itk'
-        ShapeTables.inputs.normalize_by_area = True
+        ShapeTables.inputs.normalize_by_area = False
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
                    [('Surface_area.area_file', 'area_file'),
                     ('Curvature.mean_curvature_file', 'mean_curvature_file'),
