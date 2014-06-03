@@ -491,11 +491,11 @@ def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=
     >>> area_file = os.path.join(data_path, 'arno', 'shapes', 'lh.pial.area.vtk')
     >>> labels_file = os.path.join(data_path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> values, name = read_scalars(values_file, True, True)
-    >>> areas, name = read_scalars(area_file, True, True)
+    >>> #areas, name = read_scalars(area_file, True, True)
     >>> labels, name = read_scalars(labels_file)
     >>> include_labels = []
     >>> exclude_labels = [-1]
-    >>> areas = areas
+    >>> areas = [] #areas
     >>> #
     >>> # Example 1: compute mean curvature per label:
     >>> means, sdevs, label_list, label_areas = means_per_label(values, labels,

@@ -229,7 +229,7 @@ def write_rows(filename, list_of_lines, header=""):
 
 def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         affine_transform_files=[], inverse_booleans=[], transform_format='itk',
-        area_file='', normalize_by_area=True, mean_curvature_file='',
+        area_file='', normalize_by_area=False, mean_curvature_file='',
         travel_depth_file='', geodesic_depth_file='',
         freesurfer_convexity_file='', freesurfer_thickness_file='',
         labels_spectra=[], labels_spectra_IDs=[],
@@ -261,7 +261,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     area_file :  string
         name of VTK file with surface area scalar values
     normalize_by_area : Boolean
-        normalize all shape measures by area of label/feature?
+        normalize all shape measures by area of label/feature? (UNTESTED)
     mean_curvature_file :  string
         name of VTK file with mean curvature scalar values
     travel_depth_file :  string
@@ -318,7 +318,7 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
     >>> #transform_format = 'mat'
     >>> transform_format = 'itk'
     >>> area_file = os.path.join(path, 'arno', 'shapes', 'left_surface', 'area.vtk')
-    >>> normalize_by_area = True
+    >>> normalize_by_area = False
     >>> mean_curvature_file = os.path.join(path, 'shapes', 'left_surface', 'mean_curvature.vtk')
     >>> travel_depth_file = os.path.join(path, 'shapes', 'left_surface', 'travel_depth.vtk')
     >>> geodesic_depth_file = os.path.join(path, 'shapes', 'left_surface', 'geodesic_depth.vtk')
