@@ -139,89 +139,72 @@ Mindboggle output files
 ------------------------------------------------------------------------------
 By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.
-All volume image files are in the Nifti_ (.nii.gz) format.
-All surface subdirectories contain cortical surface meshes in VTK_ format (.vtk).
-All tables are comma-delimited (.csv).
-Each file contains integer (index) values that correspond to anatomical
-`labels <http://mindboggle.info/faq/labels.html>`_ or features (e.g., 0-24 for sulci).
-Except where noted, all output data are in the original subject's space.
+Volume files are in Nifti_ format, surface meshes in VTK_ format,
+and tables are comma-delimited.
+Each file contains integers that correspond to anatomical
+`labels <http://mindboggle.info/faq/labels.html>`_
+or features (e.g., 0-24 for sulci).
+All output data are in the original subject's space.
+The following include outputs from most, but not all, optional arguments.
 
-+-+---------------+----------------------------------------------+--------------+
-| |  **Folder**   | **Contents**                                 | **Format**   |
-+-+---------------+----------------------------------------------+--------------+
-| |   labels/     |  number-labeled surfaces and volumes         | .vtk, .nii.gz|
-+-+---------------+----------------------------------------------+--------------+
-| |   features/   |  surfaces with features:  sulci, fundi       | .vtk         |
-+-+---------------+----------------------------------------------+--------------+
-| |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk         |
-+-+---------------+----------------------------------------------+--------------+
-| |   tables/     |  tables of shape measures per label/feature  | .csv         |
-+-+---------------+----------------------------------------------+--------------+
++-+---------------+----------------------------------------------------+--------------+
+| |  **Folder**   | **Contents**                                       | **Format**   |
++-+---------------+----------------------------------------------------+--------------+
+| |   labels/     |  number-labeled surfaces and volumes               | .vtk, .nii.gz|
++-+---------------+----------------------------------------------------+--------------+
+| |   features/   |  surfaces with features:  sulci, fundi             | .vtk         |
++-+---------------+----------------------------------------------------+--------------+
+| |   shapes/     |  surfaces with shape measures (per vertex)         | .vtk         |
++-+---------------+----------------------------------------------------+--------------+
+| |   tables/     |tables of shape measures (per label/feature/vertex) | .csv         |
++-+---------------+----------------------------------------------------+--------------+
 
 **mindboggled** / SUBJECT /
 
     **labels** /
 
-        **FreeSurfer_wmparc_labels**:  *[FS wmparc+aseg labels for a given subject brain]*
+        **FreeSurfer_wmparc_filled_labels.nii.gz**:  *hybrid segmentation filled with FS labels*
 
-        **FreeSurfer_wmparc_filled_labels**:  *[segmentation modified and filled with FS labels]*
+        **ANTs_filled_labels.nii.gz**:  *hybrid segmentation filled with ANTs + FS cerebellar labels*
 
-        **ANTs_labels**:  *[joint-fusion atlas labels registered to the subject]*
+        [left,right]_surface / **FreeSurfer_cortex_labels.vtk**:  *FS or* `DKT <http://mindboggle.info/data/>`_ *cortical surface labels*
 
-        **ANTs_filled_labels**:  *[revised segments filled with ANTs + FS cerebellar labels]*
+    **features** / [left,right]_surface /
 
-        **ATLAS_labels**:  *[subject labeled with ATLAS labels, from "--atlases ATLAS"]*
+            **sulci.vtk**:  *sulci defined by* `DKT <http://mindboggle.info/data/>`_ *label pairs in depth-based folds*
 
-        [left,right]_surface /
+            **fundus_per_sulcus.vtk**:  *fundus curve per sulcus*  **-- UNDER EVALUATION --**
 
-            **FreeSurfer_cortex_labels**:  *[FS or DKT atlas cortical surface labels assigned to subject]*
+    **shapes** / [left,right]_surface /
 
-    **features** /
+            **area.vtk**:  *per-vertex surface area*
 
-        [left,right]_surface /
+            **mean_curvature.vtk**:  *per-vertex mean curvature*
 
-            **folds**:  *[depth-based cortical surface folds (invaginations)]*
+            **geodesic_depth.vtk**:  *per-vertex geodesic depth*
 
-            **sulci**:  *[folds segmented into sulci using label pairs]*
+            **travel_depth.vtk**:  *per-vertex travel depth*
 
-            **fundus_per_fold**:  *[curves running along depths of folds]*  **UNDER EVALUATION**
+            **FreeSurfer_convexity.vtk**:  *FS sulc files converted to VTK*
 
-            **fundus_per_sulcus**:  *[fundus curves segmented by sulcus labels]*  **UNDER EVALUATION**
-
-    **shapes** /
-
-        [left,right]_surface /
-
-            **area**:  *[per-vertex surface area]*
-
-            **mean_curvature**:  *[per-vertex mean curvature]*
-
-            **geodesic_depth**:  *[per-vertex geodesic depth]*
-
-            **travel_depth**:  *[per-vertex travel depth]*
-
-            **FreeSurfer_convexity**:  *[FreeSurfer's [lh,rh].sulc files converted to VTK format]*
-
-            **FreeSurfer_thickness**:  *[FreeSurfer's [lh,rh].thickness files converted to VTK format]*
+            **FreeSurfer_thickness.vtk**:  *FS thickness files converted to VTK*
 
     **tables** /
 
-        **FreeSurfer_filled_labels_volumes**:  *[volume per FS-filled label]*
+        **volumes_FreeSurfer_labels.csv**:  *volume per FS-filled label*
 
-        **FreeSurfer_filled_labels_volumes_areas_thicknesses**:  *[measure per FS-filled cortical label]*
+        **volumes_ANTs_labels.csv**:  *volume per ANTs-filled label*
 
-        **ANTs_filled_labels_volumes**:  *[volume per ANTs-filled label]*
+        **thickinthehead_FreeSurfer_labels.csv**:  *thickness measure per FS-filled cortical label*
 
-        **ANTs_filled_labels_volumes_areas_thicknesses**:  *[measure per ANTs-filled cortical label]*
-
-        **ATLAS_labels_volumes**:  *[volume per ATLAS label, from "--atlases ATLAS"]*
+        **thickinthehead_ANTs_labels.csv**:  *thickness measure per ANTs-filled cortical label*
 
         [left,right]_surface /
 
-            **label_shapes**:  *[per-label surface shape statistics]*
+            **label_shapes.csv**:  *per-label surface shape statistics*
 
-            **sulcus_shapes**:  *[per-sulcus surface shape statistics]*
+            **sulcus_shapes.csv**:  *per-sulcus surface shape statistics*
 
-            **fundus_shapes**:  *[per-fundus surface shape statistics]*  **UNDER EVALUATION**
+            **fundus_shapes.csv**:  *per-fundus surface shape statistics*  **-- UNDER EVALUATION --**
 
-            **vertices**:  *[per-vertex surface shape statistics]*
+            **vertices.csv**:  *per-vertex surface shape statistics*
