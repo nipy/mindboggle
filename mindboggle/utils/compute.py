@@ -446,7 +446,7 @@ def median_abs_dev(X, W=[], precision=1, c=1.0):
 def means_per_label(values, labels, include_labels=[], exclude_labels=[], areas=[]):
     """
     Compute the mean value across vertices per label,
-    optionally taking into account surface area per vertex.
+    optionally taking into account surface area per vertex (UNTESTED).
 
     Formula:
     average value = sum(a_i * v_i) / total_surface_area,
