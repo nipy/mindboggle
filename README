@@ -11,7 +11,7 @@ reproducibility of results. Behind the scenes runs open source
 Python and C++ code within a Nipype pipeline framework.
 
 ------------------------------------------------------------------------------
-Help
+Help with Mindboggle
 ------------------------------------------------------------------------------
 - Help in a terminal window (see below for inputs and outputs)::
 
@@ -24,7 +24,7 @@ Help
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-Examples
+Example Mindboggle commands
 ------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
 type the following two commands in a terminal window,
@@ -64,7 +64,7 @@ and Laplace-Beltrami spectral measures
 
 
 ------------------------------------------------------------------------------
-Inputs
+Mindboggle input files
 ------------------------------------------------------------------------------
 Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
@@ -84,12 +84,10 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 **ANTs** provides brain volume extraction, segmentation, and registration-based labeling.
 To generate the ANTs transforms and segmentation files used by
 Mindboggle, run the antsCorticalThickness.sh script on the same IMAGE file,
-set an output PREFIX, and provide paths to
-`OASIS-30 template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
+set an output PREFIX, and provide paths to the
+`OASIS-30 Atropos template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
 files (backslash denotes a line return)::
-    antsCorticalThickness.sh -d 3 -n 3 -w 0.25 -k \
-      -a IMAGE \
-      -o PREFIX \
+    antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
       -e OASIS-30_Atropos_template/T_template0.nii.gz \
       -t OASIS-30_Atropos_template/T_template0_BrainCerebellum.nii.gz \
       -m OASIS-30_Atropos_template/T_template0_BrainCerebellumProbabilityMask.nii.gz \
@@ -97,43 +95,63 @@ files (backslash denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-Steps
+Mindboggle processing steps
 ------------------------------------------------------------------------------
-    1. Combine FreeSurfer and ANTs gray/white volume segmentations.
-    2. Propagate (FreeSurfer-/ANTs-) registered labels through non/cortex masks.
-    3. Compute label volumes and cortical label thicknesses.
-    4. Compute shape measures on every (FreeSurfer) cortical surface vertex.
-    5. Extract cortical surface features (e.g., sulci, fundi).
-    6. Compute statistics on the following shape measures per surface label/feature:
+    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output.
+    2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
+    3. Compute volume shape measures for each labeled region:
 
-        - Surface area
-        - Travel depth
-        - Geodesic depth
-        - Mean curvature
-        - Convexity (FreeSurfer)
-        - Thickness (FreeSurfer)
-        - Laplace-Beltrami spectra
+        - volume
+        - thickness (cortical labels)
+
+    4. Compute surface shape measures for every cortical mesh vertex:
+
+        - surface area
+        - travel depth
+        - geodesic depth
+        - mean curvature
+        - convexity (from FreeSurfer)
+        - thickness (from FreeSurfer)
+
+    5. Extract cortical surface features:
+
+        - sulci
+        - fundi
+
+    6. Compute shape vector per cortical surface label/feature:
+
+        - Laplace-Beltrami spectrum
         - Zernike moments
 
+    7. Compute statistics for each shape measure in #4 for each label/feature:
+
+        - median
+        - median absolute deviation
+        - mean
+        - standard deviation
+        - skew
+        - kurtosis
+        - lower quartile
+        - upper quartile
+
 ------------------------------------------------------------------------------
-Outputs
+Mindboggle output files
 ------------------------------------------------------------------------------
-By default, final outputs are saved in $HOME/mindboggled/SUBJECT, where
-$HOME is the home directory and SUBJECT is the name of the subject
-(all data are in the original subject's space).
-Each output in the labels directory is assumed to be a
-Nifti_ image volume (.nii.gz) that stores anatomical `labels <http://mindboggle.info/faq/labels.html>`_;
-if in a surface directory it refers to a cortical surface in VTK_ format (.vtk),
-whose vertices are number-labeled by anatomical label, feature, or shape measure.
-All tables are in CSV format (.csv) where each row represents a label/feature/vertex,
-and the columns contain shape statistics.
+By default, output files are saved in HOME/mindboggled/SUBJECT,
+where HOME is the home directory and SUBJECT is the name of the subject.
+All volume image files are in the Nifti_ (.nii.gz) format.
+All surface subdirectories contain cortical surface meshes in VTK_ format (.vtk).
+All tables are comma-delimited (.csv).
+Each file contains integer (index) values that correspond to anatomical
+`labels <http://mindboggle.info/faq/labels.html>`_ or features (e.g., 0-24 for sulci).
+Except where noted, all output data are in the original subject's space.
 
 +-+---------------+----------------------------------------------+--------------+
 | |  **Folder**   | **Contents**                                 | **Format**   |
 +-+---------------+----------------------------------------------+--------------+
 | |   labels/     |  number-labeled surfaces and volumes         | .vtk, .nii.gz|
 +-+---------------+----------------------------------------------+--------------+
-| |   features/   |  surface features: folds, sulci, fundi       | .vtk         |
+| |   features/   |  surfaces with features:  sulci, fundi       | .vtk         |
 +-+---------------+----------------------------------------------+--------------+
 | |   shapes/     |  surfaces with shape measures (per vertex)   | .vtk         |
 +-+---------------+----------------------------------------------+--------------+
