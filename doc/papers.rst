@@ -216,7 +216,7 @@ Conferences
 .. |title_paper8| replace::
     `Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`_.
 .. |ref_paper8| replace::
-    *NeuroImage* (accepted).
+    *NeuroImage*. DOI: 10.1016/j.neuroimage.2014.05.044
 .. _`Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`:
     http://mindboggle.info/papers/ANTs_FS_corticalthickness_NeuroImage2014.pdf
 
