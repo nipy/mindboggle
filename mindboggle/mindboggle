@@ -1396,6 +1396,10 @@ if do_volumes and do_label:
                                          outfields=['mgh_orig'],
                                          sort_filelist=False))
     mghOrig.inputs.base_directory = subjects_dir
+    second_scan = os.path.join(subjects_dir, 'mri/orig/002.mgz')
+    if os.path.exists(second_scan):
+        raise(IOError("Mindboggle can not make use of FreeSurfer "
+                      "output with more than one scan: " + second_scan))
     mghOrig.inputs.template = '%s/mri/orig/001.mgz'
     mghOrig.inputs.template_args['mgh_orig'] = [['subject']]
     mghOrig.inputs.subject = subject
