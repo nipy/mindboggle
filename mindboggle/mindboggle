@@ -259,10 +259,12 @@ if (do_label or do_features) and do_shapes:
     if args.moments > 0:
         do_zernike = True
 do_freesurfer_thickness = False  # Include FreeSurfer's thickness measure
-do_freesurfer_convexity = False  # Include FreeSurfer's convexity measure
+do_freesurfer_curvature = False  # Include FreeSurfer's curvature measure (curv)
+do_freesurfer_sulc = False  # Include FreeSurfer's convexity measure (sulc)
 if do_shapes and use_FS_inputs:
     do_freesurfer_thickness = True
-    do_freesurfer_convexity = True
+    do_freesurfer_curvature = True
+    do_freesurfer_sulc = True
 #-----------------------------------------------------------------------------
 # Basic functions
 #-----------------------------------------------------------------------------
@@ -375,8 +377,9 @@ ants_filled_out = 'ANTs_filled_labels.nii.gz'
 Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
     ('pial.', ''),
-    ('sulc.vtk', 'FreeSurfer_convexity.vtk'),
     ('thickness.vtk', 'FreeSurfer_thickness.vtk'),
+    ('curv.vtk', 'FreeSurfer_curvature.vtk'),
+    ('sulc.vtk', 'FreeSurfer_sulc.vtk'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
     (fs_in, fs_out),
     (fs_filled_in, fs_filled_out),
@@ -505,8 +508,11 @@ if do_surface:
     if do_freesurfer_thickness:
         Surf.inputs.template_args['freesurfer_thickness_files'] = \
             [['subject', 'hemi', 'thickness']]
-    if do_freesurfer_convexity:
-        Surf.inputs.template_args['freesurfer_convexity_files'] = \
+    if do_freesurfer_curvature:
+        Surf.inputs.template_args['freesurfer_curvature_files'] = \
+            [['subject', 'hemi', 'curv']]
+    if do_freesurfer_sulc:
+        Surf.inputs.template_args['freesurfer_sulc_files'] = \
             [['subject', 'hemi', 'sulc']]
 
     Surf.inputs.subject = subject
@@ -806,23 +812,38 @@ if do_surface:
         #---------------------------------------------------------------------
         # Convert FreeSurfer surface measures to VTK:
         #---------------------------------------------------------------------
-        if do_freesurfer_convexity:
-            ConvexNode = Node(name='Convexity_to_vtk',
+        if do_freesurfer_curvature:
+            ConvexNode = Node(name='Curv_to_vtk',
                               interface=Fn(function=curvature_to_vtk,
                                            input_names=['surface_file',
                                                         'vtk_file',
                                                         'output_vtk'],
                                            output_names=['output_vtk']))
             WholeSurfShapeFlow.add_nodes([ConvexNode])
-            mbFlow.connect(Surf, 'freesurfer_convexity_files',
-                           WholeSurfShapeFlow,
-                           'Convexity_to_vtk.surface_file')
+            mbFlow.connect(Surf, 'freesurfer_curvature_files',
+                           WholeSurfShapeFlow, 'Curv_to_vtk.surface_file')
             mbFlow.connect(ConvertSurf, 'output_vtk',
-                           WholeSurfShapeFlow, 'Convexity_to_vtk.vtk_file')
+                           WholeSurfShapeFlow, 'Curv_to_vtk.vtk_file')
             ConvexNode.inputs.output_vtk = ''
             if save_all:
-                mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
-                               Sink, 'shapes.@freesurfer_convexity')
+                mbFlow.connect(WholeSurfShapeFlow, 'Curv_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_curvature')
+        if do_freesurfer_sulc:
+            ConvexNode = Node(name='Sulc_to_vtk',
+                              interface=Fn(function=curvature_to_vtk,
+                                           input_names=['surface_file',
+                                                        'vtk_file',
+                                                        'output_vtk'],
+                                           output_names=['output_vtk']))
+            WholeSurfShapeFlow.add_nodes([ConvexNode])
+            mbFlow.connect(Surf, 'freesurfer_sulc_files',
+                           WholeSurfShapeFlow, 'Sulc_to_vtk.surface_file')
+            mbFlow.connect(ConvertSurf, 'output_vtk',
+                           WholeSurfShapeFlow, 'Sulc_to_vtk.vtk_file')
+            ConvexNode.inputs.output_vtk = ''
+            if save_all:
+                mbFlow.connect(WholeSurfShapeFlow, 'Sulc_to_vtk.output_vtk',
+                               Sink, 'shapes.@freesurfer_sulc')
         if do_freesurfer_thickness:
             ThickNode = Node(name='Thickness_to_vtk',
                              interface=Fn(function=curvature_to_vtk,
@@ -1148,8 +1169,9 @@ if do_surface:
                                              'mean_curvature_file',
                                              'travel_depth_file',
                                              'geodesic_depth_file',
-                                             'freesurfer_convexity_file',
                                              'freesurfer_thickness_file',
+                                             'freesurfer_curvature_file',
+                                             'freesurfer_sulc_file',
                                              'labels_spectra',
                                              'labels_spectra_IDs',
                                              'sulci_spectra',
@@ -1170,8 +1192,9 @@ if do_surface:
         ShapeTables.inputs.affine_transform_files = None
         ShapeTables.inputs.inverse_booleans = None
         ShapeTables.inputs.transform_format = None
-        ShapeTables.inputs.freesurfer_convexity_file = ''
         ShapeTables.inputs.freesurfer_thickness_file = ''
+        ShapeTables.inputs.freesurfer_curvature_file = ''
+        ShapeTables.inputs.freesurfer_sulc_file = ''
         ShapeTables.inputs.labels_spectra = []
         ShapeTables.inputs.sulci_spectra = []
         ShapeTables.inputs.labels_spectra_IDs = []
@@ -1201,12 +1224,15 @@ if do_surface:
                     ('Curvature.mean_curvature_file', 'mean_curvature_file'),
                     ('Travel_depth.depth_file', 'travel_depth_file'),
                     ('Geodesic_depth.depth_file', 'geodesic_depth_file')])])
-        if do_freesurfer_convexity:
-            mbFlow.connect(WholeSurfShapeFlow, 'Convexity_to_vtk.output_vtk',
-                           ShapeTables, 'freesurfer_convexity_file')
         if do_freesurfer_thickness:
             mbFlow.connect(WholeSurfShapeFlow, 'Thickness_to_vtk.output_vtk',
                            ShapeTables, 'freesurfer_thickness_file')
+        if do_freesurfer_curvature:
+            mbFlow.connect(WholeSurfShapeFlow, 'Curv_to_vtk.output_vtk',
+                           ShapeTables, 'freesurfer_curvature_file')
+        if do_freesurfer_sulc:
+            mbFlow.connect(WholeSurfShapeFlow, 'Sulc_to_vtk.output_vtk',
+                           ShapeTables, 'freesurfer_sulc_file')
 
         # Laplace-Beltrami spectra:
         if do_spectra:
@@ -1268,8 +1294,9 @@ if do_surface:
                                                  'mean_curvature_file',
                                                  'travel_depth_file',
                                                  'geodesic_depth_file',
-                                                 'freesurfer_convexity_file',
                                                  'freesurfer_thickness_file',
+                                                 'freesurfer_curvature_file',
+                                                 'freesurfer_sulc_file',
                                                  'delimiter'],
                                     output_names=['output_table']))
             mbFlow.add_nodes([VertexTable])
@@ -1281,7 +1308,8 @@ if do_surface:
             VertexTable.inputs.inverse_booleans = None
             VertexTable.inputs.transform_format = None
             VertexTable.inputs.freesurfer_thickness_file = ''
-            VertexTable.inputs.freesurfer_convexity_file = ''
+            VertexTable.inputs.freesurfer_curvature_file = ''
+            VertexTable.inputs.freesurfer_sulc_file = ''
             if do_label:
                 mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                                VertexTable, 'labels_or_file')
@@ -1310,10 +1338,14 @@ if do_surface:
                 mbFlow.connect(WholeSurfShapeFlow,
                                'Thickness_to_vtk.output_vtk',
                                VertexTable, 'freesurfer_thickness_file')
-            if do_freesurfer_convexity:
+            if do_freesurfer_curvature:
                 mbFlow.connect(WholeSurfShapeFlow,
-                               'Convexity_to_vtk.output_vtk',
-                               VertexTable, 'freesurfer_convexity_file')
+                               'Curv_to_vtk.output_vtk',
+                               VertexTable, 'freesurfer_curvature_file')
+            if do_freesurfer_sulc:
+                mbFlow.connect(WholeSurfShapeFlow,
+                               'Sulc_to_vtk.output_vtk',
+                               VertexTable, 'freesurfer_sulc_file')
 
             VertexTable.inputs.delimiter = ","
             mbFlow.connect(VertexTable, 'output_table',
