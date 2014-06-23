@@ -85,6 +85,14 @@ Conferences
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+| |pic_pres16|    | |authors_pres16|    |
++                 +---------------------+
+|                 | |title_pres16|      |
++                 +---------------------+
+|                 | |ref_pres16|        |
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
 | |pic_pres15|    | |authors_pres15|    |
 +                 +---------------------+
 |                 | |title_pres15|      |
@@ -122,14 +130,6 @@ Conferences
 |                 | |title_pres11|      |
 +                 +---------------------+
 |                 | |ref_pres11|        |
-+-----------------+---------------------+
-|                 |                     |
-+-----------------+---------------------+
-| |pic_pres10|    | |authors_pres10|    |
-+                 +---------------------+
-|                 | |title_pres10|      |
-+                 +---------------------+
-|                 | |ref_pres10|        |
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
@@ -216,7 +216,8 @@ Conferences
 .. |title_paper8| replace::
     `Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`_.
 .. |ref_paper8| replace::
-    *NeuroImage*. DOI: 10.1016/j.neuroimage.2014.05.044
+    *NeuroImage*.
+    DOI: 10.1016/j.neuroimage.2014.05.044
 .. _`Large-scale evaluation of ANTs and FreeSurfer cortical thickness measurements`:
     http://mindboggle.info/papers/ANTs_FS_corticalthickness_NeuroImage2014.pdf
 
@@ -320,6 +321,17 @@ Conferences
     http://mindboggle.info/papers/Mindboggle_Neuroimage_ArnoKlein2005.pdf
 
 
+
+.. |pic_pres16| image:: http://media.mindboggle.info/images/conferences/Mindboggle101shapes_HBM2014.png
+                    :width: 300px
+.. |authors_pres16| replace::
+    Klein, A, Chaibub Neto, E, Giard, J, Bao, F, Hame, Y, Reuter, M, Tustison, N, Avants, B, Tourville, J, Dai, H, Nichols, N, Ghosh, S. 2014.
+.. |title_pres16| replace::
+    `Shape analysis of 101 healthy human brains`_.
+.. |ref_pres16| replace::
+    *Human Brain Mapping 2014 (Hamburg, Germany).*
+.. _`Shape analysis of 101 healthy human brains`:
+    http://mindboggle.info/posters/Mindboggle101shapes_HBM2014.pdf
 
 .. |pic_pres15| image:: http://media.mindboggle.info/images/conferences/Neuroinformatics2012_Mindboggle.png
                     :width: 300px
