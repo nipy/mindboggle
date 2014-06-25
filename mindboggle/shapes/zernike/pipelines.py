@@ -10,13 +10,13 @@ from .helpers import nest, autocat
 
 import logging
 LOG = logging.getLogger(__name__)
-import decorator
 
+#import decorator
 
-@decorator.decorator
-def logcall(fn, *args, **dargs):
-    LOG.debug(fn.__name__)
-    return fn(*args, **dargs)
+#@decorator.decorator
+#def logcall(fn, *args, **dargs):
+#    LOG.debug(fn.__name__)
+#    return fn(*args, **dargs)
 
 IMAG_CONST = scipy.sqrt(-1)
 PI_CONST = np.pi

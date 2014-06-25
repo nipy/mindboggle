@@ -48,7 +48,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     Examples
     --------
     >>> # Example 1: simple cube (decimation results in a Segmentation Fault):
-    >>> from mindboggle.shapes.zernike import zernike_moments
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> points = [[0,0,0], [1,0,0], [0,0,1], [0,1,1], [1,0,1], [0,1,0], [1,1,1], [1,1,0]]
     >>> faces = [[0,2,4], [0,1,4], [2,3,4], [3,4,5], [3,5,6], [0,1,7]]
     >>> order = 3
@@ -64,7 +64,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> # (decimation doesn't have any effect)
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.shapes.zernike import zernike_moments
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'cube.vtk')
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
@@ -88,7 +88,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> # Example 2.5: Parallelepiped.vtk:
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> from mindboggle.shapes.zernike import zernike_moments
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'Parallelepiped.vtk')
     >>> faces, u1,u2, points, u3,u4,u5,u6 = read_vtk(vtk_file)
@@ -113,7 +113,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> from mindboggle.utils.mesh import remove_faces
-    >>> from mindboggle.shapes.zernike import zernike_moments
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
@@ -132,7 +132,7 @@ def zernike_moments(points, faces, order=10, scale_input=True,
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
     >>> from mindboggle.utils.mesh import remove_faces
-    >>> from mindboggle.shapes.zernike import zernike_moments
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> label_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
     >>> faces, u1,u2, points, u3, labels, u4,u5 = read_vtk(label_file)
@@ -256,7 +256,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     >>> # Uncomment "if label==22:" below to run example:
     >>> # Twins-2-1 left postcentral (22) pial surface:
     >>> import os
-    >>> from mindboggle.shapes.zernike import zernike_moments_per_label
+    >>> from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
     >>> path = os.path.join(os.environ['HOME'], 'mindboggled', 'OASIS-TRT-20-1')
     >>> vtk_file = os.path.join(path, 'labels', 'left_surface', 'relabeled_classifier.vtk')
     >>> order = 3
@@ -294,7 +294,7 @@ def zernike_moments_per_label(vtk_file, order=10, exclude_labels=[-1],
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk
     from mindboggle.utils.mesh import remove_faces
-    #from mindboggle.shapes.zernike import zernike_moments
+    from mindboggle.shapes.zernike.zernike import zernike_moments
 
     min_points_faces = 4
 
