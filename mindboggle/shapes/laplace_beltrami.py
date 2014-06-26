@@ -306,6 +306,21 @@ def fem_laplacian(points, faces, spectrum_size=10, normalization=None):
          0.0054290178803611 ;
          0.006309346984678 }
 
+    Julien Lefevre, regarding comparison with Spongy results:
+    "I have done some comparisons between my Matlab codes and yours
+    on python and everything sounds perfect:
+    The evaluation has been done only for one mesh (about 10000 vertices)."
+    - L2 error between your A and B matrices and mine are about 1e-16.
+    - I have also compared eigenvalues of the generalized problem;
+      even if the error is slightly increasing, it remains on the order
+      of machine precision.
+    - Another good point: computation time for 1000 eigenvalues was 67s
+      with python versus 63s in matlab.
+      And it is quite the same behavior for lower orders.
+    - Since the eigenvalues are increasing with order,
+      it is also interesting to look at the relative error...
+      high frequencies are not so much perturbed."
+
     Parameters
     ----------
     points : list of lists of 3 floats
