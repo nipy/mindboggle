@@ -594,6 +594,33 @@ class DKTprotocol:
         "collateral sulcus"]
     sulcus_numbers = range(len(sulcus_names))
 
+    sulcus_names_abbr = [
+        "fms",
+        "sfrs",
+        "ifrs",
+        "prcs",
+        "cs",
+        "pocs",
+        "itps",
+        "pis/csts1",
+        "aals/ahls/pals/phls",
+        "locs",
+        "aocs",
+        "sts",
+        "its",
+        "crs",
+        "ftts/hs",
+        "cgs",
+        "pcs",
+        "pos",
+        "ccs",
+        "sros",
+        "cas",
+        "lhos",
+        "olfs",
+        "ots",
+        "cos"]
+
     #-------------------------------------------------------------------------
     # Lists of label pairs that define sulcus boundaries (or fundi)
     # according to the DKT labeling protocol.
