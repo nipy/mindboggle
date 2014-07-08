@@ -273,7 +273,7 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 - 632, "cerebellar vermal lobules VIII-X"]]
 
 ------------------------------------------------------------------------------
- Sulcus names from the DKT labeling protocol
+ Sulcus names and abbreviations from the DKT labeling protocol
 ------------------------------------------------------------------------------
 -    "frontomarginal sulcus"
 -    "superior frontal sulcus"
@@ -300,6 +300,32 @@ and were reassigned to unused numbers in FreeSurferColorLUT.txt:
 -    "olfactory sulcus"
 -    "occipitotemporal sulcus"
 -    "collateral sulcus"
+
+-    "fms"
+-    "sfrs"
+-    "ifrs"
+-    "prcs"
+-    "cs"
+-    "pocs"
+-    "itps"
+-    "pis/csts1"
+-    "ls"
+-    "locs"
+-    "aocs"
+-    "sts"
+-    "its"
+-    "crs"
+-    "ftts/hs"
+-    "cgs"
+-    "pcs"
+-    "pos"
+-    "ccs"
+-    "sros"
+-    "cas"
+-    "lhos"
+-    "olfs"
+-    "ots"
+-    "cos"
 
 ------------------------------------------------------------------------------
  Lists of label pairs that define DKT sulcus boundaries

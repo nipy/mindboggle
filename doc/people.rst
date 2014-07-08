@@ -53,7 +53,7 @@ Past contributors
 .. |picAK| image:: http://media.binarybottle.com/images/ArnoKlein.jpg
                     :width: 200px
 .. |blurbAK| replace::
-    `Arno Klein`_ (CV_) directs two groups at `Sage Bionetworks`_ in Seattle:
+    `Arno Klein`_ (arno@binarybottle.com, CV_) directs two groups at `Sage Bionetworks`_ in Seattle:
     Neuroimaging, which analyzes biomedical image data, and SIMPL(E),
     which seeks and interprets meaningful patterns and latent explanations
     in data. Arno is particularly excited about imaging and visualization
