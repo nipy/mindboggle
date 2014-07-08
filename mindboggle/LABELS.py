@@ -603,7 +603,7 @@ class DKTprotocol:
         "pocs",
         "itps",
         "pis/csts1",
-        "aals/ahls/pals/phls",
+        "ls",
         "locs",
         "aocs",
         "sts",
