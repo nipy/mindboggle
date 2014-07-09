@@ -14,7 +14,7 @@ int main(int argc, char** argv)
 //    depthComputer->WriteIntoFile(argv[2]);
 
     MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
-    depthComputer->ComputeGeodesicDepthFromClosed(true);
+    depthComputer->ComputeGeodesicDepthFromClosed(false);
     depthComputer->WriteIntoFile(argv[2],(char*)"geoDepth");
     
     if(argc > 3) {
