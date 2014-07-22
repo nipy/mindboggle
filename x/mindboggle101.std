@@ -3,7 +3,7 @@ Executable = mindboggle
 Log        = mindboggle.log
 Output     = mindboggle.$(Process).out
 Error      = mindboggle.$(Process).error
-Arguments = MMRR-3T7T-2-1 -n 8 --ants_segments /data-share/Brains/Mindboggle101/antsCorticalThickness/MMRR-3T7T-2-1/antsBrainSegmentation.nii.gz --out /data-share/mindboggled --working /data-share/mindboggle_working --cache /data-share/mindboggle_cache --sulci --fundi --vertices --thickness --spectra 10 --moments 3 --surface_labels manual
+Arguments = MMRR-3T7T-2-1 --ants_segments /data-share/Brains/Mindboggle101/antsCorticalThickness/MMRR-3T7T-2-1/antsBrainSegmentation.nii.gz --out /data-share/mindboggled --working /data-share/mindboggle_working --cache /data-share/mindboggle_cache --sulci --fundi --vertices --thickness --spectra 10 --moments 3 --surface_labels manual
 Queue
-Arguments = MMRR-3T7T-2-2 -n 8 --ants_segments /data-share/Brains/Mindboggle101/antsCorticalThickness/MMRR-3T7T-2-2/antsBrainSegmentation.nii.gz --out /data-share/mindboggled --working /data-share/mindboggle_working --cache /data-share/mindboggle_cache --sulci --fundi --vertices --thickness --spectra 10 --moments 3 --surface_labels manual
+Arguments = MMRR-3T7T-2-2 --ants_segments /data-share/Brains/Mindboggle101/antsCorticalThickness/MMRR-3T7T-2-2/antsBrainSegmentation.nii.gz --out /data-share/mindboggled --working /data-share/mindboggle_working --cache /data-share/mindboggle_cache --sulci --fundi --vertices --thickness --spectra 10 --moments 3 --surface_labels manual
 Queue
