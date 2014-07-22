@@ -30,7 +30,6 @@ for i,name in enumerate(names):
     for n in range(1,number+1):
 
         args = '{0}-{1} ' \
-               '-n 8 ' \
                '--ants_segments {2}/{0}-{1}/{3}BrainSegmentation.nii.gz ' \
                '--out {4}/mindboggled ' \
                '--working {4}/mindboggle_working ' \
