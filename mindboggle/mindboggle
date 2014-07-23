@@ -172,7 +172,7 @@ extras_group.add_argument("--no_surfaces", action='store_true',
 extras_group.add_argument("--no_labels", action='store_true',
                     help="No surface or volume labels")
 extras_group.add_argument("--no_ants_transforms", action='store_true',
-                    help="No ANTs transforms (-k argument omitted "
+                    help="No ANTs transforms (-t argument omitted "
                          "when running antsCorticalThickness.sh)")
 extras_group.add_argument("--no_shapes", action='store_true',
                     help="No shape tables of surface labels or features")
