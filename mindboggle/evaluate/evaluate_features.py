@@ -226,12 +226,12 @@ if __name__ == "__main__":
     #-------------------------------------------------------------------------
     # Set feature type ('fundi' or '' for every sulcus vertex), subjects:
     #-------------------------------------------------------------------------
-    feature_type = 'sulci' #'fundi'
+    feature_type = 'fundi' #'sulci'  # If 'fundi', select 'nmethod' below.
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
              'Afterthought', 'Colin27', 'Twins-2', 'MMRR-3T7T-2', 'HLN-12']
     numbers = [20,21,22,20, 1,1,2,2,12]
     mindboggled = '/homedir/mindboggled'
-    labels_dir = mindboggled # Need relabeled according to DKT
+    labels_dir = mindboggled # NOTE: Need to relabel according to DKT
 
     #-------------------------------------------------------------------------
     # Feature-specific settings:
@@ -243,13 +243,13 @@ if __name__ == "__main__":
         # 2 = forrest lines
         # 3 = gang li
         # 4 = olivier coulon
-        nmethod = 0
-        feature_dir = '/homedir/Projects/BrainImaging/fundus_evaluation_2014'
+        nmethod = 1
+        feature_dir = '/desk/TODO/evaluations/fundi_different_methods/'
         fmethods = ['Mindboggle_fundi',
-                    'Forrest_Fundi.scalars',
-                    'Forrest_Fundi.lines',
-                    'GangLiFundi',
-                    'Olivier_fundi']
+                    'ForrestBao_scalar_fundi',
+                    'ForrestBao_line_fundi',
+                    'GangLi_fundi',
+                    'OlivierCoulon_fundi']
         fmethod_dirs = [mindboggled,
                         os.path.join(feature_dir, fmethods[1]),
                         os.path.join(feature_dir, fmethods[2]),
@@ -282,7 +282,7 @@ if __name__ == "__main__":
     isubject = 0
     for iname, name in enumerate(names):
         number = numbers[iname]
-        for n in range(1,number+1):
+        for n in range(1, number+1):
             subject = name+'-'+str(n)
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
@@ -350,22 +350,22 @@ if __name__ == "__main__":
     #-------------------------------------------------------------------------
     # Save tables of mean distances:
     #-------------------------------------------------------------------------
-    np.savetxt(name + '_' + fmethod + '_to_border_mean_distances_left.csv',
+    np.savetxt(fmethod + '_mean_distances_to_border_left.csv',
                feature_to_border_mean_distances_left)
-    np.savetxt(name + '_' + fmethod + '_to_border_sd_distances_left.csv',
+    np.savetxt(fmethod + '_sd_distances_to_border_left.csv',
                feature_to_border_sd_distances_left)
-    np.savetxt(name + '_border_to_' + fmethod + '_mean_distances_left.csv',
+    np.savetxt(fmethod + '_mean_distances_from_border_left.csv',
                border_to_feature_mean_distances_left)
-    np.savetxt(name + '_border_to_' + fmethod + '_sd_distances_left.csv',
+    np.savetxt(fmethod + '_sd_distances_from_border_left.csv',
                border_to_feature_sd_distances_left)
 
-    np.savetxt(name + '_' + fmethod + '_to_border_mean_distances_right.csv',
+    np.savetxt(fmethod + '_mean_distances_to_border_right.csv',
                feature_to_border_mean_distances_right)
-    np.savetxt(name + '_' + fmethod + '_to_border_sd_distances_right.csv',
+    np.savetxt(fmethod + '_sd_distances_to_border_right.csv',
                feature_to_border_sd_distances_right)
-    np.savetxt(name + '_border_to_' + fmethod + '_mean_distances_right.csv',
+    np.savetxt(fmethod + '_mean_distances_from_border_right.csv',
                border_to_feature_mean_distances_right)
-    np.savetxt(name + '_border_to_' + fmethod + '_sd_distances_right.csv',
+    np.savetxt(fmethod + '_sd_distances_from_border_right.csv',
                border_to_feature_sd_distances_right)
 
     #-------------------------------------------------------------------------
@@ -389,20 +389,20 @@ if __name__ == "__main__":
     mean_border_to_feature_sd_distances_right = \
         np.mean(border_to_feature_mean_distances_right, axis=0)
 
-    np.savetxt(name + '_mean_' + fmethod + '_to_border_mean_distances_left.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_left.csv',
                mean_feature_to_border_mean_distances_left)
-    np.savetxt(name + '_mean_' + fmethod + '_to_border_sd_distances_left.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_left.csv',
                mean_feature_to_border_sd_distances_left)
-    np.savetxt(name + '_mean_border_to_' + fmethod + '_mean_distances_left.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_left.csv',
                mean_border_to_feature_mean_distances_left)
-    np.savetxt(name + '_mean_border_to_' + fmethod + '_sd_distances_left.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_left.csv',
                mean_border_to_feature_sd_distances_left)
 
-    np.savetxt(name + '_mean_' + fmethod + '_to_border_mean_distances_right.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_right.csv',
                mean_feature_to_border_mean_distances_right)
-    np.savetxt(name + '_mean_' + fmethod + '_to_border_sd_distances_right.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_right.csv',
                mean_feature_to_border_sd_distances_right)
-    np.savetxt(name + '_mean_border_to_' + fmethod + '_mean_distances_right.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_right.csv',
                mean_border_to_feature_mean_distances_right)
-    np.savetxt(name + '_mean_border_to_' + fmethod + '_sd_distances_right.csv',
+    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_right.csv',
                mean_border_to_feature_sd_distances_right)
