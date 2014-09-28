@@ -182,9 +182,10 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     #-------------------------------------------------------------------------
     points_file = os.path.join(os.getcwd(), 'points.csv')
     fid = open(points_file, 'wa')
-    fid.write('x,y,z\n')
+    fid.write('x,y,z,t\n')
     for point in points:
-        fid.write(','.join([str(x) for x in point]) + '\n')
+        string_of_zeros = (4 - len(point)) * ',0'
+        fid.write(','.join([str(x) for x in point]) + string_of_zeros + '\n')
     fid.close()
 
     #-------------------------------------------------------------------------

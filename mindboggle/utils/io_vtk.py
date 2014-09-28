@@ -1215,7 +1215,7 @@ def apply_affine_transforms(transform_files, inverse_booleans,
         name of VTK file containing point coordinate data, or the data
         (if vtk file, assumes scalars are a list of floats or integers)
     vtk_file_stem : string
-        save transformed coordinates in a vtk file with this file append
+        save transformed coordinates in a vtk file with this file prepend
         (empty string if vtk_or_points is points)
 
     Returns
