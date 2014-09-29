@@ -24,8 +24,8 @@ Mindboggle-101 atlases
 
   **Volume atlases**
 
-  - OASIS-TRT-20 joint fusion atlas `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz>`_ space [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm.nii.gz>`_ version] (2013)
-  - Corresponding label probabilities `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_OASIS-30.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152.nii.gz>`_ space
+  - OASIS-TRT-20 joint fusion atlas `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_OASIS-30_v2.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz>`_ space [`2mm <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_2mm_v2.nii.gz>`_ version] (2013)
+  - Corresponding label probabilities `in OASIS-30 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_OASIS-30_v2.nii.gz>`_ and `in MNI152 <http://mindboggle.info/data/atlases/jointfusion/OASIS-TRT-20_jointfusion_DKT31_CMA_label_probabilities_in_MNI152_v2.nii.gz>`_ space
 
       Probabilistic labels of the 20 OASIS-TRT brains using joint fusion (Hongzhi Wang, 2013; distributed with ANTs),
       including a single volume of probabilities corresponding to the winning labels.
@@ -82,7 +82,7 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
   - **OASIS-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
       All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
-  - **OASIS-TRT-20 whole-brain** labels [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_
+  - **OASIS-TRT-20 whole-brain** labels [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_v2.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152_v2.tar.gz>`_] by Neuromorphometrics_ |CC_license_nond|_
   - **NKI-RS-22** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-RS-22_surfaces.tar.gz>`_,  `mgh <http://mindboggle.info/data/mindboggle101/NKI-RS-22_freesurfer.tar.gz>`_]:
       22 subjects from the Nathan Klein Institute / Rockland Sample |NKI-RS www|_
   - **NKI-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_freesurfer.tar.gz>`_]:
@@ -156,7 +156,8 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 Other templates and manually labeled brains
 ------------------------------------------------------------------------------
 | The following images are not from the Mindboggle-101 data above, and the manual labels are not the same
-| as those of the DKT labeling protocol used for the Mindboggle-101 data above:
+| as those of the DKT labeling protocol used for the Mindboggle-101 data above
+| (Warning: These labeled brains were used for evaluating registrations; I cannot vouch for their anatomical accuracy.):
 
   **Tissue-segmented templates**: created by Nicholas Tustison for use with antsAtroposN4.sh
 
