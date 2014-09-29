@@ -166,10 +166,11 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     --------
     >>> from mindboggle.utils.ants import antsApplyTransformsToPoints
     >>> from mindboggle.utils.io_vtk import read_vtk
-    >>> transform_files = ['/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/Compose_affine_transform/affine.txt']
-    >>> vtk_file = '/Users/arno/mindboggle_working/OASIS-TRT-20-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
+    >>> transform_files = ['/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject1GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsTemplateToSubject0Warp.nii.gz','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate0GenericAffine.mat','/Users/arno/Data/antsCorticalThickness/Twins-2-1/antsSubjectToTemplate1Warp.nii.gz']
+    >>> transform_files = [transform_files[0],transform_files[1],'/Users/arno/Data/mindboggle_cache/f36e3d5d99f7c4a9bb70e2494ed7340b/OASIS-30_Atropos_template_to_MNI152_affine.txt']
+    >>> vtk_file = '/Users/arno/mindboggle_working/Twins-2-1/Mindboggle/_hemi_lh/Surface_to_vtk/lh.pial.vtk'
     >>> faces, lines, indices, points, npoints, scalars, name, foo1 = read_vtk(vtk_file)
-    >>> inverse_booleans = [0]
+    >>> inverse_booleans = [0,0,1]
     >>> transformed_points = antsApplyTransformsToPoints(points, transform_files, inverse_booleans)
 
     """
@@ -195,8 +196,8 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
                                            'transformed_points.csv')
     transform_string = ''
     for ixfm, transform_file in enumerate(transform_files):
-        transform_string += " --t [{0},{1}]".format(transform_file,
-                                   str(inverse_booleans[ixfm]))
+        transform_string += " --t [{0},{1}]".\
+            format(transform_file, str(inverse_booleans[ixfm]))
     cmd = ['antsApplyTransformsToPoints', '-d', '3', '-i', points_file,
            '-o', transformed_points_file, transform_string]
     execute(cmd, 'os')
