@@ -66,9 +66,11 @@
 .. _vtkviewer: https://github.com/HalCanary/vtkviewer
 
 .. Non-python brain imaging software
-.. _ANTS: http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
+.. _ANTS: http://stnava.github.io/ANTs/
+.. _`ANTS download`: http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/
 .. _FSL: http://www.fmrib.ox.ac.uk/fsl
-.. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu/fswiki/Download
+.. _FreeSurfer: http://surfer.nmr.mgh.harvard.edu
+.. _`FreeSurfer download`: http://surfer.nmr.mgh.harvard.edu/fswiki/Download
 
 .. Visualization
 .. _vtk: http://www.vtk.org/
