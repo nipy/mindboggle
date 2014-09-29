@@ -471,7 +471,7 @@ if use_ants_transforms or use_ants_segments:
                            WarpToSubjectFileList, 'string2')
             WarpToSubjectFileList.inputs.string3 = affine_template2mni
             WarpToSubjectFileList.inputs.string4 = ''
-            warp_inverse_Booleans = [False, False, True]
+            warp_inverse_Booleans = [False, False, True]  # Boolean list
         #---------------------------------------------------------------------
         # For transforming surface points --
         # Make list of subject-to-MNI affine transforms
@@ -480,6 +480,7 @@ if use_ants_transforms or use_ants_segments:
         # Note regarding antsApplyTransformsToPoints:
         # Points are transformed in the OPPOSITE direction of images,
         # so you pass the inverse of what is needed to warp the images.
+        # Note 2: Don't forget to switch the order of the affine transforms!
         #---------------------------------------------------------------------
         if do_shapes and do_surface:
             AffineFileList = Node(name='Affine_file_list',
@@ -489,12 +490,12 @@ if use_ants_transforms or use_ants_segments:
                                                             'string3',
                                                             'string4'],
                                                output_names=['string_list']))
-            AffineFileList.inputs.string1 = affine_template2mni
             mbFlow.connect(FetchANTs, 'affine_subject2template',
-                           AffineFileList, 'string2')
+                           AffineFileList, 'string1')
+            AffineFileList.inputs.string2 = affine_template2mni
             AffineFileList.inputs.string3 = ''
             AffineFileList.inputs.string4 = ''
-            inverse_Booleans = [1, 1]  # list of 1s and/or 0s
+            inverse_Booleans = [1, 1]  # list of ones/zeros for True/False
 
 #=============================================================================
 #-----------------------------------------------------------------------------
@@ -1234,11 +1235,11 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        # if use_ants_transforms:
-        #     mbFlow.connect(AffineFileList, 'string_list',
-        #                    ShapeTables, 'affine_transform_files')
-        #     ShapeTables.inputs.inverse_booleans = inverse_Booleans
-        #     ShapeTables.inputs.transform_format = 'itk'
+        if use_ants_transforms:
+            mbFlow.connect(AffineFileList, 'string_list',
+                           ShapeTables, 'affine_transform_files')
+            ShapeTables.inputs.inverse_booleans = inverse_Booleans
+            ShapeTables.inputs.transform_format = 'itk'
         ShapeTables.inputs.normalize_by_area = False
         mbFlow.connect([(WholeSurfShapeFlow, ShapeTables,
                    [('Surface_area.area_file', 'area_file'),
@@ -1342,11 +1343,11 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            # if use_ants_transforms:
-            #     mbFlow.connect(AffineFileList, 'string_list',
-            #                    VertexTable, 'affine_transform_files')
-            #     VertexTable.inputs.inverse_booleans = inverse_Booleans
-            #     VertexTable.inputs.transform_format = 'itk'
+            if use_ants_transforms:
+                mbFlow.connect(AffineFileList, 'string_list',
+                               VertexTable, 'affine_transform_files')
+                VertexTable.inputs.inverse_booleans = inverse_Booleans
+                VertexTable.inputs.transform_format = 'itk'
             mbFlow.connect([(WholeSurfShapeFlow, VertexTable,
                                [('Surface_area.area_file','area_file'),
                                 ('Travel_depth.depth_file',
