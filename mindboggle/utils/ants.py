@@ -684,8 +684,13 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
 
     Note::
 
-      - Cortex, noncortex, and labeled files are the same coregistered brain.
+      - Cortex, noncortex, & label files are from the same coregistered brain.
       - Calls ANTs functions: ImageMath, Threshold, ResampleImageBySpacing
+      - There may be slight discrepancies between volumes computed by
+        thickinthehead() and volumes computed by volume_per_label();
+        in 31 of 600+ ADNI 1.5T images, some volume_per_label() volumes
+        were slightly larger (in the third decimal place), presumably due to
+        label propagation through the cortex.
 
     Example preprocessing steps ::
 
