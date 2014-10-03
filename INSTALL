@@ -95,7 +95,7 @@ your local ANTs output directory::
 You can also specify more options, for example, to use 8 processors
 and up to 4096 MB memory and 75 percent of the CPU::
 
-    python mindboggle_vagrant.py --ants /data/ants_out -n 8 -m 4096 --cpu 75
+    python mindboggle_vagrant.py --ants /data/ants_out --num 8 --mem 4096 --cpu 75
 
 The above command generates a file called ``Vagrantfile`` that will be used
 when we load up the virtual machine
