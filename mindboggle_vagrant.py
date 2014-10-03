@@ -13,7 +13,7 @@ The Mindboggle software automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
 See http://mindboggle.info for up-to-date documentation.
 
-To install ANTs and FreeSurfer in a local mounted directory::
+To access ANTs and FreeSurfer via a local mounted directory::
 
     python mindboggle_vagrant.py --install
     vagrant up install
@@ -27,7 +27,7 @@ And to run mindboggle::
 
     vagrant up run
 
-
+#-----------------------------------------------------------------------------
 ADVANCED: To build the mindboggle.box Vagrant box from scratch::
 
     git clone https://github.com/binarybottle/mindboggle.git
@@ -35,9 +35,12 @@ ADVANCED: To build the mindboggle.box Vagrant box from scratch::
     cd mindboggle
     python mindboggle_vagrant.py --install --build_from_scratch
     vagrant up build
-    vagrant package --base build --output minboggle.box
-    <Upload mindboggle.box to http://mindboggle.info/>
-
+    vagrant package --base <vm name> --output minboggle.box
+        'VBoxManage list vms' to find <vm name>
+    # Upload mindboggle.box to http://mindboggle.info/
+    rsync -avz --sparse -e /usr/bin/ssh mindboggle.box
+        binarybottle@binarybottle.com:mindboggle.info/versions/
+#-----------------------------------------------------------------------------
 
 Authors:
 Arno Klein, 2014  .  arno@mindboggle.info  .  www.binarybottle.com
@@ -167,7 +170,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # Create a forwarded port mapping which allows access to a specific port
         # within the machine from a port on the host machine. In the example below,
         # accessing "localhost:8080" will access port 80 on the guest machine:
-        build_config.vm.network :forwarded_port, guest: 80, host: 8080
+        build_config.vm.network "forwarded_port", guest: 80, host: 8080,
+            auto_correct: true
         build_config.vm.network :public_network
         #build_config.vm.network :private_network, ip: "192.168.33.10"
 

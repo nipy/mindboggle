@@ -1,7 +1,7 @@
 ==============================================================================
 Data
 ==============================================================================
-| Welcome to the world's largest collection of freel, manually labeled human brain image data!
+| Welcome to the world's largest collection of free, manually labeled human brain image data!
 | Please cite the following article and this website when making use of Mindboggle-101 data:
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
@@ -153,11 +153,11 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
 
 ------------------------------------------------------------------------------
-Other templates and manually labeled brains
+Other (non-Mindboggle-101) templates and manually labeled brains
 ------------------------------------------------------------------------------
 | The following images are not from the Mindboggle-101 data above, and the manual labels are not the same
 | as those of the DKT labeling protocol used for the Mindboggle-101 data above
-| (Warning: These labeled brains were used for evaluating registrations; I cannot vouch for their anatomical accuracy.):
+| (**Warning**: These labeled brains were used for evaluating registrations; I cannot vouch for their anatomical accuracy.):
 
   **Tissue-segmented templates**: created by Nicholas Tustison for use with antsAtroposN4.sh
 
