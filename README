@@ -7,8 +7,8 @@ The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
 Mindboggle can be run as a single command, and can be
 easily installed as a cross-platform virtual machine for convenience and
-reproducibility of results. Behind the scenes runs open source
-Python and C++ code within a Nipype pipeline framework.
+reproducibility of results. Behind the scenes, open source
+Python and C++ code run within a Nipype pipeline framework.
 
 ------------------------------------------------------------------------------
 Help with Mindboggle
