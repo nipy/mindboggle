@@ -6,6 +6,7 @@
 ==============================================================================
 People working on Mindboggle
 ==============================================================================
+(See `Contributions <http://mindboggle.info/users/THANKS.html>`_)
 
 +------------+--------------+
 |            |              |
@@ -123,15 +124,15 @@ Past contributors
 .. |picYH| image:: http://media.mindboggle.info/images/people/YrjoHame.jpg
                     :width: 200px
 .. |blurbYH| replace::
-    Yrjo Hame is a graduate student in the Biomedical Engineering Department
-    of Columbia University.  Yrjo wrote the Hidden Markov Measure Field algorithm
+    As a graduate student in the Biomedical Engineering Department of Columbia University,
+    Yrjo Hame wrote the Hidden Markov Measure Field algorithm
     for extracting sulcus features from brain images for Mindboggle.
 
 
 .. |picES| image:: http://media.mindboggle.info/images/people/EliezerStavsky.jpg
                     :width: 200px
 .. |blurbES| replace::
-    Eliezer Stavsky is a graduate student of Neurobiology and Behavior at Columbia University.
+    As a graduate student in Neurobiology and Behavior at Columbia University.
     Eliezer worked on spectral shape analysis and semi-supervised learning approaches to
     propagate labels across a brain surface.
 
