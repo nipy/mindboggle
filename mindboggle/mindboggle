@@ -11,7 +11,7 @@ For help in using Mindboggle ::
         $ mindboggle --help
 
 This file uses Nipype (http://www.nipy.org/nipype/) to create a workflow
-environment to enable Mindboggle to run in a flexible, modular manner
+environment that enables Mindboggle to run in a flexible, modular manner
 while storing provenance information.
 
 Authors:
