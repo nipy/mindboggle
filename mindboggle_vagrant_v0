@@ -7,7 +7,7 @@ FreeSurfer and ANTs, in a VirtualBox virtual machine (vm)
 using Vagrant software, which can package the vm.
 You must have Vagrant (http://www.vagrantup.com) and
 VirtualBox (http://www.virtualbox.org) installed,
-as well as a good internet connection.
+as well as a good Internet connection.
 
 The Mindboggle software automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
@@ -15,31 +15,35 @@ See http://mindboggle.info for up-to-date documentation.
 
 To access ANTs and FreeSurfer via a local mounted directory::
 
-    python mindboggle_vagrant.py --install
+    python mindboggle_vagrant --install
     vagrant up install
 
 To configure mindboggle's local input and output directories
 (type "python mindboggle_vagrant.py -h" for descriptions of the arguments)::
 
-    python mindboggle_vagrant.py --dependencies XXX --ants XXX --out XXX
+    python mindboggle_vagrant --dependencies XXX --ants XXX --out XXX
 
 And to run mindboggle::
 
-    vagrant up run
+    vagrant up
+    vagrant ssh
 
 #-----------------------------------------------------------------------------
-ADVANCED: To build the mindboggle.box Vagrant box from scratch::
+ADVANCED: To build the mindboggle.box (Vagrant box) from scratch::
 
+    # You should be running this file within the mindboggle directory; if not:
     git clone https://github.com/binarybottle/mindboggle.git
-    mv mindboggle_vagrant.py mindboggle/
     cd mindboggle
-    python mindboggle_vagrant.py --install --build_from_scratch
+
+    # Build the box:
+    python mindboggle_vagrant <version#> --install --build_from_scratch
     vagrant up build
-    vagrant package --base <vm name> --output minboggle.box
+    vagrant package --base <vm name> --output mindboggle.box
         'VBoxManage list vms' to find <vm name>
-    # Upload mindboggle.box to http://mindboggle.info/
+
+    # Upload the box to the website:
     rsync -avz --sparse -e /usr/bin/ssh mindboggle.box
-        binarybottle@binarybottle.com:mindboggle.info/versions/
+        binarybottle@binarybottle.com:mindboggle.info/vm/
 #-----------------------------------------------------------------------------
 
 Authors:
@@ -64,12 +68,15 @@ using Vagrant software, which can package the virtual machine. You must have
 Vagrant (http://www.vagrantup.com) and VirtualBox (http://www.virtualbox.org)
 installed, as well as a good internet connection. Ex: python
 mindboggle_vagrant.py
+    0
     --dependencies /data/mindboggle_dependencies
     --ants /data/antsCorticalThickness
     --num 6 --mem 4096 --cpu 75 """,
                      formatter_class = lambda prog:
                      argparse.HelpFormatter(prog, max_help_position=40))
 
+parser.add_argument("VERSION",
+                    help=('Version number'))
 parser.add_argument("-o", "--out",
                     help='Output directory (default: $HOME/mindboggled)',
                     default=os.path.join(os.environ['HOME'],
@@ -193,8 +200,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # Build from the mindboggle.box Vagrant virtual box
         # (VirtualBox caches it so you only download once):
         install_config.vm.box = "mindboggle_install"
-        install_config.vm.box_url = "http://mindboggle.info/mindboggle_20140214.box"
-        install_config.vm.hostname = "boggler"
+        install_config.vm.box_url = "http://mindboggle.info/vm/mindboggle_v{0}.box"
+        install_config.vm.hostname = "mindboggler"
 
         # Create a forwarded port mapping which allows access to a specific port
         # within the machine from a port on the host machine. In the example below,
@@ -221,8 +228,8 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         # Build from the mindboggle.box Vagrant virtual box
         # (VirtualBox caches it so you only download once):
         run_config.vm.box = "mindboggle"
-        run_config.vm.box_url = "http://mindboggle.info/mindboggle_20120214.box"
-        run_config.vm.hostname = "boggler"
+        run_config.vm.box_url = "http://mindboggle.info/vm/mindboggle_v{0}.box"
+        run_config.vm.hostname = "mindboggler"
 
         # Share an additional folder to the guest VM. The first argument is
         # the path on the host to the actual folder. The second argument is
@@ -251,7 +258,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
         run_config.vm.provision "shell", :privileged => false, inline: $$script
     end
 end
-"""
+""".format(args.VERSION)
 
 #=============================================================================
 # Build script to include in Vagrant file

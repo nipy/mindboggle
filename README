@@ -19,7 +19,7 @@ Help with Mindboggle
 
 - `Documentation <http://mindboggle.info/documentation.html>`_
 - `Installation <http://mindboggle.info/users/INSTALL.html>`_
-- `FAQ <http://mindboggle.info/faq/index.html>`_
+- `GitHub <http://github.com/binarybottle/mindboggle>`_
 - `License <http://mindboggle.info/users/LICENSE.html>`_
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
@@ -118,8 +118,11 @@ Mindboggle processing steps
         - sulci
         - fundi
 
-    6. Compute shape vector per cortical surface label/feature:
+    6. For each cortical surface label/sulcus, compute:
 
+        - area
+        - mean coordinates
+        - mean coordinates in MNI152 space
         - Laplace-Beltrami spectrum
         - Zernike moments
 
