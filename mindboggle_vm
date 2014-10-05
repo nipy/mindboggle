@@ -1,0 +1,351 @@
+#!/usr/bin/python
+"""
+Mindboggle virtual machine setup script.
+
+This program packages Mindboggle (http://mindboggle.info) and dependencies
+in a VirtualBox virtual machine using Vagrant software.
+Vagrant (http://www.vagrantup.com) and VirtualBox (http://www.virtualbox.org)
+must be installed, and you need a good Internet connection.
+
+To set up access to ANTs and FreeSurfer data via local mounted directories,
+and to set the number of processors to 6
+(type "python mindboggle_vm.py --help" for help on more setup options)::
+
+    python mindboggle_vm --install
+                         --home /home/vagrant
+                         --freesurfer /Applications/freesurfer/subjects
+                         --ants /Data/antsCorticalThickness/subjects
+                         --num 6
+    vagrant up install
+
+And to run mindboggle::
+
+    vagrant up
+    vagrant ssh
+
+#-----------------------------------------------------------------------------
+ADVANCED: To build the mindboggle.box (Vagrant box) from scratch::
+
+    # You should be running this file within the mindboggle directory; if not:
+    git clone https://github.com/binarybottle/mindboggle.git
+    cd mindboggle
+
+    # Build the box:
+    python mindboggle_vm --build --install
+    vagrant up build
+    VBoxManage list vms  # to find <vm name>
+    vagrant package --base <vm name> --output mindboggle.<version#>.box
+
+    # Upload the box to the website:
+    rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version#>.box
+        binarybottle@binarybottle.com:mindboggle.info/vm/
+#-----------------------------------------------------------------------------
+
+Authors:
+Arno Klein, 2014  .  arno@mindboggle.info  .  www.binarybottle.com
+
+Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+
+"""
+import os
+import argparse
+from string import Template
+
+#=============================================================================
+# Command-line arguments
+#=============================================================================
+parser = argparse.ArgumentParser(description="""
+This program either packages Mindboggle (http://mindboggle.info) and
+all of its dependencies in a virtual machine (--build) or configures the
+virtual machine (--install) with mounted directories to access FreeSurfer
+recon-all subject data (--freesurfer), ANTs antsCorticalThickness.sh
+subject data (--ants), or additional atlases (--atlases) in a
+base directory (--home). You must have Vagrant (http://www.vagrantup.com)
+and VirtualBox (http://www.virtualbox.org) installed, as well as a good
+Internet connection.
+
+Ex: python mindboggle_vm
+    0.1
+    --home /home/vagrant
+    --ants /data/antsCorticalThickness
+    --num 6 --mem 4096 --cpu 75 """,
+    formatter_class = lambda prog:
+    argparse.HelpFormatter(prog, max_help_position=40))
+
+parser.add_argument("VERSION",
+                    help=('Version number'))
+parser.add_argument("--home",
+                    help='Base directory (default: $HOME/vagrant)',
+                    default=os.path.join(os.environ['HOME'],
+                                         'vagrant'), metavar='STR')
+parser.add_argument("-o", "--out",
+                    help='Output directory (default: $HOME/mindboggled)',
+                    default=os.path.join(os.environ['HOME'],
+                                         'mindboggled'), metavar='STR')
+# parser.add_argument("--freesurfer",
+#                     help=("FreeSurfer subjects directory (default: "
+#                           "$SUBJECTS_DIR)"),
+#                     metavar='STR')
+# parser.add_argument("--ants",
+#                     help=("Optional directory containing "
+#                           "antsCorticalThickness.sh "
+#                           "output in individual subject directories"),
+#                     metavar='STR')
+# parser.add_argument("--atlases",
+#                     help=("Optional directory containing additional atlases"),
+#                     metavar='STR')
+parser.add_argument("--cpu",
+                    help=('Maximum CPU (percent): "--cpu 50" (default)'),
+                    type=int, default=50, metavar='INT')
+parser.add_argument("--mem",
+                    help=('Maximum memory (MB): "--mem 4096" (default)'),
+                    type=int, default=4096, metavar='INT')
+parser.add_argument("--num",
+                    help=('Number of processors: "--num 1" (default)'),
+                    type=int, default=1, metavar='INT')
+parser.add_argument("--install",
+                    help=("Configure the Vagrant box; mount ANTs and "
+                          "FreeSurfer data (run once before running "
+                          "mindboggle for the first time)"),
+                    action='store_true')
+parser.add_argument("--build",
+                    help=("Build Vagrant box (ADVANCED)"),
+                    action='store_true')
+
+args = parser.parse_args()
+
+home = args.home
+if not os.path.exists(home):
+    os.mkdir(home)
+if not os.path.exists(args.out):
+    os.mkdir(args.out)
+out_string = 'config.vm.synced_folder "{0}", ' \
+             '"{1}mindboggled"'.format(args.out, home)
+
+# if args.freesurfer:
+#     freesurfer_string = 'config.vm.synced_folder "{0}", ' \
+#         '"{1}freesurfer_subjects"'.format(args.freesurfer, home)
+# else:
+#     freesurfer_string = 'config.vm.synced_folder "{0}", ' \
+#         '"{1}freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'], home)
+# if args.ants:
+#     ants_string = 'config.vm.synced_folder "{0}", ' \
+#                   '"{1}ants_subjects"'.format(args.ants, home)
+# else:
+#     ants_string = ''
+# if args.atlases:
+#     atlases_string = 'config.vm.synced_folder "{0}", ' \
+#                      '"{1}atlases"'.format(args.atlases, home)
+# else:
+#     atlases_string = ''
+
+port = """# Create a forwarded port mapping to allow access to a specific port
+        # within the machine from a port on the host machine. In this example,
+        # accessing "localhost:8080" will access port 80 on the guest machine:
+        build_config.vm.network "forwarded_port", guest: 80, host: 8080,
+            auto_correct: true
+        build_config.vm.network :public_network
+        #build_config.vm.network :private_network, ip: "192.168.33.10"
+
+        """
+provision = """# Upload and execute a script within the guest machine:
+        #build_config.vm.provision "shell", :privileged => false, inline: $$script
+        build_config.vm.provision "shell", inline: $$script
+
+        """
+
+#=============================================================================
+# Create Vagrantfile
+#=============================================================================
+vagrant_file = """# Vagrant file (http://www.vagrantup.com)
+# Vagrantfile API/syntax version:
+VAGRANTFILE_API_VERSION = "2"
+
+$script
+
+#=============================================================================
+# Configure Vagrantfile
+#=============================================================================
+# Configure Vagrant:
+Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
+
+    #-------------------------------------------------------------------------
+    # Build a Vagrant base box -- ONLY FOR THE INITIAL BUILD!
+    #-------------------------------------------------------------------------
+    config.vm.define :build do |build_config|
+
+        # Build from an existing Vagrant virtual box:
+        build_config.vm.box = "precise64"
+        build_config.vm.box_url = "http://files.vagrantup.com/precise64.box"
+
+        $$port
+        $$provision
+    end
+
+    #-------------------------------------------------------------------------
+    # Configure the Vagrant base box to install dependencies
+    #-------------------------------------------------------------------------
+    config.vm.define :install do |install_config|
+
+        # Build from the Vagrant virtual box
+        # (VirtualBox caches it so you only download once):
+        install_config.vm.box = "mindboggle_install"
+        install_config.vm.box_url = "http://mindboggle.info/vm/mindboggle.{0}.box"
+        install_config.vm.hostname = "mindboggler"
+
+        $$port
+        $$provision
+    end
+
+    #-------------------------------------------------------------------------
+    # Configure the Mindboggle Vagrant box to mount directories
+    #-------------------------------------------------------------------------
+    config.vm.define :run do |run_config|
+
+        # Build from the mindboggle.box Vagrant virtual box
+        # (VirtualBox caches it so you only download once):
+        run_config.vm.box = "mindboggle"
+        run_config.vm.box_url = "http://mindboggle.info/vm/mindboggle_v{0}.box"
+        run_config.vm.hostname = "mindboggler"
+
+        # Share an additional folder to the guest VM. The first argument is
+        # the path on the host to the actual folder. The second argument is
+        # the path on the guest to mount the folder.
+        # Ex: run_config.vm.synced_folder "../data", "/vagrant_data"
+        #freesurfer_string
+        #ants_string
+        #atlases_string
+        $out_string
+
+        # Configure %CPU, memory, #CPUs
+        run_config.vm.provider :virtualbox do |vb|
+          vb.customize ["modifyvm", :id, "--cpuexecutioncap", "$cpu"]
+          vb.customize ["modifyvm", :id, "--memory", "$mem"]
+          vb.customize ["modifyvm", :id, "--cpus", "$num"]
+          vb.customize ["modifyvm", :id, "--ioapic", "on"]
+        end
+
+        $$port
+        $$provision
+    end
+end
+""".format(args.VERSION)
+
+#=============================================================================
+# Build script to include in Vagrant file
+#=============================================================================
+script = ''
+if args.install and args.build:
+    script = """$script = <<SCRIPT
+
+#-----------------------------------------------------------------------------
+# Install Anaconda Python distribution:
+#-----------------------------------------------------------------------------
+wget http://repo.continuum.io/miniconda/Miniconda-2.2.2-Linux-x86_64.sh -O miniconda.sh
+chmod +x miniconda.sh
+./miniconda.sh -b
+export PATH={0}/anaconda/bin:$PATH
+
+#-----------------------------------------------------------------------------
+# Install nipype and nipype dependencies:
+#-----------------------------------------------------------------------------
+conda install --yes pip cmake
+conda install --yes numpy scipy nose traits networkx
+conda install --yes dateutil ipython-notebook matplotlib
+pip install nibabel --use-mirrors
+pip install https://github.com/RDFLib/rdflib/archive/master.zip
+pip install https://github.com/satra/prov/archive/enh/rdf.zip
+pip install https://github.com/nipy/nipype/archive/master.zip
+
+#-----------------------------------------------------------------------------
+# Install compiling utilities:
+#-----------------------------------------------------------------------------
+sudo apt-get update
+sudo apt-get install -y g++
+sudo apt-get install -y make
+sudo apt-get install -y git
+sudo apt-get install -y xorg openbox
+
+#-----------------------------------------------------------------------------
+# Install VTK:
+#-----------------------------------------------------------------------------
+conda install --yes vtk
+VTK_DIR={0}/anaconda/lib/vtk-5.10  # Needed for ANTs
+export PATH=$VTK_DIR:$PATH
+#echo "export VTK_DIR={0}/anaconda/lib/vtk-5.10/" >> .bashrc
+
+#-----------------------------------------------------------------------------
+# Install Mindboggle:
+#-----------------------------------------------------------------------------
+#git clone https://github.com/binarybottle/mindboggle.git
+pip install https://github.com/binarybottle/mindboggle/archive/master.zip
+MINDBOGGLE_TOOLS={0}/mindboggle_tools/bin
+export PATH=$MINDBOGGLE_TOOLS:$PATH
+#echo "export MINDBOGGLE_TOOLS={0}/mindboggle_tools/bin/" >> .bashrc
+#echo "export PATH=\$MINDBOGGLE_TOOLS:\$ANTSPATH:\$FREESURFER:\$PATH" >>.bashrc
+cd {0}/mindboggle_tools/bin/
+cmake {0}/mindboggle_tools
+make
+cd {0}
+
+# #-----------------------------------------------------------------------------
+# # Install FreeSurfer:
+# #-----------------------------------------------------------------------------
+# # http://surfer.nmr.mgh.harvard.edu/fswiki/Download
+# wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+# sudo tar xzvf freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+# rm freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+# cd /home/vagrant
+# echo "export FREESURFER_HOME=$(pwd)/freesurfer" >> .bashrc
+# #echo "export SUBJECTS_DIR=\$FREESURFER_HOME/subjects" >> .bashrc
+# echo "source \$FREESURFER_HOME/SetUpFreeSurfer.sh" >> .bashrc
+# 
+# #-----------------------------------------------------------------------------
+# # Install ANTs:
+# #-----------------------------------------------------------------------------
+# # http://brianavants.wordpress.com/2012/04/13/
+# #        updated-ants-compile-instructions-april-12-2012/
+# git clone git://github.com/stnava/ANTs.git
+# mkdir antsbin
+# cd antsbin
+# cmake ../ANTs
+# make #-j 4
+# cp ../ANTs/Scripts/* bin/
+# cd /home/vagrant
+# echo "export ANTSPATH=$(pwd)/antsbin/bin/" >> .bashrc
+##export PATH=$MINDBOGGLE_TOOLS:$ANTSPATH:$FREESURFER:$PATH
+
+###source .bashrc
+
+
+SCRIPT
+""".format(home)
+
+    #-------------------------------------------------------------------------
+    # FreeSurfer license:
+    #-------------------------------------------------------------------------
+    freesurfer_license = """arno@mindboggle.info
+    18192
+     *Cr4e1z13elAY"""
+    license_file = os.path.join(os.environ['FREESURFER_HOME'], '.license')
+    f = open(license_file, 'w')
+    f.write(freesurfer_license)
+    f.close()
+
+#=============================================================================
+# Write Vagrantfile with substitutions
+                                       #freesurfer_string=freesurfer_string,
+                                       #ants_string=ants_string,
+                                       #atlases_string=atlases_string,
+#=============================================================================
+template = Template(vagrant_file)
+new_vagrant_file = template.substitute(script=script,
+                                       port=port,
+                                       provision=provision,
+                                       out_string=out_string,
+                                       cpu=args.cpu,
+                                       mem=args.mem,
+                                       num=args.num)
+f = open('Vagrantfile', 'w')
+f.write(new_vagrant_file)
+f.close()
