@@ -2,6 +2,7 @@ CMakeCache.txt
 CMakeFiles
 /build
 /dist
+mindboggle.*.box
 /mindboggle.egg-info
 /MANIFEST
 /mindboggle/build
