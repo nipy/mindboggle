@@ -24,7 +24,7 @@ execfile('../mindboggle/info.py', rel)
 
 # Import support for ipython console session syntax highlighting 
 # (lives in the sphinxext directory defined above)
-import ipython_console_highlighting
+#import ipython_console_highlighting
 
 # General configuration
 # ---------------------
@@ -34,7 +34,7 @@ import ipython_console_highlighting
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.autosummary',
-              'ipython_console_highlighting', 
+#              'ipython_console_highlighting',
               ]
 
 # Current version (as of 11/2010) of numpydoc is only compatible with sphinx >
@@ -192,19 +192,19 @@ htmlhelp_basename = project
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
-latex_use_parts = True
+#latex_use_parts = True
 
 # Additional stuff for the LaTeX preamble.
-latex_preamble = """
-   \usepackage{amsmath}
-   \usepackage{amssymb}
-   % Uncomment these two if needed
-   %\usepackage{amsfonts}
-   %\usepackage{txfonts}
-"""
+#latex_preamble = """
+#   \usepackage{amsmath}
+#   \usepackage{amssymb}
+#   % Uncomment these two if needed
+#   %\usepackage{amsfonts}
+#   %\usepackage{txfonts}
+#"""
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
 # If false, no module index is generated.
-latex_use_modindex = True
+#latex_use_modindex = True
