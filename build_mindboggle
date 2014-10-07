@@ -77,10 +77,10 @@ Ex: python build_mindboggle
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
-parser.add_argument("--home",
-                    help='Base directory (default: $HOME/build_mindboggle)',
-                    default=os.path.join(os.environ['HOME'],
-                                         'build_mindboggle'), metavar='STR')
+# parser.add_argument("--home",
+#                     help='Base directory (default: $HOME/Mindboggle)',
+#                     default=os.path.join(os.environ['HOME'],
+#                                          'Mindboggle'), metavar='STR')
 # parser.add_argument("--freesurfer",
 #                     help=("FreeSurfer subjects directory (default: "
 #                           "$SUBJECTS_DIR)"),
@@ -118,9 +118,10 @@ args = parser.parse_args()
 #=============================================================================
 mindboggle_version = "0"
 vagrantfile_api_version = "2"
-home = args.home
-if not os.path.exists(home):
-    os.mkdir(home)
+home = os.getcwd()  # Directory containing this file
+#home = args.home
+#if not os.path.exists(home):
+#    os.mkdir(home)
 
 # if args.freesurfer:
 #     freesurfer_string = 'config.vm.synced_folder "{0}", ' \
@@ -163,7 +164,7 @@ conda install --yes numpy scipy nose traits networkx
 conda install --yes dateutil ipython-notebook matplotlib
 pip install nibabel --use-mirrors
 pip install https://github.com/RDFLib/rdflib/archive/master.zip
-pip install https://github.com/satra/prov/archive/enh/rdf.zip
+pip install https://github.com/satra/prov/archive/rdf.zip
 pip install https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
@@ -174,57 +175,56 @@ sudo apt-get install -y g++
 sudo apt-get install -y make
 sudo apt-get install -y git
 sudo apt-get install -y xorg openbox
+sudo apt-get install cmake
 
 #-----------------------------------------------------------------------------
-# Install VTK:
+# Install VTK (for ANTs):
 #-----------------------------------------------------------------------------
 conda install --yes vtk
 VTK_DIR={0}/anaconda/lib/vtk-5.10  # Needed for ANTs
 export PATH=$VTK_DIR:$PATH
-#echo "export VTK_DIR={0}/anaconda/lib/vtk-5.10/" >> .bashrc
+#echo "export VTK_DIR=$HOME/anaconda/lib/vtk-5.10/" >> .bashrc
 
 #-----------------------------------------------------------------------------
-# Install Mindboggle:
+# Install Mindboggle (pip for code, git for C++ code):
 #-----------------------------------------------------------------------------
-#git clone https://github.com/binarybottle/mindboggle.git
 pip install https://github.com/binarybottle/mindboggle/archive/master.zip
-MINDBOGGLE_TOOLS={0}/mindboggle_tools/bin
+git clone https://github.com/binarybottle/mindboggle.git
+cd mindboggle
+sudo python setup.py install
+cd {0}
+MINDBOGGLE_TOOLS={0}/mindboggle/mindboggle_tools/bin
 export PATH=$MINDBOGGLE_TOOLS:$PATH
-#echo "export MINDBOGGLE_TOOLS={0}/mindboggle_tools/bin/" >> .bashrc
-#echo "export PATH=\$MINDBOGGLE_TOOLS:\$ANTSPATH:\$FREESURFER:\$PATH" >>.bashrc
-cd {0}/mindboggle_tools/bin/
-cmake {0}/mindboggle_tools
+cd $MINDBOGGLE_TOOLS
+cmake ../ -DVTK_DIR:STRING={0}/anaconda/lib/vtk-5.10
 make
 cd {0}
 
-# #-----------------------------------------------------------------------------
-# # Install FreeSurfer:
-# #-----------------------------------------------------------------------------
-# # http://surfer.nmr.mgh.harvard.edu/fswiki/Download
-# wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
-# sudo tar xzvf freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
-# rm freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
-# cd /home/vagrant
-# echo "export FREESURFER_HOME=$(pwd)/freesurfer" >> .bashrc
-# #echo "export SUBJECTS_DIR=\$FREESURFER_HOME/subjects" >> .bashrc
-# echo "source \$FREESURFER_HOME/SetUpFreeSurfer.sh" >> .bashrc
-#
-# #-----------------------------------------------------------------------------
-# # Install ANTs:
-# #-----------------------------------------------------------------------------
-# # http://brianavants.wordpress.com/2012/04/13/
-# #        updated-ants-compile-instructions-april-12-2012/
-# git clone git://github.com/stnava/ANTs.git
-# mkdir antsbin
-# cd antsbin
-# cmake ../ANTs
-# make #-j 4
-# cp ../ANTs/Scripts/* bin/
-# cd /home/vagrant
-# echo "export ANTSPATH=$(pwd)/antsbin/bin/" >> .bashrc
-##export PATH=$MINDBOGGLE_TOOLS:$ANTSPATH:$FREESURFER:$PATH
+#-----------------------------------------------------------------------------
+# Install FreeSurfer:
+#-----------------------------------------------------------------------------
+# http://surfer.nmr.mgh.harvard.edu/fswiki/Download
+wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+sudo tar xzvf freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+rm freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
+FREESURFER_HOME=/usr/local/freesurfer
+SUBJECTS_DIR=$FREESURFER_HOME/subjects
+export PATH=$FREESURFER_HOME:$SUBJECTS_DIR:$PATH
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
-###source .bashrc
+#-----------------------------------------------------------------------------
+# Install ANTs:
+#-----------------------------------------------------------------------------
+# http://brianavants.wordpress.com/2012/04/13/
+#        updated-ants-compile-instructions-april-12-2012/
+git clone git://github.com/stnava/ANTs.git
+mkdir antsbin
+cd antsbin
+cmake ../ANTs -DVTK_DIR:STRING={0}/anaconda/lib/vtk-5.10
+make #-j 4
+cp ../ANTs/Scripts/* bin/
+cd {0}
+export ANTSPATH={0}/antsbin/bin/
 
 SCRIPT
     """.format(home)
