@@ -91,65 +91,77 @@ features_group = parser.add_argument_group('more features')
 shapes_group = parser.add_argument_group('more shapes')
 inputs_group = parser.add_argument_group('modify inputs')
 outputs_group = parser.add_argument_group('modify outputs')
-extras_group = parser.add_argument_group('extras')
+#extras_group = parser.add_argument_group('extras')
 
+# "positional arguments":
 parser.add_argument("SUBJECT",
-                    help=('Subject name corresponding to the name of a '
-                          'directory in the FreeSurfer $SUBJECTS_DIR directory'))
-parser.add_argument("-v", "--version", help="version number",
+                    help=('Subject name corresponding to a subdirectory in '
+                          'the FreeSurfer subjects directory'))
+# "optional arguments":
+parser.add_argument("-v", "--version", help="mindboggle version number",
                     action='version', version='%(prog)s 0.1')
-parser.add_argument("-n",
+parser.add_argument("-n", "--number",
                     help=('number of processors (default: 1)'),
                     type=int, default=1, metavar='INT')
+parser.add_argument("-g", "--graph",
+                    help=('Graph workflow with py/graphviz: '
+                          '{hier,flat,exec}'),
+                    choices=['hier', 'flat', 'exec'], metavar='STR')
+parser.add_argument("--c", "--cluster", action='store_true',
+                    help="Use HTCondor cluster (UNTESTED)")
 
 ants_group.add_argument("--ants_segments",
-                    help=("Segmented file from antsCorticalThickness.sh"),
+                    help=("antsCorticalThickness.sh segmented file (ex: "
+                          "~/ants_data/bert/antsBrainSegmentation.nii.gz)"),
                     metavar='STR')
 
+features_group.add_argument("--folds", action='store_true',
+                    help="Save all (unidentified) folds")
 features_group.add_argument("--sulci", action='store_true',
                     help="Extract, identify, and measure sulci")
-features_group.add_argument("--folds", action='store_true',
-                    help="Save all folds (sulci are contained within folds)")
 features_group.add_argument("--fundi", action='store_true',
                     help="Extract, identify, and measure fundi "
                          "[UNTESTED]")
 features_group.add_argument("--vertices", action='store_true',
-                    help=("Make table of per-vertex surface shape measures"))
+                    help=("Table of per-vertex surface shape measures"))
+features_group.add_argument("--xfm", action='store_true',
+                    help="Cortical surfaces in MNI152 space")
 
 shapes_group.add_argument("--thickness", action='store_true',
-                    help="Compute cortical label thicknesses with ANTs")
-shapes_group.add_argument("--spectra",
-                    help='Number of Laplace-Beltrami spectrum eigenvalues '
-                         'per label/feature '
-                         '(recommended: 10; default OFF)',
-                    default=0, type=int, metavar='INT')
+                    help="Cortical label thicknesses [UNTESTED]")
 shapes_group.add_argument("--moments",
                     help='Order of Zernike moments per label/feature '
-                         '(recommended but SLOW: 10; default OFF)',
+                         '(ex: 10)',
+                    default=0, type=int, metavar='INT')
+shapes_group.add_argument("--spectra",
+                    help='Laplace-Beltrami spectrum eigenvalues '
+                         'per label/feature (ex: 10)',
                     default=0, type=int, metavar='INT')
 
+inputs_group.add_argument("--atlases", help=("Extra volume atlas(es) "
+                                             "in MNI152 space for labeling"),
+                    nargs='+', metavar='')
 inputs_group.add_argument("--subjects_dir",
-                    help=("FreeSurfer subjects directory (default: "
-                          "$SUBJECTS_DIR)"),
+                    help=("Alternative directory containing SUBJECT "
+                          "directory"),
                     metavar='STR')
+inputs_group.add_argument("--my_segments",
+                          help=("Use this segmented file (still use "
+                                "--ants_segments to fetch ANTs transforms)"),
+                    metavar='STR')
+# Volume labels: "wmparc" (default) or "aparc+aseg"
 inputs_group.add_argument("--volume_labels",
-                    help=("Volume labels: \"wmparc\" (default) or "
-                          "\"aparc+aseg\""),
+                    help=(argparse.SUPPRESS),
                     choices=['wmparc', 'aparc+aseg'],
                     default='wmparc', metavar='STR')
+# Surface labels: "freesurfer" (default), "atlas" or "manual"
 inputs_group.add_argument("--surface_labels",
-                    help=("Surface labels: \"freesurfer\" (default) or "
-                          "\"atlas\" (for output from older versions of "
-                          "FreeSurfer; expects default $SUBJECTS_DIR)"),
+                    help=(argparse.SUPPRESS),
                     choices=['freesurfer', 'atlas', 'manual'],
                     default='freesurfer', metavar='STR')
-inputs_group.add_argument("--my_segments",
-                    help=("Use this segmented file, but still call "
-                          "--ants_segments to fetch ANTs transforms"),
-                    metavar='STR')
-inputs_group.add_argument("--atlases", help=("Extra label volume atlas(es)"
-                                             " in MNI152 space"),
-                    nargs='+', metavar='')
+inputs_group.add_argument("--no_transforms", action='store_true',
+                    help="No ANTs transforms (such as when -t argument is "
+                         "omitted when running antsCorticalThickness.sh)")
 
 outputs_group.add_argument("--out",
                     help='Output directory (default: $HOME/mindboggled)',
@@ -164,28 +176,17 @@ outputs_group.add_argument("--cache", help='Download directory '
                                     '(default: $HOME/mindboggle_cache)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_cache'), metavar='STR')
-
-extras_group.add_argument("--no_volumes", action='store_true',
+outputs_group.add_argument("--no_volumes", action='store_true',
                     help="No volume labels, features, or shape tables")
-extras_group.add_argument("--no_surfaces", action='store_true',
+outputs_group.add_argument("--no_surfaces", action='store_true',
                     help="No surface labels, features, or shape tables")
-extras_group.add_argument("--no_labels", action='store_true',
+outputs_group.add_argument("--no_labels", action='store_true',
                     help="No surface or volume labels")
-extras_group.add_argument("--no_ants_transforms", action='store_true',
-                    help="No ANTs transforms (-t argument omitted "
-                         "when running antsCorticalThickness.sh)")
-extras_group.add_argument("--no_shapes", action='store_true',
+outputs_group.add_argument("--no_shapes", action='store_true',
                     help="No shape tables of surface labels or features")
-extras_group.add_argument("--save_only_tables", action='store_true',
-                    help="Do not save surface or volume files")
+outputs_group.add_argument("--save_only_tables", action='store_true',
+                    help="No surfaces or volumes, just tables")
 
-extras_group.add_argument("--visual", help=('Generate py/graphviz workflow visual: '
-                                      '{hier,flat,exec}'),
-                    choices=['hier', 'flat', 'exec'], metavar='STR')
-extras_group.add_argument("--cluster", action='store_true',
-                    help="Use HTCondor cluster (UNTESTED)")
-extras_group.add_argument("--xfm", action='store_true',
-                    help="Transform surfaces to MNI152 space")
 args = parser.parse_args()
 
 #-----------------------------------------------------------------------------
@@ -200,7 +201,7 @@ if not subjects_dir:
 if args.ants_segments:
     ants_segments = args.ants_segments
     use_ants_segments = True
-if not args.no_ants_transforms:
+if not args.no_transforms:
     use_ants_transforms = True
 if args.my_segments:
     my_segments = args.my_segments
@@ -1394,6 +1395,8 @@ if do_surface:
             TransformVTK.inputs.inverse_booleans = inverse_Booleans
             TransformVTK.inputs.transform_format = 'itk'
             TransformVTK.inputs.vtk_file_stem = 'affine_'
+            mbFlow.connect(TransformVTK, 'surface_in_MNI152',
+                           Sink, 'surfaces_in_MNI152')
 
 
 #=============================================================================
