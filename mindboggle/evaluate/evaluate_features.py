@@ -243,7 +243,7 @@ if __name__ == "__main__":
         # 2 = forrest lines
         # 3 = gang li
         # 4 = olivier coulon
-        nmethod = 1
+        nmethod = 4
         feature_dir = '/desk/TODO/evaluations/fundi_different_methods/'
         fmethods = ['Mindboggle_fundi',
                     'ForrestBao_scalar_fundi',

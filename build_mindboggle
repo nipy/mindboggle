@@ -46,6 +46,11 @@ ADVANCED: To build the above Mindboggle box from scratch::
     rsync -avz --sparse -e /usr/bin/ssh mindboggle.<version#>.box
         binarybottle@binarybottle.com:mindboggle.info/vm/
 
+    # Manual install would begin with:
+    vagrant init hashicorp/precise64
+    vagrant up
+    vagrant ssh
+
 
 Authors:
 Arno Klein, 2014  .  arno@mindboggle.info  .  www.binarybottle.com
@@ -64,31 +69,34 @@ This program either packages Mindboggle (http://mindboggle.info) and
 all of its dependencies in a virtual machine (--build) or configures the
 virtual machine (--install) with mounted directories to access FreeSurfer
 recon-all subject data (--freesurfer), ANTs antsCorticalThickness.sh
-subject data (--ants), or additional atlases (--atlases) in a
-base directory (--home). You must have Vagrant (http://www.vagrantup.com)
+subject data (--ants), or additional atlases (--atlases) and an output
+directory (--out). You must have Vagrant (http://www.vagrantup.com)
 and VirtualBox (http://www.virtualbox.org) installed, as well as a good
 Internet connection.
 
 Ex: python build_mindboggle
-    --home /Users/arno/build_mindboggle
+    --out /Users/arno/build_mindboggle
     --freesurfer /Applications/freesurfer/subjects
     --ants /data/antsCorticalThickness
     --num 6 --mem 4096 --cpu 75 """,
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
-# parser.add_argument("--freesurfer",
-#                     help=("FreeSurfer subjects directory (default: "
-#                           "$SUBJECTS_DIR)"),
-#                     metavar='STR')
-# parser.add_argument("--ants",
-#                     help=("Optional directory containing "
-#                           "antsCorticalThickness.sh "
-#                           "output in individual subject directories"),
-#                     metavar='STR')
-# parser.add_argument("--atlases",
-#                     help=("Optional directory containing additional atlases"),
-#                     metavar='STR')
+parser.add_argument("--out",
+                    help=("Output directory (default: $HOME/mindboggled)"),
+                    metavar='STR')
+parser.add_argument("--freesurfer",
+                    help=("FreeSurfer subjects directory (default: "
+                          "$SUBJECTS_DIR)"),
+                    metavar='STR')
+parser.add_argument("--ants",
+                    help=("Optional directory containing "
+                          "antsCorticalThickness.sh "
+                          "output in individual subject directories"),
+                    metavar='STR')
+parser.add_argument("--atlases",
+                    help=("Optional directory containing additional atlases"),
+                    metavar='STR')
 parser.add_argument("--cpu",
                     help=('Maximum CPU (percent): "--cpu 50" (default)'),
                     type=int, default=50, metavar='INT')
@@ -114,27 +122,32 @@ args = parser.parse_args()
 #=============================================================================
 mindboggle_version = "0"
 vagrantfile_api_version = "2"
-#home = os.getcwd()  # Directory containing this file
-#home = args.home
-#if not os.path.exists(home):
-#    os.mkdir(home)
+home = os.environ['HOME']
 
-# if args.freesurfer:
-#     freesurfer_string = 'config.vm.synced_folder "{0}", ' \
-#         '"{1}freesurfer_subjects"'.format(args.freesurfer, home)
-# else:
-#     freesurfer_string = 'config.vm.synced_folder "{0}", ' \
-#         '"{1}freesurfer_subjects"'.format(os.environ['SUBJECTS_DIR'], home)
-# if args.ants:
-#     ants_string = 'config.vm.synced_folder "{0}", ' \
-#                   '"{1}ants_subjects"'.format(args.ants, home)
-# else:
-#     ants_string = ''
-# if args.atlases:
-#     atlases_string = 'config.vm.synced_folder "{0}", ' \
-#                      '"{1}atlases"'.format(args.atlases, home)
-# else:
-#     atlases_string = ''
+if args.out:
+    out_string = 'install_config.vm.synced_folder "{0}", ' \
+        '"home/vagrant/mindboggled"'.format(args.out)
+else:
+    out_string = 'install_config.vm.synced_folder "{0}/mindboggled", ' \
+        '"home/vagrant/mindboggled"'.format(os.environ['HOME'])
+if args.freesurfer:
+    freesurfer_string = 'install_config.vm.synced_folder "{0}", ' \
+        '"/home/vagrant/freesurfer/subjects"'.\
+        format(args.freesurfer)
+else:
+    freesurfer_string = 'install_config.vm.synced_folder "{0}", ' \
+        '"/home/vagrant/freesurfer/subjects"'.\
+        format(os.environ['SUBJECTS_DIR'])
+if args.ants:
+    ants_string = 'install_config.vm.synced_folder "{0}", ' \
+                  '"/home/vagrant/ants_subjects"'.format(args.ants)
+else:
+    ants_string = ''
+if args.atlases:
+    atlases_string = 'install_config.vm.synced_folder "{0}", ' \
+                     '"{1}atlases"'.format(args.atlases, home)
+else:
+    atlases_string = ''
 
 #=============================================================================
 # Installation script to include in Vagrant file
@@ -165,21 +178,20 @@ pip install https://github.com/satra/prov/archive/rdf.zip
 pip install https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
-# Install compiling utilities:
-#-----------------------------------------------------------------------------
-sudo apt-get update
-sudo apt-get install g++
-sudo apt-get install cmake
-sudo apt-get install make
-sudo apt-get install git
-
-#-----------------------------------------------------------------------------
 # Install VTK (for ANTs):
 #-----------------------------------------------------------------------------
 conda install --yes vtk
 VTK_DIR=$CWD/anaconda/lib/vtk-5.10  # Needed for ANTs
 export PATH=$VTK_DIR:$PATH
 
+#-----------------------------------------------------------------------------
+# Install compiling utilities:
+#-----------------------------------------------------------------------------
+sudo apt-get update
+sudo apt-get install g++
+sudo apt-get install make
+#sudo apt-get install cmake
+sudo apt-get install git
 sudo apt-get install xorg openbox
 
 #-----------------------------------------------------------------------------
@@ -201,10 +213,17 @@ cd $CWD
 wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
 sudo tar xzvf freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
 rm freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
-FREESURFER_HOME=/usr/local/freesurfer
+FREESURFER_HOME=$CWD/freesurfer
 SUBJECTS_DIR=$FREESURFER_HOME/subjects
 export PATH=$FREESURFER_HOME:$SUBJECTS_DIR:$PATH
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
+# Remove some of the larger directories:
+cd freesurfer
+sudo rm -r average fsfast matlab mni subjects tktools trctrain
+cd lib
+sudo rm -r cuda qt tcl tcltktixblt
+cd $CWD
 
 #-----------------------------------------------------------------------------
 # Install ANTs:
@@ -284,28 +303,30 @@ Vagrant.configure({1}) do |config|
         # Create a forwarded port mapping to allow access to a specific port
         # within the machine from a port on the host machine. In this example,
         # accessing "localhost:8080" will access port 80 on the guest machine:
-        build_config.vm.network "forwarded_port", guest: 80, host: 8080,
+        install_config.vm.network "forwarded_port", guest: 80, host: 8080,
             auto_correct: true
-        build_config.vm.network :public_network
+        install_config.vm.network :public_network
 
         # Share an additional folder to the guest VM. The first argument is
         # the path on the host to the actual folder. The second argument is
         # the path on the guest to mount the folder.
-        # Ex: v.vm.synced_folder "../data", "/vagrant_data"
-        #freesurfer_string
-        #ants_string
-        #atlases_string
+        # Ex: install_config.vm.synced_folder "../data", "/vagrant_data"
+        {3}
+        {4}
+        {5}
+        {6}
 
         # Configure %CPU, memory, #CPUs
         install_config.vm.provider :virtualbox do |vb|
-          vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{3}"]
-          vb.customize ["modifyvm", :id, "--memory", "{4}"]
-          vb.customize ["modifyvm", :id, "--cpus", "{5}"]
+          vb.customize ["modifyvm", :id, "--cpuexecutioncap", "{7}"]
+          vb.customize ["modifyvm", :id, "--memory", "{8}"]
+          vb.customize ["modifyvm", :id, "--cpus", "{9}"]
           vb.customize ["modifyvm", :id, "--ioapic", "on"]
         end
     end
 end
 """.format(script, vagrantfile_api_version, mindboggle_version,
+           out_string, freesurfer_string, ants_string, atlases_string,
            args.cpu, args.mem, args.num)
 
 #=============================================================================

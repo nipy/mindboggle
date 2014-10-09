@@ -40,8 +40,8 @@ def surface_to_vtk(surface_file, output_vtk):
     --------
     >>> import os
     >>> from mindboggle.utils.freesurfer import surface_to_vtk
-    >>> path = os.environ['FREESURFER_HOME']
-    >>> surface_file = os.path.join(path, 'subjects', 'OASIS-TRT-20-1', 'surf', 'lh.pial')
+    >>> path = os.environ['SUBJECTS_DIR']
+    >>> surface_file = os.path.join(path, 'OASIS-TRT-20-1', 'surf', 'lh.pial')
     >>> output_vtk = ''
     >>> #
     >>> surface_to_vtk(surface_file, output_vtk)
@@ -248,7 +248,7 @@ def label_with_classifier(subject, hemi, left_classifier='',
     Notes regarding creation and use of FreeSurfer Gaussian classifier atlas:
 
     Create the DKT classifier atlas (?h.DKTatlas40.gcs) --NEED TO VERIFY THIS:
-    $ mris_ca_train -t $FREESURFERHOME/average/colortable_desikan_killiany.txt \
+    $ mris_ca_train -t $FREESURFER_HOME/average/colortable_desikan_killiany.txt \
                     $hemi sphere.reg aparcNMMjt.annot $SCANS ./$hemi.DKTatlas40.gcs
 
     Label a brain with the DKT atlas (surface annotation file ?h.DKTatlas40.annot):
