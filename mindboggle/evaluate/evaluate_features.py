@@ -243,7 +243,7 @@ if __name__ == "__main__":
         # 2 = forrest lines
         # 3 = gang li
         # 4 = olivier coulon
-        nmethod = 4
+        nmethod = 1
         feature_dir = '/desk/TODO/evaluations/fundi_different_methods/'
         fmethods = ['Mindboggle_fundi',
                     'ForrestBao_scalar_fundi',
@@ -286,7 +286,7 @@ if __name__ == "__main__":
             subject = name+'-'+str(n)
             for isurf, surf in enumerate(surfs):
                 hemi = hemis[isurf]
-                print('{0}: {1}'.format(subject, hemi))
+                #print('{0}: {1}'.format(subject, hemi))
                 #-------------------------------------------------------------
                 # Identify surface files with labels and with sulci:
                 #-------------------------------------------------------------
@@ -305,11 +305,14 @@ if __name__ == "__main__":
                         features_file = os.path.join(mdir, 'features', surf,
                                                      'fundus_per_sulcus.vtk')
                     else:
-                        features_file = os.path.join(fmethod_dir, subject,
+                        features_file = os.path.join(fmethod_dir,
                             '_hemi_' + hemi + '_subject_' + name + '-' + str(n),
                             hemi + '.pial.fundi.vtk')
                 else:
                     features_file = sulci_file
+                #if not os.path.exists(features_file):
+                #    print(features_file)
+
                 #-------------------------------------------------------------
                 # Compute distances between features and label borders
                 # in sulci corresponding to fundi:
