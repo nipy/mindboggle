@@ -21,10 +21,12 @@ ants_dir = '/data/Brains/Mindboggle101/antsCorticalThickness'
 for i,name in enumerate(names):
     number = numbers[i]
     for n in range(1,number+1):
-        s = 'mindboggle -n 8 {0}-{1} --ants_segments ' \
+        s = 'mindboggle {0}-{1} --ants_segments ' \
             '{2}/{0}-{1}/{3}BrainSegmentation.nii.gz ' \
-            '--sulci --fundi --thickness --spectra 10 --moments 3 --vertices ' \
-            '--surface_labels manual' \
+            '--folds --sulci --fundi --vertices --xfm ' \
+            '--thickness --spectra 10 --moments 10 ' \
+            '--surface_labels manual ' \
+            '--processors 8 ' \
             .format(name, n, ants_dir, prefix)
         print(s)
         os.system(s)
