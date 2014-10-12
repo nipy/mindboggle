@@ -244,7 +244,7 @@ if __name__ == "__main__":
         # 3 = gang li
         # 4 = olivier coulon
         nmethod = 1
-        feature_dir = '/desk/TODO/evaluations/fundi_different_methods/'
+        feature_dir = '/homedir/fundus_evaluation_2014/fundi_vtk'
         fmethods = ['Mindboggle_fundi',
                     'ForrestBao_scalar_fundi',
                     'ForrestBao_line_fundi',
