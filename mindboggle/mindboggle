@@ -2323,7 +2323,7 @@ if __name__ == '__main__':
         if args.processors:
             if nproc > 1:
                 mbFlow.run(plugin='MultiProc',
-                           plugin_args={'n_procs': args.n})
+                           plugin_args={'n_procs': args.processors})
                            #updatehash=True)
             else:
                 mbFlow.run()  #updatehash=True)
