@@ -317,36 +317,39 @@ if __name__ == "__main__":
                 # Compute distances between features and label borders
                 # in sulci corresponding to fundi:
                 #-------------------------------------------------------------
-                feature_to_border_mean_distances, \
-                feature_to_border_sd_distances,\
-                feature_to_border_distances_vtk,\
-                border_to_feature_mean_distances, \
-                border_to_feature_sd_distances,\
-                border_to_feature_distances_vtk = \
-                    evaluate_deep_features(features_file, labels_file,
-                        sulci_file, hemi, excludeIDs=[-1],
-                        output_vtk_name=subject+'_'+hemi+'_'+fmethod,
-                        verbose=True)
-                print('*' * 79)
+                if os.path.exists(features_file) \
+                   and os.path.exists(labels_file) \
+                   and os.path.exists(sulci_file):
+                    feature_to_border_mean_distances, \
+                    feature_to_border_sd_distances,\
+                    feature_to_border_distances_vtk,\
+                    border_to_feature_mean_distances, \
+                    border_to_feature_sd_distances,\
+                    border_to_feature_distances_vtk = \
+                        evaluate_deep_features(features_file, labels_file,
+                            sulci_file, hemi, excludeIDs=[-1],
+                            output_vtk_name=subject+'_'+hemi+'_'+fmethod,
+                            verbose=True)
+                    print('*' * 79)
 
-                if isurf == 0:
-                    feature_to_border_mean_distances_left[isubject, :] = \
-                        feature_to_border_mean_distances
-                    feature_to_border_sd_distances_left[isubject, :] = \
-                       feature_to_border_sd_distances
-                    border_to_feature_mean_distances_left[isubject, :] = \
-                        border_to_feature_mean_distances
-                    border_to_feature_sd_distances_left[isubject, :] = \
-                        border_to_feature_sd_distances
-                else:
-                    feature_to_border_mean_distances_right[isubject, :] = \
-                        feature_to_border_mean_distances
-                    feature_to_border_sd_distances_right[isubject, :] = \
-                       feature_to_border_sd_distances
-                    border_to_feature_mean_distances_right[isubject, :] = \
-                        border_to_feature_mean_distances
-                    border_to_feature_sd_distances_right[isubject, :] = \
-                        border_to_feature_sd_distances
+                    if isurf == 0:
+                        feature_to_border_mean_distances_left[isubject, :] = \
+                            feature_to_border_mean_distances
+                        feature_to_border_sd_distances_left[isubject, :] = \
+                           feature_to_border_sd_distances
+                        border_to_feature_mean_distances_left[isubject, :] = \
+                           border_to_feature_mean_distances
+                        border_to_feature_sd_distances_left[isubject, :] = \
+                            border_to_feature_sd_distances
+                    else:
+                        feature_to_border_mean_distances_right[isubject, :] = \
+                            feature_to_border_mean_distances
+                        feature_to_border_sd_distances_right[isubject, :] = \
+                            feature_to_border_sd_distances
+                        border_to_feature_mean_distances_right[isubject, :] = \
+                            border_to_feature_mean_distances
+                        border_to_feature_sd_distances_right[isubject, :] = \
+                            border_to_feature_sd_distances
 
             isubject += 1
 

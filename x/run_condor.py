@@ -27,7 +27,7 @@ for i,name in enumerate(names):
             '--folds --sulci --fundi --vertices --xfm ' \
             '--thickness --spectra 10 --moments 10 ' \
             '--surface_labels manual ' \
-            '--processors 20 ' \
+            '--cluster ' \
             '--subjects_dir /mnt/nfs-share/brains/Mindboggle101/subjects ' \
             .format(name, n, ants_dir, prefix)
         print(s)
