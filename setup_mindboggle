@@ -10,21 +10,21 @@ must be installed, and you need a good Internet connection.
 Copy this file into a setup directory.  For example::
 
     mkdir /Users/arno/mindboggle_setup
-    cp build_mindboggle /Users/arno/mindboggle_setup/
+    cp setup_mindboggle /Users/arno/mindboggle_setup/
     cd /Users/arno/mindboggle_setup/
 
 For help using this program, type the following in a terminal window::
 
-    python build_mindboggle --help
+    python setup_mindboggle --help
 
 As an example installation, configure access to ANTs and FreeSurfer data
 via local mounted directories, and set the number of processors to 6::
 
-    python build_mindboggle --install
+    python setup_mindboggle --install
                             --home /home/vagrant
                             --freesurfer /Applications/freesurfer/subjects
-                            --ants /Data/antsCorticalThickness/subjects
-                            --num 6
+                            --ants /data/antsCorticalThickness/subjects
+                            --proc 6
     vagrant up install
 
 The above installation is done only once, unless new configuration settings
@@ -37,7 +37,7 @@ are desired.  To run mindboggle::
 ADVANCED: To build the above Mindboggle box from scratch::
 
     # Run this file in your setup directory, and build the box:
-    python build_mindboggle --build --install
+    python setup_mindboggle --build --install
     vagrant up build
     VBoxManage list vms  # to find <vm name> below
     vagrant package --base <vm name> --output mindboggle.<version#>.box
@@ -74,11 +74,11 @@ directory (--out). You must have Vagrant (http://www.vagrantup.com)
 and VirtualBox (http://www.virtualbox.org) installed, as well as a good
 Internet connection.
 
-Ex: python build_mindboggle
-    --out /Users/arno/build_mindboggle
+Ex: python setup_mindboggle
+    --out /Users/arno/setup_mindboggle
     --freesurfer /Applications/freesurfer/subjects
     --ants /data/antsCorticalThickness
-    --num 6 --mem 4096 --cpu 75 """,
+    --proc 6 --mem 4096 --cpu 75 """,
     formatter_class = lambda prog:
     argparse.HelpFormatter(prog, max_help_position=40))
 
@@ -103,8 +103,8 @@ parser.add_argument("--cpu",
 parser.add_argument("--mem",
                     help=('Maximum memory (MB): "--mem 4096" (default)'),
                     type=int, default=4096, metavar='INT')
-parser.add_argument("--num",
-                    help=('Number of processors: "--num 1" (default)'),
+parser.add_argument("--proc",
+                    help=('Number of processors: "--proc 1" (default)'),
                     type=int, default=1, metavar='INT')
 parser.add_argument("--install",
                     help=("Configure the Vagrant box; mount ANTs and "
@@ -326,7 +326,7 @@ Vagrant.configure({1}) do |config|
 end
 """.format(script, vagrantfile_api_version, mindboggle_version,
            out_string, freesurfer_string, ants_string, atlases_string,
-           args.cpu, args.mem, args.num)
+           args.cpu, args.mem, args.proc)
 
 #=============================================================================
 # Write Vagrantfile with substitutions
