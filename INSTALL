@@ -28,12 +28,12 @@ See `README <http://mindboggle.info/users/README.html>`_ for
 instructions on running ``recon-all`` in FreeSurfer and
 ``antsCorticalThickness.sh`` in ANTs.
 
-FreeSurfer_ (`download <http://surfer.nmr.mgh.harvard.edu>`_)
+FreeSurfer (`download <http://surfer.nmr.mgh.harvard.edu>`_)
 provides labeled cortical surfaces and non/cortical volumes.
 (Note: Mindboggle expects the FreeSurfer SUBJECTS_DIR environment
-variable to be set.)
+variable to be set to access surfaces and other data.)
 
-ANTs_ (`download <http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/>`_)
+ANTs (`download <http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/>`_)
 optionally provides tissue segmentation, affine registration to standard
 space, and nonlinear registration for whole-brain labeling, to improve and
 extend Mindboggle results.
@@ -86,7 +86,7 @@ directory, your local ANTs subjects directory,
 and to use a given number of processors
 (include Mindboggle's VERSION number)::
 
-    python setup_mindboggle VERSION --freesurfer --ants /data/ants_out --num 6
+    python setup_mindboggle VERSION --freesurfer --ants /data/ants_out --p 6
 
 For help with other setup options::
 
