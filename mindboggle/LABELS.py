@@ -187,6 +187,7 @@ class DKTprotocol:
 
     """
     import os
+    import sys
 
     def is_number(s):
         try:
@@ -198,8 +199,13 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Read FreeSurferColorLUT file:
     #-------------------------------------------------------------------------
-    freesurfer_color_LUT_file = os.path.join(
-             os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
+    if os.environ['FREESURFER_HOME']:
+        freesurfer_color_LUT_file = os.path.join(
+                 os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
+    else:
+        sys.exit('Please set the environment variable FREESURFER_HOME.')
+    if not os.path.exists(freesurfer_color_LUT_file):
+        sys.exit(freesurfer_color_LUT_file + ' does not exist.')
     f = open(freesurfer_color_LUT_file, 'r')
     flines = f.readlines()
 
