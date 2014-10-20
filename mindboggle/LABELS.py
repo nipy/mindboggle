@@ -1,18 +1,20 @@
 #!/usr/bin/env python
 """
-
-==============================================================================
 Brain label numbers, names, and colormap related to the DKT labeling protocol
 ==============================================================================
 
-For more information about the Desikan-Killiany-Tourville
-cortical labeling protocol see http://mindboggle.info/data
-and the article:
+For more information about the Desikan-Killiany-Tourville cortical labeling
+protocol see http://mindboggle.info/data and the article:
 
 http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 "101 labeled brain images and a consistent human cortical labeling protocol"
 Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
 DOI: 10.3389/fnins.2012.00171
+
+Calls return_numbers_names_colors() to return numbers, names, and colors
+extracted from FreeSurfer's FreeSurferColorLUT.txt lookup table file
+representing anatomical brain regions.
+(See extract_numbers_names_colors() in LUT.py for extraction code.)
 
 ------------------------------------------------------------------------------
 Combined/eliminated regions:
@@ -32,8 +34,8 @@ anterior horizontal ramus of the sylvian fissure as the boundary between
 18 and 12. Anatomically, both aggregations are defensible but one or the other
 may suit your needs better.
 
-Regarding my earlier note about the lack of a full, consistent sulcal
-anterior boundary for the inferior frontal gyrus:
+Jason Tourville:  "Regarding the lack of a full, consistent sulcal anterior
+boundary for the inferior frontal gyrus:
 This will be the case for several regions, i.e., in practice, many boundaries
 are not formed by sulci but instead require "jumps" across gyri
 (paths along regions of different direction curvature). This can be variable,
@@ -44,7 +46,7 @@ frontal gyrus (27) requires a "jump" over the lateral orbital gyrus.
 Below, I note with a '*' those boundaries given principally by a sulcal fundus
 but which frequently require "jumps" across gyri. I handle separately
 definitions that explicitly rely on non-fundus boundaries, i.e., those that
-rely on the margins of sulcal banks.
+rely on the margins of sulcal banks."
 
 (5) Parahippocampal + entorhinal cortex + and lingual gyrus?
 
@@ -186,39 +188,12 @@ class DKTprotocol:
     >>> dkt.left_cerebrum_names
 
     """
-    import os
-    import sys
-
-    def is_number(s):
-        try:
-            int(s)
-            return True
-        except ValueError:
-            return False
+    from mindboggle.LUT import return_numbers_names_colors
 
     #-------------------------------------------------------------------------
-    # Read FreeSurferColorLUT file:
+    # Return numbers, names, colors extracted from FreeSurferColorLUT.txt:
     #-------------------------------------------------------------------------
-    if os.environ['FREESURFER_HOME']:
-        freesurfer_color_LUT_file = os.path.join(
-                 os.environ['FREESURFER_HOME'], 'FreeSurferColorLUT.txt')
-    else:
-        sys.exit('Please set the environment variable FREESURFER_HOME.')
-    if not os.path.exists(freesurfer_color_LUT_file):
-        sys.exit(freesurfer_color_LUT_file + ' does not exist.')
-    f = open(freesurfer_color_LUT_file, 'r')
-    flines = f.readlines()
-
-    numbers = []
-    names = []
-    colors = []
-    for fline in flines:
-        fstrings = fline.split()
-        if fstrings and is_number(fstrings[0]):
-            numbers.append(int(fstrings[0]))
-            names.append(fstrings[1])
-            colors.append([int(fstrings[2]), int(fstrings[3]),
-                           int(fstrings[4])])
+    numbers, names, colors = return_numbers_names_colors()
 
     #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (31 + duplicates):
@@ -352,6 +327,10 @@ class DKTprotocol:
     brainstem_colors = []
     extra_colors = []
     misc_colors = []
+
+    #-------------------------------------------------------------------------
+    # Lists of numbers, names, and colors:
+    #-------------------------------------------------------------------------
     for i, n in enumerate(numbers):
         if n in left_cerebrum_cortex_list:
             left_cerebrum_cortex_numbers.append(numbers[i])
@@ -440,7 +419,7 @@ class DKTprotocol:
             misc_colors.append(colors[i])
 
     #-------------------------------------------------------------------------
-    # Aggregate lists:
+    # Aggregate lists of numbers, names, and colors:
     #-------------------------------------------------------------------------
     ventricle_numbers = left_ventricle_numbers + right_ventricle_numbers + \
                         medial_ventricle_numbers

@@ -39,7 +39,6 @@ def hashes_url():
     #-------------------------------------------------------------------------
     # Atlases and templates:
     #-------------------------------------------------------------------------
-    hashes['FreeSurferColorLUT.txt'] = '106a0ad4551e0d5894c3906680702113'
     hashes['OASIS-30_Atropos_template.nii.gz'] = 'f95dbe37ab40e8ad59c1b1eabc7f230c'
     hashes['OASIS-30_Atropos_template_in_MNI152.nii.gz'] = '2efbe9c0755f4aa4506ad78e60ec319f'
     hashes['OASIS-30_Atropos_template_to_MNI152_affine.txt'] = 'f36e3d5d99f7c4a9bb70e2494ed7340b'
