@@ -15,7 +15,7 @@ Help with Mindboggle
 ------------------------------------------------------------------------------
 - Help in a terminal window (see below for inputs and outputs)::
 
-    mindboggle --help
+    mindboggle -h
 
 - `Documentation <http://mindboggle.info/documentation.html>`_
 - `Installation <http://mindboggle.info/users/INSTALL.html>`_
@@ -48,19 +48,19 @@ this command runs on 8 processors and uses ANTs output files
 (replace ``SEGMENTS`` with an ANTs segmented file, such as
 ``ants_output/subject1/tmpBrainSegmentation.nii.gz``)::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness --no_surfaces -n 8
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness --no_surfaces -p 8
 
 **Example 3:**
 To also generate cortical surface labels and measures::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -n 8
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -p 8
 
 **Example 4:**
 Additional outputs include sulcus folds
-and Laplace-Beltrami spectral measures
+and Laplace-Beltrami spectral measures and Zernicke moments
 (type ``mindboggle --help`` for more options)::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -n 8 --sulci --spectra 10
+    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -p 8 --sulci --spectra 10 --moments 10
 
 
 ------------------------------------------------------------------------------

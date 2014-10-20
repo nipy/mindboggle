@@ -11,10 +11,9 @@
 
 .. _mindboggle: http://mindboggle.info
 .. _documentation: http://mindboggle.info/documentation.html
-.. _`Github repository`: http://github.com/binarybottle/mindboggle
-.. _`available releases`: http://github.com/binarybottle/mindboggle/downloads
-.. _bugs: http://github.com/binarybottle/mindboggle/issues
-.. _mindboggle_vagrant: http://mindboggle.info/vm/mindboggle_vagrant_v0
+.. _`Github repository`: https://github.com/binarybottle/mindboggle
+.. _`available releases`: https://github.com/binarybottle/mindboggle/downloads
+.. _bugs: https://github.com/binarybottle/mindboggle/issues
 
 .. Documentation tools
 .. _graphviz: http://www.graphviz.org/
