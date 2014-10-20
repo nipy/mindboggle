@@ -167,7 +167,7 @@ chmod +x miniconda.sh
 export PATH=$CWD/anaconda/bin:$PATH
 
 #-----------------------------------------------------------------------------
-# Install nipype and nipype dependencies:
+# Install nipype dependencies:
 #-----------------------------------------------------------------------------
 conda install --yes pip cmake
 conda install --yes numpy scipy nose traits networkx
