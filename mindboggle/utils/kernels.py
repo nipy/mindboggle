@@ -9,16 +9,12 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Kernels
-# -----------------------------------------------------------------------------
-###############################################################################
 
 def rbf_kernel(x1, x2, sigma):
     import numpy as np
 
     return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
+
 
 def cotangent_kernel(Nodes, Meshes):
     import numpy as np
@@ -45,6 +41,7 @@ def cotangent_kernel(Nodes, Meshes):
         W[c[1], c[0]] += cot2
 
     return W
+
 
 def inverse_distance(x1, x2, epsilon):
     import numpy as np
