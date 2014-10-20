@@ -374,41 +374,42 @@ if __name__ == "__main__":
     np.savetxt(fmethod + '_sd_distances_from_border_right.csv',
                border_to_feature_sd_distances_right)
 
-    #-------------------------------------------------------------------------
-    # Save tables of mean distances averaged across all subjects:
-    #-------------------------------------------------------------------------
-    mean_feature_to_border_mean_distances_left = \
-        np.mean(feature_to_border_mean_distances_left, axis=0)
-    mean_feature_to_border_sd_distances_left = \
-        np.mean(feature_to_border_mean_distances_left, axis=0)
-    mean_border_to_feature_mean_distances_left = \
-        np.mean(border_to_feature_mean_distances_left, axis=0)
-    mean_border_to_feature_sd_distances_left = \
-        np.mean(border_to_feature_mean_distances_left, axis=0)
-
-    mean_feature_to_border_mean_distances_right = \
-        np.mean(feature_to_border_mean_distances_right, axis=0)
-    mean_feature_to_border_sd_distances_right = \
-        np.mean(feature_to_border_mean_distances_right, axis=0)
-    mean_border_to_feature_mean_distances_right = \
-        np.mean(border_to_feature_mean_distances_right, axis=0)
-    mean_border_to_feature_sd_distances_right = \
-        np.mean(border_to_feature_mean_distances_right, axis=0)
-
-    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_left.csv',
-               mean_feature_to_border_mean_distances_left)
-    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_left.csv',
-               mean_feature_to_border_sd_distances_left)
-    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_left.csv',
-               mean_border_to_feature_mean_distances_left)
-    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_left.csv',
-               mean_border_to_feature_sd_distances_left)
-
-    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_right.csv',
-               mean_feature_to_border_mean_distances_right)
-    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_right.csv',
-               mean_feature_to_border_sd_distances_right)
-    np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_right.csv',
-               mean_border_to_feature_mean_distances_right)
-    np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_right.csv',
-               mean_border_to_feature_sd_distances_right)
+    # #-------------------------------------------------------------------------
+    # # Save tables of mean distances averaged across all subjects:
+    # # NOTE: np.mean() results in nan's if any element has a nan.
+    # #-------------------------------------------------------------------------
+    # mean_feature_to_border_mean_distances_left = \
+    #     np.mean(feature_to_border_mean_distances_left, axis=0)
+    # mean_feature_to_border_sd_distances_left = \
+    #     np.mean(feature_to_border_mean_distances_left, axis=0)
+    # mean_border_to_feature_mean_distances_left = \
+    #     np.mean(border_to_feature_mean_distances_left, axis=0)
+    # mean_border_to_feature_sd_distances_left = \
+    #     np.mean(border_to_feature_mean_distances_left, axis=0)
+    #
+    # mean_feature_to_border_mean_distances_right = \
+    #     np.mean(feature_to_border_mean_distances_right, axis=0)
+    # mean_feature_to_border_sd_distances_right = \
+    #     np.mean(feature_to_border_mean_distances_right, axis=0)
+    # mean_border_to_feature_mean_distances_right = \
+    #     np.mean(border_to_feature_mean_distances_right, axis=0)
+    # mean_border_to_feature_sd_distances_right = \
+    #     np.mean(border_to_feature_mean_distances_right, axis=0)
+    #
+    # np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_left.csv',
+    #            mean_feature_to_border_mean_distances_left)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_left.csv',
+    #            mean_feature_to_border_sd_distances_left)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_left.csv',
+    #            mean_border_to_feature_mean_distances_left)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_left.csv',
+    #            mean_border_to_feature_sd_distances_left)
+    #
+    # np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_to_border_right.csv',
+    #            mean_feature_to_border_mean_distances_right)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_to_border_right.csv',
+    #            mean_feature_to_border_sd_distances_right)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_mean_distances_from_border_right.csv',
+    #            mean_border_to_feature_mean_distances_right)
+    # np.savetxt('avg_per_fundus_' + fmethod + '_sd_distances_from_border_right.csv',
+    #            mean_border_to_feature_sd_distances_right)
