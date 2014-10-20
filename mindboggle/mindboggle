@@ -104,9 +104,9 @@ parser.add_argument("-p", "--processors",
                     help=('number of processors (default: 1)'),
                     type=int, default=1, metavar='INT')
 parser.add_argument("-g", "--graph",
-                    help=('Graph workflow with py/graphviz: '
-                          '{hier,flat,exec}'),
-                    choices=['hier', 'flat', 'exec'], metavar='STR')
+                    help=('Graph workflow: "hier" (default), "flat", "exec"'),
+                    choices=['hier', 'flat', 'exec'],
+                    type=str, default='hier', metavar='STR')
 parser.add_argument("-c", "--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
 
@@ -398,7 +398,7 @@ Sink.inputs.regexp_substitutions = [
 #-----------------------------------------------------------------------------
 # ANTs transforms for saving MNI152-transformed coordinates and for labeling
 #-----------------------------------------------------------------------------
-if use_ants_transforms or use_ants_segments:
+if use_ants_transforms and use_ants_segments:
     #-------------------------------------------------------------------------
     # Retrieve atlas path:
     #-------------------------------------------------------------------------
@@ -1236,7 +1236,7 @@ if do_surface:
             mbFlow.connect(SurfFeatureFlow,
                            'Fundus_per_sulcus.fundus_per_sulcus',
                            ShapeTables, 'fundi')
-        if use_ants_transforms:
+        if use_ants_transforms and use_ants_segments:
             mbFlow.connect(AffineFileList, 'string_list',
                            ShapeTables, 'affine_transform_files')
             ShapeTables.inputs.inverse_booleans = inverse_Booleans
@@ -1344,7 +1344,7 @@ if do_surface:
                                'Fundus_per_sulcus.fundus_per_sulcus',
                                VertexTable, 'fundi')
 
-            if use_ants_transforms:
+            if use_ants_transforms and use_ants_segments:
                 mbFlow.connect(AffineFileList, 'string_list',
                                VertexTable, 'affine_transform_files')
                 VertexTable.inputs.inverse_booleans = inverse_Booleans
@@ -1377,7 +1377,7 @@ if do_surface:
         #---------------------------------------------------------------------
         # Apply affine transform to surface coordinates:
         #---------------------------------------------------------------------
-        if use_ants_transforms and args.xfm:
+        if use_ants_transforms and use_ants_segments and args.xfm:
             TransformVTK = Node(name='Transform_surface_points',
                                 interface=Fn(function=apply_affine_transforms,
                                              input_names=['transform_files',
