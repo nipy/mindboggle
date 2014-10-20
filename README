@@ -24,7 +24,7 @@ Help with Mindboggle
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-Example Mindboggle commands
+Set up Mindboggle
 ------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
 type the following two commands in a terminal window,
@@ -35,10 +35,13 @@ the Mindboggle virtual machine (requires an active Internet connection)::
     vagrant up
     vagrant ssh
 
+------------------------------------------------------------------------------
+Example Mindboggle commands
+------------------------------------------------------------------------------
 **Example 1:**
-The following bare-bones command runs Mindboggle
+The following bare-bones command runs Mindboggle (and its dependencies)
 on data processed by FreeSurfer but not ANTs
-(replace ``SUBJECT`` with the name of a FreeSurfer subject directory)::
+(replace ``SUBJECT`` with the name of a FreeSurfer subject directory, such as ``bert``)::
 
     mindboggle SUBJECT
 
@@ -70,8 +73,8 @@ Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
-noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
-(e.g., subject1.nii.gz) and set the output SUBJECT name (e.g., to ``subject1``)::
+noncortical volumes. Run ``recon-all`` on a T1-weighted ``IMAGE`` file
+(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name (e.g., to ``subject1``)::
 
     recon-all -all -i IMAGE -s SUBJECT
 
@@ -83,8 +86,8 @@ noncortical volumes. Run ``recon-all`` on a T1-weighted IMAGE file
 
 **ANTs** provides brain volume extraction, segmentation, and registration-based labeling.
 To generate the ANTs transforms and segmentation files used by
-Mindboggle, run the antsCorticalThickness.sh script on the same IMAGE file,
-set an output PREFIX, and provide paths to the
+Mindboggle, run the ``antsCorticalThickness.sh`` script on the same ``IMAGE`` file,
+set an output ``PREFIX``, and provide paths to the
 `OASIS-30 Atropos template <http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.tar.gz>`_
 files (backslash denotes a line return)::
     antsCorticalThickness.sh -d 3 -a IMAGE -o PREFIX \
@@ -97,36 +100,37 @@ files (backslash denotes a line return)::
 ------------------------------------------------------------------------------
 Mindboggle processing steps
 ------------------------------------------------------------------------------
-    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output.
+    1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py>`_).
     2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
     3. Compute volume shape measures for each labeled region:
 
-        - volume
-        - thickness (cortical labels)
+        - volume (`volume_per_label <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py>`_)
+        - thickness of cortical labels (`thickinthehead <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/ants.py>`_)
 
     4. Compute surface shape measures for every cortical mesh vertex:
 
-        - surface area
-        - travel depth
-        - geodesic depth
-        - mean curvature
+        - `surface area <https://github.com/binarybottle/mindboggle/blob/master/mindboggle_tools/PointAreaComputer.cpp>`_
+        - `travel depth <https://github.com/binarybottle/mindboggle/blob/master/mindboggle_tools/TravelDepth.cpp>`_
+        - `geodesic depth <https://github.com/binarybottle/mindboggle/blob/master/mindboggle_tools/geodesic_depth/GeodesicDepthMain.cpp>`_
+        - `mean curvature <https://github.com/binarybottle/mindboggle/blob/master/mindboggle_tools/curvature/CurvatureMain.cpp>`_
         - convexity (from FreeSurfer)
         - thickness (from FreeSurfer)
 
     5. Extract cortical surface features:
 
-        - sulci
-        - fundi
+        - `folds <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/features/folds.py>`_
+        - `sulci <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/features/sulci.py>`_
+        - `fundi <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/features/fundi.py>`_
 
     6. For each cortical surface label/sulcus, compute:
 
         - area
         - mean coordinates
         - mean coordinates in MNI152 space
-        - Laplace-Beltrami spectrum
-        - Zernike moments
+        - `Laplace-Beltrami spectrum <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/shapes/laplace_beltrami.py>`_
+        - `Zernike moments <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/shapes/zernike/zernike.py>`_
 
-    7. Compute statistics for each shape measure in #4 for each label/feature:
+    7. Compute statistics (``stats_per_label`` in `compute.py <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/compute.py>`_) for each shape measure in #4 for each label/feature:
 
         - median
         - median absolute deviation
