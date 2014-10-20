@@ -104,9 +104,8 @@ parser.add_argument("-p", "--processors",
                     help=('number of processors (default: 1)'),
                     type=int, default=1, metavar='INT')
 parser.add_argument("-g", "--graph",
-                    help=('Graph workflow: "hier" (default), "flat", "exec"'),
-                    choices=['hier', 'flat', 'exec'],
-                    type=str, default='hier', metavar='STR')
+                    help=('Graph workflow: "hier", "flat", "exec"'),
+                    choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("-c", "--cluster", action='store_true',
                     help="Use HTCondor cluster (UNTESTED)")
 
