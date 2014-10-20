@@ -12,17 +12,12 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
-#import numpy as np
-import networkx as nx
-#from scipy.sparse import lil_matrix
-from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+from mindboggle.utils.kernels import rbf_kernel
 
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Diagonal degree matrix
-# -----------------------------------------------------------------------------
-###############################################################################
 
+#-----------------------------------------------------------------------------
+#    Diagonal degree matrix
+#-----------------------------------------------------------------------------
 def diagonal_degree_matrix(W, inverse=False, square_root=False):
     """
     Compute diagonal degree matrix.
@@ -57,12 +52,10 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
 
     return ddm.tocsr()
 
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Matrix weights and affinity matrix
-# -----------------------------------------------------------------------------
-###############################################################################
 
+#-----------------------------------------------------------------------------
+#    Matrix weights and affinity matrix
+#-----------------------------------------------------------------------------
 def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
                  G=nx.Graph(), sigma=20):
     """
@@ -144,12 +137,10 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     else:
         return affinity_matrix.tocsr()
 
-###############################################################################
-# -----------------------------------------------------------------------------
-#     Graph Laplacian
-# -----------------------------------------------------------------------------
-###############################################################################
 
+#-----------------------------------------------------------------------------
+#    Graph Laplacian
+#-----------------------------------------------------------------------------
 def graph_laplacian(W, type_of_laplacian='norm1'):
     """
     Compute normalized and unnormalized graph Laplacians.
@@ -176,25 +167,21 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
     if type_of_laplacian is 'basic':
         print("Calculate unnormalized Laplacian")
         Laplacian = diagonal_degree_matrix(W) - W
-        return Laplacian
 
     elif type_of_laplacian is 'norm1':
         print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
-        return Laplacian
 
     elif type_of_laplacian is 'norm2':
         print("Normalize the Laplacian")
         ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
         Laplacian = ddmi_sq * W * ddmi_sq
-        return Laplacian
 
     elif type_of_laplacian is 'norm3':
         print("Normalize the Laplacian")
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
-        return Laplacian
 
     elif type_of_laplacian is 'random_walk':
         print("Compute Random Walk Laplacian")
@@ -203,4 +190,6 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
 
     else:
         print('Option is not available')
-        return 0
+        Laplacian = 0
+
+    return Laplacian

@@ -33,7 +33,7 @@ pip install https://github.com/satra/prov/archive/rdf.zip
 pip install https://github.com/nipy/nipype/archive/master.zip
 
 #-----------------------------------------------------------------------------
-# Install VTK (for ANTs):
+# Install VTK (for ANTs and Mindboggle):
 #-----------------------------------------------------------------------------
 conda install --yes vtk
 VTK_DIR=$CWD/anaconda/lib/vtk-5.10  # Needed for ANTs
