@@ -6,7 +6,7 @@ Data
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
 | Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171. DOI: 10.3389/fnins.2012.00171
 |
-| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, `labels <http://mindboggle.info/faq/labels.html>`_, the `CHANGELOG <http://mindboggle.info/data/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
+| See the `README <http://mindboggle.info/data/mindboggle101/README.txt>`_, `subjects table <http://media.mindboggle.info/images/data/Mindboggle101_table.pdf>`_, `scan info <http://mindboggle.info/data/mindboggle101_extras/scans_info.tar.gz>`_, `labels <http://mindboggle.info/faq/labels.html>`_, the `CHANGELOG <http://mindboggle.info/data/CHANGELOG.txt>`_, and `MD5SUMS <http://mindboggle.info/data/MD5SUMS>`_,
 | which describe the labeled nifti volumes (nii), vtk surfaces (vtk), and FreeSurfer files (mgh, etc.).
 | Except where noted, all data are licensed under a Creative Commons License: |CC_license|_
 
@@ -39,6 +39,7 @@ Mindboggle-101 atlases
   **Cortical surface atlases**
 
   - `DKT40 classifier atlas`_: FreeSurfer atlas (.gcs) from 40 of the Mindboggle-101 participants (2012)
+  - Software for `preparing classifier atlases <http://mindboggle.info/data/atlases/classifiers/make_freesurfer_classifier_atlas.txt>`_
 
 ------------------------------------------------------------------------------
 Mindboggle-101 templates
@@ -100,6 +101,9 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
       The figures above show the DKT cortical labeling protocol_ with `sulcus landmarks`_
       on FreeSurfer's fsaverage surface.
 
+  - Mindboggle_ processed `shape tables <http://mindboggle.info/data/mindboggle101_extras/Mindboggle101_mindboggle_output_tables_20141017.tar.gz>`_ (2.6GB)
+
+.. `labels, features, and shapes for image volumes and surfaces, and shape tables <http://mindboggle.info/data/mindboggle101_extras/Mindboggle101_mindboggle_output_tables_20141017.tar.gz>`_ (2.6GB)
 
 .. _`101 labeled brain images and a consistent human cortical labeling protocol`: http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full
 .. _`OASIS-30 Atropos template`: http://mindboggle.info/data/templates/atropos/OASIS-30_Atropos_template.nii.gz
@@ -116,7 +120,7 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 .. |CC_license| image:: http://i.creativecommons.org/l/by-nc-sa/3.0/80x15.png
 .. _`101 healthy subjects`: http://media.mindboggle.info/images/data/Mindboggle101_table.pdf
 .. _labels: http://mindboggle.info/data/mindboggle101/protocol.txt
-.. _protocol: http://mindboggle.info/data/mindboggle101/protocol.txt
+.. _protocol: https://github.com/binarybottle/mindboggle/blob/master/LABELS
 .. _`sulcus landmarks`: http://media.mindboggle.info/images/data/DKT_sulci_table.pdf
 .. _`MMRR www`: http://www.nitrc.org/projects/multimodal
 .. _`NKI-RS www`: http://fcon_1000.projects.nitrc.org/indi/pro/nki.html

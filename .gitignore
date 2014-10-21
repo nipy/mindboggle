@@ -30,3 +30,6 @@ _$*
 *$ 
 .del-* 
 crash-*
+*.gz
+*.zip
+*.tar
