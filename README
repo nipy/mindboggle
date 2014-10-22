@@ -46,25 +46,18 @@ on data processed by FreeSurfer but not ANTs
     mindboggle SUBJECT
 
 **Example 2:**
-To generate only volume labels and measures (no surface labels or measures),
-this command runs on 8 processors and uses ANTs output files
+To generate only volume data (no surface labels or measures),
+this command uses ANTs output files
 (replace ``SEGMENTS`` with an ANTs segmented file, such as
-``ants_output/subject1/tmpBrainSegmentation.nii.gz``)::
+``ants_output/subject1/antsBrainSegmentation.nii.gz``)::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness --no_surfaces -p 8
+    mindboggle SUBJECT --ants SEGMENTS --no_surfaces
 
 **Example 3:**
-To also generate cortical surface labels and measures::
-
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -p 8
-
-**Example 4:**
-Additional outputs include sulcus folds
-and Laplace-Beltrami spectral measures and Zernicke moments
+To compute all shape measures on all labels and features using 8 processors
 (type ``mindboggle --help`` for more options)::
 
-    mindboggle SUBJECT --ants_segments SEGMENTS --thickness -p 8 --sulci --spectra 10 --moments 10
-
+    mindboggle SUBJECT --ants SEGMENTS --all -p 8
 
 ------------------------------------------------------------------------------
 Mindboggle input files
