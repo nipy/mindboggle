@@ -42,49 +42,54 @@ parser = argparse.ArgumentParser(description="""
                      argparse.HelpFormatter(prog, max_help_position=40))
 
 ants_group = parser.add_argument_group('ANTs inputs')
-features_group = parser.add_argument_group('more features')
-shapes_group = parser.add_argument_group('more shapes')
+features_group = parser.add_argument_group('more features (or --all)')
+shapes_group = parser.add_argument_group('more shapes (or --all)')
 inputs_group = parser.add_argument_group('modify inputs')
 outputs_group = parser.add_argument_group('modify outputs')
 #extras_group = parser.add_argument_group('extras')
 
 # "positional arguments":
 parser.add_argument("SUBJECT",
-                    help=('Subject name corresponding to a subdirectory in '
+                    help=('subject name corresponding to a subdirectory in '
                           'the FreeSurfer subjects directory'))
 # "optional arguments":
-parser.add_argument("-v", "--version", help="mindboggle version number",
-                    action='version', version='%(prog)s 0.1')
-parser.add_argument("-p", "--processors",
+parser.add_argument("--ants",
+                    help=("antsCorticalThickness.sh segmented file (ex: "
+                          "~/ants_data/bert/antsBrainSegmentation.nii.gz); "
+                          "if --ants is set and --no_transforms isn't, "
+                          "then transform files are also accessed from "
+                          "its parent folder"),
+                    metavar='STR')
+parser.add_argument("-a", "--all", help="compute all shape measures "
+                                        "on all features",
+                    action='store_true')
+parser.add_argument("-g", "--graph",
+                    help=('plot workflow graph: "hier", "flat", "exec"'),
+                    choices=['hier', 'flat', 'exec'], metavar='STR')
+parser.add_argument("-p", "--proc",
                     help=('number of processors (default: 1)'),
                     type=int, default=1, metavar='INT')
-parser.add_argument("-g", "--graph",
-                    help=('Graph workflow: "hier", "flat", "exec"'),
-                    choices=['hier', 'flat', 'exec'], metavar='STR')
 parser.add_argument("-c", "--cluster", action='store_true',
-                    help="Use HTCondor cluster (UNTESTED)")
-
-ants_group.add_argument("--ants_segments",
-                    help=("antsCorticalThickness.sh segmented file (ex: "
-                          "~/ants_data/bert/antsBrainSegmentation.nii.gz)"),
-                    metavar='STR')
+                    help="use htcondor cluster (UNTESTED)")
+parser.add_argument("-v", "--version", help="mindboggle version number",
+                    action='version', version='%(prog)s 0.1')
 
 features_group.add_argument("--folds", action='store_true',
-                    help="Save all (unidentified) folds")
+                    help="save all (unidentified) folds")
 features_group.add_argument("--sulci", action='store_true',
-                    help="Extract, identify, and measure sulci")
+                    help="extract, identify, and measure sulci")
 features_group.add_argument("--fundi", action='store_true',
-                    help="Extract, identify, and measure fundi "
+                    help="extract, identify, and measure fundi "
                          "[UNTESTED]")
-features_group.add_argument("--vertices", action='store_true',
-                    help=("Table of per-vertex surface shape measures"))
+features_group.add_argument("--points", action='store_true',
+                    help=("table of per-vertex surface shape measures"))
 features_group.add_argument("--xfm", action='store_true',
-                    help="Cortical surfaces in MNI152 space")
+                    help="cortical surfaces in MNI152 space")
 
 shapes_group.add_argument("--thickness", action='store_true',
-                    help="Cortical label thicknesses [UNTESTED]")
+                    help="cortical label thicknesses [UNTESTED]")
 shapes_group.add_argument("--moments",
-                    help='Order of Zernike moments per label/feature '
+                    help='Zernike moments order per label/feature '
                          '(ex: 10)',
                     default=0, type=int, metavar='INT')
 shapes_group.add_argument("--spectra",
@@ -92,16 +97,15 @@ shapes_group.add_argument("--spectra",
                          'per label/feature (ex: 10)',
                     default=0, type=int, metavar='INT')
 
-inputs_group.add_argument("--atlases", help=("Extra volume atlas(es) "
-                                             "in MNI152 space for labeling"),
+inputs_group.add_argument("--atlases", help=("extra labeling volume atlas(es) "
+                                             "in MNI152 space"),
                     nargs='+', metavar='')
 inputs_group.add_argument("--subjects_dir",
-                    help=("Alternative directory containing SUBJECT "
+                    help=("alternative directory containing SUBJECT "
                           "directory"),
                     metavar='STR')
 inputs_group.add_argument("--my_segments",
-                          help=("Use this segmented file (still use "
-                                "--ants_segments to fetch ANTs transforms)"),
+                          help=("use this segmented file (must call --ants)"),
                     metavar='STR')
 # Volume labels: "wmparc" (default) or "aparc+aseg"
 inputs_group.add_argument("--volume_labels",
@@ -114,32 +118,32 @@ inputs_group.add_argument("--surface_labels",
                     choices=['freesurfer', 'atlas', 'manual'],
                     default='freesurfer', metavar='STR')
 inputs_group.add_argument("--no_transforms", action='store_true',
-                    help="No ANTs transforms (such as when -t argument is "
-                         "omitted when running antsCorticalThickness.sh)")
+                    help="no transforms (antsCorticalThickness.sh "
+                         "run without -t)")
 
 outputs_group.add_argument("--out",
-                    help='Output directory (default: $HOME/mindboggled)',
+                    help='output directory (default: $HOME/mindboggled)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggled'), metavar='STR')
 outputs_group.add_argument("--working",
-                    help='Working directory '
+                    help='working directory '
                          '(default: $HOME/mindboggle_working)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_working'), metavar='STR')
-outputs_group.add_argument("--cache", help='Download directory '
+outputs_group.add_argument("--cache", help='download directory '
                                     '(default: $HOME/mindboggle_cache)',
                     default=os.path.join(os.environ['HOME'],
                                          'mindboggle_cache'), metavar='STR')
 outputs_group.add_argument("--no_volumes", action='store_true',
-                    help="No volume labels, features, or shape tables")
+                    help="no volume labels, features, or shape tables")
 outputs_group.add_argument("--no_surfaces", action='store_true',
-                    help="No surface labels, features, or shape tables")
+                    help="no surface labels, features, or shape tables")
 outputs_group.add_argument("--no_labels", action='store_true',
-                    help="No surface or volume labels")
+                    help="no surface or volume labels")
 outputs_group.add_argument("--no_shapes", action='store_true',
-                    help="No shape tables of surface labels or features")
+                    help="no shape tables of surface labels or features")
 outputs_group.add_argument("--save_only_tables", action='store_true',
-                    help="No surfaces or volumes, just tables")
+                    help="no surfaces or volumes, just tables")
 
 args = parser.parse_args()
 
@@ -147,82 +151,99 @@ args = parser.parse_args()
 # Data arguments:
 #-----------------------------------------------------------------------------
 subject = args.SUBJECT
-use_ants_segments = False
-use_ants_transforms = False
 subjects_dir = args.subjects_dir
 if not subjects_dir:
     subjects_dir = os.environ['SUBJECTS_DIR']
-if args.ants_segments:
-    ants_segments = args.ants_segments
+if args.ants:
+    ants_segments = args.ants
     use_ants_segments = True
-if not args.no_transforms:
-    use_ants_transforms = True
+else:
+    use_ants_segments = False
 if args.my_segments:
     my_segments = args.my_segments
 else:
     my_segments = None
+if not args.no_transforms:
+    use_ants_transforms = True
+else:
+    use_ants_transforms = False
 #-----------------------------------------------------------------------------
 # Non-FreeSurfer data arguments:
 #-----------------------------------------------------------------------------
+use_FS_inputs = True
 do_input_vtk = False  # Load VTK surfaces directly (not FreeSurfer surfaces)
 do_input_fs_labels = False  # Load nifti (not FreeSurfer mgh file)
-use_FS_inputs = True
-no_freesurfer_inputs = False #args.no_freesurfer_inputs
-if no_freesurfer_inputs:
-    use_FS_inputs = False
-    do_input_vtk = True
-    do_input_fs_labels = True
 #-----------------------------------------------------------------------------
 # Label and feature arguments:
 #-----------------------------------------------------------------------------
-overwrite_cerebrum_with_cerebellum = True
-fill_noncortex_with_ants_labels = False
 volume_labels = args.volume_labels
 surface_labels = args.surface_labels
-save_all = False
-save_only_tables = args.save_only_tables
-if not save_only_tables:
-    save_all = True
+overwrite_cerebrum_with_cerebellum = True
+fill_noncortex_with_ants_labels = False
 no_surfaces = args.no_surfaces
-no_volumes = args.no_volumes
-do_sulci = args.sulci
-save_folds = args.folds
-do_fundi = args.fundi
-no_labels = args.no_labels
-do_smooth_fundi = False
-do_label = False
-do_surface = False
-do_features = False
-do_volumes = False
-do_shapes = False
 if not no_surfaces:
     do_surface = True
+else:
+    do_surface = False
+no_volumes = args.no_volumes
 if not no_volumes:
     do_volumes = True
+else:
+    do_volumes = False
+no_labels = args.no_labels
 if not no_labels:
     do_label = True
+else:
+    do_label = False
+all_features_shapes = args.all
+if all_features_shapes:
+    save_folds = True
+    do_sulci = True
+    do_fundi = True
+else:
+    save_folds = args.folds
+    do_sulci = args.sulci
+    do_fundi = args.fundi
 if do_sulci or do_fundi:
     do_features = True
+else:
+    do_features = False
+do_smooth_fundi = False
 #-----------------------------------------------------------------------------
 # Shape arguments:
 #-----------------------------------------------------------------------------
-no_shapes = args.no_shapes
+if not args.save_only_tables:
+    save_all = True
+else:
+    save_all = False
+spectra = args.spectra
+moments = args.moments
+# Set defaults for spectra and moments if not supplied and --all is set
+if all_features_shapes:
+    if spectra <= 0:
+        spectra = 10
+    if moments <= 0:
+        moments = 10
 do_spectra = False  # Measure Laplace-Beltrami spectra for labels/features
 do_zernike = False  # Compute Zernike moments for labels/features
-if not no_shapes or do_features:
+no_shapes = args.no_shapes
+if not no_shapes:
     do_shapes = True
-if (do_label or do_features) and do_shapes:
-    if args.spectra > 0:
+else:
+    do_shapes = False
+if do_shapes and (do_label or do_features):
+    if spectra > 0:
         do_spectra = True
-    if args.moments > 0:
+    if moments > 0:
         do_zernike = True
-do_freesurfer_thickness = False  # Include FreeSurfer's thickness measure
-do_freesurfer_curvature = False  # Include FreeSurfer's curvature measure (curv)
-do_freesurfer_sulc = False  # Include FreeSurfer's convexity measure (sulc)
 if do_shapes and use_FS_inputs:
     do_freesurfer_thickness = True
     do_freesurfer_curvature = True
     do_freesurfer_sulc = True
+else:
+    do_freesurfer_thickness = False  # Include FreeSurfer's thickness measure
+    do_freesurfer_curvature = False  # Include FreeSurfer's curvature (curv)
+    do_freesurfer_sulc = False  # Include FreeSurfer's convexity (sulc)
 
 #=============================================================================
 #
@@ -1121,7 +1142,7 @@ if do_surface:
             SurfFeatureShapeFlow.add_nodes([SpectraLabels])
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            SurfFeatureShapeFlow, 'Spectra_labels.vtk_file')
-            SpectraLabels.inputs.spectrum_size = args.spectra
+            SpectraLabels.inputs.spectrum_size = spectra
             SpectraLabels.inputs.exclude_labels = [0]
             SpectraLabels.inputs.normalization = "area"
             SpectraLabels.inputs.area_file = ""
@@ -1158,7 +1179,7 @@ if do_surface:
             SurfFeatureShapeFlow.add_nodes([ZernikeLabels])
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            SurfFeatureShapeFlow, 'Zernike_labels.vtk_file')
-            ZernikeLabels.inputs.order = args.moments
+            ZernikeLabels.inputs.order = moments
             ZernikeLabels.inputs.exclude_labels = [0]
             ZernikeLabels.inputs.scale_input = True
             ZernikeLabels.inputs.decimate_fraction = 0
@@ -1306,7 +1327,7 @@ if do_surface:
         #---------------------------------------------------------------------
         # Vertex measures table:
         #---------------------------------------------------------------------
-        if args.vertices:
+        if args.points:
             VertexTable = Node(name='Vertex_table',
                                interface=Fn(function=write_vertex_measures,
                                     input_names=['output_table',
