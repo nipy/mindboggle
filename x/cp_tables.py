@@ -18,11 +18,12 @@ else:
 mb_dir = '/homedir/mindboggled'
 out_dir = '/homedir/tables'
 
+s = 'mkdir {0}'.format(out_dir)
+print(s); os.system(s)
+
 for i,name in enumerate(names):
     number = numbers[i]
     for n in range(1,number+1):
-        s = 'mkdir {0}'.format(out_dir)
-        print(s); os.system(s)
         s = 'mkdir {0}/{1}-{2}'.format(out_dir, name, n)
         print(s); os.system(s)
         s = 'cp -r {0}/{1}-{2}/tables/* {3}/{1}-{2}/'.format(mb_dir, name, n, out_dir)
