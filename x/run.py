@@ -4,6 +4,10 @@ Run Mindboggle on Mindboggle-101 brains
 import os
 
 run_all = True
+#run_manual = ' '
+run_manual = ' --surface_labels manual '
+run_proc = ' --proc 20 '
+#run_proc = ' --cluster '
 
 if run_all:
     names = ['OASIS-TRT-20', 'MMRR-21', 'NKI-RS-22', 'NKI-TRT-20',
@@ -22,13 +26,9 @@ subjects_dir = '/mnt/nfs-share/brains/Mindboggle101/subjects'
 for i,name in enumerate(names):
     number = numbers[i]
     for n in range(1,number+1):
-        s = 'mindboggle {0}-{1} --ants_segments ' \
-            '{2}/{0}-{1}/{3}BrainSegmentation.nii.gz ' \
-            '--folds --sulci --fundi --vertices --xfm ' \
-            '--thickness --spectra 10 --moments 10 ' \
-            '--surface_labels manual ' \
-            '--processors 20 ' \
-            '--subjects_dir /mnt/nfs-share/brains/Mindboggle101/subjects ' \
-            .format(name, n, ants_dir, prefix)
+        s = 'mindboggle {0}-{1} --all {2} {3} --ants ' \
+            '{4}/{0}-{1}/{5}BrainSegmentation.nii.gz ' \
+            '--subjects_dir /mnt/nfs-share/brains/Mindboggle101/subjects' \
+            .format(name, n, run_manual, run_proc, ants_dir, prefix)
         print(s)
         os.system(s)

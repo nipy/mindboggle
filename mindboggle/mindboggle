@@ -2330,8 +2330,8 @@ if __name__ == '__main__':
         mbFlow.config['execution']['stop_on_first_rerun'] = True
         nproc = 1
     else:
-        if args.processors:
-            nproc = args.processors
+        if args.proc:
+            nproc = args.proc
         else:
             nproc = 1
 
@@ -2344,10 +2344,10 @@ if __name__ == '__main__':
     # Run multiple processes or not:
     #-------------------------------------------------------------------------
     else:
-        if args.processors:
+        if args.proc:
             if nproc > 1:
                 mbFlow.run(plugin='MultiProc',
-                           plugin_args={'n_procs': args.processors})
+                           plugin_args={'n_procs': args.proc})
                            #updatehash=True)
             else:
                 mbFlow.run()  #updatehash=True)
