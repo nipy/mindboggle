@@ -12,6 +12,8 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+import networkx as nx
+
 from mindboggle.utils.kernels import rbf_kernel
 
 
