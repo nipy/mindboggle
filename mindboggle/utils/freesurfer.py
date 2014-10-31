@@ -91,7 +91,7 @@ def surface_to_vtk(surface_file, output_vtk):
     Fp.close()
 
     if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
 
     return output_vtk
 
@@ -144,7 +144,7 @@ def curvature_to_vtk(surface_file, vtk_file, output_vtk):
                                   os.path.basename(surface_file)+'.vtk')
     rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
     if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
 
     return output_vtk
 
@@ -219,7 +219,7 @@ def annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
 
     if not os.path.exists(output_vtk):
-        raise(IOError(output_vtk + " not found"))
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
 
     return labels, output_vtk
 
@@ -327,7 +327,7 @@ def label_with_classifier(subject, hemi, left_classifier='',
             annot_file, sdir]
     execute(cmd)
     if not os.path.exists(annot_file):
-        raise(IOError(annot_file + " not found"))
+        raise(IOError("mris_ca_label did not create " + annot_file + "."))
 
     return annot_file
 
@@ -362,6 +362,10 @@ def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
     # Convert volume from FreeSurfer to original space:
     print("Convert volume from FreeSurfer 'unconformed' to original space...")
 
+    if not os.path.exists(input_file):
+        raise(IOError("Input file " + input_file + " not found"))
+    if not os.path.exists(reference_file):
+        raise(IOError("Reference file " + reference_file + " not found."))
     if not output_file:
         output_file = os.path.join(os.getcwd(),
             os.path.basename(input_file).split('mgz')[0] + 'nii.gz')
@@ -373,11 +377,7 @@ def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
            '--regheader --o', output_file]
     execute(cmd)
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
-    output_file = output_file
-
-    if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise(IOError("mri_vol2vol did not create " + output_file + "."))
 
     return output_file
 
@@ -426,7 +426,7 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
             '--o', output_file1]
     execute(cmd)
     if not os.path.exists(output_file1):
-        raise(IOError(output_file1 + " not found"))
+        raise(IOError("mri_aparc2aseg did not create " + output_file1 + "."))
 
     # Convert label volume from FreeSurfer to original space:
     if original_space:
@@ -438,7 +438,7 @@ def annot_labels_to_volume(subject, annot_name, original_space, reference):
         output_file = output_file1
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise(IOError("Output file " + output_file + " not created."))
 
     return output_file
 
