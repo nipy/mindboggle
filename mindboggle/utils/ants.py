@@ -84,7 +84,8 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     # antsCorticalThickness.sh when the -k argument is used.
     for s in files:
         if not os.path.exists(s):
-            raise IOError(s + ' does not exist')
+            str1 = 'antsCorticalThickness.sh output ' + s + ' does not exist.'
+            raise IOError(str1)
 
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject
@@ -202,7 +203,8 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
            '-o', transformed_points_file, transform_string]
     execute(cmd, 'os')
     if not os.path.exists(transformed_points_file):
-        raise(IOError(transformed_points_file + " not found"))
+        str1 = "antsApplyTransformsToPoints did not create "
+        raise(IOError(str1 + transformed_points_file + "."))
 
     #-------------------------------------------------------------------------
     # Return transformed points:
@@ -282,7 +284,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
     cmd = ['ImageMath', '3', output_file, operator, volume1, volume2]
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise(IOError("ImageMath did not create " + output_file + "."))
 
     return output_file
 
@@ -336,7 +338,7 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
                                                     threshlo, threshhi)
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise(IOError("ThresholdImage did not create " + output_file + "."))
 
     return output_file
 
@@ -401,11 +403,11 @@ def ANTS(source, target, iterations='30x99x11', output_stem=''):
     nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
 
     if not os.path.exists(affine_transform):
-        raise(IOError(affine_transform + " not found"))
+        raise(IOError("ANTs did not create " + affine_transform + "."))
     if not os.path.exists(nonlinear_transform):
-        raise(IOError(nonlinear_transform + " not found"))
+        raise(IOError("ANTs did not create " + nonlinear_transform + "."))
     if not os.path.exists(nonlinear_inverse_transform):
-        raise(IOError(nonlinear_inverse_transform + " not found"))
+        raise(IOError("ANTs did not create " + nonlinear_inverse_transform + "."))
 
     return affine_transform, nonlinear_transform,\
            nonlinear_inverse_transform, output_stem
@@ -484,7 +486,7 @@ def WarpImageMultiTransform(source, target, output='',
     execute(cmd, 'os')
 
     if not os.path.exists(output):
-        raise(IOError(output + " not found"))
+        raise(IOError("WarpImageMultiTransform did not create " + output + "."))
 
     return output
 
@@ -577,7 +579,7 @@ def PropagateLabelsThroughMask(mask, labels, mask_index=None,
         cmd.extend(stopvalue)
     execute(cmd, 'os')
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        raise(IOError("ImageMath did not create " + output_file + "."))
 
     return output_file
 
@@ -670,7 +672,8 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
                                              mask_index, output_file,
                                              binarize)
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        str1 = "PropagateLabelsThroughMask() did not create "
+        raise(IOError(str1 + output_file + "."))
 
     return output_file  # surface_in_volume
 
