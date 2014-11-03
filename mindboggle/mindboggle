@@ -749,7 +749,7 @@ if do_surface:
         #                   'EvalSurfLabels.labels_file2')
 
         #=====================================================================
-        # Convert surface label numbers to volume label numbers
+        # Convert surface label numbers to volume DKT31 label numbers
         #=====================================================================
         ReindexLabels = Node(name='Reindex_labels',
                              interface=Fn(function=relabel_surface,
@@ -757,6 +757,7 @@ if do_surface:
                                                        'hemi',
                                                        'old_labels',
                                                        'new_labels',
+                                                       'erase_remaining',
                                                        'erase_labels',
                                                        'erase_value',
                                                        'output_file'],
@@ -767,12 +768,32 @@ if do_surface:
                        SurfLabelFlow, 'Reindex_labels.hemi')
         ReindexLabels.inputs.old_labels = ''
         ReindexLabels.inputs.new_labels = ''
-        ReindexLabels.inputs.erase_labels = [-1, 0]
+        ReindexLabels.inputs.erase_remaining = True
+        ReindexLabels.inputs.erase_labels = [0]
         ReindexLabels.inputs.erase_value = -1
         ReindexLabels.inputs.output_file = ''
         if save_all:
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            Sink, 'labels.@surface')
+
+        #=====================================================================
+        # Convert surface label numbers to volume DKT25 label numbers
+        # (25 labels consolidated from 31 in DKT protocol to extract sulci)
+        #=====================================================================
+        ReindexLabels25 = ReindexLabels.clone('Reindex_Labels25')
+        SurfLabelFlow.add_nodes([ReindexLabels25])
+        SurfLabelFlow.connect(plug1, plug2, ReindexLabels25, 'vtk_file')
+        mbFlow.connect(InputHemis, 'hemi',
+                       SurfLabelFlow, 'Reindex_labels25.hemi')
+        ReindexLabels25.inputs.old_labels = ''
+        ReindexLabels25.inputs.new_labels = ''
+        ReindexLabels25.inputs.erase_remaining = True
+        ReindexLabels25.inputs.erase_labels = [0]
+        ReindexLabels25.inputs.erase_value = -1
+        ReindexLabels25.inputs.output_file = ''
+        if save_all:
+            mbFlow.connect(SurfLabelFlow, 'Reindex_labels25.output_file',
+                           Sink, 'labels.@surfaceDKT25')
 
     #=========================================================================
     #
