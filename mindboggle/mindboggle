@@ -212,6 +212,7 @@ do_smooth_fundi = False
 #-----------------------------------------------------------------------------
 # Shape arguments:
 #-----------------------------------------------------------------------------
+do_thickinthehead = args.thickness
 if not args.save_only_tables:
     save_all = True
 else:
@@ -220,6 +221,7 @@ spectra = args.spectra
 moments = args.moments
 # Set defaults for spectra and moments if not supplied and --all is set
 if all_features_shapes:
+    do_thickinthehead = True
     if spectra <= 0:
         spectra = 10
     if moments <= 0:
@@ -2179,7 +2181,7 @@ if do_volumes and do_label:
         #=====================================================================
         # Measure volume, thickness of cortical regions of labeled image file
         #=====================================================================
-        if args.thickness:
+        if do_thickinthehead:
             #-----------------------------------------------------------------
             # Thicknesses of the FreeSurfer cortical labels:
             #-----------------------------------------------------------------
