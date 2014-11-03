@@ -85,7 +85,8 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        s = "relabel_volume() did not create " + output_file + "."
+        raise(IOError(s))
 
     return output_file
 
@@ -180,7 +181,8 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        s = "remove_volume_labels() did not create " + output_file + "."
+        raise(IOError(s))
 
     return output_file
 
@@ -272,13 +274,15 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        s = "keep_volume_labels() did not create " + output_file + "."
+        raise(IOError(s))
 
     return output_file
 
 
 def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
-                    erase_labels=[-1], erase_value=-1, output_file=''):
+                    erase_remaining=True, erase_labels=[], erase_value=-1,
+                    output_file=''):
     """
     Relabel surface in a VTK file.
 
@@ -295,8 +299,10 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     new_labels : list of integers
         new labels (empty list if labels drawn from vtk scalars);
         may be used in conjunction with hemi
+    erase_remaining : Boolean
+        set all values not in old_labels to erase_value?
     erase_labels : list of integers
-        values to erase (set to erase_value); NOTE: include erase_value
+        values to erase (set to erase_value)
     erase_value : integer
         set vertices with labels in erase_labels to this value
     output_file : string
@@ -315,15 +321,16 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> vtk_file = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
     >>> hemi = 'lh'
-    >>> old_labels = []
-    >>> new_labels = []
-    >>> erase_labels = [-1, 0]
+    >>> old_labels = [1003,1009,1030]
+    >>> new_labels = [3,9,30]
+    >>> erase_remaining = True
+    >>> erase_labels = [0]
     >>> erase_value = -1
     >>> output_file = ''
     >>> #
-    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, erase_labels, erase_value, output_file)
+    >>> relabel_surface(vtk_file, hemi, old_labels, new_labels, erase_remaining, erase_labels, erase_value, output_file)
     >>> # View
-    >>> plot_surfaces('relabeled_lh.labels.DKT25.manual.vtk')
+    >>> plot_surfaces('relabeled_FreeSurfer_cortex_labels.vtk')
 
     """
     import os
@@ -333,41 +340,58 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
     # Load labeled vtk surfaces:
     faces, lines, indices, points, npoints, scalars, \
         name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
+    new_scalars = scalars[:]
 
-    # Add a hemisphere value to each unique label drawn from scalars:
-    if hemi and not old_labels and not new_labels:
-        ulabels = np.unique(scalars)
-        for label in ulabels:
-            if label in erase_labels:
-                I = np.where(scalars == label)[0]
-                scalars[I] = erase_value
-            else:
-                I = np.where(scalars == label)[0]
-                if hemi == 'lh':
-                    scalars[I] = 1000 + label
-                elif hemi == 'rh':
-                    scalars[I] = 2000 + label
-    # OR replace each old label with a corresponding new label
-    # (hemisphere setting optionally adds 1000 or 2000 to the new label):
-    else:
-        for ilabel, new_label in enumerate(new_labels):
-            I = np.where(scalars == old_labels[ilabel])[0]
+    # Raise an error if either old or new labels are given but not both
+    # or hemi set incorrectly:
+    if (old_labels and not new_labels) or (not old_labels and new_labels) or \
+            (hemi and hemi not in ['lh','rh']) or \
+            (erase_remaining and not old_labels):
+        raise IOError("Please check inputs for relabel_surface().")
+
+    # Loop through unique labels in scalars:
+    ulabels = np.unique(scalars)
+    for label in ulabels:
+        I = np.where(scalars == label)[0]
+
+        # If label in erase_labels list, replace with erase_value:
+        if label in erase_labels:
+            new_scalars[I] = erase_value
+
+        # If label in old_labels list, replace with corresponding new label,
+        # and if hemi set, add 1000 or 2000 to the new label:
+        elif label in old_labels:
+            new_label = new_labels[old_labels.index(label)]
             if hemi == 'lh':
-                scalars[I] = 1000 + new_label
+                new_scalars[I] = 1000 + new_label
             elif hemi == 'rh':
-                scalars[I] = 2000 + new_label
+                new_scalars[I] = 2000 + new_label
             else:
-                scalars[I] = new_label
-    scalars = [int(x) for x in scalars]
+                new_scalars[I] = new_label
 
+        # If labels not set then optionally add hemi value:
+        elif hemi and not new_labels:
+            if hemi == 'lh':
+                new_scalars[I] = 1000 + label
+            elif hemi == 'rh':
+                new_scalars[I] = 2000 + label
+
+        # If label unaccounted for and erase_remaining, set to erase_value:
+        elif erase_remaining:
+            new_scalars[I] = erase_value
+
+    # Ensure that the new scalars are integer values:
+    new_scalars = [int(x) for x in new_scalars]
+
+    # Write output VTK file:
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    'relabeled_' + os.path.basename(vtk_file))
     write_vtk(output_file, points, indices, lines, faces,
-              [scalars], ['Labels'], scalar_type='int')
-
+              [new_scalars], ['Labels'], scalar_type='int')
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        s = "relabel_surface() did not create " + output_file + "."
+        raise(IOError(s))
 
     return output_file
 
@@ -461,7 +485,8 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     img.to_filename(output_file)
 
     if not os.path.exists(output_file):
-        raise(IOError(output_file + " not found"))
+        s = "overwrite_volume_labels() did not create " + output_file + "."
+        raise(IOError(s))
 
     return output_file
 
