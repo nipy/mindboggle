@@ -766,8 +766,8 @@ if do_surface:
         SurfLabelFlow.connect(plug1, plug2, ReindexLabels, 'vtk_file')
         mbFlow.connect(InputHemis, 'hemi',
                        SurfLabelFlow, 'Reindex_labels.hemi')
-        ReindexLabels.inputs.old_labels = ''
-        ReindexLabels.inputs.new_labels = ''
+        ReindexLabels.inputs.old_labels = dkt.cerebrum_cortex_numbers
+        ReindexLabels.inputs.new_labels = []
         ReindexLabels.inputs.erase_remaining = True
         ReindexLabels.inputs.erase_labels = [0]
         ReindexLabels.inputs.erase_value = -1
@@ -775,25 +775,6 @@ if do_surface:
         if save_all:
             mbFlow.connect(SurfLabelFlow, 'Reindex_labels.output_file',
                            Sink, 'labels.@surface')
-
-        #=====================================================================
-        # Convert surface label numbers to volume DKT25 label numbers
-        # (25 labels consolidated from 31 in DKT protocol to extract sulci)
-        #=====================================================================
-        ReindexLabels25 = ReindexLabels.clone('Reindex_Labels25')
-        SurfLabelFlow.add_nodes([ReindexLabels25])
-        SurfLabelFlow.connect(plug1, plug2, ReindexLabels25, 'vtk_file')
-        mbFlow.connect(InputHemis, 'hemi',
-                       SurfLabelFlow, 'Reindex_labels25.hemi')
-        ReindexLabels25.inputs.old_labels = ''
-        ReindexLabels25.inputs.new_labels = ''
-        ReindexLabels25.inputs.erase_remaining = True
-        ReindexLabels25.inputs.erase_labels = [0]
-        ReindexLabels25.inputs.erase_value = -1
-        ReindexLabels25.inputs.output_file = ''
-        if save_all:
-            mbFlow.connect(SurfLabelFlow, 'Reindex_labels25.output_file',
-                           Sink, 'labels.@surfaceDKT25')
 
     #=========================================================================
     #
@@ -2296,8 +2277,8 @@ if do_volumes and do_label:
                     'Combine_ANTs_cortex_noncortex_labels.output_file',
                     VolShapeFlow,
                     'ANTs_filled_cortex_label_thicknesses.labeled_file')
-                ANTsThicknesses.inputs.labels = dkt.cerebrum_cortex_numbers_DKT25
-                ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names_DKT25
+                ANTsThicknesses.inputs.labels = dkt.cerebrum_cortex_numbers
+                ANTsThicknesses.inputs.names = dkt.cerebrum_cortex_names
                 ANTsThicknesses.inputs.output_table = 'thickinthehead_ANTs_labels.csv'
                 # Save table:
                 mbFlow.connect(VolShapeFlow,
