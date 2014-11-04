@@ -148,27 +148,19 @@ class DKTprotocol:
 
     Returns
     -------
-    sulcus_names : list of strings
-        sulcus names
-    unique_sulcus_label_pairs : list of unique pairs of integers
-        unique label pairs corresponding to label boundaries / sulcus / fundus
-    sulcus_label_pair_lists : list of two lists of multiple lists of integer pairs
-        list containing left and right lists, each with multiple lists of
-        integer pairs corresponding to label boundaries / sulcus / fundus
-    [left, right]_sulcus_label_pair_lists : list of two lists of lists of integer pairs
-    [left, right]_cerebrum_cortex_[numbers, names, colors]
-    [left, right]_cerebrum_noncortex_[numbers, names, colors]
-    medial_cerebrum_noncortex_[numbers, names, colors]
+    [left, right]_cerebrum_cortex_[DKT31_][numbers, names, colors]
     [left, right]_ventricle_[numbers, names, colors]
     medial_ventricle_[numbers, names, colors]
-    extra_[numbers, names, colors]
+    [left, right]_cerebrum_noncortex_[numbers, names, colors]
+    medial_cerebrum_noncortex_[numbers, names, colors]
     [left, right]_cerebellum_cortex_[numbers, names, colors]
     [left, right]_cerebellum_noncortex_[numbers, names, colors]
     medial_cerebellum_noncortex_[numbers, names, colors]
-    [left, right]_ventricle_[numbers, names, colors]
-    medial_ventricle_[numbers, names, colors]
+    brainstem_[numbers, names, colors]
     extra_[numbers, names, colors]
-    [left_, right_]cerebrum_cortex_[numbers, names, colors][_DKT31, _DKT25]
+    misc_[numbers, names, colors]
+    ventricle_[numbers, names, colors]
+    cerebrum_cortex_[numbers, names, colors]
     cerebrum_noncortex_[numbers, names, colors]
     [left, right]_cerebrum_[numbers, names, colors]
     cerebrum_[numbers, names, colors]
@@ -176,10 +168,15 @@ class DKTprotocol:
     cerebellum_cortex_[numbers, names, colors]
     cerebellum_noncortex_[numbers, names, colors]
     cerebellum_[numbers, names, colors]
-    ventricle_[numbers, names, colors]
     label_[numbers, names, colors]
     colormap : list of lists
     colormap_normalized : list of lists
+    sulcus_[names[_abbr], numbers]
+    unique_sulcus_label_pairs : list of unique pairs of integers
+        unique label pairs corresponding to label boundaries / sulcus / fundus
+    [left_, right_]sulcus_label_pair_lists : list of two lists of lists of integer pairs
+        list containing left and/or right lists, each with multiple lists of
+        integer pairs corresponding to label boundaries / sulcus / fundus
 
     Examples
     --------
@@ -196,12 +193,20 @@ class DKTprotocol:
     numbers, names, colors = return_numbers_names_colors()
 
     #-------------------------------------------------------------------------
+    # Cerebral cortex label numbers (DKT31 protocol):
+    #-------------------------------------------------------------------------
+    left_cerebrum_cortex_DKT31_list = \
+        [1002, 1003] + range(1005, 1032) + [1034, 1035]
+    right_cerebrum_cortex_DKT31_list = \
+        [2002, 2003] + range(2005, 2032) + [2034, 2035]
+
+    #-------------------------------------------------------------------------
     # Cerebral cortex label numbers (31 + duplicates):
     #-------------------------------------------------------------------------
-    left_cerebrum_cortex_list = \
-        [3, 19, 20] + range(1000, 1004) + range(1005, 1036)
-    right_cerebrum_cortex_list = \
-        [42, 55, 56] + range(2000, 2004) + range(2005, 2036)
+    left_cerebrum_cortex_list = left_cerebrum_cortex_DKT31_list + \
+        [3, 19, 20, 1000, 1001, 1032, 1033]
+    right_cerebrum_cortex_list = right_cerebrum_cortex_DKT31_list + \
+        [42, 55, 56, 2000, 2001, 2032, 2033]
 
     #-------------------------------------------------------------------------
     # Cerebral ventricle label numbers:
@@ -264,6 +269,8 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Label numbers:
     #-------------------------------------------------------------------------
+    left_cerebrum_cortex_DKT31_numbers = []
+    right_cerebrum_cortex_DKT31_numbers = []
     left_cerebrum_cortex_numbers = []
     right_cerebrum_cortex_numbers = []
     left_ventricle_numbers = []
@@ -272,9 +279,6 @@ class DKTprotocol:
     left_cerebrum_noncortex_numbers = []
     right_cerebrum_noncortex_numbers = []
     medial_cerebrum_noncortex_numbers = []
-    left_ventricle_numbers = []
-    right_ventricle_numbers = []
-    medial_ventricle_numbers = []
     left_cerebellum_cortex_numbers = []
     right_cerebellum_cortex_numbers = []
     left_cerebellum_noncortex_numbers = []
@@ -286,6 +290,8 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Names corresponding to label numbers:
     #-------------------------------------------------------------------------
+    left_cerebrum_cortex_DKT31_names = []
+    right_cerebrum_cortex_DKT31_names = []
     left_cerebrum_cortex_names = []
     right_cerebrum_cortex_names = []
     left_ventricle_names = []
@@ -294,9 +300,6 @@ class DKTprotocol:
     left_cerebrum_noncortex_names = []
     right_cerebrum_noncortex_names = []
     medial_cerebrum_noncortex_names = []
-    left_ventricle_names = []
-    right_ventricle_names = []
-    medial_ventricle_names = []
     left_cerebellum_cortex_names = []
     right_cerebellum_cortex_names = []
     left_cerebellum_noncortex_names = []
@@ -308,6 +311,8 @@ class DKTprotocol:
     #-------------------------------------------------------------------------
     # Colors corresponding to label numbers:
     #-------------------------------------------------------------------------
+    left_cerebrum_cortex_DKT31_colors = []
+    right_cerebrum_cortex_DKT31_colors = []
     left_cerebrum_cortex_colors = []
     right_cerebrum_cortex_colors = []
     left_ventricle_colors = []
@@ -316,9 +321,6 @@ class DKTprotocol:
     left_cerebrum_noncortex_colors = []
     right_cerebrum_noncortex_colors = []
     medial_cerebrum_noncortex_colors = []
-    left_ventricle_colors = []
-    right_ventricle_colors = []
-    medial_ventricle_colors = []
     left_cerebellum_cortex_colors = []
     right_cerebellum_cortex_colors = []
     left_cerebellum_noncortex_colors = []
@@ -332,7 +334,15 @@ class DKTprotocol:
     # Lists of numbers, names, and colors:
     #-------------------------------------------------------------------------
     for i, n in enumerate(numbers):
-        if n in left_cerebrum_cortex_list:
+        if n in left_cerebrum_cortex_DKT31_list:
+            left_cerebrum_cortex_DKT31_numbers.append(numbers[i])
+            left_cerebrum_cortex_DKT31_names.append(names[i])
+            left_cerebrum_cortex_DKT31_colors.append(colors[i])
+        elif n in right_cerebrum_cortex_DKT31_list:
+            right_cerebrum_cortex_DKT31_numbers.append(numbers[i])
+            right_cerebrum_cortex_DKT31_names.append(names[i])
+            right_cerebrum_cortex_DKT31_colors.append(colors[i])
+        elif n in left_cerebrum_cortex_list:
             left_cerebrum_cortex_numbers.append(numbers[i])
             left_cerebrum_cortex_names.append(names[i])
             left_cerebrum_cortex_colors.append(colors[i])
@@ -428,6 +438,12 @@ class DKTprotocol:
     ventricle_colors = left_ventricle_colors + right_ventricle_colors + \
                        medial_ventricle_colors
 
+    cerebrum_cortex_DKT31_numbers = left_cerebrum_cortex_DKT31_numbers + \
+                                    right_cerebrum_cortex_DKT31_numbers
+    cerebrum_cortex_DKT31_names = left_cerebrum_cortex_DKT31_names + \
+                                  right_cerebrum_cortex_DKT31_names
+    cerebrum_cortex_DKT31_colors = left_cerebrum_cortex_DKT31_colors + \
+                                   right_cerebrum_cortex_DKT31_colors
     cerebrum_cortex_numbers = left_cerebrum_cortex_numbers + \
                               right_cerebrum_cortex_numbers
     cerebrum_cortex_names = left_cerebrum_cortex_names + \

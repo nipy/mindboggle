@@ -766,7 +766,7 @@ if do_surface:
         SurfLabelFlow.connect(plug1, plug2, ReindexLabels, 'vtk_file')
         mbFlow.connect(InputHemis, 'hemi',
                        SurfLabelFlow, 'Reindex_labels.hemi')
-        ReindexLabels.inputs.old_labels = dkt.cerebrum_cortex_numbers
+        ReindexLabels.inputs.old_labels = dkt.cerebrum_cortex_DKT31_numbers
         ReindexLabels.inputs.new_labels = []
         ReindexLabels.inputs.erase_remaining = True
         ReindexLabels.inputs.erase_labels = [0]
