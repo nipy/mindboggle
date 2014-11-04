@@ -327,7 +327,7 @@ if not os.path.isdir(cache):
 # Labeling protocol information and volume atlases:
 #-----------------------------------------------------------------------------
 dkt = DKTprotocol()
-atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152.nii.gz'
+atlas_volume = 'OASIS-TRT-20_jointfusion_DKT31_CMA_labels_in_MNI152_v2.nii.gz'
 atlases = args.atlases
 add_atlas_names = []
 if atlases:
