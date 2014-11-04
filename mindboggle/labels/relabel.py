@@ -342,9 +342,8 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
         name, input_vtk = read_vtk(vtk_file, return_first=True, return_array=True)
     new_scalars = scalars[:]
 
-    # Raise an error if either old or new labels are given but not both
-    # or hemi set incorrectly:
-    if (old_labels and not new_labels) or (not old_labels and new_labels) or \
+    # Raise an error if inputs set incorrectly:
+    if (new_labels and not old_labels) or \
             (hemi and hemi not in ['lh','rh']) or \
             (erase_remaining and not old_labels):
         raise IOError("Please check inputs for relabel_surface().")
@@ -360,7 +359,7 @@ def relabel_surface(vtk_file, hemi='', old_labels=[], new_labels=[],
 
         # If label in old_labels list, replace with corresponding new label,
         # and if hemi set, add 1000 or 2000 to the new label:
-        elif label in old_labels:
+        elif label in old_labels and (len(old_labels) == len(new_labels)):
             new_label = new_labels[old_labels.index(label)]
             if hemi == 'lh':
                 new_scalars[I] = 1000 + new_label
