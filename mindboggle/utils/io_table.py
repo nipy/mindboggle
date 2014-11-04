@@ -447,8 +447,8 @@ def write_shape_stats(labels_or_file=[], sulci=[], fundi=[],
         # Label names:
         #-----------------------------------------------------------------
         if itable == 0:
-            label_numbers = dkt.cerebrum_cortex_numbers
-            label_names = dkt.cerebrum_cortex_names
+            label_numbers = dkt.cerebrum_cortex_DKT31_numbers
+            label_names = dkt.cerebrum_cortex_DKT31_names
             label_title = 'Label name'
         elif itable in [1, 2]:
             label_numbers = dkt.sulcus_numbers
