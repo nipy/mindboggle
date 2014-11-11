@@ -4,24 +4,20 @@ Functions that call ANTs (UPenn's PICSL group) commands.
 
 Mindboggle functions call the following ANTs functions ::
 
-    - ImageMath :
-
+    ImageMath:
         'PropagateLabelsThroughMask','m','MD','ME' options in thickinthehead()
         'PropagateLabelsThroughMask' option in PropagateLabelsThroughMask()
         if modify_surface_labels set to True:
             PropagateLabelsThroughMask() called and '+' option in mindboggle
 
-    - ThresholdImage :
-
+    ThresholdImage:
         thickinthehead()
         PropagateLabelsThroughMask()
 
-    - ResampleImageBySpacing :
-
+    ResampleImageBySpacing:
         thickinthehead()
 
-    - antsApplyTransformsToPoints :
-
+    antsApplyTransformsToPoints:
         write_shape_stats(), write_vertex_measures()
 
 Authors:
