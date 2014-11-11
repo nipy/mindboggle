@@ -2,10 +2,32 @@
 """
 Functions that call ANTs (UPenn's PICSL group) commands.
 
-Authors:
-Arno Klein, 2011-2013  .  arno@mindboggle.info  .  www.binarybottle.com
+Mindboggle functions call the following ANTs functions ::
 
-Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
+    - ImageMath :
+
+        'PropagateLabelsThroughMask','m','MD','ME' options in thickinthehead()
+        'PropagateLabelsThroughMask' option in PropagateLabelsThroughMask()
+        if modify_surface_labels set to True:
+            PropagateLabelsThroughMask() called and '+' option in mindboggle
+
+    - ThresholdImage :
+
+        thickinthehead()
+        PropagateLabelsThroughMask()
+
+    - ResampleImageBySpacing :
+
+        thickinthehead()
+
+    - antsApplyTransformsToPoints :
+
+        write_shape_stats(), write_vertex_measures()
+
+Authors:
+Arno Klein, 2011-2014  .  arno@mindboggle.info  .  www.binarybottle.com
+
+Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
@@ -90,59 +112,6 @@ def fetch_ants_data(segmented_file, use_ants_transforms=True):
     return mask, segments, affine_subject2template, warp_subject2template, \
                            affine_template2subject, warp_template2subject
 
-def ComposeMultiTransform(transform_files, inverse_Booleans,
-                          output_transform_file='', ext='.txt'):
-    """
-    Run ANTs ComposeMultiTransform function to create a single transform.
-
-    Parameters
-    ----------
-    transform_files : list of strings
-        transform file names
-    inverse_Booleans : list of Booleans
-        Booleans to indicate which transforms to take the inverse of
-    output_transform_file : string
-        transform file name
-    ext : string
-        '.txt' to save transform file as text, '.mat' for data file
-
-    Returns
-    -------
-    output_transform_file : string
-        single composed transform file name
-
-    Examples
-    --------
-    >>> from mindboggle.utils.ants import ComposeMultiTransform
-    >>> transform_files = ['affine1.mat', 'affine2.mat']
-    >>> transform_files = ['/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat','/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat']
-    >>> inverse_Booleans = [False, False]
-    >>> output_transform_file = ''
-    >>> ext = '.txt'
-    >>> ComposeMultiTransform(transform_files, inverse_Booleans, output_transform_file, ext)
-
-    """
-    import os
-
-    from mindboggle.utils.utils import execute
-
-    if not output_transform_file:
-        output_transform_file = os.path.join(os.getcwd(), 'affine' + ext)
-
-    xfms = []
-    for ixfm, xfm in enumerate(transform_files):
-        if inverse_Booleans[ixfm]:
-            xfms.append('-i')
-        xfms.append(xfm)
-
-    cmd = ['ComposeMultiTransform 3', output_transform_file, ' '.join(xfms)]
-    print(cmd)
-    execute(cmd, 'os')
-    #if not os.path.exists(output_transform_file):
-    #    raise(IOError(output_transform_file + " not found"))
-
-    return output_transform_file
-
 
 def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
     """
@@ -224,7 +193,7 @@ def antsApplyTransformsToPoints(points, transform_files, inverse_booleans=[0]):
 
 def ImageMath(volume1, volume2, operator='m', output_file=''):
     """
-    Use the ImageMath function in ANTS to perform operation on two volumes::
+    Use the ImageMath function in ANTs to perform operation on two volumes::
 
         m         : Multiply ---  use vm for vector multiply
         +         : Add ---  use v+ for vector add
@@ -291,7 +260,7 @@ def ImageMath(volume1, volume2, operator='m', output_file=''):
 
 def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     """
-    Use the ThresholdImage function in ANTS to threshold image volume::
+    Use the ThresholdImage function in ANTs to threshold image volume::
 
     Usage: ThresholdImage ImageDimension ImageIn.ext outImage.ext
            threshlo threshhi <insideValue> <outsideValue>
@@ -343,161 +312,13 @@ def ThresholdImage(volume, output_file='', threshlo=1, threshhi=10000):
     return output_file
 
 
-def ANTS(source, target, iterations='30x99x11', output_stem=''):
-    """
-    Use ANTs to register a source image volume to a target image volume.
-
-    This program uses the ANTs SyN registration method.
-
-    Parameters
-    ----------
-    source : string
-        file name of source image volume
-    target : string
-        file name of target image volume
-    iterations : string
-        number of iterations ("0" for affine, "30x99x11" default)
-    output_stem : string
-        file name stem for output transform matrix
-
-    Returns
-    -------
-    affine_transform : string
-        file name for affine transform matrix
-    nonlinear_transform : string
-        file name for nonlinear transform nifti file
-    nonlinear_inverse_transform : string
-        file name for nonlinear inverse transform nifti file
-    output_stem : string
-        file name stem for output transform matrix
-
-    Examples
-    --------
-    >>> import os
-    >>> from mindboggle.utils.ants import ANTS
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> source = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
-    >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
-    >>> iterations = "0"
-    >>> output_stem = ""
-    >>> #
-    >>> ANTS(source, target, iterations, output_stem)
-
-    """
-    import os
-    from mindboggle.utils.utils import execute
-
-    if not output_stem:
-        src = os.path.basename(source).split('.')[0]
-        tgt = os.path.basename(target).split('.')[0]
-        output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
-
-    cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
-            '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
-            '-o', output_stem, '--use-Histogram-Matching',
-            '--number-of-affine-iterations 10000x10000x10000x10000x10000']
-    execute(cmd, 'os')
-
-    affine_transform = output_stem + 'Affine.txt'
-    nonlinear_transform = output_stem + 'Warp.nii.gz'
-    nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
-
-    if not os.path.exists(affine_transform):
-        raise(IOError("ANTs did not create " + affine_transform + "."))
-    if not os.path.exists(nonlinear_transform):
-        raise(IOError("ANTs did not create " + nonlinear_transform + "."))
-    if not os.path.exists(nonlinear_inverse_transform):
-        raise(IOError("ANTs did not create " + nonlinear_inverse_transform + "."))
-
-    return affine_transform, nonlinear_transform,\
-           nonlinear_inverse_transform, output_stem
-
-
-def WarpImageMultiTransform(source, target, output='',
-                            interp='--use-NN', xfm_stem='',
-                            affine_transform='', nonlinear_transform='',
-                            inverse=False, affine_only=False):
-    """
-    Use ANTs to transform a source image volume to a target image volume.
-
-    This program uses the ANTs WarpImageMultiTransform function.
-
-    Parameters
-    ----------
-    source : string
-        file name of source image volume
-    target : string
-        file name of target (reference) image volume
-    output : string
-        file name of output image volume
-    interp : string
-        interpolation type ("--use-NN" for nearest neighbor)
-    xfm_stem : string
-        file name stem for output transform
-    affine_transform : string
-        file containing affine transform
-    nonlinear_transform : string
-        file containing nonlinear transform
-    inverse : Boolean
-        apply inverse transform?
-    affine_only : Boolean
-        apply only affine transform?
-
-    Returns
-    -------
-    output : string
-        output label file name
-
-    """
-    import os
-    import sys
-    from mindboggle.utils.utils import execute
-
-    if xfm_stem:
-        affine_transform = xfm_stem + 'Affine.txt'
-        if inverse:
-            nonlinear_transform = xfm_stem + 'InverseWarp.nii.gz'
-        else:
-            nonlinear_transform = xfm_stem + 'Warp.nii.gz'
-    elif not affine_transform and not nonlinear_transform:
-        sys.exit('Provide either xfm_stem or affine_transform and '
-                 'nonlinear_transform.')
-
-    if not output:
-        output = os.path.join(os.getcwd(), 'WarpImageMultiTransform.nii.gz')
-
-    if not os.path.exists(nonlinear_transform):
-        affine_only = True
-
-    if affine_only:
-        if inverse:
-            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
-                   target, interp, '-i', affine_transform]
-        else:
-            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
-                   target, interp, affine_transform]
-    else:
-        if inverse:
-            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
-                   target, interp, '-i', affine_transform, nonlinear_transform]
-        else:
-            cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
-                   target, interp, nonlinear_transform, affine_transform]
-    execute(cmd, 'os')
-
-    if not os.path.exists(output):
-        raise(IOError("WarpImageMultiTransform did not create " + output + "."))
-
-    return output
-
-
 def PropagateLabelsThroughMask(mask, labels, mask_index=None,
                                output_file='', binarize=True, stopvalue=''):
     """
     Use ANTs to fill a binary volume mask with initial labels.
 
     This program uses ThresholdImage and the ImageMath
-    PropagateLabelsThroughMask functions in ANTS.
+    PropagateLabelsThroughMask functions in ANTs.
 
     ThresholdImage ImageDimension ImageIn.ext outImage.ext
         threshlo threshhi <insideValue> <outsideValue>
@@ -592,7 +413,7 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
 
     Note ::
 
-        - This uses PropagateLabelsThroughMask in the ANTS ImageMath function.
+        - This uses PropagateLabelsThroughMask in the ANTs ImageMath function.
 
         - Partial volume information is lost when mapping surface to volume.
 
@@ -644,7 +465,6 @@ def fill_volume_with_surface_labels(hemi, left_mask, right_mask,
     from mindboggle.utils.io_vtk import transform_to_volume
     from mindboggle.labels.relabel import overwrite_volume_labels
     from mindboggle.utils.ants import PropagateLabelsThroughMask
-    from mindboggle.utils.utils import execute
 
     if isinstance(surface_files, str):
         surface_files = [surface_files]
@@ -971,3 +791,207 @@ def thickinthehead(segmented_file, labeled_file, cortex_value=2,
     label_volume_thickness = label_volume_thickness.transpose().tolist()
 
     return label_volume_thickness, output_table
+
+
+# def ANTS(source, target, iterations='30x99x11', output_stem=''):
+#     """
+#     Use ANTs to register a source image volume to a target image volume.
+#
+#     This program uses the ANTs SyN registration method.
+#
+#     Parameters
+#     ----------
+#     source : string
+#         file name of source image volume
+#     target : string
+#         file name of target image volume
+#     iterations : string
+#         number of iterations ("0" for affine, "30x99x11" default)
+#     output_stem : string
+#         file name stem for output transform matrix
+#
+#     Returns
+#     -------
+#     affine_transform : string
+#         file name for affine transform matrix
+#     nonlinear_transform : string
+#         file name for nonlinear transform nifti file
+#     nonlinear_inverse_transform : string
+#         file name for nonlinear inverse transform nifti file
+#     output_stem : string
+#         file name stem for output transform matrix
+#
+#     Examples
+#     --------
+#     >>> import os
+#     >>> from mindboggle.utils.ants import ANTS
+#     >>> path = os.environ['MINDBOGGLE_DATA']
+#     >>> source = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+#     >>> target = os.path.join(path, 'atlases', 'MNI152_T1_1mm_brain.nii.gz')
+#     >>> iterations = "0"
+#     >>> output_stem = ""
+#     >>> #
+#     >>> ANTS(source, target, iterations, output_stem)
+#
+#     """
+#     import os
+#     from mindboggle.utils.utils import execute
+#
+#     if not output_stem:
+#         src = os.path.basename(source).split('.')[0]
+#         tgt = os.path.basename(target).split('.')[0]
+#         output_stem = os.path.join(os.getcwd(), src+'_to_'+tgt)
+#
+#     cmd = ['ANTS', '3', '-m CC[' + target + ',' + source + ',1,2]',
+#             '-r Gauss[2,0]', '-t SyN[0.5] -i', iterations,
+#             '-o', output_stem, '--use-Histogram-Matching',
+#             '--number-of-affine-iterations 10000x10000x10000x10000x10000']
+#     execute(cmd, 'os')
+#
+#     affine_transform = output_stem + 'Affine.txt'
+#     nonlinear_transform = output_stem + 'Warp.nii.gz'
+#     nonlinear_inverse_transform = output_stem + 'InverseWarp.nii.gz'
+#
+#     if not os.path.exists(affine_transform):
+#         raise(IOError("ANTs did not create " + affine_transform + "."))
+#     if not os.path.exists(nonlinear_transform):
+#         raise(IOError("ANTs did not create " + nonlinear_transform + "."))
+#     if not os.path.exists(nonlinear_inverse_transform):
+#         raise(IOError("ANTs did not create " + nonlinear_inverse_transform + "."))
+#
+#     return affine_transform, nonlinear_transform,\
+#            nonlinear_inverse_transform, output_stem
+#
+#
+# def WarpImageMultiTransform(source, target, output='',
+#                             interp='--use-NN', xfm_stem='',
+#                             affine_transform='', nonlinear_transform='',
+#                             inverse=False, affine_only=False):
+#     """
+#     Use ANTs to transform a source image volume to a target image volume.
+#
+#     This program uses the ANTs WarpImageMultiTransform function.
+#
+#     Parameters
+#     ----------
+#     source : string
+#         file name of source image volume
+#     target : string
+#         file name of target (reference) image volume
+#     output : string
+#         file name of output image volume
+#     interp : string
+#         interpolation type ("--use-NN" for nearest neighbor)
+#     xfm_stem : string
+#         file name stem for output transform
+#     affine_transform : string
+#         file containing affine transform
+#     nonlinear_transform : string
+#         file containing nonlinear transform
+#     inverse : Boolean
+#         apply inverse transform?
+#     affine_only : Boolean
+#         apply only affine transform?
+#
+#     Returns
+#     -------
+#     output : string
+#         output label file name
+#
+#     """
+#     import os
+#     import sys
+#     from mindboggle.utils.utils import execute
+#
+#     if xfm_stem:
+#         affine_transform = xfm_stem + 'Affine.txt'
+#         if inverse:
+#             nonlinear_transform = xfm_stem + 'InverseWarp.nii.gz'
+#         else:
+#             nonlinear_transform = xfm_stem + 'Warp.nii.gz'
+#     elif not affine_transform and not nonlinear_transform:
+#         sys.exit('Provide either xfm_stem or affine_transform and '
+#                  'nonlinear_transform.')
+#
+#     if not output:
+#         output = os.path.join(os.getcwd(), 'WarpImageMultiTransform.nii.gz')
+#
+#     if not os.path.exists(nonlinear_transform):
+#         affine_only = True
+#
+#     if affine_only:
+#         if inverse:
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#                    target, interp, '-i', affine_transform]
+#         else:
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#                    target, interp, affine_transform]
+#     else:
+#         if inverse:
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#                    target, interp, '-i', affine_transform, nonlinear_transform]
+#         else:
+#             cmd = ['WarpImageMultiTransform', '3', source, output, '-R',
+#                    target, interp, nonlinear_transform, affine_transform]
+#     execute(cmd, 'os')
+#
+#     if not os.path.exists(output):
+#         raise(IOError("WarpImageMultiTransform did not create " + output + "."))
+#
+#     return output
+#
+#
+# def ComposeMultiTransform(transform_files, inverse_Booleans,
+#                           output_transform_file='', ext='.txt'):
+#     """
+#     Run ANTs ComposeMultiTransform function to create a single transform.
+#
+#     Parameters
+#     ----------
+#     transform_files : list of strings
+#         transform file names
+#     inverse_Booleans : list of Booleans
+#         Booleans to indicate which transforms to take the inverse of
+#     output_transform_file : string
+#         transform file name
+#     ext : string
+#         '.txt' to save transform file as text, '.mat' for data file
+#
+#     Returns
+#     -------
+#     output_transform_file : string
+#         single composed transform file name
+#
+#     Examples
+#     --------
+#     >>> from mindboggle.utils.ants import ComposeMultiTransform
+#     >>> transform_files = ['affine1.mat', 'affine2.mat']
+#     >>> transform_files = ['/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat','/data/Brains/Mindboggle101/antsCorticalThickness/OASIS-TRT-20_volumes/OASIS-TRT-20-1/antsTemplateToSubject0GenericAffine.mat']
+#     >>> inverse_Booleans = [False, False]
+#     >>> output_transform_file = ''
+#     >>> ext = '.txt'
+#     >>> ComposeMultiTransform(transform_files, inverse_Booleans, output_transform_file, ext)
+#
+#     """
+#     import os
+#
+#     from mindboggle.utils.utils import execute
+#
+#     if not output_transform_file:
+#         output_transform_file = os.path.join(os.getcwd(), 'affine' + ext)
+#
+#     xfms = []
+#     for ixfm, xfm in enumerate(transform_files):
+#         if inverse_Booleans[ixfm]:
+#             xfms.append('-i')
+#         xfms.append(xfm)
+#
+#     cmd = ['ComposeMultiTransform 3', output_transform_file, ' '.join(xfms)]
+#     print(cmd)
+#     execute(cmd, 'os')
+#     #if not os.path.exists(output_transform_file):
+#     #    raise(IOError(output_transform_file + " not found"))
+#
+#     return output_transform_file
+
+
