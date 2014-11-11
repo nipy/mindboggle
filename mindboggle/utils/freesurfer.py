@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 """
-Functions that call FreeSurfer commands.
+Functions for converting from FreeSurfer formats, registration-based labeling.
 
-These functions are for converting from FreeSurfer formats,
-and for surface registration-based labeling.
+Mindboggle functions call the following FreeSurfer functions ::
 
+    mri_vol2vol in convert_mgh_to_native_nifti()
+    mris_ca_label in label_with_classifier()
 
 Authors:
     - Forrest Sheng Bao, 2012  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013  (ohinds@gmail.com)
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
@@ -382,67 +383,67 @@ def convert_mgh_to_native_nifti(input_file, reference_file, output_file='',
     return output_file
 
 
-def annot_labels_to_volume(subject, annot_name, original_space, reference):
-    """
-    Propagate surface labels through hemisphere's gray matter volume
-    using FreeSurfer's mri_aparc2aseg.
-
-    Note ::
-        From the mri_aparc2aseg documentation:
-        The volumes of the cortical labels will be different than
-        reported by mris_anatomical_stats because partial volume information
-        is lost when mapping the surface to the volume. The values reported by
-        mris_anatomical_stats will be more accurate than the volumes from the
-        aparc+aseg volume.
-
-    Parameters
-    ----------
-    subject : string
-        subject name
-    annot_name: string
-        FreeSurfer annot filename without the hemisphere prepend or .annot append
-    original_space: Boolean
-        convert from FreeSurfer unconformed to original space?
-    reference : string
-        file in original space
-
-    Returns
-    -------
-    output_file : string
-        name of output file
-
-    """
-    import os
-
-    from mindboggle.utils.freesurfer import convert_mgh_to_native_nifti
-    from mindboggle.utils.utils import execute
-
-    # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
-    print("Fill gray matter volume with surface labels using FreeSurfer...")
-
-    output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
-
-    cmd = ['mri_aparc2aseg', '--s', subject, '--annot', annot_name,
-            '--o', output_file1]
-    execute(cmd)
-    if not os.path.exists(output_file1):
-        raise(IOError("mri_aparc2aseg did not create " + output_file1 + "."))
-
-    # Convert label volume from FreeSurfer to original space:
-    if original_space:
-
-        output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
-        output_file = convert_mgh_to_native_nifti(output_file1, reference,
-                        output_file2, interp='nearest')
-    else:
-        output_file = output_file1
-
-    if not os.path.exists(output_file):
-        raise(IOError("Output file " + output_file + " not created."))
-
-    return output_file
-
-
+# def annot_labels_to_volume(subject, annot_name, original_space, reference):
+#     """
+#     Propagate surface labels through hemisphere's gray matter volume
+#     using FreeSurfer's mri_aparc2aseg.
+#
+#     Note ::
+#         From the mri_aparc2aseg documentation:
+#         The volumes of the cortical labels will be different than
+#         reported by mris_anatomical_stats because partial volume information
+#         is lost when mapping the surface to the volume. The values reported by
+#         mris_anatomical_stats will be more accurate than the volumes from the
+#         aparc+aseg volume.
+#
+#     Parameters
+#     ----------
+#     subject : string
+#         subject name
+#     annot_name: string
+#         FreeSurfer annot filename without the hemisphere prepend or .annot append
+#     original_space: Boolean
+#         convert from FreeSurfer unconformed to original space?
+#     reference : string
+#         file in original space
+#
+#     Returns
+#     -------
+#     output_file : string
+#         name of output file
+#
+#     """
+#     import os
+#
+#     from mindboggle.utils.freesurfer import convert_mgh_to_native_nifti
+#     from mindboggle.utils.utils import execute
+#
+#     # Fill hemisphere gray matter volume with surface labels using FreeSurfer:
+#     print("Fill gray matter volume with surface labels using FreeSurfer...")
+#
+#     output_file1 = os.path.join(os.getcwd(), annot_name + '.nii.gz')
+#
+#     cmd = ['mri_aparc2aseg', '--s', subject, '--annot', annot_name,
+#             '--o', output_file1]
+#     execute(cmd)
+#     if not os.path.exists(output_file1):
+#         raise(IOError("mri_aparc2aseg did not create " + output_file1 + "."))
+#
+#     # Convert label volume from FreeSurfer to original space:
+#     if original_space:
+#
+#         output_file2 = os.path.join(os.getcwd(), annot_name + '.native.nii.gz')
+#         output_file = convert_mgh_to_native_nifti(output_file1, reference,
+#                         output_file2, interp='nearest')
+#     else:
+#         output_file = output_file1
+#
+#     if not os.path.exists(output_file):
+#         raise(IOError("Output file " + output_file + " not created."))
+#
+#     return output_file
+#
+#
 #def register_template(hemi, sphere_file, transform,
 #                      templates_path, template):
 #    """
