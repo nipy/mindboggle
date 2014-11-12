@@ -194,7 +194,7 @@ def plot_mask_surface(vtk_file, mask_file='', nonmask_value=-1,
         execute(cmd, 'os')
 
 
-def plot_volumes(volume_files):
+def plot_volumes(volume_files, command='fslview'):
     """
     Use fslview to visualize image volume data.
 
@@ -202,16 +202,20 @@ def plot_volumes(volume_files):
     ----------
     volume_files : list of strings
         names of image volume files
+    command : string
+        plotting software command
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.plots import plot_volumes
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> volume_file1 = os.path.join(path, 'arno', 'mri', 't1weighted.nii.gz')
-    >>> volume_file2 = os.path.join(path, 'arno', 'mri', 't1weighted_brain.nii.gz')
+    >>> volume_file1 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted.nii.gz')
+    >>> volume_file2 = os.path.join(path, 'Twins-2-1', 'mri', 't1weighted_brain.nii.gz')
     >>> volume_files = [volume_file1, volume_file2]
-    >>> plot_volumes(volume_files)
+    >>> command = 'fslview'
+    >>> command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
+    >>> plot_volumes(volume_files, command=command)
 
     """
     from mindboggle.utils.utils import execute
@@ -219,13 +223,16 @@ def plot_volumes(volume_files):
     if isinstance(volume_files, str):
         volume_files = [volume_files]
     elif not isinstance(volume_files, list):
-        import sys
-        sys.error('plot_volumes() requires volume_files to be a list or string.')
+        raise(IOError('plot_volumes() requires volume_files to be a list or string.'))
 
-    cmd = ["fslview"]
-    cmd.extend(volume_files)
-    cmd.extend('&')
-    execute(cmd, 'os')
+    if not isinstance(command, str):
+        raise(IOError('plot_volumes() requires command to be a string.'))
+    else:
+        command = [command]
+
+    command.extend(volume_files)
+    command.extend('&')
+    execute(command, 'os')
 
 
 def histogram_of_vtk_scalars(vtk_file, nbins=100):

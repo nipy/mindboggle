@@ -115,7 +115,7 @@ inputs_group.add_argument("--volume_labels",
 # Surface labels: "freesurfer" (default), "atlas" or "manual"
 inputs_group.add_argument("--surface_labels",
                     help=(argparse.SUPPRESS),
-                    choices=['freesurfer', 'atlas', 'manual'],
+                    choices=['freesurfer', 'manual'],
                     default='freesurfer', metavar='STR')
 inputs_group.add_argument("--no_transforms", action='store_true',
                     help="no transforms (antsCorticalThickness.sh "
@@ -271,10 +271,10 @@ from mindboggle.DATA import hashes_url
 from mindboggle.features.folds import extract_folds
 from mindboggle.features.fundi import extract_fundi, segment_fundi
 from mindboggle.features.sulci import extract_sulci
-from mindboggle.shapes.laplace_beltrami import spectrum_per_label
-from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.labels.relabel import relabel_surface, relabel_volume, \
     keep_volume_labels, remove_volume_labels, overwrite_volume_labels
+from mindboggle.shapes.laplace_beltrami import spectrum_per_label
+from mindboggle.shapes.likelihood import compute_likelihood
 from mindboggle.shapes.shape_tools import area, travel_depth, \
     geodesic_depth, curvature
 from mindboggle.shapes.zernike.zernike import zernike_moments_per_label
@@ -282,12 +282,13 @@ from mindboggle.utils.ants import fetch_ants_data, \
     ImageMath, PropagateLabelsThroughMask, fill_volume_with_surface_labels, \
     thickinthehead
 from mindboggle.utils.compute import volume_per_label
-from mindboggle.utils.freesurfer import surface_to_vtk, curvature_to_vtk, \
-    annot_to_vtk, label_with_classifier, convert_mgh_to_native_nifti
+from mindboggle.utils.io_nii import convert2nii
 from mindboggle.utils.io_table import write_shape_stats, \
     write_vertex_measures
 from mindboggle.utils.io_uri import retrieve_data
-from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms
+from mindboggle.utils.io_vtk import read_vtk, apply_affine_transforms, \
+    freesurfer_surface_to_vtk, freesurfer_curvature_to_vtk, \
+    freesurfer_annot_to_vtk
 from mindboggle.utils.mesh import rescale_by_neighborhood
 from mindboggle.utils.paths import smooth_skeleton
 from mindboggle.utils.segment import split_brain, combine_2labels_in_2volumes
@@ -571,7 +572,7 @@ if do_surface:
     #-------------------------------------------------------------------------
     if not do_input_vtk:
         ConvertSurf = Node(name='Surface_to_vtk',
-                           interface=Fn(function=surface_to_vtk,
+                           interface=Fn(function=freesurfer_surface_to_vtk,
                                         input_names=['surface_file',
                                                      'output_vtk'],
                                         output_names=['output_vtk']))
@@ -609,62 +610,62 @@ if do_surface:
         #=====================================================================
         # Initialize labels with the DKT classifier atlas
         #=====================================================================
-        if surface_labels == 'atlas' and use_FS_inputs:
-            #-----------------------------------------------------------------
-            # Label brain with DKT atlas using FreeSurfer's mris_ca_label:
-            #-----------------------------------------------------------------
-            Classifier = Node(name='mris_ca_label',
-                              interface=Fn(function=label_with_classifier,
-                                           input_names=['subject',
-                                                        'hemi',
-                                                        'left_classifier',
-                                                        'right_classifier',
-                                                        'annot_file',
-                                                        'subjects_directory'],
-                                           output_names=['annot_file']))
-            SurfLabelFlow.add_nodes([Classifier])
-            Classifier.inputs.subject = subject
-            mbFlow.connect(InputHemis, 'hemi',
-                           SurfLabelFlow, 'mris_ca_label.hemi')
-            left_classifier_file = 'lh.' + surface_classifier + '.gcs'
-            right_classifier_file = 'rh.' + surface_classifier + '.gcs'
-            left_classifier = retrieve_data(left_classifier_file, url,
-                                            hashes, cache_env, cache)
-            right_classifier = retrieve_data(right_classifier_file, url,
-                                             hashes, cache_env, cache)
-            Classifier.inputs.left_classifier = left_classifier
-            Classifier.inputs.right_classifier = right_classifier
-            Classifier.inputs.annot_file = ''
-            Classifier.inputs.subjects_directory = subjects_dir
-            #-----------------------------------------------------------------
-            # Convert .annot file to VTK format:
-            #-----------------------------------------------------------------
-            Classifier2vtk = Node(name='annot_to_vtk',
-                                  interface=Fn(function=annot_to_vtk,
-                                               input_names=['annot_file',
-                                                            'vtk_file'],
-                                               output_names=['labels',
-                                                             'output_vtk']))
-            SurfLabelFlow.add_nodes([Classifier2vtk])
-            SurfLabelFlow.connect(Classifier, 'annot_file',
-                                  Classifier2vtk, 'annot_file')
-            if do_input_vtk:
-                mbFlow.connect(Surf, 'surface_files',
-                               SurfLabelFlow, 'annot_to_vtk.vtk_file')
-            else:
-                mbFlow.connect(ConvertSurf, 'output_vtk',
-                               SurfLabelFlow, 'annot_to_vtk.vtk_file')
-            #if save_all:
-            #    mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
-            #                   Sink, 'labels.@DKT_surface')
-            plug = 'annot_to_vtk.output_vtk'
-            plug1 = Classifier2vtk
-            plug2 = 'output_vtk'
+        # if surface_labels == 'atlas' and use_FS_inputs:
+        #     #---------------------------------------------------------------
+        #     # Label brain with DKT atlas using FreeSurfer's mris_ca_label:
+        #     #---------------------------------------------------------------
+        #     Classifier = Node(name='mris_ca_label',
+        #                       interface=Fn(function=label_with_classifier,
+        #                                    input_names=['subject',
+        #                                                 'hemi',
+        #                                                 'left_classifier',
+        #                                                 'right_classifier',
+        #                                                 'annot_file',
+        #                                                 'subjects_directory'],
+        #                                    output_names=['annot_file']))
+        #     SurfLabelFlow.add_nodes([Classifier])
+        #     Classifier.inputs.subject = subject
+        #     mbFlow.connect(InputHemis, 'hemi',
+        #                    SurfLabelFlow, 'mris_ca_label.hemi')
+        #     left_classifier_file = 'lh.' + surface_classifier + '.gcs'
+        #     right_classifier_file = 'rh.' + surface_classifier + '.gcs'
+        #     left_classifier = retrieve_data(left_classifier_file, url,
+        #                                     hashes, cache_env, cache)
+        #     right_classifier = retrieve_data(right_classifier_file, url,
+        #                                      hashes, cache_env, cache)
+        #     Classifier.inputs.left_classifier = left_classifier
+        #     Classifier.inputs.right_classifier = right_classifier
+        #     Classifier.inputs.annot_file = ''
+        #     Classifier.inputs.subjects_directory = subjects_dir
+        #     #---------------------------------------------------------------
+        #     # Convert .annot file to VTK format:
+        #     #---------------------------------------------------------------
+        #     Classifier2vtk = Node(name='annot_to_vtk',
+        #                           interface=Fn(function=freesurfer_annot_to_vtk,
+        #                                        input_names=['annot_file',
+        #                                                     'vtk_file'],
+        #                                        output_names=['labels',
+        #                                                      'output_vtk']))
+        #     SurfLabelFlow.add_nodes([Classifier2vtk])
+        #     SurfLabelFlow.connect(Classifier, 'annot_file',
+        #                           Classifier2vtk, 'annot_file')
+        #     if do_input_vtk:
+        #         mbFlow.connect(Surf, 'surface_files',
+        #                        SurfLabelFlow, 'annot_to_vtk.vtk_file')
+        #     else:
+        #         mbFlow.connect(ConvertSurf, 'output_vtk',
+        #                        SurfLabelFlow, 'annot_to_vtk.vtk_file')
+        #     #if save_all:
+        #     #    mbFlow.connect(SurfLabelFlow, 'annot_to_vtk.output_vtk',
+        #     #                   Sink, 'labels.@DKT_surface')
+        #     plug = 'annot_to_vtk.output_vtk'
+        #     plug1 = Classifier2vtk
+        #     plug2 = 'output_vtk'
 
         #=====================================================================
         # Initialize labels with FreeSurfer
         #=====================================================================
-        elif surface_labels == 'freesurfer' and use_FS_inputs:
+        if surface_labels == 'freesurfer' and use_FS_inputs:
             #-----------------------------------------------------------------
             # Location and structure of the FreeSurfer label inputs:
             #-----------------------------------------------------------------
@@ -684,7 +685,7 @@ if do_surface:
             # Convert Annot to VTK format:
             #-----------------------------------------------------------------
             FreeLabels = Node(name='FreeSurfer_annot_to_vtk',
-                              interface=Fn(function=annot_to_vtk,
+                              interface=Fn(function=freesurfer_annot_to_vtk,
                                            input_names=['annot_file',
                                                         'vtk_file'],
                                            output_names=['labels',
@@ -865,7 +866,7 @@ if do_surface:
         #---------------------------------------------------------------------
         if do_freesurfer_curvature:
             ConvexNode = Node(name='Curv_to_vtk',
-                              interface=Fn(function=curvature_to_vtk,
+                              interface=Fn(function=freesurfer_curvature_to_vtk,
                                            input_names=['surface_file',
                                                         'vtk_file',
                                                         'output_vtk'],
@@ -881,7 +882,7 @@ if do_surface:
                                Sink, 'shapes.@freesurfer_curvature')
         if do_freesurfer_sulc:
             ConvexNode = Node(name='Sulc_to_vtk',
-                              interface=Fn(function=curvature_to_vtk,
+                              interface=Fn(function=freesurfer_curvature_to_vtk,
                                            input_names=['surface_file',
                                                         'vtk_file',
                                                         'output_vtk'],
@@ -897,7 +898,7 @@ if do_surface:
                                Sink, 'shapes.@freesurfer_sulc')
         if do_freesurfer_thickness:
             ThickNode = Node(name='Thickness_to_vtk',
-                             interface=Fn(function=curvature_to_vtk,
+                             interface=Fn(function=freesurfer_curvature_to_vtk,
                                           input_names=['surface_file',
                                                        'vtk_file',
                                                        'output_vtk'],
@@ -1460,7 +1461,7 @@ if do_volumes and do_label:
     # Convert FreeSurfer mgh conformal file to nifti format:
     #---------------------------------------------------------------------
     MGH2Nifti = Node(name='mgh_to_nifti',
-                     interface=Fn(function=convert_mgh_to_native_nifti,
+                     interface=Fn(function=convert2nii,
                                   input_names=['input_file',
                                                'reference_file',
                                                'output_file',
@@ -1469,7 +1470,7 @@ if do_volumes and do_label:
     mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'input_file')
     mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'reference_file')
     MGH2Nifti.inputs.output_file = ''
-    MGH2Nifti.inputs.interp = 'trilin'
+    MGH2Nifti.inputs.interp = 1  # trilinear
     #-------------------------------------------------------------------------
     # Use own whole-brain nifti label volume:
     #-------------------------------------------------------------------------
@@ -1501,7 +1502,7 @@ if do_volumes and do_label:
         # Convert FreeSurfer mgh conformal file to nifti format:
         #---------------------------------------------------------------------
         labelsMGH2Nifti = Node(name='labels_mgh_to_nifti',
-                           interface=Fn(function=convert_mgh_to_native_nifti,
+                           interface=Fn(function=convert2nii,
                                         input_names=['input_file',
                                                      'reference_file',
                                                      'output_file',
@@ -1510,7 +1511,7 @@ if do_volumes and do_label:
         mbFlow.connect(labelsMGH, 'labels', labelsMGH2Nifti, 'input_file')
         mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reference_file')
         labelsMGH2Nifti.inputs.output_file = ''
-        labelsMGH2Nifti.inputs.interp = 'nearest'
+        labelsMGH2Nifti.inputs.interp = 0  # nearest
         #if save_all:
         #    mbFlow.connect(labelsMGH2Nifti, 'output_file',
         #                   Sink, 'labels.@freesurfer')
