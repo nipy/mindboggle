@@ -4,7 +4,7 @@ Functions related to reading and writing VTK format files.
 
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
-    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+    - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013 (ohinds@gmail.com)
     - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
 
@@ -1391,6 +1391,213 @@ def transform_to_volume(vtk_file, volume_file, output_volume=''):
 
     return output_volume
 
+
+def freesurfer_surface_to_vtk(surface_file, output_vtk):
+    """
+    Convert FreeSurfer surface file to VTK format.
+
+    If a file named orig.mgz exists in '../mri', the surface coordinates
+    are transformed into scanner RAS space during format conversion
+    according to the vox2ras transform in that file.
+
+    Parameters
+    ----------
+    surface_file : string
+        name of FreeSurfer surface file
+    output_vtk : string
+        name of output VTK file
+
+    Returns
+    -------
+    output_vtk : string
+        name of output VTK file
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.freesurfer import freesurfer_surface_to_vtk
+    >>> path = os.environ['SUBJECTS_DIR']
+    >>> surface_file = os.path.join(path, 'OASIS-TRT-20-1', 'surf', 'lh.pial')
+    >>> output_vtk = ''
+    >>> #
+    >>> freesurfer_surface_to_vtk(surface_file, output_vtk)
+    >>> #
+    >>> # View:
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('lh.pial.vtk')
+
+    """
+    import os
+    import nibabel as nb
+
+    from mindboggle.utils.io_vtk import write_header, write_points, write_faces
+
+    surf = nb.freesurfer.read_geometry(surface_file)
+    points = surf[0]
+    faces = surf[1]
+
+    # Transform surface coordinates into normal scanner RAS.
+    # See example 3 in "Transforms within a subject's anatomical space":
+    # https://surfer.nmr.mgh.harvard.edu/fswiki/CoordinateSystems
+    orig_file = os.path.join(os.path.dirname(surface_file),
+                             "..", "mri", "orig.mgz")
+
+    if os.path.exists(orig_file):
+        import numpy as np
+        Norig = nb.load(orig_file).get_affine()
+        Torig = np.array([[-1, 0, 0, 128],
+                          [0, 0, 1, -128],
+                          [0, -1, 0, 128],
+                          [0, 0, 0, 1]], dtype=float)
+        xfm = np.dot(Norig, np.linalg.inv(Torig))
+        points = np.transpose(np.dot(xfm, np.transpose(
+            np.concatenate((points, np.ones((np.shape(points)[0],1))),
+                           axis=1))))[:,0:3]
+    else:
+        raise IOError((orig_file + " does not exist in the FreeSurfer "
+                       "subjects directory."))
+
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+                                  os.path.basename(surface_file + '.vtk'))
+    Fp = open(output_vtk, 'w')
+    write_header(Fp, Title='vtk output from ' + surface_file)
+    write_points(Fp, points)
+    write_faces(Fp, faces)
+    Fp.close()
+
+    if not os.path.exists(output_vtk):
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
+
+    return output_vtk
+
+
+def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk):
+    """
+    Convert FreeSurfer curvature, thickness, or convexity file to VTK format.
+
+    Parameters
+    ----------
+    surface_file : string
+        name of FreeSurfer surface file
+    vtk_file : string
+        name of VTK surface file
+    output_vtk : string
+        name of output VTK file
+
+    Returns
+    -------
+    output_vtk : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import freesurfer_curvature_to_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> output_vtk = ''
+    >>> #
+    >>> freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk)
+    >>> #
+    >>> # View:
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces('lh.thickness.vtk')
+
+    """
+    import os
+    import nibabel as nb
+
+    from mindboggle.utils.io_vtk import rewrite_scalars
+
+    curvature_values = nb.freesurfer.read_morph_data(surface_file)
+    scalar_names = os.path.basename(surface_file)
+
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+                                  os.path.basename(surface_file)+'.vtk')
+    rewrite_scalars(vtk_file, output_vtk, curvature_values, scalar_names)
+    if not os.path.exists(output_vtk):
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
+
+    return output_vtk
+
+
+def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
+    """
+    Load a FreeSurfer .annot file and save as a VTK format file.
+
+    Note regarding current pip install nibabel (fixed in github master repo)::
+
+        The 'True' flag in nibabel.freesurfer.read_annot(annot_file, True)
+        gives the original FreeSurfer label values, not the FreeSurferColorLUT
+        labels, and when set to 'False' assigns all otherwise unlabeled
+        left cortical vertices to 3, which is also assigned to the caudal
+        middle frontal gyrus.  To correct this ambiguity, this program assigns
+        -1 to all vertices with label 0 in the original ('True') labels.
+
+    Parameters
+    ----------
+    annot_file : string
+        name of FreeSurfer .annot file
+    vtk_file : string
+        name of VTK surface file
+    output_vtk : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value
+
+    Returns
+    -------
+    labels : list
+        integers (one label per vertex)
+    output_vtk : string
+        name of output VTK file, where each vertex is assigned
+        the corresponding shape value
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.freesurfer import freesurfer_annot_to_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
+    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> output_vtk = ''
+    >>> #
+    >>> labels, output_vtk = freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk)
+    >>> #
+    >>> # View:
+    >>> from mindboggle.utils.plots import plot_surfaces
+    >>> plot_surfaces(output_vtk)
+
+    """
+    import os
+    import nibabel as nb
+    import numpy as np
+
+    from mindboggle.utils.io_vtk import rewrite_scalars
+
+    labels, ctab, names = nb.freesurfer.read_annot(annot_file)
+
+    # CAN REMOVE THE FOLLOWING FEW LINES WHEN
+    # https://github.com/nipy/nibabel/issues/205#issuecomment-25294009
+    # RESOLUTION IN THE PIP INSTALL VERSION OF NIBABEL:
+    labels_orig, ctab, names = nb.freesurfer.read_annot(annot_file, True)
+    labels[np.where(labels_orig == 0)[0]] = -1
+    # Test removal of unlabeled cortex from label 3:
+    #labels[np.where(labels==3)[0]]=1000
+
+    if not output_vtk:
+        output_vtk = os.path.join(os.getcwd(),
+            os.path.basename(annot_file).strip('.annot') + '.vtk')
+
+    rewrite_scalars(vtk_file, output_vtk, labels, 'Labels')
+
+    if not os.path.exists(output_vtk):
+        raise(IOError("Output VTK file " + output_vtk + " not created."))
+
+    return labels, output_vtk
 
 
 #if __name__ == "__main__" :
