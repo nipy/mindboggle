@@ -153,7 +153,10 @@ args = parser.parse_args()
 subject = args.SUBJECT
 subjects_dir = args.subjects_dir
 if not subjects_dir:
-    subjects_dir = os.environ['SUBJECTS_DIR']
+    if os.environ['SUBJECTS_DIR']:
+        subjects_dir = os.environ['SUBJECTS_DIR']
+    else:
+        raise(IOError('Please set "subjects_dir" or $SUBJECTS_DIR variable.'))
 if args.ants:
     ants_segments = args.ants
     use_ants_segments = True
