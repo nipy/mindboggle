@@ -61,7 +61,7 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
         raise(IOError("Reference file " + reference_file + " not found."))
     if not output_file:
         output_file = os.path.join(os.getcwd(),
-                                   os.path.basename(input_file) + 'nii.gz')
+                                   os.path.basename(input_file) + '.nii.gz')
 
     # Load image volume
     vol = nb.load(input_file)
