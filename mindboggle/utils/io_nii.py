@@ -40,10 +40,10 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     >>> import os
     >>> from mindboggle.utils.io_nii import convert2nii
     >>> subject = 'Twins-2-1'
-    >>> reference_file = input_file1
     >>> # (1) same and (2) different dimensions:
     >>> input_file1 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
     >>> input_file2 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig.mgz')
+    >>> reference_file = input_file1
     >>> output_file1 = convert2nii(input_file1, reference_file)
     >>> output_file2 = convert2nii(input_file2, reference_file)
     >>> #from mindboggle.utils.plots import plot_volumes
