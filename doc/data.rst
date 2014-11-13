@@ -81,17 +81,17 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 |  The manually edited cortical labels follow sulcus landmarks according to the
 |  Desikan-Killiany-Tourville (DKT) protocol (reference at top).
 
-  - **OASIS-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
+  - **OASIS-TRT-20** MRIs and cortical labels [`nii <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/OASIS-TRT-20_freesurfer.tar.gz>`_]:
       All 20 subjects from the OASIS Test-Retest sample |OASIS-TRT www|_
   - **OASIS-TRT-20 whole-brain** labels [`nii <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_v2.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101_extras/OASIS-TRT-20_DKT31_CMA_labels_in_MNI152_v2.tar.gz>`_]
       The cortical labels above plus manual subcortex by Neuromorphometrics_ |CC_license_nond|_
-  - **NKI-RS-22** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-RS-22_surfaces.tar.gz>`_,  `mgh <http://mindboggle.info/data/mindboggle101/NKI-RS-22_freesurfer.tar.gz>`_]:
+  - **NKI-RS-22** MRIs and cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-RS-22_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-RS-22_surfaces.tar.gz>`_,  `mgh <http://mindboggle.info/data/mindboggle101/NKI-RS-22_freesurfer.tar.gz>`_]:
       22 subjects from the Nathan Klein Institute / Rockland Sample |NKI-RS www|_
-  - **NKI-TRT-20** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_freesurfer.tar.gz>`_]:
+  - **NKI-TRT-20** MRIs and cortical labels [`nii <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/NKI-TRT-20_freesurfer.tar.gz>`_]:
       20 subjects from the Nathan Klein Institute / Test-Retest Sample |NKI-TRT www|_
-  - **MMRR-21** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/MMRR-21_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/MMRR-21_freesurfer.tar.gz>`_]:
+  - **MMRR-21** MRIs and cortical labels [`nii <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/MMRR-21_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/MMRR-21_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/MMRR-21_freesurfer.tar.gz>`_]:
       All 21 subjects in the Multi-Modal MRI Reproducibility Resource |MMRR www|_
-  - **Extra-18** cortical labels [`nii <http://mindboggle.info/data/mindboggle101/Extra-18_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/Extra-18_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/Extra-18_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/Extra-18_freesurfer.tar.gz>`_]:
+  - **Extra-18** MRIs and cortical labels [`nii <http://mindboggle.info/data/mindboggle101/Extra-18_volumes.tar.gz>`_, `nii (MNI152) <http://mindboggle.info/data/mindboggle101/Extra-18_volumes_in_MNI152.tar.gz>`_, `vtk <http://mindboggle.info/data/mindboggle101/Extra-18_surfaces.tar.gz>`_, `mgh <http://mindboggle.info/data/mindboggle101/Extra-18_freesurfer.tar.gz>`_]:
       - **HLN-12**:  All 12 subjects from the Human Language Network study
       - **MMRR-3T7T-2**:  2 subjects acquired like MMRR-21 (multimodal + 7T scans: |MMRR www|_)
       - **Colin27-1**:  Colin Holmes template (average of 27 scans)
@@ -101,7 +101,7 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
       The figures above show the DKT cortical labeling protocol_ with `sulcus landmarks`_
       on FreeSurfer's fsaverage surface.
 
-  - Mindboggle_ processed `shape tables <http://mindboggle.info/data/mindboggle101_extras/Mindboggle101_mindboggle_output_tables_20141017.tar.gz>`_ (2.6GB)
+..  - Mindboggle_ processed `shape tables <http://mindboggle.info/data/mindboggle101_extras/Mindboggle101_mindboggle_output_tables_20141017.tar.gz>`_ (2.6GB)
 
 .. `labels, features, and shapes for image volumes and surfaces, and shape tables <http://mindboggle.info/data/mindboggle101_extras/Mindboggle101_mindboggle_output_tables_20141017.tar.gz>`_ (2.6GB)
 
