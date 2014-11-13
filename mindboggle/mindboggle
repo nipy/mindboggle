@@ -51,7 +51,7 @@ outputs_group = parser.add_argument_group('modify outputs')
 # "positional arguments":
 parser.add_argument("SUBJECT",
                     help=('subject name corresponding to a subdirectory in '
-                          'the FreeSurfer subjects directory'))
+                          'the subjects directory (output of FreeSurfer)'))
 # "optional arguments":
 parser.add_argument("--ants",
                     help=("antsCorticalThickness.sh segmented file (ex: "
