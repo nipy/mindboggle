@@ -22,12 +22,12 @@ Virtualbox_ provides virtual machines used by Vagrant.
 
 Software to generate input data for Mindboggle
 ----------------------------------------------
-Mindboggle takes in outputs from the FreeSurfer_ (`download <http://surfer.nmr.mgh.harvard.edu>`_)
-and optionally
-ANTS_ (`download <http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/>`_)
-software. See `README <http://mindboggle.info/users/README.html>`_ for
-instructions on running ``recon-all`` in FreeSurfer and
-``antsCorticalThickness.sh`` in ANTs.
+Mindboggle takes in outputs from the recon-all command in FreeSurfer_
+(`download <http://surfer.nmr.mgh.harvard.edu>`_)
+and the ``antsCorticalThickness.sh`` command in ANTs_
+(`download <http://brianavants.wordpress.com/2012/04/13/updated-ants-compile-instructions-april-12-2012/>`_).
+See `README <http://mindboggle.info/users/README.html>`_ for
+instructions on running these commands.
 
 Configure virtual machine with mounted directories
 -----------------------------------------------------------------------------
