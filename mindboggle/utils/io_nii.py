@@ -38,22 +38,23 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.freesurfer import convert_mgh_to_native_nifti
-    >>> from mindboggle.utils.plots import plot_volumes
-    >>> subject = 'bert'
-    >>> input_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
-    >>> reference_file = input_file
-    >>> convert_mgh_to_native_nifti(input_file, reference_file)
-    >>> command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
-    >>> plot_volumes('001.nii.gz', command=command)
+    >>> from mindboggle.utils.io_nii import convert2nii
+    >>> subject = 'Twins-2-1'
+    >>> reference_file = input_file1
+    >>> # (1) same and (2) different dimensions:
+    >>> input_file1 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
+    >>> input_file2 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig.mgz')
+    >>> output_file1 = convert2nii(input_file1, reference_file)
+    >>> output_file2 = convert2nii(input_file2, reference_file)
+    >>> #from mindboggle.utils.plots import plot_volumes
+    >>> #command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
+    >>> #plot_volumes('orig.mgz.nii.gz', command=command)
 
     """
     import os
     import numpy as np
     import nibabel as nb
     from scipy.ndimage.interpolation import affine_transform
-
-    print("Convert volume from FreeSurfer 'unconformed' to original space...")
 
     if not os.path.exists(input_file):
         raise(IOError("Input file " + input_file + " not found"))
@@ -64,16 +65,23 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
                                    os.path.basename(input_file) + '.nii.gz')
 
     # Load image volume
-    vol = nb.load(input_file)
-    dat = vol.get_data()
-    dim = vol.shape
-    xfm = vol.get_affine()
+    vol1 = nb.load(input_file)
+    vol2 = nb.load(reference_file)
+    dat1 = vol1.get_data()
+    dim1 = vol1.shape
+    dim2 = vol2.shape
+    xfm1 = vol1.get_affine()
     xfm2 = np.eye(3,3)
 
-    resliced = affine_transform(dat, xfm2, output_shape=dim, order=interp)
+    trans = [(dim1[0] - dim2[0])/2,
+             (dim1[1] - dim2[1])/2,
+             (dim1[2] - dim2[2])/2]
+
+    resliced = affine_transform(dat1, xfm2, offset=trans, output_shape=dim2,
+                                order=interp)
 
     # Save the image with the same affine transform:
-    img = nb.Nifti1Image(resliced, xfm)
+    img = nb.Nifti1Image(resliced, xfm1)
     img.to_filename(output_file)
 
     return output_file

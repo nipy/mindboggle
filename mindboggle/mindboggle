@@ -1526,9 +1526,9 @@ if do_volumes and do_label:
     #=========================================================================
     VolLabelFlow = Workflow(name='Volume_labels')
 
-    #---------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     # Extract FreeSurfer cerebellum labels:
-    #---------------------------------------------------------------------
+    #-------------------------------------------------------------------------
     FScerebellum = Node(name='Extract_FreeSurfer_cerebella',
                         interface=Fn(function=keep_volume_labels,
                                      input_names=['input_file',

@@ -402,10 +402,7 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     target image with this label (if erase_labels is True), and
     for every voxel in the source image with this label,
     assign the label to the corresponding voxel in the target image.
-
-    Note::
-
-        Assumes same volume dimensions.
+    The source and target images must have the same volume dimensions.
 
     Parameters
     ----------
@@ -455,6 +452,9 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
     # Load labeled image volumes:
     vol_source = nb.load(source)
     vol_target = nb.load(target)
+    if vol_source.shape != vol_target.shape:
+        raise(IOError('{0} and {1} need to be the same shape.'.
+                      format(source, target)))
     xfm = vol_target.get_affine()
     data_source = vol_source.get_data().ravel()
     data_target = vol_target.get_data().ravel()
