@@ -399,13 +399,12 @@ if my_segments:
     seg_in = os.path.basename(my_segments)
 else:
     seg_in = 'combined_segmentations.nii.gz'
-fs_in = volume_labels + '.nii.gz'
-fs_out = 'FreeSurfer_' + volume_labels + '_labels.nii.gz'
-fs_filled_in = fs_out +'_to_' + fs_out + '_through_' + seg_in + '_to_' + \
-    fs_out + '_through_' + seg_in
+mgz = volume_labels + '.mgz.nii.gz'
+
+fs_filled_in = '{0}_to_{0}_through_{1}_to_{0}_through_{1}'.format(mgz, seg_in)
 fs_filled_out = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
-ants_filled_in = fs_out + '_to_' + \
-    'ANTs_labels.nii.gz_to_ANTs_labels.nii.gz_through_' + seg_in
+ants_filled_in = '{0}_to_ANTs_labels.nii.gz' \
+                    '_to_ANTs_labels.nii.gz_through_{1}'.format(mgz, seg_in)
 ants_filled_out = 'ANTs_filled_labels.nii.gz'
 
 Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
@@ -415,7 +414,6 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('curv.vtk', 'FreeSurfer_curvature.vtk'),
     ('sulc.vtk', 'FreeSurfer_sulc.vtk'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    (fs_in, fs_out),
     (fs_filled_in, fs_filled_out),
     (ants_filled_in, ants_filled_out),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
