@@ -69,14 +69,6 @@ cd $DL_PREFIX
 cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
 
 #-----------------------------------------------------------------------------
-# FreeSurfer's recon-all (http://surfer.nmr.mgh.harvard.edu)
-# provides labeled cortical surfaces and non/cortical volumes for Mindboggle.
-#-----------------------------------------------------------------------------
-FS_DL=${DL_PREFIX}/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz
-wget -c ftp://surfer.nmr.mgh.harvard.edu/pub/dist/freesurfer/5.3.0/freesurfer-Linux-centos4_x86_64-stable-pub-v5.3.0.tar.gz -P $DL_PREFIX
-tar -xvzf $FS_DL -C ${INSTALL_PREFIX}
-
-#-----------------------------------------------------------------------------
 # ANTs (http://brianavants.wordpress.com/2012/04/13/
 #              updated-ants-compile-instructions-april-12-2012/)
 # antsCorticalThickness.h pipeline optionally provides tissue segmentation,
@@ -108,12 +100,6 @@ echo "# ANTs" >> $MB_ENV
 echo "export ANTSPATH=${INSTALL_PREFIX}/ants/bin" >> $MB_ENV
 echo "export PATH=\$ANTSPATH:\$PATH" >> $MB_ENV
 
-# -- FreeSurfer --
-echo "# FreeSurfer" >> $MB_ENV
-echo "export FREESURFER_HOME=${INSTALL_PREFIX}/freesurfer" >> $MB_ENV
-echo "source \${FREESURFER_HOME}/SetUpFreeSurfer.sh" >> $MB_ENV
-echo "export PATH=\${FREESURFER_HOME}/bin:\$PATH" >> $MB_ENV
-
 # -- Mindboggle --
 echo "# Mindboggle" >> $MB_ENV
 echo "export MINDBOGGLE_TOOLS=${INSTALL_PREFIX}/mindboggle_tools/bin" >> $MB_ENV
@@ -126,19 +112,6 @@ rm ${DL_PREFIX}/* -rf
 
 rm_extras=1
 if [ $rm_extras == 1 ]
-    rm -r ${FREESURFER_HOME}/average
-    rm -r ${FREESURFER_HOME}/data
-    rm -r ${FREESURFER_HOME}/diffusion
-    rm -r ${FREESURFER_HOME}/docs
-    rm -r ${FREESURFER_HOME}/matlab
-    rm -r ${FREESURFER_HOME}/mni
-    rm -r ${FREESURFER_HOME}/subjects/fsaverage
-    rm -r ${FREESURFER_HOME}/tktools
-    rm -r ${FREESURFER_HOME}/trctrain
-    rm -r ${FREESURFER_HOME}/lib/cuda
-    rm -r ${FREESURFER_HOME}/lib/qt
-    rm -r ${FREESURFER_HOME}/lib/tcl
-    rm -r ${FREESURFER_HOME}/lib/tcltktixblt
 
     mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/freesurfer/ants_bin
     rm -r ${INSTALL_PREFIX}/ants/*
