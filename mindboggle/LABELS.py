@@ -334,6 +334,7 @@ class DKTprotocol:
     # Lists of numbers, names, and colors:
     #-------------------------------------------------------------------------
     for i, n in enumerate(numbers):
+
         if n in left_cerebrum_cortex_DKT31_list:
             left_cerebrum_cortex_DKT31_numbers.append(numbers[i])
             left_cerebrum_cortex_DKT31_names.append(names[i])
@@ -342,7 +343,8 @@ class DKTprotocol:
             right_cerebrum_cortex_DKT31_numbers.append(numbers[i])
             right_cerebrum_cortex_DKT31_names.append(names[i])
             right_cerebrum_cortex_DKT31_colors.append(colors[i])
-        elif n in left_cerebrum_cortex_list:
+
+        if n in left_cerebrum_cortex_list:
             left_cerebrum_cortex_numbers.append(numbers[i])
             left_cerebrum_cortex_names.append(names[i])
             left_cerebrum_cortex_colors.append(colors[i])
