@@ -11,11 +11,11 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 """
 
 
-def convert2nii(input_file, reference_file, output_file='', interp=1):
+def convert2nii(input_file, reference_file, output_file='', interp='continuous'):
     """
     Convert volume from the input file format to the output file format.
     If output_file is empty, reslice to nifti format using nibabel and
-    scipy.ndimage.
+    nilearn (which calls scipy.ndimage).
 
     Example use: Convert FreeSurfer 'unconformed' .mgz file to nifti.
 
@@ -24,11 +24,11 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     input_file : string
         input file name
     reference_file : string
-        file in original space
+        target file name
     output_file : string
         name of output file
-    interp : integer
-        interpolation method: 0=nearest, 1=trilin, >1=spline
+    interp : string
+        interpolation method: 'continuous' (default) or 'nearest'
 
     Returns
     -------
@@ -40,12 +40,11 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     >>> import os
     >>> from mindboggle.utils.io_nii import convert2nii
     >>> subject = 'Twins-2-1'
-    >>> # (1) same and (2) different dimensions:
-    >>> input_file1 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
-    >>> input_file2 = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig.mgz')
-    >>> reference_file = input_file1
-    >>> output_file1 = convert2nii(input_file1, reference_file)
-    >>> output_file2 = convert2nii(input_file2, reference_file)
+    >>> input_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','aparc+aseg.mgz')
+    >>> reference_file = os.path.join(os.environ['SUBJECTS_DIR'],subject,'mri','orig','001.mgz')
+    >>> output_file = ''
+    >>> interp = 'nearest'
+    >>> output_file = convert2nii(input_file, reference_file, output_file, interp)
     >>> #from mindboggle.utils.plots import plot_volumes
     >>> #command = '/Applications/ITK-SNAP.app/Contents/MacOS/InsightSNAP'
     >>> #plot_volumes('orig.mgz.nii.gz', command=command)
@@ -54,7 +53,7 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     import os
     import numpy as np
     import nibabel as nb
-    from scipy.ndimage.interpolation import affine_transform
+    from scipy import ndimage, linalg
 
     if not os.path.exists(input_file):
         raise(IOError("Input file " + input_file + " not found"))
@@ -63,25 +62,53 @@ def convert2nii(input_file, reference_file, output_file='', interp=1):
     if not output_file:
         output_file = os.path.join(os.getcwd(),
                                    os.path.basename(input_file) + '.nii.gz')
-
-    # Load image volume
-    vol1 = nb.load(input_file)
+    #-------------------------------------------------------------------------
+    # Load reference image:
+    #-------------------------------------------------------------------------
     vol2 = nb.load(reference_file)
-    dat1 = vol1.get_data()
-    dim1 = vol1.shape
+    xfm2 = vol2.get_affine()
     dim2 = vol2.shape
-    xfm1 = vol1.get_affine()
-    xfm2 = np.eye(3,3)
+    #-------------------------------------------------------------------------
+    # Resample the source image according to the reference image:
+    #-------------------------------------------------------------------------
+    # Use the nilearn package:
+    use_nilearn = True
+    if use_nilearn:
+        from nilearn.image import resample_img
+        resliced = resample_img(input_file, target_affine=xfm2, target_shape=dim2,
+                                interpolation=interp).get_data()
+    # The following is broken:
+    else:
+        vol1 = nb.load(input_file)
+        dat1 = vol1.get_data()
+        xfm1 = vol1.get_affine()
+        if np.all(xfm2 == xfm1):
+            transform_affine = np.eye(4)
+        else:
+            transform_affine = np.dot(linalg.inv(xfm1), xfm2)
+        A = xfm2[0:3, 0:3]
+        b = xfm2[0:3, 3]
+        A_inv = linalg.inv(A)
+        # If A is diagonal, affine_transform uses a better algorithm.
+        if np.all(np.diag(np.diag(A)) == A):
+            A = np.diag(A)
+        else:
+            b = np.dot(A, b)
 
-    trans = [(dim1[0] - dim2[0])/2,
-             (dim1[1] - dim2[1])/2,
-             (dim1[2] - dim2[2])/2]
+        # order of the spline interpolation:
+        if interp == 'nearest':
+            interpolation_order = 0
+        else:
+            interpolation_order = 3
+        resliced = ndimage.affine_transform(dat1, A,
+                             offset=np.dot(A_inv, b),
+                             output_shape=dim2,
+                             order=interpolation_order)
 
-    resliced = affine_transform(dat1, xfm2, offset=trans, output_shape=dim2,
-                                order=interp)
-
-    # Save the image with the same affine transform:
-    img = nb.Nifti1Image(resliced, xfm1)
+    #-------------------------------------------------------------------------
+    # Save the image with the reference affine transform:
+    #-------------------------------------------------------------------------
+    img = nb.Nifti1Image(resliced, xfm2)
     img.to_filename(output_file)
 
     return output_file

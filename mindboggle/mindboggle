@@ -1471,7 +1471,7 @@ if do_volumes and do_label:
     mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'input_file')
     mbFlow.connect(mghOrig, 'mgh_orig', MGH2Nifti, 'reference_file')
     MGH2Nifti.inputs.output_file = ''
-    MGH2Nifti.inputs.interp = 1  # trilinear
+    MGH2Nifti.inputs.interp = 'continuous'
     #-------------------------------------------------------------------------
     # Use own whole-brain nifti label volume:
     #-------------------------------------------------------------------------
@@ -1512,7 +1512,7 @@ if do_volumes and do_label:
         mbFlow.connect(labelsMGH, 'labels', labelsMGH2Nifti, 'input_file')
         mbFlow.connect(mghOrig, 'mgh_orig', labelsMGH2Nifti, 'reference_file')
         labelsMGH2Nifti.inputs.output_file = ''
-        labelsMGH2Nifti.inputs.interp = 0  # nearest
+        labelsMGH2Nifti.inputs.interp = 'nearest'
         #if save_all:
         #    mbFlow.connect(labelsMGH2Nifti, 'output_file',
         #                   Sink, 'labels.@freesurfer')
