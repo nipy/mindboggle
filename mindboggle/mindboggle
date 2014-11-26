@@ -401,7 +401,7 @@ else:
     seg_in = 'combined_segmentations.nii.gz'
 mgz = volume_labels + '.mgz.nii.gz'
 
-fs_filled_in = '{0}_to_{0}_through_{1}_to_{0}_through_{1}'.format(mgz, seg_in)
+fs_filled_in = '{0}_to_{0}_through_{0}_to_{0}_through_{0}'.format(mgz)
 fs_filled_out = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
 ants_filled_in = '{0}_to_ANTs_labels.nii.gz' \
                     '_to_ANTs_labels.nii.gz_through_{1}'.format(mgz, seg_in)

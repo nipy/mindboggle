@@ -15,7 +15,7 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     """
     Convert volume from the input file format to the output file format.
     If output_file is empty, reslice to nifti format using nibabel and
-    nilearn (which calls scipy.ndimage).
+    nilearn.image.resample_img (which calls scipy.ndimage.affine_transform).
 
     Example use: Convert FreeSurfer 'unconformed' .mgz file to nifti.
 
@@ -53,7 +53,7 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     import os
     import numpy as np
     import nibabel as nb
-    from scipy import ndimage, linalg
+    from nilearn.image import resample_img
 
     if not os.path.exists(input_file):
         raise(IOError("Input file " + input_file + " not found"))
@@ -74,11 +74,11 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     # Use the nilearn package:
     use_nilearn = True
     if use_nilearn:
-        from nilearn.image import resample_img
         resliced = resample_img(input_file, target_affine=xfm2, target_shape=dim2,
                                 interpolation=interp).get_data()
     # The following is broken:
     else:
+        from scipy import ndimage, linalg
         vol1 = nb.load(input_file)
         dat1 = vol1.get_data()
         xfm1 = vol1.get_affine()
