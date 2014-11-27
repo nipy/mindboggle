@@ -401,11 +401,17 @@ else:
     seg_in = 'combined_segmentations.nii.gz'
 mgz = volume_labels + '.mgz.nii.gz'
 
-fs_filled_in = '{0}_to_{0}_through_{0}_to_{0}_through_{0}'.format(mgz)
-fs_filled_out = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
-ants_filled_in = '{0}_to_ANTs_labels.nii.gz' \
-                    '_to_ANTs_labels.nii.gz_through_{1}'.format(mgz, seg_in)
-ants_filled_out = 'ANTs_filled_labels.nii.gz'
+fs_filled_fs = '{0}_to_{0}_through_{0}_to_{0}_through_{0}'.format(mgz)
+fs_filled = '{0}_to_{0}_through_{1}_to_{0}_through_{1}'.format(mgz, seg_in)
+ants_filled_ants = '{0}_to_ANTs_labels.nii.gz' \
+                   '_to_ANTs_labels.nii.gz_through_{0}'.format(mgz)
+ants_filled = '{0}_to_ANTs_labels.nii.gz' \
+              '_to_ANTs_labels.nii.gz_through_{1}'.format(mgz, seg_in)
+fs_filled_fs_rename = 'FreeSurfer_' + volume_labels + \
+                      '_filled_labels_in_FreeSurfer_segmentation.nii.gz'
+fs_filled_rename = 'FreeSurfer_' + volume_labels + '_filled_labels.nii.gz'
+ants_filled_ants_rename = 'ANTs_filled_labels_in_ants_segmentation.nii.gz'
+ants_filled_rename = 'ANTs_filled_labels.nii.gz'
 
 Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('_hemi_lh', 'left_surface'), ('_hemi_rh', 'right_surface'),
@@ -414,8 +420,10 @@ Sink.inputs.substitutions = [ ('lh.', ''), ('rh.', ''),
     ('curv.vtk', 'FreeSurfer_curvature.vtk'),
     ('sulc.vtk', 'FreeSurfer_sulc.vtk'),
     ('relabeled_aparc.vtk', 'FreeSurfer_cortex_labels.vtk'),
-    (fs_filled_in, fs_filled_out),
-    (ants_filled_in, ants_filled_out),
+    (fs_filled_fs, fs_filled_fs_rename),
+    (fs_filled, fs_filled_rename),
+    (ants_filled_ants, ants_filled_ants_rename),
+    (ants_filled, ants_filled_rename),
     ('smooth_skeletons.vtk', 'smooth_fundi.vtk')]
 Sink.inputs.regexp_substitutions = [
     (r'/_atlas_(.*)/ANTs_added_atlas_labels.nii.gz',
