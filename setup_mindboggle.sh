@@ -50,15 +50,15 @@ conda install --yes cmake pip
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
 # Nipype: software pipeline framework; Nibabel: medical image read/write lib
-pip install nibabel nipype
+pip install nibabel nipype scikit-learn
 VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #pip install https://github.com/RDFLib/rdflib/archive/master.zip
 #pip install https://github.com/satra/prov/archive/rdf.zip
 
 # nilearn.image.resample_img (which calls scipy.ndimage.affine_transform):
-NL_DL=${DL_PREFIX}/nilearn
-git clone https://github.com/nilearn/nilearn $NL_DL
-cd $NL_DL
+NILEARN_DL=${DL_PREFIX}/nilearn
+git clone https://github.com/nilearn/nilearn.git $NILEARN_DL
+cd $NILEARN_DL
 python setup.py install --prefix=${INSTALL_PREFIX}
 cd $DL_PREFIX
 
@@ -115,12 +115,10 @@ echo "export PATH=\$MINDBOGGLE_TOOLS:\$PATH" >> $MB_ENV
 #-----------------------------------------------------------------------------
 # Finally, remove downloads directory and other non-essential directories:
 #-----------------------------------------------------------------------------
-rm ${DL_PREFIX}/* -rf
-
 rm_extras=1
 if [ $rm_extras == 1 ]
-
-    mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/freesurfer/ants_bin
+    mv ${INSTALL_PREFIX}/ants/bin ${INSTALL_PREFIX}/ants_bin
     rm -r ${INSTALL_PREFIX}/ants/*
-    mv ${INSTALL_PREFIX}/freesurfer/ants_bin ${INSTALL_PREFIX}/ants/bin
+    mv ${INSTALL_PREFIX}/ants_bin ${INSTALL_PREFIX}/ants/bin
+    rm ${DL_PREFIX}/* -rf
 fi
