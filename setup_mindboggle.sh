@@ -55,13 +55,6 @@ VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #pip install https://github.com/RDFLib/rdflib/archive/master.zip
 #pip install https://github.com/satra/prov/archive/rdf.zip
 
-# nilearn.image.resample_img (which calls scipy.ndimage.affine_transform):
-NILEARN_DL=${DL_PREFIX}/nilearn
-git clone https://github.com/nilearn/nilearn.git $NILEARN_DL
-cd $NILEARN_DL
-python setup.py install --prefix=${INSTALL_PREFIX}
-cd $DL_PREFIX
-
 #-----------------------------------------------------------------------------
 # Mindboggle:
 #-----------------------------------------------------------------------------
