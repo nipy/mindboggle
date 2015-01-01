@@ -55,7 +55,7 @@ def plot_surfaces(vtk_files, use_colormap=False, colormap_file=''):
     import os
     import sys
 
-    import mindboggle.utils.vtkviewer as vtkviewer
+    import mindboggle.thirdparty.vtkviewer as vtkviewer
 
     if isinstance(vtk_files, str):
         vtk_files = [vtk_files]
