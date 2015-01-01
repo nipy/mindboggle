@@ -14,8 +14,14 @@ Copyright 2014,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 def convert2nii(input_file, reference_file, output_file='', interp='continuous'):
     """
     Convert volume from the input file format to the output file format.
+
     If output_file is empty, reslice to nifti format using nibabel and
-    nilearn.image.resample_img (which calls scipy.ndimage.affine_transform).
+    scipy.ndimage.affine_transform, after nilearn.image.resample_img::
+
+        from nilearn.image import resample_img
+        resliced = resample_img(input_file, target_affine=xfm2,
+                                target_shape=dim2,
+                                interpolation=interp).get_data()
 
     Example use: Convert FreeSurfer 'unconformed' .mgz file to nifti.
 
@@ -53,7 +59,7 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     import os
     import numpy as np
     import nibabel as nb
-    from nilearn.image import resample_img
+    from scipy import ndimage, linalg
 
     if not os.path.exists(input_file):
         raise(IOError("Input file " + input_file + " not found"))
@@ -71,39 +77,31 @@ def convert2nii(input_file, reference_file, output_file='', interp='continuous')
     #-------------------------------------------------------------------------
     # Resample the source image according to the reference image:
     #-------------------------------------------------------------------------
-    # Use the nilearn package:
-    use_nilearn = True
-    if use_nilearn:
-        resliced = resample_img(input_file, target_affine=xfm2, target_shape=dim2,
-                                interpolation=interp).get_data()
-    # The following is broken:
+    vol1 = nb.load(input_file)
+    dat1 = vol1.get_data()
+    xfm1 = vol1.get_affine()
+    if np.all(xfm2 == xfm1):
+        transform_affine = np.eye(4)
     else:
-        from scipy import ndimage, linalg
-        vol1 = nb.load(input_file)
-        dat1 = vol1.get_data()
-        xfm1 = vol1.get_affine()
-        if np.all(xfm2 == xfm1):
-            transform_affine = np.eye(4)
-        else:
-            transform_affine = np.dot(linalg.inv(xfm1), xfm2)
-        A = xfm2[0:3, 0:3]
-        b = xfm2[0:3, 3]
-        A_inv = linalg.inv(A)
-        # If A is diagonal, affine_transform uses a better algorithm.
-        if np.all(np.diag(np.diag(A)) == A):
-            A = np.diag(A)
-        else:
-            b = np.dot(A, b)
+        transform_affine = np.dot(linalg.inv(xfm1), xfm2)
+    A = transform_affine[0:3, 0:3]
+    b = transform_affine[0:3, 3]
+    A_inv = linalg.inv(A)
+    # If A is diagonal, affine_transform uses a better algorithm.
+    if np.all(np.diag(np.diag(A)) == A):
+        A = np.diag(A)
+    else:
+        b = np.dot(A, b)
 
-        # order of the spline interpolation:
-        if interp == 'nearest':
-            interpolation_order = 0
-        else:
-            interpolation_order = 3
-        resliced = ndimage.affine_transform(dat1, A,
-                             offset=np.dot(A_inv, b),
-                             output_shape=dim2,
-                             order=interpolation_order)
+    # order of the spline interpolation:
+    if interp == 'nearest':
+        interpolation_order = 0
+    else:
+        interpolation_order = 3
+    resliced = ndimage.affine_transform(dat1, A,
+                         offset=np.dot(A_inv, b),
+                         output_shape=dim2,
+                         order=interpolation_order)
 
     #-------------------------------------------------------------------------
     # Save the image with the reference affine transform:

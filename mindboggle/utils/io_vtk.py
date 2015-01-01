@@ -1495,9 +1495,8 @@ def freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk):
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import freesurfer_curvature_to_vtk
-    >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> surface_file = os.path.join(path, 'arno', 'freesurfer', 'lh.thickness')
-    >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')
+    >>> surface_file = 'lh.thickness'
+    >>> vtk_file = 'lh.pial.vtk'
     >>> output_vtk = ''
     >>> #
     >>> freesurfer_curvature_to_vtk(surface_file, vtk_file, output_vtk)

@@ -72,6 +72,7 @@ def main(**extra_args):
                           #'mindboggle.shapes.zernike.compat',
                           #'mindboggle.shapes.zernike.naive',
                           #'mindboggle.shapes.zernike.multiproc',
+                          'mindboggle.thirdparty',
                           'mindboggle.utils'],
           #                'mindboggle.testing',
           #                'mindboggle.tests',
