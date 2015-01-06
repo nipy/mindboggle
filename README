@@ -3,6 +3,17 @@
 ==============================================================================
 Software
 ==============================================================================
+| 1. `Introduction`_
+| 2. `Help with Mindboggle`_
+| 3. `Set up Mindboggle`_
+| 4. `Example Mindboggle commands`_
+| 5. `Mindboggle input files`_
+| 6. `Mindboggle processing steps`_
+| 7. `Mindboggle output files`_
+
+------------------------------------------------------------------------------
+_`Introduction`
+------------------------------------------------------------------------------
 The Mindboggle software package automates shape analysis of anatomical labels
 and features extracted from human brain MR image data.
 Mindboggle can be run as a single command, and can be
@@ -11,7 +22,7 @@ reproducibility of results. Behind the scenes, open source
 Python and C++ code run within a Nipype pipeline framework.
 
 ------------------------------------------------------------------------------
-Help with Mindboggle
+_`Help with Mindboggle`
 ------------------------------------------------------------------------------
 - Help in a terminal window (see below for inputs and outputs)::
 
@@ -24,7 +35,7 @@ Help with Mindboggle
 - `Contributors <http://mindboggle.info/users/THANKS.html>`_
 
 ------------------------------------------------------------------------------
-Set up Mindboggle
+_`Set up Mindboggle`
 ------------------------------------------------------------------------------
 If running Mindboggle in a virtual machine (recommended),
 type the following two commands in a terminal window,
@@ -36,7 +47,7 @@ the Mindboggle virtual machine (requires an active Internet connection)::
     vagrant ssh
 
 ------------------------------------------------------------------------------
-Example Mindboggle commands
+_`Example Mindboggle commands`
 ------------------------------------------------------------------------------
 **Example 1:**
 The following bare-bones command runs Mindboggle (and its dependencies)
@@ -60,7 +71,7 @@ To compute all shape measures on all labels and features using 8 processors
     mindboggle SUBJECT --ants SEGMENTS --all -p 8
 
 ------------------------------------------------------------------------------
-Mindboggle input files
+_`Mindboggle input files`
 ------------------------------------------------------------------------------
 Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
 and the latest ANTs_ software packages.
@@ -91,7 +102,7 @@ files (backslash denotes a line return)::
       -p OASIS-30_Atropos_template/Priors2/priors%d.nii.gz
 
 ------------------------------------------------------------------------------
-Mindboggle processing steps
+_`Mindboggle processing steps`
 ------------------------------------------------------------------------------
     1. Create hybrid gray/white segmentation from FreeSurfer and ANTs output (`combine_2labels_in_2volumes <https://github.com/binarybottle/mindboggle/blob/master/mindboggle/utils/segment.py>`_).
     2. Fill hybrid segmentation with FreeSurfer- or ANTs-registered labels.
@@ -135,7 +146,7 @@ Mindboggle processing steps
         - upper quartile
 
 ------------------------------------------------------------------------------
-Mindboggle output files
+_`Mindboggle output files`
 ------------------------------------------------------------------------------
 By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.

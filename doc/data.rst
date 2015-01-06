@@ -1,6 +1,15 @@
 ==============================================================================
 Data
 ==============================================================================
+| 1. `Introduction`_
+| 2. `Mindboggle-101 atlases`_
+| 3. `Mindboggle-101 templates`_
+| 4. `Mindboggle-101: Individual manually labeled brain surfaces and volumes`_
+| 5. `Other (non-Mindboggle-101) templates and manually labeled brains`_
+
+------------------------------------------------------------------------------
+_`Introduction`
+------------------------------------------------------------------------------
 | Welcome to the world's largest collection of free, manually labeled human brain image data!
 | Please cite the following article and this website when making use of Mindboggle-101 data:
 | `101 labeled brain images and a consistent human cortical labeling protocol`_
@@ -16,7 +25,7 @@ Data
 |
 
 ------------------------------------------------------------------------------
-Mindboggle-101 atlases
+_`Mindboggle-101 atlases`
 ------------------------------------------------------------------------------
 | Each of the 101 manually labeled individual brain surfaces and volumes is an atlas,
 | a labeled or annotated brain image that can be used in registration-based labeling.
@@ -42,7 +51,7 @@ Mindboggle-101 atlases
   - Software for `preparing classifier atlases <http://mindboggle.info/data/atlases/classifiers/make_freesurfer_classifier_atlas.txt>`_
 
 ------------------------------------------------------------------------------
-Mindboggle-101 templates
+_`Mindboggle-101 templates`
 ------------------------------------------------------------------------------
 |  A template is an unlabeled image used as a reference or standard, often for
 |  registering other images to each other. Each one of the image volumes and
@@ -75,7 +84,7 @@ Mindboggle-101 templates
   - `HLN-12 surface`_ template from 12 brains (2012)
 
 ------------------------------------------------------------------------------
-Mindboggle-101: Individual, manually labeled brain surfaces and volumes
+_`Mindboggle-101: Individual manually labeled brain surfaces and volumes`
 ------------------------------------------------------------------------------
 |  The Mindboggle-101 dataset includes labeled anatomical regions for `101 healthy subjects`_.
 |  The manually edited cortical labels follow sulcus landmarks according to the
@@ -158,7 +167,7 @@ Mindboggle-101: Individual, manually labeled brain surfaces and volumes
 
 
 ------------------------------------------------------------------------------
-Other (non-Mindboggle-101) templates and manually labeled brains
+_`Other (non-Mindboggle-101) templates and manually labeled brains`
 ------------------------------------------------------------------------------
 | The following images are not from the Mindboggle-101 data above, and the manual labels are not the same
 | as those of the DKT labeling protocol used for the Mindboggle-101 data above
