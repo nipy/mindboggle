@@ -35,6 +35,8 @@ apt-get install -y g++ git make xorg
 #-----------------------------------------------------------------------------
 CONDA_DL=${DL_PREFIX}/Miniconda-3.7.0-Linux-x86_64.sh
 wget http://repo.continuum.io/miniconda/Miniconda-3.7.0-Linux-x86_64.sh -P $DL_PREFIX
+#curl -O http://repo.continuum.io/miniconda/Miniconda-3.7.3-MacOSX-x86_64.sh
+#bash Miniconda-3.7.3-MacOSX-x86_64.sh -p /software/miniconda
 chmod +x $CONDA_DL
 $CONDA_DL -b -p $INSTALL_PREFIX
 # Setup PATH
@@ -49,9 +51,10 @@ conda install --yes cmake pip
 # Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
+????conda install --yes scikit-learn ipython-notebook mayavi pandas
 # Nipype: software pipeline framework; Nibabel: medical image read/write lib
-pip install nibabel nipype scikit-learn
-VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
+pip install nibabel nipype
+#VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #pip install https://github.com/RDFLib/rdflib/archive/master.zip
 #pip install https://github.com/satra/prov/archive/rdf.zip
 
@@ -63,7 +66,7 @@ git clone https://github.com/binarybottle/mindboggle.git $MB_DL
 cd $MB_DL
 python setup.py install --prefix=${INSTALL_PREFIX}
 cd ${MB_DL}/mindboggle_tools/bin
-cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
+cmake ../
 make
 cd $DL_PREFIX
 cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
@@ -81,7 +84,7 @@ cd $ANTS_DL
 git checkout tags/v2.1.0rc2
 mkdir ${INSTALL_PREFIX}/ants
 cd ${INSTALL_PREFIX}/ants
-cmake $ANTS_DL -DVTK_DIR:STRING=${VTK_DIR}
+cmake $ANTS_DL #-DVTK_DIR:STRING=${VTK_DIR}
 make
 cp -r ${ANTS_DL}/Scripts/* ${INSTALL_PREFIX}/ants/bin
 
