@@ -204,10 +204,12 @@ if not no_labels:
 else:
     do_label = False
 all_features_shapes = args.all
+do_points = args.points
 if all_features_shapes:
     save_folds = True
     do_sulci = True
     do_fundi = True
+    do_points = True
 else:
     save_folds = args.folds
     do_sulci = args.sulci
@@ -1346,7 +1348,7 @@ if do_surface:
         #---------------------------------------------------------------------
         # Vertex measures table:
         #---------------------------------------------------------------------
-        if args.points:
+        if do_points:
             VertexTable = Node(name='Vertex_table',
                                interface=Fn(function=write_vertex_measures,
                                     input_names=['output_table',
