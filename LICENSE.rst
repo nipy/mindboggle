@@ -32,3 +32,5 @@ Except where otherwise noted, all Mindboggle documentation is licensed under a
 `Creative Commons Attribution 3.0 License`_.
 
 All code fragments in the documentation are licensed under our software license.
+
+.. include:: doc/links.txt

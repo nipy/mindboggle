@@ -54,3 +54,5 @@ For help with other setup options::
 
 See `README <http://mindboggle.info/users/README.html>`_ for instructions
 on how to run Mindboggle with this setup!
+
+.. include:: doc/links.txt
