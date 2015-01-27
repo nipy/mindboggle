@@ -1,5 +1,5 @@
 .. _LICENSE:
 
-.. include:: ../../LICENSE
+.. include:: ../../LICENSE.rst
 
 .. include:: ../links.txt
