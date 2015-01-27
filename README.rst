@@ -40,7 +40,7 @@ _`Set up Mindboggle`
 If running Mindboggle in a virtual machine (recommended),
 type the following two commands in a terminal window,
 in the same directory as the Vagrantfile
-you generated (see `INSTALL <INSTALL.html>`_). This will launch and log into
+you generated (see `INSTALL <http://mindboggle.info/users/INSTALL.html>`_). This will launch and log into
 the Mindboggle virtual machine (requires an active Internet connection)::
 
     vagrant up
@@ -219,3 +219,5 @@ The following include outputs from most, but not all, optional arguments.
             **fundus_shapes.csv**:  *per-fundus surface shape statistics*  **-- UNDER EVALUATION --**
 
             **vertices.csv**:  *per-vertex surface shape statistics*
+
+.. include:: doc/links.txt

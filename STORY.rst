@@ -63,3 +63,5 @@ shape analysis.  Tank Think Labs joined this effort:
 Please see our updated list of
 `contributors <http://mindboggle.info/users/THANKS.html>`_
 and Mindboggle `team page <http://mindboggle.info/people.html>`_.
+
+.. include:: doc/links.txt
