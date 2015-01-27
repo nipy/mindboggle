@@ -1,6 +1,6 @@
 .. _THANKS:
 
-.. include:: ../../THANKS
+.. include:: ../../THANKS.rst
 
 .. include:: ../links.txt
 
