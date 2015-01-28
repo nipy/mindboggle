@@ -73,8 +73,8 @@ To compute all shape measures on all labels and features using 8 processors
 ------------------------------------------------------------------------------
 _`Mindboggle input files`
 ------------------------------------------------------------------------------
-Mindboggle currently takes output from FreeSurfer_ (preferably v5.3 and above)
-and the latest ANTs_ software packages.
+Mindboggle currently takes output from `FreeSurfer <http://surfer.nmr.mgh.harvard.edu>`_
+(preferably v5.3 and above) and the latest `ANTs <http://stnava.github.io/ANTs/>`_ software packages.
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted ``IMAGE`` file
@@ -150,7 +150,8 @@ _`Mindboggle output files`
 ------------------------------------------------------------------------------
 By default, output files are saved in HOME/mindboggled/SUBJECT,
 where HOME is the home directory and SUBJECT is the name of the subject.
-Volume files are in Nifti_ format, surface meshes in VTK_ format,
+Volume files are in `Nifti <http://nifti.nimh.nih.gov>`_ format,
+surface meshes in `VTK <http://www.vtk.org/>`_ format,
 and tables are comma-delimited.
 Each file contains integers that correspond to anatomical
 `labels <http://mindboggle.info/faq/labels.html>`_
@@ -219,5 +220,3 @@ The following include outputs from most, but not all, optional arguments.
             **fundus_shapes.csv**:  *per-fundus surface shape statistics*  **-- UNDER EVALUATION --**
 
             **vertices.csv**:  *per-vertex surface shape statistics*
-
-.. include:: doc/links.txt

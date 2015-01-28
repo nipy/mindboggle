@@ -27,7 +27,8 @@ answering the neuroscientific and clinical questions that interest them.
 History
 -------
 
-Back in 1998, `Arno Klein`_ left Caltech to visit Cornell Medical School for a summer,
+Back in 1998, `Arno Klein <http://binarybottle.com>`_
+left Caltech to visit Cornell Medical School for a summer,
 to learn a bit about human brain imaging.  Within a day of arriving in New York,
 he witnessed two medical students arguing over what regions of a patient's brain
 were active according to fMRI BOLD data printed on some sheets of paper.
@@ -45,8 +46,8 @@ In 2009, with generous funding from the National Institute of Mental Health
 (3-year NIMH R01 #MH084029), he assembled a team to tackle the problem anew.
 People who have contributed to the codebase during this period include:
 
-    - `Forrest Bao`_
-    - `Satrajit Ghosh`_
+    - `Forrest Bao <https://sites.google.com/site/forrestbao/>`_
+    - `Satrajit Ghosh <http://mit.edu/~satra>`_
     - Joachim Giard
     - Yrjö Häme
     - Eliezer Stavsky
@@ -55,13 +56,11 @@ In 2012, the NIMH funded a 1-year U01 supplement to expand this work to
 integrate multiple imaging modalities (fMRI and dMRI) with the structural MRI
 shape analysis.  Tank Think Labs joined this effort:
 
-    - `Satrajit Ghosh`_
-    - `Nolan Nichols`_
+    - `Satrajit Ghosh <http://mit.edu/~satra>`_
+    - `Nolan Nichols <http://www.linkedin.com/in/nolannichols>`_
     - Brian Rossa
     - Oliver Hinds
 
 Please see our updated list of
 `contributors <http://mindboggle.info/users/THANKS.html>`_
 and Mindboggle `team page <http://mindboggle.info/people.html>`_.
-
-.. include:: doc/links.txt
