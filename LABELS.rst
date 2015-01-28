@@ -3,7 +3,7 @@ What labels does Mindboggle use?
 ==============================================================================
 Mindboggle uses labels from complementary labeling protocols:
 
-    - **Desikan-Killiany-Tourville (`DKT <http://mindboggle.info/data>`_) cortical labeling protocol**
+    - **Desikan-Killiany-Tourville cortical labeling protocol** (`DKT <http://mindboggle.info/data>`_)
         `101 labeled brain images and a consistent human cortical labeling protocol <http://www.frontiersin.org/Brain_Imaging_Methods/10.3389/fnins.2012.00171/full>`_.
         Arno Klein, Jason Tourville. Frontiers in Brain Imaging Methods. 6:171.
         DOI: 10.3389/fnins.2012.00171
