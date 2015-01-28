@@ -4,6 +4,6 @@
  Why Mindboggle?
 =================
 
-.. include:: ../../STORY
+.. include:: ../../STORY.rst
 
-.. include:: ../links.txt
+#.. include:: ../links.txt
