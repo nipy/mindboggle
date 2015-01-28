@@ -1,5 +1,5 @@
 .. _labels:
 
-.. include:: ../../LABELS
+.. include:: ../../LABELS.rst
 
-.. include:: ../links.txt
+#.. include:: ../links.txt

@@ -83,7 +83,7 @@ Past contributors
 .. |picJG| image:: http://media.mindboggle.info/images/people/JoachimGiard.jpg
                     :width: 200px
 .. |blurbJG| replace::
-    Joachim Giard of Sony, Belgium, worked on the Mindboggle project
+    `Joachim Giard`_ of Sony, Belgium, worked on the Mindboggle project
     as a postdoctoral researcher of electrical engineering at
     UCL, Belgium. He has been developing algorithms for computing shape measures
     on surface meshes for Mindboggle, including travel depth, the topic of his PhD research.
@@ -137,4 +137,19 @@ Past contributors
     propagate labels across a brain surface.
 
 
-.. include:: ./links.txt
+#.. include:: ./links.txt
+
+.. _Arno: http://binarybottle.com
+.. _`Arno Klein`: http://binarybottle.com
+.. _`CV`: http://binarybottle.com/cv.php
+.. _`projects`: http://binarybottle.com/projects.php
+.. _`Satrajit Ghosh`: http://mit.edu/~satra
+.. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
+.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
+.. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
+.. _`Martin Reuter`: http://reuter.mit.edu/
+.. _`Hal Canary`: http://cs.unc.edu/~hal/
+
+.. _`Sage Bionetworks`: http://sagebase.org
+.. _nipype: http://nipy.org/nipype/
+
