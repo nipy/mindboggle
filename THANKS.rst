@@ -17,7 +17,7 @@ Thanks
 +-------------------------+-------------------------------------+-------------------------------------------+
 | `Forrest Bao`_          |   forrest.bao [at] gmail.com        | VTK i/o, spectra port [1], MST fundi      |
 +-------------------------+-------------------------------------+-------------------------------------------+
-| Joachim Giard           |   joachimgiard [at] gmail.com       | C++ surface shapes (depth, curvature)     |
+| `Joachim Giard`_        |   joachimgiard [at] gmail.com       | C++ surface shapes (depth, curvature)     |
 +-------------------------+-------------------------------------+-------------------------------------------+
 | Yrjo Hame               |   yrjo.hame [at] gmail.com          | HMMF fundi                                |
 +-------------------------+-------------------------------------+-------------------------------------------+
@@ -52,4 +52,12 @@ Thanks
 |                         |                                     |                                           |
 +-------------------------+-------------------------------------+-------------------------------------------+
 
-.. include:: doc/links.txt
+.. _`Arno Klein`: http://binarybottle.com
+.. _`Satrajit Ghosh`: http://mit.edu/~satra
+.. _`Forrest Bao`: https://sites.google.com/site/forrestbao/
+.. _`Joachim Giard`: https://sites.google.com/site/joachimgiard/home
+.. _`Nolan Nichols`: http://www.linkedin.com/in/nolannichols
+.. _`Martin Reuter`: http://reuter.mit.edu/
+.. _`Hal Canary`: http://cs.unc.edu/~hal/
+
+.. _vtkviewer: https://github.com/HalCanary/vtkviewer

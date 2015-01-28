@@ -2,5 +2,5 @@
 
 .. include:: ../../THANKS.rst
 
-.. include:: ../links.txt
+#.. include:: ../links.txt
 

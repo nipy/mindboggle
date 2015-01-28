@@ -2,4 +2,4 @@
 
 .. include:: ../../INSTALL.rst
 
-.. include:: ../links.txt
+#.. include:: ../links.txt

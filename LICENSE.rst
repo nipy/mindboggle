@@ -8,7 +8,7 @@ Software License
 -----------------
 
 Except where otherwise noted, all Mindboggle software is licensed under the
-`Apache v2.0`_ license.
+`Apache v2.0 <http://www.apache.org/licenses/LICENSE-2.0>`_ license.
 
 The usual disclaimer:
 
@@ -29,8 +29,6 @@ Documentation License
 ---------------------
 
 Except where otherwise noted, all Mindboggle documentation is licensed under a
-`Creative Commons Attribution 3.0 License`_.
+`Creative Commons Attribution 3.0 License <http://creativecommons.org/licenses/by/3.0/>`_.
 
 All code fragments in the documentation are licensed under our software license.
-
-.. include:: doc/links.txt
