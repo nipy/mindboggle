@@ -9,7 +9,8 @@
 #     ./install_mindboggle <download_dir> <install_dir>
 #
 # Note:
-#     <download_dir> must already exist and <install_dir> must not exist.
+#     <download_dir> must already exist and <install_dir> must not exist,
+#     and both must be full paths.
 #
 # Authors:
 #     - Daniel Clark, 2014
@@ -51,10 +52,10 @@ conda install --yes cmake pip
 # Python packages:
 #-----------------------------------------------------------------------------
 conda install --yes numpy scipy matplotlib nose networkx traits vtk ipython
-????conda install --yes scikit-learn ipython-notebook mayavi pandas
+#conda install --yes scikit-learn ipython-notebook mayavi pandas
 # Nipype: software pipeline framework; Nibabel: medical image read/write lib
 pip install nibabel nipype
-#VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
+VTK_DIR=${INSTALL_PREFIX}/lib/vtk-5.10
 #pip install https://github.com/RDFLib/rdflib/archive/master.zip
 #pip install https://github.com/satra/prov/archive/rdf.zip
 
@@ -66,11 +67,10 @@ git clone https://github.com/binarybottle/mindboggle.git $MB_DL
 cd $MB_DL
 python setup.py install --prefix=${INSTALL_PREFIX}
 cd ${MB_DL}/mindboggle_tools/bin
-cmake ../
+cmake ../ -DVTK_DIR:STRING=${VTK_DIR}
 make
 cd $DL_PREFIX
 cp -r ${MB_DL}/mindboggle_tools ${INSTALL_PREFIX}
-
 #-----------------------------------------------------------------------------
 # ANTs (http://brianavants.wordpress.com/2012/04/13/
 #              updated-ants-compile-instructions-april-12-2012/)
