@@ -1,7 +1,7 @@
 .. _README:
 
 ==============================================================================
-Software
+Software -- NOTE: MINDBOGGLE IS STILL IN PRE-RELEASE AND IS UNDERGOING CHANGES
 ==============================================================================
 | 1. `Introduction`_
 | 2. `Help with Mindboggle`_
@@ -78,9 +78,10 @@ Mindboggle currently takes output from `FreeSurfer <http://surfer.nmr.mgh.harvar
 
 **FreeSurfer** generates labeled cortical surfaces, and labeled cortical and
 noncortical volumes. Run ``recon-all`` on a T1-weighted ``IMAGE`` file
-(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name (e.g., to ``subject1``)::
+(e.g., ``subject1.nii.gz``) and set the output ``SUBJECT`` name (e.g., to ``subject1``),
+while calling the DKT40 cortical surface atlas to aid in cortical labeling::
 
-    recon-all -all -i IMAGE -s SUBJECT
+    recon-all -all -i IMAGE -s SUBJECT -gcs DKTatlas40.gcs
 
 ..
     - mri/orig/001.mgz
