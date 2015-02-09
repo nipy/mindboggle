@@ -12,7 +12,7 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract folds
 #=============================================================================
-def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
+def extract_folds(depth_file, min_fold_size=50, do_fill_holes=True,
                   tiny_depth=0.001, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
