@@ -1415,7 +1415,7 @@ def freesurfer_surface_to_vtk(surface_file, output_vtk):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.freesurfer import freesurfer_surface_to_vtk
+    >>> from mindboggle.utils.io_vtk import freesurfer_surface_to_vtk
     >>> path = os.environ['SUBJECTS_DIR']
     >>> surface_file = os.path.join(path, 'OASIS-TRT-20-1', 'surf', 'lh.pial')
     >>> output_vtk = ''
@@ -1558,7 +1558,7 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     Examples
     --------
     >>> import os
-    >>> from mindboggle.utils.freesurfer import freesurfer_annot_to_vtk
+    >>> from mindboggle.utils.io_vtk import freesurfer_annot_to_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> annot_file = os.path.join(path, 'arno', 'freesurfer', 'lh.aparc.annot')
     >>> vtk_file = os.path.join(path, 'arno', 'freesurfer', 'lh.pial.vtk')

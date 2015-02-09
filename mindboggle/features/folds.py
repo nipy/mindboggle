@@ -12,7 +12,8 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract folds
 #=============================================================================
-def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=False):
+def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
+                  tiny_depth=0.001, save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -21,7 +22,7 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         2. Define a depth threshold and find the deepest vertices.
         3. Segment deep vertices as an initial set of folds.
         4. Remove small folds.
-        5. Find and fill holes in the folds.
+        5. Find and fill holes in the folds (optional).
         6. Renumber folds.
 
     Step 2 ::
@@ -44,6 +45,8 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
         surface mesh file in VTK format with faces and depth scalar values
     min_fold_size : integer
         minimum fold size (number of vertices)
+    do_fill_holes : Boolean
+        fill holes in the folds?
     tiny_depth : float
         largest non-zero depth value that will stop a hole from being filled
     save_file : Boolean
@@ -107,8 +110,6 @@ def extract_folds(depth_file, min_fold_size=50, tiny_depth=0.001, save_file=Fals
     from mindboggle.utils.mesh import find_neighbors
     from mindboggle.utils.morph import fill_holes
     from mindboggle.utils.segment import segment
-
-    do_fill_holes = True
 
     print("Extract folds in surface mesh")
     t0 = time()

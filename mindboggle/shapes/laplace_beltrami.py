@@ -659,7 +659,7 @@ def spectrum_per_label(vtk_file, spectrum_size=10, exclude_labels=[-1],
     normalization : string
         the method used to normalize eigenvalues ('area' or None)
         if "area", use area of the 2D structure as in Reuter et al. 2006
-    area_file :  string
+    area_file :  string (optional)
         name of VTK file with surface area scalar values
     largest_segment :  Boolean
         compute spectrum only for largest segment with a given label?
