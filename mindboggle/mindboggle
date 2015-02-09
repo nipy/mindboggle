@@ -984,7 +984,7 @@ if do_surface:
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
                            SurfFeatureFlow, 'Folds.depth_file')
             FoldsNode.inputs.min_fold_size = 50
-            FoldsNode.inputs.do_fill_holes = True
+            FoldsNode.inputs.do_fill_holes = False
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
             if save_folds and save_all:
