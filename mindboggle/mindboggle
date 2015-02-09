@@ -970,9 +970,10 @@ if do_surface:
             FoldsNode = Node(name='Folds',
                              interface=Fn(function=extract_folds,
                                           input_names=['depth_file',
+                                                       'min_vertices',
                                                        'min_fold_size',
                                                        'do_fill_holes',
-                                                       'tiny_depth',
+                                                       'min_hole_depth',
                                                        'save_file'],
                                           output_names=['folds',
                                                         'n_folds',
@@ -983,9 +984,10 @@ if do_surface:
             SurfFeatureFlow.add_nodes([FoldsNode])
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
                            SurfFeatureFlow, 'Folds.depth_file')
+            FoldsNode.inputs.min_vertices = 10000
             FoldsNode.inputs.min_fold_size = 50
             FoldsNode.inputs.do_fill_holes = False
-            FoldsNode.inputs.tiny_depth = 0.001
+            FoldsNode.inputs.min_hole_depth = 0.001
             FoldsNode.inputs.save_file = True
             if save_folds and save_all:
                mbFlow.connect(SurfFeatureFlow, 'Folds.folds_file',
