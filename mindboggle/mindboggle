@@ -971,6 +971,7 @@ if do_surface:
                              interface=Fn(function=extract_folds,
                                           input_names=['depth_file',
                                                        'min_fold_size',
+                                                       'do_fill_holes',
                                                        'tiny_depth',
                                                        'save_file'],
                                           output_names=['folds',
@@ -983,6 +984,7 @@ if do_surface:
             mbFlow.connect(WholeSurfShapeFlow, 'Travel_depth.depth_file',
                            SurfFeatureFlow, 'Folds.depth_file')
             FoldsNode.inputs.min_fold_size = 50
+            FoldsNode.inputs.do_fill_holes = False
             FoldsNode.inputs.tiny_depth = 0.001
             FoldsNode.inputs.save_file = True
             if save_folds and save_all:
