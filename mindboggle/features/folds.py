@@ -12,8 +12,9 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 #=============================================================================
 # Extract folds
 #=============================================================================
-def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
-                  tiny_depth=0.001, save_file=False):
+def extract_folds(depth_file, min_vertices=10000, min_fold_size=50, 
+                  do_fill_holes=False, min_hole_depth=0.001, 
+                  save_file=False):
     """
     Use depth to extract folds from a triangular surface mesh.
 
@@ -37,7 +38,7 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
         The folds could have holes in areas shallower than the depth threshold.
         Calling fill_holes() could accidentally include very shallow areas
         (in an annulus-shaped fold, for example), so we include the argument
-        exclude_range to check for any values from zero to tiny_depth;
+        exclude_range to check for any values from zero to min_hole_depth;
         holes are not filled if they contains values within this range.
 
     Parameters
@@ -48,7 +49,7 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
         minimum fold size (number of vertices)
     do_fill_holes : Boolean
         fill holes in the folds?
-    tiny_depth : float
+    min_hole_depth : float
         largest non-zero depth value that will stop a hole from being filled
     save_file : Boolean
         save output VTK file?
@@ -81,13 +82,14 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
     >>> path = os.environ['MINDBOGGLE_DATA']
     >>> depth_file = 'travel_depth.vtk' #os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
+    >>> min_vertices = 10000
     >>> min_fold_size = 50
     >>> do_fill_holes = False #True
-    >>> tiny_depth = 0.001
+    >>> min_hole_depth = 0.001
     >>> save_file = True
     >>> #
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    >>>     min_fold_size, do_fill_holes, tiny_depth, save_file)
+    >>>     min_vertices, min_fold_size, do_fill_holes, min_hole_depth, save_file)
     >>> #
     >>> # View folds:
     >>> plot_surfaces('folds.vtk')
@@ -130,7 +132,6 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
     #-------------------------------------------------------------------------
     # Compute histogram of depth measures
     #-------------------------------------------------------------------------
-    min_vertices = 10000
     if npoints > min_vertices:
         nbins = np.round(npoints / 100.0)
     else:
@@ -190,7 +191,7 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=False,
         if do_fill_holes:
             print("  Find and fill holes in the folds")
             folds = fill_holes(folds, neighbor_lists, values=depths,
-                               exclude_range=[0, tiny_depth])
+                               exclude_range=[0, min_hole_depth])
 
         #---------------------------------------------------------------------
         # Renumber folds so they are sequential
