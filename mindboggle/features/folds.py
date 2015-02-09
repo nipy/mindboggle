@@ -36,8 +36,9 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=True,
     Step 5 ::
         The folds could have holes in areas shallower than the depth threshold.
         Calling fill_holes() could accidentally include very shallow areas
-        (in an annulus-shaped fold, for example), so we call fill_holes() with
-        the argument exclude_range set close to zero to retain these areas.
+        (in an annulus-shaped fold, for example), so we include the argument
+        exclude_range to check for any values from zero to tiny_depth;
+        holes are not filled if they contains values within this range.
 
     Parameters
     ----------
@@ -78,14 +79,15 @@ def extract_folds(depth_file, min_fold_size=50, do_fill_holes=True,
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> from mindboggle.features.folds import extract_folds
     >>> path = os.environ['MINDBOGGLE_DATA']
-    >>> depth_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
+    >>> depth_file = 'travel_depth.vtk' #os.path.join(path, 'arno', 'shapes', 'lh.pial.travel_depth.vtk')
     >>> neighbor_lists = find_neighbors_from_file(depth_file)
     >>> min_fold_size = 50
+    >>> do_fill_holes = False #True
     >>> tiny_depth = 0.001
     >>> save_file = True
     >>> #
     >>> folds, n_folds, thr, bins, bin_edges, folds_file = extract_folds(depth_file,
-    >>>     min_fold_size, tiny_depth, save_file)
+    >>>     min_fold_size, do_fill_holes, tiny_depth, save_file)
     >>> #
     >>> # View folds:
     >>> plot_surfaces('folds.vtk')
