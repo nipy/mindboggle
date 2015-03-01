@@ -1,10 +1,17 @@
+<<<<<<< HEAD
 ==============================================================================
 Papers related to Mindboggle
 ==============================================================================
+=======
+======
+Papers
+======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+<<<<<<< HEAD
 | |pic_paper8|    | |authors_paper8|    |
 +                 +---------------------+
 |                 | |title_paper8|      |
@@ -13,6 +20,8 @@ Papers related to Mindboggle
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 | |pic_paper7|    | |authors_paper7|    |
 +                 +---------------------+
 |                 | |title_paper7|      |
@@ -85,6 +94,7 @@ Conferences
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+<<<<<<< HEAD
 | |pic_pres16|    | |authors_pres16|    |
 +                 +---------------------+
 |                 | |title_pres16|      |
@@ -93,6 +103,8 @@ Conferences
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 | |pic_pres15|    | |authors_pres15|    |
 +                 +---------------------+
 |                 | |title_pres15|      |
@@ -133,6 +145,17 @@ Conferences
 +-----------------+---------------------+
 |                 |                     |
 +-----------------+---------------------+
+<<<<<<< HEAD
+=======
+| |pic_pres10|    | |authors_pres10|    |
++                 +---------------------+
+|                 | |title_pres10|      |
++                 +---------------------+
+|                 | |ref_pres10|        |
++-----------------+---------------------+
+|                 |                     |
++-----------------+---------------------+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 | |pic_pres9|     | |authors_pres9|     |
 +                 +---------------------+
 |                 | |title_pres9|       |
@@ -209,6 +232,7 @@ Conferences
 +-----------------+---------------------+
 
 
+<<<<<<< HEAD
 .. |pic_paper8| image:: http://media.mindboggle.info/images/papers/ANTs_FS_corticalthickness_NeuroImage2014.png
                     :width: 300px
 .. |authors_paper8| replace::
@@ -222,6 +246,8 @@ Conferences
     http://mindboggle.info/papers/ANTs_FS_corticalthickness_NeuroImage2014.pdf
 
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 .. |pic_paper7| image:: http://media.mindboggle.info/images/papers/Mindboggle101_FIBIM2012.png
 .. |authors_paper7| replace::
     Klein, A, Tourville, J. 2012.
@@ -245,7 +271,11 @@ Conferences
 .. |title_paper6| replace::
     `A reproducible evaluation of ANTs similarity metric performance in brain image registration`_.
 .. |ref_paper6| replace::
+<<<<<<< HEAD
     *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962.
+=======
+    *NeuroImage*. 54(3): 2033-2044.  PMCID: PMC3065962. 
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 .. _`A reproducible evaluation of ANTs similarity metric performance in brain image registration`:
     http://mindboggle.info/papers/ANTSevaluation_NeuroImage2010.pdf
 
@@ -258,7 +288,11 @@ Conferences
     `Evaluation of volume-based and surface-based brain image registration methods`_.
 .. |ref_paper5| replace::
     *NeuroImage*. 51: 214-220.
+<<<<<<< HEAD
     PMCID: PMC2862732.
+=======
+    PMCID: PMC2862732. 
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 .. |www_paper5| replace::
     `Supplementary website for PMC2862732`_
 .. _`Evaluation of volume-based and surface-based brain image registration methods`:
@@ -322,6 +356,7 @@ Conferences
 
 
 
+<<<<<<< HEAD
 .. |pic_pres16| image:: http://media.mindboggle.info/images/conferences/Mindboggle101shapes_HBM2014.png
                     :width: 300px
 .. |authors_pres16| replace::
@@ -333,6 +368,8 @@ Conferences
 .. _`Shape analysis of 101 healthy human brains`:
     http://mindboggle.info/posters/Mindboggle101shapes_HBM2014.pdf
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 .. |pic_pres15| image:: http://media.mindboggle.info/images/conferences/Neuroinformatics2012_Mindboggle.png
                     :width: 300px
 .. |authors_pres15| replace::

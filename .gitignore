@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 CMakeCache.txt
 CMakeFiles
 /build
@@ -26,11 +27,17 @@ crash-*
 *.tar
 ._*
 *~ 
+=======
+.DS_Store
+._*
+*~
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 #* 
 .#* 
 ,* 
 _$* 
 *$ 
+<<<<<<< HEAD
 *.old 
 *.bak 
 *.BAK 
@@ -46,3 +53,14 @@ _$*
 *.Z 
 *.elc 
 *.ln
+=======
+.del-* 
+*.cache*
+crash-*
+*.pyc
+x
+.idea
+CMakeCache.txt
+CMakeFiles
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4

@@ -10,8 +10,12 @@ Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+<<<<<<< HEAD
 
 def relabel_volume(input_file, old_labels, new_labels, output_file=''):
+=======
+def relabel_volume(input_file, old_labels, new_labels):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Relabel volume labels.
 
@@ -23,6 +27,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
         old labels
     new_labels : list of integers
         new labels
+<<<<<<< HEAD
     output_file : string
         output file name
 
@@ -30,10 +35,13 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     -------
     output_file : string
         output file name
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Examples
     --------
     >>> # Convert DKT31 to DKT25 labels
+<<<<<<< HEAD
     >>> from mindboggle.labels.relabel import relabel_volume
     >>> from mindboggle.LABELS import DKTprotocol
     >>> from mindboggle.utils.plots import plot_volumes
@@ -50,6 +58,16 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     >>> output_file = relabel_volume(input_file, old_labels, new_labels, output_file)
     >>> # View
     >>> plot_volumes(output_file)
+=======
+    >>> import os
+    >>> from mindboggle.utils.io_file import read_columns
+    >>> from mindboggle.labels.relabel import relabel_volume
+    >>> data_path = os.environ['MINDBOGGLE_DATA']
+    >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> relabel_file = os.path.join(data_path, 'info', 'labels.volume.DKT31to25.txt')
+    >>> old_labels, new_labels = read_columns(relabel_file, 2)
+    >>> relabel_volume(input_file, old_labels, new_labels)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
@@ -77,6 +95,7 @@ def relabel_volume(input_file, old_labels, new_labels, output_file=''):
     new_data = np.reshape(new_data, vol.shape)
 
     # Save relabeled file
+<<<<<<< HEAD
     if not output_file:
         output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
     img = nb.Nifti1Image(new_data, xfm)
@@ -94,6 +113,17 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     """
     Remove labels from an image volume
     (or corresponding voxels in a 2nd volume).
+=======
+    output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
+
+    return output_file
+
+def remove_volume_labels(input_file, labels_to_remove):
+    """
+    Remove labels from an image volume.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Parameters
     ----------
@@ -101,6 +131,7 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
         labeled nibabel-readable (e.g., nifti) file
     labels_to_remove : list of integers
         labels to remove
+<<<<<<< HEAD
     output_file : string
         output file name
     second_file : string
@@ -110,6 +141,8 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     -------
     output_file : string
         output file name
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Examples
     --------
@@ -118,25 +151,36 @@ def remove_volume_labels(input_file, labels_to_remove, output_file='',
     >>> from mindboggle.labels.relabel import remove_volume_labels
     >>> data_path = os.environ['MINDBOGGLE_DATA']
     >>> input_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+<<<<<<< HEAD
     >>> second_file = os.path.join(data_path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
     >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
     >>> labels_to_remove.extend([1000,1001,2000,2001])
     >>> labels_to_remove.extend(range(2000,2036)) # Remove right cortical labels
     >>> output_file = ''
     >>> remove_volume_labels(input_file, labels_to_remove, output_file, second_file)
+=======
+    >>> labels_to_remove = range(1,300) # Remove noncortical (+aseg) labels
+    >>> labels_to_remove.extend([1000,1001,2000,2001])
+    >>> remove_volume_labels(input_file, labels_to_remove)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
     import numpy as np
     import nibabel as nb
 
+<<<<<<< HEAD
     #-------------------------------------------------------------------------
     # Load labeled image volume and extract data as 1-D array:
     #-------------------------------------------------------------------------
+=======
+    # Load labeled image volume and extract data as 1-D array
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     vol = nb.load(input_file)
     xfm = vol.get_affine()
     data = vol.get_data().ravel()
 
+<<<<<<< HEAD
     #-------------------------------------------------------------------------
     # If second file specified, erase voxels whose corresponding
     # voxels in the input_file have labels in labels_to_remove:
@@ -281,6 +325,28 @@ def keep_volume_labels(input_file, labels_to_keep, output_file='',
 def relabel_surface(vtk_file, old_labels=[], new_labels=[],
                     erase_remaining=True, erase_labels=[], erase_value=-1,
                     output_file=''):
+=======
+    # Initialize output
+    new_data = data.copy()
+
+    # Loop through labels
+    for ilabel, label in enumerate(labels_to_remove):
+        label = int(label)
+        # Relabel
+        new_data[np.where(data==label)[0]] = 0
+
+    # Reshape to original dimensions
+    new_data = np.reshape(new_data, vol.shape)
+
+    # Save relabeled file
+    output_file = os.path.join(os.getcwd(), os.path.basename(input_file))
+    img = nb.Nifti1Image(new_data, xfm)
+    img.to_filename(output_file)
+
+    return output_file
+
+def relabel_surface(vtk_file, relabel_list, new_string):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Relabel surface in a VTK file.
 
@@ -288,6 +354,7 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
     ----------
     vtk_file : string
         input labeled VTK file
+<<<<<<< HEAD
     old_labels : list of integers
         old labels (empty list if labels drawn from vtk scalars)
     new_labels : list of integers
@@ -321,11 +388,19 @@ def relabel_surface(vtk_file, old_labels=[], new_labels=[],
     >>> relabel_surface(vtk_file, old_labels, new_labels, erase_remaining, erase_labels, erase_value, output_file)
     >>> # View
     >>> plot_surfaces('relabeled_rh.labels.DKT31.manual.vtk')
+=======
+    relabel_list : string
+        text file with two columns of label numbers --
+        all regions receive the 2nd label per row.
+    new_string : string
+        new ending of vtk_file name (e.g., 'labels.DKT25.vtk')
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
     import numpy as np
     from mindboggle.utils.io_vtk import read_vtk, write_vtk
+<<<<<<< HEAD
 
     # Load labeled vtk surfaces:
     faces, lines, indices, points, npoints, scalars, \
@@ -465,3 +540,66 @@ def overwrite_volume_labels(source, target, output_file='', ignore_labels=[0],
 
     return output_file
 
+=======
+    from mindboggle.utils.io_file import read_columns
+
+    # Load labeled vtk surfaces
+    faces, lines, indices, points, npoints, scalars, \
+        name = read_vtk(vtk_file, return_first=True, return_array=True)
+    indices = range(1, npoints + 1)
+
+    # Load label lists
+    labels_to_replace, new_labels = read_columns(relabel_list, 2)
+    for i, new_label in enumerate(new_labels):
+
+        # Find which vertices have the label
+        indices = np.where(scalars == int(labels_to_replace[i]))[0]
+        scalars[indices] = int(new_label)
+
+    relabeled_vtk = os.path.join(os.getcwd(),
+                                 os.path.basename(vtk_file).split('.')[0] + \
+                                 '.' + new_string)
+    write_vtk(relabeled_vtk, points, indices, lines, faces,
+              [scalars.tolist()], ['Labels'])
+
+    return relabeled_vtk
+
+def relabel_annot_file(hemi, subject, annot_name, new_annot_name, relabel_file):
+    """
+    Combine surface labels in a .annot file.
+
+    https://mail.nmr.mgh.harvard.edu/pipermail//freesurfer/2010-June/014620.html
+
+     `mris_translate_annotation <subject> <hemi> <in annot> <translation file> <out annot>`
+
+      ``translation file``: text file that lists the labels (one per line)
+      you want to group, and the new label you want to create.  You have to use
+      the RGB codes; each line will provide the input and output RGB values::
+
+            221     220     60      223     220     60
+            221     220     160     223     220     60
+            221     220     100     223     220     60
+
+    Parameters
+    ----------
+    hemi : string
+        hemisphere ['lh' or 'rh']
+    subject : string
+        subject name
+    annot_name : string
+        name of .annot file (without pre- or post-pends)
+    relabel_file : string
+        text file with old and new RGB values
+    new_annot_name : string
+        new .annot name
+
+    """
+    from nipype.interfaces.base import CommandLine
+
+    cli = CommandLine(command='mris_translate_annotation')
+    cli.inputs.args = ' '.join([subject, hemi, annot_name, relabel_file, new_annot_name])
+    cli.cmdline
+    cli.run()
+
+    return new_annot_name
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4

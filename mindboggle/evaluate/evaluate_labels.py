@@ -36,6 +36,7 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     --------
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_surface_overlap
+<<<<<<< HEAD
     >>> from mindboggle.DATA import hashes_url
     >>> from mindboggle.utils.io_uri import retrieve_data
     >>> hashes, url, cache_env, cache = hashes_url()
@@ -46,6 +47,13 @@ def measure_surface_overlap(command, labels_file1, labels_file2):
     >>> file1 = retrieve_data(label_file1, url, hashes, cache_env, cache)
     >>> file2 = retrieve_data(label_file2, url, hashes, cache_env, cache)
     >>> #
+=======
+    >>> ccode_path = os.environ['MINDBOGGLE_TOOLS']
+    >>> command = os.path.join(ccode_path, 'surface_overlap', 'SurfaceOverlapMain')
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> file1 = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT25.manual.vtk')
+    >>> file2 = os.path.join(path, 'arno', 'labels', 'lh.labels.DKT31.manual.vtk')
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     >>> measure_surface_overlap(command, file1, file2)
 
     """
@@ -85,6 +93,7 @@ def measure_volume_overlap(labels, file1, file2):
     --------
     >>> import os
     >>> from mindboggle.evaluate.evaluate_labels import measure_volume_overlap
+<<<<<<< HEAD
     >>> from mindboggle.LABELS import DKTprotocol
     >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
     >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
@@ -92,6 +101,15 @@ def measure_volume_overlap(labels, file1, file2):
     >>> protocol = 'DKT31'
     >>> dkt = DKTprotocol()
     >>> measure_volume_overlap(dkt.label_numbers, file1, file2)
+=======
+    >>> from mindboggle.utils.io_file import read_columns
+    >>> path = os.path.join(os.environ['MINDBOGGLE_DATA'])
+    >>> file1 = os.path.join(path, 'arno', 'labels', 'labels.DKT25.manual.nii.gz')
+    >>> file2 = os.path.join(path, 'arno', 'labels', 'labels.DKT31.manual.nii.gz')
+    >>> labels_file = os.path.join(path, 'info', 'labels.volume.DKT25.txt')
+    >>> labels = read_columns(labels_file, 1)[0]
+    >>> measure_volume_overlap(labels, file1, file2)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os

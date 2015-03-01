@@ -33,6 +33,10 @@ public:
     void WriteIntoFile(char* fileName);
 
 private:
+<<<<<<< HEAD
+=======
+    void ComputePointsArea();
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     vtkDoubleArray* m_pointsArea;
     vtkDoubleArray* m_labels1Areas;

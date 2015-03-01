@@ -12,6 +12,7 @@ Authors:
 Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
+<<<<<<< HEAD
 import networkx as nx
 
 from mindboggle.utils.kernels import rbf_kernel
@@ -20,6 +21,19 @@ from mindboggle.utils.kernels import rbf_kernel
 #-----------------------------------------------------------------------------
 #    Diagonal degree matrix
 #-----------------------------------------------------------------------------
+=======
+#import numpy as np
+import networkx as nx
+#from scipy.sparse import lil_matrix
+from mindboggle.utils.kernels import rbf_kernel, cotangent_kernel, inverse_distance
+
+###############################################################################
+# -----------------------------------------------------------------------------
+#     Diagonal degree matrix
+# -----------------------------------------------------------------------------
+###############################################################################
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def diagonal_degree_matrix(W, inverse=False, square_root=False):
     """
     Compute diagonal degree matrix.
@@ -54,10 +68,19 @@ def diagonal_degree_matrix(W, inverse=False, square_root=False):
 
     return ddm.tocsr()
 
+<<<<<<< HEAD
 
 #-----------------------------------------------------------------------------
 #    Matrix weights and affinity matrix
 #-----------------------------------------------------------------------------
+=======
+###############################################################################
+# -----------------------------------------------------------------------------
+#     Matrix weights and affinity matrix
+# -----------------------------------------------------------------------------
+###############################################################################
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
                  G=nx.Graph(), sigma=20):
     """
@@ -66,7 +89,11 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     Parameters
     ----------
     Nodes : numpy array
+<<<<<<< HEAD
     Indices : list of integers
+=======
+    Indices : numpy array
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     Meshes : numpy array
     kernel : function which determines weights of edges
         - rbf_kernel: Gaussian kernel, with parameter sigma
@@ -128,7 +155,11 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
             weighted_edges = np.asarray([[edge_mat[i,0],
                                           edge_mat[i,1],
                                           affinity_matrix[edge_mat[i]]]
+<<<<<<< HEAD
                                           for i in range(affinity_matrix.shape[0])])
+=======
+                                          for i in xrange(affinity_matrix.shape[0])])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             print('Add weighted edges to the graph')
             G.add_weighted_edges_from(weighted_edges)
 
@@ -139,10 +170,19 @@ def weight_graph(Nodes, Indices, Meshes, kernel=rbf_kernel, add_to_graph=True,
     else:
         return affinity_matrix.tocsr()
 
+<<<<<<< HEAD
 
 #-----------------------------------------------------------------------------
 #    Graph Laplacian
 #-----------------------------------------------------------------------------
+=======
+###############################################################################
+# -----------------------------------------------------------------------------
+#     Graph Laplacian
+# -----------------------------------------------------------------------------
+###############################################################################
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def graph_laplacian(W, type_of_laplacian='norm1'):
     """
     Compute normalized and unnormalized graph Laplacians.
@@ -167,6 +207,7 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
     """
 
     if type_of_laplacian is 'basic':
+<<<<<<< HEAD
         print("Calculate unnormalized Laplacian")
         Laplacian = diagonal_degree_matrix(W) - W
 
@@ -187,11 +228,42 @@ def graph_laplacian(W, type_of_laplacian='norm1'):
 
     elif type_of_laplacian is 'random_walk':
         print("Compute Random Walk Laplacian")
+=======
+        print 'Calculate unnormalized Laplacian'
+        Laplacian = diagonal_degree_matrix(W) - W
+        return Laplacian
+
+    elif type_of_laplacian is 'norm1':
+        print "Normalize the Laplacian"
+        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
+        Laplacian = ddmi_sq * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W) * ddmi_sq
+        return Laplacian
+
+    elif type_of_laplacian is 'norm2':
+        print "Normalize the Laplacian"
+        ddmi_sq = diagonal_degree_matrix(W, inverse=True, square_root=True)
+        Laplacian = ddmi_sq * W * ddmi_sq
+        return Laplacian
+
+    elif type_of_laplacian is 'norm3':
+        print "Normalize the Laplacian"
+        ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
+        Laplacian = ddmi * (diagonal_degree_matrix(W, inverse=False, square_root=False) - W)
+        return Laplacian
+
+    elif type_of_laplacian is 'random_walk':
+        print "Compute Random Walk Laplacian"
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
         ddmi = diagonal_degree_matrix(W, inverse=True, square_root=False)
         Laplacian = ddmi * W
 
     else:
+<<<<<<< HEAD
         print('Option is not available')
         Laplacian = 0
 
     return Laplacian
+=======
+        print 'Option is not available'
+        return 0
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4

@@ -1,5 +1,8 @@
 #include "../PointAreaComputer.h"
+<<<<<<< HEAD
 #include "../MeshAnalyser.h"
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 #include <vtkPolyDataReader.h>
 

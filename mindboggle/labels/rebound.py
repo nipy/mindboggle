@@ -1,6 +1,10 @@
 #!/usr/bin/env python
 """
+<<<<<<< HEAD
 Python module for adjusting label borders on a surface mesh.
+=======
+Python module for adjusting label boundaries on a surface mesh.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 
 Authors:
@@ -101,7 +105,11 @@ class Bounds:
                 print('Please enter a fractional number less than or equal to 1.')
                 return
             randoms = np.array([np.mod(i, int(1.0/fraction))
+<<<<<<< HEAD
                                 for i in range(self.num_points)])
+=======
+                                for i in xrange(self.num_points)])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             self.seed_labels[randoms==0] = 1
 
         # Replace the 1s in self.seed_labels with the seed label values
@@ -145,7 +153,11 @@ class Bounds:
 
         # Populate the label assignment matrix with -1s and 1s for seed labels
         # For each row...
+<<<<<<< HEAD
         for i in range(n):
+=======
+        for i in xrange(n):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             if self.seed_labels[i] >= self.min_label:
                 self.label_matrix[i, :] = -1
                 unique_label_index = np.where(self.unique_labels == self.seed_labels[i])[0]
@@ -179,15 +191,26 @@ class Bounds:
         self.learned_matrix: np array (n x C array of probabilities
                                        that vertex has a given label)
         """
+<<<<<<< HEAD
         import sys
 
         # Step 1. Construct affinity matrix - compute edge weights
         if self.Points.shape and self.Indices.shape and self.Faces.shape:
+=======
+
+        # Step 1. Construct affinity matrix - compute edge weights
+        if self.Points and self.Indices and self.Faces:
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             self.affinity_matrix = go.weight_graph(self.Points, self.Indices,
                 self.Faces, kernel=kernel, sigma=sigma, add_to_graph=False)
         else:
             print("  Missing data!")
+<<<<<<< HEAD
             sys.exit()
+=======
+            import os
+            os.error()
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         # Step 2. Transform column of labels into n x C matrix, one column per label
         if not realign:
@@ -393,7 +416,11 @@ class Bounds:
                         LABELS = np.zeros(self.num_points)
                         LABELS[:] = Y_hat_now.todense().T.flatten()
                         write_vtk(filename, self.Points, self.Vertices,
+<<<<<<< HEAD
                                   [], self.Faces, [LABELS], scalar_type='int')
+=======
+                                  [], self.Faces, [LABELS])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
                 # column matrix
                 Y_hat_next = (self.DDM * self.affinity_matrix * Y_hat_now).todense()
@@ -499,11 +526,19 @@ class Bounds:
         # We can now output a file to show the boundary.
         if not realigned_labels:
             write_vtk(output_filename, self.Points, self.Vertices,
+<<<<<<< HEAD
                                self.Faces, [self.label_boundary], scalar_type='int')
             self.label_boundary_file = output_filename
         else:
             write_vtk(output_filename, self.Points, self.Vertices,
                       [], self.Faces, [self.Rlabel_boundary], scalar_type='int')
+=======
+                               self.Faces, [self.label_boundary])
+            self.label_boundary_file = output_filename
+        else:
+            write_vtk(output_filename, self.Points, self.Vertices,
+                      [], self.Faces, [self.Rlabel_boundary])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             self.Rlabel_boundary_file = output_filename
 
         # Reformat to include only indices of those vertices on the boundaries.
@@ -607,8 +642,12 @@ class Bounds:
             colored_segments[value] = color
             color += 1
         write_vtk(self.highlighted_segment_file, self.Points,
+<<<<<<< HEAD
                   self.Vertices, [], self.Faces, [colored_segments],
                   scalar_type='int')
+=======
+                  self.Vertices, [], self.Faces, [colored_segments])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         return self.label_boundary_segments, self.highlighted_segment_file
 
@@ -634,7 +673,11 @@ class Bounds:
         print('Finding intersection of segment with polylines...')
         intersection = [0,0]
 
+<<<<<<< HEAD
         for i in range(2):
+=======
+        for i in xrange(2):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             pointer = endpoint[i]
             used_vertices = [pointer]
             neighbors = []
@@ -661,9 +704,14 @@ class Bounds:
             labels[segment] = 100
             labels[endpoint] = 200
             write_vtk('debug_intersections.vtk',self.Points,
+<<<<<<< HEAD
                       self.Vertices, [], self.Faces, [labels],
                       scalar_type='int')
             #raw_input("Check this out...")
+=======
+                      self.Vertices, [], self.Faces, [labels])
+            raw_input("Check this out...")
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         return intersection
 
@@ -806,7 +854,11 @@ class Bounds:
               closest_distances.shape, closest_distances[:10]))
 
         second_closest_distances = np.asarray([distance_matrix[i,sorted_distances[i,1]]
+<<<<<<< HEAD
                                                for i in range(self.polyline_elements.size)])
+=======
+                                               for i in xrange(self.polyline_elements.size)])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
         print('Got second closest distances. Bounds is {0}. First few values are {1}'.format(
               second_closest_distances.shape, second_closest_distances[:10]))
 
@@ -817,10 +869,17 @@ class Bounds:
         polylines_lb = dict((self.polyline_elements[i],
                              (self.label_boundary[closest_label_boundary[i]],
                               distance_matrix[i,closest_label_boundary[i]]))
+<<<<<<< HEAD
                                               for i in range(self.polyline_elements.size))
         lb_polylines = dict((self.label_boundary[i],
                              (self.polyline_elements[closest_polylines[i]],
                               distance_matrix[closest_polylines[i],i])) for i in range(self.label_boundary.size))
+=======
+                                              for i in xrange(self.polyline_elements.size))
+        lb_polylines = dict((self.label_boundary[i],
+                             (self.polyline_elements[closest_polylines[i]],
+                              distance_matrix[closest_polylines[i],i])) for i in xrange(self.label_boundary.size))
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         print('The polylines to label boundary mapping is: {0}'.format(polylines_lb))
         print('The label boundary to polylines mapping is: {0}'.format(lb_polylines))
@@ -863,8 +922,13 @@ class Bounds:
             top_five_indices = sorted_distances[fundus_index,:5].flatten()
             top_five_lbvertices = self.label_boundary[top_five_indices]
             spread_matrix = np.zeros((top_five_lbvertices.size,top_five_lbvertices.size))
+<<<<<<< HEAD
             for i in range(top_five_lbvertices.size):
                 for j in range(top_five_lbvertices.size):
+=======
+            for i in xrange(top_five_lbvertices.size):
+                for j in xrange(top_five_lbvertices.size):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
                     v1 = top_five_lbvertices[i]
                     v2 = top_five_lbvertices[j]
                     spread_matrix[i,j] = np.linalg.norm(self.Points[v1] - self.Points[v2])
@@ -911,8 +975,12 @@ class Bounds:
                 print('______________Preserving Label Boundary Segment_____________')
 
         write_vtk(dir + '/propagating_regions.vtk',self.Points,
+<<<<<<< HEAD
                   self.Vertices, [], self.Faces, [vertices_to_highlight],
                   scalar_type='int')
+=======
+                  self.Vertices, [], self.Faces, [vertices_to_highlight])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         return self.label_segment_matrix
 
@@ -1134,7 +1202,11 @@ class Bounds:
         # Write VTK file with the new labels
         self.RLabels_file = filename
         write_vtk(self.RLabels_file, self.Points, self.Vertices,
+<<<<<<< HEAD
                   [], self.Faces, [self.RLabels], scalar_type='int')
+=======
+                  [], self.Faces, [self.RLabels])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         return self.RLabels, self.RLabels_file
 

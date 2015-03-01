@@ -24,7 +24,11 @@ execfile('../mindboggle/info.py', rel)
 
 # Import support for ipython console session syntax highlighting 
 # (lives in the sphinxext directory defined above)
+<<<<<<< HEAD
 #import ipython_console_highlighting
+=======
+import ipython_console_highlighting
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 # General configuration
 # ---------------------
@@ -34,7 +38,12 @@ execfile('../mindboggle/info.py', rel)
 extensions = ['sphinx.ext.autodoc',
               'sphinx.ext.doctest',
               'sphinx.ext.autosummary',
+<<<<<<< HEAD
 #              'ipython_console_highlighting',
+=======
+              'ipython_console_highlighting', 
+              'inheritance_diagram', 
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
               ]
 
 # Current version (as of 11/2010) of numpydoc is only compatible with sphinx >
@@ -62,7 +71,11 @@ master_doc = 'index'
 
 # General substitutions.
 project = 'mindboggle'
+<<<<<<< HEAD
 copyright = 'Mindboggle team'
+=======
+copyright = '2012, Mindboggle team' 
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 # The default replacements for |version| and |release|, also used in various
 # other places throughout the built documents.
@@ -181,10 +194,17 @@ htmlhelp_basename = project
 # (source start file, target name, title, author, document class
 # [howto/manual]).
 
+<<<<<<< HEAD
 #latex_documents = [
 #  ('documentation', 'mindboggle.tex', 'Neuroimaging in Python Documentation',
 #   ur'Neuroimaging in Python team.','manual'),
 #  ]
+=======
+latex_documents = [
+  ('documentation', 'mindboggle.tex', 'Neuroimaging in Python Documentation',
+   ur'Neuroimaging in Python team.','manual'),
+  ]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 # The name of an image file (relative to this directory) to place at the top of
 # the title page.
@@ -192,6 +212,7 @@ htmlhelp_basename = project
 
 # For "manual" documents, if this is true, then toplevel headings are parts,
 # not chapters.
+<<<<<<< HEAD
 #latex_use_parts = True
 
 # Additional stuff for the LaTeX preamble.
@@ -202,9 +223,25 @@ htmlhelp_basename = project
 #   %\usepackage{amsfonts}
 #   %\usepackage{txfonts}
 #"""
+=======
+latex_use_parts = True
+
+# Additional stuff for the LaTeX preamble.
+latex_preamble = """
+   \usepackage{amsmath}
+   \usepackage{amssymb}
+   % Uncomment these two if needed
+   %\usepackage{amsfonts}
+   %\usepackage{txfonts}
+"""
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 # Documents to append as an appendix to all manuals.
 #latex_appendices = []
 
 # If false, no module index is generated.
+<<<<<<< HEAD
 #latex_use_modindex = True
+=======
+latex_use_modindex = True
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4

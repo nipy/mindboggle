@@ -1,9 +1,18 @@
+<<<<<<< HEAD
 .. _PYTHON:
+=======
+.. _python-faq:
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 =============
  Why Python?
 =============
 
+<<<<<<< HEAD
+=======
+.. _why-python:
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 From Nipy's documentation::
 
 The choice of programming language has many scientific and practical

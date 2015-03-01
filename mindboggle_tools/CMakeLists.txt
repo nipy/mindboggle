@@ -26,6 +26,7 @@ ADD_SUBDIRECTORY(
 area
 )
 
+<<<<<<< HEAD
 ADD_SUBDIRECTORY(
 gradient
 )
@@ -38,6 +39,8 @@ ADD_SUBDIRECTORY(
 medial_surfaces
 )
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 ADD_LIBRARY(
 MeshAnalyser MeshAnalyser.cpp
 )
@@ -62,10 +65,13 @@ Overlap Overlap.cpp
 )
 
 ADD_LIBRARY(
+<<<<<<< HEAD
 GradientComputer GradientComputer.cpp
 )
 
 ADD_LIBRARY(
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 PointAreaComputer PointAreaComputer.cpp
 )
 
@@ -78,10 +84,13 @@ TravelDepth
 )
 
 TARGET_LINK_LIBRARIES(
+<<<<<<< HEAD
 GradientComputer
 )
 
 TARGET_LINK_LIBRARIES(
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 Overlap
 PointAreaComputer
 )

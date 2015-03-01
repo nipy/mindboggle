@@ -9,20 +9,35 @@ Copyright 2012,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+<<<<<<< HEAD
+=======
+###############################################################################
+# -----------------------------------------------------------------------------
+#     Kernels
+# -----------------------------------------------------------------------------
+###############################################################################
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 def rbf_kernel(x1, x2, sigma):
     import numpy as np
 
     return np.exp(-np.linalg.norm(x1 - x2) ** 2 / (2 * sigma ** 2))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def cotangent_kernel(Nodes, Meshes):
     import numpy as np
     from scipy.sparse import lil_matrix
 
     num_nodes = Nodes.shape[0]
     W = lil_matrix((num_nodes, num_nodes))
+<<<<<<< HEAD
     print('Constructing sparse affinity matrix...')
+=======
+    print 'Constructing sparse affinity matrix...'
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     for c in Meshes:
         # Obtain vertices which comprise face
         v0, v1, v2 = Nodes[c[0]], Nodes[c[1]], Nodes[c[2]]
@@ -42,7 +57,10 @@ def cotangent_kernel(Nodes, Meshes):
 
     return W
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def inverse_distance(x1, x2, epsilon):
     import numpy as np
 

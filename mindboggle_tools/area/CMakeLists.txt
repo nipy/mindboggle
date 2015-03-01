@@ -20,7 +20,10 @@ INSTALL(TARGETS PointAreaMain
 
 TARGET_LINK_LIBRARIES(
 PointAreaMain
+<<<<<<< HEAD
 MeshAnalyser
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 PointAreaComputer
 vtkCommon
 vtkRendering

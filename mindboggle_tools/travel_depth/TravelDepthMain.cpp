@@ -5,6 +5,7 @@
 #include <fstream>
 #include <stdio.h>
 
+<<<<<<< HEAD
 
 void print_help()
 {
@@ -64,6 +65,22 @@ int main(int argc, char** argv)
             depthComputer->WriteIntoFile(argv[wrapperNameId],(char*)"closed");
     }
     
+=======
+int main(int argc, char** argv)
+{
+    time_t start= time(NULL);
+
+//    TravelDepth* depthComputer = new TravelDepth(argv[1]);
+//    depthComputer->ComputeDepth();
+//    depthComputer->WriteIntoFile(argv[2]);
+
+    MeshAnalyser* depthComputer = new MeshAnalyser(argv[1]);
+    depthComputer->ComputeTravelDepthFromClosed(true);
+    depthComputer->WriteIntoFile(argv[2],(char*)"depth");
+
+
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     cout<<"Elapsed time (meshTest): "<<time(NULL)-start<<" s"<<endl;
     return 0;

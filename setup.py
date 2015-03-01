@@ -24,17 +24,28 @@ if len(set(('develop', 'bdist_egg', 'bdist_rpm', 'bdist', 'bdist_dumb',
 from distutils.core import setup
 
 # Python 2 to 3 build
+<<<<<<< HEAD
 #from nisext.py3builder import build_py
 ## Commit hash writing, and dependency checking
 #from nisext.sexts import get_comrec_build, package_check
 #cmdclass = {'build_py': get_comrec_build('mindboggle', build_py)}
+=======
+from nisext.py3builder import build_py
+# Commit hash writing, and dependency checking
+from nisext.sexts import get_comrec_build, package_check
+cmdclass = {'build_py': get_comrec_build('mindboggle', build_py)}
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 # Get version and release info, which is all stored in mindboggle/info.py
 ver_file = os.path.join('mindboggle', 'info.py')
 exec(open(ver_file).read())
 
 # Do dependency checking
+<<<<<<< HEAD
 #package_check('numpy', NUMPY_MIN_VERSION)
+=======
+package_check('numpy', NUMPY_MIN_VERSION)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 extra_setuptools_args = {}
 if 'setuptools' in sys.modules:
@@ -68,11 +79,14 @@ def main(**extra_args):
                           'mindboggle.features',
                           'mindboggle.labels',
                           'mindboggle.shapes',
+<<<<<<< HEAD
                           'mindboggle.shapes.zernike',
                           #'mindboggle.shapes.zernike.compat',
                           #'mindboggle.shapes.zernike.naive',
                           #'mindboggle.shapes.zernike.multiproc',
                           'mindboggle.thirdparty',
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
                           'mindboggle.utils'],
           #                'mindboggle.testing',
           #                'mindboggle.tests',
@@ -84,6 +98,7 @@ def main(**extra_args):
           # python -- duplicating things into MANIFEST.in but this is admittedly
           # only a workaround to get things started -- not a solution
 
+<<<<<<< HEAD
           #package_data = {'mindboggle':
           #                [pjoin('labels', 'protocol', '*.txt')
           #                 #pjoin('extract', 'medial_surfaces', '*'),
@@ -93,6 +108,17 @@ def main(**extra_args):
           #                pjoin('bin', 'nib-ls'),
           #                ],
           #cmdclass = cmdclass,
+=======
+          package_data = {'mindboggle':
+                          [pjoin('labels', 'protocol', '*.txt')
+                           #pjoin('extract', 'medial_surfaces', '*'),
+                           #pjoin('measure', 'surface_measures', '*.cpp')
+                          ]},
+          #scripts      = [pjoin('bin', 'parrec2nii'),
+          #                pjoin('bin', 'nib-ls'),
+          #                ],
+          cmdclass = cmdclass,
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
           **extra_args
          )
 

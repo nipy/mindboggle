@@ -19,8 +19,13 @@ if __name__ == '__main__':
                                         r'\.pgk_info$',
                                         ]
     # XXX: Avoid mindboggle.label.rebound while developing
+<<<<<<< HEAD
     #docwriter.module_skip_patterns += [r'\.label\.rebound',
     #                                    ]
+=======
+    docwriter.module_skip_patterns += [r'\.label\.rebound',
+                                        ]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     docwriter.write_api_docs(outdir)
     docwriter.write_index(outdir, 'gen', relative_to='api')
     print '%d files written' % len(docwriter.written_modules)

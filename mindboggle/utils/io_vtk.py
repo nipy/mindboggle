@@ -2,23 +2,41 @@
 """
 Functions related to reading and writing VTK format files.
 
+<<<<<<< HEAD
 Authors:
     - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
     - Arno Klein, 2012-2014  (arno@mindboggle.info)  http://binarybottle.com
     - Oliver Hinds, 2013 (ohinds@gmail.com)
     - Daniel Haehn, 2013 (daniel.haehn@childrens.harvard.edu)
+=======
+1. Functions for reading VTK files
+2. Functions for writing VTK files
+3. Functions for converting FreeSurfer files to VTK format
+
+
+Authors:
+    - Forrest Sheng Bao, 2012-2013  (forrest.bao@gmail.com)  http://fsbao.net
+    - Arno Klein, 2012-2013  (arno@mindboggle.info)  http://binarybottle.com
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 Copyright 2013,  Mindboggle team (http://mindboggle.info), Apache v2.0 License
 
 """
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 #=============================================================================
 # Functions for reading VTK files
 #=============================================================================
 def read_vertices(Filename):
     """
+<<<<<<< HEAD
     Load VERTICES segment from a VTK file (actually indices to vertices)
+=======
+    Load VERTICES segment from a VTK file (actually contains indices to vertices)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Parameters
     ----------
@@ -28,16 +46,25 @@ def read_vertices(Filename):
     Returns
     -------
     indices : a list of integers
+<<<<<<< HEAD
         Each element is an integer defined in the VTK file's VERTICES segment.
         The integer is an index referring to a point defined in the
         POINTS segment of the VTK file.
+=======
+        Each element is an integer defined in VERTICES segment of the VTK file.
+        The integer is an index referring to a point defined in POINTS segment of the VTK file.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Notes ::
 
         We assume that VERTICES segment is organized as one line,
         the first column of which is the number of vertices.
+<<<<<<< HEAD
         Vertices here are as vertices in VTK terminology.
         It may not be the vertices in your 3-D surface.
+=======
+        Vertices here are as vertices in VTK terminology. It may not be the vertices in your 3-D surface.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import vtk
@@ -49,11 +76,18 @@ def read_vertices(Filename):
     Data = Reader.GetOutput()
 
     Vrts = Data.GetVerts()
+<<<<<<< HEAD
     indices = [Vrts.GetData().GetValue(i) for i in range(1, Vrts.GetSize())]
 
     return indices
 
 
+=======
+    indices = [Vrts.GetData().GetValue(i) for i in xrange(1, Vrts.GetSize())]
+
+    return indices
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def read_lines(Filename):
     """
     Load LINES from a VTK file, along with the scalar values.
@@ -69,10 +103,16 @@ def read_lines(Filename):
     Returns
     -------
     lines : list of 2-tuple of integers
+<<<<<<< HEAD
         each element is a 2-tuple of IDs (i.e., indices) of two points
         defined in the POINTS section of the VTK file
     scalars : list of floats
         each element is a scalar value corresponding to a vertex
+=======
+        Each element is a 2-tuple of IDs (i.e., indexes) of two points defined in POINTS segment of the VTK file
+    scalars : list of floats
+        Each element is a scalar value corresponding to a vertex
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import vtk
@@ -84,6 +124,7 @@ def read_lines(Filename):
     Data = Reader.GetOutput()
     Lns = Data.GetLines()
 
+<<<<<<< HEAD
     lines  = [[Lns.GetData().GetValue(j) for j in range(i*3+1, i*3+3) ]
               for i in range(Data.GetNumberOfLines())]
 
@@ -98,6 +139,19 @@ def read_lines(Filename):
     return lines, scalars
 
 
+=======
+    lines  = [[Lns.GetData().GetValue(j) for j in xrange(i*3+1, i*3+3) ]
+              for i in xrange(Data.GetNumberOfLines())]
+
+    PointData = Data.GetPointData()
+    print "There are", Reader.GetNumberOfscalarsInFile(), "scalars in file", Filename
+    print "Loading the scalar", Reader.GetScalarsNameInFile(0)
+    ScalarsArray = PointData.GetArray(Reader.GetScalarsNameInFile(0))
+    scalars = [ScalarsArray.GetValue(i) for i in xrange(0, ScalarsArray.GetSize())]
+
+    return lines, scalars
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def read_points(filename):
     """
     Load points of a VTK surface file.
@@ -110,7 +164,11 @@ def read_points(filename):
     Returns
     -------
     points : list of lists of floats
+<<<<<<< HEAD
         each element is a list of 3-D coordinates of a surface mesh vertex
+=======
+        each element is a list of 3-D coordinates of a vertex on a surface mesh
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import vtk
@@ -122,11 +180,18 @@ def read_points(filename):
 
     Data = Reader.GetOutput()
     points = [list(Data.GetPoint(point_id))
+<<<<<<< HEAD
               for point_id in range(Data.GetNumberOfPoints())]
 
     return points
 
 
+=======
+              for point_id in xrange(Data.GetNumberOfPoints())]
+
+    return points
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def read_faces_points(filename):
     """
     Load points and faces of a VTK surface file.
@@ -142,6 +207,7 @@ def read_faces_points(filename):
         each element is list of 3 indices of vertices that form a face
         on a surface mesh
     points : list of lists of floats
+<<<<<<< HEAD
         each element is a list of 3-D coordinates of a surface mesh vertex
     npoints : integer
         number of points
@@ -154,6 +220,12 @@ def read_faces_points(filename):
     >>> folds_file = os.path.join(path, 'arno', 'features', 'folds.vtk')
     >>> faces, points, npoints = read_faces_points(folds_file)
 
+=======
+        each element is a list of 3-D coordinates of a vertex on a surface mesh
+    npoints : integer
+        number of points
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     import vtk
 
@@ -164,6 +236,7 @@ def read_faces_points(filename):
 
     Data = Reader.GetOutput()
     points = [list(Data.GetPoint(point_id))
+<<<<<<< HEAD
               for point_id in range(Data.GetNumberOfPoints())]
     npoints = len(points)
 
@@ -171,12 +244,24 @@ def read_faces_points(filename):
         faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in range(i*4 + 1, i*4 + 4)]
                   for i in range(Data.GetPolys().GetNumberOfCells())]
+=======
+              for point_id in xrange(Data.GetNumberOfPoints())]
+    npoints = len(points)
+
+    if Data.GetNumberOfPolys() > 0:
+        faces = [[Data.GetPolys().GetData().GetValue(j)
+                  for j in xrange(i*4 + 1, i*4 + 4)]
+                  for i in xrange(Data.GetPolys().GetNumberOfCells())]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     else:
         faces = []
 
     return faces, points, npoints
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def read_scalars(filename, return_first=True, return_array=False):
     """
     Load all scalar lookup tables from a VTK file.
@@ -202,8 +287,13 @@ def read_scalars(filename, return_first=True, return_array=False):
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars
     >>> path = os.environ['MINDBOGGLE_DATA']
+<<<<<<< HEAD
     >>> curv_file = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> mean_curvatures, name = read_scalars(curv_file)
+=======
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depths, name = read_scalars(depth_file)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
@@ -230,12 +320,19 @@ def read_scalars(filename, return_first=True, return_array=False):
                       format(scalar_name, os.path.basename(filename)))
             else:
                 print("Load \"{0}\" (of {1} scalars) from {2}".
+<<<<<<< HEAD
                       format(scalar_name, n_scalars,
                              os.path.basename(filename)))
 
             scalar_array = PointData.GetArray(scalar_name)
             scalar = [scalar_array.GetValue(i)
                       for i in range(scalar_array.GetSize())]
+=======
+                      format(scalar_name, n_scalars, os.path.basename(filename)))
+
+            scalar_array = PointData.GetArray(scalar_name)
+            scalar = [scalar_array.GetValue(i) for i in range(scalar_array.GetSize())]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             scalars.append(scalar)
             scalar_names.append(scalar_name)
 
@@ -252,7 +349,11 @@ def read_scalars(filename, return_first=True, return_array=False):
     return scalars, scalar_names
 
 
+<<<<<<< HEAD
 def read_vtk(input_vtk, return_first=True, return_array=False):
+=======
+def read_vtk(filename, return_first=True, return_array=False):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Load faces, lines, indices, points, #points,
     and all scalar lookup tables from a VTK file.
@@ -261,6 +362,7 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
 
         1. This supports copying lines, vertices (indices of points),
            and triangular faces from one surface to another.
+<<<<<<< HEAD
         2. We assume that all vertices are written in one line
            in the VERTICES segment.
 
@@ -268,6 +370,14 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
     ----------
     input_vtk : string
         path/filename of a VTK format file
+=======
+        2. We assume that all vertices are written in one line in VERTICES segment.
+
+    Parameters
+    ----------
+    filename : string
+        The path/filename of a VTK format file.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     return_first : Boolean
         Return only the first list of scalar values?
     return_array : Boolean (only if return_first)
@@ -291,16 +401,24 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         scalar values for the vertices of a mesh
     scalar_names : string or list of strings
         name(s) of lookup table(s)
+<<<<<<< HEAD
     input_vtk : string
         path/filename of the input VTK format file
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Examples
     --------
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_vtk
     >>> path = os.environ['MINDBOGGLE_DATA']
+<<<<<<< HEAD
     >>> input_vtk = os.path.join(path, 'arno', 'shapes', 'lh.pial.mean_curvature.vtk')
     >>> faces, lines, indices, points, npoints, depths, name, input_vtk = read_vtk(input_vtk)
+=======
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
@@ -309,13 +427,18 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         import numpy as np
 
     Reader = vtk.vtkDataSetReader()
+<<<<<<< HEAD
     Reader.SetFileName(input_vtk)
+=======
+    Reader.SetFileName(filename)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     Reader.ReadAllScalarsOn()  # Activate the reading of all scalars
     Reader.Update()
 
     Data = Reader.GetOutput()
     PointData = Data.GetPointData()
     points = [list(Data.GetPoint(point_id))
+<<<<<<< HEAD
               for point_id in range(0, Data.GetNumberOfPoints())]
     npoints = len(points)
 
@@ -323,21 +446,43 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         faces = [[int(Data.GetPolys().GetData().GetValue(j))
                   for j in range(i*4 + 1, i*4 + 4)]
                   for i in range(Data.GetPolys().GetNumberOfCells())]
+=======
+              for point_id in xrange(0, Data.GetNumberOfPoints())]
+    npoints = len(points)
+
+    if Data.GetNumberOfPolys() > 0:
+        faces = [[Data.GetPolys().GetData().GetValue(j)
+                  for j in xrange(i*4 + 1, i*4 + 4)]
+                  for i in xrange(Data.GetPolys().GetNumberOfCells())]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     else:
         faces = []
 
     if Data.GetNumberOfLines() > 0:
         lines  = [[Data.GetLines().GetData().GetValue(j)
+<<<<<<< HEAD
                    for j in range(i*3+1, i*3+3) ]
                    for i in range(Data.GetNumberOfLines())]
+=======
+                   for j in xrange(i*3+1, i*3+3) ]
+                   for i in xrange(Data.GetNumberOfLines())]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     else:
         lines = []
 
     if Data.GetNumberOfVerts() > 0:
+<<<<<<< HEAD
        indices = [Data.GetVerts().GetData().GetValue(i)
                   for i in range(1, Data.GetVerts().GetSize() )]
     else:
        indices = []
+=======
+        indices = [Data.GetVerts().GetData().GetValue(i)
+                    for i in xrange(1, Data.GetVerts().GetSize() )]
+        # The reason the reading starts from 1 is because we need to avoid the
+    else:
+        indices = []
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     scalars = []
     scalar_names = []
@@ -349,16 +494,27 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
             n_scalars = scalar_index + 1
             if n_scalars == 1:
                 print("Load \"{0}\" scalars from {1}".
+<<<<<<< HEAD
                       format(scalar_name, os.path.basename(input_vtk)))
             else:
                 print("Load \"{0}\" (of {1} scalars) from {2}".
                       format(scalar_name, n_scalars,
                              os.path.basename(input_vtk)))
+=======
+                      format(scalar_name, os.path.basename(filename)))
+            else:
+                print("Load \"{0}\" (of {1} scalars) from {2}".
+                      format(scalar_name, n_scalars, os.path.basename(filename)))
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
             scalar_array = PointData.GetArray(scalar_name)
             if scalar_array:
                 scalar = [scalar_array.GetValue(i)
+<<<<<<< HEAD
                           for i in range(scalar_array.GetSize())]
+=======
+                          for i in xrange(scalar_array.GetSize())]
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
                 scalars.append(scalar)
                 scalar_names.append(scalar_name)
 
@@ -372,13 +528,21 @@ def read_vtk(input_vtk, return_first=True, return_array=False):
         else:
             scalar_names = ''
 
+<<<<<<< HEAD
     return faces, lines, indices, points, npoints, scalars, scalar_names, \
            input_vtk
 
+=======
+    return faces, lines, indices, points, npoints, scalars, scalar_names
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 #=============================================================================
 # Functions for writing VTK elements/files
 #=============================================================================
+<<<<<<< HEAD
+=======
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def write_header(Fp, Header='# vtk DataFile Version 2.0',
                      Title='Generated by Mindboggle (www.mindboggle.info)',
                      fileType='ASCII', dataType='POLYDATA'):
@@ -392,7 +556,11 @@ def write_header(Fp, Header='# vtk DataFile Version 2.0',
 
     This part matches three things in the VTK 4.2 File Formats doc:
       - Part 1: Header
+<<<<<<< HEAD
       - Part 2: Title (256 characters maximum, ending with newline character)
+=======
+      - Part 2: Title (256 characters maximum, terminated with newline character)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
       - Part 3: Data type, either ASCII or BINARY
       - Part 4: Geometry/topology. dataType is one of:
           - STRUCTURED_POINTS
@@ -404,6 +572,7 @@ def write_header(Fp, Header='# vtk DataFile Version 2.0',
 
     """
 
+<<<<<<< HEAD
     Fp.write('{0}\n{1}\n{2}\nDATASET {3}\n'.format(Header, Title, fileType,
                                                    dataType))
 
@@ -411,6 +580,13 @@ def write_header(Fp, Header='# vtk DataFile Version 2.0',
 def write_points(Fp, points, dataType="float"):
     """
     Write coordinates of points, the POINTS section in DATASET POLYDATA::
+=======
+    Fp.write('{0}\n{1}\n{2}\nDATASET {3}\n'.format(Header, Title, fileType, dataType))
+
+def write_points(Fp, points, dataType="float"):
+    """
+    Write coordinates of points, the POINTS section in DATASET POLYDATA section::
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         POINTS 150991 float
         -7.62268877029 -81.2403945923 -1.44539153576
@@ -439,7 +615,10 @@ def write_points(Fp, points, dataType="float"):
         else:
             print('ERROR: Unrecognized number of coordinates per point')
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def write_faces(Fp, faces):
     """
     Write indices to vertices forming triangular meshes or lines,
@@ -472,14 +651,21 @@ def write_faces(Fp, faces):
             [V0, V1] = face
             Fp.write('{0} {1} {2}\n'.format(n, V0, V1))
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def write_lines(Fp, lines):
     """
     Save connected line segments to a VTK file.
 
     Parameters
     ----------
+<<<<<<< HEAD
     Fp : pointer to a file
+=======
+    Fp: pointer to a file
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
         pointer to the file to write lines
     lines : list of 2-tuples of integers
         each element is an edge on the mesh, consisting of 2 integers
@@ -488,7 +674,10 @@ def write_lines(Fp, lines):
 
     write_faces(Fp, lines)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 def write_vertices(Fp, indices):
     """
     Write indices to vertices, the VERTICES section
@@ -505,9 +694,16 @@ def write_vertices(Fp, indices):
         ...
         numPoints_[n-1] i_[n-1] j_[n-1] k_[n-1]
 
+<<<<<<< HEAD
     Note::
 
         Currently we write all vertices in one line.
+=======
+    Notes
+    -------
+
+    Currently we write all vertices in one line.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
 
@@ -516,13 +712,18 @@ def write_vertices(Fp, indices):
     [Fp.write('{0} '.format(i)) for i in indices]
     Fp.write('\n')
 
+<<<<<<< HEAD
 
 def write_scalars(Fp, scalars, scalar_name, begin_scalars=True,
                   scalar_type='float'):
+=======
+def write_scalars(Fp, scalars, scalar_name, begin_scalars=True):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Write per-VERTEX values as a scalar lookup table into a VTK file::
 
         POINT_DATA 150991
+<<<<<<< HEAD
         SCALARS Max_(majority_labels) int 
         LOOKUP_TABLE default
         11 
@@ -545,12 +746,26 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True,
         True if the first vertex lookup table in a VTK file
     scalar_type : string
         type of scalars ('float' or 'int')
+=======
+        SCALARS Max_(majority_labels) int 1
+        LOOKUP_TABLE default
+        11 11 11 11 11 11 11 11 11 11 ...
+
+    Parameters
+    ----------
+    scalars :  list of floats
+    begin_scalars : [Boolean] True if the first vertex lookup table in a VTK file
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
 
     if begin_scalars:
         Fp.write('POINT_DATA {0}\n'.format(len(scalars)))
+<<<<<<< HEAD
     Fp.write('SCALARS {0} {1}\n'.format(scalar_name, scalar_type))
+=======
+    Fp.write('SCALARS {0} float\n'.format(scalar_name))
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     Fp.write('LOOKUP_TABLE {0}\n'.format(scalar_name))
     for Value in scalars:
         Fp.write('{0}\n'.format(Value))
@@ -558,7 +773,11 @@ def write_scalars(Fp, scalars, scalar_name, begin_scalars=True,
 
 
 def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
+<<<<<<< HEAD
               scalars=[], scalar_names=['scalars'], scalar_type='float'):
+=======
+              scalars=[], scalar_names=['scalars']):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Save lists of scalars into the lookup table of a VTK-format file.
 
@@ -576,6 +795,7 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
     points :  list of 3-tuples of floats
         each element has 3 numbers representing the coordinates of the points
     indices : list of integers
+<<<<<<< HEAD
         indices of vertices
     lines : list of 2-tuples of integers
         Each element is an edge on the mesh, consisting of 2 integers
@@ -588,12 +808,37 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         each element is the name of a scalar list (lookup table)
     scalar_type : string
         type of scalars ('float' or 'int')
+=======
+        indices of vertices, default=[]
+    lines : list of 2-tuples of integers
+        Each element is an edge on the mesh, consisting of 2 integers
+        representing the 2 vertices of the edge
+        default=[]
+    faces : list of 3-tuples of integers
+        indices to the three vertices of a face on the mesh, default=[]
+    scalars : list of lists of floats (or single list of floats)
+        each list (lookup table) contains values assigned to the vertices, default=[]
+    scalar_names : string or list of strings
+        each element is the name of a lookup table, default=['scalars']
+        if only one string is given for this field, the program will convert
+        it into a list of only this string.
+
+    Notes
+    --------
+
+    If you do not have all 7 parameters, it's safer to use syntax like
+    ...``indices=indices, faces=faces``... (as in Toy example)
+    than syntax like ...``indices, faces``... alone to
+    ensure that your variables are aligned with their orders
+    in parameter definition.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Examples
     --------
     >>> # Toy example
     >>> import random, os
     >>> from mindboggle.utils.io_vtk import write_vtk
+<<<<<<< HEAD
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> points = [[random.random() for i in [1,2,3]] for j in range(4)]
     >>> indices = [1,2,3,0]
@@ -632,32 +877,80 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
         faces = faces.tolist()
     if isinstance(points, np.ndarray):
         points = points.tolist()
+=======
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> points = [[random.random() for i in [1,2,3]] for j in xrange(4)]
+    >>> indices = [1,2,3,0]
+    >>> lines = [[1,2],[3,4]]
+    >>> faces = [[1,2,3],[0,1,3]]
+    >>> scalar_names = ['curv','depth']
+    >>> scalars = [[random.random() for i in xrange(4)] for j in [1,2]]
+    >>> #
+    >>> write_vtk('test_write_vtk.vtk', points,
+    >>>          indices, lines, faces, scalars, scalar_names)
+    >>> #
+    >>> # View:
+    >>> plot_vtk('test_write_vtk.vtk')
+    >>> #
+    >>> # Write vtk file with depth values on sulci and view:
+    >>> from mindboggle.utils.mesh import remove_faces
+    >>> from mindboggle.utils.io_vtk import read_vtk, write_vtk
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> faces, lines, indices, points, npoints, depths, name = read_vtk(depth_file)
+    >>> write_vtk('test_write_vtk.vtk', points, [], [], faces, depths, 'depths')
+    >>> plot_vtk('test_write_vtk.vtk')
+
+    """
+    import os
+    from mindboggle.utils.io_vtk import write_header, write_points, \
+         write_vertices, write_faces, write_scalars, \
+         scalars_checker
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     Fp = open(output_vtk,'w')
     write_header(Fp)
     write_points(Fp, points)
+<<<<<<< HEAD
     if indices:
         write_vertices(Fp, indices)
     if lines:
         for i in range(0,len(lines)):
+=======
+
+    if indices:
+        write_vertices(Fp, indices)
+    if lines:
+        for i in xrange(0,len(lines)):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             lines[i] = [lines[i][0], lines[i][1]]
         write_faces(Fp, lines) # write_faces can write either lines or faces
     if faces:
         write_faces(Fp, faces)
+<<<<<<< HEAD
     scalars, scalar_names = scalars_checker(scalars, scalar_names)
     if len(scalars):
+=======
+    if scalars:
+        scalars, scalar_names = scalars_checker(scalars, scalar_names)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
         for i, scalar_list in enumerate(scalars):
             if i == 0:
                 scalar_name = scalar_names[i]
+<<<<<<< HEAD
                 write_scalars(Fp, scalar_list, scalar_name,
                               begin_scalars=True, scalar_type=scalar_type)
+=======
+                write_scalars(Fp, scalar_list, scalar_name)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             else:
                 if len(scalar_names) < i + 1:
                     scalar_name = scalar_names[0]
                 else:
+<<<<<<< HEAD
                     scalar_name = scalar_names[i]
                 write_scalars(Fp, scalar_list, scalar_name,
                               begin_scalars=False, scalar_type=scalar_type)
@@ -672,6 +965,20 @@ def write_vtk(output_vtk, points, indices=[], lines=[], faces=[],
 def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                     new_scalar_names=['scalars'], filter_scalars=[],
                     background_value=-1):
+=======
+                    scalar_name  = scalar_names[i]
+                write_scalars(Fp, scalar_list, scalar_name, begin_scalars=False)
+    else:
+        print('Error: scalars is empty')
+        exit()
+
+    Fp.close()
+
+    return output_vtk
+
+def rewrite_scalars(input_vtk, output_vtk, new_scalars,
+                    new_scalar_names=['scalars'], filter_scalars=[]):
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     """
     Load VTK format file and save a subset of scalars into a new file.
 
@@ -686,9 +993,13 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     new_scalar_names : string or list of strings
         each element is the new name for a lookup table
     filter_scalars : list or numpy array (optional)
+<<<<<<< HEAD
         scalar values used to filter faces (foreground values retained)
     background_value : integer
         background value
+=======
+        scalar values used to filter faces (values > -1 retained)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     Returns
     -------
@@ -697,6 +1008,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     Examples
     --------
+<<<<<<< HEAD
     >>> # Write vtk file with curvature values on sulci
     >>> import os
     >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
@@ -716,6 +1028,23 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     >>> # View:
     >>> from mindboggle.utils.plots import plot_surfaces
     >>> plot_surfaces('rewrite_scalars.vtk')
+=======
+    >>> # Write vtk file with depth values on sulci
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import read_scalars, rewrite_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> depth_file = os.path.join(path, 'arno', 'measures', 'lh.pial.depth.vtk')
+    >>> depths, name = read_scalars(depth_file, True,True)
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> sulci, name = read_scalars(sulci_file, True,True)
+    >>> #
+    >>> rewrite_scalars(depth_file, 'test_rewrite_scalars.vtk',
+    >>>                 depths, 'depths', sulci)
+    >>> #
+    >>> # View:
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk('test_rewrite_scalars.vtk')
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
@@ -723,7 +1052,12 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
 
     from mindboggle.utils.mesh import remove_faces
     from mindboggle.utils.io_vtk import write_header, write_points, \
+<<<<<<< HEAD
         write_vertices, write_faces, write_scalars, read_vtk, scalars_checker
+=======
+         write_vertices, write_faces, write_scalars, read_vtk, \
+         scalars_checker
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     # Convert numpy arrays to lists
     if isinstance(new_scalars, np.ndarray):
@@ -735,6 +1069,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     output_vtk = os.path.join(os.getcwd(), output_vtk)
 
     # Load VTK file
+<<<<<<< HEAD
     faces, lines, indices, points, npoints, scalars, name, \
         input_vtk = read_vtk(input_vtk)
 
@@ -746,6 +1081,17 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                           if x == background_value]
         # Remove surface faces whose three vertices are not all in indices
         faces = remove_faces(faces, indices_keep)
+=======
+    faces, lines, indices, points, npoints, scalars, name = read_vtk(input_vtk)
+
+    # Find indices to nonzero values
+    indices = range(npoints)
+    if filter_scalars:
+        indices_filter = [i for i,x in enumerate(filter_scalars) if x > -1]
+        indices_remove = [i for i,x in enumerate(filter_scalars) if x == -1]
+        # Remove surface mesh faces whose three vertices are not all in indices
+        faces = remove_faces(faces, indices_filter)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     # Write VTK file
     Fp = open(output_vtk,'w')
@@ -756,6 +1102,7 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
     if faces:
         write_faces(Fp, faces)
     if new_scalars:
+<<<<<<< HEAD
         new_scalars, new_scalar_names = scalars_checker(new_scalars,
                                                         new_scalar_names)
 
@@ -775,20 +1122,37 @@ def rewrite_scalars(input_vtk, output_vtk, new_scalars,
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
                               begin_scalars=True,
                               scalar_type=scalar_type)
+=======
+        new_scalars, new_scalar_names = scalars_checker(new_scalars, new_scalar_names)
+
+        for i, new_scalar_list in enumerate(new_scalars):
+            if filter_scalars:
+                for iremove in indices_remove:
+                    new_scalar_list[iremove] = -1
+            if i == 0:
+                new_scalar_name = new_scalar_names[0]
+                write_scalars(Fp, new_scalar_list, new_scalar_name)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
             else:
                 if len(new_scalar_names) < i + 1:
                     new_scalar_name = new_scalar_names[0]
                 else:
+<<<<<<< HEAD
                     new_scalar_name = new_scalar_names[i]
                 write_scalars(Fp, new_scalar_list, new_scalar_name,
                               begin_scalars=False,
                               scalar_type=scalar_type)
+=======
+                    new_scalar_name  = new_scalar_names[i]
+                write_scalars(Fp, new_scalar_list, new_scalar_name, begin_scalars=False)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     else:
         print('Error: new_scalars is empty')
         exit()
 
     Fp.close()
 
+<<<<<<< HEAD
     if not os.path.exists(output_vtk):
         raise(IOError(output_vtk + " not found"))
 
@@ -812,12 +1176,27 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
         (assumes that the scalars are a list of floats or integers)
     input_values_vtk : string
         path of the input VTK file that contains values as scalars
+=======
+    return output_vtk
+
+def explode_scalars(input_vtk, output_stem, exclude_values=[-1],
+                    background_value=-1, output_scalar_name='scalars'):
+    """
+    Write out a separate VTK file for each integer (>-1)
+    in (the first) scalar list of an input VTK file.
+
+    Parameters
+    ----------
+    input_vtk : string
+        path of the input VTK file
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     output_stem : string
         path and stem of the output VTK file
     exclude_values : list or array
         values to exclude
     background_value : integer or float
         background value in output VTK files
+<<<<<<< HEAD
     remove_background_faces : Boolean
         remove all faces whose three vertices are not all a given index?
     reindex : Boolean
@@ -861,10 +1240,30 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
     >>> # View:
     >>> example_vtk = os.path.join(os.getcwd(), output_stem + '2.vtk')
     >>> plot_surfaces(example_vtk)
+=======
+    scalar_name : string
+        name of a lookup table of scalars values
+
+    Examples
+    --------
+    >>> import os
+    >>> from mindboggle.utils.io_vtk import explode_scalars
+    >>> path = os.environ['MINDBOGGLE_DATA']
+    >>> sulci_file = os.path.join(path, 'arno', 'features', 'sulci.vtk')
+    >>> output_stem = 'sulcus'
+    >>> #
+    >>> explode_scalars(sulci_file, output_stem)
+    >>> #
+    >>> # View:
+    >>> example_vtk = os.path.join(os.getcwd(), output_stem + '0.vtk')
+    >>> from mindboggle.utils.mesh import plot_vtk
+    >>> plot_vtk(example_vtk)
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import os
     import numpy as np
+<<<<<<< HEAD
     from mindboggle.utils.io_vtk import read_scalars, read_vtk, write_vtk
     from mindboggle.utils.mesh import reindex_faces_points, remove_faces
 
@@ -932,6 +1331,32 @@ def explode_scalars(input_indices_vtk, input_values_vtk='', output_stem='',
                   select_values.tolist(), output_scalar_name,
                   scalar_type=scalar_type)
 
+=======
+    from mindboggle.utils.io_vtk import read_vtk, write_vtk
+
+    # Load VTK file
+    faces, lines, indices, points, npoints, scalars, \
+        scalar_names = read_vtk(input_vtk, return_first=False, return_array=False)
+    print("Explode the scalar list in {0}".format(os.path.basename(input_vtk)))
+
+    # Use first scalar list as a numpy array
+    scalars = np.array(scalars[0])
+
+    # Loop through unique (non-excluded) scalar values
+    unique_scalars = [int(x) for x in np.unique(scalars) if x not in exclude_values]
+    for scalar in unique_scalars:
+
+        # Create array and indices for scalar value
+        new_scalars = np.copy(scalars)
+        new_scalars[scalars != scalar] = background_value
+        indices = [i for i,x in enumerate(new_scalars) if x == scalar]
+        print("  Scalar {0}: {1} vertices".format(scalar, len(indices)))
+
+        # Write VTK file with scalar value
+        output_vtk = os.path.join(os.getcwd(), output_stem + str(scalar) + '.vtk')
+        write_vtk(output_vtk, points, indices, lines, faces,
+                  [new_scalars.tolist()], [output_scalar_name])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
 def scalars_checker(scalars, scalar_names):
     """
@@ -940,6 +1365,7 @@ def scalars_checker(scalars, scalar_names):
 
     Parameters
     ----------
+<<<<<<< HEAD
     scalars : list of lists of floats (or single list or 1-/2-D array)
     scalar_names : string or list of strings
 
@@ -948,10 +1374,16 @@ def scalars_checker(scalars, scalar_names):
     scalars : list of lists of floats or integers
     scalar_names : list of strings
 
+=======
+    scalars : list of lists of floats (or single list or 1-/2-D array of floats)
+    scalar_names : string or list of strings
+
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     Examples
     --------
     >>> import numpy as np
     >>> from mindboggle.utils.io_vtk import scalars_checker
+<<<<<<< HEAD
     >>> scalars_checker([[1,2],[3,4]], ["list1", "list2"])
       ([[1, 2], [3, 4]], ['list1', 'list2'])
     >>> scalars_checker([[1,2],[3,4]], "")
@@ -960,11 +1392,16 @@ def scalars_checker(scalars, scalar_names):
       ([[1, 2], [3, 4]], ['list1', 'list2', 'list3'])
     >>> scalars_checker([[1,2],[3,4]], "list1")
       ([[1, 2], [3, 4]], ['list1', 'list1'])
+=======
+    >>> scalars_checker([[1,2],[3,4]], "")
+      ([[1, 2], [3, 4]], [''])
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
     >>> scalars_checker([1,2,3,4], ["123"])
       ([[1, 2, 3, 4]], ['123'])
     >>> scalars_checker(1, ["123"])
       Error: scalars is neither a list nor a numpy array.
     >>> scalars_checker(np.array([1,2,3]), ["123"])
+<<<<<<< HEAD
       ([[1, 2, 3]], ['123'])
     >>> scalars_checker(np.array([[1,2,3]]), ["123"])
       ([[1, 2, 3]], ['123'])
@@ -979,11 +1416,26 @@ def scalars_checker(scalars, scalar_names):
     -----
     This function does not check all possible cases of scalars and
     scalar_names, but only those that are likely to occur when using Mindboggle.
+=======
+      Warning: the new_scalars is a 1-D numpy array. Conversion done but may have problems in final VTK.
+    >>> scalars_checker(np.array([[1,2,3]]), ["123"])
+    >>> ([[1, 2, 3]], ['123'])
+    >>> scalars_checker(np.array([[1,2,3],[4,5,6]]), ["123"])
+    >>> ([[1, 2, 3], [4, 5, 6]], ['123'])
+    >>> scalars_checker(np.array([[[1,2,3]]]), ["123"])
+      Error: Dimension of new_scalars is too high.
+
+    Notes
+    -----
+    This function does not check all possible cases of scalars and scalar_names,
+    but only those that are likely to happen when using Mindboggle.
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     """
     import sys
     import numpy as np
 
+<<<<<<< HEAD
     # If not a list, convert to a list.
     if not isinstance(scalars, list):
         if isinstance(scalars, np.ndarray):
@@ -1038,10 +1490,48 @@ def scalars_checker(scalars, scalar_names):
 
     else:
         print("Warning: scalars is empty")
+=======
+    if not isinstance(scalars, list):
+        if isinstance(scalars, np.ndarray):
+            if len(scalars.shape) < 2: # this is a 1-D array
+                scalars = np.array([scalars]) # increase dimension by 1
+                print "Warning: scalars is a 1-D numpy array. Conversion done but may have problems in final VTK. "
+                scalars = scalars.tolist()
+            elif len(scalars.shape) == 2: # 2-D numpy array
+                scalars = scalars.tolist()
+            else:
+                print "Error: Dimension of new_scalars is too high."
+                sys.exit()
+        else:
+            print "Error: scalars is neither a list nor a numpy array. "
+            sys.exit()
+    else:  # a list, but may be 1-D
+
+        # This is an acceptable 1-D list
+        if isinstance(scalars[0], int) or isinstance(scalars[0], float):
+            scalars = [scalars]
+        elif isinstance(scalars[0], list):
+            pass
+        else:
+            print "io_vtk.py: Error: scalars is a 1-D list containing unacceptable elements. "
+            print "io_vtk.py: scalars type is:", type(scalars)
+            print "io_vtk,py: scalar length is:", len(scalars)
+            print "io_vtk.py: scalars[0] type is:", type(scalars[0])
+            sys.exit()
+
+    if isinstance(scalar_names, str):
+        scalar_names = [scalar_names]
+    elif isinstance(scalar_names, list):
+        pass
+    else:
+        print "Error: scalar_names is neither a list nor a string"
+        sys.exit()
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 
     return scalars, scalar_names
 
 
+<<<<<<< HEAD
 #-----------------------------------------------------------------------------
 # Read and apply an affine transform to the points of a VTK surface mesh
 #-----------------------------------------------------------------------------
@@ -1599,4 +2089,6 @@ def freesurfer_annot_to_vtk(annot_file, vtk_file, output_vtk=''):
     return labels, output_vtk
 
 
+=======
+>>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 #if __name__ == "__main__" :
