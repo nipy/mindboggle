@@ -6,4 +6,3 @@
 
 .. include:: ../../STORY.rst
 
-#.. include:: ../links.txt
