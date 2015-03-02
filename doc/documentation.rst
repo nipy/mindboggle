@@ -9,8 +9,6 @@ Documentation
    :Release: |version|
    :Date: |today|
 
-   #Download `PDF <mindboggle.pdf>`_
-
    Contents:
 
 .. toctree::
