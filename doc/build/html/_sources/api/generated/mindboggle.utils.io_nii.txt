@@ -1,0 +1,20 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.io_nii
+============
+
+Module: :mod:`utils.io_nii`
+---------------------------
+.. automodule:: mindboggle.utils.io_nii
+
+.. currentmodule:: mindboggle.utils.io_nii
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.io_nii.convert2nii
+
+
+.. autofunction:: mindboggle.utils.io_nii.xyz2nii
+

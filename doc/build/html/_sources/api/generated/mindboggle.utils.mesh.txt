@@ -1,0 +1,74 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.mesh
+==========
+
+Module: :mod:`utils.mesh`
+-------------------------
+.. automodule:: mindboggle.utils.mesh
+
+.. currentmodule:: mindboggle.utils.mesh
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.mesh.area_of_faces
+
+
+.. autofunction:: mindboggle.utils.mesh.decimate
+
+
+.. autofunction:: mindboggle.utils.mesh.decimate_file
+
+
+.. autofunction:: mindboggle.utils.mesh.find_adjacent_faces
+
+
+.. autofunction:: mindboggle.utils.mesh.find_complete_faces
+
+
+.. autofunction:: mindboggle.utils.mesh.find_edges
+
+
+.. autofunction:: mindboggle.utils.mesh.find_endpoints
+
+
+.. autofunction:: mindboggle.utils.mesh.find_faces_at_edges
+
+
+.. autofunction:: mindboggle.utils.mesh.find_faces_at_vertices
+
+
+.. autofunction:: mindboggle.utils.mesh.find_faces_with_vertex
+
+
+.. autofunction:: mindboggle.utils.mesh.find_neighborhood
+
+
+.. autofunction:: mindboggle.utils.mesh.find_neighbors
+
+
+.. autofunction:: mindboggle.utils.mesh.find_neighbors_from_file
+
+
+.. autofunction:: mindboggle.utils.mesh.find_neighbors_vertex
+
+
+.. autofunction:: mindboggle.utils.mesh.reindex_faces_0to1
+
+
+.. autofunction:: mindboggle.utils.mesh.reindex_faces_points
+
+
+.. autofunction:: mindboggle.utils.mesh.remove_faces
+
+
+.. autofunction:: mindboggle.utils.mesh.remove_neighbor_lists
+
+
+.. autofunction:: mindboggle.utils.mesh.rescale_by_label
+
+
+.. autofunction:: mindboggle.utils.mesh.rescale_by_neighborhood
+
