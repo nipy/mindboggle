@@ -6,7 +6,7 @@
 ==============================================================================
 People working on Mindboggle
 ==============================================================================
-(See `Contributions <http://mindboggle.info/users/THANKS.html>`_)
+(See `Contributions <users/THANKS.html>`_)
 
 +------------+--------------+
 |            |              |
