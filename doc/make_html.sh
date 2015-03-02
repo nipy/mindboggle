@@ -1,4 +1,4 @@
 
 make html
 
-#mv build/html ..
+mv build/html ..
