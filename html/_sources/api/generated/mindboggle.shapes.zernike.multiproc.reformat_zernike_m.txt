@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.reformat_zernike_m
+===========================================
+
+Module: :mod:`shapes.zernike.multiproc.reformat_zernike_m`
+----------------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.reformat_zernike_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.reformat_zernike_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.reformat_zernike_m.reformat_zernike
+

@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.trinomial_m
+====================================
+
+Module: :mod:`shapes.zernike.multiproc.trinomial_m`
+---------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.trinomial_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.trinomial_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.trinomial_m.trinomial
+

@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.feature_extraction_m
+=============================================
+
+Module: :mod:`shapes.zernike.multiproc.feature_extraction_m`
+------------------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.feature_extraction_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.feature_extraction_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.feature_extraction_m.feature_extraction
+

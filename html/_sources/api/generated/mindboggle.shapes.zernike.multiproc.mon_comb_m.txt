@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.mon_comb_m
+===================================
+
+Module: :mod:`shapes.zernike.multiproc.mon_comb_m`
+--------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.mon_comb_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.mon_comb_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.mon_comb_m.mon_comb
+
