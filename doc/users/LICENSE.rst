@@ -2,4 +2,3 @@
 
 .. include:: ../../LICENSE.rst
 
-#.. include:: ../links.txt

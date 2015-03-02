@@ -2,5 +2,4 @@
 
 .. include:: ../../THANKS.rst
 
-#.. include:: ../links.txt
 
