@@ -1,0 +1,55 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+thirdparty.nilearn_image_resampling
+===================================
+
+Module: :mod:`thirdparty.nilearn_image_resampling`
+--------------------------------------------------
+Inheritance diagram for ``mindboggle.thirdparty.nilearn_image_resampling``:
+
+.. inheritance-diagram:: mindboggle.thirdparty.nilearn_image_resampling 
+   :parts: 3
+
+.. automodule:: mindboggle.thirdparty.nilearn_image_resampling
+
+.. currentmodule:: mindboggle.thirdparty.nilearn_image_resampling
+
+Class
+-----
+
+:class:`BoundingBoxError`
+-------------------------
+
+
+.. autoclass:: BoundingBoxError
+  :members:
+  :undoc-members:
+  :show-inheritance:
+  :inherited-members:
+
+  .. automethod:: __init__
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.coord_transform
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.from_matrix_vector
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.get_bounds
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.get_mask_bounds
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.reorder_img
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.resample_img
+
+
+.. autofunction:: mindboggle.thirdparty.nilearn_image_resampling.to_matrix_vector
+

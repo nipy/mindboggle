@@ -1,0 +1,47 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+utils.io_table
+==============
+
+Module: :mod:`utils.io_table`
+-----------------------------
+.. automodule:: mindboggle.utils.io_table
+
+.. currentmodule:: mindboggle.utils.io_table
+
+Functions
+---------
+
+
+.. autofunction:: mindboggle.utils.io_table.alternate_columns_from_tables
+
+
+.. autofunction:: mindboggle.utils.io_table.concatenate_mindboggle_tables
+
+
+.. autofunction:: mindboggle.utils.io_table.read_columns
+
+
+.. autofunction:: mindboggle.utils.io_table.select_column_from_mindboggle_tables
+
+
+.. autofunction:: mindboggle.utils.io_table.select_column_from_tables
+
+
+.. autofunction:: mindboggle.utils.io_table.write_average_face_values_per_label
+
+
+.. autofunction:: mindboggle.utils.io_table.write_columns
+
+
+.. autofunction:: mindboggle.utils.io_table.write_face_vertex_averages
+
+
+.. autofunction:: mindboggle.utils.io_table.write_rows
+
+
+.. autofunction:: mindboggle.utils.io_table.write_shape_stats
+
+
+.. autofunction:: mindboggle.utils.io_table.write_vertex_measures
+

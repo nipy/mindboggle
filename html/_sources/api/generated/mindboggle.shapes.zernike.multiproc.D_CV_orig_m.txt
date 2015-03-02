@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+shapes.zernike.multiproc.D_CV_orig_m
+====================================
+
+Module: :mod:`shapes.zernike.multiproc.D_CV_orig_m`
+---------------------------------------------------
+.. automodule:: mindboggle.shapes.zernike.multiproc.D_CV_orig_m
+
+.. currentmodule:: mindboggle.shapes.zernike.multiproc.D_CV_orig_m
+
+.. autofunction:: mindboggle.shapes.zernike.multiproc.D_CV_orig_m.D_CV_orig
+

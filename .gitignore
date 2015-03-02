@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 CMakeCache.txt
 CMakeFiles
 /build
@@ -8,7 +7,6 @@ mindboggle.*.box
 /MANIFEST
 /mindboggle/build
 /mindboggle/mindboggle.egg-info
-/doc/_build
 /doc/users/examples
 /doc/api/generated
 .vagrant/
@@ -25,19 +23,14 @@ crash-*
 *.gz
 *.zip
 *.tar
+*.tar.gz
 ._*
 *~ 
-=======
-.DS_Store
-._*
-*~
->>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4
 #* 
 .#* 
 ,* 
 _$* 
 *$ 
-<<<<<<< HEAD
 *.old 
 *.bak 
 *.BAK 
@@ -53,7 +46,6 @@ _$*
 *.Z 
 *.elc 
 *.ln
-=======
 .del-* 
 *.cache*
 crash-*
@@ -63,4 +55,3 @@ x
 CMakeCache.txt
 CMakeFiles
 
->>>>>>> e4dcb043a2f38490c0fd6c867f5864ca9eb440c4

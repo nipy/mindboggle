@@ -1,0 +1,13 @@
+.. AUTO-GENERATED FILE -- DO NOT EDIT!
+
+evaluate.evaluate_fundi
+=======================
+
+Module: :mod:`evaluate.evaluate_fundi`
+--------------------------------------
+.. automodule:: mindboggle.evaluate.evaluate_fundi
+
+.. currentmodule:: mindboggle.evaluate.evaluate_fundi
+
+.. autofunction:: mindboggle.evaluate.evaluate_fundi.compute_fundus_distances
+
