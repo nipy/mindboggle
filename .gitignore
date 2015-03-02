@@ -14,7 +14,6 @@ mindboggle.*.box
 .vagrant/
 /Vagrantfile
 /doc/build/
-/html
 /doc/manual
 .project
 .settings
